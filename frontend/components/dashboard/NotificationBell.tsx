@@ -74,7 +74,7 @@ export function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="relative p-1.5 text-gray-500 hover:text-gray-700 transition-colors"
+        className="relative p-1.5 text-gray-600 hover:text-gray-700 transition-colors"
         aria-label={`알림 ${unreadCount}개`}
       >
         <Bell className="w-5 h-5" />
@@ -89,18 +89,18 @@ export function NotificationBell() {
         <div className="absolute top-full left-0 mt-1 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 z-50 max-h-80 overflow-y-auto">
           <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 dark:border-gray-700">
             <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">알림</p>
-            <button onClick={() => setOpen(false)} className="text-gray-500 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
+            <button onClick={() => setOpen(false)} className="text-gray-600 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-300">
               <X className="w-4 h-4" />
             </button>
           </div>
           {messages.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-500 text-center py-6">새 알림이 없습니다</p>
+            <p className="text-sm text-gray-600 dark:text-gray-600 text-center py-6">새 알림이 없습니다</p>
           ) : (
             <div className="divide-y divide-gray-50 dark:divide-gray-700">
               {messages.map((msg) => (
                 <div key={msg.id} className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                   <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{msg.title}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5 leading-snug">{msg.body}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-600 mt-0.5 leading-snug">{msg.body}</p>
                   {msg.cta_label && msg.cta_url && (
                     <a
                       href={msg.cta_url}
@@ -111,7 +111,7 @@ export function NotificationBell() {
                   )}
                   <button
                     onClick={() => markRead(msg.id)}
-                    className="text-sm text-gray-500 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 mt-1 transition-colors"
+                    className="text-sm text-gray-600 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-300 mt-1 transition-colors"
                   >
                     읽음으로 표시
                   </button>

@@ -79,7 +79,7 @@ export default function ActionCompleteSection({ bizId, token, actionCopyText, to
       {/* 경쟁사 변화 알림 배너 */}
       {loaded && changes.length > 0 && (
         <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 flex items-start gap-3">
-          <Bell className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+          <Bell className="w-5 h-5 text-orange-700 shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-orange-900 text-sm">경쟁사 변화 감지</p>
             {changes.map(c => (
@@ -87,7 +87,7 @@ export default function ActionCompleteSection({ bizId, token, actionCopyText, to
                 <span className="font-medium">{c.name}</span>이(가) {c.change_summary}
               </p>
             ))}
-            <a href="/competitors" className="text-sm text-orange-600 underline mt-2 inline-block">
+            <a href="/competitors" className="text-sm text-orange-700 underline mt-2 inline-block">
               경쟁사 현황 보기 &rarr;
             </a>
           </div>

@@ -39,12 +39,12 @@ interface Props {
 
 function DeltaBadge({ before, after }: { before: number | null; after: number | null }) {
   if (before === null || after === null) {
-    return <span className="text-sm text-gray-500">측정 중</span>
+    return <span className="text-sm text-gray-600">측정 중</span>
   }
   const delta = after - before
   if (Math.abs(delta) < 0.1) {
     return (
-      <span className="flex items-center gap-0.5 text-sm text-gray-500 font-medium">
+      <span className="flex items-center gap-0.5 text-sm text-gray-600 font-medium">
         <Minus className="w-3.5 h-3.5" />
         변화 없음
       </span>
@@ -52,14 +52,14 @@ function DeltaBadge({ before, after }: { before: number | null; after: number | 
   }
   if (delta > 0) {
     return (
-      <span className="flex items-center gap-0.5 text-sm text-green-600 font-semibold">
+      <span className="flex items-center gap-0.5 text-sm text-green-700 font-semibold">
         <TrendingUp className="w-3.5 h-3.5" />
         개선됨
       </span>
     )
   }
   return (
-    <span className="flex items-center gap-0.5 text-sm text-red-500 font-semibold">
+    <span className="flex items-center gap-0.5 text-sm text-red-700 font-semibold">
       <TrendingDown className="w-3.5 h-3.5" />
       하락
     </span>
@@ -141,7 +141,7 @@ function ActionTimelineContent({ businessId, authToken }: { businessId: string; 
     <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-blue-500" />
+          <Activity className="w-4 h-4 text-blue-600" />
           <span className="text-sm font-semibold text-gray-900">행동 → 점수 변화</span>
         </div>
         {data.action_count > 0 && (
@@ -153,7 +153,7 @@ function ActionTimelineContent({ businessId, authToken }: { businessId: string; 
 
       {recentWindows.length === 0 ? (
         <div className="bg-gray-50 rounded-xl p-4 text-center">
-          <p className="text-sm text-gray-500 leading-relaxed">
+          <p className="text-sm text-gray-600 leading-relaxed">
             아직 기록된 행동이 없습니다.<br />
             가이드를 실행하면 7일 후 점수 변화가 자동 기록됩니다.
           </p>
@@ -168,7 +168,7 @@ function ActionTimelineContent({ businessId, authToken }: { businessId: string; 
               <div className="flex items-start justify-between gap-2 flex-wrap">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-gray-800 truncate">{w.action_label}</p>
-                  <p className="text-sm text-gray-500 mt-0.5">
+                  <p className="text-sm text-gray-600 mt-0.5">
                     {new Date(w.action_date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}
                   </p>
                 </div>
@@ -182,7 +182,7 @@ function ActionTimelineContent({ businessId, authToken }: { businessId: string; 
         </div>
       )}
 
-      <p className="text-sm text-gray-500 mt-3 text-center">
+      <p className="text-sm text-gray-600 mt-3 text-center">
         더 많은 행동 기록은 대시보드에서 확인하세요
       </p>
     </div>

@@ -72,7 +72,7 @@ export default function MissingKeywordBadges({ keywords, bizId, token }: Props) 
             type="button"
             onClick={() => handleExclude(kw)}
             title="이 키워드 제외"
-            className="hover:text-red-500 transition-colors ml-0.5"
+            className="hover:text-red-700 transition-colors ml-0.5"
             aria-label={`${kw} 키워드 제외`}
           >
             <X className="w-3.5 h-3.5" />

@@ -24,7 +24,7 @@ const SECTIONS = [
     label: '경쟁사 비교',
     desc: '경쟁 순위 · 키워드 격차 · FAQ 갭',
     icon: Users,
-    color: 'text-orange-600 bg-orange-50',
+    color: 'text-orange-700 bg-orange-50',
     activeBar: 'border-l-4 border-orange-500',
   },
   {
@@ -32,7 +32,7 @@ const SECTIONS = [
     label: '채널별 분석 · 항목 점검',
     desc: '채널별 분석 근거 · 스마트플레이스 · 카카오맵 · 웹사이트 자동 점검',
     icon: Wrench,
-    color: 'text-emerald-600 bg-emerald-50',
+    color: 'text-emerald-700 bg-emerald-50',
     activeBar: 'border-l-4 border-emerald-500',
   },
 ]
@@ -93,7 +93,7 @@ export default function DashboardAccordion({ tab1Content, tab2Content, tab3Conte
                   </span>
                   <div>
                     <p className="text-base font-semibold text-gray-800">{section.label}</p>
-                    <p className="text-sm text-gray-500 mt-0.5">{section.desc}</p>
+                    <p className="text-sm text-gray-600 mt-0.5">{section.desc}</p>
                   </div>
                 </div>
                 <span className={[

@@ -153,7 +153,7 @@ export default async function CompetitorsPage({
               경쟁사 관리
               <span className="text-blue-600 font-semibold"> — {business.name}</span>
             </h1>
-            <p className="text-sm md:text-base text-gray-500 mt-1 leading-relaxed">
+            <p className="text-sm md:text-base text-gray-600 mt-1 leading-relaxed">
               주변 경쟁 가게를 등록해 AI 검색 노출 순위와 키워드 격차를 비교하세요.
             </p>
           </div>
@@ -166,7 +166,7 @@ export default async function CompetitorsPage({
               {(() => {
                 const syncedCount = competitors.filter(c => c.place_synced_at).length
                 return syncedCount < (competitors?.length ?? 0) ? (
-                  <span className="text-amber-600 text-sm font-medium">
+                  <span className="text-amber-700 text-sm font-medium">
                     ({syncedCount}개 동기화 완료)
                   </span>
                 ) : null
@@ -200,11 +200,11 @@ export default async function CompetitorsPage({
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
                   s.n < step ? 'bg-blue-500 text-white' :
                   s.n === step ? 'bg-blue-600 text-white ring-2 ring-blue-200' :
-                  'bg-gray-200 text-gray-500'
+                  'bg-gray-200 text-gray-600'
                 }`}>
                   {s.n < step ? '✓' : s.n}
                 </div>
-                <span className={`text-sm font-semibold truncate ${s.n === step ? 'text-blue-700' : s.n < step ? 'text-blue-500' : 'text-gray-500'}`}>
+                <span className={`text-sm font-semibold truncate ${s.n === step ? 'text-blue-700' : s.n < step ? 'text-blue-600' : 'text-gray-600'}`}>
                   {s.label}
                 </span>
                 {i < steps.length - 1 && (

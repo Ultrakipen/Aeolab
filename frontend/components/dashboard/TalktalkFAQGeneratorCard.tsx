@@ -229,7 +229,7 @@ export function TalktalkFAQGeneratorCard({
           )}
 
           {generatedAt && (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-600">
               마지막 생성: {new Date(generatedAt).toLocaleString("ko-KR")}
             </p>
           )}
@@ -240,7 +240,7 @@ export function TalktalkFAQGeneratorCard({
               <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <h4 className="text-sm md:text-base font-bold text-gray-900">
                   채팅방 메뉴 {generated.chat_menus.length}개
-                  <span className="ml-2 text-sm text-gray-500 font-normal">(메뉴명 6자 이내)</span>
+                  <span className="ml-2 text-sm text-gray-600 font-normal">(메뉴명 6자 이내)</span>
                 </h4>
                 <button
                   onClick={copyAllMenus}
@@ -284,7 +284,7 @@ export function TalktalkFAQGeneratorCard({
                         </a>
                         <button
                           onClick={() => copyMenuContent(menu, i)}
-                          className="text-sm text-gray-500 hover:text-gray-700 font-medium shrink-0"
+                          className="text-sm text-gray-600 hover:text-gray-700 font-medium shrink-0"
                         >
                           {copiedMenuIndex === i ? "복사됨!" : "URL 복사"}
                         </button>
@@ -294,7 +294,7 @@ export function TalktalkFAQGeneratorCard({
                         {menu.message}
                       </p>
                     ) : (
-                      <p className="text-sm text-gray-500 italic leading-relaxed">
+                      <p className="text-sm text-gray-600 italic leading-relaxed">
                         &lsquo;다시 생성&rsquo;을 누르면 메뉴 클릭 시 보낼 안내 메시지가 자동 작성됩니다
                       </p>
                     )}
@@ -352,7 +352,7 @@ export function TalktalkFAQGeneratorCard({
             {generated.items.length > 0 && (
               <button
                 onClick={copyAll}
-                className="flex-1 px-4 py-3 bg-green-600 text-white rounded font-medium text-sm md:text-base hover:bg-green-700 transition-colors"
+                className="flex-1 px-4 py-3 bg-green-700 text-white rounded font-medium text-sm md:text-base hover:bg-green-700 transition-colors"
               >
                 {copiedAll ? "복사됨!" : "소개글 Q&A 전체 복사"}
               </button>

@@ -35,12 +35,12 @@ export default async function GrowthPage() {
       <div className="p-4 md:p-8 max-w-2xl mx-auto">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-8 text-center">
           <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-7 h-7 text-gray-500" strokeWidth={1.5} />
+            <Lock className="w-7 h-7 text-gray-600" strokeWidth={1.5} />
           </div>
           <h2 className="text-lg md:text-xl font-bold text-gray-700 mb-2">
             성장 기록은 Basic 이상 요금제에서 사용 가능합니다
           </h2>
-          <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+          <p className="text-sm text-gray-600 mb-6 leading-relaxed">
             내 가게가 AI에 얼마나 자주 노출되는지 30일간 추적하고,<br />
             업종 평균과 비교해 볼 수 있습니다.
           </p>
@@ -76,7 +76,7 @@ export default async function GrowthPage() {
           <h2 className="text-lg md:text-xl font-bold text-gray-700 mb-2">
             사업장을 먼저 등록해주세요
           </h2>
-          <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+          <p className="text-sm text-gray-600 mb-6 leading-relaxed">
             성장 기록은 사업장을 등록한 후 AI 스캔을 진행하면 확인할 수 있습니다.
           </p>
           <Link
@@ -105,7 +105,7 @@ export default async function GrowthPage() {
           <h2 className="text-lg md:text-xl font-bold text-gray-700 mb-2">
             첫 AI 스캔을 실행해주세요
           </h2>
-          <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+          <p className="text-sm text-gray-600 mb-6 leading-relaxed">
             성장 기록은 스캔 기록이 있어야 확인할 수 있습니다.
             <br />
             대시보드에서 첫 AI 스캔을 실행해보세요.

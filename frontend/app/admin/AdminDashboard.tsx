@@ -235,7 +235,7 @@ function FAQTab() {
             >
               {submitting ? "등록 중..." : "등록"}
             </button>
-            {msg && <span className="text-sm text-green-600">{msg}</span>}
+            {msg && <span className="text-sm text-green-700">{msg}</span>}
           </div>
         </form>
       </div>
@@ -244,14 +244,14 @@ function FAQTab() {
       <div className="bg-white rounded-xl p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-gray-700 mb-4">등록된 FAQ ({faqs.length}개)</h2>
         {loading ? (
-          <div className="text-sm text-gray-500">불러오는 중...</div>
+          <div className="text-sm text-gray-600">불러오는 중...</div>
         ) : faqs.length === 0 ? (
-          <div className="text-sm text-gray-500">등록된 FAQ가 없습니다.</div>
+          <div className="text-sm text-gray-600">등록된 FAQ가 없습니다.</div>
         ) : (
           <div className="space-y-4">
             {grouped.map((g) => (
               <div key={g.key}>
-                <p className="text-sm font-semibold text-gray-500 uppercase mb-2">{g.label}</p>
+                <p className="text-sm font-semibold text-gray-600 uppercase mb-2">{g.label}</p>
                 <div className="space-y-2">
                   {g.items.map((f) => editingId === f.id ? (
                     <div key={f.id} className="py-3 border-b border-gray-50 last:border-0 space-y-2">
@@ -294,7 +294,7 @@ function FAQTab() {
                         </button>
                         <button
                           onClick={handleEditCancel}
-                          className="text-sm text-gray-500 hover:text-gray-700"
+                          className="text-sm text-gray-600 hover:text-gray-700"
                         >
                           취소
                         </button>
@@ -304,10 +304,10 @@ function FAQTab() {
                     <div key={f.id} className="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-800">{f.question}</p>
-                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">{f.answer}</p>
+                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">{f.answer}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500">#{f.order_num}</span>
+                        <span className="text-sm text-gray-600">#{f.order_num}</span>
                         <button
                           onClick={() => handleEditStart(f)}
                           className="text-sm text-blue-600 hover:text-blue-800"
@@ -316,7 +316,7 @@ function FAQTab() {
                         </button>
                         <button
                           onClick={() => handleDelete(f.id)}
-                          className="text-sm text-red-500 hover:text-red-700"
+                          className="text-sm text-red-700 hover:text-red-800"
                         >
                           삭제
                         </button>
@@ -420,7 +420,7 @@ function InquiryTab() {
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               statusFilter === key
                 ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                : "text-gray-600 hover:text-gray-700"
             }`}
           >
             {label}
@@ -434,9 +434,9 @@ function InquiryTab() {
           문의 목록 ({items.length}건)
         </h2>
         {loading ? (
-          <div className="text-sm text-gray-500">불러오는 중...</div>
+          <div className="text-sm text-gray-600">불러오는 중...</div>
         ) : items.length === 0 ? (
-          <div className="text-sm text-gray-500 py-8 text-center">문의 내역이 없습니다.</div>
+          <div className="text-sm text-gray-600 py-8 text-center">문의 내역이 없습니다.</div>
         ) : (
           <div className="space-y-2">
             {items.map((item) => {
@@ -459,17 +459,17 @@ function InquiryTab() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium text-gray-800 truncate">{item.subject}</span>
-                        <span className="text-sm text-gray-500 shrink-0">{item.name} ({item.email})</span>
+                        <span className="text-sm text-gray-600 shrink-0">{item.name} ({item.email})</span>
                       </div>
                     </div>
-                    <span className="text-sm text-gray-500 shrink-0">
+                    <span className="text-sm text-gray-600 shrink-0">
                       {new Date(item.created_at).toLocaleDateString("ko-KR")}
                     </span>
                   </button>
                   {isOpen && (
                     <div className="bg-gray-50 border-t border-gray-100">
                       <div className="p-4 border-b border-gray-100">
-                        <p className="text-sm text-gray-500 mb-1">문의 내용</p>
+                        <p className="text-sm text-gray-600 mb-1">문의 내용</p>
                         <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
                           {item.content}
                         </p>
@@ -477,13 +477,13 @@ function InquiryTab() {
                       <div className="p-4">
                         {item.answer && (
                           <div className="mb-3 p-3 bg-green-50 rounded-lg">
-                            <p className="text-sm text-green-600 mb-1">
+                            <p className="text-sm text-green-700 mb-1">
                               기존 답변 ({item.answered_at ? new Date(item.answered_at).toLocaleDateString("ko-KR") : ""})
                             </p>
                             <p className="text-sm text-gray-700 whitespace-pre-wrap">{item.answer}</p>
                           </div>
                         )}
-                        <p className="text-sm text-gray-500 mb-1">
+                        <p className="text-sm text-gray-600 mb-1">
                           {item.answer ? "답변 수정" : "답변 입력"}
                         </p>
                         <textarea
@@ -504,7 +504,7 @@ function InquiryTab() {
                             {submitting[item.id] ? "등록 중..." : "답변 등록"}
                           </button>
                           {msg[item.id] && (
-                            <span className="text-sm text-green-600">{msg[item.id]}</span>
+                            <span className="text-sm text-green-700">{msg[item.id]}</span>
                           )}
                         </div>
                       </div>
@@ -659,7 +659,7 @@ export function AdminDashboard() {
   if (error && !stats) {
     return (
       <div className="text-center py-24">
-        <p className="text-red-500 text-sm mb-3">{error}</p>
+        <p className="text-red-700 text-sm mb-3">{error}</p>
         <button
           onClick={() => { fetchAll(); loadSubs(); }}
           className="text-sm text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors"
@@ -688,7 +688,7 @@ export function AdminDashboard() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">대시보드</h1>
-          <p className="text-sm text-gray-500">구독자·매출·공지사항·FAQ·Q&A 관리</p>
+          <p className="text-sm text-gray-600">구독자·매출·공지사항·FAQ·Q&A 관리</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -713,7 +713,7 @@ export function AdminDashboard() {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 tab === key
                   ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  : "text-gray-600 hover:text-gray-700"
               }`}
             >
               {label}
@@ -737,9 +737,9 @@ export function AdminDashboard() {
                     { label: "이번 달 스캔", value: `${stats.scan_count_month}회`, sub: `오늘 ${stats.scan_count_today}회` },
                   ].map((item) => (
                     <div key={item.label} className="bg-white rounded-xl p-5 shadow-sm">
-                      <div className="text-sm text-gray-500 mb-1">{item.label}</div>
+                      <div className="text-sm text-gray-600 mb-1">{item.label}</div>
                       <div className="text-2xl font-bold text-gray-900">{item.value}</div>
-                      <div className="text-sm text-gray-500 mt-0.5">{item.sub}</div>
+                      <div className="text-sm text-gray-600 mt-0.5">{item.sub}</div>
                     </div>
                   ))}
                 </div>
@@ -747,7 +747,7 @@ export function AdminDashboard() {
                 <div className="bg-white rounded-xl p-5 shadow-sm mb-6">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-gray-700">BEP 달성 진행률</span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-600">
                       {stats.active_subscribers} / {BEP_TARGET}명 ({bepPct}%)
                     </span>
                   </div>
@@ -758,7 +758,7 @@ export function AdminDashboard() {
                     />
                   </div>
                   {bepPct >= 100 && (
-                    <p className="text-sm text-green-600 mt-2 font-medium">BEP 달성! 월 비용 ~8만원 커버됩니다.</p>
+                    <p className="text-sm text-green-700 mt-2 font-medium">BEP 달성! 월 비용 ~8만원 커버됩니다.</p>
                   )}
                 </div>
 
@@ -768,7 +768,7 @@ export function AdminDashboard() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="text-left text-sm text-gray-500 border-b border-gray-100">
+                          <tr className="text-left text-sm text-gray-600 border-b border-gray-100">
                             <th className="pb-2 font-medium">플랜</th>
                             <th className="pb-2 font-medium text-right">월정액</th>
                             <th className="pb-2 font-medium text-right">활성 구독자</th>
@@ -787,7 +787,7 @@ export function AdminDashboard() {
                                 <td className="py-2.5">
                                   <span className="capitalize font-medium text-gray-800">{plan}</span>
                                 </td>
-                                <td className="py-2.5 text-right text-gray-500">{ps.price.toLocaleString()}원</td>
+                                <td className="py-2.5 text-right text-gray-600">{ps.price.toLocaleString()}원</td>
                                 <td className="py-2.5 text-right">
                                   <span className={`font-semibold ${ps.subscribers > 0 ? "text-blue-600" : "text-gray-300"}`}>
                                     {ps.subscribers}명
@@ -806,7 +806,7 @@ export function AdminDashboard() {
                                         style={{ width: `${pct}%` }}
                                       />
                                     </div>
-                                    <span className={`text-sm ${pct >= 100 ? "text-green-600 font-semibold" : "text-gray-500"}`}>
+                                    <span className={`text-sm ${pct >= 100 ? "text-green-700 font-semibold" : "text-gray-600"}`}>
                                       {pct}%
                                     </span>
                                   </div>
@@ -841,7 +841,7 @@ export function AdminDashboard() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-left text-sm text-gray-500 border-b border-gray-100">
+                      <tr className="text-left text-sm text-gray-600 border-b border-gray-100">
                         <th className="pb-2">월</th>
                         <th className="pb-2 text-right">매출</th>
                         <th className="pb-2 text-right">구독자</th>
@@ -852,7 +852,7 @@ export function AdminDashboard() {
                         <tr key={row.month} className="border-b border-gray-50">
                           <td className="py-2 text-gray-700">{row.month}</td>
                           <td className="py-2 text-right font-medium">{row.revenue.toLocaleString()}원</td>
-                          <td className="py-2 text-right text-gray-500">{row.subscriber_count}명</td>
+                          <td className="py-2 text-right text-gray-600">{row.subscriber_count}명</td>
                         </tr>
                       ))}
                     </tbody>
@@ -896,14 +896,14 @@ export function AdminDashboard() {
                   </select>
                 </div>
                 {subLoading ? (
-                  <div className="text-sm text-gray-500 py-8 text-center">불러오는 중...</div>
+                  <div className="text-sm text-gray-600 py-8 text-center">불러오는 중...</div>
                 ) : subs.length === 0 ? (
-                  <div className="text-sm text-gray-500 py-4 text-center">검색 조건에 맞는 구독자가 없습니다.</div>
+                  <div className="text-sm text-gray-600 py-4 text-center">검색 조건에 맞는 구독자가 없습니다.</div>
                 ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-left text-sm text-gray-500 border-b border-gray-100">
+                      <tr className="text-left text-sm text-gray-600 border-b border-gray-100">
                         <th className="pb-2">이메일</th>
                         <th className="pb-2">플랜</th>
                         <th className="pb-2">상태</th>
@@ -925,15 +925,15 @@ export function AdminDashboard() {
                             <span className={`text-sm px-2 py-0.5 rounded-full ${
                               sub.status === "active" ? "bg-green-50 text-green-700" :
                               sub.status === "grace_period" ? "bg-yellow-50 text-yellow-700" :
-                              "bg-gray-100 text-gray-500"
+                              "bg-gray-100 text-gray-600"
                             }`}>
                               {SUB_STATUS_LABELS[sub.status] ?? sub.status}
                             </span>
                           </td>
-                          <td className="py-2 text-sm text-gray-500">
+                          <td className="py-2 text-sm text-gray-600">
                             {sub.end_at ? new Date(sub.end_at).toLocaleDateString("ko-KR") : "—"}
                           </td>
-                          <td className="py-2 text-sm text-gray-500">
+                          <td className="py-2 text-sm text-gray-600">
                             {(sub.team_member_count || sub.api_key_count)
                               ? `팀 ${sub.team_member_count ?? 0}명 · 키 ${sub.api_key_count ?? 0}개`
                               : "—"}
@@ -942,7 +942,7 @@ export function AdminDashboard() {
                             {(sub.status === "active" || sub.status === "grace_period") ? (
                               <button
                                 onClick={() => { setCancelTarget(sub); setCancelStep(1); setCancelError(""); setCancelResult(null); }}
-                                className="text-sm text-red-600 hover:text-red-800 font-medium"
+                                className="text-sm text-red-700 hover:text-red-800 font-medium"
                               >
                                 구독 취소
                               </button>
@@ -965,7 +965,7 @@ export function AdminDashboard() {
                     >
                       ← 이전
                     </button>
-                    <span className="text-sm text-gray-500">{subPage + 1} / {subTotalPages} 페이지</span>
+                    <span className="text-sm text-gray-600">{subPage + 1} / {subTotalPages} 페이지</span>
                     <button
                       onClick={() => setSubPage((p) => Math.min(subTotalPages - 1, p + 1))}
                       disabled={subPage >= subTotalPages - 1}
@@ -982,7 +982,7 @@ export function AdminDashboard() {
             {catDist && catDist.total > 0 && (
               <div className="bg-white rounded-xl p-5 shadow-sm mt-6">
                 <h2 className="text-sm font-semibold text-gray-700 mb-1">업종 그룹 분포</h2>
-                <p className="text-sm text-gray-500 mb-4">
+                <p className="text-sm text-gray-600 mb-4">
                   AI 브리핑 게이팅 기준 · INACTIVE 비율이 높으면 해당 UX 개선 우선순위 ↑ (총 {catDist.total}개 사업장)
                 </p>
                 <div className="grid grid-cols-3 gap-3 mb-4">
@@ -994,16 +994,16 @@ export function AdminDashboard() {
                     <div key={key} className={`rounded-xl p-3 border ${bg}`}>
                       <div className={`text-sm font-semibold ${color} mb-0.5`}>{label}</div>
                       <div className={`text-xl font-bold ${color}`}>{catDist.ratios[key]}%</div>
-                      <div className="text-sm text-gray-500">{catDist.groups[key]}개 · {desc}</div>
+                      <div className="text-sm text-gray-600">{catDist.groups[key]}개 · {desc}</div>
                     </div>
                   ))}
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-2">업종별 상세</p>
+                  <p className="text-sm text-gray-600 mb-2">업종별 상세</p>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(catDist.per_category).slice(0, 20).map(([cat, cnt]) => (
                       <span key={cat} className="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 px-2.5 py-1 text-sm">
-                        {CATEGORY_LABEL[cat] ?? cat} <span className="font-semibold text-gray-500">{cnt}</span>
+                        {CATEGORY_LABEL[cat] ?? cat} <span className="font-semibold text-gray-600">{cnt}</span>
                       </span>
                     ))}
                   </div>
@@ -1015,47 +1015,47 @@ export function AdminDashboard() {
             {aiUsage && (
               <div className="bg-white rounded-xl p-5 shadow-sm mt-6">
                 <h2 className="text-sm font-semibold text-gray-700 mb-1">AI 사용량 (최근 {aiUsage.period_days}일)</h2>
-                <p className="text-sm text-gray-500 mb-4">
+                <p className="text-sm text-gray-600 mb-4">
                   채널이 포함된 스캔 세션 수 — 실제 API 콜 수(스캔당 50~100회 샘플링)와는 다름
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
                   <div className="rounded-xl p-3 border border-gray-100">
-                    <div className="text-sm text-gray-500 mb-0.5">전체 스캔</div>
+                    <div className="text-sm text-gray-600 mb-0.5">전체 스캔</div>
                     <div className="text-xl font-bold text-gray-800">{aiUsage.scan_counts.total_scans}</div>
                   </div>
                   <div className="rounded-xl p-3 border border-gray-100">
-                    <div className="text-sm text-gray-500 mb-0.5">Gemini</div>
+                    <div className="text-sm text-gray-600 mb-0.5">Gemini</div>
                     <div className="text-xl font-bold text-gray-800">{aiUsage.scan_counts.gemini}</div>
                   </div>
                   <div className="rounded-xl p-3 border border-gray-100">
-                    <div className="text-sm text-gray-500 mb-0.5">ChatGPT</div>
+                    <div className="text-sm text-gray-600 mb-0.5">ChatGPT</div>
                     <div className="text-xl font-bold text-gray-800">{aiUsage.scan_counts.chatgpt}</div>
                   </div>
                   <div className="rounded-xl p-3 border border-gray-100">
-                    <div className="text-sm text-gray-500 mb-0.5">네이버</div>
+                    <div className="text-sm text-gray-600 mb-0.5">네이버</div>
                     <div className="text-xl font-bold text-gray-800">{aiUsage.scan_counts.naver}</div>
                   </div>
                   <div className="rounded-xl p-3 border border-gray-100">
-                    <div className="text-sm text-gray-500 mb-0.5">Google</div>
+                    <div className="text-sm text-gray-600 mb-0.5">Google</div>
                     <div className="text-xl font-bold text-gray-800">{aiUsage.scan_counts.google}</div>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="rounded-xl p-3 border border-gray-100">
-                    <div className="text-sm text-gray-500 mb-1">가이드 생성(Claude Sonnet) — {aiUsage.guide_generation_count}건</div>
+                    <div className="text-sm text-gray-600 mb-1">가이드 생성(Claude Sonnet) — {aiUsage.guide_generation_count}건</div>
                     <div className="flex flex-wrap gap-1.5">
                       {Object.entries(aiUsage.guide_by_context).map(([ctx, cnt]) => (
                         <span key={ctx} className="inline-flex items-center gap-1 rounded-full bg-gray-100 text-gray-700 px-2 py-0.5 text-sm">
-                          {GUIDE_CONTEXT_LABEL[ctx] ?? CATEGORY_LABEL[ctx] ?? ctx} <span className="font-semibold text-gray-500">{cnt}</span>
+                          {GUIDE_CONTEXT_LABEL[ctx] ?? CATEGORY_LABEL[ctx] ?? ctx} <span className="font-semibold text-gray-600">{cnt}</span>
                         </span>
                       ))}
                       {Object.keys(aiUsage.guide_by_context).length === 0 && (
-                        <span className="text-sm text-gray-500">기간 내 생성 없음</span>
+                        <span className="text-sm text-gray-600">기간 내 생성 없음</span>
                       )}
                     </div>
                   </div>
                   <div className="rounded-xl p-3 border border-gray-100">
-                    <div className="text-sm text-gray-500 mb-0.5">AI 어시스턴트 채팅(Claude Haiku)</div>
+                    <div className="text-sm text-gray-600 mb-0.5">AI 어시스턴트 채팅(Claude Haiku)</div>
                     <div className="text-xl font-bold text-gray-800">{aiUsage.assistant_chat_count}건</div>
                   </div>
                 </div>
@@ -1066,14 +1066,14 @@ export function AdminDashboard() {
             {cohort && (
               <div className="bg-white rounded-xl p-5 shadow-sm mt-6">
                 <h2 className="text-sm font-semibold text-gray-700 mb-1">가입 코호트 유지율</h2>
-                <p className="text-sm text-gray-500 mb-4">{cohort.data_caveat}</p>
+                <p className="text-sm text-gray-600 mb-4">{cohort.data_caveat}</p>
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div className="rounded-xl p-3 border border-gray-100">
-                    <div className="text-sm text-gray-500 mb-0.5">누적 이탈률</div>
+                    <div className="text-sm text-gray-600 mb-0.5">누적 이탈률</div>
                     <div className="text-xl font-bold text-gray-800">{cohort.cumulative_churn_rate_pct}%</div>
                   </div>
                   <div className="rounded-xl p-3 border border-gray-100">
-                    <div className="text-sm text-gray-500 mb-0.5">평균 유지 기간</div>
+                    <div className="text-sm text-gray-600 mb-0.5">평균 유지 기간</div>
                     <div className="text-xl font-bold text-gray-800">
                       {cohort.avg_tenure_days != null ? `${cohort.avg_tenure_days}일` : "—"}
                     </div>
@@ -1083,7 +1083,7 @@ export function AdminDashboard() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="text-left text-sm text-gray-500 border-b border-gray-100">
+                        <tr className="text-left text-sm text-gray-600 border-b border-gray-100">
                           <th className="pb-2 pr-3">가입월</th>
                           <th className="pb-2 pr-3">가입자수</th>
                           <th className="pb-2 pr-3">현재 유지</th>
@@ -1094,8 +1094,8 @@ export function AdminDashboard() {
                         {cohort.signup_cohorts.map((c) => (
                           <tr key={c.cohort_month} className="border-b border-gray-50">
                             <td className="py-2 pr-3 text-gray-700">{c.cohort_month}</td>
-                            <td className="py-2 pr-3 text-gray-500">{c.total}명</td>
-                            <td className="py-2 pr-3 text-gray-500">{c.active_now}명</td>
+                            <td className="py-2 pr-3 text-gray-600">{c.total}명</td>
+                            <td className="py-2 pr-3 text-gray-600">{c.active_now}명</td>
                             <td className="py-2 font-semibold text-gray-800">{c.retention_pct}%</td>
                           </tr>
                         ))}
@@ -1108,7 +1108,7 @@ export function AdminDashboard() {
 
             {error && (
               <div className="bg-red-50 border border-red-100 rounded-xl p-4 mt-4">
-                <p className="text-red-600 text-sm">{error}</p>
+                <p className="text-red-700 text-sm">{error}</p>
               </div>
             )}
           </>
@@ -1140,7 +1140,7 @@ export function AdminDashboard() {
                 <p className="text-sm text-gray-600 mb-4">
                   <span className="font-semibold">{cancelTarget.email ?? cancelTarget.user_id}</span>
                   {" "}({cancelTarget.plan}) 구독을 취소하시겠습니까?
-                  <br />가입 7일 이내 + 미이용 상태면 <span className="font-semibold text-red-600">즉시 전액 환불</span>이 실행됩니다.
+                  <br />가입 7일 이내 + 미이용 상태면 <span className="font-semibold text-red-700">즉시 전액 환불</span>이 실행됩니다.
                   이 작업은 되돌릴 수 없습니다.
                 </p>
                 <div className="flex gap-2">
@@ -1165,7 +1165,7 @@ export function AdminDashboard() {
                   마지막 확인입니다. &quot;취소 확정&quot;을 누르면 즉시 처리되며 취소할 수 없습니다.
                 </p>
                 {cancelError && (
-                  <p className="text-sm text-red-600 mb-3">{cancelError}</p>
+                  <p className="text-sm text-red-700 mb-3">{cancelError}</p>
                 )}
                 <div className="flex gap-2">
                   <button

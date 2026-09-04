@@ -72,12 +72,12 @@ function rankBadge(rank: number | null | undefined): {
   text: string;
   cls: string;
 } {
-  if (!rank || rank <= 0) return { text: "미노출", cls: "text-gray-500 bg-gray-50" };
+  if (!rank || rank <= 0) return { text: "미노출", cls: "text-gray-600 bg-gray-50" };
   if (rank === 1) return { text: "1위", cls: "text-emerald-700 bg-emerald-100 font-bold" };
   if (rank <= 3) return { text: `${rank}위`, cls: "text-emerald-700 bg-emerald-50" };
   if (rank <= 10) return { text: `${rank}위`, cls: "text-amber-700 bg-amber-50" };
   if (rank <= 20) return { text: `${rank}위`, cls: "text-orange-700 bg-orange-50" };
-  return { text: `${rank}위 이하`, cls: "text-gray-500 bg-gray-50" };
+  return { text: `${rank}위 이하`, cls: "text-gray-600 bg-gray-50" };
 }
 
 const PRO_PLANS = ["pro", "biz", "enterprise", "startup"];
@@ -294,7 +294,7 @@ export default function KeywordRankCard({
           </div>
           <div className="min-w-0">
             <h3 className="font-semibold text-gray-900">네이버 키워드 검색 노출</h3>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-600 mt-0.5">
               내가 입력한 키워드의 PC·모바일·플레이스 1페이지 순위
               {userGroup && (
                 <span className="ml-1.5 inline-flex px-1.5 py-0.5 text-sm rounded bg-gray-100 text-gray-600">
@@ -361,7 +361,7 @@ export default function KeywordRankCard({
       {!hasData && !scanning && keywords.length > 0 && (
         <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-center">
           <p className="text-sm text-gray-700 font-medium">아직 측정 데이터 없음</p>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-600 mt-1">
             "측정 시작" 버튼을 누르면 등록된 키워드 {keywords.length}개의 순위를 측정합니다.
           </p>
         </div>
@@ -384,7 +384,7 @@ export default function KeywordRankCard({
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 text-gray-500 text-sm uppercase">
+                <tr className="border-b border-gray-200 text-gray-600 text-sm uppercase">
                   <th className="text-left py-2 font-medium">키워드</th>
                   <th className="text-center py-2 font-medium">PC</th>
                   <th className="text-center py-2 font-medium">모바일</th>
@@ -436,19 +436,19 @@ export default function KeywordRankCard({
                   <p className="font-medium text-gray-800 text-sm mb-2 truncate">{displayKw}</p>
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">PC</p>
+                      <p className="text-sm text-gray-600 mb-1">PC</p>
                       <span className={`inline-block px-2 py-1 text-sm rounded ${pc.cls}`}>
                         {pc.text}
                       </span>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">모바일</p>
+                      <p className="text-sm text-gray-600 mb-1">모바일</p>
                       <span className={`inline-block px-2 py-1 text-sm rounded ${mob.cls}`}>
                         {mob.text}
                       </span>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">플레이스</p>
+                      <p className="text-sm text-gray-600 mb-1">플레이스</p>
                       <span className={`inline-block px-2 py-1 text-sm rounded ${pl.cls}`}>
                         {pl.text}
                       </span>
@@ -515,14 +515,14 @@ export default function KeywordRankCard({
           className="w-full flex items-center justify-between gap-2 text-left px-1 py-1 rounded-lg hover:bg-gray-50 transition-colors"
         >
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-blue-500 shrink-0" />
+            <TrendingUp className="w-4 h-4 text-blue-600 shrink-0" />
             <span className="text-sm font-semibold text-gray-800">30일 검색량 추이</span>
-            <span className="text-sm text-gray-500 hidden sm:inline">네이버 DataLab 기준</span>
+            <span className="text-sm text-gray-600 hidden sm:inline">네이버 DataLab 기준</span>
           </div>
           {trendOpen ? (
-            <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" />
+            <ChevronUp className="w-4 h-4 text-gray-600 shrink-0" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
+            <ChevronDown className="w-4 h-4 text-gray-600 shrink-0" />
           )}
         </button>
 
@@ -530,7 +530,7 @@ export default function KeywordRankCard({
           <div className="mt-2">
             {/* 로딩 */}
             {trendLoading && (
-              <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-500">
+              <div className="flex items-center justify-center gap-2 py-10 text-sm text-gray-600">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 추이 데이터 불러오는 중…
               </div>
@@ -547,7 +547,7 @@ export default function KeywordRankCard({
             {!trendLoading && !trendError && trendData && !trendData.available && (
               <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-center">
                 <p className="text-sm text-gray-700 font-medium">30일 추이 데이터 수집 중</p>
-                <p className="text-sm text-gray-500 mt-1 break-keep">
+                <p className="text-sm text-gray-600 mt-1 break-keep">
                   네이버 DataLab 연동 후 키워드 데이터가 누적되면 추이 그래프가 표시됩니다.
                 </p>
               </div>
@@ -637,7 +637,7 @@ export default function KeywordRankCard({
                 </div>
 
                 {/* 면책 문구 */}
-                <p className="mt-2 text-sm text-gray-500 break-keep leading-snug">
+                <p className="mt-2 text-sm text-gray-600 break-keep leading-snug">
                   검색 순위는 기기·지역·로그인 상태에 따라 다를 수 있습니다. 위 그래프는 네이버 DataLab 기준 상대 검색량 추이입니다.
                 </p>
               </div>

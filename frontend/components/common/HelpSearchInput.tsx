@@ -162,7 +162,7 @@ export default function HelpSearchInput({
       {/* 입력창 */}
       <div className="relative flex items-center">
         <Search
-          className="absolute left-3 w-4 h-4 text-gray-500 dark:text-gray-500 pointer-events-none"
+          className="absolute left-3 w-4 h-4 text-gray-600 dark:text-gray-600 pointer-events-none"
           aria-hidden="true"
         />
         <input
@@ -173,7 +173,7 @@ export default function HelpSearchInput({
           onKeyDown={handleKeyDown}
           onFocus={() => results.length > 0 && setOpen(true)}
           placeholder={placeholder}
-          className="w-full pl-9 pr-8 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+          className="w-full pl-9 pr-8 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-600 dark:placeholder:text-gray-600"
           aria-label="FAQ 검색"
           aria-autocomplete="list"
           aria-expanded={open}
@@ -188,7 +188,7 @@ export default function HelpSearchInput({
             className="absolute right-2.5 p-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             aria-label="검색어 지우기"
           >
-            <X className="w-3.5 h-3.5 text-gray-500 dark:text-gray-500" />
+            <X className="w-3.5 h-3.5 text-gray-600 dark:text-gray-600" />
           </button>
         )}
       </div>
@@ -216,14 +216,14 @@ export default function HelpSearchInput({
               }`}
             >
               <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-sm px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 shrink-0">
+                <span className="text-sm px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-600 shrink-0">
                   {CATEGORY_LABELS[item.category] ?? item.category}
                 </span>
                 <span className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
                   {item.question}
                 </span>
               </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 leading-relaxed">
+              <p className="text-sm text-gray-600 dark:text-gray-600 line-clamp-1 leading-relaxed">
                 {item.answer}
               </p>
             </button>
@@ -234,7 +234,7 @@ export default function HelpSearchInput({
       {/* 결과 없음 fallback */}
       {showNoResultFallback && (
         <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-50 px-4 py-3">
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+          <p className="text-sm text-gray-600 dark:text-gray-600 mb-2">
             찾는 답변이 없으신가요?
           </p>
           <Link

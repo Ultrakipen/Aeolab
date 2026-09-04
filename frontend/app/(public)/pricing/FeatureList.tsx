@@ -22,9 +22,9 @@ export function FeatureList({
   const hasMore = features.length > mobileShowCount;
 
   const iconClass = (isUnlimited: boolean) => {
-    if (isHighlight) return "text-blue-500";
-    if (isUnlimited) return "text-emerald-500";
-    return "text-blue-500";
+    if (isHighlight) return "text-blue-600";
+    if (isUnlimited) return "text-emerald-700";
+    return "text-blue-600";
   };
 
   return (

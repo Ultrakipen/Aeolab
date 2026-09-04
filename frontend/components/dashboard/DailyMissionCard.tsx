@@ -255,7 +255,7 @@ export default function DailyMissionCard({
         ) : msg ? (
           <div className="bg-amber-50 p-4 md:p-5">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-amber-900 mb-0.5">
                   지금 개선하면 AI 검색 노출이 올라갑니다
@@ -265,14 +265,14 @@ export default function DailyMissionCard({
                 <div className="flex flex-wrap items-center gap-3">
                   <Link
                     href={msg.link}
-                    className="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-amber-700 hover:bg-amber-800 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
                   >
                     {msg.linkLabel}
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                   <button
                     onClick={handleDismiss}
-                    className="text-sm text-amber-600 underline hover:text-amber-800"
+                    className="text-sm text-amber-700 underline hover:text-amber-800"
                   >
                     오늘 하루 숨기기
                   </button>
@@ -280,7 +280,7 @@ export default function DailyMissionCard({
               </div>
               {improvablePoints != null && (
                 <div className="shrink-0 text-right">
-                  <p className="text-sm text-amber-600">개선 여지</p>
+                  <p className="text-sm text-amber-700">개선 여지</p>
                   <p className={`text-base font-bold leading-tight mt-0.5 px-2 py-1 rounded-full ${
                     improvablePoints >= 10
                       ? "bg-red-100 text-red-700"
@@ -329,11 +329,11 @@ export default function DailyMissionCard({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-sm font-bold text-gray-700">{task.title}</span>
-                        <span className="text-sm text-gray-500">({task.time})</span>
+                        <span className="text-sm text-gray-600">({task.time})</span>
                       </div>
                       <p className="text-sm text-gray-600">{task.desc}</p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-gray-500 shrink-0 mt-1.5" />
+                    <ChevronRight className="w-4 h-4 text-gray-600 shrink-0 mt-1.5" />
                   </Link>
                 ))}
               </div>
@@ -343,7 +343,7 @@ export default function DailyMissionCard({
           {/* 경쟁사 변화 알림 */}
           {actionsLoaded && changes.length > 0 && (
             <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 flex items-start gap-3 mb-3">
-              <Bell className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+              <Bell className="w-5 h-5 text-orange-700 shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-orange-900 text-sm">경쟁사 변화 감지</p>
                 {changes.map((c) => (
@@ -353,7 +353,7 @@ export default function DailyMissionCard({
                 ))}
                 <a
                   href="/competitors"
-                  className="text-sm text-orange-600 underline mt-2 inline-block"
+                  className="text-sm text-orange-700 underline mt-2 inline-block"
                 >
                   경쟁사 현황 보기 &rarr;
                 </a>
@@ -384,7 +384,7 @@ export default function DailyMissionCard({
                   {submitting ? '저장 중...' : '완료했어요 ✓'}
                 </button>
                 {submitError && (
-                  <p className="text-sm text-red-600 mb-3">저장하지 못했습니다. 다시 시도해주세요.</p>
+                  <p className="text-sm text-red-700 mb-3">저장하지 못했습니다. 다시 시도해주세요.</p>
                 )}
               </div>
             )

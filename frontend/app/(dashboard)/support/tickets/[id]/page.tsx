@@ -29,7 +29,7 @@ interface TicketDetail {
 const STATUS_META: Record<string, { label: string; color: string }> = {
   open: { label: "답변 대기", color: "bg-blue-100 text-blue-700" },
   answered: { label: "답변 완료", color: "bg-green-100 text-green-700" },
-  closed: { label: "종료", color: "bg-gray-100 text-gray-500" },
+  closed: { label: "종료", color: "bg-gray-100 text-gray-600" },
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -136,7 +136,7 @@ function TicketDetailInner() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
       </div>
     );
   }
@@ -145,7 +145,7 @@ function TicketDetailInner() {
     return (
       <div className="p-4 md:p-8 max-w-2xl mx-auto">
         <div className="bg-red-50 border border-red-200 rounded-xl p-5 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-red-700 shrink-0 mt-0.5" />
           <div>
             <p className="text-base font-medium text-red-800">
               {loadError || "문의를 찾을 수 없습니다."}
@@ -167,7 +167,7 @@ function TicketDetailInner() {
     <div className="p-4 md:p-8">
       <div className="max-w-2xl mx-auto">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 flex-wrap">
+        <div className="flex items-center gap-2 text-sm text-gray-600 mb-4 flex-wrap">
           <a href="/support/tickets" className="hover:text-blue-600 transition-colors">1:1 문의</a>
           <ChevronRight className="w-4 h-4" />
           <span className="text-gray-700 truncate max-w-[180px]">{ticket.title}</span>
@@ -178,13 +178,13 @@ function TicketDetailInner() {
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex-1 min-w-0">
               <h1 className="text-lg md:text-xl font-bold text-gray-900 mb-1">{ticket.title}</h1>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-600">
                 {CATEGORY_LABELS[ticket.category] ?? ticket.category} · {formatDate(ticket.created_at)}
                 {ticket.visibility === "public" && ticket.status === "answered" && (
-                  <span className="ml-2 text-green-600 font-medium">공개</span>
+                  <span className="ml-2 text-green-700 font-medium">공개</span>
                 )}
                 {ticket.visibility === "public" && ticket.status !== "answered" && (
-                  <span className="ml-2 text-gray-500 font-medium">공개 예정(답변 후)</span>
+                  <span className="ml-2 text-gray-600 font-medium">공개 예정(답변 후)</span>
                 )}
               </p>
             </div>
@@ -214,7 +214,7 @@ function TicketDetailInner() {
                   <span className={`text-sm font-semibold ${reply.author_type === "admin" ? "text-blue-700" : "text-gray-700"}`}>
                     {reply.author_type === "admin" ? "운영자" : "나"}
                   </span>
-                  <span className="text-sm text-gray-500">{formatDate(reply.created_at)}</span>
+                  <span className="text-sm text-gray-600">{formatDate(reply.created_at)}</span>
                   {reply.author_type === "admin" && (
                     <span className="text-sm bg-blue-600 text-white px-2 py-0.5 rounded-full font-medium">답변</span>
                   )}
@@ -231,7 +231,7 @@ function TicketDetailInner() {
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h2 className="text-base font-semibold text-gray-800 mb-3">추가 코멘트</h2>
             {replyError && (
-              <p className="text-sm text-red-500 mb-2">{replyError}</p>
+              <p className="text-sm text-red-700 mb-2">{replyError}</p>
             )}
             <div className="flex gap-2">
               <textarea
@@ -245,7 +245,7 @@ function TicketDetailInner() {
                 }}
                 rows={3}
                 placeholder="추가 질문이나 정보를 입력해 주세요. (Enter 전송, Shift+Enter 줄바꿈)"
-                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-400"
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-600"
               />
               <button
                 onClick={handleReply}
@@ -255,12 +255,12 @@ function TicketDetailInner() {
                 {submittingReply ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>
             </div>
-            <p className="text-sm text-gray-500 mt-1 text-right">{replyBody.length}/2000</p>
+            <p className="text-sm text-gray-600 mt-1 text-right">{replyBody.length}/2000</p>
           </div>
         )}
 
         {isClosed && (
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center text-sm text-gray-500">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center text-sm text-gray-600">
             종료된 문의입니다. 새로운 문의가 필요하시면{" "}
             <a href="/support/tickets/new" className="text-blue-600 hover:underline">새 문의 작성</a>을 이용해 주세요.
           </div>
@@ -274,7 +274,7 @@ export default function SupportTicketDetailPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
       </div>
     }>
       <TicketDetailInner />

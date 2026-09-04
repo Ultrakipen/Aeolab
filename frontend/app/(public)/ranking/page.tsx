@@ -27,7 +27,7 @@ export default function RankingPage() {
               AEOlab
             </Link>
             <span className="text-gray-300 hidden sm:inline">/</span>
-            <span className="text-sm text-gray-500 hidden sm:inline">AI 노출 랭킹</span>
+            <span className="text-sm text-gray-600 hidden sm:inline">AI 노출 랭킹</span>
           </div>
           <div className="flex items-center gap-3">
             <Link
@@ -45,13 +45,13 @@ export default function RankingPage() {
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-2xl mx-auto px-4 md:px-6 py-8 md:py-10">
           <div className="flex items-center gap-2 mb-3">
-            <BarChart2 className="w-5 h-5 text-blue-500" />
+            <BarChart2 className="w-5 h-5 text-blue-600" />
             <span className="text-sm font-medium text-blue-600">익명 랭킹 공개</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
             업종·지역별 AI 검색 노출 랭킹
           </h1>
-          <p className="text-sm md:text-base text-gray-500 leading-relaxed break-keep">
+          <p className="text-sm md:text-base text-gray-600 leading-relaxed break-keep">
             네이버 AI 브리핑·ChatGPT·Gemini·Google AI 4채널 기준으로 집계한 익명 랭킹입니다.
             사업장명·점수 원본은 공개되지 않으며, 순위와 백분위만 표시됩니다.
           </p>

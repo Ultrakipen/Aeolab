@@ -28,7 +28,7 @@ export function MaintenanceBanner() {
 
   return (
     <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 flex items-start gap-3">
-      <AlertTriangle className="w-5 h-5 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
+      <AlertTriangle className="w-5 h-5 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
       <div>
         <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">시스템 점검 중</p>
         {status.maintenance_message && (

@@ -182,7 +182,7 @@ export default function DiaScoreBadge({ dia, onRegenerate }: { dia: DiaScore; on
       </ul>
 
       <div className="px-4 py-3 md:px-5 md:py-4 bg-gray-50 space-y-2">
-        <p className="text-sm text-gray-500 leading-snug">
+        <p className="text-sm text-gray-600 leading-snug">
           콘텐츠 품질이 &quot;개선 필요&quot;로 나오면 다시 생성 또는 부족 요소 수동 보완을 권장합니다.
           실제 네이버 AI 브리핑 노출은 측정 시점·경쟁사·키워드 조합에 따라 달라질 수 있습니다.
         </p>

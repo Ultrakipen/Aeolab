@@ -90,11 +90,11 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
     return (
       <div className="rounded-xl border border-gray-200 bg-white p-4 mb-4 shadow-sm">
         <div className="flex items-center gap-2 mb-2">
-          <Bookmark className="w-4 h-4 text-gray-500 shrink-0" />
+          <Bookmark className="w-4 h-4 text-gray-600 shrink-0" />
           <p className="text-sm font-bold text-gray-800">소개글에 추가하면 좋은 키워드</p>
         </div>
         <p className="text-sm text-emerald-700 font-semibold flex items-center gap-1.5"><Check className="w-4 h-4" aria-hidden="true" /> 제안된 키워드를 모두 확인했습니다.</p>
-        <p className="text-sm text-gray-500 mt-1">Basic 플랜에서 전체 키워드 목록과 월별 변화를 추적할 수 있습니다.</p>
+        <p className="text-sm text-gray-600 mt-1">Basic 플랜에서 전체 키워드 목록과 월별 변화를 추적할 수 있습니다.</p>
       </div>
     );
   }
@@ -102,13 +102,13 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 mb-4 shadow-sm">
       <div className="flex items-center gap-2 mb-1">
-        <Bookmark className="w-4 h-4 text-gray-500 shrink-0" />
+        <Bookmark className="w-4 h-4 text-gray-600 shrink-0" />
         <p className="text-sm font-bold text-gray-800">소개글에 추가하면 좋은 키워드</p>
       </div>
       {/* 분석 기준 배지 */}
       {introAnalyzed ? (
         <div className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-0.5 mb-2">
-          <span className="text-emerald-600 text-sm">✓</span>
+          <span className="text-emerald-700 text-sm">✓</span>
           <span className="text-sm font-medium text-emerald-700">소개글 분석 완료</span>
         </div>
       ) : (
@@ -120,7 +120,7 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
       <p className="text-sm text-gray-600 mb-1 leading-relaxed font-medium">
         AI가 {categoryLabel}을 검색할 때 자주 쓰는 업종 표준 키워드입니다.
       </p>
-      <p className="text-sm text-gray-500 mb-2 leading-relaxed">
+      <p className="text-sm text-gray-600 mb-2 leading-relaxed">
         소개글·리뷰에 아직 없는 키워드만 표시합니다. 내 가게에 해당되는 것만 골라 소개글에 추가하세요 — 모두 추가할 필요는 없습니다.
       </p>
       <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 mb-3 space-y-1.5">
@@ -174,7 +174,7 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
                 </p>
               )}
               {idx === 0 && (
-                <p className="text-sm text-gray-500 mt-1.5 leading-relaxed break-keep">
+                <p className="text-sm text-gray-600 mt-1.5 leading-relaxed break-keep">
                   {userGroup === "ACTIVE"
                     ? "소개글 Q&A 형식으로 추가하면 AI 브리핑 인용 후보 가능성이 높아집니다. 복사 후 실제 가게 특징에 맞게 수정하세요."
                     : "소개글에 키워드를 자연스럽게 포함하면 네이버 AI탭 노출에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 더 직접적입니다. 복사 후 실제 가게 특징에 맞게 수정하세요."}
@@ -186,11 +186,11 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
       </div>
 
       {isPaidUser ? (
-        <p className="text-sm text-gray-500 mt-2.5 leading-relaxed">
+        <p className="text-sm text-gray-600 mt-2.5 leading-relaxed">
           키워드 전체 목록과 월별 변화 추적은 대시보드 → 갭 분석에서 확인하세요.
         </p>
       ) : (
-        <p className="text-sm text-gray-500 mt-2.5 leading-relaxed">
+        <p className="text-sm text-gray-600 mt-2.5 leading-relaxed">
           키워드 전체 목록 + 월별 변화 추적 + 소개글 직접 분석은 Basic 플랜에서 제공합니다.
         </p>
       )}

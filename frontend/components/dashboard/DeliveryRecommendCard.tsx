@@ -63,7 +63,7 @@ export default function DeliveryRecommendCard({ score, isSmartPlace }: Props) {
     <div className={`bg-white rounded-xl border ${pkg.accent} shadow-sm p-5`}>
       {/* 헤더 */}
       <div className="flex items-center gap-2 mb-3">
-        <Package className="w-4 h-4 text-gray-500 shrink-0" />
+        <Package className="w-4 h-4 text-gray-600 shrink-0" />
         <span className="text-sm font-bold text-gray-700">전문가 추천 서비스</span>
         <span className={`ml-auto text-sm font-bold px-2.5 py-0.5 rounded-full ${pkg.badgeBg} ${pkg.badgeText}`}>
           {pkg.number}
@@ -75,12 +75,12 @@ export default function DeliveryRecommendCard({ score, isSmartPlace }: Props) {
         <p className="text-base font-black text-gray-900">{pkg.name}</p>
         <p className="text-2xl font-black text-blue-600 mt-1">
           {pkg.price.toLocaleString()}원
-          <span className="text-sm font-normal text-gray-500 ml-1">1회</span>
+          <span className="text-sm font-normal text-gray-600 ml-1">1회</span>
         </p>
       </div>
 
       {/* 추천 이유 */}
-      <p className="text-sm text-gray-500 mb-4">{pkg.reason}</p>
+      <p className="text-sm text-gray-600 mb-4">{pkg.reason}</p>
 
       {/* CTA 버튼 */}
       <Link

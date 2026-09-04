@@ -65,7 +65,7 @@ export function PageHeaderAvatarMenu({ email, plan }: Props) {
           {/* 계정 정보 */}
           <div className="px-4 py-3 border-b border-gray-100">
             <p className="text-sm font-semibold text-gray-900 truncate">{email}</p>
-            <p className="text-sm text-gray-500">{planText} 요금제</p>
+            <p className="text-sm text-gray-600">{planText} 요금제</p>
           </div>
 
           {/* 메뉴 항목 */}

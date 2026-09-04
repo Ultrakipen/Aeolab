@@ -5,17 +5,17 @@ export default function SearchChangeSection() {
         <h2 className="text-xl md:text-2xl font-bold text-center text-gray-900 mb-2 break-keep">
           손님이 가게를 찾는 방식이 바뀌었습니다
         </h2>
-        <p className="text-sm text-center text-gray-500 mb-8 break-keep">
+        <p className="text-sm text-center text-gray-600 mb-8 break-keep">
           블로그·광고 시대는 끝났습니다
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
           {/* 예전 */}
           <div className="rounded-xl border border-gray-200 bg-gray-50 p-5">
-            <p className="text-sm font-bold text-gray-500 tracking-widest mb-3">예전</p>
+            <p className="text-sm font-bold text-gray-600 tracking-widest mb-3">예전</p>
             <div className="space-y-3">
               {["네이버 검색", "블로그 광고 클릭", "가게 방문"].map((step, i) => (
                 <div key={step} className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-gray-200 text-gray-500 text-sm font-bold flex items-center justify-center shrink-0">
+                  <span className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 text-sm font-bold flex items-center justify-center shrink-0">
                     {i + 1}
                   </span>
                   <span className="text-sm text-gray-600">{step}</span>
@@ -25,7 +25,7 @@ export default function SearchChangeSection() {
           </div>
           {/* 지금 */}
           <div className="rounded-xl border border-blue-200 bg-blue-50 p-5">
-            <p className="text-sm font-bold text-blue-500 tracking-widest mb-3">지금</p>
+            <p className="text-sm font-bold text-blue-600 tracking-widest mb-3">지금</p>
             <div className="space-y-3">
               {[
                 '"근처 맛집 추천해줘" (ChatGPT)',

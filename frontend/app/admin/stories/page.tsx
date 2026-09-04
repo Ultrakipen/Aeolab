@@ -175,7 +175,7 @@ export default function AdminStoriesPage() {
       <div className="flex items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">성공 사례 관리</h1>
-          <p className="text-sm text-gray-500 mt-1">고객 성공 사례 등록 및 목록 관리</p>
+          <p className="text-sm text-gray-600 mt-1">고객 성공 사례 등록 및 목록 관리</p>
         </div>
         <button
           onClick={() => {
@@ -217,7 +217,7 @@ export default function AdminStoriesPage() {
             {/* 제목 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                제목 <span className="text-red-500">*</span>
+                제목 <span className="text-red-700">*</span>
               </label>
               <input
                 type="text"
@@ -290,7 +290,7 @@ export default function AdminStoriesPage() {
             {/* 본문 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                본문 <span className="text-red-500">*</span>
+                본문 <span className="text-red-700">*</span>
               </label>
               <textarea
                 value={form.body}
@@ -359,14 +359,14 @@ export default function AdminStoriesPage() {
 
       {/* 목록 */}
       {loading ? (
-        <div className="flex items-center justify-center py-16 text-gray-500">
+        <div className="flex items-center justify-center py-16 text-gray-600">
           <Loader2 className="w-6 h-6 animate-spin mr-2" />
           불러오는 중...
         </div>
       ) : stories.length === 0 ? (
-        <div className="py-16 text-center text-gray-500 bg-white rounded-xl border border-gray-100">
+        <div className="py-16 text-center text-gray-600 bg-white rounded-xl border border-gray-100">
           <p className="text-base">등록된 성공 사례가 없습니다.</p>
-          <p className="text-sm text-gray-500 mt-1">새 사례 작성 버튼으로 추가해보세요.</p>
+          <p className="text-sm text-gray-600 mt-1">새 사례 작성 버튼으로 추가해보세요.</p>
         </div>
       ) : (
         <>
@@ -376,12 +376,12 @@ export default function AdminStoriesPage() {
               <table className="w-full min-w-[600px]">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="text-left px-5 py-3 text-sm font-semibold text-gray-500">업종</th>
-                    <th className="text-left px-5 py-3 text-sm font-semibold text-gray-500">제목</th>
-                    <th className="text-right px-5 py-3 text-sm font-semibold text-gray-500">점수 변화</th>
-                    <th className="text-right px-5 py-3 text-sm font-semibold text-gray-500">조회수</th>
-                    <th className="text-right px-5 py-3 text-sm font-semibold text-gray-500">게시일</th>
-                    <th className="text-center px-5 py-3 text-sm font-semibold text-gray-500">액션</th>
+                    <th className="text-left px-5 py-3 text-sm font-semibold text-gray-600">업종</th>
+                    <th className="text-left px-5 py-3 text-sm font-semibold text-gray-600">제목</th>
+                    <th className="text-right px-5 py-3 text-sm font-semibold text-gray-600">점수 변화</th>
+                    <th className="text-right px-5 py-3 text-sm font-semibold text-gray-600">조회수</th>
+                    <th className="text-right px-5 py-3 text-sm font-semibold text-gray-600">게시일</th>
+                    <th className="text-center px-5 py-3 text-sm font-semibold text-gray-600">액션</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -399,17 +399,17 @@ export default function AdminStoriesPage() {
                       </td>
                       <td className="px-5 py-4 text-right">
                         {story.score_delta !== null ? (
-                          <span className="text-sm font-bold text-emerald-600">
+                          <span className="text-sm font-bold text-emerald-700">
                             +{story.score_delta.toFixed(0)}점
                           </span>
                         ) : (
-                          <span className="text-sm text-gray-500">—</span>
+                          <span className="text-sm text-gray-600">—</span>
                         )}
                       </td>
-                      <td className="px-5 py-4 text-right text-sm text-gray-500">
+                      <td className="px-5 py-4 text-right text-sm text-gray-600">
                         {story.view_count.toLocaleString()}
                       </td>
-                      <td className="px-5 py-4 text-right text-sm text-gray-500">
+                      <td className="px-5 py-4 text-right text-sm text-gray-600">
                         {formatDate(story.published_at)}
                       </td>
                       <td className="px-5 py-4 text-center">
@@ -447,14 +447,14 @@ export default function AdminStoriesPage() {
                     {CATEGORY_LABELS[story.category] ?? story.category}
                   </span>
                   {story.score_delta !== null && (
-                    <span className="text-sm font-bold text-emerald-600 shrink-0">
+                    <span className="text-sm font-bold text-emerald-700 shrink-0">
                       +{story.score_delta.toFixed(0)}점
                     </span>
                   )}
                 </div>
                 <p className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2">{story.title}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">{formatDate(story.published_at)}</span>
+                  <span className="text-sm text-gray-600">{formatDate(story.published_at)}</span>
                   <div className="flex items-center gap-3">
                     <Link
                       href={`/stories/${story.id}`}

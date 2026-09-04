@@ -44,8 +44,8 @@ function categoryBarColor(pct: number): string {
 }
 
 function overallTextColor(pct: number): string {
-  if (pct < 40) return 'text-red-600'
-  if (pct < 70) return 'text-orange-500'
+  if (pct < 40) return 'text-red-700'
+  if (pct < 70) return 'text-orange-700'
   return 'text-blue-600'
 }
 
@@ -66,7 +66,7 @@ function CopyBadge({ keyword }: { keyword: string }) {
     >
       {copied ? (
         <>
-          <Check className="w-3 h-3 text-green-500" />
+          <Check className="w-3 h-3 text-green-700" />
           복사됨
         </>
       ) : (
@@ -127,7 +127,7 @@ function KeywordCompletenessContent({ businessId, authToken }: { businessId: str
     <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <BarChart2 className="w-4 h-4 text-blue-500" />
+          <BarChart2 className="w-4 h-4 text-blue-600" />
           <span className="text-sm font-semibold text-gray-900">업종 키워드 충족도 게이지</span>
         </div>
         <span className={`text-sm font-bold px-2.5 py-0.5 rounded-full ${
@@ -147,7 +147,7 @@ function KeywordCompletenessContent({ businessId, authToken }: { businessId: str
             style={{ width: `${Math.min(data.overall_pct, 100)}%` }}
           />
         </div>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-gray-600 mt-1">
           {data.overall_pct < 40
             ? '업종 표준 키워드 대비 커버리지가 낮습니다'
             : data.overall_pct < 70
@@ -164,7 +164,7 @@ function KeywordCompletenessContent({ businessId, authToken }: { businessId: str
             <div key={i}>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm text-gray-700 truncate max-w-[70%]">{cat.name}</span>
-                <span className={`text-sm font-medium ${cat.covered_pct === 0 ? 'text-red-500' : cat.covered_pct < 50 ? 'text-orange-500' : cat.covered_pct < 80 ? 'text-yellow-600' : 'text-green-600'}`}>
+                <span className={`text-sm font-medium ${cat.covered_pct === 0 ? 'text-red-700' : cat.covered_pct < 50 ? 'text-orange-700' : cat.covered_pct < 80 ? 'text-yellow-600' : 'text-green-700'}`}>
                   {cat.covered_pct === 0 ? '미충족' : cat.covered_pct < 50 ? '부족' : cat.covered_pct < 80 ? '보통' : '충족'}
                 </span>
               </div>
@@ -188,11 +188,11 @@ function KeywordCompletenessContent({ businessId, authToken }: { businessId: str
               <CopyBadge key={kw} keyword={kw} />
             ))}
           </div>
-          <p className="text-sm text-gray-500 mt-1.5">배지를 클릭하면 클립보드에 복사됩니다</p>
+          <p className="text-sm text-gray-600 mt-1.5">배지를 클릭하면 클립보드에 복사됩니다</p>
         </div>
       )}
 
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-gray-600">
         키워드는 설정 &gt; 사업장 편집에서 추가할 수 있습니다
       </p>
     </div>

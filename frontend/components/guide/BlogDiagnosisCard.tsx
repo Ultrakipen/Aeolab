@@ -151,16 +151,16 @@ export function BlogDiagnosisCard({ businessId }: Props) {
     <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
-          <FileText className="w-4 h-4 text-blue-500" />
+          <FileText className="w-4 h-4 text-blue-600" />
           <div className="text-sm font-semibold text-gray-900">내 블로그 AI 최적화 진단</div>
         </div>
         {analyzedAt && (
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-600">
             {new Date(analyzedAt).toLocaleDateString('ko-KR')} 분석
           </span>
         )}
       </div>
-      <p className="text-sm text-gray-500 mb-4 leading-relaxed">
+      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
         블로그 URL을 등록하면 AI 브리핑에 얼마나 최적화됐는지 진단해 드립니다.
       </p>
 
@@ -192,7 +192,7 @@ export function BlogDiagnosisCard({ businessId }: Props) {
       </div>
 
       {urlError && (
-        <p className="text-sm text-red-500 mb-3 flex items-center gap-1">
+        <p className="text-sm text-red-700 mb-3 flex items-center gap-1">
           <AlertCircle className="w-3.5 h-3.5 shrink-0" />
           {urlError}
         </p>
@@ -207,10 +207,10 @@ export function BlogDiagnosisCard({ businessId }: Props) {
 
       {result?.error && !loading && (
         <div className="bg-red-50 rounded-xl p-4 flex items-start gap-3">
-          <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+          <AlertCircle className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-medium text-red-700 mb-0.5">분석 실패</p>
-            <p className="text-sm text-red-600">{result.error}</p>
+            <p className="text-sm text-red-700">{result.error}</p>
           </div>
         </div>
       )}
@@ -227,12 +227,12 @@ export function BlogDiagnosisCard({ businessId }: Props) {
               </span>
             )}
             {result.latest_post_date && (
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-600">
                 최신 포스트: {new Date(result.latest_post_date).toLocaleDateString('ko-KR')}
               </span>
             )}
             {(result.post_count ?? 0) > 0 && (
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-600">
                 {result.total_post_count && result.total_post_count > (result.post_count ?? 0)
                   ? `분석 ${result.post_count}개 / 총 ${result.total_post_count}개 포스트`
                   : `총 ${result.post_count}개 포스트`}
@@ -259,7 +259,7 @@ export function BlogDiagnosisCard({ businessId }: Props) {
               <div className="w-full bg-gray-100 rounded-full h-2 mb-1.5">
                 <div className="bg-purple-500 h-2 rounded-full transition-all" style={{ width: `${coveragePct}%` }} />
               </div>
-              <p className="text-sm text-gray-500">내 블로그에 포함된 업종 키워드 비율</p>
+              <p className="text-sm text-gray-600">내 블로그에 포함된 업종 키워드 비율</p>
             </div>
           )}
 
@@ -280,10 +280,10 @@ export function BlogDiagnosisCard({ businessId }: Props) {
                   <div className="text-sm font-medium text-red-700 mb-1.5">없는 키워드</div>
                   <div className="flex flex-wrap gap-1.5">
                     {missingKws.slice(0, 8).map((kw) => (
-                      <span key={kw} className="text-sm bg-red-50 text-red-600 px-2 py-0.5 rounded-full">{kw}</span>
+                      <span key={kw} className="text-sm bg-red-50 text-red-700 px-2 py-0.5 rounded-full">{kw}</span>
                     ))}
                   </div>
-                  <p className="text-sm text-gray-500 mt-1.5">다음 포스팅에 이 키워드를 사용하세요.</p>
+                  <p className="text-sm text-gray-600 mt-1.5">다음 포스팅에 이 키워드를 사용하세요.</p>
                 </div>
               )}
             </div>
@@ -295,13 +295,13 @@ export function BlogDiagnosisCard({ businessId }: Props) {
               <div className={`${(result.ai_readiness_items ?? []).length >= 5 ? 'grid grid-cols-1 sm:grid-cols-2 gap-2' : 'space-y-2'}`}>
                 {(result.ai_readiness_items ?? []).map((item, i) => (
                   <div key={i} className={`flex items-start gap-2 p-2.5 rounded-lg ${item.passed ? 'bg-green-50' : 'bg-gray-50'}`}>
-                    <div className={`shrink-0 mt-0.5 ${item.passed ? 'text-green-500' : 'text-gray-500'}`}>
+                    <div className={`shrink-0 mt-0.5 ${item.passed ? 'text-green-700' : 'text-gray-600'}`}>
                       {item.passed ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-sm font-medium ${item.passed ? 'text-green-700' : 'text-gray-600'}`}>{item.label}</p>
                       {!item.passed && item.tip && (
-                        <p className="text-sm text-gray-500 mt-0.5">{item.tip}</p>
+                        <p className="text-sm text-gray-600 mt-0.5">{item.tip}</p>
                       )}
                     </div>
                   </div>
@@ -383,7 +383,7 @@ export function BlogDiagnosisCard({ businessId }: Props) {
               {result.duplicate_topics!.slice(0, 2).map((t, i) => (
                 <p key={i} className="text-sm text-amber-700 mb-1">{t.warning}</p>
               ))}
-              <p className="text-sm text-gray-500">AI 브리핑은 같은 주제 중 1개만 인용합니다.</p>
+              <p className="text-sm text-gray-600">AI 브리핑은 같은 주제 중 1개만 인용합니다.</p>
             </div>
           )}
 
@@ -398,7 +398,7 @@ export function BlogDiagnosisCard({ businessId }: Props) {
                 상세 진단 보기 →
               </a>
               <button onClick={() => void handleAnalyze()} disabled={loading}
-                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors">
+                className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-700 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors">
                 <RefreshCw className="w-3.5 h-3.5" />
                 다시 분석
               </button>

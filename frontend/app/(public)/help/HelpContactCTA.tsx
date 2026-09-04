@@ -58,7 +58,7 @@ export function HelpContactCTA({ variant }: { variant: "banner" | "footer" | "bu
   }
 
   return (
-    <p className="text-sm text-gray-500">
+    <p className="text-sm text-gray-600">
       궁금한 점은{" "}
       <Link href={href} className="text-blue-600 hover:underline">
         {loggedIn ? "1:1 문의 작성" : "로그인 후 직접 문의"}

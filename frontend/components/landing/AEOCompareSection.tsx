@@ -14,7 +14,7 @@ const FEATURES = [
 
 function FeatureCheck({ ok }: { ok: boolean }) {
   return ok ? (
-    <CheckIcon className="w-4 h-4" style={{ color: "#059669" }} />
+    <CheckIcon className="w-4 h-4" style={{ color: "#007a55" }} />
   ) : (
     <span className="block w-4 border-t mx-auto" style={{ borderColor: "#CBD5E1" }} />
   );
@@ -44,14 +44,14 @@ export default function AEOCompareSection() {
             className="card-hover rounded-xl border p-5"
             style={{ borderColor: "#E2E8F0", background: "#F8FAFC" }}
           >
-            <p className="text-sm font-bold tracking-wider mb-1" style={{ color: "#64748B" }}>
+            <p className="text-sm font-bold tracking-wider mb-1" style={{ color: "#45556C" }}>
               기존 SEO 서비스
             </p>
-            <p className="text-base font-black mb-4" style={{ color: "#64748B" }}>웹 검색 최적화</p>
+            <p className="text-base font-black mb-4" style={{ color: "#45556C" }}>웹 검색 최적화</p>
             <div className="space-y-3">
               {FEATURES.map((f) => (
                 <div key={f.label} className="flex items-center justify-between">
-                  <span className="text-sm" style={{ color: "#64748B" }}>{f.label}</span>
+                  <span className="text-sm" style={{ color: "#45556C" }}>{f.label}</span>
                   <FeatureCheck ok={f.seo} />
                 </div>
               ))}
@@ -63,14 +63,14 @@ export default function AEOCompareSection() {
             className="card-hover rounded-xl border p-5"
             style={{ borderColor: "#E2E8F0", background: "#F8FAFC" }}
           >
-            <p className="text-sm font-bold tracking-wider mb-1" style={{ color: "#64748B" }}>
+            <p className="text-sm font-bold tracking-wider mb-1" style={{ color: "#45556C" }}>
               네이버 플레이스 관리
             </p>
-            <p className="text-base font-black mb-4" style={{ color: "#64748B" }}>플레이스 최적화</p>
+            <p className="text-base font-black mb-4" style={{ color: "#45556C" }}>플레이스 최적화</p>
             <div className="space-y-3">
               {FEATURES.map((f) => (
                 <div key={f.label} className="flex items-center justify-between">
-                  <span className="text-sm" style={{ color: "#64748B" }}>{f.label}</span>
+                  <span className="text-sm" style={{ color: "#45556C" }}>{f.label}</span>
                   <FeatureCheck ok={f.naver} />
                 </div>
               ))}
@@ -134,7 +134,7 @@ export default function AEOCompareSection() {
         </div>
 
         {/* 기준 날짜 — PC 테이블 하단 */}
-        <p className="hidden md:block text-sm text-gray-500 text-center mt-2 fade-up">
+        <p className="hidden md:block text-sm text-gray-600 text-center mt-2 fade-up">
           2026년 7월 기준
         </p>
 
@@ -159,13 +159,13 @@ export default function AEOCompareSection() {
             <div className="space-y-2.5">
               {FEATURES.filter((f) => f.aeo && !f.naver && !f.seo).map((f) => (
                 <div key={f.label} className="flex items-center gap-2.5">
-                  <CheckIcon className="w-4 h-4 shrink-0" style={{ color: "#059669" }} />
+                  <CheckIcon className="w-4 h-4 shrink-0" style={{ color: "#007a55" }} />
                   <span className="text-sm font-medium" style={{ color: "#0F172A" }}>{f.label}</span>
                 </div>
               ))}
               {FEATURES.filter((f) => f.naver || f.seo).map((f) => (
                 <div key={f.label} className="flex items-center gap-2.5">
-                  <CheckIcon className="w-4 h-4 shrink-0" style={{ color: "#059669" }} />
+                  <CheckIcon className="w-4 h-4 shrink-0" style={{ color: "#007a55" }} />
                   <span className="text-sm" style={{ color: "#475569" }}>{f.label} (기존 포함)</span>
                 </div>
               ))}
@@ -178,7 +178,7 @@ export default function AEOCompareSection() {
               무료로 시작하기 →
             </a>
           </div>
-          <p className="text-sm text-gray-500 text-center mt-2">
+          <p className="text-sm text-gray-600 text-center mt-2">
             2026년 7월 기준
           </p>
         </div>

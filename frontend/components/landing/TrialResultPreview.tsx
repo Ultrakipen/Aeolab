@@ -6,7 +6,7 @@ export default function TrialResultPreview() {
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2 break-keep">
             진단하면 이런 결과를 받습니다
           </h2>
-          <p className="text-sm text-gray-500 break-keep">
+          <p className="text-sm text-gray-600 break-keep">
             가입 없이 — 실제 진단 결과 미리보기
           </p>
         </div>
@@ -17,7 +17,7 @@ export default function TrialResultPreview() {
           <div className="bg-gray-50 px-5 py-4 border-b border-gray-200 flex items-center justify-between">
             <div>
               <p className="font-bold text-gray-900">창원 OO 치킨</p>
-              <p className="text-sm text-gray-500">음식점 · 창원 의창구</p>
+              <p className="text-sm text-gray-600">음식점 · 창원 의창구</p>
             </div>
             <span className="bg-red-100 text-red-700 text-sm font-bold px-3 py-1 rounded-full">
               주의 필요
@@ -28,19 +28,19 @@ export default function TrialResultPreview() {
             {/* 점수 3칸 */}
             <div className="grid grid-cols-3 gap-3 mb-5">
               <div className="text-center bg-red-50 rounded-xl p-3 border border-red-100">
-                <p className="text-base font-bold text-red-600">AI 노출 낮음</p>
-                <p className="text-sm text-gray-500 mt-0.5">AI 노출 현황</p>
-                <p className="text-sm text-red-500 mt-0.5">업종 평균 이하</p>
+                <p className="text-base font-bold text-red-700">AI 노출 낮음</p>
+                <p className="text-sm text-gray-600 mt-0.5">AI 노출 현황</p>
+                <p className="text-sm text-red-700 mt-0.5">업종 평균 이하</p>
               </div>
               <div className="text-center bg-orange-50 rounded-xl p-3 border border-orange-100">
-                <p className="text-2xl font-bold text-orange-600">3%</p>
-                <p className="text-sm text-gray-500 mt-0.5">AI 노출률</p>
-                <p className="text-sm text-orange-500 mt-0.5">100번 중 3번</p>
+                <p className="text-2xl font-bold text-orange-700">3%</p>
+                <p className="text-sm text-gray-600 mt-0.5">AI 노출률</p>
+                <p className="text-sm text-orange-700 mt-0.5">100번 중 3번</p>
               </div>
               <div className="text-center bg-amber-50 rounded-xl p-3 border border-amber-100">
-                <p className="text-2xl font-bold text-amber-600">14개</p>
-                <p className="text-sm text-gray-500 mt-0.5">키워드 공백</p>
-                <p className="text-sm text-amber-500 mt-0.5">경쟁사 보유</p>
+                <p className="text-2xl font-bold text-amber-700">14개</p>
+                <p className="text-sm text-gray-600 mt-0.5">키워드 공백</p>
+                <p className="text-sm text-amber-700 mt-0.5">경쟁사 보유</p>
               </div>
             </div>
 
@@ -54,7 +54,7 @@ export default function TrialResultPreview() {
                   "최근 30일 업데이트 없음 — AI가 비활성 가게로 인식",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-gray-700 break-keep">
-                    <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <svg className="w-4 h-4 text-red-700 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                       <circle cx="12" cy="12" r="10" />
                       <line x1="15" y1="9" x2="9" y2="15" />
                       <line x1="9" y1="9" x2="15" y2="15" />

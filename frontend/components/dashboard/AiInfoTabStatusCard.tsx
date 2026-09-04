@@ -77,7 +77,7 @@ export function AiInfoTabStatusCard({
   // INACTIVE 업종은 "아직 확인 안함" 배지 대신 비대상 안내로 덮어쓰기
   const displayBadge =
     eligibility === "inactive"
-      ? { label: "플레이스형 AI 브리핑 비대상 업종", color: "text-gray-500 bg-gray-50 border-gray-200", icon: "ℹ️" }
+      ? { label: "플레이스형 AI 브리핑 비대상 업종", color: "text-gray-600 bg-gray-50 border-gray-200", icon: "ℹ️" }
       : current;
 
   // 업종별 안내 톤 분기
@@ -107,7 +107,7 @@ export function AiInfoTabStatusCard({
             네이버 AI 브리핑 노출 설정
           </h3>
           {eligibility !== "inactive" && (
-            <p className="text-sm text-gray-500 mb-1.5">
+            <p className="text-sm text-gray-600 mb-1.5">
               스마트플레이스 &gt; <strong className="text-gray-700">&quot;AI 정보&quot; 탭</strong> 토글로 ON/OFF 변경
             </p>
           )}
@@ -185,8 +185,8 @@ export function AiInfoTabStatusCard({
           <option value="disabled">메뉴 있는데 비활성 (회색)</option>
           <option value="not_visible">&quot;AI 정보&quot; 메뉴가 보이지 않음</option>
         </select>
-        {saving && <p className="text-sm text-gray-500">저장 중...</p>}
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {saving && <p className="text-sm text-gray-600">저장 중...</p>}
+        {error && <p className="text-sm text-red-700">{error}</p>}
       </div>
       )}
     </div>

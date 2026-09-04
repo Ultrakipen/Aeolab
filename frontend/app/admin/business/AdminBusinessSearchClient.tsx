@@ -71,11 +71,11 @@ export default function AdminBusinessSearchClient() {
     <>
       <div className="mb-6">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">사업장 조회</h1>
-        <p className="text-sm text-gray-500 mt-1">사업장명·이메일로 검색 후 스캔이력·가이드·경쟁사까지 한 번에 확인</p>
+        <p className="text-sm text-gray-600 mt-1">사업장명·이메일로 검색 후 스캔이력·가이드·경쟁사까지 한 번에 확인</p>
       </div>
 
       <div className="relative mb-5">
-        <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+        <Search className="w-4 h-4 text-gray-600 absolute left-3 top-1/2 -translate-y-1/2" />
         <input
           type="text"
           value={queryInput}
@@ -90,18 +90,18 @@ export default function AdminBusinessSearchClient() {
       )}
 
       {!loading && total > 0 && (
-        <p className="text-sm text-gray-500 mb-3">
+        <p className="text-sm text-gray-600 mb-3">
           총 {total.toLocaleString()}건 중 {page * PAGE_SIZE + 1}–{Math.min(total, (page + 1) * PAGE_SIZE)}건 표시
         </p>
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center py-16 text-gray-500">
+        <div className="flex items-center justify-center py-16 text-gray-600">
           <Loader2 className="w-6 h-6 animate-spin mr-2" />
           불러오는 중...
         </div>
       ) : rows.length === 0 ? (
-        <div className="py-16 text-center text-gray-500 bg-white rounded-xl border border-gray-100">
+        <div className="py-16 text-center text-gray-600 bg-white rounded-xl border border-gray-100">
           <p className="text-base">{query.trim() ? "검색 조건에 맞는 사업장이 없습니다." : "등록된 사업장이 없습니다."}</p>
         </div>
       ) : (
@@ -116,12 +116,12 @@ export default function AdminBusinessSearchClient() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-semibold text-gray-900">{biz.name}</span>
-                    <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{CATEGORY_LABEL[biz.category] ?? biz.category}</span>
+                    <span className="text-sm text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">{CATEGORY_LABEL[biz.category] ?? biz.category}</span>
                     {!biz.is_active && (
-                      <span className="text-sm text-red-600 bg-red-50 px-2 py-0.5 rounded-full">비활성</span>
+                      <span className="text-sm text-red-700 bg-red-50 px-2 py-0.5 rounded-full">비활성</span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500 mt-0.5">
+                  <p className="text-sm text-gray-600 mt-0.5">
                     {biz.owner_email ?? biz.user_id.slice(0, 8) + "..."} {biz.region && `· ${biz.region}`}
                   </p>
                 </div>
@@ -138,7 +138,7 @@ export default function AdminBusinessSearchClient() {
               >
                 ← 이전
               </button>
-              <span className="text-sm text-gray-500">{page + 1} / {totalPages} 페이지</span>
+              <span className="text-sm text-gray-600">{page + 1} / {totalPages} 페이지</span>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                 disabled={page >= totalPages - 1}

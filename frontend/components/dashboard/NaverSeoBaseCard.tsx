@@ -28,13 +28,13 @@ function CheckItem({ checked, action, effect }: CheckItemProps) {
   // Hero 진단 카드와 동일한 신호등 언어 — 미완료는 빨강 ✗ 대신 amber ! (불안 유발 차단)
   const statusIcon =
     checked === null
-      ? { glyph: "–", cls: "bg-gray-200 text-gray-500" }
+      ? { glyph: "–", cls: "bg-gray-200 text-gray-600" }
       : checked
-      ? { glyph: "✓", cls: "bg-emerald-500 text-white" }
-      : { glyph: "!", cls: "bg-amber-500 text-white" };
+      ? { glyph: "✓", cls: "bg-emerald-700 text-white" }
+      : { glyph: "!", cls: "bg-amber-700 text-white" };
   const badgeColor =
     checked === null
-      ? "bg-gray-100 text-gray-500"
+      ? "bg-gray-100 text-gray-600"
       : checked
       ? "bg-emerald-100 text-emerald-700"
       : "bg-amber-100 text-amber-700";
@@ -137,7 +137,7 @@ export default function NaverSeoBaseCard({
 
       {/* 체크리스트 */}
       <div className="mb-3">
-        <p className="text-sm font-medium text-gray-500 mb-1.5">
+        <p className="text-sm font-medium text-gray-600 mb-1.5">
           플레이스 탭 노출 준비도
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
@@ -229,10 +229,10 @@ export default function NaverSeoBaseCard({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <span className="text-sm text-gray-800">📝 블로그 후기 언급 {blogMentionCount}건</span>
-            <p className="text-xs text-gray-500 mt-0.5 leading-snug">네이버 AI탭은 블로그 후기를 답변 소스로 활용합니다</p>
+            <p className="text-xs text-gray-600 mt-0.5 leading-snug">네이버 AI탭은 블로그 후기를 답변 소스로 활용합니다</p>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-emerald-600 font-bold">→</span>
+            <span className="text-emerald-700 font-bold">→</span>
             <span
               className={`text-sm px-2 py-0.5 rounded-full whitespace-nowrap ${blogBadge.color}`}
             >
@@ -253,7 +253,7 @@ export default function NaverSeoBaseCard({
       </div>
 
       {/* 면책 문구 */}
-      <p className="text-sm text-gray-500 mt-2">
+      <p className="text-sm text-gray-600 mt-2">
         ※ 네이버 검색 순위는 기기·지역·로그인 상태에 따라 다를 수 있으며, 본
         서비스의 측정은 참고용입니다.
       </p>

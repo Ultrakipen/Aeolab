@@ -71,13 +71,13 @@ function FAQSection({ initialItems, faqLoadFailed, onSwitchToInquiry }: { initia
           <HelpCircle className="w-8 h-8 text-gray-300 mx-auto mb-3" />
           {faqLoadFailed ? (
             <>
-              <p className="text-gray-500 text-base font-medium mb-1">FAQ를 불러오지 못했습니다.</p>
-              <p className="text-gray-500 text-sm">일시적인 오류일 수 있습니다. 새로고침 후 다시 시도해 주세요.</p>
+              <p className="text-gray-600 text-base font-medium mb-1">FAQ를 불러오지 못했습니다.</p>
+              <p className="text-gray-600 text-sm">일시적인 오류일 수 있습니다. 새로고침 후 다시 시도해 주세요.</p>
             </>
           ) : (
             <>
-              <p className="text-gray-500 text-base font-medium mb-1">아직 FAQ가 준비되지 않았습니다.</p>
-              <p className="text-gray-500 text-sm">궁금한 점은 <button onClick={onSwitchToInquiry} className="text-blue-500 underline hover:no-underline">문의하기</button> 탭에서 직접 문의해 주세요.</p>
+              <p className="text-gray-600 text-base font-medium mb-1">아직 FAQ가 준비되지 않았습니다.</p>
+              <p className="text-gray-600 text-sm">궁금한 점은 <button onClick={onSwitchToInquiry} className="text-blue-600 underline hover:no-underline">문의하기</button> 탭에서 직접 문의해 주세요.</p>
             </>
           )}
         </div>
@@ -101,9 +101,9 @@ function FAQSection({ initialItems, faqLoadFailed, onSwitchToInquiry }: { initia
                   {faq.question}
                 </span>
                 {isOpen ? (
-                  <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" />
+                  <ChevronUp className="w-4 h-4 text-gray-600 shrink-0" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-gray-600 shrink-0" />
                 )}
               </button>
               {isOpen && (
@@ -157,7 +157,7 @@ function MyInquiryList() {
     return (
       <div className="mt-6 py-10 text-center border border-dashed border-gray-200 rounded-xl">
         <MessageSquare className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-        <p className="text-sm text-gray-500">아직 문의 내역이 없습니다.</p>
+        <p className="text-sm text-gray-600">아직 문의 내역이 없습니다.</p>
       </div>
     );
   }
@@ -165,7 +165,7 @@ function MyInquiryList() {
   return (
     <div className="mt-6 space-y-2">
       <h3 className="text-sm font-semibold text-gray-700 mb-1">간편 문의 내역</h3>
-      <p className="text-sm text-gray-500 mb-3">
+      <p className="text-sm text-gray-600 mb-3">
         아래 폼으로 보낸 문의만 표시됩니다. 1:1 문의(Q&A)로 보낸 답변은{" "}
         <a href="/support/tickets" className="text-blue-600 hover:underline">내 문의 목록</a>에서 확인하세요.
       </p>
@@ -195,26 +195,26 @@ function MyInquiryList() {
                 </span>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-600">
                   {new Date(item.created_at).toLocaleDateString("ko-KR")}
                 </span>
                 {isOpen ? (
-                  <ChevronUp className="w-4 h-4 text-gray-500" />
+                  <ChevronUp className="w-4 h-4 text-gray-600" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                  <ChevronDown className="w-4 h-4 text-gray-600" />
                 )}
               </div>
             </button>
             {isOpen && (
               <div id={`inquiry-panel-${item.id}`} className="bg-gray-50 border-t border-gray-100">
                 <div className="p-4 border-b border-gray-100">
-                  <p className="text-sm text-gray-500 mb-1">문의 내용</p>
+                  <p className="text-sm text-gray-600 mb-1">문의 내용</p>
                   <p className="text-sm text-gray-700 whitespace-pre-wrap break-words leading-relaxed">
                     {item.content}
                   </p>
                 </div>
                 <div className="p-4">
-                  <p className="text-sm text-gray-500 mb-1">
+                  <p className="text-sm text-gray-600 mb-1">
                     {item.status === "answered" && item.answered_at
                       ? `답변 (${new Date(item.answered_at).toLocaleDateString("ko-KR")})`
                       : "답변"}
@@ -224,7 +224,7 @@ function MyInquiryList() {
                       {item.answer}
                     </p>
                   ) : (
-                    <p className="text-sm text-gray-500 italic">검토 중입니다.</p>
+                    <p className="text-sm text-gray-600 italic">검토 중입니다.</p>
                   )}
                 </div>
               </div>
@@ -300,16 +300,16 @@ function InquirySection({
       <div className="max-w-2xl mx-auto">
         {success ? (
           <div className="bg-green-50 border border-green-100 rounded-xl p-6 text-center">
-            <div className="text-3xl mb-3 text-green-600 font-bold">✓</div>
+            <div className="text-3xl mb-3 text-green-700 font-bold">✓</div>
             <p className="text-green-700 font-semibold text-base mb-1">
               문의가 접수되었습니다.
             </p>
-            <p className="text-green-600 text-sm">
+            <p className="text-green-700 text-sm">
               영업일 1~2일 내 답변 드립니다.
             </p>
             <button
               onClick={() => setSuccess(false)}
-              className="mt-4 text-sm text-green-600 underline hover:no-underline"
+              className="mt-4 text-sm text-green-700 underline hover:no-underline"
             >
               추가 문의하기
             </button>
@@ -319,7 +319,7 @@ function InquirySection({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  이름 <span className="text-red-500">*</span>
+                  이름 <span className="text-red-700">*</span>
                 </label>
                 <input
                   type="text"
@@ -332,7 +332,7 @@ function InquirySection({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  이메일 <span className="text-red-500">*</span>
+                  이메일 <span className="text-red-700">*</span>
                 </label>
                 <input
                   type="email"
@@ -347,7 +347,7 @@ function InquirySection({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                문의 유형 <span className="text-red-500">*</span>
+                문의 유형 <span className="text-red-700">*</span>
               </label>
               <select
                 value={form.subject}
@@ -364,7 +364,7 @@ function InquirySection({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                문의 내용 <span className="text-red-500">*</span>
+                문의 내용 <span className="text-red-700">*</span>
               </label>
               <textarea
                 value={form.content}
@@ -377,7 +377,7 @@ function InquirySection({
             </div>
 
             {error && (
-              <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+              <p className="text-sm text-red-700 bg-red-50 rounded-lg px-3 py-2">{error}</p>
             )}
 
             <button
@@ -434,7 +434,7 @@ export default function FAQClient({
               "flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors " +
               (activeTab === key
                 ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700")
+                : "text-gray-600 hover:text-gray-700")
             }
           >
             <Icon className="w-4 h-4" />

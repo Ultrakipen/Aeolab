@@ -253,13 +253,13 @@ export default function Day7ActionCard({
           type="button"
           onClick={onSkip}
           aria-label="건너뛰기"
-          className="text-gray-500 hover:text-gray-600 transition-colors p-1 -m-1"
+          className="text-gray-600 hover:text-gray-700 transition-colors p-1 -m-1"
         >
           <X className="w-4 h-4" />
         </button>
       </div>
 
-      <p className="text-sm text-gray-500 mb-1">{headerTitle}</p>
+      <p className="text-sm text-gray-600 mb-1">{headerTitle}</p>
 
       <h3
         id="day7-action-title"
@@ -272,7 +272,7 @@ export default function Day7ActionCard({
       </p>
 
       {metaInline && (
-        <p className="mt-2 text-sm text-gray-500">{metaInline}</p>
+        <p className="mt-2 text-sm text-gray-600">{metaInline}</p>
       )}
 
       {data.copy_template && (
@@ -284,10 +284,10 @@ export default function Day7ActionCard({
             className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
           >
             <span className="flex items-center gap-1.5">
-              <Copy className="w-4 h-4 text-gray-500" />
+              <Copy className="w-4 h-4 text-gray-600" />
               붙여넣기용 문구
             </span>
-            {copyOpen ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
+            {copyOpen ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
           </button>
           {copyOpen && (
             <div className="px-3 pb-3 border-t border-gray-100">
@@ -315,7 +315,7 @@ export default function Day7ActionCard({
           type="button"
           onClick={onComplete}
           disabled={submitting || completed}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white text-sm font-bold px-4 py-2.5 transition-colors"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 disabled:bg-emerald-400 text-white text-sm font-bold px-4 py-2.5 transition-colors"
         >
           {submitting ? (
             <>

@@ -272,9 +272,9 @@ function CopyButton({ text, label }: { text: string; label: string }) {
       onClick={handleCopy}
       className={`inline-flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors ${
         state === "copied"
-          ? "bg-emerald-500 text-white"
+          ? "bg-emerald-700 text-white"
           : state === "failed"
-            ? "bg-amber-500 text-white"
+            ? "bg-amber-700 text-white"
             : "bg-blue-600 hover:bg-blue-700 text-white"
       }`}
     >
@@ -390,10 +390,10 @@ export default function GlobalAiActionCard({
   const score = Math.round(track2Score);
   const scoreColorClass =
     score >= 70
-      ? "text-green-600"
+      ? "text-green-700"
       : score >= 40
         ? "text-blue-600"
-        : "text-red-500";
+        : "text-red-700";
   const scoreLabel =
     score >= 80 ? "우수" : score >= 65 ? "양호" : score >= 45 ? "보통" : score >= 25 ? "미흡" : "시작 단계";
 
@@ -425,7 +425,7 @@ export default function GlobalAiActionCard({
       {/* 헤더 — Track2 점수 + 측정 요약 */}
       <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
         <div>
-          <p className="text-sm font-semibold text-gray-500 mb-0.5">
+          <p className="text-sm font-semibold text-gray-600 mb-0.5">
             ChatGPT·Gemini·Google AI
           </p>
           <div className="flex items-center gap-3 flex-wrap mt-1">
@@ -446,7 +446,7 @@ export default function GlobalAiActionCard({
           </div>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-sm text-gray-500 mb-0.5">AI 노출 현황</p>
+          <p className="text-sm text-gray-600 mb-0.5">AI 노출 현황</p>
           <p className={`text-2xl font-black ${scoreColorClass}`}>
             {scoreLabel}
           </p>
@@ -471,7 +471,7 @@ export default function GlobalAiActionCard({
 
       {/* 면책 문구 */}
       <div className="border-t border-gray-100 pt-3">
-        <p className="text-sm text-gray-500 leading-relaxed">
+        <p className="text-sm text-gray-600 leading-relaxed">
           ※ ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
           Gemini는 구글 비즈니스 프로필 개선 후 2~4주 내 반영 시작(안정화 3~6개월), ChatGPT는 3개월~1년 소요됩니다. 결과는 보장되지 않습니다.
         </p>

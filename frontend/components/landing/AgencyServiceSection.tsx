@@ -99,7 +99,7 @@ export default function AgencyServiceSection() {
               <div className="flex items-center justify-between">
                 <span
                   className="text-sm font-bold"
-                  style={{ color: pkg.highlight ? "#2563EB" : "#64748B" }}
+                  style={{ color: pkg.highlight ? "#2563EB" : "#45556C" }}
                 >
                   {pkg.num}
                 </span>
@@ -130,14 +130,14 @@ export default function AgencyServiceSection() {
               </p>
 
               {/* 설명 */}
-              <p className="text-sm" style={{ color: "#64748B" }}>
+              <p className="text-sm" style={{ color: "#45556C" }}>
                 {pkg.desc}
               </p>
 
               {/* 포함 항목 */}
               <ul className="flex flex-col gap-1.5">
                 {pkg.items.map((item) => (
-                  <li key={item} className="flex items-start gap-1.5 text-sm" style={{ color: "#059669" }}>
+                  <li key={item} className="flex items-start gap-1.5 text-sm" style={{ color: "#007a55" }}>
                     <span className="mt-px font-bold shrink-0">✓</span>
                     <span>{item}</span>
                   </li>

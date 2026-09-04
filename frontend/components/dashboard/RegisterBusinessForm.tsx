@@ -43,15 +43,15 @@ const ICON_MAP: Record<string, LucideIcon> = {
 }
 
 const COLOR_MAP: Record<string, { bg: string; icon: string; border: string; ring: string; gradient: string }> = {
-  orange:  { bg: "bg-orange-50",  icon: "text-orange-500",  border: "border-orange-300",  ring: "ring-orange-300",  gradient: "from-orange-400 to-rose-500" },
-  amber:   { bg: "bg-amber-50",   icon: "text-amber-600",   border: "border-amber-300",   ring: "ring-amber-300",   gradient: "from-amber-400 to-orange-500" },
+  orange:  { bg: "bg-orange-50",  icon: "text-orange-700",  border: "border-orange-300",  ring: "ring-orange-300",  gradient: "from-orange-400 to-rose-500" },
+  amber:   { bg: "bg-amber-50",   icon: "text-amber-700",   border: "border-amber-300",   ring: "ring-amber-300",   gradient: "from-amber-400 to-orange-500" },
   yellow:  { bg: "bg-yellow-50",  icon: "text-yellow-600",  border: "border-yellow-300",  ring: "ring-yellow-300",  gradient: "from-yellow-400 to-amber-500" },
   purple:  { bg: "bg-purple-50",  icon: "text-purple-500",  border: "border-purple-300",  ring: "ring-purple-300",  gradient: "from-purple-500 to-violet-600" },
   pink:    { bg: "bg-pink-50",    icon: "text-pink-500",    border: "border-pink-300",    ring: "ring-pink-300",    gradient: "from-pink-400 to-rose-500" },
-  rose:    { bg: "bg-rose-50",    icon: "text-rose-500",    border: "border-rose-300",    ring: "ring-rose-300",    gradient: "from-rose-400 to-pink-500" },
-  blue:    { bg: "bg-blue-50",    icon: "text-blue-500",    border: "border-blue-300",    ring: "ring-blue-300",    gradient: "from-blue-500 to-indigo-600" },
-  green:   { bg: "bg-green-50",   icon: "text-green-600",   border: "border-green-300",   ring: "ring-green-300",   gradient: "from-green-400 to-emerald-500" },
-  red:     { bg: "bg-red-50",     icon: "text-red-500",     border: "border-red-300",     ring: "ring-red-300",     gradient: "from-red-400 to-rose-500" },
+  rose:    { bg: "bg-rose-50",    icon: "text-rose-700",    border: "border-rose-300",    ring: "ring-rose-300",    gradient: "from-rose-400 to-pink-500" },
+  blue:    { bg: "bg-blue-50",    icon: "text-blue-600",    border: "border-blue-300",    ring: "ring-blue-300",    gradient: "from-blue-500 to-indigo-600" },
+  green:   { bg: "bg-green-50",   icon: "text-green-700",   border: "border-green-300",   ring: "ring-green-300",   gradient: "from-green-400 to-emerald-500" },
+  red:     { bg: "bg-red-50",     icon: "text-red-700",     border: "border-red-300",     ring: "ring-red-300",     gradient: "from-red-400 to-rose-500" },
   teal:    { bg: "bg-teal-50",    icon: "text-teal-600",    border: "border-teal-300",    ring: "ring-teal-300",    gradient: "from-teal-400 to-cyan-500" },
   lime:    { bg: "bg-lime-50",    icon: "text-lime-600",    border: "border-lime-300",    ring: "ring-lime-300",    gradient: "from-lime-400 to-green-500" },
   indigo:  { bg: "bg-indigo-50",  icon: "text-indigo-500",  border: "border-indigo-300",  ring: "ring-indigo-300",  gradient: "from-indigo-500 to-blue-600" },
@@ -62,8 +62,8 @@ const COLOR_MAP: Record<string, { bg: string; icon: string; border: string; ring
   zinc:    { bg: "bg-zinc-50",    icon: "text-zinc-500",    border: "border-zinc-300",    ring: "ring-zinc-300",    gradient: "from-zinc-400 to-slate-500" },
   cyan:    { bg: "bg-cyan-50",    icon: "text-cyan-600",    border: "border-cyan-300",    ring: "ring-cyan-300",    gradient: "from-cyan-400 to-teal-500" },
   fuchsia: { bg: "bg-fuchsia-50", icon: "text-fuchsia-500", border: "border-fuchsia-300", ring: "ring-fuchsia-300", gradient: "from-fuchsia-500 to-pink-600" },
-  emerald: { bg: "bg-emerald-50", icon: "text-emerald-600", border: "border-emerald-300", ring: "ring-emerald-300", gradient: "from-emerald-400 to-teal-500" },
-  gray:    { bg: "bg-gray-50",    icon: "text-gray-500",    border: "border-gray-300",    ring: "ring-gray-300",    gradient: "from-gray-400 to-slate-500" },
+  emerald: { bg: "bg-emerald-50", icon: "text-emerald-700", border: "border-emerald-300", ring: "ring-emerald-300", gradient: "from-emerald-400 to-teal-500" },
+  gray:    { bg: "bg-gray-50",    icon: "text-gray-600",    border: "border-gray-300",    ring: "ring-gray-300",    gradient: "from-gray-400 to-slate-500" },
 }
 
 const CATEGORIES = [
@@ -348,7 +348,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
     return (
       <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm max-w-lg">
         <h2 className="font-semibold text-gray-900 mb-1">사업장 등록</h2>
-        <p className="text-sm text-gray-500 mb-3">내 사업장이 속하는 업종을 선택하세요.</p>
+        <p className="text-sm text-gray-600 mb-3">내 사업장이 속하는 업종을 선택하세요.</p>
 
         {/* 사업 형태 선택 */}
         <div className="grid grid-cols-2 gap-2 mb-4">
@@ -358,7 +358,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
             className={`py-2 px-3 rounded-xl border-2 text-sm font-medium transition-all ${
               businessType === 'location_based'
                 ? 'border-blue-600 bg-blue-50 text-blue-700'
-                : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                : 'border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
             🏪 오프라인 매장
@@ -369,7 +369,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
             className={`py-2 px-3 rounded-xl border-2 text-sm font-medium transition-all ${
               businessType === 'non_location'
                 ? 'border-blue-600 bg-blue-50 text-blue-700'
-                : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                : 'border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
             💻 온라인·전문직
@@ -435,7 +435,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
         <button
           type="button"
           onClick={() => setStep('category')}
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"
+          className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-700 mb-4"
         >
           <ChevronLeft className="w-4 h-4" /> 업종 다시 선택
         </button>
@@ -476,13 +476,13 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
           />
           <div className="flex-1 min-w-0">
             <span className="text-sm md:text-base font-medium text-gray-800">프랜차이즈 가맹점입니다</span>
-            <span className="block text-sm text-gray-500 mt-0.5">
+            <span className="block text-sm text-gray-600 mt-0.5">
               네이버 공식: 프랜차이즈는 현재 '플레이스형' AI 브리핑 제공 대상에서 제외됩니다(2026-04-30 확인)
             </span>
           </div>
         </label>
 
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-gray-600 mb-4">
           내 사업장과 관련된 서비스를 모두 선택하세요. <span className="text-blue-600">AI가 이 키워드로 검색합니다.</span>
         </p>
 
@@ -508,7 +508,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
             })}
           </div>
         ) : (
-          <p className="text-sm text-gray-500 mb-5">이 업종은 바로 다음 단계로 진행합니다.</p>
+          <p className="text-sm text-gray-600 mb-5">이 업종은 바로 다음 단계로 진행합니다.</p>
         )}
 
         {selectedTags.length > 0 && (
@@ -543,7 +543,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
       <button
         type="button"
         onClick={() => setStep('tags')}
-        className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"
+        className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-700 mb-4"
       >
         <ChevronLeft className="w-4 h-4" /> 서비스 다시 선택
       </button>
@@ -568,20 +568,20 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
       </div>
 
       <h2 className="font-semibold text-gray-900 mb-1">사업장 정보 입력</h2>
-      <p className="text-sm text-gray-500 mb-4">가게 이름으로 검색하면 정보가 자동으로 입력됩니다.</p>
+      <p className="text-sm text-gray-600 mb-4">가게 이름으로 검색하면 정보가 자동으로 입력됩니다.</p>
 
       {/* 가게 이름으로 자동완성 검색 */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          가게 검색 <span className="text-gray-500 font-normal">(네이버·카카오 자동입력)</span>
+          가게 검색 <span className="text-gray-600 font-normal">(네이버·카카오 자동입력)</span>
         </label>
-        <p className="text-sm text-gray-500 mb-1.5">가게 이름으로 검색하면 정보를 자동으로 입력합니다</p>
+        <p className="text-sm text-gray-600 mb-1.5">가게 이름으로 검색하면 정보를 자동으로 입력합니다</p>
         <BusinessSearchDropdown
           region={form.region}
           onSelect={handleBusinessSelect}
         />
         {autoFillMsg && (
-          <p className="text-sm text-green-600 font-medium mt-1.5">{autoFillMsg}</p>
+          <p className="text-sm text-green-700 font-medium mt-1.5">{autoFillMsg}</p>
         )}
       </div>
 
@@ -602,7 +602,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
         {/* 지역 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            지역{businessType === 'location_based' ? ' *' : <span className="text-gray-500 font-normal ml-1">(선택)</span>}
+            지역{businessType === 'location_based' ? ' *' : <span className="text-gray-600 font-normal ml-1">(선택)</span>}
           </label>
           <input
             required={businessType === 'location_based'}
@@ -647,8 +647,8 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                   className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-0"
                 >
                   <div className="text-sm font-medium text-gray-900">{c.name}</div>
-                  <div className="text-sm text-gray-500 mt-0.5">{c.address}</div>
-                  {c.phone && <div className="text-sm text-gray-500">{c.phone}</div>}
+                  <div className="text-sm text-gray-600 mt-0.5">{c.address}</div>
+                  {c.phone && <div className="text-sm text-gray-600">{c.phone}</div>}
                 </button>
               ))}
             </div>
@@ -680,7 +680,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
         {/* 블로그 URL */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            블로그 주소 <span className="text-gray-500 font-normal">(선택 · 네이버·티스토리·워드프레스 등)</span>
+            블로그 주소 <span className="text-gray-600 font-normal">(선택 · 네이버·티스토리·워드프레스 등)</span>
           </label>
           <input
             placeholder="https://blog.naver.com/내계정"
@@ -688,13 +688,13 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
             onChange={(e) => setForm({ ...form, blog_url: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <p className="text-sm text-gray-500 mt-1">블로그 주소 입력 시 네이버 AI 브리핑 언급 분석에 활용됩니다.</p>
+          <p className="text-sm text-gray-600 mt-1">블로그 주소 입력 시 네이버 AI 브리핑 언급 분석에 활용됩니다.</p>
         </div>
 
         {/* 스마트플레이스 현황 */}
         <div className="border border-green-200 rounded-xl p-4 bg-green-50/50 space-y-3">
           <div>
-            <p className="text-sm font-semibold text-green-800">🏪 스마트플레이스 현황 <span className="font-normal text-green-600">(선택 · AI 노출 점수에 직접 반영)</span></p>
+            <p className="text-sm font-semibold text-green-800">🏪 스마트플레이스 현황 <span className="font-normal text-green-700">(선택 · AI 노출 점수에 직접 반영)</span></p>
             <p className="text-sm text-green-700 mt-0.5">지금 알고 있는 항목만 체크하세요. 나중에 설정에서 언제든 수정할 수 있습니다.</p>
           </div>
           <label className="flex items-start gap-3 cursor-pointer group">
@@ -702,11 +702,11 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
               type="checkbox"
               checked={smartplaceChecks.is_smart_place}
               onChange={(e) => setSmartplaceChecks(p => ({ ...p, is_smart_place: e.target.checked }))}
-              className="w-4 h-4 mt-0.5 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer shrink-0"
+              className="w-4 h-4 mt-0.5 rounded border-gray-300 text-green-700 focus:ring-green-500 cursor-pointer shrink-0"
             />
             <div className="flex-1 min-w-0">
               <span className="text-sm font-semibold text-gray-800">네이버 스마트플레이스 등록됨</span>
-              <span className="block text-sm text-gray-500">네이버 지도에서 내 가게가 플레이스 카드로 표시되면 체크</span>
+              <span className="block text-sm text-gray-600">네이버 지도에서 내 가게가 플레이스 카드로 표시되면 체크</span>
             </div>
           </label>
           <div className="space-y-2 pl-1">
@@ -719,11 +719,11 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                   type="checkbox"
                   checked={smartplaceChecks[key]}
                   onChange={(e) => setSmartplaceChecks(p => ({ ...p, [key]: e.target.checked }))}
-                  className="w-4 h-4 mt-0.5 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer shrink-0"
+                  className="w-4 h-4 mt-0.5 rounded border-gray-300 text-green-700 focus:ring-green-500 cursor-pointer shrink-0"
                 />
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-medium text-gray-700">{label}</span>
-                  <span className="block text-sm text-gray-500">{desc}</span>
+                  <span className="block text-sm text-gray-600">{desc}</span>
                 </div>
               </label>
             ))}
@@ -733,7 +733,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
         {/* 고객 리뷰 샘플 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            고객 리뷰 샘플 <span className="text-gray-500 font-normal">(선택 · AI 분석에 활용)</span>
+            고객 리뷰 샘플 <span className="text-gray-600 font-normal">(선택 · AI 분석에 활용)</span>
           </label>
           <textarea
             rows={3}
@@ -757,21 +757,21 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
           <button
             type="button"
             onClick={() => setShowAdvanced((v) => !v)}
-            className="w-full flex items-center justify-between text-sm text-gray-500 hover:text-blue-600 transition-colors py-1"
+            className="w-full flex items-center justify-between text-sm text-gray-600 hover:text-blue-600 transition-colors py-1"
           >
             <span>📌 Google / 카카오 Place ID 입력 <span className="text-gray-300">(선택 · 고급)</span></span>
             <span>{showAdvanced ? '▲ 접기' : '▼ 펼치기'}</span>
           </button>
           {showAdvanced && (
             <div className="grid grid-cols-1 gap-3 border border-gray-100 rounded-xl p-3 bg-gray-50">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-600">
                 <strong>Place ID란?</strong> Google 지도·카카오맵에서 내 가게를 식별하는 고유 번호입니다.
                 모르는 경우 그냥 건너뛰어도 됩니다. 나중에 설정 메뉴에서 추가할 수 있습니다.
               </p>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   네이버 스마트플레이스 URL
-                  <span className="text-gray-500 font-normal ml-1">(선택 · FAQ/소식 자동 체크)</span>
+                  <span className="text-gray-600 font-normal ml-1">(선택 · FAQ/소식 자동 체크)</span>
                 </label>
                 <input
                   placeholder="예: https://naver.me/xxxxx 또는 https://map.naver.com/p/entry/place/12345"
@@ -779,14 +779,14 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                   onChange={(e) => setForm({ ...form, naver_place_url: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 />
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-600 mt-1">
                   입력 시 스캔 때 FAQ·소식·소개글 등록 여부를 자동으로 확인합니다.
                 </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Google 비즈니스 프로필 ID
-                  <span className="text-gray-500 font-normal ml-1">(선택)</span>
+                  <span className="text-gray-600 font-normal ml-1">(선택)</span>
                 </label>
                 <input
                   placeholder="예: ChIJN1t_tDeuEmsRUsoyG83frY4"
@@ -794,14 +794,14 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                   onChange={(e) => setForm({ ...form, google_place_id: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 />
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-600 mt-1">
                   Google 지도 → 내 가게 클릭 → 주소창 URL에서 <code className="bg-gray-100 px-1 rounded">place_id=</code> 뒤의 값
                 </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   카카오맵 Place ID
-                  <span className="text-gray-500 font-normal ml-1">(선택)</span>
+                  <span className="text-gray-600 font-normal ml-1">(선택)</span>
                 </label>
                 <input
                   placeholder="예: 1234567890"
@@ -809,7 +809,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                   onChange={(e) => setForm({ ...form, kakao_place_id: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 />
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-600 mt-1">
                   카카오맵 → 내 가게 클릭 → 주소창 URL 맨 끝 숫자 (예: map.kakao.com/장소/1234567890)
                 </p>
               </div>
@@ -817,7 +817,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     네이버 리뷰 수
-                    <span className="text-gray-500 font-normal ml-1">(선택)</span>
+                    <span className="text-gray-600 font-normal ml-1">(선택)</span>
                   </label>
                   <input
                     type="number"
@@ -831,7 +831,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     평균 평점
-                    <span className="text-gray-500 font-normal ml-1">(선택)</span>
+                    <span className="text-gray-600 font-normal ml-1">(선택)</span>
                   </label>
                   <input
                     type="number"
@@ -844,7 +844,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   />
                 </div>
-                <p className="col-span-2 text-sm text-gray-500">
+                <p className="col-span-2 text-sm text-gray-600">
                   네이버 플레이스 URL을 입력하면 스캔 시 자동으로 갱신됩니다. 없는 경우 직접 입력하세요.
                 </p>
               </div>
@@ -857,7 +857,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
           <div className="flex items-start justify-between mb-2 gap-2">
             <div>
               <p className="text-base font-semibold text-gray-900">
-                검색 노출 키워드 <span className="text-red-600">*3개 이상 필수</span>
+                검색 노출 키워드 <span className="text-red-700">*3개 이상 필수</span>
               </p>
               <p className="text-sm text-gray-600 mt-0.5">
                 네이버 검색·AI에 노출되어야 할 핵심 키워드. 합산 {Array.from(new Set([...selectedTags, ...trackingKeywords])).length}/10개
@@ -950,7 +950,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
             <div className="flex flex-wrap gap-1.5 mb-2">
               {selectedTags.map((t) => (
                 <span key={`tag-${t}`} className="inline-flex items-center gap-1 px-2.5 py-1 text-sm bg-white border border-gray-200 rounded-full text-gray-700">
-                  {t} <span className="text-sm text-gray-500">(서비스)</span>
+                  {t} <span className="text-sm text-gray-600">(서비스)</span>
                 </span>
               ))}
               {trackingKeywords.map((t) => (
@@ -988,7 +988,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                       title={s.rationale + (s.source === 'fallback' ? ' (기본 추천)' : '')}
                       className={`px-2.5 py-1 text-sm rounded-full border transition-colors ${
                         already
-                          ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                          ? 'bg-gray-100 text-gray-600 border-gray-200 cursor-not-allowed'
                           : 'bg-white text-blue-700 border-blue-300 hover:bg-blue-50'
                       }`}
                     >
@@ -1004,12 +1004,12 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
             <p className="text-sm text-amber-700 mt-2">{suggestNote}</p>
           )}
 
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-gray-600 mt-2">
             ※ 측정 시점·기기·검색 환경에 따라 순위는 달라질 수 있습니다 (서울 기준 비로그인 PC/모바일 측정).
           </p>
         </div>
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-red-700 text-sm">{error}</p>}
 
         <button
           type="submit"

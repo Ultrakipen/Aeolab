@@ -27,7 +27,7 @@ export default function CompetitorGapHighlightCard({
       {/* 숫자 비교 3개 */}
       <div className="grid grid-cols-3 gap-3 text-center mb-4">
         <div className="bg-slate-50 rounded-xl py-3 px-2 border border-slate-200">
-          <p className="text-sm text-gray-500 mb-1">업종 평균</p>
+          <p className="text-sm text-gray-600 mb-1">업종 평균</p>
           <p className="text-2xl md:text-3xl font-bold text-gray-700">
             {avgScore.toFixed(1)}점
           </p>
@@ -39,8 +39,8 @@ export default function CompetitorGapHighlightCard({
           </p>
         </div>
         <div className="bg-slate-50 rounded-xl py-3 px-2 border border-slate-200">
-          <p className="text-sm text-gray-500 mb-1">상위 10%</p>
-          <p className="text-2xl md:text-3xl font-bold text-emerald-600">
+          <p className="text-sm text-gray-600 mb-1">상위 10%</p>
+          <p className="text-2xl md:text-3xl font-bold text-emerald-700">
             {top10Score.toFixed(1)}점
           </p>
         </div>

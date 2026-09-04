@@ -134,7 +134,7 @@ export default function ChatGPTDiffCard({
 
       {/* ChatGPT 단기 개선 불가 안내 */}
       <div className="mb-3 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
-        <span className="text-amber-500 text-sm mt-0.5 shrink-0">⚠</span>
+        <span className="text-amber-700 text-sm mt-0.5 shrink-0">⚠</span>
         <p className="text-sm text-amber-800 leading-snug">
           <span className="font-semibold">ChatGPT 인식은 학습 데이터 기반입니다.</span>{" "}
           블로그·소개글 작성으로 단기 변동이 없으며, 수개월~1년 후 모델 업데이트 시 반영됩니다. <span className="font-medium">현재 인식 현황 파악 목적으로 활용하세요.</span>
@@ -147,8 +147,8 @@ export default function ChatGPTDiffCard({
             key={item.label}
             className={`rounded-xl border p-3 flex flex-col gap-1 ${'inactive' in item && item.inactive ? 'bg-gray-50 border-gray-100' : 'bg-white border-slate-100'}`}
           >
-            <p className={`text-sm font-semibold ${'inactive' in item && item.inactive ? 'text-gray-500' : 'text-slate-600'}`}>{item.label}</p>
-            <p className={`text-sm font-bold ${'inactive' in item && item.inactive ? 'text-gray-500' : item.highlight ? 'text-blue-700' : 'text-slate-700'}`}>
+            <p className={`text-sm font-semibold ${'inactive' in item && item.inactive ? 'text-gray-600' : 'text-slate-600'}`}>{item.label}</p>
+            <p className={`text-sm font-bold ${'inactive' in item && item.inactive ? 'text-gray-600' : item.highlight ? 'text-blue-700' : 'text-slate-700'}`}>
               {item.value}
             </p>
             <p className="text-sm text-slate-500 leading-relaxed">{item.detail}</p>
@@ -180,7 +180,7 @@ export default function ChatGPTDiffCard({
           </li>
           {chatgptTopQuery && (
             <li className="flex items-start gap-1.5">
-              <span className="mt-0.5 text-emerald-500 shrink-0">🔍</span>
+              <span className="mt-0.5 text-emerald-700 shrink-0">🔍</span>
               <span>
                 <span className="font-semibold">실측 인용 쿼리:</span>{" "}
                 <span className="font-mono text-sm bg-white px-1.5 py-0.5 rounded border border-indigo-200">

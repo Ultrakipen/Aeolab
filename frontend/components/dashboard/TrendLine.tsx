@@ -88,7 +88,7 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
   if (chartData.length === 0) {
     return (
       <div className="bg-white rounded-xl p-6 shadow-sm flex items-center justify-center h-48">
-        <p className="text-gray-500 text-base">30일 추세 데이터가 없습니다.</p>
+        <p className="text-gray-600 text-base">30일 추세 데이터가 없습니다.</p>
       </div>
     )
   }
@@ -119,7 +119,7 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-3 text-sm text-gray-500 flex-wrap">
+        <div className="flex items-center gap-3 text-sm text-gray-600 flex-wrap">
           <span className="flex items-center gap-1">
             <span className="inline-block w-6 h-px bg-blue-200 border-dashed border-t-2 border-blue-300" />
             일별 측정값
@@ -136,8 +136,8 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
           )}
         </div>
       </div>
-      <p className="text-sm text-gray-500 mb-4">
-        일별 측정값은 통계 변동이 있으므로 <strong className="text-gray-500">7일 평균선</strong>으로 실제 추세를 확인하세요.
+      <p className="text-sm text-gray-600 mb-4">
+        일별 측정값은 통계 변동이 있으므로 <strong className="text-gray-600">7일 평균선</strong>으로 실제 추세를 확인하세요.
         {logsForChart.length > 0 && (
           <span className="ml-1 text-amber-700">점선은 행동을 기록한 날짜입니다.</span>
         )}
@@ -242,14 +242,14 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
                   과거 날짜는 그 날 스캔이 없었던 것이라 재스캔으로 채워지지 않음 */}
               {!log.inRange && (
                 log.daysSince <= 0 ? (
-                  <span className="text-gray-500">
+                  <span className="text-gray-600">
                     · 오늘 기록됨 · 재스캔 시 반영 —{' '}
                     <a href="/dashboard" className="underline underline-offset-2 hover:opacity-80">
                       지금 재스캔 →
                     </a>
                   </span>
                 ) : (
-                  <span className="text-gray-500">
+                  <span className="text-gray-600">
                     · {log.daysSince}일 전 완료 · 해당 날짜에 스캔 기록이 없어 그래프에는 표시되지 않습니다
                   </span>
                 )

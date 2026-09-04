@@ -197,7 +197,7 @@ export function SettingsClient({
   if (cancelled) {
     return (
       <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-4">
-        <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+        <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
         <p className="text-sm text-emerald-800">
           {refunded
             ? "구독 해지 및 전액 환불이 완료되었습니다. 영업일 기준 3~5일 내 결제 수단으로 환불됩니다."
@@ -217,7 +217,7 @@ export function SettingsClient({
           </div>
           <div>
             <h3 className="text-base font-semibold text-gray-800">카카오 알림톡 수신 번호</h3>
-            <p className="text-sm text-gray-500">AI 노출 변화, 주간 리포트 알림을 받을 번호</p>
+            <p className="text-sm text-gray-600">AI 노출 변화, 주간 리포트 알림을 받을 번호</p>
           </div>
         </div>
         <form onSubmit={handlePhoneSave} className="flex flex-col sm:flex-row gap-2.5">
@@ -233,7 +233,7 @@ export function SettingsClient({
             disabled={phoneSaving}
             className={`w-full sm:w-auto px-5 py-3 text-base font-medium rounded-lg transition-colors whitespace-nowrap disabled:opacity-50 ${
               phoneSaved
-                ? "bg-emerald-500 text-white"
+                ? "bg-emerald-700 text-white"
                 : "bg-blue-600 text-white hover:bg-blue-700"
             }`}
           >
@@ -250,7 +250,7 @@ export function SettingsClient({
           </div>
           <div>
             <h3 className="text-base font-semibold text-gray-800">카카오 알림 수신 설정</h3>
-            <p className="text-sm text-gray-500">수신 번호가 등록된 경우에만 발송됩니다.</p>
+            <p className="text-sm text-gray-600">수신 번호가 등록된 경우에만 발송됩니다.</p>
           </div>
         </div>
         <div className="space-y-2.5">
@@ -261,7 +261,7 @@ export function SettingsClient({
             <div key={field} className="flex items-center justify-between gap-4 bg-white rounded-lg px-4 py-3.5 border border-gray-100">
               <div className="min-w-0">
                 <div className="text-sm md:text-base font-medium text-gray-700">{label}</div>
-                <div className="text-sm text-gray-500 mt-0.5">{desc}</div>
+                <div className="text-sm text-gray-600 mt-0.5">{desc}</div>
               </div>
               <button
                 role="switch"
@@ -289,7 +289,7 @@ export function SettingsClient({
             </div>
             <div>
               <h3 className="text-base font-semibold text-gray-800">결제 카드</h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-600">
                 {isSuspended
                   ? "결제가 계속 실패해 구독이 정지되었습니다. 카드를 변경하면 즉시 재결제를 시도합니다."
                   : "새 카드 인증 후 다음 결제부터 적용됩니다."}
@@ -298,16 +298,16 @@ export function SettingsClient({
           </div>
           {cardDisplay ? (
             <div className="bg-white rounded-lg px-4 py-3 border border-gray-100">
-              <p className="text-sm text-gray-500 mb-0.5">현재 등록된 카드</p>
+              <p className="text-sm text-gray-600 mb-0.5">현재 등록된 카드</p>
               <p className="text-base font-semibold text-gray-800">{cardDisplay}</p>
             </div>
           ) : (
-            <p className="text-sm text-gray-500">등록된 카드 정보를 불러올 수 없습니다.</p>
+            <p className="text-sm text-gray-600">등록된 카드 정보를 불러올 수 없습니다.</p>
           )}
           {cardError && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
-              <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-              <p className="text-sm text-red-600">{cardError}</p>
+              <AlertTriangle className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
+              <p className="text-sm text-red-700">{cardError}</p>
             </div>
           )}
           <button
@@ -335,11 +335,11 @@ export function SettingsClient({
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-3">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" strokeWidth={1.8} />
+              <CheckCircle2 className="w-4 h-4 text-emerald-700" strokeWidth={1.8} />
             </div>
             <div>
               <h3 className="text-base font-semibold text-gray-800">해지 취소</h3>
-              <p className="text-sm text-gray-500">아직 구독 기간이 남아 있습니다. 지금 재활성화하면 계속 이용할 수 있습니다.</p>
+              <p className="text-sm text-gray-600">아직 구독 기간이 남아 있습니다. 지금 재활성화하면 계속 이용할 수 있습니다.</p>
             </div>
           </div>
           {reactivated ? (
@@ -348,14 +348,14 @@ export function SettingsClient({
             <>
               {reactivateError && (
                 <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
-                  <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-600">{reactivateError}</p>
+                  <AlertTriangle className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-700">{reactivateError}</p>
                 </div>
               )}
               <button
                 onClick={handleReactivate}
                 disabled={reactivating}
-                className="w-full sm:w-auto px-5 py-3 bg-emerald-600 text-white text-base font-medium rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                className="w-full sm:w-auto px-5 py-3 bg-emerald-700 text-white text-base font-medium rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
               >
                 {reactivating ? "재활성화 중..." : "구독 재활성화"}
               </button>
@@ -370,13 +370,13 @@ export function SettingsClient({
         <div className="border border-red-100 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" strokeWidth={1.8} />
-            <h3 className="text-base font-semibold text-red-600">구독 해지</h3>
+            <h3 className="text-base font-semibold text-red-700">구독 해지</h3>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <p className="text-sm text-gray-500 flex-1">구독을 해지하면 자동 스캔과 알림이 중단됩니다. 현재 구독 기간이 끝날 때까지는 서비스를 계속 이용할 수 있습니다.</p>
+            <p className="text-sm text-gray-600 flex-1">구독을 해지하면 자동 스캔과 알림이 중단됩니다. 현재 구독 기간이 끝날 때까지는 서비스를 계속 이용할 수 있습니다.</p>
             <button
               onClick={() => { setShowCancelModal(true); setCancelError(""); setSelectedReason(null); }}
-              className="w-full sm:w-auto text-sm text-red-500 hover:text-red-700 font-medium border border-red-200 px-4 py-2.5 rounded-lg hover:bg-red-50 transition-colors"
+              className="w-full sm:w-auto text-sm text-red-700 hover:text-red-800 font-medium border border-red-200 px-4 py-2.5 rounded-lg hover:bg-red-50 transition-colors"
             >
               구독 해지
             </button>
@@ -392,11 +392,11 @@ export function SettingsClient({
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="text-lg font-bold text-gray-900">구독을 해지하시겠습니까?</h3>
-                <p className="text-sm text-gray-500 mt-0.5">만료일이 지나면 다음 데이터에 대한 분석 기능을 이용할 수 없게 됩니다.</p>
+                <p className="text-sm text-gray-600 mt-0.5">만료일이 지나면 다음 데이터에 대한 분석 기능을 이용할 수 없게 됩니다.</p>
               </div>
               <button
                 onClick={() => setShowCancelModal(false)}
-                className="text-gray-500 hover:text-gray-600 transition-colors ml-3 shrink-0"
+                className="text-gray-600 hover:text-gray-700 transition-colors ml-3 shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -414,18 +414,18 @@ export function SettingsClient({
             {/* 잃게 되는 데이터 요약 */}
             <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-4 mb-4 space-y-2">
               <div className="flex items-center gap-2 text-sm text-red-800">
-                <span className="text-red-500 font-bold shrink-0">•</span>
+                <span className="text-red-700 font-bold shrink-0">•</span>
                 <span>AI 노출 이력 <strong>{subscriptionDays}일</strong> 기록</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-red-800">
-                <span className="text-red-500 font-bold shrink-0">•</span>
+                <span className="text-red-700 font-bold shrink-0">•</span>
                 <span>경쟁사 비교 데이터 <strong>{competitorCount}개</strong> 사업장</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-red-800">
-                <span className="text-red-500 font-bold shrink-0">•</span>
+                <span className="text-red-700 font-bold shrink-0">•</span>
                 <span>행동→점수 변화 기록 <strong>{actionCount}건</strong></span>
               </div>
-              <p className="text-sm text-red-600 mt-1 pt-2 border-t border-red-100">
+              <p className="text-sm text-red-700 mt-1 pt-2 border-t border-red-100">
                 데이터 자체는 삭제되지 않고 보관되며, 재가입 시 그대로 이어서 이용할 수 있습니다.
               </p>
             </div>
@@ -469,7 +469,7 @@ export function SettingsClient({
             })()}
 
             {cancelError && (
-              <p className="text-sm text-red-500 mb-3">{cancelError}</p>
+              <p className="text-sm text-red-700 mb-3">{cancelError}</p>
             )}
 
             {/* 액션 버튼 — 유지하기가 주 버튼 */}
@@ -512,7 +512,7 @@ export function SettingsClient({
                   }
                 }}
                 disabled={cancelling}
-                className="w-full sm:w-auto text-sm text-red-500 border border-red-200 px-4 py-3 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50 whitespace-nowrap"
+                className="w-full sm:w-auto text-sm text-red-700 border border-red-200 px-4 py-3 rounded-xl hover:bg-red-50 transition-colors disabled:opacity-50 whitespace-nowrap"
               >
                 {cancelling ? "처리 중..." : "그래도 해지"}
               </button>

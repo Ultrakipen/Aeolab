@@ -425,16 +425,16 @@ export default async function DashboardPage({
                 />
                 {plan === "free" && (
                   freeScanAvailable ? (
-                    <p className="text-sm text-green-600 font-medium mt-2">이번 달 무료 스캔 1회 사용 가능해요</p>
+                    <p className="text-sm text-green-700 font-medium mt-2">이번 달 무료 스캔 1회 사용 가능해요</p>
                   ) : (
-                    <p className="text-sm text-gray-500 font-medium mt-2">이번 달 무료 스캔을 사용했어요 · 다음 달에 다시 가능</p>
+                    <p className="text-sm text-gray-600 font-medium mt-2">이번 달 무료 스캔을 사용했어요 · 다음 달에 다시 가능</p>
                   )
                 )}
                 <div className="mt-3 pt-3 border-t border-gray-100 space-y-0.5">
                   <p className="text-sm font-semibold text-slate-600 leading-snug">📅 개선 후 반영 예상 기간</p>
                   <p className="text-sm text-slate-500 leading-snug">· 스마트플레이스 정보 업데이트: <strong className="text-slate-700">즉시~수일</strong></p>
-                  <p className="text-sm text-slate-500 leading-snug">· 네이버 검색 순위 변화: <strong className="text-slate-700">2~4주</strong> <span className="text-xs text-gray-500">(경쟁·지역 따라 다름)</span></p>
-                  <p className="text-sm text-slate-500 leading-snug">· 네이버 AI 브리핑·AI탭: <strong className="text-slate-700">2~4주</strong> <span className="text-xs text-gray-500">(추정, 네이버 미공개)</span></p>
+                  <p className="text-sm text-slate-500 leading-snug">· 네이버 검색 순위 변화: <strong className="text-slate-700">2~4주</strong> <span className="text-xs text-gray-600">(경쟁·지역 따라 다름)</span></p>
+                  <p className="text-sm text-slate-500 leading-snug">· 네이버 AI 브리핑·AI탭: <strong className="text-slate-700">2~4주</strong> <span className="text-xs text-gray-600">(추정, 네이버 미공개)</span></p>
                   <p className="text-sm text-slate-500 leading-snug">· Gemini·ChatGPT: <strong className="text-slate-700">수개월~1년</strong> (AEOlab 스캐너는 학습 데이터 기반 측정)</p>
                 </div>
               </div>
@@ -473,7 +473,7 @@ export default async function DashboardPage({
                 <div className="bg-gradient-to-br from-slate-50 to-blue-50 border border-blue-100 rounded-xl p-5 space-y-4">
                   <div>
                     <p className="text-base font-bold text-gray-800">스캔하면 이런 정보가 나옵니다</p>
-                    <p className="text-sm text-gray-500 mt-0.5 leading-snug">오른쪽에서 키워드를 선택하고 AI 스캔을 시작하세요</p>
+                    <p className="text-sm text-gray-600 mt-0.5 leading-snug">오른쪽에서 키워드를 선택하고 AI 스캔을 시작하세요</p>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {([
@@ -487,7 +487,7 @@ export default async function DashboardPage({
                           <span className="text-base leading-none">{icon}</span>
                           <p className="text-sm font-semibold text-gray-800 leading-tight">{title}</p>
                         </div>
-                        <p className="text-xs text-gray-500 leading-snug">{desc}</p>
+                        <p className="text-xs text-gray-600 leading-snug">{desc}</p>
                       </div>
                     ))}
                   </div>
@@ -512,7 +512,7 @@ export default async function DashboardPage({
               </div>
               <a
                 href="/competitors"
-                className="shrink-0 text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors"
+                className="shrink-0 text-sm font-semibold text-white bg-orange-700 hover:bg-orange-800 px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors"
               >
                 등록하기
               </a>
@@ -520,7 +520,7 @@ export default async function DashboardPage({
           )}
 
           {/* ① 네이버 채널별 개선 방법 — 소상공인 최우선 채널. Hero 바로 다음에 배치 */}
-          <CollapseSectionWrapper id="section-naver" title="네이버 채널별 개선 방법" description="노출 높이는 구체적 방법 — 요약 상태는 위 진단 카드 참고" iconColor="text-green-600" defaultOpen={true} highlight={true}>
+          <CollapseSectionWrapper id="section-naver" title="네이버 채널별 개선 방법" description="노출 높이는 구체적 방법 — 요약 상태는 위 진단 카드 참고" iconColor="text-green-700" defaultOpen={true} highlight={true}>
             <>
               {/* 4타일 NavBar — 섹션 최상단 */}
               {latestScan && (
@@ -601,7 +601,7 @@ export default async function DashboardPage({
           </CollapseSectionWrapper>
 
           {/* ③ 오늘 할 일 — 네이버 현황·도구 파악 후 행동 지시 (모바일: 기본 접힘 → 스크롤 단축) */}
-          <CollapseSectionWrapper id="section-action" title="오늘 할 일" description="지금 바로 실행할 액션" iconColor="text-rose-500" defaultOpen={true} mobileDefaultOpen={false}>
+          <CollapseSectionWrapper id="section-action" title="오늘 할 일" description="지금 바로 실행할 액션" iconColor="text-rose-700" defaultOpen={true} mobileDefaultOpen={false}>
             <DashboardActionZone
               bizId={bizBase.id}
               accessToken={accessToken}
@@ -689,7 +689,7 @@ export default async function DashboardPage({
           </CollapseSectionWrapper>
 
           {/* ⑥ 글로벌 AI — INACTIVE/프랜차이즈는 핵심 대안 채널이나, 자동 펼침 시 ①③과 겹쳐 페이지 과다 길어짐(2026-07-07 실측) → 배지로 우선순위만 표시 */}
-          <CollapseSectionWrapper id="section-global" title="글로벌 AI 현황" description="ChatGPT · Gemini · Google AI 실측 · 글로벌 소개글" iconColor="text-blue-500" defaultOpen={false} badgeText={(briefingEligibility === "inactive" || isFranchise) ? "핵심 채널" : undefined} badgeColor="blue">
+          <CollapseSectionWrapper id="section-global" title="글로벌 AI 현황" description="ChatGPT · Gemini · Google AI 실측 · 글로벌 소개글" iconColor="text-blue-600" defaultOpen={false} badgeText={(briefingEligibility === "inactive" || isFranchise) ? "핵심 채널" : undefined} badgeColor="blue">
             <DashboardGlobalAiZone
               category={bizBase.category}
               plan={plan}
@@ -713,7 +713,7 @@ export default async function DashboardPage({
           </CollapseSectionWrapper>
 
           {/* ⑧ AI 채널 안내 · 심화 가이드 — 접힘, 최하단 */}
-          <CollapseSectionWrapper id="section-guidance" title="AI 채널 안내 · 심화 가이드" description="채널 노출 조건 · 단계 가이드 · 경쟁사 분석" iconColor="text-gray-500">
+          <CollapseSectionWrapper id="section-guidance" title="AI 채널 안내 · 심화 가이드" description="채널 노출 조건 · 단계 가이드 · 경쟁사 분석" iconColor="text-gray-600">
             <>
               <NaverAiPathwayCard
                 briefingEligibility={briefingEligibility}

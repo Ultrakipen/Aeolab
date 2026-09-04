@@ -59,49 +59,49 @@ export default function DashboardGlobalAiZone({
           <div className="grid grid-cols-3 gap-3 mb-3">
             {/* ChatGPT */}
             <div className="bg-white rounded-lg border border-blue-100 p-3 text-center">
-              <p className="text-sm text-gray-500 mb-1 font-medium">ChatGPT</p>
+              <p className="text-sm text-gray-600 mb-1 font-medium">ChatGPT</p>
               {chatgptFreq !== undefined ? (
                 <>
-                  <p className={`text-sm font-bold leading-tight ${chatgptFreq > 0 ? "text-blue-700" : "text-gray-500"}`}>
+                  <p className={`text-sm font-bold leading-tight ${chatgptFreq > 0 ? "text-blue-700" : "text-gray-600"}`}>
                     {chatgptFreq > 0 ? `${chatgptFreq}회 언급` : "미언급"}
                   </p>
                   {chatgptSampleSize != null && chatgptSampleSize > 0 && (
-                    <p className="text-xs text-gray-500 mt-0.5">{chatgptSampleSize}회 중</p>
+                    <p className="text-xs text-gray-600 mt-0.5">{chatgptSampleSize}회 중</p>
                   )}
                 </>
               ) : (
-                <p className="text-sm text-gray-500">–</p>
+                <p className="text-sm text-gray-600">–</p>
               )}
             </div>
             {/* Gemini */}
             <div className="bg-white rounded-lg border border-blue-100 p-3 text-center">
-              <p className="text-sm text-gray-500 mb-1 font-medium">Gemini</p>
+              <p className="text-sm text-gray-600 mb-1 font-medium">Gemini</p>
               {geminiFreq !== undefined ? (
                 <>
-                  <p className={`text-sm font-bold leading-tight ${geminiFreq > 0 ? "text-blue-700" : "text-gray-500"}`}>
+                  <p className={`text-sm font-bold leading-tight ${geminiFreq > 0 ? "text-blue-700" : "text-gray-600"}`}>
                     {geminiFreq > 0 ? `${geminiFreq}회 언급` : "미언급"}
                   </p>
                   {geminiSampleSize != null && geminiSampleSize > 0 && (
-                    <p className="text-xs text-gray-500 mt-0.5">{geminiSampleSize}회 중</p>
+                    <p className="text-xs text-gray-600 mt-0.5">{geminiSampleSize}회 중</p>
                   )}
                 </>
               ) : (
-                <p className="text-sm text-gray-500">–</p>
+                <p className="text-sm text-gray-600">–</p>
               )}
             </div>
             {/* Google AI */}
             <div className="bg-white rounded-lg border border-blue-100 p-3 text-center">
-              <p className="text-sm text-gray-500 mb-1 font-medium">Google AI</p>
+              <p className="text-sm text-gray-600 mb-1 font-medium">Google AI</p>
               {!googleError && googleMentioned !== undefined && googleMentioned !== null ? (
-                <p className={`text-sm font-bold leading-tight ${googleMentioned ? "text-blue-700" : "text-gray-500"}`}>
+                <p className={`text-sm font-bold leading-tight ${googleMentioned ? "text-blue-700" : "text-gray-600"}`}>
                   {googleMentioned ? "노출 중" : "미확인"}
                 </p>
               ) : (
-                <p className="text-sm text-gray-500">–</p>
+                <p className="text-sm text-gray-600">–</p>
               )}
             </div>
           </div>
-          <p className="text-xs text-gray-500 leading-snug">
+          <p className="text-xs text-gray-600 leading-snug">
             ChatGPT·Gemini 스캐너는 모두 학습 데이터 기반 쿼리로 측정합니다.
             개선 반영까지 <span className="font-semibold text-gray-700">수개월~1년</span> 소요됩니다.
           </p>

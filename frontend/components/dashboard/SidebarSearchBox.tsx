@@ -34,7 +34,7 @@ export function SidebarSearchBox({ value, onChange }: Props) {
   return (
     <div className="mx-3 mb-3 relative flex items-center">
       <Search
-        className="absolute left-2.5 w-4 h-4 text-gray-500 pointer-events-none"
+        className="absolute left-2.5 w-4 h-4 text-gray-600 pointer-events-none"
         aria-hidden="true"
       />
       <input
@@ -49,7 +49,7 @@ export function SidebarSearchBox({ value, onChange }: Props) {
       {/* 데스크톱 단축키 힌트 — lg+ 에서만 표시 */}
       {!value && (
         <span
-          className="hidden lg:flex absolute right-2.5 items-center text-sm text-gray-500 font-mono bg-gray-100 rounded px-1 py-0.5 pointer-events-none select-none"
+          className="hidden lg:flex absolute right-2.5 items-center text-sm text-gray-600 font-mono bg-gray-100 rounded px-1 py-0.5 pointer-events-none select-none"
           aria-hidden="true"
         >
           {isMac ? "⌘K" : "Ctrl K"}

@@ -96,7 +96,7 @@ export default function PioneerKeywordsCard({ bizId, pioneerKeywords, accessToke
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
           <div className="text-base font-semibold text-emerald-800">나만의 강점 키워드</div>
         </div>
-        <p className="text-sm text-emerald-600">
+        <p className="text-sm text-emerald-700">
           모든 키워드를 제외했습니다. 제외 해제는 상단의 &quot;내 키워드 설정&quot;에서 할 수 있습니다.
         </p>
         <button
@@ -116,7 +116,7 @@ export default function PioneerKeywordsCard({ bizId, pioneerKeywords, accessToke
         <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
         <div className="text-base font-semibold text-emerald-800">나만의 강점 키워드</div>
       </div>
-      <p className="text-sm text-emerald-600 mb-3">
+      <p className="text-sm text-emerald-700 mb-3">
         AI가 분석한 선점 가능 키워드입니다. 실제 제공하지 않는 서비스는 X를 눌러 제외하세요.
       </p>
       <div className="flex flex-wrap gap-2">
@@ -130,7 +130,7 @@ export default function PioneerKeywordsCard({ bizId, pioneerKeywords, accessToke
               type="button"
               onClick={() => handleExclude(kw)}
               disabled={submitting || initialLoading}
-              className="ml-1 text-emerald-500 hover:text-red-500 font-bold text-base leading-none disabled:opacity-40"
+              className="ml-1 text-emerald-700 hover:text-red-700 font-bold text-base leading-none disabled:opacity-40"
               title={initialLoading ? '로딩 중…' : `"${kw}" 제외`}
               aria-label={`"${kw}" 제외`}
             >

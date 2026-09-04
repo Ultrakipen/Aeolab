@@ -71,7 +71,7 @@ export default function ApiKeysPage() {
     <div className="p-4 md:p-8 max-w-2xl">
       <div className="mb-5 md:mb-6">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">Public API 키 관리</h1>
-        <p className="text-sm text-gray-500 mt-1">개발자·대행사용 API 접근 키 (Biz/Enterprise 전용, 최대 5개)</p>
+        <p className="text-sm text-gray-600 mt-1">개발자·대행사용 API 접근 키 (Biz/Enterprise 전용, 최대 5개)</p>
       </div>
 
       {/* 새 키 발급 */}
@@ -92,7 +92,7 @@ export default function ApiKeysPage() {
             {loading ? "발급 중..." : "발급"}
           </button>
         </div>
-        {error && <p className="text-sm text-red-600 mb-2">{error}</p>}
+        {error && <p className="text-sm text-red-700 mb-2">{error}</p>}
         {newKey && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
             <p className="text-sm font-medium text-yellow-800 mb-2">
@@ -108,8 +108,8 @@ export default function ApiKeysPage() {
         <h2 className="text-base md:text-lg font-semibold text-gray-700 mb-3">발급된 키 ({keys.length}/5)</h2>
         {keys.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-sm text-gray-500">발급된 API 키가 없습니다.</p>
-            <p className="text-sm text-gray-500 mt-1">위에서 키 이름을 입력해 발급하세요.</p>
+            <p className="text-sm text-gray-600">발급된 API 키가 없습니다.</p>
+            <p className="text-sm text-gray-600 mt-1">위에서 키 이름을 입력해 발급하세요.</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -117,14 +117,14 @@ export default function ApiKeysPage() {
               <div key={k.id} className="flex items-center justify-between py-3 px-1 border-b border-gray-50 last:border-0">
                 <div className="min-w-0 mr-3">
                   <p className="text-sm md:text-base font-medium text-gray-900">{k.name}</p>
-                  <p className="text-sm text-gray-500 font-mono mt-0.5">
+                  <p className="text-sm text-gray-600 font-mono mt-0.5">
                     {k.key_prefix}... · 생성: {k.created_at.slice(0, 10)}
                     {k.last_used_at && ` · 최근: ${k.last_used_at.slice(0, 10)}`}
                   </p>
                 </div>
                 <button
                   onClick={() => handleRevoke(k.id)}
-                  className="shrink-0 text-sm text-red-500 hover:text-red-700 border border-red-100 hover:border-red-300 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                  className="shrink-0 text-sm text-red-700 hover:text-red-800 border border-red-100 hover:border-red-300 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
                 >
                   폐기
                 </button>
@@ -136,10 +136,10 @@ export default function ApiKeysPage() {
 
       {/* API 문서 안내 */}
       <section className="bg-gray-50 rounded-xl p-4 md:p-5 mt-4 border border-gray-100">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-600">
           API 키 사용: <code className="font-mono text-sm bg-white px-1.5 py-0.5 rounded border border-gray-200">Authorization: Bearer &lt;api_key&gt;</code> 헤더로 전송.
         </p>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-gray-600 mt-1">
           문서: <span className="text-blue-600">aeolab.co.kr/docs/api</span> (준비 중)
         </p>
       </section>

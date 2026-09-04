@@ -70,7 +70,7 @@ export function ChatGptChecklist({ items }: Props) {
           <span
             className={`shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
               checked[item.id]
-                ? "bg-green-500 border-green-500 text-white"
+                ? "bg-green-700 border-green-500 text-white"
                 : "bg-white border-gray-400"
             }`}
           >

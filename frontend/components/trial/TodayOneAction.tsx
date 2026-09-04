@@ -112,7 +112,7 @@ function ActionCard({
       <div className="flex items-center gap-2 mb-2.5">
         <span
           className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-black shrink-0 ${
-            action.primary ? "bg-emerald-600 text-white" : "bg-emerald-200 text-emerald-700"
+            action.primary ? "bg-emerald-700 text-white" : "bg-emerald-200 text-emerald-700"
           }`}
         >
           {index + 1}
@@ -158,9 +158,9 @@ function ActionCard({
             onClick={handleCopy}
             className={`flex-1 py-2.5 rounded-lg font-bold text-sm transition-all ${
               copied
-                ? "bg-emerald-500 text-white"
+                ? "bg-emerald-700 text-white"
                 : copyFailed
-                ? "bg-amber-500 text-white"
+                ? "bg-amber-700 text-white"
                 : "bg-blue-600 text-white hover:bg-blue-700"
             }`}
           >
@@ -342,7 +342,7 @@ export default function TodayOneAction({
     <section className="bg-emerald-50 border-2 border-emerald-300 rounded-xl p-4 md:p-6 mb-4">
       {/* 헤더 */}
       <div className="flex items-start gap-2.5 mb-1">
-        <Zap className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+        <Zap className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
         <div>
           <p className="text-base md:text-lg font-bold text-emerald-900">
             지금부터 할 일 — 순서대로 따라하기

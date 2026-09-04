@@ -37,7 +37,7 @@ export function AuthNavControlClient() {
   return (
     <div className="flex items-center gap-2 md:gap-3">
       <span
-        className="hidden lg:block text-sm text-gray-500 truncate max-w-[220px]"
+        className="hidden lg:block text-sm text-gray-600 truncate max-w-[220px]"
         title={email}
       >
         {email}

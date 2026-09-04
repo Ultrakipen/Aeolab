@@ -125,16 +125,16 @@ export default function KeywordToolPage() {
         <div className="max-w-2xl mx-auto px-4 py-8 md:py-10">
           <Link
             href="/"
-            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600 transition-colors mb-4"
+            className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
             홈으로
           </Link>
           <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="w-6 h-6 text-blue-500" />
+            <Sparkles className="w-6 h-6 text-blue-600" />
             <h1 className="text-2xl md:text-3xl font-black text-gray-900">무료 키워드 생성기</h1>
           </div>
-          <p className="text-sm md:text-base text-gray-500">
+          <p className="text-sm md:text-base text-gray-600">
             비즈니스명과 업종만 입력하면 AI가 SEO 키워드 5개를 추천합니다
           </p>
         </div>
@@ -178,7 +178,7 @@ export default function KeywordToolPage() {
                 onChange={(e) => setBusinessName(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="예: 강남 파스타 이탈리안"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-400"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-600"
               />
             </div>
 
@@ -232,7 +232,7 @@ export default function KeywordToolPage() {
             </button>
 
             {/* Rate limit 안내 */}
-            <p className="text-sm text-gray-500 text-center">
+            <p className="text-sm text-gray-600 text-center">
               분당 3회 생성 가능 · 생성 후 {COOLDOWN_SECONDS}초 대기
             </p>
           </div>
@@ -243,7 +243,7 @@ export default function KeywordToolPage() {
           <div className="bg-white rounded-xl border border-emerald-100 shadow-sm p-5 md:p-6 mb-6">
             <h2 className="text-base font-bold text-gray-900 mb-4">
               추천 키워드
-              <span className="ml-2 text-sm font-normal text-gray-500">{keywords.length}개</span>
+              <span className="ml-2 text-sm font-normal text-gray-600">{keywords.length}개</span>
             </h2>
             <div className="flex flex-wrap gap-2 mb-5">
               {keywords.map((kw, i) => (
@@ -261,7 +261,7 @@ export default function KeywordToolPage() {
               <p className="text-sm font-bold text-gray-900 mb-1">
                 구독하면 최대 10개 키워드 + 순위 추적
               </p>
-              <p className="text-sm text-gray-500 mb-3">
+              <p className="text-sm text-gray-600 mb-3">
                 매주 키워드 순위 자동 측정 · 상승/하락 알림 · 경쟁사 비교
               </p>
               <Link

@@ -154,23 +154,23 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/40">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-1">결제 확인</h2>
-            <p className="text-sm text-gray-500 mb-5">아래 내용을 확인하고 결제를 진행해주세요.</p>
+            <p className="text-sm text-gray-600 mb-5">아래 내용을 확인하고 결제를 진행해주세요.</p>
 
             <div className="bg-gray-50 rounded-xl p-4 mb-5 space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">상품</span>
+                <span className="text-gray-600">상품</span>
                 <span className="font-medium text-gray-900">AEOlab {planName} 구독</span>
               </div>
               {firstMonthAmount && isFirstTime ? (
                 <>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">오늘 결제 (첫 달 50%)</span>
-                    <span className="font-bold text-emerald-600 text-base">
+                    <span className="text-gray-600">오늘 결제 (첫 달 50%)</span>
+                    <span className="font-bold text-emerald-700 text-base">
                       {firstMonthAmount.toLocaleString()}원
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">다음 달부터</span>
+                    <span className="text-gray-600">다음 달부터</span>
                     <span className="text-gray-700">
                       {amount.toLocaleString()}원 / 월
                     </span>
@@ -178,19 +178,19 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
                 </>
               ) : (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">결제 금액</span>
+                  <span className="text-gray-600">결제 금액</span>
                   <span className="font-bold text-blue-600 text-base">
                     {amount.toLocaleString()}원 / 월
                   </span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-gray-500">결제 방식</span>
+                <span className="text-gray-600">결제 방식</span>
                 <span className="text-gray-700">카드 자동결제 (매월 갱신)</span>
               </div>
             </div>
 
-            <p className="text-sm text-gray-500 mb-3">
+            <p className="text-sm text-gray-600 mb-3">
               {firstMonthAmount && isFirstTime
                 ? `첫 달 ${firstMonthAmount.toLocaleString()}원 결제 후, 30일 뒤부터 매월 ${amount.toLocaleString()}원이 자동으로 결제됩니다. 언제든지 설정에서 해지할 수 있습니다.`
                 : "카드를 등록하면 매월 자동으로 결제됩니다. 언제든지 설정에서 해지할 수 있습니다."}
@@ -211,13 +211,13 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
                 }`}
               />
               {phoneError ? (
-                <p className="text-sm text-red-600 mt-1">{phoneError}</p>
+                <p className="text-sm text-red-700 mt-1">{phoneError}</p>
               ) : (
-                <p className="text-sm text-gray-500 mt-1">AI 노출 점수 변동·경쟁사 알림을 카카오톡으로 받습니다.</p>
+                <p className="text-sm text-gray-600 mt-1">AI 노출 점수 변동·경쟁사 알림을 카카오톡으로 받습니다.</p>
               )}
             </div>
 
-            <p className="text-sm text-gray-500 mb-5">
+            <p className="text-sm text-gray-600 mb-5">
               구독 시작일로부터 7일 이내 청약철회 신청 가능 (단, 서비스 이용 시 제한됩니다) ·{" "}
               <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">이용약관</a>
             </p>

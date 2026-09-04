@@ -33,16 +33,16 @@ export default function AdCostCalculatorPage() {
         <div className="max-w-2xl mx-auto px-4 py-8 md:py-10">
           <Link
             href="/"
-            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600 transition-colors mb-4"
+            className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
             홈으로
           </Link>
           <div className="flex items-center gap-2 mb-2">
-            <Calculator className="w-6 h-6 text-blue-500" />
+            <Calculator className="w-6 h-6 text-blue-600" />
             <h1 className="text-2xl md:text-3xl font-black text-gray-900">광고비 절감 계산기</h1>
           </div>
-          <p className="text-sm md:text-base text-gray-500">
+          <p className="text-sm md:text-base text-gray-600">
             AI 검색 노출로 광고비를 절감하면?
           </p>
         </div>
@@ -60,7 +60,7 @@ export default function AdCostCalculatorPage() {
             <span className="text-3xl md:text-4xl font-black text-gray-900">
               {adCostManWon}만원
             </span>
-            <span className="text-base text-gray-500 ml-1">/월</span>
+            <span className="text-base text-gray-600 ml-1">/월</span>
           </div>
 
           {/* 슬라이더 */}
@@ -76,7 +76,7 @@ export default function AdCostCalculatorPage() {
           />
 
           {/* 최소/최대 레이블 */}
-          <div className="flex justify-between text-sm text-gray-500 mt-1.5">
+          <div className="flex justify-between text-sm text-gray-600 mt-1.5">
             <span>1만원</span>
             <span>200만원</span>
           </div>
@@ -86,16 +86,16 @@ export default function AdCostCalculatorPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* 현재 광고비 */}
           <div className="bg-red-50 border border-red-100 rounded-xl p-5">
-            <p className="text-sm font-semibold text-red-600 mb-1">현재 월 광고비</p>
+            <p className="text-sm font-semibold text-red-700 mb-1">현재 월 광고비</p>
             <p className="text-2xl md:text-3xl font-black text-red-700">{formatWon(adCost)}</p>
-            <p className="text-sm text-red-500 mt-1">광고 끄면 노출 0</p>
+            <p className="text-sm text-red-700 mt-1">광고 끄면 노출 0</p>
           </div>
 
           {/* AEOlab 구독료 */}
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-5">
             <p className="text-sm font-semibold text-blue-600 mb-1">AEOlab 구독료</p>
             <p className="text-2xl md:text-3xl font-black text-blue-700">{formatWon(AEOLAB_MONTHLY)}</p>
-            <p className="text-sm text-blue-500 mt-1">
+            <p className="text-sm text-blue-600 mt-1">
               광고비의{" "}
               <span className="font-bold">
                 {((AEOLAB_MONTHLY / adCost) * 100).toFixed(1)}%
@@ -107,7 +107,7 @@ export default function AdCostCalculatorPage() {
         {/* 절감 예상 카드 */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 md:p-6">
           <div className="flex items-center gap-2 mb-5">
-            <TrendingDown className="w-5 h-5 text-emerald-500" />
+            <TrendingDown className="w-5 h-5 text-emerald-700" />
             <h2 className="text-base font-bold text-gray-900">절감 예상 금액</h2>
           </div>
 
@@ -116,11 +116,11 @@ export default function AdCostCalculatorPage() {
             <div className="flex items-center justify-between gap-4 py-4 border-b border-gray-50">
               <div>
                 <p className="text-sm font-semibold text-gray-700">6개월 절감 예상</p>
-                <p className="text-sm text-gray-500 mt-0.5">
+                <p className="text-sm text-gray-600 mt-0.5">
                   광고비 {formatWon(adCost)} × 30% × 6개월 − AEOlab {formatWon(aeolab6mo)}
                 </p>
               </div>
-              <span className={`text-xl font-black shrink-0 ${saving6mo > 0 ? "text-emerald-600" : "text-gray-500"}`}>
+              <span className={`text-xl font-black shrink-0 ${saving6mo > 0 ? "text-emerald-700" : "text-gray-600"}`}>
                 {saving6mo > 0 ? `+${formatWon(saving6mo)}` : "효과 미미"}
               </span>
             </div>
@@ -129,11 +129,11 @@ export default function AdCostCalculatorPage() {
             <div className="flex items-center justify-between gap-4 py-4">
               <div>
                 <p className="text-sm font-semibold text-gray-700">1년 절감 예상</p>
-                <p className="text-sm text-gray-500 mt-0.5">
+                <p className="text-sm text-gray-600 mt-0.5">
                   광고비 {formatWon(adCost)} × 30% × 12개월 − AEOlab {formatWon(aeolab12mo)}
                 </p>
               </div>
-              <span className={`text-xl font-black shrink-0 ${saving12mo > 0 ? "text-emerald-600" : "text-gray-500"}`}>
+              <span className={`text-xl font-black shrink-0 ${saving12mo > 0 ? "text-emerald-700" : "text-gray-600"}`}>
                 {saving12mo > 0 ? `+${formatWon(saving12mo)}` : "효과 미미"}
               </span>
             </div>
@@ -148,7 +148,7 @@ export default function AdCostCalculatorPage() {
         </div>
 
         {/* 면책 문구 */}
-        <p className="text-sm text-gray-500 text-center leading-relaxed">
+        <p className="text-sm text-gray-600 text-center leading-relaxed">
           절감 효과는 업종·지역·경쟁 강도에 따라 다릅니다.
           실제 효과는 AEOlab 스캔 후 확인하세요.
         </p>
@@ -158,7 +158,7 @@ export default function AdCostCalculatorPage() {
           <p className="text-base font-bold text-gray-900 mb-1">
             실제 내 사업장의 AI 노출 현황이 궁금하다면?
           </p>
-          <p className="text-sm text-gray-500 mb-4">회원가입 없이 1분 무료 진단</p>
+          <p className="text-sm text-gray-600 mb-4">회원가입 없이 1분 무료 진단</p>
           <Link
             href="/trial"
             className="inline-block px-7 py-3 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition-colors"

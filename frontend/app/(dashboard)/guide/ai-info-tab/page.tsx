@@ -58,7 +58,7 @@ export default async function AiInfoTabGuidePage({
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <Link
           href="/guide"
-          className="inline-flex items-center gap-1 text-sm md:text-base text-gray-500 hover:text-blue-600"
+          className="inline-flex items-center gap-1 text-sm md:text-base text-gray-600 hover:text-blue-600"
         >
           <ChevronLeft className="w-4 h-4" /> 가이드로 돌아가기
         </Link>
@@ -106,7 +106,7 @@ export default async function AiInfoTabGuidePage({
             ? '소개글·소식·리뷰 3가지를 갖추면 네이버 일반 검색 상위노출과 AI탭·ChatGPT·Gemini 노출이 동시에 개선됩니다. 평균 소요 10분.'
             : '내 사업장이 네이버 AI 브리핑에 노출되도록 단계별로 안내합니다. 평균 소요 15분.'}
         </p>
-        <p className="mt-2 text-sm md:text-base text-gray-500">
+        <p className="mt-2 text-sm md:text-base text-gray-600">
           출처:{" "}
           <a
             href="https://help.naver.com/service/30026/contents/24632"

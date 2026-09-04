@@ -31,7 +31,7 @@ export default function BusinessQuickEditButton({ bizId, bizName, initialData, a
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 border border-gray-200 hover:border-blue-300 px-3 py-2 rounded-lg transition-colors"
+        className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-blue-600 border border-gray-200 hover:border-blue-300 px-3 py-2 rounded-lg transition-colors"
         title="가게 정보 빠른 수정"
         aria-label="가게 정보 빠른 수정"
       >

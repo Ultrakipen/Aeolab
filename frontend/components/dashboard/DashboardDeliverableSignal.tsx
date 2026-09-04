@@ -43,13 +43,13 @@ export default function DashboardDeliverableSignal({
             href={it.href}
             className="inline-flex items-center gap-1.5 bg-white border border-purple-200 text-purple-800 text-sm font-semibold rounded-full px-3 py-1.5 hover:bg-purple-100 transition-colors"
           >
-            <span className="text-emerald-500" aria-hidden="true">✓</span>
+            <span className="text-emerald-700" aria-hidden="true">✓</span>
             {it.label}
             <span className="text-purple-400" aria-hidden="true">→</span>
           </Link>
         ))}
       </div>
-      <p className="text-xs text-gray-500 mt-2 leading-snug break-keep">
+      <p className="text-xs text-gray-600 mt-2 leading-snug break-keep">
         바로 복사해 스마트플레이스·톡톡에 붙여넣으면 됩니다 · 내용은 다시 생성하면 갱신됩니다
       </p>
     </div>

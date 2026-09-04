@@ -675,8 +675,8 @@ export default function DemoPage() {
           />
         </div>
       </div>
-      <p className="text-sm md:text-base text-gray-500 leading-relaxed">{item.what}</p>
-      <p className={`text-sm md:text-base mt-1 font-medium leading-relaxed ${item.isLow ? "text-amber-600" : "text-green-600"}`}>
+      <p className="text-sm md:text-base text-gray-600 leading-relaxed">{item.what}</p>
+      <p className={`text-sm md:text-base mt-1 font-medium leading-relaxed ${item.isLow ? "text-amber-700" : "text-green-700"}`}>
         {item.stateMsg}
       </p>
     </div>
@@ -728,7 +728,7 @@ export default function DemoPage() {
           <p className="text-base md:text-xl font-bold text-gray-800 leading-snug">
             내 가게 네이버 플레이스 순위, 경쟁사와 비교해 정확히 확인하세요
           </p>
-          <p className="text-sm md:text-base text-gray-500 mt-1.5 leading-relaxed">
+          <p className="text-sm md:text-base text-gray-600 mt-1.5 leading-relaxed">
             스마트플레이스 개선이 네이버 검색 상위 노출로 이어집니다. 어느 채널을, 얼마나 빠르게 올릴 수 있는지 채널별로 안내합니다.
           </p>
         </div>
@@ -738,7 +738,7 @@ export default function DemoPage() {
           <p className="text-sm md:text-base font-semibold text-gray-600 mb-3 md:mb-4">내 업종과 지역을 선택하면 비슷한 예시를 보여드립니다</p>
 
           <div className="mb-3 md:mb-4">
-            <p className="text-sm font-medium text-gray-500 mb-2">업종</p>
+            <p className="text-sm font-medium text-gray-600 mb-2">업종</p>
             <div className="flex flex-wrap gap-2">
               {visibleCategories.map((c) => (
                 <button
@@ -759,7 +759,7 @@ export default function DemoPage() {
               {hiddenCategoryCount > 0 && (
                 <button
                   onClick={() => setShowAllCategories(true)}
-                  className="text-sm md:text-base px-3 md:px-4 py-1.5 md:py-2 rounded-full border border-dashed border-gray-300 text-gray-500 font-medium hover:border-blue-300 hover:text-blue-600 transition-colors"
+                  className="text-sm md:text-base px-3 md:px-4 py-1.5 md:py-2 rounded-full border border-dashed border-gray-300 text-gray-600 font-medium hover:border-blue-300 hover:text-blue-600 transition-colors"
                 >
                   + {hiddenCategoryCount}개 업종 더보기
                 </button>
@@ -768,7 +768,7 @@ export default function DemoPage() {
           </div>
 
           <div>
-            <p className="text-sm font-medium text-gray-500 mb-2">지역</p>
+            <p className="text-sm font-medium text-gray-600 mb-2">지역</p>
             <div className="flex flex-wrap gap-2">
               {REGIONS.map((r) => (
                 <button
@@ -786,7 +786,7 @@ export default function DemoPage() {
             </div>
           </div>
 
-          <p className="text-sm text-gray-500 mt-3 leading-relaxed">
+          <p className="text-sm text-gray-600 mt-3 leading-relaxed">
             {isRealBiz
               ? "※ 사진/영상 업종은 창원시 실제 사업장 데이터입니다. 다른 업종은 예시 데이터입니다."
               : "※ 아래 내용은 예시 데이터입니다. 실제 결과는 내 가게 진단 후 확인하세요."}
@@ -852,7 +852,7 @@ export default function DemoPage() {
               <span className="text-base">🔍</span>
               <span className="text-sm font-semibold text-green-800">네이버 검색 현황 — 소상공인 핵심 채널</span>
             </div>
-            <span className="text-sm text-green-600 bg-green-100 rounded-full px-2.5 py-0.5 shrink-0 font-medium hidden sm:inline">
+            <span className="text-sm text-green-700 bg-green-100 rounded-full px-2.5 py-0.5 shrink-0 font-medium hidden sm:inline">
               {m.query} 기준
             </span>
           </div>
@@ -874,17 +874,17 @@ export default function DemoPage() {
             {/* 네이버 플레이스 순위 + AI 브리핑 상태 2칸 그리드 */}
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-gray-50 rounded-xl px-4 py-3">
-                <p className="text-sm text-gray-500 mb-1">네이버 플레이스 순위</p>
+                <p className="text-sm text-gray-600 mb-1">네이버 플레이스 순위</p>
                 <p className="text-2xl font-black leading-tight">
-                  <span className={m.naverRank <= 3 ? "text-green-600" : "text-amber-600"}>{m.naverRank}위</span>
-                  <span className="text-sm font-normal text-gray-500 ml-1">/ {m.naverCompetitors.length}개 업체</span>
+                  <span className={m.naverRank <= 3 ? "text-green-700" : "text-amber-700"}>{m.naverRank}위</span>
+                  <span className="text-sm font-normal text-gray-600 ml-1">/ {m.naverCompetitors.length}개 업체</span>
                 </p>
-                <p className={`text-sm font-medium mt-1 ${m.naverRank <= 3 ? "text-green-600" : "text-amber-600"}`}>
+                <p className={`text-sm font-medium mt-1 ${m.naverRank <= 3 ? "text-green-700" : "text-amber-700"}`}>
                   {m.naverRank === 1 ? "✓ 지역 1위" : m.naverRank <= 3 ? "✓ 상위 노출" : "⚠ 순위 개선 가능"}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-xl px-4 py-3">
-                <p className="text-sm text-gray-500 mb-1">네이버 AI 브리핑</p>
+                <p className="text-sm text-gray-600 mb-1">네이버 AI 브리핑</p>
                 {briefingStatus === "active" ? (
                   <>
                     <p className="text-base font-bold text-purple-700">대상 업종 ✓</p>
@@ -897,8 +897,8 @@ export default function DemoPage() {
                   </>
                 ) : (
                   <>
-                    <p className="text-base font-bold text-gray-500">이 업종 해당 없음</p>
-                    <p className="text-sm text-gray-500 mt-1">검색·AI탭에 집중</p>
+                    <p className="text-base font-bold text-gray-600">이 업종 해당 없음</p>
+                    <p className="text-sm text-gray-600 mt-1">검색·AI탭에 집중</p>
                   </>
                 )}
               </div>
@@ -929,7 +929,7 @@ export default function DemoPage() {
 
           {/* 푸터 */}
           <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between gap-2">
-            <p className="text-sm text-gray-500 leading-relaxed">
+            <p className="text-sm text-gray-600 leading-relaxed">
               측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
             </p>
             <Link
@@ -951,7 +951,7 @@ export default function DemoPage() {
 
             {/* 종합 결론 — 대시보드 HeroCard 구조 복제 (성장단계+네이버 3채널 그리드+실측근거+오늘할일) */}
             <div>
-              <p className="text-sm text-gray-500 mb-2 px-1">
+              <p className="text-sm text-gray-600 mb-2 px-1">
                 {m.businessName} · {isRealBiz ? "창원시 (실제 데이터)" : `${m.region} (예시)`}
               </p>
               <ResultSummaryHero
@@ -991,22 +991,22 @@ export default function DemoPage() {
                   />
                 </div>
                 <div className="flex justify-between mt-1">
-                  <span className="text-sm text-gray-500">시작</span>
-                  <span className="text-sm text-gray-500">{CATEGORIES.find(c => c.value === category)?.label} 업종 평균</span>
-                  <span className="text-sm text-gray-500">최적화</span>
+                  <span className="text-sm text-gray-600">시작</span>
+                  <span className="text-sm text-gray-600">{CATEGORIES.find(c => c.value === category)?.label} 업종 평균</span>
+                  <span className="text-sm text-gray-600">최적화</span>
                 </div>
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-600">
                 내 가게 AI 검색 노출은 {isRealBiz ? "창원시" : m.region} {CATEGORIES.find(c => c.value === category)?.label} 업종 평균 {m.totalScore >= m.benchmark.avg ? "이상입니다" : "대비 개선 여지가 있습니다"}.
-                <span className="ml-1 text-sm bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">추정</span>
+                <span className="ml-1 text-sm bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">추정</span>
               </p>
-              <p className="text-sm text-gray-500 mt-2">업종 평균은 참고용 추정치이며 실측 기반으로 계속 개선됩니다</p>
+              <p className="text-sm text-gray-600 mt-2">업종 평균은 참고용 추정치이며 실측 기반으로 계속 개선됩니다</p>
             </div>
 
             {/* Google 비즈니스 프로필 안내 — 컴팩트 버전 */}
             <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
               <p className="text-sm font-semibold text-gray-700 mb-1">ChatGPT·Google AI에도 노출되려면?</p>
-              <p className="text-sm text-gray-500 leading-relaxed">
+              <p className="text-sm text-gray-600 leading-relaxed">
                 네이버 스마트플레이스는 해외 AI가 읽을 수 없습니다.
                 <a href="https://business.google.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-medium hover:underline ml-1">
                   Google 비즈니스 프로필 무료 등록 →
@@ -1038,7 +1038,7 @@ export default function DemoPage() {
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-100">
                 <p className="text-base md:text-lg font-bold text-gray-800">손님은 이렇게 가게를 찾습니다</p>
-                <p className="text-sm text-gray-500 mt-0.5">"{m.query}" 로 검색했을 때 예시</p>
+                <p className="text-sm text-gray-600 mt-0.5">"{m.query}" 로 검색했을 때 예시</p>
               </div>
 
               <button
@@ -1049,7 +1049,7 @@ export default function DemoPage() {
                 <span className="text-sm font-semibold text-gray-700">
                   {showJourney ? "접기" : "네이버·블로그·AI 검색 과정 자세히 보기"}
                 </span>
-                {showJourney ? <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />}
+                {showJourney ? <ChevronUp className="w-4 h-4 text-gray-600 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-600 shrink-0" />}
               </button>
 
               {showJourney && (
@@ -1057,7 +1057,7 @@ export default function DemoPage() {
               {/* STEP 1: 네이버 */}
               <div className="px-4 md:px-6 py-4 border-b border-gray-50">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="w-6 h-6 rounded-full bg-green-600 text-white text-sm font-bold flex items-center justify-center shrink-0">1</span>
+                  <span className="w-6 h-6 rounded-full bg-green-700 text-white text-sm font-bold flex items-center justify-center shrink-0">1</span>
                   <p className="text-sm md:text-base font-semibold text-gray-700">네이버 지도·플레이스에서 가게 목록을 봅니다</p>
                 </div>
                 <div className="space-y-2 ml-8">
@@ -1066,14 +1066,14 @@ export default function DemoPage() {
                       <span className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shrink-0 mt-0.5 ${
                         comp.rank === 1 ? "bg-yellow-300 text-yellow-900" :
                         comp.rank === 2 ? "bg-gray-300 text-gray-700" :
-                        comp.rank === 3 ? "bg-orange-200 text-orange-800" : "bg-white text-gray-500 border border-gray-200"
+                        comp.rank === 3 ? "bg-orange-200 text-orange-800" : "bg-white text-gray-600 border border-gray-200"
                       }`}>{comp.rank}</span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className={`text-sm md:text-base font-medium ${comp.isMe ? "text-blue-700" : "text-gray-800"}`}>{comp.name}</span>
                           {comp.isMe && <span className="text-sm bg-blue-600 text-white px-1.5 py-0.5 rounded-full">내 가게</span>}
                         </div>
-                        <p className="text-sm text-gray-500 truncate mt-0.5">{comp.address}</p>
+                        <p className="text-sm text-gray-600 truncate mt-0.5">{comp.address}</p>
                       </div>
                     </div>
                   ))}
@@ -1090,12 +1090,12 @@ export default function DemoPage() {
                     <div key={comp.rank} className={`flex items-start gap-3 rounded-xl px-3 py-2.5 ${comp.isMe ? "bg-yellow-50 border border-yellow-200" : "bg-gray-50"}`}>
                       <span className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold shrink-0 mt-0.5 ${
                         comp.rank === 1 ? "bg-yellow-300 text-yellow-900" :
-                        comp.rank === 2 ? "bg-gray-300 text-gray-700" : "bg-white text-gray-500 border border-gray-200"
+                        comp.rank === 2 ? "bg-gray-300 text-gray-700" : "bg-white text-gray-600 border border-gray-200"
                       }`}>{comp.rank}</span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className={`text-sm md:text-base font-medium ${comp.isMe ? "text-yellow-800" : "text-gray-800"}`}>{comp.name}</span>
-                          {comp.isMe && <span className="text-sm bg-yellow-500 text-white px-1.5 py-0.5 rounded-full">내 가게</span>}
+                          {comp.isMe && <span className="text-sm bg-yellow-700 text-white px-1.5 py-0.5 rounded-full">내 가게</span>}
                         </div>
                       </div>
                     </div>
@@ -1106,7 +1106,7 @@ export default function DemoPage() {
               {/* STEP 2: 블로그 */}
               <div className="px-4 md:px-6 py-4 border-b border-gray-50">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="w-6 h-6 rounded-full bg-green-600 text-white text-sm font-bold flex items-center justify-center shrink-0">2</span>
+                  <span className="w-6 h-6 rounded-full bg-green-700 text-white text-sm font-bold flex items-center justify-center shrink-0">2</span>
                   <p className="text-sm md:text-base font-semibold text-gray-700">블로그 후기를 보고 어느 가게를 갈지 결정합니다</p>
                 </div>
                 <div className="ml-8">
@@ -1125,7 +1125,7 @@ export default function DemoPage() {
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-semibold text-gray-500 flex items-center gap-1.5">
+                        <span className="text-sm font-semibold text-gray-600 flex items-center gap-1.5">
                           <span className="w-2 h-2 rounded-full bg-gray-400 inline-block" />
                           <span className="truncate max-w-[140px] md:max-w-[200px]">{m.topCompetitorName} (네이버 1위)</span>
                         </span>
@@ -1136,18 +1136,18 @@ export default function DemoPage() {
                       </div>
                     </div>
                     <div className="mt-3 pt-3 border-t border-red-100 flex items-center justify-between gap-2">
-                      <p className="text-sm text-red-500">경쟁 1위보다 {m.topCompetitorBlogCount - m.blogMentions}건 적습니다.</p>
-                      <Link href="/trial" className="text-sm font-semibold text-red-600 underline hover:text-red-700 shrink-0">내 가게 확인 →</Link>
+                      <p className="text-sm text-red-700">경쟁 1위보다 {m.topCompetitorBlogCount - m.blogMentions}건 적습니다.</p>
+                      <Link href="/trial" className="text-sm font-semibold text-red-700 underline hover:text-red-700 shrink-0">내 가게 확인 →</Link>
                     </div>
                   </div>
                   <div className="space-y-2">
                     {m.topBlogs.map((blog, i) => (
                       <div key={i} className="flex items-start gap-3 bg-gray-50 rounded-xl px-3 py-2.5">
-                        <span className="text-sm text-gray-500 mt-1 shrink-0 font-medium">후기</span>
+                        <span className="text-sm text-gray-600 mt-1 shrink-0 font-medium">후기</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm md:text-base font-medium text-gray-800 line-clamp-1">{blog.title}</p>
-                          <p className="text-sm text-gray-500 line-clamp-1 mt-0.5">{blog.desc}</p>
-                          <p className={`text-sm mt-0.5 font-medium ${blog.isOld ? "text-orange-400" : "text-gray-500"}`}>
+                          <p className="text-sm text-gray-600 line-clamp-1 mt-0.5">{blog.desc}</p>
+                          <p className={`text-sm mt-0.5 font-medium ${blog.isOld ? "text-orange-400" : "text-gray-600"}`}>
                             {blog.dateLabel}{blog.isOld && " · 오래된 후기"}
                           </p>
                         </div>
@@ -1160,7 +1160,7 @@ export default function DemoPage() {
               {/* STEP 3: AI */}
               <div className="px-4 md:px-6 py-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="w-6 h-6 rounded-full bg-green-600 text-white text-sm font-bold flex items-center justify-center shrink-0">3</span>
+                  <span className="w-6 h-6 rounded-full bg-green-700 text-white text-sm font-bold flex items-center justify-center shrink-0">3</span>
                   <p className="text-sm md:text-base font-semibold text-gray-700">ChatGPT·Gemini에 "어디 좋아?" 라고 물어봅니다</p>
                 </div>
                 <div className="ml-8">
@@ -1199,7 +1199,7 @@ export default function DemoPage() {
                         </p>
                         <p className="text-sm md:text-base text-gray-700 leading-relaxed">
                           "{m.query}"으로 ChatGPT·Gemini에 각 50회 질의한 결과,
-                          <strong className="text-red-600"> ChatGPT·Gemini 합산 AI 노출 확률 {m.geminiRate === 0 ? "이번 측정에서 AI에 미노출" : `${m.geminiRate}%`}</strong>입니다.
+                          <strong className="text-red-700"> ChatGPT·Gemini 합산 AI 노출 확률 {m.geminiRate === 0 ? "이번 측정에서 AI에 미노출" : `${m.geminiRate}%`}</strong>입니다.
                           소개글·소식에 구조화된 정보가 없어 AI가 인용할 후보 텍스트를 찾기 어렵습니다.
                         </p>
                       </div>
@@ -1210,7 +1210,7 @@ export default function DemoPage() {
                           소개글에 Q&A 3~5개를 추가하면 AI 브리핑 후보군 진입 가능성이 올라갑니다.
                         </p>
                       </div>
-                      <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                      <p className="text-sm text-gray-600 mt-2 leading-relaxed">
                         이 데모는 <span className="font-medium">Basic 구독 기준 (Gemini·ChatGPT 각 50회)</span>으로 측정한 샘플입니다.
                         무료 체험은 ChatGPT 5회 질의이며, 구독 후 정밀 측정이 진행됩니다.
                       </p>
@@ -1224,10 +1224,10 @@ export default function DemoPage() {
                           ChatGPT·Gemini 합산 AI 노출 확률: <span className="text-green-800">{m.geminiRate}%</span>
                         </p>
                       </div>
-                      <p className="text-sm text-gray-500 leading-relaxed">무료 체험은 ChatGPT 5회 질의입니다. Basic 구독: 주 2회(월·목) Gemini·ChatGPT 각 50회 자동 측정.</p>
+                      <p className="text-sm text-gray-600 leading-relaxed">무료 체험은 ChatGPT 5회 질의입니다. Basic 구독: 주 2회(월·목) Gemini·ChatGPT 각 50회 자동 측정.</p>
                     </>
                   )}
-                  <p className="mt-2 text-sm text-gray-500 leading-relaxed">
+                  <p className="mt-2 text-sm text-gray-600 leading-relaxed">
                     ChatGPT·Gemini 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
                     측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
                   </p>
@@ -1242,7 +1242,7 @@ export default function DemoPage() {
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-100">
                 <p className="text-base md:text-lg font-bold text-gray-800">채널별로 어디를 개선할지 확인하기</p>
-                <p className="text-sm text-gray-500 mt-0.5">네이버·글로벌 AI 채널별로 약한 항목부터 개선하면 됩니다</p>
+                <p className="text-sm text-gray-600 mt-0.5">네이버·글로벌 AI 채널별로 약한 항목부터 개선하면 됩니다</p>
               </div>
               <div className="divide-y divide-gray-100">
                 {channelOrder.map((cid) => {
@@ -1256,7 +1256,7 @@ export default function DemoPage() {
                       {ch.items && ch.items.length > 0 ? (
                         <div>{ch.items.map(renderBreakdownRow)}</div>
                       ) : (
-                        <p className="text-sm md:text-base text-gray-500 leading-relaxed">{ch.note}</p>
+                        <p className="text-sm md:text-base text-gray-600 leading-relaxed">{ch.note}</p>
                       )}
                     </div>
                   );
@@ -1268,15 +1268,15 @@ export default function DemoPage() {
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-100">
                 <p className="text-base md:text-lg font-bold text-gray-800">손님이 처음 볼 때 꼭 있어야 할 정보</p>
-                <p className="text-sm text-gray-500 mt-0.5">하나라도 빠지면 손님이 경쟁 가게로 넘어갑니다</p>
+                <p className="text-sm text-gray-600 mt-0.5">하나라도 빠지면 손님이 경쟁 가게로 넘어갑니다</p>
               </div>
               <div className="divide-y divide-gray-50">
                 {m.smartPlaceChecklist.map((item, i) => (
                   <div key={i} className="px-4 md:px-6 py-3 flex items-start gap-3">
                     <span className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-sm shrink-0 font-bold ${
-                      item.checked === true  ? "bg-green-100 text-green-600" :
-                      item.checked === false ? "bg-red-100 text-red-500" :
-                      "bg-gray-100 text-gray-500"
+                      item.checked === true  ? "bg-green-100 text-green-700" :
+                      item.checked === false ? "bg-red-100 text-red-700" :
+                      "bg-gray-100 text-gray-600"
                     }`}>
                       {item.checked === true ? "✓" : item.checked === false ? "✗" : "?"}
                     </span>
@@ -1284,13 +1284,13 @@ export default function DemoPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className={`text-sm md:text-base font-semibold ${item.checked === false ? "text-red-700" : "text-gray-800"}`}>{item.item}</span>
                         <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${
-                          item.impact === "high" ? "bg-red-100 text-red-600" :
-                          item.impact === "medium" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-500"
+                          item.impact === "high" ? "bg-red-100 text-red-700" :
+                          item.impact === "medium" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-600"
                         }`}>
                           {item.impact === "high" ? "필수" : item.impact === "medium" ? "중요" : "권장"}
                         </span>
                       </div>
-                      <p className={`text-sm md:text-base mt-0.5 leading-relaxed ${item.checked === false ? "text-red-500 font-medium" : "text-gray-500"}`}>{item.reason}</p>
+                      <p className={`text-sm md:text-base mt-0.5 leading-relaxed ${item.checked === false ? "text-red-700 font-medium" : "text-gray-600"}`}>{item.reason}</p>
                     </div>
                   </div>
                 ))}
@@ -1308,8 +1308,8 @@ export default function DemoPage() {
               <div className="px-4 md:px-6 pt-4 pb-2">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm font-bold text-gray-500 mb-2">지금 (무료 체험)</p>
-                    <ul className="space-y-1.5 text-sm text-gray-500">
+                    <p className="text-sm font-bold text-gray-600 mb-2">지금 (무료 체험)</p>
+                    <ul className="space-y-1.5 text-sm text-gray-600">
                       <li>· ChatGPT 5회 AI 노출 확률(%) 측정</li>
                       <li>· 종합 점수 + 네이버/글로벌 분리 진단</li>
                       <li>· 스마트플레이스 항목별 점검</li>
@@ -1393,7 +1393,7 @@ export default function DemoPage() {
           </div>
         </div>
 
-        <Link href="/" className="block w-full border border-gray-200 text-gray-500 py-3 rounded-xl hover:bg-gray-50 text-sm md:text-base text-center">
+        <Link href="/" className="block w-full border border-gray-200 text-gray-600 py-3 rounded-xl hover:bg-gray-50 text-sm md:text-base text-center">
           AEOlab 소개 보기
         </Link>
 

@@ -131,10 +131,10 @@ export default function PlanRecommender() {
               <p className="text-base font-bold text-gray-900">
                 추천 플랜: {selectedOption.recommend}
               </p>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <p className="text-sm text-gray-600 mt-0.5">
                 월 {selectedOption.amount.toLocaleString()}원
                 {selectedOption.firstMonthAmount && (
-                  <span className="ml-2 text-emerald-600 font-semibold">
+                  <span className="ml-2 text-emerald-700 font-semibold">
                     (첫 달 {selectedOption.firstMonthAmount.toLocaleString()}원 · 50% 할인)
                   </span>
                 )}
@@ -183,7 +183,7 @@ export default function PlanRecommender() {
             )}
           </div>
 
-          <p className="text-sm text-gray-500 text-center mt-2">
+          <p className="text-sm text-gray-600 text-center mt-2">
             7일 이내 미사용 시 100% 환불 · 카드 자동결제
           </p>
         </div>

@@ -126,10 +126,10 @@ function getScoreMessage(score: number): string {
 
 function PriorityBadge({ priority }: { priority: "high" | "medium" | "low" }) {
   if (priority === "high")
-    return <span className="text-sm font-semibold px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 border border-red-200 shrink-0">필수</span>;
+    return <span className="text-sm font-semibold px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 border border-red-200 shrink-0">필수</span>;
   if (priority === "medium")
     return <span className="text-sm font-semibold px-1.5 py-0.5 rounded-full bg-yellow-100 text-yellow-600 border border-yellow-200 shrink-0">권장</span>;
-  return <span className="text-sm font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 border border-gray-200 shrink-0">선택</span>;
+  return <span className="text-sm font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200 shrink-0">선택</span>;
 }
 
 // ---------------------------------------------------------------------------
@@ -216,7 +216,7 @@ export default function KakaoChecklistCard({
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <h2 className="text-base md:text-lg font-bold text-gray-900">카카오맵 완성도</h2>
           </div>
-          <p className="text-sm text-gray-500 leading-relaxed">
+          <p className="text-sm text-gray-600 leading-relaxed">
             카카오맵 비즈니스 프로필을 체크하면 점수를 확인할 수 있습니다.
           </p>
         </div>
@@ -228,13 +228,13 @@ export default function KakaoChecklistCard({
           >
             {grade.label}
           </span>
-          <p className="text-sm text-gray-500 mt-1">{completedCount}/{CHECKLIST_ITEMS.length} 항목 완료</p>
+          <p className="text-sm text-gray-600 mt-1">{completedCount}/{CHECKLIST_ITEMS.length} 항목 완료</p>
         </div>
       </div>
 
       {/* 점수 진행 바 */}
       <div>
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-1.5">
+        <div className="flex items-center justify-between text-sm text-gray-600 mb-1.5">
           <span>{getScoreMessage(score)}</span>
         </div>
         <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
@@ -286,15 +286,15 @@ export default function KakaoChecklistCard({
                   {!checked && <PriorityBadge priority={item.priority} />}
                   {!checked && (
                     <span className={`text-sm font-medium ml-auto shrink-0 px-1.5 py-0.5 rounded-full ${
-                      item.weight >= 25 ? 'bg-red-50 text-red-600' :
-                      item.weight >= 15 ? 'bg-amber-50 text-amber-600' :
-                      'bg-gray-100 text-gray-500'
+                      item.weight >= 25 ? 'bg-red-50 text-red-700' :
+                      item.weight >= 15 ? 'bg-amber-50 text-amber-700' :
+                      'bg-gray-100 text-gray-600'
                     }`}>
                       {item.weight >= 25 ? '매우 중요' : item.weight >= 15 ? '중요' : '권장'}
                     </span>
                   )}
                 </div>
-                <p className={`text-sm leading-relaxed ${checked ? "text-green-600" : "text-gray-500"}`}>
+                <p className={`text-sm leading-relaxed ${checked ? "text-green-700" : "text-gray-600"}`}>
                   {item.desc}
                 </p>
               </div>
@@ -342,11 +342,11 @@ export default function KakaoChecklistCard({
 
       {/* 오류 메시지 */}
       {error && (
-        <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+        <p className="text-sm text-red-700 bg-red-50 rounded-lg px-3 py-2">{error}</p>
       )}
 
       {/* 점수 안내 */}
-      <p className="text-sm text-gray-500 leading-relaxed">
+      <p className="text-sm text-gray-600 leading-relaxed">
         카카오맵은 한국 최대 POI DB(지역 정보)로, 등록 완성도가 높을수록 카카오 AI 검색 및 카카오 내비 노출이 향상됩니다.
       </p>
     </div>

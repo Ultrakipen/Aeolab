@@ -404,7 +404,7 @@ function NaverSearchBaseSection({
         </p>
       </div>
 
-      <p className="text-sm text-gray-500 mt-3">
+      <p className="text-sm text-gray-600 mt-3">
         ※ 네이버 검색 순위는 기기·지역·로그인 상태에 따라 다를 수 있습니다.
       </p>
     </section>
@@ -460,7 +460,7 @@ function NaverSearchOptimizationSection({
         </div>
         <div className="min-w-0">
           <h3 className="font-bold text-gray-900 text-base">네이버 일반 검색 최적화</h3>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-gray-600 mt-0.5">
             {isActive
               ? "스마트플레이스 완성도를 높이면 플레이스탭 순위와 AI 브리핑 노출 가능성이 함께 올라갑니다."
               : isLikely
@@ -485,7 +485,7 @@ function NaverSearchOptimizationSection({
                   }`}
                 >
                   <span className={`w-5 h-5 flex items-center justify-center rounded-full text-sm shrink-0 font-bold ${
-                    done ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'
+                    done ? 'bg-green-700 text-white' : 'bg-gray-200 text-gray-600'
                   }`}>
                     {done ? '✓' : '·'}
                   </span>
@@ -493,10 +493,10 @@ function NaverSearchOptimizationSection({
                     <p className={`text-sm font-medium ${done ? 'text-green-800' : 'text-gray-700'}`}>
                       {item.label}
                     </p>
-                    <p className="text-sm text-gray-500">{item.desc}</p>
+                    <p className="text-sm text-gray-600">{item.desc}</p>
                   </div>
                   {!done && (
-                    <span className="shrink-0 text-sm text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-medium">
+                    <span className="shrink-0 text-sm text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-medium">
                       미완료
                     </span>
                   )}
@@ -504,7 +504,7 @@ function NaverSearchOptimizationSection({
               )
             })}
           </div>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-gray-600 mt-2">
             현황을 바꾸려면 아래 <strong className="text-gray-600">스마트플레이스 실제 현황</strong> 카드에서 업데이트하세요.
           </p>
         </div>
@@ -580,7 +580,7 @@ function NaverSearchOptimizationSection({
       </div>
 
       {/* 면책 문구 */}
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-gray-600">
         ※ 네이버 검색 순위는 측정 시점·기기·지역·로그인 상태에 따라 달라질 수 있습니다.
       </p>
     </section>
@@ -675,7 +675,7 @@ function SmartPlaceStatusCard({
       <div className="flex items-center justify-between mb-3">
         <div>
           <h3 className="text-base font-bold text-gray-900">스마트플레이스 실제 현황</h3>
-          <p className="text-sm text-gray-500 mt-0.5">현재 완료된 항목을 체크하면 가이드가 정확해집니다</p>
+          <p className="text-sm text-gray-600 mt-0.5">현재 완료된 항목을 체크하면 가이드가 정확해집니다</p>
         </div>
         <button
           onClick={save}
@@ -686,7 +686,7 @@ function SmartPlaceStatusCard({
           {saving ? '저장 중...' : saved ? '저장됨' : '저장'}
         </button>
       </div>
-      {saveError && <p className="text-sm text-red-500 mt-1">{saveError}</p>}
+      {saveError && <p className="text-sm text-red-700 mt-1">{saveError}</p>}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {ITEMS.map(item => (
           <button
@@ -709,7 +709,7 @@ function SmartPlaceStatusCard({
             </div>
             <div className="min-w-0">
               <div className={`text-sm md:text-base font-semibold ${status[item.key] ? 'text-green-800' : 'text-gray-700'}`}>{item.label}</div>
-              <div className="text-sm md:text-base text-gray-500 leading-tight">{item.desc}</div>
+              <div className="text-sm md:text-base text-gray-600 leading-tight">{item.desc}</div>
             </div>
           </button>
         ))}
@@ -733,7 +733,7 @@ function CopyButton({ text, label = '복사' }: { text: string; label?: string }
       onClick={copy}
       className="flex items-center gap-1 text-sm px-2.5 py-1.5 min-h-[44px] rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors shrink-0"
     >
-      {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+      {copied ? <Check className="w-3 h-3 text-green-700" /> : <Copy className="w-3 h-3" />}
       {copied ? '복사됨' : label}
     </button>
   )
@@ -782,7 +782,7 @@ function ThisWeekMissionCard({
         <span className="ml-auto text-sm bg-blue-100 text-blue-700 font-semibold px-2.5 py-0.5 rounded-full">이번 주</span>
       </div>
       <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-1">{simplify(data.title)}</h3>
-      <p className="text-sm md:text-base text-gray-500 mb-4 leading-relaxed">{simplify(data.why_urgent || data.why || '')}</p>
+      <p className="text-sm md:text-base text-gray-600 mb-4 leading-relaxed">{simplify(data.why_urgent || data.why || '')}</p>
 
       <div className="space-y-2 mb-4">
         {data.steps.map((step, i) => (
@@ -803,7 +803,7 @@ function ThisWeekMissionCard({
               )}
             </div>
             <span className={`text-sm md:text-base leading-relaxed ${
-              checkedSteps.has(i) ? 'text-gray-500 line-through' : 'text-gray-700'
+              checkedSteps.has(i) ? 'text-gray-600 line-through' : 'text-gray-700'
             }`}>
               {i + 1}단계: {simplify(step)}
             </span>
@@ -812,7 +812,7 @@ function ThisWeekMissionCard({
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 text-sm text-gray-500">
+        <div className="flex items-center gap-1.5 text-sm text-gray-600">
           <Clock className="w-4 h-4" />
           <span>예상 {data.time_required || (data.estimated_minutes ? `${data.estimated_minutes}분` : '15분')}</span>
         </div>
@@ -849,9 +849,9 @@ function ScanSnapshotCard({ snapshot, isInactive = false }: { snapshot: ScanSnap
   // 사이트 단일 소스(scoreLabels.ts getScoreTextLabel, 75/55/30 기준)와 동일 임계값 사용 —
   // 이 카드만 별도 임계값(과거 70/50)을 쓰면 같은 점수가 페이지 안에서 다르게 표시됨
   const scoreLabel = getScoreTextLabel(score)
-  const scoreColor = score >= 75 ? 'text-green-700' : score >= 55 ? 'text-blue-700' : score >= 30 ? 'text-yellow-700' : 'text-red-600'
+  const scoreColor = score >= 75 ? 'text-green-700' : score >= 55 ? 'text-blue-700' : score >= 30 ? 'text-yellow-700' : 'text-red-700'
   const scoreBg   = score >= 75 ? 'bg-green-50 border-green-200' : score >= 55 ? 'bg-blue-50 border-blue-200' : score >= 30 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'
-  const freqColor = freqRatio >= 0.3 ? 'text-blue-700' : freqRatio >= 0.1 ? 'text-yellow-700' : 'text-red-600'
+  const freqColor = freqRatio >= 0.3 ? 'text-blue-700' : freqRatio >= 0.1 ? 'text-yellow-700' : 'text-red-700'
   const freqLabel  = freqRatio >= 0.3 ? '자주 노출' : freqRatio >= 0.1 ? '가끔 노출' : '미노출'
 
   return (
@@ -860,17 +860,17 @@ function ScanSnapshotCard({ snapshot, isInactive = false }: { snapshot: ScanSnap
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {/* AI 노출 점수 */}
         <div className={`rounded-xl border p-3 ${scoreBg}`}>
-          <div className="text-sm md:text-base text-gray-500 mb-1">AI 노출 종합점수</div>
+          <div className="text-sm md:text-base text-gray-600 mb-1">AI 노출 종합점수</div>
           <div className={`text-lg font-bold ${scoreColor}`}>{scoreLabel}</div>
         </div>
         {/* 노출 빈도 */}
         <div className="rounded-xl border border-blue-200 bg-blue-50 p-3">
-          <div className="text-sm md:text-base text-gray-500 mb-1">AI 검색 노출</div>
+          <div className="text-sm md:text-base text-gray-600 mb-1">AI 검색 노출</div>
           <div className={`text-lg font-bold ${freqColor}`}>{freqLabel}</div>
         </div>
         {/* 네이버 AI 브리핑 — INACTIVE 업종도 정보형 실측 노출(naverOk)이 있으면 숨기지 않는다 */}
         <div className={`rounded-xl border p-3 ${isInactive ? (naverOk ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200') : !naverMeasured ? 'bg-gray-50 border-gray-200' : naverOk ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-          <div className="text-sm md:text-base text-gray-500 mb-1">
+          <div className="text-sm md:text-base text-gray-600 mb-1">
             네이버 AI 브리핑
           </div>
           {isInactive ? (
@@ -884,41 +884,41 @@ function ScanSnapshotCard({ snapshot, isInactive = false }: { snapshot: ScanSnap
           ) : !naverMeasured ? (
             <>
               <div className="text-base font-bold mt-1 text-gray-600">측정 실패</div>
-              <div className="text-sm md:text-base text-gray-500 mt-0.5">다음 스캔에서 재확인</div>
+              <div className="text-sm md:text-base text-gray-600 mt-0.5">다음 스캔에서 재확인</div>
             </>
           ) : (
             <>
-              <div className={`text-base font-bold mt-1 ${naverOk ? 'text-green-700' : 'text-red-600'}`}>
+              <div className={`text-base font-bold mt-1 ${naverOk ? 'text-green-700' : 'text-red-700'}`}>
                 {naverOk ? '✓ 노출 중' : '✗ 미노출'}
               </div>
-              {!naverOk && <div className="text-sm md:text-base text-red-500 mt-0.5">최우선 해결 과제</div>}
+              {!naverOk && <div className="text-sm md:text-base text-red-700 mt-0.5">최우선 해결 과제</div>}
             </>
           )}
         </div>
         {/* 키워드 충족률 */}
         <div className={`rounded-xl border p-3 ${gapCount === 0 ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
-          <div className="text-sm md:text-base text-gray-500 mb-1">키워드 충족률</div>
+          <div className="text-sm md:text-base text-gray-600 mb-1">키워드 충족률</div>
           <div className={`text-xl font-bold ${gapCount === 0 ? 'text-green-700' : 'text-amber-700'}`}>
             {gapCount === 0 ? '충족' : coverageRate >= 50 ? '보통' : '부족'}
           </div>
           <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1.5">
             <div className={`h-1.5 rounded-full ${gapCount === 0 ? 'bg-green-500' : 'bg-amber-400'}`} style={{ width: `${coverageRate > 0 ? Math.min(Math.round(coverageRate), 100) : gapCount === 0 ? 100 : 0}%` }} />
           </div>
-          {gapCount > 0 && <div className="text-sm md:text-base text-amber-600 mt-0.5">{gapCount}개 키워드 부족</div>}
+          {gapCount > 0 && <div className="text-sm md:text-base text-amber-700 mt-0.5">{gapCount}개 키워드 부족</div>}
         </div>
       </div>
       {/* ChatGPT 노출 여부 (보조 정보) — 측정 자체가 실패한 경우(API 오류 등) "미노출 확정"과 구분 */}
       {snapshot.chatgpt_mentioned !== undefined && (
         <div className="mt-2 flex flex-col gap-1">
-          <div className="flex gap-2 text-sm md:text-base text-gray-500">
-            <span className={!chatgptMeasured ? 'text-gray-400' : snapshot.chatgpt_mentioned ? 'text-green-600' : 'text-gray-500'}>
+          <div className="flex gap-2 text-sm md:text-base text-gray-600">
+            <span className={!chatgptMeasured ? 'text-gray-600' : snapshot.chatgpt_mentioned ? 'text-green-700' : 'text-gray-600'}>
               ChatGPT {!chatgptMeasured ? '측정 실패 (다음 스캔에서 재확인)' : snapshot.chatgpt_mentioned ? '✓ 노출' : '미노출'}
             </span>
             {snapshot.competitor_count !== undefined && snapshot.competitor_count > 0 && (
               <span>· 경쟁사 {snapshot.competitor_count}곳 비교 기반</span>
             )}
           </div>
-          <p className="text-sm text-gray-500">ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다</p>
+          <p className="text-sm text-gray-600">ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다</p>
         </div>
       )}
     </div>
@@ -945,13 +945,13 @@ function ChecklistProgress({
       <div className="flex items-center justify-between mb-3">
         <div>
           <div className="text-sm font-semibold text-gray-700">완료 체크리스트</div>
-          <div className="text-sm text-gray-500 mt-0.5">체크 항목은 자동 저장됩니다</div>
+          <div className="text-sm text-gray-600 mt-0.5">체크 항목은 자동 저장됩니다</div>
         </div>
         <div className="text-right">
           <div className="text-xl md:text-2xl font-bold text-gray-800">
-            {checked}<span className="text-base font-normal text-gray-500">/{total}</span>
+            {checked}<span className="text-base font-normal text-gray-600">/{total}</span>
           </div>
-          <div className="text-sm text-gray-500">{pct}% 완료</div>
+          <div className="text-sm text-gray-600">{pct}% 완료</div>
         </div>
       </div>
       <div className="w-full bg-gray-100 rounded-full h-3">
@@ -962,7 +962,7 @@ function ChecklistProgress({
       </div>
       {checked === total && checked > 0 && (
         <div className="mt-3 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <p className="text-sm text-green-600 font-medium">모든 항목을 완료했습니다!</p>
+          <p className="text-sm text-green-700 font-medium">모든 항목을 완료했습니다!</p>
           {!scanRequested ? (
             <button
               onClick={onRescan}
@@ -972,7 +972,7 @@ function ChecklistProgress({
               개선 확인 스캔 시작
             </button>
           ) : (
-            <span className="text-sm text-blue-500">스캔 시작됨 -- 대시보드에서 확인하세요</span>
+            <span className="text-sm text-blue-600">스캔 시작됨 -- 대시보드에서 확인하세요</span>
           )}
         </div>
       )}
@@ -1116,7 +1116,7 @@ function TwoWeekPlanSection({
             {simplify(growthStage.stage_label)}
           </span>
         </div>
-        <span className="text-sm text-gray-500">완료 {doneCount}/{totalTasks}</span>
+        <span className="text-sm text-gray-600">완료 {doneCount}/{totalTasks}</span>
       </div>
 
       {/* 진행률 바 */}
@@ -1156,7 +1156,7 @@ function TwoWeekPlanSection({
                     </svg>
                   )}
                 </div>
-                <span className={`text-sm md:text-base leading-relaxed ${checked1[idx] ? 'text-gray-500 line-through' : 'text-gray-700'}`}>
+                <span className={`text-sm md:text-base leading-relaxed ${checked1[idx] ? 'text-gray-600 line-through' : 'text-gray-700'}`}>
                   {task}
                 </span>
               </button>
@@ -1185,7 +1185,7 @@ function TwoWeekPlanSection({
                     </svg>
                   )}
                 </div>
-                <span className={`text-sm md:text-base leading-relaxed ${checked2[idx] ? 'text-gray-500 line-through' : 'text-gray-700'}`}>
+                <span className={`text-sm md:text-base leading-relaxed ${checked2[idx] ? 'text-gray-600 line-through' : 'text-gray-700'}`}>
                   {task}
                 </span>
               </button>
@@ -1196,7 +1196,7 @@ function TwoWeekPlanSection({
 
       {/* 하단 CTA */}
       <div className="border-t border-gray-100 pt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <p className="text-sm text-gray-500 leading-relaxed">
+        <p className="text-sm text-gray-600 leading-relaxed">
           이 플랜을 완료하면 스캔 점수 변화를 확인하세요.
         </p>
         <a
@@ -1318,7 +1318,7 @@ function ContentCalendarSection({ category }: { category?: string }) {
           >
             &lt;
           </button>
-          <span className="text-sm text-gray-500 px-1">{current.theme}</span>
+          <span className="text-sm text-gray-600 px-1">{current.theme}</span>
           <button
             onClick={() => setBandOffset(v => Math.min(v + 1, calendar.length - 1 - getMonthBand(currentMonth)))}
             disabled={bandOffset >= calendar.length - 1 - getMonthBand(currentMonth)}
@@ -1350,7 +1350,7 @@ function ContentCalendarSection({ category }: { category?: string }) {
 
       {/* 안내 */}
       <div className="border-t border-gray-100 pt-3">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-600">
           소식은 주 1회 업로드가 최신성 점수에 가장 효과적입니다.<br />
           <span className="text-teal-600">소식으로 올리기 → 스마트플레이스 관리 화면으로 이동합니다.</span>
         </p>
@@ -1410,9 +1410,9 @@ function BlogTopicsSection({ bizId, token, plan }: { bizId: string; token: strin
       <div className="flex items-center gap-2 mb-2 flex-wrap">
         <FileText className="w-4 h-4 text-purple-500" />
         <div className="text-sm font-semibold text-gray-900">내 가게를 위한 블로그 주제 아이디어</div>
-        {!isBasicPlus && <span className="text-sm bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">🔒 Basic+</span>}
+        {!isBasicPlus && <span className="text-sm bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">🔒 Basic+</span>}
       </div>
-      <p className="text-sm text-gray-500 mb-3 leading-relaxed">
+      <p className="text-sm text-gray-600 mb-3 leading-relaxed">
         내 업종·지역·부족한 키워드 기반으로 AI가 블로그 제목 5개를 만들어 드립니다.
         네이버 블로그나 티스토리에 바로 쓸 수 있습니다.
       </p>
@@ -1424,7 +1424,7 @@ function BlogTopicsSection({ bizId, token, plan }: { bizId: string; token: strin
           className={`w-full py-3 rounded-xl text-sm font-semibold transition-colors ${
             isBasicPlus
               ? 'bg-purple-600 text-white hover:bg-purple-700'
-              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              : 'bg-gray-100 text-gray-600 cursor-not-allowed'
           }`}
         >
           {isBasicPlus ? '블로그 주제 5개 받기' : 'Basic 플랜 업그레이드 필요'}
@@ -1434,7 +1434,7 @@ function BlogTopicsSection({ bizId, token, plan }: { bizId: string; token: strin
       {loading && (
         <div className="py-6 text-center">
           <div className="inline-block w-5 h-5 border-2 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-2" />
-          <p className="text-sm text-gray-500">AI가 주제를 만들고 있어요...</p>
+          <p className="text-sm text-gray-600">AI가 주제를 만들고 있어요...</p>
         </div>
       )}
 
@@ -1464,7 +1464,7 @@ function BlogTopicsSection({ bizId, token, plan }: { bizId: string; token: strin
               </div>
             )
           })}
-          <p className="text-sm text-gray-500 mt-3">
+          <p className="text-sm text-gray-600 mt-3">
             💡 이 주제 중 1개를 골라 네이버 블로그에 작성해 보세요. AI 검색에 노출될 확률이 높습니다.
           </p>
         </div>
@@ -1542,11 +1542,11 @@ function ListContentSection({ bizId, token, region, category, bizName }: {
   return (
     <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm">
       <div className="flex items-center gap-2 mb-2 flex-wrap">
-        <FileText className="w-4 h-4 text-emerald-500" />
+        <FileText className="w-4 h-4 text-emerald-700" />
         <div className="text-sm font-semibold text-gray-900">우리 지역 TOP5 소개글 초안</div>
         <span className="text-sm bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">리스트형</span>
       </div>
-      <p className="text-sm text-gray-500 mb-3 leading-relaxed">
+      <p className="text-sm text-gray-600 mb-3 leading-relaxed">
         &ldquo;{displayRegion} {categoryKo} 베스트 5&rdquo; 같은 리스트형 글은 AI가 인용하기 쉬운 구조입니다.
         등록된 경쟁사 데이터를 바탕으로 초안을 만들어 드립니다.
       </p>
@@ -1554,7 +1554,7 @@ function ListContentSection({ bizId, token, region, category, bizName }: {
       {!competitors && !loading && (
         <button
           onClick={loadCompetitors}
-          className="w-full bg-emerald-600 text-white py-3 rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors"
+          className="w-full bg-emerald-700 text-white py-3 rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors"
         >
           경쟁사 데이터 불러와서 초안 만들기
         </button>
@@ -1563,7 +1563,7 @@ function ListContentSection({ bizId, token, region, category, bizName }: {
       {loading && (
         <div className="py-6 text-center">
           <div className="inline-block w-5 h-5 border-2 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mb-2" />
-          <p className="text-sm text-gray-500">경쟁사 데이터 불러오는 중...</p>
+          <p className="text-sm text-gray-600">경쟁사 데이터 불러오는 중...</p>
         </div>
       )}
 
@@ -1587,7 +1587,7 @@ function ListContentSection({ bizId, token, region, category, bizName }: {
             <p className="text-sm font-semibold text-emerald-800 mb-2">포함될 가게 목록</p>
             <ol className="space-y-1">
               <li className="text-sm text-emerald-900">
-                <span className="font-semibold">1.</span> {bizName || '우리 가게'} <span className="text-emerald-600">(내 가게)</span>
+                <span className="font-semibold">1.</span> {bizName || '우리 가게'} <span className="text-emerald-700">(내 가게)</span>
               </li>
               {competitors.slice(0, 4).map((c, idx) => (
                 <li key={c.id} className="text-sm text-emerald-900">
@@ -1605,12 +1605,12 @@ function ListContentSection({ bizId, token, region, category, bizName }: {
           <button
             onClick={copyDraft}
             className={`w-full py-3 rounded-xl text-sm font-semibold transition-colors ${
-              copied ? 'bg-green-100 text-green-700' : 'bg-emerald-600 text-white hover:bg-emerald-700'
+              copied ? 'bg-green-100 text-green-700' : 'bg-emerald-700 text-white hover:bg-emerald-700'
             }`}
           >
             {copied ? '✓ 전체 초안 복사됨' : '전체 초안 복사하기'}
           </button>
-          <p className="text-sm text-gray-500 mt-3 leading-relaxed">
+          <p className="text-sm text-gray-600 mt-3 leading-relaxed">
             💡 복사한 초안의 <strong>[대괄호]</strong> 부분을 채워 넣고 네이버 블로그에 업로드하세요.
             실제 특징·후기를 직접 쓰면 AI가 더 잘 인용합니다.
           </p>
@@ -1708,7 +1708,7 @@ function WeeklyRoadmapSection({ roadmap, guideGeneratedAt }: { roadmap: WeeklyRo
       <div className="flex items-center gap-2 mb-4">
         <CalendarDays className="w-4 h-4 text-indigo-500" />
         <span className="text-sm font-semibold text-gray-900">4주 실행 로드맵</span>
-        <span className="text-sm text-gray-500">현재 {currentWeek}주차</span>
+        <span className="text-sm text-gray-600">현재 {currentWeek}주차</span>
       </div>
 
       {/* PC: 가로 타임라인 */}
@@ -1726,7 +1726,7 @@ function WeeklyRoadmapSection({ roadmap, guideGeneratedAt }: { roadmap: WeeklyRo
                       ? 'bg-indigo-600 text-white shadow-lg ring-4 ring-indigo-100'
                       : isPast
                         ? 'bg-indigo-100 text-indigo-600'
-                        : 'bg-gray-100 text-gray-500'
+                        : 'bg-gray-100 text-gray-600'
                   }`}>
                     {isPast ? <Check className="w-4 h-4" /> : week.week}
                   </div>
@@ -1742,7 +1742,7 @@ function WeeklyRoadmapSection({ roadmap, guideGeneratedAt }: { roadmap: WeeklyRo
                     isCurrent ? 'font-bold' : ''
                   }`}
                 >
-                  <div className={`text-sm md:text-base ${isCurrent ? 'text-indigo-700' : isPast ? 'text-gray-500' : 'text-gray-500'}`}>
+                  <div className={`text-sm md:text-base ${isCurrent ? 'text-indigo-700' : isPast ? 'text-gray-600' : 'text-gray-600'}`}>
                     {week.week}주차
                   </div>
                   <div className={`text-sm md:text-base mt-0.5 ${isCurrent ? 'text-gray-900' : 'text-gray-600'}`}>
@@ -1773,7 +1773,7 @@ function WeeklyRoadmapSection({ roadmap, guideGeneratedAt }: { roadmap: WeeklyRo
                     ? 'bg-indigo-600 text-white shadow ring-2 ring-indigo-100'
                     : isPast
                       ? 'bg-indigo-100 text-indigo-600'
-                      : 'bg-gray-100 text-gray-500'
+                      : 'bg-gray-100 text-gray-600'
                 }`}>
                   {isPast ? <Check className="w-3.5 h-3.5" /> : week.week}
                 </div>
@@ -1782,7 +1782,7 @@ function WeeklyRoadmapSection({ roadmap, guideGeneratedAt }: { roadmap: WeeklyRo
                 )}
               </div>
               <div className="flex-1 min-w-0 pb-1">
-                <div className={`text-base font-medium ${isCurrent ? 'text-indigo-700 font-bold' : isPast ? 'text-gray-500' : 'text-gray-500'}`}>
+                <div className={`text-base font-medium ${isCurrent ? 'text-indigo-700 font-bold' : isPast ? 'text-gray-600' : 'text-gray-600'}`}>
                   {week.week}주차{isCurrent && ' (현재)'}
                 </div>
                 <div className={`text-base ${isCurrent ? 'text-gray-900 font-semibold' : 'text-gray-600'}`}>
@@ -1790,8 +1790,8 @@ function WeeklyRoadmapSection({ roadmap, guideGeneratedAt }: { roadmap: WeeklyRo
                 </div>
               </div>
               {expandedWeek === i
-                ? <ChevronUp className="w-4 h-4 text-gray-500 mt-1 shrink-0" />
-                : <ChevronDown className="w-4 h-4 text-gray-500 mt-1 shrink-0" />}
+                ? <ChevronUp className="w-4 h-4 text-gray-600 mt-1 shrink-0" />
+                : <ChevronDown className="w-4 h-4 text-gray-600 mt-1 shrink-0" />}
             </button>
           )
         })}
@@ -1804,7 +1804,7 @@ function WeeklyRoadmapSection({ roadmap, guideGeneratedAt }: { roadmap: WeeklyRo
             {roadmap[expandedWeek].week}주차: {roadmap[expandedWeek].title}
           </div>
           {roadmap[expandedWeek].focus && (
-            <p className="text-sm text-gray-500 mb-2">{roadmap[expandedWeek].focus}</p>
+            <p className="text-sm text-gray-600 mb-2">{roadmap[expandedWeek].focus}</p>
           )}
           <ul className="space-y-1.5">
             {roadmap[expandedWeek].tasks.map((task, ti) => (
@@ -1841,7 +1841,7 @@ function BriefingPathsSection({
     <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
         <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-amber-500" />
+          <Zap className="w-4 h-4 text-amber-700" />
           <div className="text-sm font-semibold text-gray-900">내가 직접 할 수 있는 것 -- 오늘 바로 시작</div>
         </div>
         {naverSearchUrl && (
@@ -1856,7 +1856,7 @@ function BriefingPathsSection({
           </a>
         )}
       </div>
-      <p className="text-base text-gray-500 mb-4">고객 리뷰를 기다리지 않고 사장님이 직접 AI 신호를 강화하는 방법입니다.</p>
+      <p className="text-base text-gray-600 mb-4">고객 리뷰를 기다리지 않고 사장님이 직접 AI 신호를 강화하는 방법입니다.</p>
       <div className="space-y-2">
         {paths.map((path, pathIdx) => {
           const isOpen = expanded === path.path_id
@@ -1874,9 +1874,9 @@ function BriefingPathsSection({
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="text-base font-medium text-gray-800">{path.label}</div>
-                  <div className="text-sm text-gray-500">{path.time_required} · {path.effect}</div>
+                  <div className="text-sm text-gray-600">{path.time_required} · {path.effect}</div>
                 </div>
-                {isOpen ? <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />}
+                {isOpen ? <ChevronUp className="w-4 h-4 text-gray-600 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-600 shrink-0" />}
               </button>
 
               {isOpen && (
@@ -1887,7 +1887,7 @@ function BriefingPathsSection({
                   {path.ready_text && (
                     isReadyTextLocked ? (
                       <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg text-center">
-                        <p className="text-sm text-gray-500">복사 문구는 Pro 플랜에서 제공됩니다</p>
+                        <p className="text-sm text-gray-600">복사 문구는 Pro 플랜에서 제공됩니다</p>
                         <a href="/pricing" className="mt-2 inline-block text-sm text-blue-600 underline hover:text-blue-800">
                           Pro로 업그레이드 →
                         </a>
@@ -2039,7 +2039,7 @@ function KeywordGapCard({
         <div className="text-sm font-semibold text-gray-900">내가 놓친 키워드 현황</div>
       </div>
       {excludeError && (
-        <p className="text-sm text-red-500 mb-2">키워드 제외에 실패했습니다. 다시 시도해주세요.</p>
+        <p className="text-sm text-red-700 mb-2">키워드 제외에 실패했습니다. 다시 시도해주세요.</p>
       )}
       <div className="flex items-center gap-2 mb-4">
         <div className="flex-1 bg-gray-100 rounded-full h-2">
@@ -2048,10 +2048,10 @@ function KeywordGapCard({
             style={{ width: `${gap.coverage_rate * 100}%` }}
           />
         </div>
-        <span className="text-sm text-gray-500 shrink-0">{Math.round(gap.coverage_rate * 100)}% 충족</span>
+        <span className="text-sm text-gray-600 shrink-0">{Math.round(gap.coverage_rate * 100)}% 충족</span>
       </div>
 
-      <p className="text-sm text-gray-500 mb-3">
+      <p className="text-sm text-gray-600 mb-3">
         리뷰·AI 스캔 텍스트 기반 분석입니다. 실제 서비스를 제공해도 리뷰에 해당 키워드가 없으면 '부족'으로 표시될 수 있습니다.
         {Object.values(volumes).some((v) => v?.monthly_total > 0) && (
           <>
@@ -2076,7 +2076,7 @@ function KeywordGapCard({
                       type="button"
                       onClick={(e) => handleExcludeOther(kw, e)}
                       disabled={excluding.has(kw)}
-                      className="text-green-400 hover:text-red-600 font-bold leading-none disabled:opacity-40"
+                      className="text-green-400 hover:text-red-700 font-bold leading-none disabled:opacity-40"
                       title={`"${kw}" 분석에서 제외`}
                       aria-label={`"${kw}" 분석에서 제외`}
                     >
@@ -2100,7 +2100,7 @@ function KeywordGapCard({
                 return (
                   <span key={kw} className="flex items-center gap-1">
                     <span
-                      className={`inline-flex items-center gap-1 text-sm bg-red-50 text-red-600 px-2 py-0.5 rounded-full${highlightKeyword === kw ? ' ring-2 ring-amber-400 ring-offset-1' : ''}`}
+                      className={`inline-flex items-center gap-1 text-sm bg-red-50 text-red-700 px-2 py-0.5 rounded-full${highlightKeyword === kw ? ' ring-2 ring-amber-400 ring-offset-1' : ''}`}
                     >
                       {kw}
                       {accessToken && (
@@ -2117,7 +2117,7 @@ function KeywordGapCard({
                       )}
                     </span>
                     {vol && vol > 0 && (
-                      <span className="text-sm bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">
+                      <span className="text-sm bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">
                         월 {vol >= 10000 ? `${Math.round(vol / 1000)}k` : vol.toLocaleString()}건
                       </span>
                     )}
@@ -2139,7 +2139,7 @@ function KeywordGapCard({
               {gap.competitor_only_keywords.slice(0, 8).map((kw) => (
                 <span
                   key={kw}
-                  className="inline-flex items-center gap-1 text-sm bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full"
+                  className="inline-flex items-center gap-1 text-sm bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full"
                 >
                   {kw}
                   {accessToken && (
@@ -2147,7 +2147,7 @@ function KeywordGapCard({
                       type="button"
                       onClick={(e) => handleExcludeOther(kw, e)}
                       disabled={excluding.has(kw)}
-                      className="text-orange-400 hover:text-red-600 font-bold leading-none disabled:opacity-40"
+                      className="text-orange-400 hover:text-red-700 font-bold leading-none disabled:opacity-40"
                       title={`"${kw}" 분석에서 제외`}
                       aria-label={`"${kw}" 분석에서 제외`}
                     >
@@ -2164,7 +2164,7 @@ function KeywordGapCard({
       {visiblePioneer.length > 0 && (
         <div className="mt-3 bg-emerald-50 rounded-xl p-3">
           <div className="flex items-center gap-1.5 mb-1.5">
-            <Star className="w-3.5 h-3.5 text-emerald-600" />
+            <Star className="w-3.5 h-3.5 text-emerald-700" />
             <span className="text-sm font-semibold text-emerald-700">아직 경쟁자가 없는 검색어 -- 지금 선점 가능 (클릭하여 복사, X로 제외)</span>
           </div>
           <div className="flex flex-wrap gap-1">
@@ -2182,7 +2182,7 @@ function KeywordGapCard({
                 </button>
                 <button
                   onClick={(e) => handleExcludePioneer(kw, e)}
-                  className="ml-1 text-emerald-500 hover:text-red-500 font-bold text-sm leading-none"
+                  className="ml-1 text-emerald-700 hover:text-red-700 font-bold text-sm leading-none"
                   title={`"${kw}" 제외`}
                   aria-label={`"${kw}" 제외`}
                 >
@@ -2191,9 +2191,9 @@ function KeywordGapCard({
               </span>
             ))}
           </div>
-          <p className="text-sm text-emerald-600 mt-1.5">지금 먼저 선점하면 경쟁 우위를 오래 유지할 수 있습니다.</p>
+          <p className="text-sm text-emerald-700 mt-1.5">지금 먼저 선점하면 경쟁 우위를 오래 유지할 수 있습니다.</p>
           {(!gap.competitor_only_keywords?.length) && (
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-600 mt-1">
               * 경쟁사 스캔 데이터 부족으로 비교 정확도가 낮을 수 있습니다. 스캔 후 재확인하세요.
             </p>
           )}
@@ -2250,7 +2250,7 @@ function ReviewDraftsSection({
     <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-blue-500" />
+          <MessageSquare className="w-4 h-4 text-blue-600" />
           <div className="text-sm font-semibold text-gray-900">리뷰 답변 초안</div>
         </div>
         <a
@@ -2263,8 +2263,8 @@ function ReviewDraftsSection({
           <ExternalLink className="w-3 h-3" />
         </a>
       </div>
-      <p className="text-sm text-gray-500 mb-2">업종 키워드 기반으로 미리 생성된 답변 초안입니다. 실제 리뷰에 맞게 내용을 수정한 뒤 복사해 사용하세요.</p>
-      <p className="text-sm text-amber-600 bg-amber-50 rounded-lg px-3 py-2 mb-4">특정 리뷰에 맞춘 AI 답변은 <a href="/review-inbox" className="underline font-medium">리뷰 답변 관리</a> 메뉴에서 생성할 수 있습니다.</p>
+      <p className="text-sm text-gray-600 mb-2">업종 키워드 기반으로 미리 생성된 답변 초안입니다. 실제 리뷰에 맞게 내용을 수정한 뒤 복사해 사용하세요.</p>
+      <p className="text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2 mb-4">특정 리뷰에 맞춘 AI 답변은 <a href="/review-inbox" className="underline font-medium">리뷰 답변 관리</a> 메뉴에서 생성할 수 있습니다.</p>
       <div className="space-y-2">
         {drafts.map((d, i) => {
           const isLocked = !isPro && i >= 5
@@ -2284,20 +2284,20 @@ function ReviewDraftsSection({
                     {TONE_LABEL[d.tone] ?? d.tone}
                   </span>
                   {d.rating && (
-                    <span className="text-sm text-amber-500">
+                    <span className="text-sm text-amber-700">
                       {'★'.repeat(d.rating ?? 0)}{'☆'.repeat(5 - (d.rating ?? 0))}
                     </span>
                   )}
                   {!isExpanded && !isLocked && (
-                    <span className="text-sm text-gray-500 truncate max-w-[180px] sm:max-w-[280px]">
+                    <span className="text-sm text-gray-600 truncate max-w-[180px] sm:max-w-[280px]">
                       {d.draft_response.slice(0, 40)}...
                     </span>
                   )}
                 </div>
                 {isLocked ? (
-                  <span className="text-sm text-gray-500 shrink-0">Pro</span>
+                  <span className="text-sm text-gray-600 shrink-0">Pro</span>
                 ) : (
-                  <ChevronDown className={`w-4 h-4 text-gray-500 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 text-gray-600 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                 )}
               </button>
 
@@ -2306,7 +2306,7 @@ function ReviewDraftsSection({
                 <div className="overflow-hidden">
                   <div className="px-4 pb-4 pt-2 border-t border-gray-100">
                     {d.review_snippet && (
-                      <p className="text-sm text-gray-500 italic mb-2">원본: &quot;{d.review_snippet}&quot;</p>
+                      <p className="text-sm text-gray-600 italic mb-2">원본: &quot;{d.review_snippet}&quot;</p>
                     )}
                     <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words mb-3">{d.draft_response}</p>
                     <CopyButton text={d.draft_response} />
@@ -2383,14 +2383,14 @@ function CommunityDraftsSection({ paths }: { paths: BriefingPath[] }) {
         <span className="text-2xl">💬</span>
         <div className="flex-1 min-w-0">
           <h3 className="text-base font-bold text-gray-900">커뮤니티 언급 초안</h3>
-          <p className="text-sm text-gray-500">맘카페·지식인·지역카페 언급이 ChatGPT 신뢰도를 높입니다</p>
+          <p className="text-sm text-gray-600">맘카페·지식인·지역카페 언급이 ChatGPT 신뢰도를 높입니다</p>
         </div>
         <span className="ml-auto text-sm bg-orange-100 text-orange-700 font-bold px-2 py-0.5 rounded-full shrink-0">이번 주</span>
       </div>
 
       {/* 투명성 안내 */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-start gap-2">
-        <span className="text-amber-500 text-lg shrink-0 mt-0.5">⚠️</span>
+        <span className="text-amber-700 text-lg shrink-0 mt-0.5">⚠️</span>
         <div>
           <p className="text-sm font-semibold text-amber-800 mb-0.5">사업주 신분을 반드시 밝혀주세요</p>
           <p className="text-sm text-amber-700 leading-relaxed">
@@ -2414,9 +2414,9 @@ function CommunityDraftsSection({ paths }: { paths: BriefingPath[] }) {
               >
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-semibold text-gray-800">{draft.channel}</span>
-                  <span className="text-sm text-gray-500 ml-2">{draft.label}</span>
+                  <span className="text-sm text-gray-600 ml-2">{draft.label}</span>
                 </div>
-                <span className="text-gray-500 text-sm shrink-0 ml-2">
+                <span className="text-gray-600 text-sm shrink-0 ml-2">
                   {isOpen ? '접기 ▴' : '펼치기 ▾'}
                 </span>
               </button>
@@ -2486,14 +2486,14 @@ function MapLinkBox({
           onClick={copy}
           className={`text-sm px-3 py-2 rounded-lg font-semibold shrink-0 transition-colors ${
             copied
-              ? 'bg-green-500 text-white'
+              ? 'bg-green-700 text-white'
               : 'bg-blue-600 text-white hover:bg-blue-700'
           }`}
         >
           {copied ? '✓ 복사됨' : '복사'}
         </button>
       </div>
-      <p className="text-sm text-gray-500 mt-2">
+      <p className="text-sm text-gray-600 mt-2">
         💡 카카오채널 홈·SNS 소개란에 꼭 넣어두세요
       </p>
     </div>
@@ -2592,9 +2592,9 @@ function ExternalPlatformChecklist({
             <span className="text-base">🌐</span>
             <span className="text-base font-bold text-gray-900">외부 플랫폼 등록 현황</span>
           </div>
-          <p className="text-sm text-gray-500">더 많은 플랫폼에 등록할수록 ChatGPT·Google AI 노출 확률이 올라갑니다.</p>
+          <p className="text-sm text-gray-600">더 많은 플랫폼에 등록할수록 ChatGPT·Google AI 노출 확률이 올라갑니다.</p>
         </div>
-        <div className="shrink-0 text-sm font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full whitespace-nowrap">
+        <div className="shrink-0 text-sm font-bold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full whitespace-nowrap">
           {checkedCount} / {PLATFORM_LIST.length} 플랫폼 등록됨
         </div>
       </div>
@@ -2622,7 +2622,7 @@ function ExternalPlatformChecklist({
                     <span className="text-sm bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium hidden sm:inline">등록하면 ChatGPT 노출 확률 상승</span>
                   )}
                 </div>
-                <p className="text-sm text-gray-500 mt-0.5">{p.hint}</p>
+                <p className="text-sm text-gray-600 mt-0.5">{p.hint}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <a
@@ -2648,7 +2648,7 @@ function ExternalPlatformChecklist({
           )
         })}
       </div>
-      <p className="text-sm text-gray-500 mt-3 text-center">체크 상태는 이 기기에 자동 저장됩니다.</p>
+      <p className="text-sm text-gray-600 mt-3 text-center">체크 상태는 이 기기에 자동 저장됩니다.</p>
     </div>
   )
 }
@@ -2682,7 +2682,7 @@ function WeeklyPostDraftSection({ businessId, token }: { businessId: string; tok
   return (
     <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
-        <CalendarDays className="w-4 h-4 text-green-600" />
+        <CalendarDays className="w-4 h-4 text-green-700" />
         <span className="text-sm font-semibold text-gray-900">이번 주 소식 초안</span>
         <span className="text-sm bg-green-100 text-green-700 px-2 py-0.5 rounded-full">자동 생성</span>
       </div>
@@ -2692,13 +2692,13 @@ function WeeklyPostDraftSection({ businessId, token }: { businessId: string; tok
           <CopyButton text={draft} label="복사" />
         </div>
       </div>
-      <p className="text-sm text-gray-500 mt-2">
+      <p className="text-sm text-gray-600 mt-2">
         위 초안을 복사해{' '}
         <a
           href="https://smartplace.naver.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-500 hover:underline"
+          className="text-blue-600 hover:underline"
         >
           네이버 스마트플레이스
         </a>
@@ -2721,7 +2721,7 @@ function QuickToolsSection({ tools, businessId, token }: { tools: ToolsJson; bus
         <div className="text-sm font-semibold text-gray-900">즉시 활용 가능한 도구</div>
       </div>
       {toolError && (
-        <p className="text-sm text-red-500">{toolError}</p>
+        <p className="text-sm text-red-700">{toolError}</p>
       )}
 
       {tools.review_request_message && (
@@ -2771,11 +2771,11 @@ function QuickToolsSection({ tools, businessId, token }: { tools: ToolsJson; bus
           <div className="flex items-start justify-between gap-2 mb-3">
             <div>
               <span className="text-sm font-semibold text-gray-700">리뷰 유도 QR 카드</span>
-              <p className="text-sm text-gray-500 mt-0.5">손님에게 보여주거나 테이블에 올려두세요</p>
+              <p className="text-sm text-gray-600 mt-0.5">손님에게 보여주거나 테이블에 올려두세요</p>
             </div>
           </div>
           {!token ? (
-            <p className="text-sm text-gray-500 py-2">로그인 정보를 확인하는 중입니다...</p>
+            <p className="text-sm text-gray-600 py-2">로그인 정보를 확인하는 중입니다...</p>
           ) : (
             <div className="flex flex-col sm:flex-row gap-2">
               {/* 이미지 다운로드 */}
@@ -2829,7 +2829,7 @@ img { max-width:148mm; max-height:210mm; object-fit:contain; }
               </button>
             </div>
           )}
-          <p className="text-sm text-gray-500 mt-2.5">A4/A5로 인쇄하여 카운터에 비치하세요</p>
+          <p className="text-sm text-gray-600 mt-2.5">A4/A5로 인쇄하여 카운터에 비치하세요</p>
         </div>
       )}
 
@@ -2839,7 +2839,7 @@ img { max-width:148mm; max-height:210mm; object-fit:contain; }
           <div className="flex items-start justify-between gap-2 mb-3">
             <div>
               <span className="text-sm font-semibold text-gray-700">메뉴 일괄 등록 양식</span>
-              <p className="text-sm text-gray-500 mt-0.5">Excel 파일로 메뉴 목록을 한 번에 정리하세요</p>
+              <p className="text-sm text-gray-600 mt-0.5">Excel 파일로 메뉴 목록을 한 번에 정리하세요</p>
             </div>
           </div>
           <button
@@ -2859,11 +2859,11 @@ img { max-width:148mm; max-height:210mm; object-fit:contain; }
                 })
                 .catch(() => setToolError('양식 다운로드에 실패했습니다. 잠시 후 다시 시도해주세요.'))
             }}
-            className="flex items-center gap-1.5 text-sm bg-emerald-600 text-white hover:bg-emerald-700 px-3 py-2 rounded-lg transition-colors font-medium"
+            className="flex items-center gap-1.5 text-sm bg-emerald-700 text-white hover:bg-emerald-700 px-3 py-2 rounded-lg transition-colors font-medium"
           >
             <Download className="w-3.5 h-3.5" /> Excel 양식 다운로드
           </button>
-          <p className="text-sm text-gray-500 mt-2">메뉴명·가격·설명·카테고리 등 8개 항목 포함</p>
+          <p className="text-sm text-gray-600 mt-2">메뉴명·가격·설명·카테고리 등 8개 항목 포함</p>
         </div>
       )}
     </div>
@@ -2907,7 +2907,7 @@ function PioneerDetailSection({ bizId, token }: { bizId: string; token: string }
           <button
             onClick={load}
             disabled={loading}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white text-sm font-semibold rounded-xl transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 disabled:bg-emerald-300 text-white text-sm font-semibold rounded-xl transition-colors flex items-center gap-2"
           >
             {loading ? <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : null}
             {loading ? "분석 중..." : "상세 분석 보기"}
@@ -2921,7 +2921,7 @@ function PioneerDetailSection({ bizId, token }: { bizId: string; token: string }
     <div className="bg-emerald-50 rounded-xl border border-emerald-200 p-4 md:p-5">
       <h3 className="text-sm md:text-base font-bold text-emerald-800 mb-3">아무도 안 쓰는 기회 키워드 — 왜 기회인가?</h3>
       {items.length === 0 ? (
-        <p className="text-sm text-emerald-600">현재 분석 가능한 기회 키워드가 없습니다.</p>
+        <p className="text-sm text-emerald-700">현재 분석 가능한 기회 키워드가 없습니다.</p>
       ) : (
         <div className="space-y-3">
           {items.map((item, idx) => (
@@ -3051,12 +3051,12 @@ A. ${a}`).catch(() => {})
           <h3 className="text-base md:text-lg font-bold text-gray-900">
             스마트플레이스 Q&A 초안 생성
           </h3>
-          <p className="text-base text-gray-500 mt-0.5">
+          <p className="text-base text-gray-600 mt-0.5">
             소개글 Q&A 섹션 초안 — 사장님이 직접 컨트롤할 수 있는 인용 후보 경로 중 하나입니다
           </p>
         </div>
         {usage && (
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-600">
             이번 달 {usage.used}/{usage.limit}회 사용
           </span>
         )}
@@ -3064,7 +3064,7 @@ A. ${a}`).catch(() => {})
 
       {!canUse ? (
         <div className="bg-gray-50 rounded-xl p-4 text-center">
-          <p className="text-sm text-gray-500">Basic 이상 플랜에서 사용 가능합니다</p>
+          <p className="text-sm text-gray-600">Basic 이상 플랜에서 사용 가능합니다</p>
           <a href="/pricing" className="text-sm text-blue-600 hover:underline mt-1 inline-block">플랜 보기 →</a>
         </div>
       ) : (
@@ -3073,7 +3073,7 @@ A. ${a}`).catch(() => {})
           {suggestedKeywords.length > 0 && (
             <div className="mb-4">
               <p className="text-sm font-semibold text-gray-700 mb-2">
-                키워드 기반 생성 <span className="text-gray-500 font-normal">(선택 — 비워두면 자동 추출)</span>
+                키워드 기반 생성 <span className="text-gray-600 font-normal">(선택 — 비워두면 자동 추출)</span>
               </p>
               <div className="flex flex-wrap gap-2 mb-2">
                 {suggestedKeywords.map((kw) => (
@@ -3096,7 +3096,7 @@ A. ${a}`).catch(() => {})
                         setSelectedFaqKeywords(prev => prev.filter(k => k !== kw))
                       }}
                       className={`pr-2 text-sm font-bold leading-none transition-colors ${
-                        selectedFaqKeywords.includes(kw) ? 'text-blue-200 hover:text-white' : 'text-gray-500 hover:text-red-500'
+                        selectedFaqKeywords.includes(kw) ? 'text-blue-200 hover:text-white' : 'text-gray-600 hover:text-red-700'
                       }`}
                       title="관련 없는 키워드 제외"
                       aria-label={`"${kw}" 제외`}
@@ -3110,8 +3110,8 @@ A. ${a}`).catch(() => {})
               {/* 업종별 추가 추천 키워드 (제외 키워드가 있을 때) */}
               {showCategoryKeywords && (
                 <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className="text-sm text-gray-500 mb-2">
-                    업종 추천 키워드 <span className="text-gray-500">(클릭해서 추가)</span>
+                  <p className="text-sm text-gray-600 mb-2">
+                    업종 추천 키워드 <span className="text-gray-600">(클릭해서 추가)</span>
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {categoryKeywords.map(kw => (
@@ -3157,7 +3157,7 @@ A. ${a}`).catch(() => {})
           </button>
 
           {error && (
-            <p className="mt-3 text-sm text-red-500">{error}</p>
+            <p className="mt-3 text-sm text-red-700">{error}</p>
           )}
 
           {faqs.length > 0 && (
@@ -3170,7 +3170,7 @@ A. ${a}`).catch(() => {})
                       if (!window.confirm('이 FAQ 항목을 삭제할까요?')) return
                       setFaqs(prev => prev.filter((_, i) => i !== idx))
                     }}
-                    className="absolute top-3 right-3 text-gray-500 hover:text-red-500 transition-colors"
+                    className="absolute top-3 right-3 text-gray-600 hover:text-red-700 transition-colors"
                     title="이 항목 삭제"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -3199,7 +3199,7 @@ A. ${a}`).catch(() => {})
               <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800">
                 ⚠️ <strong>[ ] 괄호 안 내용은 실제 정보로 바꿔주세요</strong> — 그대로 복사하면 괄호가 노출됩니다
               </div>
-              <p className="text-sm text-gray-500 text-center mt-2">
+              <p className="text-sm text-gray-600 text-center mt-2">
                 네이버 스마트플레이스 → 업체정보 → 소개글 Q&A 섹션에 붙여넣기 하세요
               </p>
             </div>
@@ -3226,7 +3226,7 @@ function FAQSection({ faqs, title }: { faqs: FAQ[]; title: string }) {
           <span className="text-sm font-semibold text-gray-900">{title}</span>
           <span className="text-sm bg-teal-50 text-teal-600 px-1.5 py-0.5 rounded-full">{faqs.length}개</span>
         </div>
-        {open ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
+        {open ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
       </button>
       {open && (
         <div className="border-t border-gray-100 divide-y divide-gray-100">
@@ -3312,7 +3312,7 @@ function GuideItemCard({
             disabled={alreadyDone}
             className={`w-6 h-6 rounded-full text-sm font-bold flex items-center justify-center shrink-0 border-2 transition-colors ${
               done
-                ? 'bg-green-500 border-green-500 text-white'
+                ? 'bg-green-700 border-green-500 text-white'
                 : 'bg-blue-100 border-blue-200 text-blue-600'
             }`}
             title={alreadyDone ? '스마트플레이스 현황에서 완료 표시됨' : isChecked ? '완료 취소' : '완료 표시'}
@@ -3321,11 +3321,11 @@ function GuideItemCard({
           </button>
           <div className="min-w-0 flex-1">
             {(item.dimension || item.category) && (
-              <span className="text-sm text-gray-500 block">
+              <span className="text-sm text-gray-600 block">
                 {DIMENSION_LABEL[item.dimension ?? ''] ?? DIMENSION_LABEL[item.category ?? ''] ?? item.dimension ?? item.category}
               </span>
             )}
-            <div className={`font-semibold leading-snug ${done ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+            <div className={`font-semibold leading-snug ${done ? 'line-through text-gray-600' : 'text-gray-900'}`}>
               {simplify(((item as unknown) as Record<string, unknown>).title as string
                 ?? ((item as unknown) as Record<string, unknown>).text as string
                 ?? ((item as unknown) as Record<string, unknown>).description as string
@@ -3376,7 +3376,7 @@ function GuideItemCard({
         <div className="mt-1">
           <button
             onClick={() => setShowWhy(!showWhy)}
-            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-700 transition-colors"
             aria-expanded={showWhy}
           >
             {showWhy ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -3472,7 +3472,7 @@ function TodayKeywordHero({
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-amber-700 mb-1">지금 바로 할 것 1가지</p>
           <p className="text-base font-bold text-gray-900 mb-1">부족한 키워드를 선택해 소개글 안 Q&A에 추가하세요</p>
-          <p className="text-sm text-gray-500 mb-3 leading-relaxed">
+          <p className="text-sm text-gray-600 mb-3 leading-relaxed">
             이 키워드들이 없으면 AI 브리핑 인용 후보에서 누락될 가능성이 있습니다. 키워드를 선택하면 FAQ 문구가 자동 생성됩니다.
             관련 없는 키워드는 <strong>✕</strong>로 제외하세요.
           </p>
@@ -3493,7 +3493,7 @@ function TodayKeywordHero({
                 <button
                   onClick={(e) => excludeKw(kw, e)}
                   className={`text-sm font-bold leading-none transition-colors ${
-                    active === kw ? 'text-blue-200 hover:text-white' : 'text-gray-500 hover:text-red-500'
+                    active === kw ? 'text-blue-200 hover:text-white' : 'text-gray-600 hover:text-red-700'
                   }`}
                   title="관련 없는 키워드 제외"
                   aria-label={`"${kw}" 제외`}
@@ -3507,7 +3507,7 @@ function TodayKeywordHero({
           {/* FAQ 복사 문구 미리보기 */}
           {faqText && (
             <div className="bg-white rounded-lg border border-amber-200 p-3 mb-3">
-              <p className="text-sm text-amber-600 font-semibold mb-1.5">스마트플레이스 Q&A 복사 문구</p>
+              <p className="text-sm text-amber-700 font-semibold mb-1.5">스마트플레이스 Q&A 복사 문구</p>
               <p className="text-base text-gray-700 whitespace-pre-wrap leading-relaxed break-words">{faqText}</p>
             </div>
           )}
@@ -3521,7 +3521,7 @@ function TodayKeywordHero({
                   setTimeout(() => setCopied(false), 2000)
                 }}
                 className={`flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg transition-colors ${
-                  copied ? 'bg-green-600 text-white' : 'bg-amber-600 hover:bg-amber-700 text-white'
+                  copied ? 'bg-green-700 text-white' : 'bg-amber-700 hover:bg-amber-800 text-white'
                 }`}
               >
                 {copied ? '✓ 복사됨' : '복사하기 →'}
@@ -3695,7 +3695,7 @@ function GuideTabView({
             className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-lg text-sm md:text-base font-medium transition-all ${
               activeTab === tab.key
                 ? 'bg-white text-blue-700 shadow-sm font-semibold'
-                : 'text-gray-500 hover:text-gray-700'
+                : 'text-gray-600 hover:text-gray-700'
             }`}
           >
             <span>{tab.icon}</span>
@@ -3776,10 +3776,10 @@ function GuideTabView({
               <FileText className="w-4 h-4 text-blue-600 shrink-0" />
               <div>
                 <span className="text-sm font-semibold text-gray-800">내 블로그 AI 최적화 진단</span>
-                <p className="text-sm text-gray-500 mt-0.5">블로그가 AI 브리핑에 얼마나 최적화됐는지 확인하세요</p>
+                <p className="text-sm text-gray-600 mt-0.5">블로그가 AI 브리핑에 얼마나 최적화됐는지 확인하세요</p>
               </div>
             </div>
-            <ExternalLink className="w-4 h-4 text-gray-500 group-hover:text-blue-600 shrink-0" />
+            <ExternalLink className="w-4 h-4 text-gray-600 group-hover:text-blue-600 shrink-0" />
           </a>
 
           {/* AI 브리핑 직접 관리 경로 — 기본 접힘 */}
@@ -3790,7 +3790,7 @@ function GuideTabView({
               aria-expanded={showBriefingPaths}
             >
               <span className="font-semibold text-gray-800 text-sm md:text-base">📋 AI가 내 가게 얘기하게 만드는 방법 (4가지)</span>
-              <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${showBriefingPaths ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-5 h-5 text-gray-600 transition-transform ${showBriefingPaths ? 'rotate-180' : ''}`} />
             </button>
             {showBriefingPaths && (
               briefingPaths.length > 0 ? (
@@ -3807,7 +3807,7 @@ function GuideTabView({
                   <p className="text-sm font-medium text-amber-800">
                     가이드를 생성하면 복사할 수 있는 문구가 여기에 나타납니다
                   </p>
-                  <p className="text-sm text-amber-600 mt-1">
+                  <p className="text-sm text-amber-700 mt-1">
                     스캔 완료 후 &ldquo;가이드 생성&rdquo; 버튼을 눌러주세요
                   </p>
                   <button
@@ -3841,15 +3841,15 @@ function GuideTabView({
                 aria-expanded={showReviewDrafts}
               >
                 <div className="flex items-center gap-2">
-                  <MessageSquare className={`w-4 h-4 transition-colors ${showReviewDrafts ? 'text-blue-500' : 'text-gray-500'}`} />
+                  <MessageSquare className={`w-4 h-4 transition-colors ${showReviewDrafts ? 'text-blue-600' : 'text-gray-600'}`} />
                   <span className={`font-semibold text-sm md:text-base transition-colors ${showReviewDrafts ? 'text-blue-900' : 'text-gray-800'}`}>
                     리뷰 답변 초안 ({reviewDrafts.length}개)
                   </span>
                   {!showReviewDrafts && (
-                    <span className="text-sm text-gray-500 font-normal hidden sm:inline">키워드 포함 초안</span>
+                    <span className="text-sm text-gray-600 font-normal hidden sm:inline">키워드 포함 초안</span>
                   )}
                 </div>
-                <ChevronDown className={`w-5 h-5 transition-all duration-300 ${showReviewDrafts ? 'text-blue-500 rotate-180' : 'text-gray-500'}`} />
+                <ChevronDown className={`w-5 h-5 transition-all duration-300 ${showReviewDrafts ? 'text-blue-600 rotate-180' : 'text-gray-600'}`} />
               </button>
               <div
                 className={`grid transition-all duration-300 ease-in-out ${showReviewDrafts ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
@@ -3862,7 +3862,7 @@ function GuideTabView({
                       currentPlan={currentPlan}
                     />
                     {!business.naver_place_id && (
-                      <p className="text-sm text-gray-500 mt-2 px-1">
+                      <p className="text-sm text-gray-600 mt-2 px-1">
                         사업장 설정에서 네이버 플레이스 ID를 등록하면 리뷰 관리 페이지로 바로 이동합니다
                       </p>
                     )}
@@ -3876,11 +3876,11 @@ function GuideTabView({
           {tools.review_request_message && (
             <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-amber-100">
               <div className="flex items-center gap-2 mb-1">
-                <FileText className="w-4 h-4 text-amber-500" />
+                <FileText className="w-4 h-4 text-amber-700" />
                 <div className="text-sm font-semibold text-gray-900">QR 카드용 리뷰 유도 문구</div>
-                <span className="ml-auto text-sm text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full font-medium">인쇄용</span>
+                <span className="ml-auto text-sm text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full font-medium">인쇄용</span>
               </div>
-              <p className="text-sm text-gray-500 mb-3">이 문구를 영수증·테이블 카드·QR 카드에 인쇄하여 리뷰를 유도하세요.</p>
+              <p className="text-sm text-gray-600 mb-3">이 문구를 영수증·테이블 카드·QR 카드에 인쇄하여 리뷰를 유도하세요.</p>
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                 <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words mb-4">{tools.review_request_message}</p>
                 <div className="flex items-center justify-between pt-3 border-t border-amber-200">
@@ -4080,7 +4080,7 @@ function GuideTabView({
                   </div>
                   <span className="text-sm bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">이번 달 실행</span>
                 </div>
-                <p className="text-sm text-gray-500 mb-3 leading-relaxed">
+                <p className="text-sm text-gray-600 mb-3 leading-relaxed">
                   AI는 여러 곳에서 언급되는 가게를 신뢰합니다. 각 채널마다 접근법이 다릅니다 — 본인 상황에 맞는 채널 1~2개만 골라 시도해 보세요.
                 </p>
                 <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-3">
@@ -4095,7 +4095,7 @@ function GuideTabView({
                         <span className="text-lg shrink-0">{ch.icon}</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-gray-900">{ch.title}</p>
-                          <p className="text-base text-gray-500 leading-relaxed mt-0.5">{ch.approach}</p>
+                          <p className="text-base text-gray-600 leading-relaxed mt-0.5">{ch.approach}</p>
                         </div>
                       </div>
                       <p className="text-sm text-indigo-600 mb-2 pl-7">💡 {ch.hint}</p>
@@ -4152,7 +4152,7 @@ function GuideTabView({
           ) : gapError ? (
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-4 text-center">
               <p className="text-sm text-amber-700 font-medium mb-1">성장 단계 정보를 불러오지 못했습니다</p>
-              <p className="text-sm text-amber-600">잠시 후 새로고침해 다시 시도해주세요.</p>
+              <p className="text-sm text-amber-700">잠시 후 새로고침해 다시 시도해주세요.</p>
             </div>
           ) : null}
 
@@ -4257,9 +4257,9 @@ function GuideTabView({
           >
             <span className="text-sm font-semibold text-gray-700">
               추가 도구·체크리스트 {showQuickTools ? '접기' : '펼치기'}
-              <span className="font-normal text-gray-500"> (소식 초안·QR카드·외부 채널·스마트플레이스 현황 등)</span>
+              <span className="font-normal text-gray-600"> (소식 초안·QR카드·외부 채널·스마트플레이스 현황 등)</span>
             </span>
-            {showQuickTools ? <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />}
+            {showQuickTools ? <ChevronUp className="w-4 h-4 text-gray-600 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-600 shrink-0" />}
           </button>
 
           {showQuickTools && (
@@ -4327,7 +4327,7 @@ function GuideTabView({
                   <button
                     onClick={generateGuide}
                     disabled={loading || guideExhausted}
-                    className="shrink-0 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                    className="shrink-0 text-sm font-semibold bg-green-700 hover:bg-green-800 text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
                   >
                     재생성
                   </button>
@@ -4357,7 +4357,7 @@ function GuideTabView({
           {itemsJson.length === 0 && guide && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-4 text-center">
               <p className="text-sm text-amber-700 font-medium mb-1">개선 항목이 없습니다</p>
-              <p className="text-sm text-amber-600">가이드 생성 중 오류가 발생했을 수 있습니다. <strong>가이드 재생성</strong>을 눌러 다시 받아보세요.</p>
+              <p className="text-sm text-amber-700">가이드 생성 중 오류가 발생했을 수 있습니다. <strong>가이드 재생성</strong>을 눌러 다시 받아보세요.</p>
             </div>
           )}
 
@@ -4372,7 +4372,7 @@ function GuideTabView({
                 <span className="text-sm font-semibold text-gray-700">
                   FAQ 모음 {showFAQSection ? '접기' : '펼치기'} ({spFaqs.length + aiFaqs.length}개)
                 </span>
-                {showFAQSection ? <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />}
+                {showFAQSection ? <ChevronUp className="w-4 h-4 text-gray-600 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-600 shrink-0" />}
               </button>
               {showFAQSection && (
                 <>
@@ -4388,8 +4388,8 @@ function GuideTabView({
           )}
           {spFaqs.length === 0 && aiFaqs.length === 0 && guide && (
             <div className="bg-gray-50 rounded-xl px-4 py-4 text-center">
-              <p className="text-sm text-gray-500">아직 FAQ가 없습니다.</p>
-              <p className="text-sm text-gray-500 mt-1">"오늘 활용" 탭에서 스마트플레이스 Q&A 초안을 생성하면 여기에 표시됩니다.</p>
+              <p className="text-sm text-gray-600">아직 FAQ가 없습니다.</p>
+              <p className="text-sm text-gray-600 mt-1">"오늘 활용" 탭에서 스마트플레이스 Q&A 초안을 생성하면 여기에 표시됩니다.</p>
             </div>
           )}
         </div>
@@ -4798,17 +4798,17 @@ export function GuideClient({
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-lg font-bold text-gray-900">가이드</span>
             {guide && (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-600">
                 {new Date(guide.generated_at).toLocaleDateString('ko-KR')} 생성
               </p>
             )}
             {guideLimit > 0 && (
               <span className={`text-sm px-2.5 py-1 rounded-full font-medium ${
                 guideRemaining === 0
-                  ? 'bg-red-100 text-red-600'
+                  ? 'bg-red-100 text-red-700'
                   : (guideRemaining ?? 999) <= 1
-                    ? 'bg-orange-100 text-orange-600'
-                    : 'bg-gray-100 text-gray-500'
+                    ? 'bg-orange-100 text-orange-700'
+                    : 'bg-gray-100 text-gray-600'
               }`}>
                 {guideLimit >= 999 ? `이번 달 ${guideUsed}회 사용 (무제한)` : `이번 달 ${guideUsed}/${guideLimit}회 사용`}
               </span>
@@ -4824,21 +4824,21 @@ export function GuideClient({
               {loading ? '생성 중...' : isFree ? '구독 후 재생성 가능' : guideExhausted ? '이번 달 한도 초과' : guide ? '가이드 재생성' : '가이드 생성하기'}
             </button>
             {monthlyExhausted && (
-              <a href="/pricing" className="text-sm text-blue-500 hover:underline">
+              <a href="/pricing" className="text-sm text-blue-600 hover:underline">
                 플랜 업그레이드 →
               </a>
             )}
           </div>
         </div>
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-red-700 text-sm">{error}</p>}
 
         {loading && (
           <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm space-y-4">
             <div className="text-center mb-2">
               <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
               <p className="text-gray-700 font-semibold mb-1">Claude AI가 가이드를 만들고 있어요... ({elapsedSeconds}초)</p>
-              <p className="text-gray-500 text-sm">
+              <p className="text-gray-600 text-sm">
                 {elapsedSeconds < 20 ? '보통 30초~3분 소요됩니다' :
                  elapsedSeconds < 60 ? '거의 다 됐습니다...' :
                  elapsedSeconds < 120 ? '내용이 많아 시간이 조금 더 걸리고 있어요...' :
@@ -4902,7 +4902,7 @@ export function GuideClient({
               <span className="text-base font-semibold text-gray-700">내 사업장 현황 분석</span>
               <span className="text-sm bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">가이드 근거 데이터</span>
             </div>
-            <p className="text-sm text-gray-500 mt-1">위 &quot;지금 당장 할 일&quot;은 아래 실측 데이터를 AI가 분석해 나온 결론입니다</p>
+            <p className="text-sm text-gray-600 mt-1">위 &quot;지금 당장 할 일&quot;은 아래 실측 데이터를 AI가 분석해 나온 결론입니다</p>
           </div>
           <AICitationHighlight businessId={business.id} authToken={authToken} currentPlan={currentPlan} isInactive={isBriefingInactive} />
           <KeywordCompletenessGauge businessId={business.id} authToken={authToken} currentPlan={currentPlan} />
@@ -4956,7 +4956,7 @@ export function GuideClient({
         )}
         {!isBriefingInactive && (
           <div className="bg-green-50 border border-green-200 rounded-xl px-4 md:px-5 py-3 flex items-start gap-3">
-            <span className="text-green-500 text-xl shrink-0 mt-0.5">🎯</span>
+            <span className="text-green-700 text-xl shrink-0 mt-0.5">🎯</span>
             <p className="text-base font-semibold text-green-800">이 업종은 네이버 AI 브리핑 노출 대상입니다. 아래 가이드로 노출 확률을 높이세요.</p>
           </div>
         )}
@@ -4964,7 +4964,7 @@ export function GuideClient({
         {/* AI 브리핑 노출 상태 (스캔 결과 기반, ACTIVE 업종만) */}
         {!isBriefingInactive && guide && !loading && latestScanMentioned === false && (
           <div className="bg-orange-50 border border-orange-300 rounded-xl px-4 md:px-5 py-4 flex items-start gap-3">
-            <span className="text-orange-500 text-xl shrink-0 mt-0.5">⚠️</span>
+            <span className="text-orange-700 text-xl shrink-0 mt-0.5">⚠️</span>
             <div>
               <p className="text-base font-bold text-orange-800 mb-1">현재 네이버 AI 브리핑에 노출되지 않고 있습니다</p>
               <p className="text-base text-orange-700 leading-relaxed">
@@ -4976,13 +4976,13 @@ export function GuideClient({
         )}
         {!isBriefingInactive && guide && !loading && latestScanMentioned === true && (
           <div className="bg-green-50 border border-green-200 rounded-xl px-4 md:px-5 py-3 flex items-start gap-3">
-            <span className="text-green-500 text-xl shrink-0 mt-0.5">🌟</span>
+            <span className="text-green-700 text-xl shrink-0 mt-0.5">🌟</span>
             <p className="text-base font-semibold text-green-800">현재 네이버 AI 브리핑에 노출 중입니다! 아래 가이드로 빈도를 더 높이세요.</p>
           </div>
         )}
         {!isBriefingInactive && guide && !loading && latestScanMentioned === null && (
           <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 md:px-5 py-3 flex items-start gap-3">
-            <span className="text-gray-500 text-xl shrink-0 mt-0.5">•</span>
+            <span className="text-gray-600 text-xl shrink-0 mt-0.5">•</span>
             <p className="text-base font-medium text-gray-600">이번 스캔에서는 AI 브리핑 노출 여부를 확인하지 못했습니다. 다음 스캔에서 다시 확인됩니다.</p>
           </div>
         )}
@@ -4996,15 +4996,15 @@ export function GuideClient({
             >
               <div>
                 <p className="text-base font-bold text-gray-800">상세 가이드 도구 모음</p>
-                <p className="text-sm text-gray-500 mt-0.5">
+                <p className="text-sm text-gray-600 mt-0.5">
                   {isBriefingInactive
                     ? "AI 검색 노출 관리 · 리뷰 답변 · 키워드 현황 · FAQ · 체크리스트"
                     : "AI 브리핑 관리 · 리뷰 답변 · 키워드 현황 · FAQ · 체크리스트"}
                 </p>
               </div>
               {showGuideDetail
-                ? <ChevronUp className="w-5 h-5 text-gray-500 shrink-0" />
-                : <ChevronDown className="w-5 h-5 text-gray-500 shrink-0" />
+                ? <ChevronUp className="w-5 h-5 text-gray-600 shrink-0" />
+                : <ChevronDown className="w-5 h-5 text-gray-600 shrink-0" />
               }
             </button>
             <div className={`border-t border-gray-100 ${showGuideDetail ? 'block' : 'hidden'}`}>
@@ -5059,7 +5059,7 @@ export function GuideClient({
         {checked.size > 0 && lastCheckedDate && (
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-4">
             <div className="flex items-start gap-3">
-              <span className="text-emerald-500 text-lg shrink-0">💫</span>
+              <span className="text-emerald-700 text-lg shrink-0">💫</span>
               <div className="flex-1 min-w-0">
                 <p className="text-base font-bold text-emerald-800 mb-1">
                   실행 완료! {checked.size}개 항목을 완료했습니다
@@ -5083,17 +5083,17 @@ export function GuideClient({
           <div className="bg-white rounded-xl p-6 md:p-8 text-center shadow-sm">
             <Lightbulb className="w-10 h-10 text-yellow-400 mx-auto mb-3" strokeWidth={1.5} />
             <p className="text-gray-700 font-medium mb-2">아직 개선 가이드가 없습니다.</p>
-            <p className="text-sm text-gray-500 mb-2 leading-relaxed">
+            <p className="text-sm text-gray-600 mb-2 leading-relaxed">
               {latestScanId
                 ? "위의 '가이드 생성하기' 버튼을 눌러주세요."
                 : '먼저 대시보드에서 AI 스캔을 실행해주세요.'}
             </p>
             {latestScanId && (
               <>
-                <p className="text-sm text-gray-500 mb-1 leading-relaxed">
+                <p className="text-sm text-gray-600 mb-1 leading-relaxed">
                   AI 스캔 결과를 바탕으로 맞춤 가이드를 만들어 드립니다.
                 </p>
-                <p className="text-sm text-gray-500 leading-relaxed">
+                <p className="text-sm text-gray-600 leading-relaxed">
                   생성에 30초~3분 정도 소요됩니다.
                 </p>
               </>
@@ -5102,7 +5102,7 @@ export function GuideClient({
         )}
 
         <div className="mt-6 pt-6 border-t border-gray-100">
-          <p className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide">다음 단계</p>
+          <p className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">다음 단계</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <a
               href="/dashboard"
@@ -5110,7 +5110,7 @@ export function GuideClient({
             >
               <div>
                 <p className="text-base font-semibold text-gray-800">스캔 재실행</p>
-                <p className="text-sm text-gray-500 mt-0.5">대시보드에서 최신 결과 확인</p>
+                <p className="text-sm text-gray-600 mt-0.5">대시보드에서 최신 결과 확인</p>
               </div>
               <RefreshCw className="w-4 h-4 text-gray-300 group-hover:text-blue-600 shrink-0" />
             </a>
@@ -5120,7 +5120,7 @@ export function GuideClient({
             >
               <div>
                 <p className="text-base font-semibold text-gray-800">경쟁사 분석</p>
-                <p className="text-sm text-gray-500 mt-0.5">내 가게와 경쟁사 비교</p>
+                <p className="text-sm text-gray-600 mt-0.5">내 가게와 경쟁사 비교</p>
               </div>
               <TrendingUp className="w-4 h-4 text-gray-300 group-hover:text-blue-600 shrink-0" />
             </a>
@@ -5130,7 +5130,7 @@ export function GuideClient({
             >
               <div>
                 <p className="text-base font-semibold text-gray-800">점수 현황</p>
-                <p className="text-sm text-gray-500 mt-0.5">AI 노출 점수 상세 리포트</p>
+                <p className="text-sm text-gray-600 mt-0.5">AI 노출 점수 상세 리포트</p>
               </div>
               <Star className="w-4 h-4 text-gray-300 group-hover:text-blue-600 shrink-0" />
             </a>

@@ -227,9 +227,9 @@ function platformBadge(platform?: string) {
 }
 
 function scoreColor(score: number) {
-  if (score >= 70) return "text-green-600";
-  if (score >= 40) return "text-amber-600";
-  return "text-red-600";
+  if (score >= 70) return "text-green-700";
+  if (score >= 40) return "text-amber-700";
+  return "text-red-700";
 }
 
 // citation_score 레이블은 반드시 lib/scoreLabels.ts의 getScoreTextLabel과 동일한 기준을 써야 함 —
@@ -282,7 +282,7 @@ function citationStatusBadge(p: PostDetail) {
   }
   if (p.is_cited === false) {
     return (
-      <span className="inline-flex items-center border text-sm font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 border-gray-200">
+      <span className="inline-flex items-center border text-sm font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border-gray-200">
         확인 안 됨
       </span>
     );
@@ -319,8 +319,8 @@ function MethodologyDisclosureBar({
   if (postCount === 0 && totalMeasurements === 0) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
-      <Info className="w-4 h-4 text-gray-400 shrink-0" />
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
+      <Info className="w-4 h-4 text-gray-600 shrink-0" />
       <span>
         이 진단의 근거 · 블로그 포스트 <strong className="text-gray-700">{postCount}개</strong> 실측 분석{isPostCountEstimated ? " (추정)" : ""}
         {totalMeasurements > 0 && (
@@ -412,7 +412,7 @@ function InfoBriefingReadinessCard({
         </div>
         <div className="text-right">
           <div className={`text-2xl font-bold ${scoreColor(score)}`}>{label}</div>
-          <div className="text-sm text-gray-500 mt-0.5">분석 시점 기준 — 측정 시점·기기에 따라 달라질 수 있음</div>
+          <div className="text-sm text-gray-600 mt-0.5">분석 시점 기준 — 측정 시점·기기에 따라 달라질 수 있음</div>
         </div>
       </div>
 
@@ -432,16 +432,16 @@ function InfoBriefingReadinessCard({
       <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div className="bg-white/70 rounded-xl p-3 text-center">
           <div className="text-xl font-bold text-gray-900">{posts}</div>
-          <div className="text-sm text-gray-500 mt-0.5">(제목·요약 기준)</div>
-          <div className="text-sm text-gray-500 mt-0.5">분석 포스트</div>
+          <div className="text-sm text-gray-600 mt-0.5">(제목·요약 기준)</div>
+          <div className="text-sm text-gray-600 mt-0.5">분석 포스트</div>
         </div>
         <div className="bg-white/70 rounded-xl p-3 text-center">
           <div className="text-base font-bold text-gray-700">{freshnessLabel(result.freshness_score ?? 0)}</div>
-          <div className="text-sm text-gray-500 mt-0.5">최신성</div>
+          <div className="text-sm text-gray-600 mt-0.5">최신성</div>
         </div>
         <div className="bg-white/70 rounded-xl p-3 text-center col-span-2 sm:col-span-1">
           <div className="text-xl font-bold text-gray-900">{present} / {total}</div>
-          <div className="text-sm text-gray-500 mt-0.5">확인된 키워드</div>
+          <div className="text-sm text-gray-600 mt-0.5">확인된 키워드</div>
         </div>
       </div>
 
@@ -480,7 +480,7 @@ function WeeklyActionsCard({ actions, businessId }: { actions: WeeklyAction[]; b
       <div className="flex items-center gap-2 mb-4">
         <Target className="w-5 h-5 text-blue-600 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-blue-900">이번 주 할 일</h3>
-        <span className="text-sm text-blue-500 ml-auto">
+        <span className="text-sm text-blue-600 ml-auto">
           {Object.values(checked).filter(Boolean).length}/{actions.length} 완료
         </span>
       </div>
@@ -495,7 +495,7 @@ function WeeklyActionsCard({ actions, businessId }: { actions: WeeklyAction[]; b
           >
             <button
               onClick={() => toggle(idx)}
-              className={`w-6 h-6 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-colors ${checked[idx] ? "bg-green-500 border-green-500 text-white" : "border-gray-300 hover:border-blue-400"}`}
+              className={`w-6 h-6 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-colors ${checked[idx] ? "bg-green-700 border-green-500 text-white" : "border-gray-300 hover:border-blue-400"}`}
             >
               {checked[idx] && <CheckCircle2 className="w-4 h-4" />}
             </button>
@@ -508,7 +508,7 @@ function WeeklyActionsCard({ actions, businessId }: { actions: WeeklyAction[]; b
                   {a.action}
                 </p>
               </div>
-              <p className="text-sm text-gray-500 mt-1">{a.reason}</p>
+              <p className="text-sm text-gray-600 mt-1">{a.reason}</p>
             </div>
           </div>
         ))}
@@ -530,13 +530,13 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
       <div className="flex items-center gap-2 mb-3">
         <FileText className="w-5 h-5 text-indigo-600 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">포스트별 상세 분석</h3>
-        <span className="text-sm text-gray-500 ml-auto">상위 {posts.length}개</span>
+        <span className="text-sm text-gray-600 ml-auto">상위 {posts.length}개</span>
       </div>
       <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4 text-sm text-slate-700 leading-relaxed">
         <p className="font-semibold text-slate-800 mb-1">💡 두 가지 키워드를 구분해서 보여드립니다</p>
         <p>
           <span className="font-semibold text-green-700">업종 키워드</span>(웨딩스냅·돌잔치 스냅·프로필 촬영 등) —{" "}
-          AI가 업종 인식하는 용도 · <span className="font-semibold text-red-600">검색 의도어</span>(추천·후기·비교·가격 등) —{" "}
+          AI가 업종 인식하는 용도 · <span className="font-semibold text-red-700">검색 의도어</span>(추천·후기·비교·가격 등) —{" "}
           AI 검색이 인용할 &quot;정보성 글&quot;로 분류하는 신호.
           <br />
           <span className="text-slate-600">
@@ -588,7 +588,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                     {citationStatusBadge(p)}
                   </div>
                 </td>
-                <td className="py-3 text-center text-gray-500 whitespace-nowrap">
+                <td className="py-3 text-center text-gray-600 whitespace-nowrap">
                   {p.date ? new Date(p.date).toLocaleDateString("ko-KR", { month: "short", day: "numeric" }) : "-"}
                 </td>
                 <td className="py-3 text-center">
@@ -612,17 +612,17 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                       </span>
                     ))}
                     {p.full_text_len === -1 && (
-                      <span className="bg-gray-50 text-gray-500 border border-gray-200 text-sm px-2 py-0.5 rounded-lg whitespace-normal break-keep leading-snug">
+                      <span className="bg-gray-50 text-gray-600 border border-gray-200 text-sm px-2 py-0.5 rounded-lg whitespace-normal break-keep leading-snug">
                         본문 길이 측정 불가 (API 수집)
                       </span>
                     )}
                     {p.issues.length === 0 && (p.positives?.length ?? 0) === 0 ? (
-                      <span className="text-green-600 text-sm font-medium">양호</span>
+                      <span className="text-green-700 text-sm font-medium">양호</span>
                     ) : (
                       p.issues.map((issue, i) => (
                         <span
                           key={`iss-${i}`}
-                          className="bg-red-50 text-red-600 border border-red-200 text-sm px-2 py-0.5 rounded-lg whitespace-normal break-keep leading-snug"
+                          className="bg-red-50 text-red-700 border border-red-200 text-sm px-2 py-0.5 rounded-lg whitespace-normal break-keep leading-snug"
                         >
                           {issue}
                         </span>
@@ -630,7 +630,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                     )}
                   </div>
                   {p.suggestion && (
-                    <p className="text-sm text-gray-500 mt-1 leading-snug">{p.suggestion}</p>
+                    <p className="text-sm text-gray-600 mt-1 leading-snug">{p.suggestion}</p>
                   )}
                 </td>
               </tr>
@@ -653,7 +653,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                   <span className="text-sm font-semibold text-gray-900 line-clamp-2">{p.title || "(제목 없음)"}</span>
                 )}
                 {p.date && (
-                  <p className="text-sm text-gray-500 mt-0.5">
+                  <p className="text-sm text-gray-600 mt-0.5">
                     {new Date(p.date).toLocaleDateString("ko-KR", { year: "numeric", month: "short", day: "numeric" })}
                   </p>
                 )}
@@ -680,19 +680,19 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                   </span>
                 ))}
                 {p.full_text_len === -1 && (
-                  <span className="bg-gray-50 text-gray-500 border border-gray-200 text-sm px-2 py-0.5 rounded-lg">
+                  <span className="bg-gray-50 text-gray-600 border border-gray-200 text-sm px-2 py-0.5 rounded-lg">
                     본문 길이 측정 불가 (API 수집)
                   </span>
                 )}
                 {p.issues.map((issue, i) => (
-                  <span key={`iss-${i}`} className="bg-red-50 text-red-600 border border-red-200 text-sm px-2 py-0.5 rounded-lg">
+                  <span key={`iss-${i}`} className="bg-red-50 text-red-700 border border-red-200 text-sm px-2 py-0.5 rounded-lg">
                     {issue}
                   </span>
                 ))}
               </div>
             )}
             {p.issues.length === 0 && (p.positives?.length ?? 0) === 0 && (
-              <p className="text-sm text-green-600 mb-2">문제없음 - 잘 작성된 포스트입니다</p>
+              <p className="text-sm text-green-700 mb-2">문제없음 - 잘 작성된 포스트입니다</p>
             )}
 
             {/* suggestion */}
@@ -734,7 +734,7 @@ function PostingFrequencyCard({ freq }: { freq: NonNullable<BlogAnalysisResult["
   }
 
   function heatmapColor(count: number) {
-    if (count === 0) return "bg-gray-100 text-gray-500";
+    if (count === 0) return "bg-gray-100 text-gray-600";
     if (count === 1) return "bg-blue-200 text-blue-700";
     if (count === 2) return "bg-blue-400 text-white";
     return "bg-blue-600 text-white";
@@ -773,11 +773,11 @@ function PostingFrequencyCard({ freq }: { freq: NonNullable<BlogAnalysisResult["
           const monthNum = parseInt(monthKey.split("-")[1], 10);
           return (
             <div key={monthKey} className="flex flex-col items-center gap-1 shrink-0">
-              <span className="text-sm text-gray-500">{MONTH_LABELS[monthNum - 1]}</span>
+              <span className="text-sm text-gray-600">{MONTH_LABELS[monthNum - 1]}</span>
               <div className={`w-10 h-10 md:w-12 md:h-12 rounded-lg flex flex-col items-center justify-center font-bold text-sm ${heatmapColor(count)}`}>
                 {count}
               </div>
-              <span className="text-sm text-gray-500">건</span>
+              <span className="text-sm text-gray-600">건</span>
             </div>
           );
         })}
@@ -805,9 +805,9 @@ function PostingFrequencyCard({ freq }: { freq: NonNullable<BlogAnalysisResult["
         const isPast = recDate < new Date();
         return (
           <div className={`rounded-xl px-4 py-3 ${isPast ? "bg-gray-50 border border-gray-200" : "bg-amber-50 border border-amber-200"}`}>
-            <p className={`text-sm font-semibold ${isPast ? "text-gray-500" : "text-amber-800"}`}>
+            <p className={`text-sm font-semibold ${isPast ? "text-gray-600" : "text-amber-800"}`}>
               다음 발행 권장일: {formatNextDate(freq.recommended_next_date)}
-              {isPast && <span className="ml-2 text-gray-500 font-normal">(이미 지났습니다 — 지금 작성하세요)</span>}
+              {isPast && <span className="ml-2 text-gray-600 font-normal">(이미 지났습니다 — 지금 작성하세요)</span>}
             </p>
           </div>
         );
@@ -821,7 +821,7 @@ function BestCitationCandidateCard({ candidate }: { candidate: NonNullable<BlogA
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
-        <Zap className="w-5 h-5 text-amber-500 shrink-0" />
+        <Zap className="w-5 h-5 text-amber-700 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-amber-900">AI 검색 인용 가능성 높은 포스트</h3>
       </div>
 
@@ -848,7 +848,7 @@ function BestCitationCandidateCard({ candidate }: { candidate: NonNullable<BlogA
       </div>
 
       {/* reason */}
-      <p className="text-sm text-gray-500 mb-4 leading-relaxed">{candidate.reason}</p>
+      <p className="text-sm text-gray-600 mb-4 leading-relaxed">{candidate.reason}</p>
 
       {/* 지금 이것만 추가 */}
       <div className="bg-green-50 border border-green-200 rounded-xl p-3">
@@ -879,9 +879,9 @@ function TopicSuggestionsV2Card({
   const [loadingIdx, setLoadingIdx] = useState<number | null>(null);
 
   const priorityBadge: Record<TopicSuggestionV2["priority"], string> = {
-    high: "bg-red-50 text-red-600 border-red-200",
+    high: "bg-red-50 text-red-700 border-red-200",
     medium: "bg-amber-50 text-amber-700 border-amber-200",
-    low: "bg-gray-50 text-gray-500 border-gray-200",
+    low: "bg-gray-50 text-gray-600 border-gray-200",
   };
   const priorityLabel: Record<TopicSuggestionV2["priority"], string> = {
     high: "경쟁사 갭",
@@ -901,9 +901,9 @@ function TopicSuggestionsV2Card({
     high: "경쟁 높음",
   };
   const competitionColor: Record<"high" | "medium" | "low", string> = {
-    low: "text-green-600",
-    medium: "text-amber-600",
-    high: "text-red-500",
+    low: "text-green-700",
+    medium: "text-amber-700",
+    high: "text-red-700",
   };
 
   // 경쟁사 블로그 갭 기반 추천이 하나도 없으면(경쟁사 분석 데이터 부재) 그 이유를 밝힘
@@ -919,7 +919,7 @@ function TopicSuggestionsV2Card({
         <FileText className="w-5 h-5 text-indigo-500 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">이번 달 블로그 주제 추천</h3>
       </div>
-      <p className="text-sm text-gray-500 mb-3">
+      <p className="text-sm text-gray-600 mb-3">
         {hasCompetitorGap
           ? "경쟁사 블로그와 비교해 우선순위가 높은 주제부터 보여드립니다."
           : "경쟁사 블로그 진단 데이터가 아직 없어 업종 표준 키워드 기준으로 추천합니다. 경쟁사 데이터가 쌓이면 더 정밀해집니다."}
@@ -972,7 +972,7 @@ function TopicSuggestionsV2Card({
                 </span>
               )}
             </p>
-            <p className="text-sm text-gray-500 leading-relaxed">{s.reason}</p>
+            <p className="text-sm text-gray-600 leading-relaxed">{s.reason}</p>
             {typeof s.saturation_score === "number" ? (
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
@@ -991,16 +991,16 @@ function TopicSuggestionsV2Card({
                   <span
                     className={`text-sm font-medium shrink-0 ${
                       s.saturation_score < 0.33
-                        ? "text-green-600"
+                        ? "text-green-700"
                         : s.saturation_score < 0.67
-                        ? "text-amber-600"
-                        : "text-red-500"
+                        ? "text-amber-700"
+                        : "text-red-700"
                     }`}
                   >
                     포화도 {s.saturation_score.toFixed(2)}
                   </span>
                 </div>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-600">
                   네이버 블로그 문서수 대비 검색량 기준 추정치 · 측정 시점에 따라 달라질 수 있음
                 </p>
               </div>
@@ -1015,10 +1015,10 @@ function TopicSuggestionsV2Card({
               )
             )}
             {s.volume_trend && s.volume_trend.pct_change !== null && (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-600">
                 검색량 추이({s.volume_trend.from_date}→{s.volume_trend.to_date}):{' '}
                 {s.volume_trend.from_volume.toLocaleString()}회 → {s.volume_trend.to_volume.toLocaleString()}회{' '}
-                <span className={s.volume_trend.pct_change >= 0 ? "text-red-500 font-medium" : "text-blue-500 font-medium"}>
+                <span className={s.volume_trend.pct_change >= 0 ? "text-red-700 font-medium" : "text-blue-600 font-medium"}>
                   {s.volume_trend.pct_change >= 0 ? "▲" : "▼"}{Math.abs(s.volume_trend.pct_change)}%
                 </span>
               </p>
@@ -1048,7 +1048,7 @@ function TopicSuggestionsV2Card({
                 onClick={(e) => e.stopPropagation()}
               >
                 {loadingIdx === idx ? (
-                  <p className="text-sm text-gray-400">불러오는 중...</p>
+                  <p className="text-sm text-gray-600">불러오는 중...</p>
                 ) : serpCache[idx] ? (
                   <>
                     {serpCache[idx]!.related_keywords.length > 0 && (
@@ -1106,11 +1106,11 @@ function TopicSuggestionsV2Card({
                     {serpCache[idx]!.related_keywords.length === 0 &&
                       serpCache[idx]!.top_blogs.length === 0 &&
                       serpCache[idx]!.recent_news.length === 0 && (
-                        <p className="text-sm text-gray-400">추가 데이터 없음</p>
+                        <p className="text-sm text-gray-600">추가 데이터 없음</p>
                       )}
                   </>
                 ) : (
-                  <p className="text-sm text-gray-400">데이터를 불러오지 못했습니다</p>
+                  <p className="text-sm text-gray-600">데이터를 불러오지 못했습니다</p>
                 )}
               </div>
             )}
@@ -1162,10 +1162,10 @@ function BlogScoreTrendChart({ businessId, token }: { businessId: string; token:
     return (
       <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="w-5 h-5 text-gray-500 shrink-0" />
+          <TrendingUp className="w-5 h-5 text-gray-600 shrink-0" />
           <h3 className="text-base md:text-lg font-bold text-gray-900">블로그 진단 점수 추이</h3>
         </div>
-        <p className="text-sm text-gray-500">추이 데이터를 불러오지 못했습니다 — 새로고침해 주세요.</p>
+        <p className="text-sm text-gray-600">추이 데이터를 불러오지 못했습니다 — 새로고침해 주세요.</p>
       </div>
     );
   }
@@ -1174,10 +1174,10 @@ function BlogScoreTrendChart({ businessId, token }: { businessId: string; token:
     return (
       <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="w-5 h-5 text-gray-500 shrink-0" />
+          <TrendingUp className="w-5 h-5 text-gray-600 shrink-0" />
           <h3 className="text-base md:text-lg font-bold text-gray-900">블로그 진단 점수 추이</h3>
         </div>
-        <p className="text-sm text-gray-500">분석을 2회 이상 진행하면 추세 차트가 표시됩니다.</p>
+        <p className="text-sm text-gray-600">분석을 2회 이상 진행하면 추세 차트가 표시됩니다.</p>
       </div>
     );
   }
@@ -1195,7 +1195,7 @@ function BlogScoreTrendChart({ businessId, token }: { businessId: string; token:
       <div className="mb-4 last:mb-0">
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-sm font-semibold text-gray-700">{label}</span>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-600">
             현재 <span className="font-medium text-blue-700">{getScoreTextLabel(latest[key] ?? 0)}</span>
           </span>
         </div>
@@ -1224,7 +1224,7 @@ function BlogScoreTrendChart({ businessId, token }: { businessId: string; token:
         <TrendingUp className="w-5 h-5 text-blue-600 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">블로그 진단 점수 추이</h3>
       </div>
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="text-sm text-gray-600 mb-4">
         {first.analyzed_date} ~ {latest.analyzed_date}
       </p>
       {renderSeries("AI 인용 준비도", "citation_score")}
@@ -1250,7 +1250,7 @@ function DuplicateTopicsWarning({
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
-        <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+        <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-amber-900">중복·반복 콘텐츠 감지</h3>
       </div>
 
@@ -1263,7 +1263,7 @@ function DuplicateTopicsWarning({
                   &quot;{topic.keyword}&quot; 관련 포스트 {topic.count}개
                 </span>
               </div>
-              <p className="text-sm text-gray-500 mb-2 leading-relaxed">{topic.warning}</p>
+              <p className="text-sm text-gray-600 mb-2 leading-relaxed">{topic.warning}</p>
               <div className="space-y-1 mb-3">
                 {topic.titles.slice(0, 3).map((title, tIdx) => (
                   <p key={tIdx} className="text-sm text-gray-700 line-clamp-1 pl-2 border-l-2 border-amber-200">
@@ -1287,7 +1287,7 @@ function DuplicateTopicsWarning({
                   제목 구조 유사도 {t.similarity}%
                 </span>
               </div>
-              <p className="text-sm text-gray-500 mb-2 leading-relaxed">{t.warning}</p>
+              <p className="text-sm text-gray-600 mb-2 leading-relaxed">{t.warning}</p>
               <div className="space-y-1 mb-3">
                 {t.titles.map((title, tIdx) => (
                   <p key={tIdx} className="text-sm text-gray-700 line-clamp-1 pl-2 border-l-2 border-amber-200">
@@ -1390,13 +1390,13 @@ function TitleImprovementSection({ posts, businessId }: { posts: PostDetail[]; b
                 onClick={() => handleDismiss(p.title)}
                 aria-label="이 제안 삭제"
                 title="이 제안 삭제"
-                className="absolute top-2 right-2 w-8 h-8 inline-flex items-center justify-center rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                className="absolute top-2 right-2 w-8 h-8 inline-flex items-center justify-center rounded-lg text-gray-600 hover:text-red-700 hover:bg-red-50 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-500 line-through break-keep">{p.title}</p>
+                  <p className="text-sm text-gray-600 line-through break-keep">{p.title}</p>
                   <p className="text-sm md:text-base font-semibold text-indigo-800 mt-1 break-keep">{p.improved_title}</p>
                 </div>
                 <button
@@ -1413,7 +1413,7 @@ function TitleImprovementSection({ posts, businessId }: { posts: PostDetail[]; b
                 </button>
               </div>
               {p.suggestion && (
-                <p className="text-sm text-gray-500 mt-2">{p.suggestion}</p>
+                <p className="text-sm text-gray-600 mt-2">{p.suggestion}</p>
               )}
             </div>
           );
@@ -1450,10 +1450,10 @@ const CHANNEL_LABELS: Record<string, string> = {
 const CHANNEL_ORDER = ["naver", "chatgpt", "gemini", "google"];
 
 const BENCHMARK_LABEL_CLASS: Record<string, string> = {
-  "업종 평균 상회": "text-green-600",
-  "업종 평균 수준": "text-gray-500",
-  "업종 평균 이하": "text-amber-600",
-  "데이터 수집 중": "text-gray-400",
+  "업종 평균 상회": "text-green-700",
+  "업종 평균 수준": "text-gray-600",
+  "업종 평균 이하": "text-amber-700",
+  "데이터 수집 중": "text-gray-600",
 };
 
 interface ChannelCitationData {
@@ -1483,15 +1483,15 @@ function MultiChannelCitationPanel({
       <div className="flex items-center gap-2 mb-1">
         <Globe className="w-5 h-5 text-indigo-600 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">채널별 AI 인용 현황</h3>
-        <span className="text-sm text-gray-400 ml-auto shrink-0">최근 3회 스캔 기준</span>
+        <span className="text-sm text-gray-600 ml-auto shrink-0">최근 3회 스캔 기준</span>
       </div>
-      <p className="text-sm text-gray-500 mb-4 leading-relaxed">
+      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
         각 AI 채널에서 사업장 또는 블로그 콘텐츠가 인용된 횟수입니다.
         측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
       </p>
 
       {all.length === 0 ? (
-        <p className="text-sm text-gray-400">아직 측정 데이터 없음 — 스캔 후 표시됩니다.</p>
+        <p className="text-sm text-gray-600">아직 측정 데이터 없음 — 스캔 후 표시됩니다.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {all.map(([platform, data]) => {
@@ -1512,8 +1512,8 @@ function MultiChannelCitationPanel({
             const textClass = isHigh
               ? "text-green-700"
               : isMid
-              ? "text-amber-600"
-              : "text-gray-500";
+              ? "text-amber-700"
+              : "text-gray-600";
             return (
               <div key={platform} className="border border-gray-200 rounded-xl p-4">
                 <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
@@ -1532,12 +1532,12 @@ function MultiChannelCitationPanel({
                   {data.total > 0 ? `${pct}% 인용률` : "측정 데이터 없음"}
                 </p>
                 {((data.text_count ?? 0) > 0 || (data.image_count ?? 0) > 0) && (
-                  <p className="text-sm text-gray-500 mt-0.5">
+                  <p className="text-sm text-gray-600 mt-0.5">
                     텍스트 {data.text_count ?? 0} · 이미지 썸네일 {data.image_count ?? 0}
                   </p>
                 )}
                 {benchmark?.[platform] && (
-                  <p className={`text-sm mt-0.5 ${BENCHMARK_LABEL_CLASS[benchmark[platform]] ?? "text-gray-400"}`}>
+                  <p className={`text-sm mt-0.5 ${BENCHMARK_LABEL_CLASS[benchmark[platform]] ?? "text-gray-600"}`}>
                     {benchmark[platform]}
                   </p>
                 )}
@@ -1566,10 +1566,10 @@ function CompetitorKeywordBlockedPanel({
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-1">
-        <Target className="w-5 h-5 text-orange-500 shrink-0" />
+        <Target className="w-5 h-5 text-orange-700 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">경쟁사 키워드 점유 현황</h3>
       </div>
-      <p className="text-sm text-gray-500 mb-1 leading-relaxed">
+      <p className="text-sm text-gray-600 mb-1 leading-relaxed">
         경쟁사들이 블로그에서 이미 다루고 있는 키워드를 분석합니다.
       </p>
       {pioneerCount > 0 && (
@@ -1682,9 +1682,9 @@ function BlogMentionBenchmarkCard({
       <div className="flex items-center gap-2 mb-1 flex-wrap">
         <BarChart2 className="w-5 h-5 text-blue-600 shrink-0" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">블로그 언급 수 비교</h3>
-        <span className="inline-flex items-center border text-sm px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500 border-gray-200 ml-auto">(추정)</span>
+        <span className="inline-flex items-center border text-sm px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 border-gray-200 ml-auto">(추정)</span>
       </div>
-      <p className="text-sm text-gray-500 mb-4 leading-relaxed">
+      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
         네이버 블로그 검색 기준 언급 수입니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
       </p>
 
@@ -2094,7 +2094,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
               className="text-left bg-white border border-gray-200 hover:border-blue-400 hover:shadow-md rounded-xl p-5 transition-all focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               <p className="text-base font-semibold text-gray-900 mb-1 truncate">{biz.name}</p>
-              <p className="text-sm text-gray-500 mb-3">
+              <p className="text-sm text-gray-600 mb-3">
                 {biz.category} · {biz.region}
               </p>
               {biz.blog_url ? (
@@ -2143,7 +2143,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
         {/* 복수 사업장일 때 현재 선택 사업장 + 변경 버튼 */}
         {businesses.length > 1 && selectedBiz && (
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-            <span className="text-sm text-gray-500 shrink-0">분석 중인 사업장:</span>
+            <span className="text-sm text-gray-600 shrink-0">분석 중인 사업장:</span>
             <span className="text-sm font-semibold text-gray-900 truncate min-w-0">{selectedBiz.name}</span>
             <button
               onClick={() => {
@@ -2167,7 +2167,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
         {!savedBlogUrl && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-6">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <h2 className="text-base md:text-lg font-bold text-amber-900 mb-1">블로그 주소가 등록되지 않았습니다</h2>
                 <p className="text-sm text-amber-800 mb-4 leading-relaxed">
@@ -2176,21 +2176,21 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-4">
                   <div className="flex items-start gap-2 bg-white border border-amber-100 rounded-lg px-3 py-2.5">
-                    <Search className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <Search className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                     <p className="text-sm text-amber-900">등록하면 포스트별로 네이버 AI 브리핑 인용 여부를 확인할 수 있습니다</p>
                   </div>
                   <div className="flex items-start gap-2 bg-white border border-amber-100 rounded-lg px-3 py-2.5">
-                    <BarChart2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <BarChart2 className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                     <p className="text-sm text-amber-900">Gemini·ChatGPT·네이버·Google 4채널 인용 현황을 한눈에 봅니다</p>
                   </div>
                   <div className="flex items-start gap-2 bg-white border border-amber-100 rounded-lg px-3 py-2.5">
-                    <Target className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                    <Target className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                     <p className="text-sm text-amber-900">경쟁사가 점유한 키워드와 선점 기회를 비교합니다</p>
                   </div>
                 </div>
                 <Link
                   href={`/settings?tab=business&biz_id=${encodeURIComponent(business.id)}`}
-                  className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+                  className="inline-flex items-center gap-2 bg-amber-700 hover:bg-amber-800 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
                 >
                   <Settings className="w-4 h-4" />
                   사업장 설정으로 이동
@@ -2220,15 +2220,15 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                 </a>
                 {lastAnalyzedAt && (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-600">
                     마지막 분석: {new Date(lastAnalyzedAt).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })}
                     {isStale(lastAnalyzedAt) && (
-                      <span className="ml-2 text-amber-500 font-medium">- 7일 이상 지났습니다</span>
+                      <span className="ml-2 text-amber-700 font-medium">- 7일 이상 지났습니다</span>
                     )}
                   </p>
                 )}
                 {!lastAnalyzedAt && (
-                  <p className="text-sm text-gray-500">아직 분석 기록이 없습니다</p>
+                  <p className="text-sm text-gray-600">아직 분석 기록이 없습니다</p>
                 )}
               </div>
 
@@ -2262,7 +2262,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
             {/* 월별 한도 초과 업그레이드 CTA */}
             {isMonthlyLimitReached && (
               <div className="mt-4 bg-amber-50 border border-amber-300 rounded-xl px-4 py-4 flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-bold text-amber-900 mb-1">
                     이번 달 블로그 분석 횟수를 모두 사용했습니다
@@ -2281,7 +2281,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   {currentPlan !== "biz" && currentPlan !== "enterprise" && (
                     <Link
                       href="/pricing"
-                      className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+                      className="inline-flex items-center gap-1.5 bg-amber-700 hover:bg-amber-800 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
                     >
                       플랜 업그레이드
                     </Link>
@@ -2355,7 +2355,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 md:p-8 text-center">
             <Search className="w-10 h-10 text-gray-300 mx-auto mb-3" />
             <p className="text-base font-semibold text-gray-600 mb-1">분석 결과가 없습니다</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-600">
               위 &quot;재분석하기&quot; 버튼을 눌러 블로그 AI 진단을 시작하세요.
             </p>
           </div>
@@ -2431,10 +2431,10 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                     키워드 설정
                   </button>
                 </div>
-                <p className="text-sm text-gray-500 mb-4">포스트 제목과 본문 내용을 기준으로 분석합니다 (일부 포스트는 API로만 수집되어 제목·요약 정보만 반영될 수 있습니다)</p>
+                <p className="text-sm text-gray-600 mb-4">포스트 제목과 본문 내용을 기준으로 분석합니다 (일부 포스트는 API로만 수집되어 제목·요약 정보만 반영될 수 있습니다)</p>
                 {result.top_recommendation && (
                   <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-start gap-2">
-                    <TrendingUp className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <TrendingUp className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                     <p className="text-sm text-amber-800 leading-relaxed">{result.top_recommendation}</p>
                   </div>
                 )}
@@ -2442,7 +2442,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   {(result.keyword_coverage.present?.length ?? 0) > 0 && (
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0" />
                         <span className="text-sm font-semibold text-green-700">
                           확인된 키워드 ({result.keyword_coverage.present.length})
                         </span>
@@ -2460,7 +2460,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                     <div>
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                         <div className="flex items-center gap-2">
-                          <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
+                          <AlertTriangle className="w-4 h-4 text-red-700 shrink-0" />
                           <span className="text-sm font-semibold text-red-700">
                             없는 키워드 ({result.keyword_coverage.missing.length}) - 제목에 넣으면 AI 노출에 유리합니다
                           </span>
@@ -2473,7 +2473,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                           {kwCopied ? "복사됨" : "상위 5개 복사"}
                         </button>
                       </div>
-                      <p className="text-sm text-gray-500 mb-2">관련 없는 키워드는 X를 눌러 제외하면 분석에서 영구히 빠집니다. 복사한 키워드는 네이버 블로그 에디터에 붙여넣어 다음 포스트 제목에 활용하세요.</p>
+                      <p className="text-sm text-gray-600 mb-2">관련 없는 키워드는 X를 눌러 제외하면 분석에서 영구히 빠집니다. 복사한 키워드는 네이버 블로그 에디터에 붙여넣어 다음 포스트 제목에 활용하세요.</p>
                       <div className="flex flex-wrap gap-2">
                         {result.keyword_coverage.missing.map((kw) => (
                           <span key={kw} className="inline-flex items-center gap-1 bg-red-100 text-red-700 border border-red-200 text-sm px-3 py-1 rounded-full">
@@ -2484,7 +2484,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                               disabled={excludingKws.has(kw)}
                               aria-label={`${kw} 제외`}
                               title="이 키워드 제외 (다음 분석부터 미표시)"
-                              className="ml-0.5 w-4 h-4 rounded-full hover:bg-red-300 text-red-500 hover:text-red-800 flex items-center justify-center disabled:opacity-40 transition-colors"
+                              className="ml-0.5 w-4 h-4 rounded-full hover:bg-red-300 text-red-700 hover:text-red-800 flex items-center justify-center disabled:opacity-40 transition-colors"
                             >
                               {excludingKws.has(kw) ? (
                                 <Loader2 className="w-3 h-3 animate-spin" />
@@ -2548,7 +2548,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
             {result.ai_readiness_items && result.ai_readiness_items.length > 0 && (
               <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-green-700 shrink-0" />
                   <h3 className="text-base md:text-lg font-bold text-gray-900">
                     {isBlogInactive
                       ? "정보형 AI 브리핑·ChatGPT·Gemini·Google 인용 체크리스트"
@@ -2581,10 +2581,10 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                         <div className="flex-1 min-w-0">
                           <p className={`text-sm font-semibold ${labelClass}`}>
                             {item.label}
-                            {isUnavailable && <span className="ml-1.5 text-sm font-normal text-gray-500">(측정 불가)</span>}
+                            {isUnavailable && <span className="ml-1.5 text-sm font-normal text-gray-600">(측정 불가)</span>}
                           </p>
                           {item.description && (
-                            <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">{item.description}</p>
+                            <p className="text-sm text-gray-600 mt-0.5 leading-relaxed">{item.description}</p>
                           )}
                         </div>
                       </div>
@@ -2662,7 +2662,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
 
             {/* 분석 일시 */}
             {result.analyzed_at && (
-              <p className="text-sm text-gray-500 text-right">
+              <p className="text-sm text-gray-600 text-right">
                 분석 일시: {new Date(result.analyzed_at).toLocaleString("ko-KR")}
               </p>
             )}

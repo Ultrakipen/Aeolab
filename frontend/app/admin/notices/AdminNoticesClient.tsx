@@ -220,7 +220,7 @@ export default function AdminNoticesClient() {
             <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
               공지사항 관리
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-600 dark:text-gray-600 mt-0.5">
               작성·수정·삭제·인앱 발송
             </p>
           </div>
@@ -232,7 +232,7 @@ export default function AdminNoticesClient() {
               aria-label="새로고침"
             >
               <RefreshCw
-                className={`w-4 h-4 text-gray-500 dark:text-gray-400 ${loading ? "animate-spin" : ""}`}
+                className={`w-4 h-4 text-gray-600 dark:text-gray-600 ${loading ? "animate-spin" : ""}`}
               />
             </button>
             <button
@@ -270,7 +270,7 @@ export default function AdminNoticesClient() {
                 className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 aria-label="닫기"
               >
-                <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                <X className="w-4 h-4 text-gray-600 dark:text-gray-600" />
               </button>
             </div>
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -320,7 +320,7 @@ export default function AdminNoticesClient() {
                 placeholder="제목 (필수)"
                 value={form.title}
                 onChange={(e) => setField("title", e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+                className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-600"
                 required
               />
 
@@ -330,7 +330,7 @@ export default function AdminNoticesClient() {
                 value={form.content}
                 onChange={(e) => setField("content", e.target.value)}
                 rows={5}
-                className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none placeholder:text-gray-400"
+                className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none placeholder:text-gray-600"
                 required
               />
 
@@ -341,14 +341,14 @@ export default function AdminNoticesClient() {
                   placeholder="CTA 버튼 라벨 (예: 자세히 보기)"
                   value={form.cta_label}
                   onChange={(e) => setField("cta_label", e.target.value)}
-                  className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+                  className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-600"
                 />
                 <input
                   type="url"
                   placeholder="CTA URL (https://...)"
                   value={form.cta_url}
                   onChange={(e) => setField("cta_url", e.target.value)}
-                  className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+                  className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-600"
                 />
               </div>
 
@@ -362,7 +362,7 @@ export default function AdminNoticesClient() {
                     className="rounded"
                   />
                   전체 사용자에게 인앱 메시지로도 발송
-                  <span className="text-sm text-gray-500 dark:text-gray-500">(대상 세그먼트 적용)</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-600">(대상 세그먼트 적용)</span>
                 </label>
               )}
 
@@ -377,7 +377,7 @@ export default function AdminNoticesClient() {
                 <button
                   type="button"
                   onClick={cancelForm}
-                  className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                  className="text-sm text-gray-600 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                 >
                   취소
                 </button>
@@ -390,7 +390,7 @@ export default function AdminNoticesClient() {
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 md:p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
             등록된 공지사항{" "}
-            <span className="text-gray-500 dark:text-gray-500 font-normal">
+            <span className="text-gray-600 dark:text-gray-600 font-normal">
               ({notices.length}개)
             </span>
           </h2>
@@ -404,7 +404,7 @@ export default function AdminNoticesClient() {
               <p className="text-base font-medium text-gray-600 dark:text-gray-300">
                 아직 공지가 없습니다
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+              <p className="text-sm text-gray-600 dark:text-gray-600 mt-1">
                 첫 공지를 작성해보세요.
               </p>
             </div>
@@ -419,7 +419,7 @@ export default function AdminNoticesClient() {
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       {n.is_pinned && (
                         <Pin
-                          className="w-3.5 h-3.5 text-amber-500 shrink-0"
+                          className="w-3.5 h-3.5 text-amber-700 shrink-0"
                           aria-label="상단 고정"
                         />
                       )}
@@ -433,14 +433,14 @@ export default function AdminNoticesClient() {
                             n.target_segment}
                         </span>
                       )}
-                      <span className="text-sm text-gray-500 dark:text-gray-500">
+                      <span className="text-sm text-gray-600 dark:text-gray-600">
                         {new Date(n.created_at).toLocaleDateString("ko-KR")}
                       </span>
                     </div>
                     <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
                       {n.title}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">
+                    <p className="text-sm text-gray-600 dark:text-gray-600 mt-0.5 line-clamp-2 leading-relaxed">
                       {n.content}
                     </p>
                     {n.cta_label && n.cta_url && (
@@ -460,14 +460,14 @@ export default function AdminNoticesClient() {
                       className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                       aria-label="수정"
                     >
-                      <Pencil className="w-4 h-4 text-gray-500 dark:text-gray-500" />
+                      <Pencil className="w-4 h-4 text-gray-600 dark:text-gray-600" />
                     </button>
                     <button
                       onClick={() => handleDelete(n.id, n.title)}
                       className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                       aria-label="삭제"
                     >
-                      <Trash2 className="w-4 h-4 text-red-400 dark:text-red-500" />
+                      <Trash2 className="w-4 h-4 text-red-400 dark:text-red-700" />
                     </button>
                   </div>
                 </div>

@@ -141,7 +141,7 @@ export default async function ChannelGuidePage({
 
       <div className="max-w-4xl mx-auto px-4 md:px-6 py-8 md:py-12">
         {/* ── 브레드크럼 ── */}
-        <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-6" aria-label="breadcrumb">
+        <nav className="flex items-center gap-1.5 text-sm text-gray-600 mb-6" aria-label="breadcrumb">
           <Link href="/" className="hover:text-blue-600">홈</Link>
           <span>/</span>
           <Link href="/guide/channels" className="hover:text-blue-600">업종별 가이드</Link>
@@ -176,16 +176,16 @@ export default async function ChannelGuidePage({
         <div className="mb-8 rounded-xl border border-gray-200 bg-gray-50 p-4 md:p-5">
           <p className="text-sm font-semibold text-gray-700 mb-3">이 업종의 AI 노출 트랙 비중</p>
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-sm text-gray-500 w-20 shrink-0">네이버 {entry.naverRatio}%</span>
+            <span className="text-sm text-gray-600 w-20 shrink-0">네이버 {entry.naverRatio}%</span>
             <div className="flex-1 h-3 rounded-full bg-gray-200 overflow-hidden">
               <div
                 className="h-full rounded-full bg-emerald-500 transition-all"
                 style={{ width: `${entry.naverRatio}%` }}
               />
             </div>
-            <span className="text-sm text-gray-500 w-16 shrink-0 text-right">글로벌 {entry.globalRatio}%</span>
+            <span className="text-sm text-gray-600 w-16 shrink-0 text-right">글로벌 {entry.globalRatio}%</span>
           </div>
-          <p className="text-sm text-gray-500 leading-relaxed break-keep">
+          <p className="text-sm text-gray-600 leading-relaxed break-keep">
             AEOlab 듀얼트랙 모델 기준. 점수 = 네이버 채널 점수 × {entry.naverRatio}% + 글로벌 AI 점수 × {entry.globalRatio}%.
             측정 시점·기기·로그인 상태에 따라 달라질 수 있음.
           </p>
@@ -210,7 +210,7 @@ export default async function ChannelGuidePage({
                     </span>
                     <div>
                       <p className="text-sm md:text-base font-bold text-gray-900 break-keep">{card.title}</p>
-                      <p className="text-sm text-gray-500">{card.subtitle}</p>
+                      <p className="text-sm text-gray-600">{card.subtitle}</p>
                     </div>
                   </div>
                   <span className={`inline-block px-2 py-0.5 rounded-full text-sm font-semibold ${card.statusColor}`}>
@@ -228,14 +228,14 @@ export default async function ChannelGuidePage({
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1 break-keep">
             {entry.label} 핵심 행동 5요소
           </h2>
-          <p className="text-sm text-gray-500 mb-1 leading-relaxed break-keep">
+          <p className="text-sm text-gray-600 mb-1 leading-relaxed break-keep">
             {entry.label} 업종에 공통으로 적용되는 가이드입니다. 내 가게 맞춤 진단 결과는{" "}
             <Link href="/trial" className="text-blue-600 hover:underline font-medium">
               무료 진단
             </Link>{" "}
             후 대시보드에서 확인할 수 있습니다.
           </p>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-gray-600 mb-4">
             체크 상태는 이 브라우저에 저장됩니다 (새 기기·시크릿 모드에서는 초기화됩니다).
           </p>
           <ActionChecklist
@@ -243,7 +243,7 @@ export default async function ChannelGuidePage({
             items={entry.keyActions.map((action, idx) => ({ id: String(idx), label: action }))}
             category={entry.value}
           />
-          <p className="text-sm text-gray-500 mt-3 leading-relaxed break-keep">
+          <p className="text-sm text-gray-600 mt-3 leading-relaxed break-keep">
             행동 5요소는 AEOlab 분석 기반 권장 사항이며, 노출 결과는 네이버·AI 플랫폼 정책에 따라 달라질 수 있습니다.
           </p>
         </section>
@@ -298,7 +298,7 @@ export default async function ChannelGuidePage({
               AI 브리핑 노출 원리 알아보기
             </Link>
           </div>
-          <p className="text-sm text-gray-500 mt-3 leading-relaxed break-keep">
+          <p className="text-sm text-gray-600 mt-3 leading-relaxed break-keep">
             회원가입·신용카드 입력 없이 1분 무료 체험. Basic 첫 달 50% 할인(5,950원).
           </p>
         </section>

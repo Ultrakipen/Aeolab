@@ -60,7 +60,7 @@ function CheckRow({
     <div className="flex items-start gap-3 py-2.5 border-b border-slate-100 last:border-0">
       <span className="shrink-0 mt-0.5">
         {ok ? (
-          <CheckCircle2 className="w-5 h-5 text-green-500" />
+          <CheckCircle2 className="w-5 h-5 text-green-700" />
         ) : (
           <XCircle className="w-5 h-5 text-red-400" />
         )}
@@ -275,14 +275,14 @@ export default function NaverStatusSection({
             </ol>
           ) : !isSmartPlace ? (
             <div className="flex items-center gap-3 rounded-lg px-3 py-3 bg-red-50 border border-red-200">
-              <XCircle className="w-5 h-5 text-red-500 shrink-0" />
+              <XCircle className="w-5 h-5 text-red-700 shrink-0" />
               <p className="text-sm font-semibold text-red-700">
                 {businessName} — 검색 결과에 없음 (스마트플레이스 미등록)
               </p>
             </div>
           ) : (
             <div className="flex items-center gap-3 rounded-lg px-3 py-3 bg-amber-50 border border-amber-200">
-              <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+              <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0" />
               <p className="text-sm font-semibold text-amber-700">
                 검색 결과 상위 20위 밖입니다
               </p>
@@ -379,7 +379,7 @@ export default function NaverStatusSection({
             )}
             {briefingCategory === "active" && inBriefing === true && (
               <div className="flex items-start gap-3 bg-green-50 rounded-lg px-3 py-3 border border-green-200">
-                <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-green-700 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-green-800">AI 브리핑에 노출 중입니다</p>
                   <p className="text-sm text-green-700 mt-0.5 leading-snug break-keep">
@@ -417,7 +417,7 @@ export default function NaverStatusSection({
             )}
             {briefingCategory === "likely" && inBriefing === true && (
               <div className="flex items-start gap-3 bg-green-50 rounded-lg px-3 py-3 border border-green-200">
-                <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-5 h-5 text-green-700 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-green-800">정보형 AI 브리핑에 노출 중입니다</p>
                   <p className="text-sm text-green-700 mt-0.5 leading-snug break-keep">
@@ -500,12 +500,12 @@ export default function NaverStatusSection({
             {compBlogCount > blogCount && (
               <div className="space-y-2">
                 <div className="flex items-start gap-2 bg-amber-50 rounded-lg px-3 py-2.5 border border-amber-200">
-                  <BookOpen className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                  <BookOpen className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm text-amber-700 leading-snug break-keep">
                       경쟁사보다 {(compBlogCount - blogCount).toLocaleString()}건 적습니다
                     </p>
-                    <p className="text-sm text-amber-600 leading-snug break-keep mt-0.5">
+                    <p className="text-sm text-amber-700 leading-snug break-keep mt-0.5">
                       → 방문 손님께 블로그 후기 요청 + 이벤트 진행으로 포스팅을 늘리면 AI 노출 가능성이 높아집니다
                     </p>
                   </div>
@@ -553,12 +553,12 @@ export default function NaverStatusSection({
                             {cleanName || kbc.competitor_name} {kbc.competitor_count.toLocaleString()}건
                           </span>
                           {gap > 0 && (
-                            <span className="text-xs font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full border border-amber-200">
+                            <span className="text-xs font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-full border border-amber-200">
                               {gap.toLocaleString()}건 격차
                             </span>
                           )}
                           {gap <= 0 && (
-                            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200">
+                            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-200">
                               경쟁사 이상
                             </span>
                           )}

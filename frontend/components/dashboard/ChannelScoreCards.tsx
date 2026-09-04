@@ -98,23 +98,23 @@ export function ChannelScoreCards({
                 </span>
               )}
             </div>
-            <p className="text-base text-gray-500 mb-3">
+            <p className="text-base text-gray-600 mb-3">
               네이버 AI 브리핑·AI탭·카카오맵 생태계 노출
             </p>
             <div className="space-y-1.5">
               {naverItems.map((item) => (
                 <div key={item.label} className="flex items-center gap-2 text-sm">
-                  <span className={item.ok ? 'text-green-500' : item.unmeasured ? 'text-gray-200' : 'text-gray-300'}>
+                  <span className={item.ok ? 'text-green-700' : item.unmeasured ? 'text-gray-200' : 'text-gray-300'}>
                     {item.ok ? '✓' : item.unmeasured ? '—' : '○'}
                   </span>
-                  <span className={item.ok ? 'text-gray-700' : item.unmeasured ? 'text-gray-300' : 'text-gray-500'}>
+                  <span className={item.ok ? 'text-gray-700' : item.unmeasured ? 'text-gray-300' : 'text-gray-600'}>
                     {item.label}
                   </span>
                 </div>
               ))}
             </div>
             {isOnKakao && kakaoCompetitorCount != null && kakaoCompetitorCount > 0 && (
-              <p className="text-base text-gray-500 mt-2">
+              <p className="text-base text-gray-600 mt-2">
                 카카오맵 검색 상위 {kakaoCompetitorCount}곳 중 {kakaoRank ? `${kakaoRank}위` : '포함'}
               </p>
             )}
@@ -142,22 +142,22 @@ export function ChannelScoreCards({
                 </span>
               )}
             </div>
-            <p className="text-base text-gray-500 mb-3">
+            <p className="text-base text-gray-600 mb-3">
               ChatGPT · Google AI 인용
             </p>
             <div className="space-y-1.5">
               {globalItems.map((item) => (
                 <div key={item.label} className="flex items-center gap-2 text-sm">
-                  <span className={item.ok ? 'text-green-500' : item.optional ? 'text-gray-200' : 'text-gray-300'}>
+                  <span className={item.ok ? 'text-green-700' : item.optional ? 'text-gray-200' : 'text-gray-300'}>
                     {item.ok ? '✓' : '○'}
                   </span>
-                  <span className={item.ok ? 'text-gray-700' : item.optional ? 'text-gray-300' : 'text-gray-500'}>
+                  <span className={item.ok ? 'text-gray-700' : item.optional ? 'text-gray-300' : 'text-gray-600'}>
                     {item.label}
                   </span>
                 </div>
               ))}
             </div>
-            <p className="text-sm text-gray-500 mt-3 leading-relaxed">
+            <p className="text-sm text-gray-600 mt-3 leading-relaxed">
               ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
             </p>
           </div>

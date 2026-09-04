@@ -100,7 +100,7 @@ export default async function GrowthSharePage({ searchParams }: Props) {
             <p className="text-base font-semibold text-gray-800">
               {stageLabel ? `AI 검색 노출 — ${stageLabel}` : "AI 검색 최적화로 노출이 늘어났습니다!"}
             </p>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-600 mt-1">
               네이버·Gemini·ChatGPT 노출 기록을 한 곳에서 확인
             </p>
           </div>
@@ -113,7 +113,7 @@ export default async function GrowthSharePage({ searchParams }: Props) {
             >
               내 가게도 무료로 진단받기 →
             </Link>
-            <p className="text-center text-sm text-gray-500">
+            <p className="text-center text-sm text-gray-600">
               회원가입 불필요 · 1분 완성
             </p>
           </div>

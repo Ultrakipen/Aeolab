@@ -73,15 +73,15 @@ export function PlanGate({ requiredPlan, currentPlan, feature, children }: PlanG
       {/* 업그레이드 오버레이 */}
       <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-lg">
         <div className="text-center p-6">
-          <Lock className="w-6 h-6 text-gray-500 mx-auto mb-2" strokeWidth={1.5} />
+          <Lock className="w-6 h-6 text-gray-600 mx-auto mb-2" strokeWidth={1.5} />
           <p className="font-bold text-gray-800 mb-1">
             {lossMessage ?? feature}
           </p>
           {genericDesc && (
-            <p className="text-base text-gray-500 mb-4">{genericDesc}</p>
+            <p className="text-base text-gray-600 mb-4">{genericDesc}</p>
           )}
           {!genericDesc && (
-            <p className="text-base text-gray-500 mb-4">{PLAN_PRICE[requiredPlan]}</p>
+            <p className="text-base text-gray-600 mb-4">{PLAN_PRICE[requiredPlan]}</p>
           )}
           <Button
             onClick={() => router.push('/pricing')}

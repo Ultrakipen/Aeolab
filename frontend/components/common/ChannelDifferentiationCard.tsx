@@ -70,7 +70,7 @@ function ChannelCard({
   const badgeMap: Record<ChannelCardProps["badgeVariant"], string> = {
     active: "bg-green-100 text-green-800 border border-green-200",
     soon: "bg-blue-100 text-blue-800 border border-blue-200",
-    excluded: "bg-gray-100 text-gray-500 border border-gray-200",
+    excluded: "bg-gray-100 text-gray-600 border border-gray-200",
     all: "bg-green-100 text-green-800 border border-green-200",
   };
 
@@ -100,7 +100,7 @@ function ChannelCard({
         <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
       )}
 
-      <p className="text-sm text-gray-500 leading-snug">{disclaimer}</p>
+      <p className="text-sm text-gray-600 leading-snug">{disclaimer}</p>
     </div>
   );
 }

@@ -31,18 +31,18 @@ const DIMENSION_LABELS: Record<string, string> = {
 
 /** 점수 → 수준 레이블 + 색상 (사이트 표준 임계값 75/55/30, lib/scoreLabels.ts와 동일 구간) */
 function getScoreLevel(score: number): { label: string; color: string } {
-  if (score >= 75) return { label: "상위권", color: "text-emerald-600" };
+  if (score >= 75) return { label: "상위권", color: "text-emerald-700" };
   if (score >= 55) return { label: "중위권", color: "text-blue-600" };
-  if (score >= 30) return { label: "개선 구간", color: "text-orange-500" };
-  return { label: "시작 단계", color: "text-red-500" };
+  if (score >= 30) return { label: "개선 구간", color: "text-orange-700" };
+  return { label: "시작 단계", color: "text-red-700" };
 }
 
 /** 총점 배지 색상 — getScoreTextLabel과 동일한 75/55/30 임계값 사용 */
 function scoreBadgeCls(score: number): string {
   if (score >= 75) return "bg-emerald-50 text-emerald-700 border-emerald-100";
   if (score >= 55) return "bg-blue-50 text-blue-700 border-blue-100";
-  if (score >= 30) return "bg-amber-50 text-amber-600 border-amber-200";
-  return "bg-red-50 text-red-500 border-red-100";
+  if (score >= 30) return "bg-amber-50 text-amber-700 border-amber-200";
+  return "bg-red-50 text-red-700 border-red-100";
 }
 
 /** 점수 근거 설명 패널 */
@@ -52,35 +52,35 @@ function ScoreBasisPanel() {
       <p className="font-semibold text-gray-700 mb-1">AI 노출 지수 산출 근거 (100점 만점)</p>
       <div className="space-y-1.5">
         <div className="flex items-start gap-2">
-          <span className="shrink-0 font-medium text-gray-500 w-5">①</span>
+          <span className="shrink-0 font-medium text-gray-600 w-5">①</span>
           <span><strong className="text-gray-700">네이버 AI 브리핑 노출</strong> — 스마트플레이스 완성도, 소개글·사진 완성도, 리뷰 품질 반영</span>
         </div>
         <div className="flex items-start gap-2">
-          <span className="shrink-0 font-medium text-gray-500 w-5">②</span>
+          <span className="shrink-0 font-medium text-gray-600 w-5">②</span>
           <span><strong className="text-gray-700">리뷰 수·평점</strong> — 리뷰 개수, 별점 평균, 키워드 다양성 반영</span>
         </div>
         <div className="flex items-start gap-2">
-          <span className="shrink-0 font-medium text-gray-500 w-5">③</span>
+          <span className="shrink-0 font-medium text-gray-600 w-5">③</span>
           <span><strong className="text-gray-700">온라인 정보 완성도</strong> — 전화번호·영업시간·주소·사진 등록 여부</span>
         </div>
         <div className="flex items-start gap-2">
-          <span className="shrink-0 font-medium text-gray-500 w-5">④</span>
+          <span className="shrink-0 font-medium text-gray-600 w-5">④</span>
           <span><strong className="text-gray-700">키워드 커버리지</strong> — 업종 핵심 키워드가 리뷰·소개글에 얼마나 포함됐는지</span>
         </div>
         <div className="flex items-start gap-2">
-          <span className="shrink-0 font-medium text-gray-500 w-5">⑤</span>
+          <span className="shrink-0 font-medium text-gray-600 w-5">⑤</span>
           <span><strong className="text-gray-700">글로벌 AI 노출</strong> — ChatGPT·구글 AI·Gemini에서 가게가 검색되는지</span>
         </div>
         <div className="flex items-start gap-2">
-          <span className="shrink-0 font-medium text-gray-500 w-5">⑥</span>
+          <span className="shrink-0 font-medium text-gray-600 w-5">⑥</span>
           <span><strong className="text-gray-700">콘텐츠 최신성</strong> — 최근 리뷰·소식·블로그 발행 여부</span>
         </div>
       </div>
       <div className="mt-2 pt-2 border-t border-gray-200 flex flex-wrap gap-3 text-sm">
-        <span className="text-red-500 font-medium">시작 단계</span>
-        <span className="text-orange-500 font-medium">개선 구간</span>
+        <span className="text-red-700 font-medium">시작 단계</span>
+        <span className="text-orange-700 font-medium">개선 구간</span>
         <span className="text-blue-600 font-medium">중위권</span>
-        <span className="text-emerald-600 font-medium">상위권</span>
+        <span className="text-emerald-700 font-medium">상위권</span>
       </div>
     </div>
   );
@@ -111,17 +111,17 @@ export function GapAnalysisCard({ gap }: Props) {
     <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm">
       {/* 헤더 */}
       <div className="flex items-center gap-2 mb-1">
-        <TrendingUp className="w-4 h-4 text-orange-500 shrink-0" />
+        <TrendingUp className="w-4 h-4 text-orange-700 shrink-0" />
         <div className="text-base font-bold text-gray-800">
           {iAmAhead ? "경쟁사가 앞선 세부 항목" : "1위와 나의 격차 분석"}
         </div>
       </div>
-      <p className="text-sm text-gray-500 mb-2 leading-relaxed">
+      <p className="text-sm text-gray-600 mb-2 leading-relaxed">
         {iAmAhead
           ? "총점은 경쟁사보다 앞서지만, 아래 세부 항목은 경쟁사가 더 높습니다. 격차를 더 벌리려면 이 항목들을 개선하세요."
           : "최고 점수 경쟁사 대비 나의 부족한 항목을 우선순위 순으로 보여줍니다."}
         {gap.vs_top?.top_competitor_name && (
-          <span className="ml-1 text-gray-500">
+          <span className="ml-1 text-gray-600">
             (비교 대상: <strong>{gap.vs_top.top_competitor_name}</strong>)
           </span>
         )}
@@ -130,7 +130,7 @@ export function GapAnalysisCard({ gap }: Props) {
       {/* 점수 근거 토글 */}
       <button
         onClick={() => setShowBasis((v) => !v)}
-        className="flex items-center gap-1 text-sm text-blue-500 hover:text-blue-700 mb-3 transition-colors"
+        className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 mb-3 transition-colors"
       >
         <Info className="w-3.5 h-3.5" />
         지수가 어떻게 계산되나요?
@@ -139,7 +139,7 @@ export function GapAnalysisCard({ gap }: Props) {
       {showBasis && <ScoreBasisPanel />}
 
       {dimensions.length === 0 ? (
-        <p className="text-sm text-gray-500">경쟁사를 먼저 등록하면 격차 분석이 가능합니다.</p>
+        <p className="text-sm text-gray-600">경쟁사를 먼저 등록하면 격차 분석이 가능합니다.</p>
       ) : (
         <>
           {top3WithGap.length > 0 ? (
@@ -159,11 +159,11 @@ export function GapAnalysisCard({ gap }: Props) {
                         <span className="text-sm font-medium text-gray-700">
                           {DIMENSION_LABELS[d.dimension_key] ?? d.dimension_key}
                         </span>
-                        <span className="text-sm text-red-500 font-semibold shrink-0">
+                        <span className="text-sm text-red-700 font-semibold shrink-0">
                           {d.improvement_potential === "high" ? "큰 격차" : d.improvement_potential === "medium" ? "중간 격차" : "작은 격차"}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-500 mt-0.5">{d.gap_reason}</p>
+                      <p className="text-sm text-gray-600 mt-0.5">{d.gap_reason}</p>
                       <div className="mt-1.5 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-orange-400 rounded-full"
@@ -195,7 +195,7 @@ export function GapAnalysisCard({ gap }: Props) {
                           {getScoreTextLabel(myScore)}
                         </span>
                         <div className={`text-sm font-semibold mt-1 ${myLevel.color}`}>{myLevel.label}</div>
-                        <div className="text-sm text-gray-500 mt-0.5">내 가게</div>
+                        <div className="text-sm text-gray-600 mt-0.5">내 가게</div>
                       </div>
                       <div className="text-gray-300 text-xl">&gt;</div>
                       <div className="text-center">
@@ -203,10 +203,10 @@ export function GapAnalysisCard({ gap }: Props) {
                           {getScoreTextLabel(competitorScore)}
                         </span>
                         <div className={`text-sm font-semibold mt-1 ${compLevel.color}`}>{compLevel.label}</div>
-                        <div className="text-sm text-gray-500 mt-0.5">{competitorName}</div>
+                        <div className="text-sm text-gray-600 mt-0.5">{competitorName}</div>
                       </div>
                     </div>
-                    <p className="text-sm text-emerald-600">
+                    <p className="text-sm text-emerald-700">
                       현재 등록된 경쟁사 중 1위입니다. 경쟁사를 더 추가해 비교 범위를 넓혀보세요.
                     </p>
                   </div>
@@ -215,7 +215,7 @@ export function GapAnalysisCard({ gap }: Props) {
                 return (
                   <div className="bg-amber-50 rounded-xl p-4 text-sm">
                     <div className="font-semibold mb-3 flex items-center gap-1.5 text-amber-800">
-                      <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
+                      <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
                       항목별 비교 데이터 수집 중
                     </div>
                     {/* 상태 비교 */}
@@ -225,7 +225,7 @@ export function GapAnalysisCard({ gap }: Props) {
                           {getScoreTextLabel(myScore)}
                         </span>
                         <div className={`text-sm font-semibold mt-1 ${myLevel.color}`}>{myLevel.label}</div>
-                        <div className="text-sm text-gray-500 mt-0.5">내 가게</div>
+                        <div className="text-sm text-gray-600 mt-0.5">내 가게</div>
                       </div>
                       <div className="text-gray-300 text-xl">&lt;</div>
                       <div className="text-center">
@@ -233,7 +233,7 @@ export function GapAnalysisCard({ gap }: Props) {
                           {getScoreTextLabel(competitorScore)}
                         </span>
                         <div className={`text-sm font-semibold mt-1 ${compLevel.color}`}>{compLevel.label}</div>
-                        <div className="text-sm text-gray-500 mt-0.5">{competitorName}</div>
+                        <div className="text-sm text-gray-600 mt-0.5">{competitorName}</div>
                       </div>
                     </div>
                     <p className="text-sm text-amber-700 mb-2">
@@ -242,11 +242,11 @@ export function GapAnalysisCard({ gap }: Props) {
                     <div className="bg-white rounded-lg p-3 border border-amber-200 space-y-1.5 text-sm">
                       <p className="text-gray-700 font-medium">해결 방법</p>
                       <p className="text-gray-600 flex items-start gap-1.5">
-                        <span className="text-amber-500 font-bold shrink-0">①</span>
+                        <span className="text-amber-700 font-bold shrink-0">①</span>
                         <span><strong>지금 바로:</strong> 경쟁사 페이지 상단 &ldquo;AI 스캔 시작&rdquo; 버튼을 누르면 즉시 항목별 비교가 나타납니다.</span>
                       </p>
                       <p className="text-gray-600 flex items-start gap-1.5">
-                        <span className="text-amber-500 font-bold shrink-0">②</span>
+                        <span className="text-amber-700 font-bold shrink-0">②</span>
                         <span><strong>자동 해소:</strong> 매일 새벽 2시 자동 스캔 후 자동으로 채워집니다.</span>
                       </p>
                     </div>
@@ -259,19 +259,19 @@ export function GapAnalysisCard({ gap }: Props) {
           {/* 선점 기회 */}
           {opportunities.length > 0 && (
             <div className="mt-3 pt-3 border-t border-gray-100">
-              <div className="text-sm font-semibold text-emerald-600 mb-2">
+              <div className="text-sm font-semibold text-emerald-700 mb-2">
                 ⚡ 선점 기회 — 경쟁사도 아직 없는 항목
               </div>
               <div className="space-y-3">
                 {opportunities.map((d) => (
                   <div key={d.dimension_key} className="flex items-start gap-2">
-                    <span className="text-emerald-500 mt-0.5 text-sm shrink-0">→</span>
+                    <span className="text-emerald-700 mt-0.5 text-sm shrink-0">→</span>
                     <div>
                       <span className="text-sm font-semibold text-gray-700">
                         {DIMENSION_LABELS[d.dimension_key] ?? d.dimension_key}
                       </span>
                       {d.gap_reason && (
-                        <p className="text-sm text-gray-500 mt-1 leading-relaxed">{d.gap_reason}</p>
+                        <p className="text-sm text-gray-600 mt-1 leading-relaxed">{d.gap_reason}</p>
                       )}
                     </div>
                   </div>
@@ -286,7 +286,7 @@ export function GapAnalysisCard({ gap }: Props) {
               위 항목 개선 시 예상 수준:{" "}
               <strong className={getScoreLevel(Math.round(estimatedScore)).color}>{getScoreLevel(Math.round(estimatedScore)).label}</strong>{" "}
               {myLevel.label !== getScoreLevel(Math.round(estimatedScore)).label && (
-                <span className="text-blue-500 text-sm">(현재 {myLevel.label} → {getScoreLevel(Math.round(estimatedScore)).label})</span>
+                <span className="text-blue-600 text-sm">(현재 {myLevel.label} → {getScoreLevel(Math.round(estimatedScore)).label})</span>
               )}
             </div>
           )}

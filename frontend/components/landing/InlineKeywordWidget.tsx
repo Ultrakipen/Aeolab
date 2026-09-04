@@ -146,7 +146,7 @@ export default function InlineKeywordWidget() {
 
           {/* 에러 */}
           {error && (
-            <p className="text-sm text-red-500 mb-2">{error}</p>
+            <p className="text-sm text-red-700 mb-2">{error}</p>
           )}
 
           {/* 결과 */}
@@ -168,7 +168,7 @@ export default function InlineKeywordWidget() {
                   </button>
                 ))}
               </div>
-              <p className="text-sm mt-2" style={{ color: "#64748B" }}>
+              <p className="text-sm mt-2" style={{ color: "#45556C" }}>
                 키워드를 클릭하면 복사됩니다 · 더 많은 키워드와 상세 분석은 무료 진단에서 제공됩니다
               </p>
             </div>
@@ -176,7 +176,7 @@ export default function InlineKeywordWidget() {
         </div>
 
         {/* 하단 안내 */}
-        <p className="text-center text-sm mt-3 break-keep" style={{ color: "#64748B" }}>
+        <p className="text-center text-sm mt-3 break-keep" style={{ color: "#45556C" }}>
           AI 학습 데이터 기반 추천 · 실제 검색 순위와 다를 수 있음
         </p>
       </div>

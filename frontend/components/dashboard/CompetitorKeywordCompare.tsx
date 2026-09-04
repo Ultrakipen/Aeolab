@@ -12,7 +12,7 @@ export default function CompetitorKeywordCompare({ competitorKeywordSources }: P
       <span className="text-2xl shrink-0">🔍</span>
       <div>
         <p className="text-sm font-semibold text-gray-700">경쟁사 키워드 비교 준비 중</p>
-        <p className="text-sm text-gray-500 mt-0.5">
+        <p className="text-sm text-gray-600 mt-0.5">
           경쟁사를 등록하고 스캔이 완료되면 경쟁사에는 있고 내 가게에 없는 키워드를 자동으로 찾아드립니다
         </p>
         <a href="/competitors" className="inline-block mt-2 text-sm font-semibold text-blue-600 hover:underline">
@@ -28,7 +28,7 @@ export default function CompetitorKeywordCompare({ competitorKeywordSources }: P
         <span className="text-xl">🔍</span>
         <div>
           <h3 className="text-base font-bold text-gray-900">경쟁사가 갖고 있는 키워드</h3>
-          <p className="text-sm text-gray-500 mt-0.5">이 키워드를 내 스마트플레이스에 추가하면 경쟁력이 높아집니다</p>
+          <p className="text-sm text-gray-600 mt-0.5">이 키워드를 내 스마트플레이스에 추가하면 경쟁력이 높아집니다</p>
         </div>
       </div>
       <div className="space-y-3">
@@ -47,7 +47,7 @@ export default function CompetitorKeywordCompare({ competitorKeywordSources }: P
                 </span>
               ))}
             </div>
-            <p className="text-sm text-red-600 mt-2">
+            <p className="text-sm text-red-700 mt-2">
               → 소개글·Q&A 섹션에 위 키워드를 추가해 보세요
             </p>
           </div>

@@ -63,7 +63,7 @@ function CardUpdateContent() {
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-base">카드 변경 처리 중...</p>
-          <p className="text-gray-500 text-sm mt-1">잠시만 기다려 주세요.</p>
+          <p className="text-gray-600 text-sm mt-1">잠시만 기다려 주세요.</p>
         </div>
       </main>
     );
@@ -74,9 +74,9 @@ function CardUpdateContent() {
       <main className="min-h-screen bg-gray-50 flex flex-col">
         <div className="flex-1 flex items-center justify-center px-4">
           <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm max-w-sm w-full text-center">
-            <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" strokeWidth={1.5} />
+            <XCircle className="w-12 h-12 text-red-700 mx-auto mb-4" strokeWidth={1.5} />
             <h1 className="text-xl font-bold text-gray-900 mb-2">카드 변경 실패</h1>
-            <p className="text-gray-500 text-sm mb-6 leading-relaxed">{errorMsg}</p>
+            <p className="text-gray-600 text-sm mb-6 leading-relaxed">{errorMsg}</p>
             <div className="space-y-3">
               <Link
                 href="/settings"
@@ -104,12 +104,12 @@ function CardUpdateContent() {
       <main className="min-h-screen bg-gray-50 flex flex-col">
         <div className="flex-1 flex items-center justify-center px-4">
           <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm max-w-sm w-full text-center">
-            <XCircle className="w-14 h-14 text-amber-500 mx-auto mb-4" strokeWidth={1.5} />
+            <XCircle className="w-14 h-14 text-amber-700 mx-auto mb-4" strokeWidth={1.5} />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">카드는 등록됐지만 구독은 아직 정지 상태입니다</h1>
             <p className="text-gray-600 text-base mb-1">
               새 카드로 즉시 재결제를 시도했지만 실패했습니다.
             </p>
-            <p className="text-gray-500 text-sm mb-8">
+            <p className="text-gray-600 text-sm mb-8">
               카드 한도·잔액을 확인하시거나 다른 카드로 다시 시도해 주세요. 계속 실패하면 1:1 문의로 알려주세요.
             </p>
 
@@ -138,7 +138,7 @@ function CardUpdateContent() {
     <main className="min-h-screen bg-gray-50 flex flex-col">
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm max-w-sm w-full text-center">
-          <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" strokeWidth={1.5} />
+          <CheckCircle2 className="w-14 h-14 text-green-700 mx-auto mb-4" strokeWidth={1.5} />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             {reactivated ? "결제 재개 완료" : "카드 변경 완료"}
           </h1>
@@ -147,10 +147,10 @@ function CardUpdateContent() {
               ? "새 카드로 결제가 성공해 구독이 다시 활성화되었습니다."
               : "새 결제 카드가 등록되었습니다."}
           </p>
-          <p className="text-gray-500 text-sm mb-2">
+          <p className="text-gray-600 text-sm mb-2">
             {reactivated ? "다음 결제일부터 정상적으로 자동 청구됩니다." : "다음 결제부터 변경된 카드로 자동 청구됩니다."}
           </p>
-          <p className="text-gray-500 text-sm mb-8">3초 후 설정 페이지로 이동합니다...</p>
+          <p className="text-gray-600 text-sm mb-8">3초 후 설정 페이지로 이동합니다...</p>
 
           <div className="space-y-3">
             <Link

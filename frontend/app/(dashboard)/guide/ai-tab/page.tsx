@@ -104,7 +104,7 @@ export default async function AiTabGuidePage({
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <Link
           href="/guide"
-          className="inline-flex items-center gap-1 text-sm md:text-base text-gray-500 hover:text-blue-600"
+          className="inline-flex items-center gap-1 text-sm md:text-base text-gray-600 hover:text-blue-600"
         >
           <ChevronLeft className="w-4 h-4" /> 가이드로 돌아가기
         </Link>
@@ -141,7 +141,7 @@ export default async function AiTabGuidePage({
         <p className="text-base md:text-lg text-gray-700 leading-relaxed break-keep">
           AI탭에 내 사업장이 노출되도록 핵심 항목 5개를 점검합니다. 평균 소요 20분.
         </p>
-        <p className="mt-2 text-sm md:text-base text-gray-500">
+        <p className="mt-2 text-sm md:text-base text-gray-600">
           출처: 네이버 공식 발표 (2026-04-27 베타 → 2026-06-25 정식 출시) · 항목 기준은 실측 기반 권장값
         </p>
       </div>
@@ -187,7 +187,7 @@ export default async function AiTabGuidePage({
             <div className="flex items-start gap-3 mb-2">
               <span
                 className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-black shrink-0 ${
-                  item.statusOk ? 'bg-green-600 text-white' : 'bg-indigo-600 text-white'
+                  item.statusOk ? 'bg-green-700 text-white' : 'bg-indigo-600 text-white'
                 }`}
               >
                 {item.statusOk ? <CheckCircle2 className="w-5 h-5" /> : item.num}
@@ -210,7 +210,7 @@ export default async function AiTabGuidePage({
             <p className="text-sm md:text-base text-gray-700 leading-relaxed mb-2 break-keep">
               {item.desc}
             </p>
-            <p className="text-sm text-gray-500 italic break-keep">{item.example}</p>
+            <p className="text-sm text-gray-600 italic break-keep">{item.example}</p>
             {item.externalUrl && (
               <a
                 href={item.externalUrl}
@@ -226,7 +226,7 @@ export default async function AiTabGuidePage({
       </div>
 
       {/* 면책 문구 */}
-      <p className="text-sm text-gray-500 leading-snug break-keep">
+      <p className="text-sm text-gray-600 leading-snug break-keep">
         AI탭 노출은 네이버 알고리즘 기준이며 보장되지 않습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
         AI탭은 2026-04-27 베타 출시 · 2026-06-25 정식 출시이며, 노출 조건은 향후 변경될 수 있습니다.
       </p>

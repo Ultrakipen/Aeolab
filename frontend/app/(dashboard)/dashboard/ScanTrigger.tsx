@@ -199,11 +199,11 @@ export function ScanTrigger({
                 검색어: <span className="font-semibold text-blue-600">&quot;{regionFirst} {scannedKeyword} 추천&quot;</span>
               </p>
             )}
-            <p className="text-sm text-gray-500 mt-0.5">잠시 후 대시보드가 자동으로 업데이트됩니다</p>
+            <p className="text-sm text-gray-600 mt-0.5">잠시 후 대시보드가 자동으로 업데이트됩니다</p>
           </div>
           <a
             href="/guide"
-            className="shrink-0 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors text-center"
+            className="shrink-0 bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors text-center"
           >
             AI 개선 가이드 보기
           </a>
@@ -245,7 +245,7 @@ export function ScanTrigger({
                   <p className="text-sm text-blue-600 font-medium break-keep">
                     검색어: &quot;{regionFirst} {activeKw} 추천&quot;
                   </p>
-                  <p className="text-sm text-gray-500 mt-0.5 break-keep hidden sm:block">
+                  <p className="text-sm text-gray-600 mt-0.5 break-keep hidden sm:block">
                     수동: 선택 키워드 스캔 · 자동(새벽 2시): 키워드 순환 스캔
                   </p>
                 </div>
@@ -269,7 +269,7 @@ export function ScanTrigger({
 
             {/* 스캔 횟수 */}
             {scanLimit > 0 && scanLimit < 999 && (
-              <p className={`text-sm ${stacked ? 'text-center' : 'text-center sm:text-right'} text-gray-500`}>
+              <p className={`text-sm ${stacked ? 'text-center' : 'text-center sm:text-right'} text-gray-600`}>
                 {limitReached
                   ? '새벽 2시에 자동 스캔이 실행됩니다'
                   : `오늘 ${scanUsed}/${scanLimit}회 사용`}
@@ -279,7 +279,7 @@ export function ScanTrigger({
             {/* 최근 스캔 키워드 */}
             {lastQueryUsed && (
               <div className={`flex items-center ${stacked ? 'justify-center' : 'justify-center sm:justify-end'} gap-1.5 bg-blue-50 border border-blue-100 rounded-lg px-3 py-1.5`}>
-                <span className="text-sm text-gray-500">최근 스캔:</span>
+                <span className="text-sm text-gray-600">최근 스캔:</span>
                 <span className="text-sm font-semibold text-blue-600 truncate max-w-[140px]">&quot;{lastQueryUsed}&quot;</span>
               </div>
             )}
@@ -291,7 +291,7 @@ export function ScanTrigger({
 
       {error && (
         <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-          <p className="text-sm text-red-600 font-medium">{error}</p>
+          <p className="text-sm text-red-700 font-medium">{error}</p>
           <div className="mt-2 flex flex-wrap gap-3">
             {/* 재시도 버튼 — 타임아웃·네트워크·500 오류에서만 표시 */}
             {!limitReached && !error.includes('업그레이드') && !error.includes('무료 체험') && (
@@ -304,7 +304,7 @@ export function ScanTrigger({
             )}
             <a
               href="mailto:support@aeolab.co.kr"
-              className="text-sm font-semibold text-gray-500 underline hover:text-gray-700 transition-colors"
+              className="text-sm font-semibold text-gray-600 underline hover:text-gray-700 transition-colors"
             >
               문제 지속 시 문의하기
             </a>

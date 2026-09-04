@@ -41,10 +41,10 @@ export default function DashboardPreview() {
                   <div className="relative">
                     <div className="absolute -left-1.5 top-2.5 w-0 h-0" style={{ borderTop: "4px solid transparent", borderBottom: "4px solid transparent", borderRight: "6px solid #fff" }} />
                     <div className="rounded-2xl rounded-tl-sm p-2.5 text-sm" style={{ background: "#fff", maxWidth: "200px" }}>
-                      <p className="font-bold mb-1" style={{ color: "#0F172A" }}>[AEOlab] 주간 노출 리포트 <span className="text-sm font-normal text-gray-500">(예시)</span></p>
+                      <p className="font-bold mb-1" style={{ color: "#0F172A" }}>[AEOlab] 주간 노출 리포트 <span className="text-sm font-normal text-gray-600">(예시)</span></p>
                       <div className="mb-1.5 pb-1.5 border-b" style={{ borderColor: "#E2E8F0" }}>
                         <p style={{ color: "#475569" }}>이번 주 AI 노출 등급</p>
-                        <p className="text-sm font-black" style={{ color: "#2563EB" }}>보통 → 양호 <span className="text-sm text-green-600">↑ 한 단계 성장!</span></p>
+                        <p className="text-sm font-black" style={{ color: "#2563EB" }}>보통 → 양호 <span className="text-sm text-green-700">↑ 한 단계 성장!</span></p>
                       </div>
                       <p style={{ color: "#475569" }}>ChatGPT 언급: <span className="font-bold text-gray-800">+8회 증가</span></p>
                       <p style={{ color: "#475569" }}>경쟁사 대비: <span className="font-bold text-indigo-600">업종 3위 → 2위</span></p>
@@ -152,7 +152,7 @@ export default function DashboardPreview() {
                 <span className="font-semibold" style={{ color: "#10A37F" }}>ChatGPT</span>
                 {" — "}학습 데이터 기반 · 노출까지 <strong>수개월~1년</strong> 소요
               </p>
-              <p className="text-sm break-keep" style={{ color: "#64748B" }}>
+              <p className="text-sm break-keep" style={{ color: "#45556C" }}>
                 🌱 대부분의 가게가 아직 준비 중 — 지금 시작하면 선점 유리
               </p>
             </div>
@@ -169,14 +169,14 @@ export default function DashboardPreview() {
                 <p className="text-sm font-bold mb-1" style={{ color: "#0F172A" }}>7주 추세 · 노출 단계 변화</p>
                 <p className="text-sm" style={{ color: "#475569" }}>
                   <span className="font-semibold px-1.5 py-0.5 rounded" style={{ background: "#FEF9C3", color: "#92400E" }}>보통</span>
-                  <span className="mx-1.5 text-gray-500">→ 7주 후 →</span>
+                  <span className="mx-1.5 text-gray-600">→ 7주 후 →</span>
                   <span className="font-semibold px-1.5 py-0.5 rounded" style={{ background: "#DBEAFE", color: "#1D4ED8" }}>양호</span>
-                  <span className="ml-1.5 text-green-600 font-semibold">↑ 한 단계 성장</span>
+                  <span className="ml-1.5 text-green-700 font-semibold">↑ 한 단계 성장</span>
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-sm font-bold px-2 py-0.5 rounded-full" style={{ background: "#ECFDF5", color: "#065F46" }}>한 단계 성장</span>
-                <span className="text-sm text-gray-500">(예시)</span>
+                <span className="text-sm text-gray-600">(예시)</span>
               </div>
             </div>
             {/* 납작한 스파크라인 — viewBox 가로:세로 = 8:1로 높이 최소화 */}
@@ -216,7 +216,7 @@ export default function DashboardPreview() {
           >
             <div className="flex items-center justify-between mb-2.5">
               <p className="text-sm font-bold" style={{ color: "#0F172A" }}>키워드 갭</p>
-              <span className="text-sm text-gray-500">AI 검색에서 누락된 키워드 · 예시</span>
+              <span className="text-sm text-gray-600">AI 검색에서 누락된 키워드 · 예시</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {[
@@ -242,7 +242,7 @@ export default function DashboardPreview() {
           </div>
         </div>
 
-        <p className="text-center text-sm mt-4 fade-up" style={{ color: "#64748B" }}>
+        <p className="text-center text-sm mt-4 fade-up" style={{ color: "#45556C" }}>
           모든 수치는 예시입니다 · 실제 데이터는 내 가게 스캔 후 표시됩니다
         </p>
       </div>

@@ -62,7 +62,7 @@ export default function TrialScanningStep({
           >
             <span className="shrink-0 w-5 h-5 flex items-center justify-center">
               {i < scanStep ? (
-                <Check className="w-4 h-4 text-emerald-600" aria-hidden="true" />
+                <Check className="w-4 h-4 text-emerald-700" aria-hidden="true" />
               ) : i === scanStep ? (
                 <span
                   className="w-4 h-4 border-2 border-blue-400 border-t-blue-600 rounded-full animate-spin inline-block"

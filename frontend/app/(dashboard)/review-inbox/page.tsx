@@ -122,7 +122,7 @@ function CrisisGuidePanel({
 
         {/* 별점 선택 */}
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500 shrink-0">리뷰 별점:</span>
+          <span className="text-sm text-gray-600 shrink-0">리뷰 별점:</span>
           {([1, 2, 3] as const).map((r) => (
             <button
               key={r}
@@ -131,7 +131,7 @@ function CrisisGuidePanel({
               className={`flex items-center gap-0.5 px-2.5 py-1 rounded-lg text-sm font-medium border transition-colors ${
                 rating === r
                   ? 'bg-red-600 text-white border-red-600'
-                  : 'bg-white text-gray-500 border-gray-200 hover:border-red-300'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-red-300'
               }`}
             >
               {'★'.repeat(r)}{'☆'.repeat(3 - r)} {r}점
@@ -150,7 +150,7 @@ function CrisisGuidePanel({
 
         {/* 에러 */}
         {!loading && error && (
-          <div className="flex items-center gap-2 text-sm text-red-600 py-2">
+          <div className="flex items-center gap-2 text-sm text-red-700 py-2">
             <AlertTriangle className="w-4 h-4 shrink-0" />
             {error}
           </div>
@@ -173,7 +173,7 @@ function CrisisGuidePanel({
                 className="flex items-center justify-between w-full px-4 py-3 text-left"
               >
                 <span className="text-sm font-bold text-gray-800">공개 답변 초안</span>
-                {expanded.reply ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
+                {expanded.reply ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
               </button>
               {expanded.reply && (
                 <div className="px-4 pb-4">
@@ -200,13 +200,13 @@ function CrisisGuidePanel({
                 className="flex items-center justify-between w-full px-4 py-3 text-left"
               >
                 <span className="text-sm font-bold text-gray-800">AI 검색 부정 영향 최소화 팁</span>
-                {expanded.tips ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
+                {expanded.tips ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
               </button>
               {expanded.tips && (
                 <ul className="px-4 pb-4 space-y-2">
                   {result.ai_impact_tips.map((tip, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                      <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                      <CheckCircle2 className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                       {tip}
                     </li>
                   ))}
@@ -222,13 +222,13 @@ function CrisisGuidePanel({
                 className="flex items-center justify-between w-full px-4 py-3 text-left"
               >
                 <span className="text-sm font-bold text-gray-800">하지 말아야 할 것</span>
-                {expanded.doNot ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
+                {expanded.doNot ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
               </button>
               {expanded.doNot && (
                 <ul className="px-4 pb-4 space-y-2">
                   {result.do_not_do.map((item, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                      <XCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                      <XCircle className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
                       {item}
                     </li>
                   ))}
@@ -244,13 +244,13 @@ function CrisisGuidePanel({
                 className="flex items-center justify-between w-full px-4 py-3 text-left"
               >
                 <span className="text-sm font-bold text-gray-800">오프라인 해결 단계</span>
-                {expanded.offline ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
+                {expanded.offline ? <ChevronUp className="w-4 h-4 text-gray-600" /> : <ChevronDown className="w-4 h-4 text-gray-600" />}
               </button>
               {expanded.offline && (
                 <ol className="px-4 pb-4 space-y-2">
                   {result.offline_steps.map((step, i) => (
                     <li key={i} className="flex items-start gap-2.5 text-sm text-gray-700">
-                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 text-gray-500 font-bold text-sm shrink-0 mt-0.5">
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 text-gray-600 font-bold text-sm shrink-0 mt-0.5">
                         {i + 1}
                       </span>
                       {step}
@@ -293,7 +293,7 @@ function CopyButton({ text }: { text: string }) {
       }}
       className="flex items-center gap-1 text-sm px-2.5 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
     >
-      {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+      {copied ? <Check className="w-3 h-3 text-green-700" /> : <Copy className="w-3 h-3" />}
       {copied ? '복사됨' : '복사'}
     </button>
   )
@@ -558,7 +558,7 @@ export default function ReviewInboxPage() {
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">리뷰 답변 생성</h1>
           <span className="text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Basic 이상</span>
         </div>
-        <p className="text-sm text-gray-500 mb-6">손님 리뷰를 붙여넣으면 AI가 업종 키워드를 포함한 답변 초안을 드립니다</p>
+        <p className="text-sm text-gray-600 mb-6">손님 리뷰를 붙여넣으면 AI가 업종 키워드를 포함한 답변 초안을 드립니다</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {features.map((f) => (
@@ -568,7 +568,7 @@ export default function ReviewInboxPage() {
               </div>
               <div>
                 <div className="font-medium text-gray-900 text-sm mb-0.5">{f.title}</div>
-                <div className="text-sm text-gray-500">{f.desc}</div>
+                <div className="text-sm text-gray-600">{f.desc}</div>
               </div>
             </div>
           ))}
@@ -599,7 +599,7 @@ export default function ReviewInboxPage() {
           </div>
           <div className="min-w-0">
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">리뷰 답변 생성</h1>
-            <p className="text-sm text-gray-500">리뷰를 붙여넣으면 AI가 업종 키워드를 포함한 답변 초안을 드립니다</p>
+            <p className="text-sm text-gray-600">리뷰를 붙여넣으면 AI가 업종 키워드를 포함한 답변 초안을 드립니다</p>
           </div>
         </div>
 
@@ -613,7 +613,7 @@ export default function ReviewInboxPage() {
               className="flex items-center gap-1.5 text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white hover:bg-gray-50 transition-colors max-w-[160px]"
             >
               <span className="truncate font-medium text-gray-800">{bizName ?? '사업장 선택'}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+              <ChevronDown className="w-3.5 h-3.5 text-gray-600 shrink-0" />
             </button>
             {bizDropdownOpen && (
               <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-lg z-20 py-1">
@@ -641,7 +641,7 @@ export default function ReviewInboxPage() {
             리뷰 텍스트 붙여넣기
           </label>
           {usageStat && usageStat.limit < 999 && (
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-600">
               이번 달 {usageStat.used}/{usageStat.limit}회 사용
             </span>
           )}
@@ -663,7 +663,7 @@ export default function ReviewInboxPage() {
           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
         />
         <div className="flex items-center justify-between mt-3">
-          <span className="text-sm text-gray-500">{reviewText.length} / 500자</span>
+          <span className="text-sm text-gray-600">{reviewText.length} / 500자</span>
           <button
             type="submit"
             disabled={loading || !reviewText.trim() || !businessId}
@@ -674,12 +674,12 @@ export default function ReviewInboxPage() {
           </button>
         </div>
         {!businessId && (
-          <p className="text-sm text-amber-600 mt-2">
+          <p className="text-sm text-amber-700 mt-2">
             사업장을 먼저 등록해야 답변을 생성할 수 있습니다.{' '}
             <a href="/onboarding" className="underline hover:text-amber-700">사업장 등록 →</a>
           </p>
         )}
-        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+        {error && <p className="text-red-700 text-sm mt-2">{error}</p>}
         {loading && (
           <div className="mt-3 space-y-2" role="status" aria-live="polite">
             <div className="h-3.5 bg-indigo-100 rounded animate-pulse w-full" />
@@ -705,7 +705,7 @@ export default function ReviewInboxPage() {
             </div>
             <div className="flex items-center gap-2">
               {result.limit < 999 && (
-                <span className="text-sm text-gray-500">{result.used}/{result.limit}회 사용</span>
+                <span className="text-sm text-gray-600">{result.used}/{result.limit}회 사용</span>
               )}
               <CopyButton text={result.draft_response} />
             </div>
@@ -739,7 +739,7 @@ export default function ReviewInboxPage() {
               <button
                 type="button"
                 onClick={() => setCrisisOnResult((v) => !v)}
-                className="flex items-center gap-1.5 text-sm text-red-600 border border-red-200 rounded-lg px-2.5 py-1.5 hover:bg-red-50 transition-colors font-medium"
+                className="flex items-center gap-1.5 text-sm text-red-700 border border-red-200 rounded-lg px-2.5 py-1.5 hover:bg-red-50 transition-colors font-medium"
               >
                 <AlertTriangle className="w-3.5 h-3.5" />
                 {crisisOnResult ? '가이드 닫기' : '위기관리 가이드'}
@@ -762,7 +762,7 @@ export default function ReviewInboxPage() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-semibold text-gray-800">최근 답변 이력</h2>
           {history.length > 0 && (
-            <span className="text-sm text-gray-500">{history.length}개</span>
+            <span className="text-sm text-gray-600">{history.length}개</span>
           )}
         </div>
         {historyLoading ? (
@@ -773,7 +773,7 @@ export default function ReviewInboxPage() {
         ) : history.length === 0 ? (
           <div className="text-center py-8 bg-white rounded-xl border border-dashed border-gray-200">
             <MessageSquare className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-            <p className="text-sm text-gray-500 mb-1">아직 생성된 답변이 없습니다.</p>
+            <p className="text-sm text-gray-600 mb-1">아직 생성된 답변이 없습니다.</p>
             <button
               type="button"
               onClick={() => document.querySelector('textarea')?.focus()}
@@ -787,7 +787,7 @@ export default function ReviewInboxPage() {
             {history.map((h) => (
               <div key={h.id} className="bg-white rounded-xl p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <p className="text-sm text-gray-500 leading-relaxed flex-1 line-clamp-3">
+                  <p className="text-sm text-gray-600 leading-relaxed flex-1 line-clamp-3">
                     리뷰: {h.review_text}
                   </p>
                   <div className="flex items-center gap-2 shrink-0">
@@ -819,7 +819,7 @@ export default function ReviewInboxPage() {
                           setCrisisReviewText(h.review_text!)
                         }
                       }}
-                      className="flex items-center gap-1.5 text-sm text-red-600 border border-red-200 rounded-lg px-2.5 py-1.5 hover:bg-red-50 transition-colors font-medium"
+                      className="flex items-center gap-1.5 text-sm text-red-700 border border-red-200 rounded-lg px-2.5 py-1.5 hover:bg-red-50 transition-colors font-medium"
                     >
                       <AlertTriangle className="w-3.5 h-3.5" />
                       {crisisReviewId === h.id ? '가이드 닫기' : '위기관리 가이드'}
@@ -834,7 +834,7 @@ export default function ReviewInboxPage() {
                     )}
                   </div>
                 )}
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-sm text-gray-600 mt-2">
                   {h.created_at ? relativeDate(h.created_at) : ''}
                 </p>
               </div>
@@ -859,9 +859,9 @@ export default function ReviewInboxPage() {
                     음식점 전용
                   </span>
                 </p>
-                <p className="text-sm text-gray-500 leading-relaxed mt-0.5">
+                <p className="text-sm text-gray-600 leading-relaxed mt-0.5">
                   스마트플레이스 자체 AI가 리뷰 등록 시 답글 초안을 자동 생성합니다.
-                  <span className="block text-gray-500 text-sm mt-0.5">
+                  <span className="block text-gray-600 text-sm mt-0.5">
                     스마트플레이스 → 업체 홈 → 리뷰 (네이버플러스 구독 계정 beta)
                   </span>
                 </p>
@@ -877,16 +877,16 @@ export default function ReviewInboxPage() {
                   전 업종
                 </span>
               </p>
-              <p className="text-sm text-gray-500 leading-relaxed mt-0.5">
+              <p className="text-sm text-gray-600 leading-relaxed mt-0.5">
                 부정·민감 리뷰 등록 시 스마트플레이스 앱 알림을 즉시 받을 수 있습니다.
-                <span className="block text-gray-500 text-sm mt-0.5">
+                <span className="block text-gray-600 text-sm mt-0.5">
                   스마트플레이스 → 설정 → 알림 설정 → ON
                 </span>
               </p>
             </div>
           </div>
         </div>
-        <p className="text-sm text-gray-500 mt-3 pt-3 border-t border-slate-200">
+        <p className="text-sm text-gray-600 mt-3 pt-3 border-t border-slate-200">
           AEOlab 리뷰 답변 생성은 Claude AI 기반으로 모든 업종·다양한 톤 설정을 지원하는 별개 서비스입니다.
         </p>
       </div>

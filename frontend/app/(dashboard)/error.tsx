@@ -41,7 +41,7 @@ export default function DashboardError({ error, reset }: Props) {
         <div className="bg-white rounded-xl p-4 md:p-8 shadow-sm max-w-sm w-full text-center">
           <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-900 mb-2">서비스가 업데이트되었습니다</h2>
-          <p className="text-gray-500 text-sm mb-6">잠시 후 자동으로 새로고침됩니다.</p>
+          <p className="text-gray-600 text-sm mb-6">잠시 후 자동으로 새로고침됩니다.</p>
           <button
             onClick={() => window.location.reload()}
             className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors text-sm"
@@ -58,7 +58,7 @@ export default function DashboardError({ error, reset }: Props) {
       <div className="bg-white rounded-xl p-4 md:p-8 shadow-sm max-w-sm w-full text-center">
         <div className="text-4xl mb-4">⚠️</div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">일시적인 오류가 발생했습니다</h2>
-        <p className="text-gray-500 text-sm mb-6">잠시 후 다시 시도해 주세요.</p>
+        <p className="text-gray-600 text-sm mb-6">잠시 후 다시 시도해 주세요.</p>
         <div className="flex gap-3 justify-center">
           <button
             onClick={reset}

@@ -119,7 +119,7 @@ export function OnboardingProgressBar({ userId, token }: Props) {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
           <h3 className="text-base font-bold text-blue-900">
             시작 가이드
-            <span className="ml-2 text-sm font-normal text-blue-500">
+            <span className="ml-2 text-sm font-normal text-blue-600">
               (완료 시 온보딩 배지 획득)
             </span>
           </h3>
@@ -143,8 +143,8 @@ export function OnboardingProgressBar({ userId, token }: Props) {
           return (
           <li key={stepKey}>
             {step.done ? (
-              <div className="flex items-center gap-2.5 text-sm text-gray-500">
-                <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+              <div className="flex items-center gap-2.5 text-sm text-gray-600">
+                <CheckCircle2 className="w-5 h-5 text-green-700 shrink-0" />
                 <span className="line-through">{step.label}</span>
               </div>
             ) : (
@@ -152,7 +152,7 @@ export function OnboardingProgressBar({ userId, token }: Props) {
                 href={stepHref}
                 className="flex items-center gap-2.5 text-sm text-blue-700 font-medium hover:text-blue-900 transition-colors group"
               >
-                <Circle className="w-5 h-5 text-blue-300 shrink-0 group-hover:text-blue-500 transition-colors" />
+                <Circle className="w-5 h-5 text-blue-300 shrink-0 group-hover:text-blue-600 transition-colors" />
                 <span className="group-hover:underline">{step.label}</span>
               </Link>
             )}

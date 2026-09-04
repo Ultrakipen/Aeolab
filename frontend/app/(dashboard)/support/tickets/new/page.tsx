@@ -138,13 +138,13 @@ function SupportNewForm() {
       <div className="max-w-2xl mx-auto">
         {/* 헤더 */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+          <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
             <a href="/support/tickets" className="hover:text-blue-600 transition-colors">1:1 문의</a>
             <ChevronRight className="w-4 h-4" />
             <span className="text-gray-700">새 문의 작성</span>
           </div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">새 문의 작성</h1>
-          <p className="text-sm text-gray-500 mt-1">궁금한 점이나 불편한 사항을 남겨 주세요.</p>
+          <p className="text-sm text-gray-600 mt-1">궁금한 점이나 불편한 사항을 남겨 주세요.</p>
         </div>
 
         {/* 잔여 건수 조회 실패 안내 */}
@@ -186,7 +186,7 @@ function SupportNewForm() {
             {/* 카테고리 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                카테고리 <span className="text-red-500">*</span>
+                카테고리 <span className="text-red-700">*</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map((cat) => (
@@ -225,7 +225,7 @@ function SupportNewForm() {
                     />
                     <div>
                       <p className="text-sm font-medium text-gray-800">{opt.label}</p>
-                      <p className="text-sm text-gray-500">{opt.desc}</p>
+                      <p className="text-sm text-gray-600">{opt.desc}</p>
                     </div>
                   </label>
                 ))}
@@ -235,7 +235,7 @@ function SupportNewForm() {
             {/* 제목 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                제목 <span className="text-red-500">*</span>
+                제목 <span className="text-red-700">*</span>
               </label>
               <input
                 type="text"
@@ -243,15 +243,15 @@ function SupportNewForm() {
                 onChange={(e) => setTitle(e.target.value.slice(0, 100))}
                 maxLength={100}
                 placeholder="문의 제목을 간단히 입력해 주세요."
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-400"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-600"
               />
-              <p className="text-sm text-gray-500 mt-1 text-right">{title.length}/100</p>
+              <p className="text-sm text-gray-600 mt-1 text-right">{title.length}/100</p>
             </div>
 
             {/* 내용 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                내용 <span className="text-red-500">*</span>
+                내용 <span className="text-red-700">*</span>
               </label>
               <textarea
                 value={body}
@@ -259,16 +259,16 @@ function SupportNewForm() {
                 maxLength={3000}
                 rows={8}
                 placeholder="문의 내용을 상세히 작성해 주세요. 스크린샷은 구글 드라이브 등 외부 링크로 내용에 포함해 주세요."
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-400 resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-600 resize-none"
               />
-              <p className="text-sm text-gray-500 mt-1 text-right">{body.length}/3000</p>
+              <p className="text-sm text-gray-600 mt-1 text-right">{body.length}/3000</p>
             </div>
           </div>
 
           {/* 에러 */}
           {error && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl p-4">
-              <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
               <p className="text-sm text-red-700">{error}</p>
             </div>
           )}

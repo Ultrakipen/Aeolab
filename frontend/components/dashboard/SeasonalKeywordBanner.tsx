@@ -257,7 +257,7 @@ export default function SeasonalKeywordBanner({ category }: Props) {
     <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
       {/* 헤더 */}
       <div className="flex items-center gap-2 mb-3">
-        <CalendarDays className="w-4 h-4 text-amber-600 shrink-0" />
+        <CalendarDays className="w-4 h-4 text-amber-700 shrink-0" />
         <span className="text-sm font-bold text-amber-800">
           {headerLabel}
         </span>
@@ -278,7 +278,7 @@ export default function SeasonalKeywordBanner({ category }: Props) {
       {/* 안내문 */}
       <p className="text-sm text-amber-700">
         이 키워드들을 소식·소개글에 활용해보세요.
-        <span className="text-amber-500 ml-1">
+        <span className="text-amber-700 ml-1">
           시즌 검색량 높을 때 노출 효과 극대화
         </span>
       </p>

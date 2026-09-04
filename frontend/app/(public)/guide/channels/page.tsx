@@ -41,7 +41,7 @@ export default function ChannelGuideIndexPage() {
 
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-8 md:py-12">
         {/* ── 브레드크럼 ── */}
-        <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-6" aria-label="breadcrumb">
+        <nav className="flex items-center gap-1.5 text-sm text-gray-600 mb-6" aria-label="breadcrumb">
           <Link href="/" className="hover:text-blue-600">홈</Link>
           <span>/</span>
           <span className="text-gray-700 font-medium">업종별 채널 가이드</span>
@@ -59,7 +59,7 @@ export default function ChannelGuideIndexPage() {
             네이버 AI 브리핑·AI탭·글로벌 AI(ChatGPT·Gemini·Google)에서 우리 가게가 노출되려면 어떤 채널에 집중해야 할까요?
             업종마다 채널 비중이 다릅니다. 59개 업종별로 확인하세요.
           </p>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-600">
             59개 업종 · 채널별 노출 비중 + 핵심 행동 5요소 체크리스트 · 로그인 불필요
           </p>
         </div>
@@ -90,7 +90,7 @@ export default function ChannelGuideIndexPage() {
           >
             무료 진단 시작 →
           </TrackedCTA>
-          <p className="text-sm text-gray-500 mt-3 leading-relaxed break-keep">
+          <p className="text-sm text-gray-600 mt-3 leading-relaxed break-keep">
             회원가입·신용카드 입력 없이 1분 무료 체험. Basic 첫 달 50% 할인(5,950원).
           </p>
         </section>

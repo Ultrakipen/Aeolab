@@ -77,17 +77,17 @@ function PlatformCard({ screenshot }: { screenshot: Screenshot }) {
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 mb-2">
         <div className="flex items-center gap-2 flex-wrap min-w-0">
           <span className={`text-base font-bold whitespace-nowrap ${meta.headerColor}`}>{displayLabel}</span>
-          <span className="text-sm text-gray-500 bg-white border border-gray-200 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+          <span className="text-sm text-gray-600 bg-white border border-gray-200 px-1.5 py-0.5 rounded-full whitespace-nowrap">
             {meta.badge}
           </span>
         </div>
         {checkedAt && (
-          <span className="text-sm text-gray-500 whitespace-nowrap shrink-0">{formatDate(checkedAt)} 확인</span>
+          <span className="text-sm text-gray-600 whitespace-nowrap shrink-0">{formatDate(checkedAt)} 확인</span>
         )}
       </div>
 
       {/* 검색어 */}
-      <p className="text-sm text-gray-500 mb-2">
+      <p className="text-sm text-gray-600 mb-2">
         검색어: <span className="font-medium text-gray-700">{screenshot.query}</span>
       </p>
 
@@ -123,7 +123,7 @@ function PlatformCard({ screenshot }: { screenshot: Screenshot }) {
               {screenshot.exposure_freq ?? 0}회 / {screenshot.sample_size ?? 100}회
             </span>
           </div>
-          <p className="text-sm text-blue-500 mt-2 text-center">
+          <p className="text-sm text-blue-600 mt-2 text-center">
             {(screenshot.sample_size ?? 100) <= 20
               ? `체험 스캔 — Gemini·ChatGPT 합산 ${screenshot.sample_size ?? 15}회 측정`
               : `Gemini·ChatGPT 각 ${Math.round((screenshot.sample_size ?? 100) / 2)}회씩 반복 질문하여 언급 횟수로 노출률을 측정합니다`}
@@ -135,7 +135,7 @@ function PlatformCard({ screenshot }: { screenshot: Screenshot }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
               d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
-          <p className="text-sm text-orange-600 text-center">
+          <p className="text-sm text-orange-700 text-center">
             ChatGPT는 API로 언급 여부만 확인합니다
           </p>
         </div>
@@ -167,11 +167,11 @@ function PlatformCard({ screenshot }: { screenshot: Screenshot }) {
               d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
             />
           </svg>
-          <p className="text-sm text-gray-500 text-center px-2">
+          <p className="text-sm text-gray-600 text-center px-2">
             {imgError ? "이미지를 불러올 수 없습니다" : "스크린샷 준비 중"}
           </p>
           {screenshot.platform === "naver_briefing" && !screenshot.url && !imgError && (
-            <p className="text-sm text-gray-500 text-center px-3">
+            <p className="text-sm text-gray-600 text-center px-3">
               이 검색어에서 AI 브리핑이 나타나지 않았습니다
             </p>
           )}
@@ -226,10 +226,10 @@ export default function AISearchScreenshotCard({ bizId, plan, authToken }: Props
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-4">
         <div>
           <h2 className="text-lg font-bold text-gray-900">실제 AI 검색 화면</h2>
-          <p className="text-sm text-gray-500 mt-0.5">스캔 후 자동 캡처 · 네이버 블로그 + 카페 + ChatGPT + Gemini</p>
+          <p className="text-sm text-gray-600 mt-0.5">스캔 후 자동 캡처 · 네이버 블로그 + 카페 + ChatGPT + Gemini</p>
         </div>
         {lastChecked && (
-          <span className="text-sm text-gray-500">마지막 확인: {formatDate(lastChecked)}</span>
+          <span className="text-sm text-gray-600">마지막 확인: {formatDate(lastChecked)}</span>
         )}
       </div>
 
@@ -257,7 +257,7 @@ export default function AISearchScreenshotCard({ bizId, plan, authToken }: Props
               d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
             />
           </svg>
-          <p className="text-sm text-gray-500 leading-relaxed">
+          <p className="text-sm text-gray-600 leading-relaxed">
             아직 AI 검색 화면 분석이 완료되지 않았습니다.
             <br />
             스캔 완료 후 약 20초 뒤 자동으로 나타납니다.

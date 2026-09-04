@@ -114,8 +114,8 @@ export default function BusinessSearchDropdown({ region, onSelect }: Props) {
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             {loading
-              ? <Loader2 className="w-4 h-4 text-gray-500 animate-spin" />
-              : <Search className="w-4 h-4 text-gray-500" />
+              ? <Loader2 className="w-4 h-4 text-gray-600 animate-spin" />
+              : <Search className="w-4 h-4 text-gray-600" />
             }
           </div>
           <input
@@ -131,7 +131,7 @@ export default function BusinessSearchDropdown({ region, onSelect }: Props) {
 
       {/* 검색 힌트 */}
       {!localRegion && !query && (
-        <p className="text-sm text-gray-500 mt-1.5 ml-1">
+        <p className="text-sm text-gray-600 mt-1.5 ml-1">
           지역을 먼저 입력하면 더 정확하게 검색됩니다.
         </p>
       )}
@@ -152,20 +152,20 @@ export default function BusinessSearchDropdown({ region, onSelect }: Props) {
                     <span className="text-base font-semibold text-gray-900">{r.name}</span>
                     {sourceBadge(r.source)}
                   </div>
-                  <div className="text-sm text-gray-500">{r.address}</div>
+                  <div className="text-sm text-gray-600">{r.address}</div>
                   {r.category && (
-                    <div className="text-sm text-gray-500 mt-0.5">{r.category}</div>
+                    <div className="text-sm text-gray-600 mt-0.5">{r.category}</div>
                   )}
                   {(r.review_count > 0 || r.avg_rating > 0) && (
                     <div className="flex items-center gap-2 mt-0.5">
-                      {r.avg_rating > 0 && <span className="text-sm text-amber-600">★ {r.avg_rating.toFixed(1)}</span>}
-                      {r.review_count > 0 && <span className="text-sm text-gray-500">리뷰 {r.review_count}개</span>}
+                      {r.avg_rating > 0 && <span className="text-sm text-amber-700">★ {r.avg_rating.toFixed(1)}</span>}
+                      {r.review_count > 0 && <span className="text-sm text-gray-600">리뷰 {r.review_count}개</span>}
                     </div>
                   )}
                 </button>
               ))
             ) : searched && (
-              <div className="px-4 py-4 text-sm text-gray-500 text-center">
+              <div className="px-4 py-4 text-sm text-gray-600 text-center">
                 검색 결과가 없습니다. 아래에 직접 입력하세요.
               </div>
             )}

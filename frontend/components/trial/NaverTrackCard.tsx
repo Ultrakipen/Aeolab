@@ -112,14 +112,14 @@ export default function NaverTrackCard({
   // DualTrackCard와 동일한 5단계 척도 (25/45/65/80)
   const scoreColorClass =
     score >= 80
-      ? "text-emerald-600"
+      ? "text-emerald-700"
       : score >= 65
         ? "text-blue-600"
         : score >= 45
-          ? "text-amber-600"
+          ? "text-amber-700"
           : score >= 25
-            ? "text-orange-500"
-            : "text-red-500";
+            ? "text-orange-700"
+            : "text-red-700";
   const scoreLabel =
     score >= 80 ? "우수" : score >= 65 ? "양호" : score >= 45 ? "보통" : score >= 25 ? "미흡" : "시작 단계";
 
@@ -131,7 +131,7 @@ export default function NaverTrackCard({
       {/* 비대상 업종 최상단 명시 배너 */}
       {isNonBriefing && (
         <div className="flex items-center gap-2 bg-amber-100 border border-amber-300 rounded-xl px-3 py-2.5 mb-4">
-          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" aria-hidden="true" />
+          <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" aria-hidden="true" />
           <p className="text-sm font-bold text-amber-900 break-keep">
             {userGroup === "LIKELY"
               ? "현재 '플레이스형' 네이버 AI 브리핑 공식 대상 업종이 아닙니다 (확대 검토 중) — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출 가능 — AI탭은 지금도 가능"
@@ -143,7 +143,7 @@ export default function NaverTrackCard({
       {/* 헤더 */}
       <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
         <div>
-          <p className="text-sm font-semibold text-gray-500 mb-0.5">
+          <p className="text-sm font-semibold text-gray-600 mb-0.5">
             {isNonBriefing ? "네이버 플레이스 현황" : "네이버 AI 브리핑"}
           </p>
           <p className="text-sm text-gray-600 leading-snug break-keep">
@@ -151,7 +151,7 @@ export default function NaverTrackCard({
           </p>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-sm text-gray-500 mb-0.5">네이버 현황</p>
+          <p className="text-sm text-gray-600 mb-0.5">네이버 현황</p>
           <p className={`text-2xl font-black ${scoreColorClass}`}>
             {scoreLabel}
           </p>
@@ -279,7 +279,7 @@ export default function NaverTrackCard({
       )}
 
       {/* 면책 문구 */}
-      <p className="text-sm text-gray-500 mt-3 leading-relaxed">
+      <p className="text-sm text-gray-600 mt-3 leading-relaxed">
         업종별 가중치로 계산된 네이버 점수입니다.
       </p>
     </div>

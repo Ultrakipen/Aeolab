@@ -56,7 +56,7 @@ export default function LoginPage() {
         {/* 로고 */}
         <div className="text-center mb-8">
           <Link href="/" className="text-3xl font-bold text-blue-600">AEOlab</Link>
-          <p className="text-base text-gray-500 mt-2">AI 검색 노출 관리 서비스</p>
+          <p className="text-base text-gray-600 mt-2">AI 검색 노출 관리 서비스</p>
         </div>
 
         {/* 세션 만료 배너 */}
@@ -81,14 +81,14 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="example@email.com"
-              className="w-full border border-gray-300 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-600"
             />
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-base font-medium text-gray-700">비밀번호</label>
-              <Link href="/reset-password" className="text-sm text-blue-500 hover:underline">
+              <Link href="/reset-password" className="text-sm text-blue-600 hover:underline">
                 비밀번호 찾기
               </Link>
             </div>
@@ -100,12 +100,12 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="비밀번호를 입력하세요"
-                className="w-full border border-gray-300 rounded-xl px-4 py-3.5 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+                className="w-full border border-gray-300 rounded-xl px-4 py-3.5 pr-12 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-600"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-600 hover:text-gray-700 transition-colors"
                 aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 표시"}
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -115,7 +115,7 @@ export default function LoginPage() {
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-              <p className="text-base text-red-600">{error}</p>
+              <p className="text-base text-red-700">{error}</p>
             </div>
           )}
 
@@ -135,14 +135,14 @@ export default function LoginPage() {
         </form>
 
         {/* 하단 링크 */}
-        <p className="text-center text-base text-gray-500 mt-5">
+        <p className="text-center text-base text-gray-600 mt-5">
           계정이 없으신가요?{" "}
           <Link href="/signup" className="text-blue-600 font-medium hover:underline">
             무료 회원가입
           </Link>
         </p>
         <p className="text-center mt-3">
-          <Link href="/" className="text-sm text-gray-500 hover:text-gray-600">
+          <Link href="/" className="text-sm text-gray-600 hover:text-gray-700">
             ← 홈으로
           </Link>
         </p>

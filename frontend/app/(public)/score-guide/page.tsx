@@ -18,7 +18,7 @@ export default function ScoreGuidePage() {
         <div className="flex items-center justify-between gap-2 flex-wrap mb-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-1 text-sm text-blue-500 hover:text-blue-700 hover:underline"
+            className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 hover:underline"
           >
             ← 홈으로 돌아가기
           </Link>
@@ -51,21 +51,21 @@ export default function ScoreGuidePage() {
             <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">1</span>
             <p className="text-sm md:text-base text-gray-800 leading-relaxed">
               <strong>점수 = 네이버 채널 × 업종 비율 + 글로벌 AI × 업종 비율</strong><br />
-              <span className="text-gray-500">음식점은 네이버 80%, 카페는 75%, 법률·교육·온라인몰은 글로벌 AI 60~90%</span>
+              <span className="text-gray-600">음식점은 네이버 80%, 카페는 75%, 법률·교육·온라인몰은 글로벌 AI 60~90%</span>
             </p>
           </div>
           <div className="flex items-start gap-3">
             <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">2</span>
             <p className="text-sm md:text-base text-gray-800 leading-relaxed">
               <strong>성장 단계(시작/성장 중/빠른 성장/지역 1등)는 네이버 채널 점수만으로 결정</strong><br />
-              <span className="text-gray-500">통합 점수와 다를 수 있음 — 업종별 비율 차이를 보정하기 위해</span>
+              <span className="text-gray-600">통합 점수와 다를 수 있음 — 업종별 비율 차이를 보정하기 위해</span>
             </p>
           </div>
           <div className="flex items-start gap-3">
             <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">3</span>
             <p className="text-sm md:text-base text-gray-800 leading-relaxed">
               <strong>지금 가장 빠른 점수 향상 → 스마트플레이스 소개글 + 소식 탭</strong><br />
-              <span className="text-gray-500">두 항목이 스마트플레이스 완성도를 가장 크게 끌어올립니다. 통합 점수에는 이 항목 비중(15~20%)만큼 반영됩니다.</span>
+              <span className="text-gray-600">두 항목이 스마트플레이스 완성도를 가장 크게 끌어올립니다. 통합 점수에는 이 항목 비중(15~20%)만큼 반영됩니다.</span>
             </p>
           </div>
         </div>
@@ -162,7 +162,7 @@ export default function ScoreGuidePage() {
             현재 적용 중
           </span>
         </div>
-        <p className="text-sm text-gray-500 mb-3">
+        <p className="text-sm text-gray-600 mb-3">
           네이버 생태계 내 AI 검색 최적화 지표 (6개 항목) — 업종 그룹에 따라 아래 비중이 자동 적용됩니다
         </p>
         <div className="overflow-x-auto">
@@ -229,7 +229,7 @@ export default function ScoreGuidePage() {
             현재 적용 중
           </span>
         </div>
-        <p className="text-sm text-gray-500 mb-3">
+        <p className="text-sm text-gray-600 mb-3">
           업종 그룹에 따라 아래 비중이 자동 적용됩니다.
         </p>
         <div className="overflow-x-auto">
@@ -261,7 +261,7 @@ export default function ScoreGuidePage() {
             </tbody>
           </table>
         </div>
-        <p className="text-sm text-gray-500 mt-2">AI브리핑 대상: 음식점·카페·베이커리·바·숙박 / 확대 예정: 뷰티·네일·피트니스·요가·반려동물·약국 / 글로벌 중심: 그 외</p>
+        <p className="text-sm text-gray-600 mt-2">AI브리핑 대상: 음식점·카페·베이커리·바·숙박 / 확대 예정: 뷰티·네일·피트니스·요가·반려동물·약국 / 글로벌 중심: 그 외</p>
       </div>
 
       {/* 5. Track 2 — 글로벌 AI 채널 */}
@@ -269,7 +269,7 @@ export default function ScoreGuidePage() {
         <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">
           글로벌 AI 점수 — 글로벌 AI 채널
         </h2>
-        <p className="text-sm text-gray-500 mb-3">
+        <p className="text-sm text-gray-600 mb-3">
           ChatGPT·Gemini·Google AI 등 글로벌 AI 검색 최적화 지표 (4개 항목)
         </p>
         <div className="overflow-x-auto">
@@ -333,7 +333,7 @@ export default function ScoreGuidePage() {
         <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">
           업종별 네이버 / 글로벌 비율
         </h2>
-        <p className="text-sm text-gray-500 mb-3">
+        <p className="text-sm text-gray-600 mb-3">
           업종 특성에 따라 두 채널의 가중치가 다르게 적용됩니다.
         </p>
         <div className="overflow-x-auto">
@@ -492,19 +492,19 @@ export default function ScoreGuidePage() {
                   </td>
                   <td
                     className={`py-2.5 px-3 text-center font-bold ${
-                      row.naverDominant ? "text-blue-600" : "text-gray-500"
+                      row.naverDominant ? "text-blue-600" : "text-gray-600"
                     }`}
                   >
                     {row.naver}%
                   </td>
                   <td
                     className={`py-2.5 px-3 text-center font-bold ${
-                      !row.naverDominant ? "text-purple-600" : "text-gray-500"
+                      !row.naverDominant ? "text-purple-600" : "text-gray-600"
                     }`}
                   >
                     {row.global}%
                   </td>
-                  <td className="py-2.5 px-3 text-gray-500">{row.reason}</td>
+                  <td className="py-2.5 px-3 text-gray-600">{row.reason}</td>
                 </tr>
               ))}
             </tbody>
@@ -529,7 +529,7 @@ export default function ScoreGuidePage() {
               rank: "상위 20%",
               bg: "bg-emerald-50 border-emerald-200",
               textGrade: "text-emerald-700",
-              textRange: "text-emerald-600",
+              textRange: "text-emerald-700",
             },
             {
               grade: "B",
@@ -547,7 +547,7 @@ export default function ScoreGuidePage() {
               rank: "중간 40%",
               bg: "bg-amber-50 border-amber-200",
               textGrade: "text-amber-700",
-              textRange: "text-amber-600",
+              textRange: "text-amber-700",
             },
             {
               grade: "D",
@@ -556,7 +556,7 @@ export default function ScoreGuidePage() {
               rank: "하위 20%",
               bg: "bg-red-50 border-red-200",
               textGrade: "text-red-700",
-              textRange: "text-red-600",
+              textRange: "text-red-700",
             },
           ].map((g, i) => (
             <div

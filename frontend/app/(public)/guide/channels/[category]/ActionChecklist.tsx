@@ -78,7 +78,7 @@ export function ActionChecklist({ storageKey, items, category }: Props) {
           <span
             className={`shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-colors ${
               checked[item.id]
-                ? "bg-green-500 border-green-500 text-white"
+                ? "bg-green-700 border-green-500 text-white"
                 : "bg-blue-100 border-blue-100 text-blue-700"
             }`}
           >

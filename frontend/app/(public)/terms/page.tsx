@@ -14,7 +14,7 @@ export default function TermsPage() {
         {/* 상단 네비게이션 */}
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 mb-6"
+          className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-800 mb-6"
         >
           ← 돌아가기
         </Link>
@@ -22,7 +22,7 @@ export default function TermsPage() {
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
           서비스 이용약관
         </h1>
-        <p className="text-sm text-gray-500 mb-8">시행일: 2026년 4월 1일</p>
+        <p className="text-sm text-gray-600 mb-8">시행일: 2026년 4월 1일</p>
 
         <div className="prose prose-gray max-w-none space-y-8 text-sm md:text-base leading-relaxed text-gray-700">
 

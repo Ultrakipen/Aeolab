@@ -78,7 +78,7 @@ function scoreBandStyle(band: string): string {
     return "bg-green-50 text-green-700 border border-green-200";
   if (band === "상위 70%")
     return "bg-gray-50 text-gray-600 border border-gray-200";
-  return "bg-gray-100 text-gray-500 border border-gray-200";
+  return "bg-gray-100 text-gray-600 border border-gray-200";
 }
 
 function RankBadge({ rank }: { rank: number }) {
@@ -96,7 +96,7 @@ function RankBadge({ rank }: { rank: number }) {
     );
   if (rank === 3)
     return (
-      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-600 text-white font-bold text-sm shrink-0">
+      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-700 text-white font-bold text-sm shrink-0">
         3
       </span>
     );
@@ -188,7 +188,7 @@ export default function RankingClient() {
                 </optgroup>
               ))}
             </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
           </div>
         </div>
 
@@ -216,7 +216,7 @@ export default function RankingClient() {
                   handleSearch();
                 }
               }}
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm md:text-base text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm md:text-base text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
 
             {/* 지역 추천 드롭다운 */}
@@ -224,7 +224,7 @@ export default function RankingClient() {
               <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-64 overflow-y-auto">
                 {REGION_SUGGESTIONS.map((group) => (
                   <div key={group.group}>
-                    <div className="px-3 py-1.5 text-sm font-semibold text-gray-400 bg-gray-50 sticky top-0">
+                    <div className="px-3 py-1.5 text-sm font-semibold text-gray-600 bg-gray-50 sticky top-0">
                       {group.group}
                     </div>
                     {group.items.map((r) => (
@@ -242,7 +242,7 @@ export default function RankingClient() {
               </div>
             )}
           </div>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-gray-600 mt-1">
             시·구·동 단위로 입력하세요 (입력칸 클릭 시 주요 지역 목록 표시)
           </p>
         </div>
@@ -251,7 +251,7 @@ export default function RankingClient() {
           type="button"
           onClick={handleSearch}
           disabled={!selectedCategory || !region.trim() || loading}
-          className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white font-semibold text-sm md:text-base py-3 rounded-xl transition-colors"
+          className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-600 text-white font-semibold text-sm md:text-base py-3 rounded-xl transition-colors"
         >
           {loading ? (
             <>
@@ -281,11 +281,11 @@ export default function RankingClient() {
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-base md:text-lg font-bold text-gray-900">
               {FLAT_CATEGORY_MAP[result.category]?.label ?? result.category}
-              <span className="text-gray-400 font-normal mx-1.5">·</span>
+              <span className="text-gray-600 font-normal mx-1.5">·</span>
               {result.region}
             </h2>
             {!result.insufficient_data && result.total_in_region != null && (
-              <span className="text-sm text-gray-500 shrink-0">
+              <span className="text-sm text-gray-600 shrink-0">
                 총 {result.total_in_region}개 사업장
               </span>
             )}
@@ -296,7 +296,7 @@ export default function RankingClient() {
             <div className="bg-white border border-gray-200 rounded-2xl p-8 md:p-12 text-center shadow-sm">
               <BarChart2 className="w-10 h-10 text-gray-300 mx-auto mb-4" />
               <p className="text-base font-semibold text-gray-700 mb-2">데이터 수집 중</p>
-              <p className="text-sm text-gray-500 break-keep">
+              <p className="text-sm text-gray-600 break-keep">
                 {result.message ??
                   "데이터 수집 중입니다. 해당 지역·업종의 사업장이 더 모이면 공개됩니다."}
               </p>
@@ -309,7 +309,7 @@ export default function RankingClient() {
             </div>
           ) : result.entries.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm">
-              <p className="text-sm text-gray-500">아직 공개된 랭킹 데이터가 없습니다.</p>
+              <p className="text-sm text-gray-600">아직 공개된 랭킹 데이터가 없습니다.</p>
             </div>
           ) : (
             /* 랭킹 리스트 */
@@ -318,9 +318,9 @@ export default function RankingClient() {
                 <table className="w-full min-w-[320px]">
                   <thead>
                     <tr className="border-b border-gray-100 bg-gray-50">
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-500 w-16">순위</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-500">AI 노출 수준</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-500 hidden sm:table-cell">
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600 w-16">순위</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">AI 노출 수준</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600 hidden sm:table-cell">
                         업종 내 백분위
                       </th>
                     </tr>
@@ -339,8 +339,8 @@ export default function RankingClient() {
                                   entry.rank === 1
                                     ? "text-yellow-400"
                                     : entry.rank === 2
-                                    ? "text-gray-400"
-                                    : "text-amber-600"
+                                    ? "text-gray-600"
+                                    : "text-amber-700"
                                 }`}
                               />
                             )}
@@ -368,7 +368,7 @@ export default function RankingClient() {
               <div className="sm:hidden border-t border-gray-100 px-4 py-3 flex flex-wrap gap-2">
                 {result.entries.map((entry) => (
                   <div key={entry.rank} className="flex items-center gap-1.5 text-sm">
-                    <span className="text-gray-500">{entry.rank}위</span>
+                    <span className="text-gray-600">{entry.rank}위</span>
                     <span className={`px-2 py-0.5 rounded-full text-sm font-semibold ${scoreBandStyle(entry.score_band)}`}>
                       {entry.score_band}
                     </span>
@@ -381,8 +381,8 @@ export default function RankingClient() {
           {/* 면책 문구 */}
           {!result.insufficient_data && result.entries.length > 0 && (
             <div className="flex items-start gap-2 bg-gray-50 border border-gray-200 rounded-xl p-3 md:p-4">
-              <Info className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
-              <p className="text-xs md:text-sm text-gray-500 leading-relaxed">
+              <Info className="w-4 h-4 text-gray-600 mt-0.5 shrink-0" />
+              <p className="text-xs md:text-sm text-gray-600 leading-relaxed">
                 이 랭킹은 AEOlab 스캔 시점의 익명 집계 데이터이며, 측정 시점·기기·로그인 상태에 따라
                 달라질 수 있습니다. 사업장명·식별 정보는 포함되지 않습니다.
               </p>
@@ -413,10 +413,10 @@ export default function RankingClient() {
       {!result && !loading && !error && (
         <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 md:p-8 text-center">
           <BarChart2 className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm md:text-base text-gray-500">
+          <p className="text-sm md:text-base text-gray-600">
             업종과 지역을 선택한 후 조회 버튼을 눌러주세요.
           </p>
-          <p className="text-sm text-gray-400 mt-2">
+          <p className="text-sm text-gray-600 mt-2">
             사업장명·점수 원본은 공개되지 않으며, 순위와 백분위만 표시됩니다.
           </p>
         </div>

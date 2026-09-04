@@ -112,7 +112,7 @@ export default function HelpFAQFloat() {
             aria-label="닫기"
             className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <X className="w-5 h-5 text-gray-500" aria-hidden="true" />
+            <X className="w-5 h-5 text-gray-600" aria-hidden="true" />
           </button>
         </div>
 
@@ -127,7 +127,7 @@ export default function HelpFAQFloat() {
             onNoResult={handleNoResult}
             className="w-full"
           />
-          <p className="mt-3 text-sm text-gray-500 text-center">
+          <p className="mt-3 text-sm text-gray-600 text-center">
             요금제, 스캔, 개선 가이드 등을 검색해보세요
           </p>
         </div>

@@ -185,7 +185,7 @@ export function MockupClient() {
       </div>
 
       <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">창업 시장 분석 (목업)</h1>
-      <p className="text-sm text-gray-500 mb-4">아래 버튼으로 시나리오별 결과 화면을 확인하세요.</p>
+      <p className="text-sm text-gray-600 mb-4">아래 버튼으로 시나리오별 결과 화면을 확인하세요.</p>
 
       <div className="flex flex-wrap gap-2 mb-6">
         {Object.keys(SCENARIOS).map((key) => (

@@ -41,7 +41,7 @@ export default function PricingPage() {
       <section className="max-w-5xl mx-auto px-4 md:px-6 py-12 md:py-16">
         {/* 타이틀 */}
         <h1 className="text-3xl md:text-5xl font-bold text-center text-gray-900 mb-3">요금제</h1>
-        <p className="text-center text-base md:text-xl text-gray-500 mb-6">
+        <p className="text-center text-base md:text-xl text-gray-600 mb-6">
           네이버 AI 브리핑 · ChatGPT · Gemini — AI가 내 가게를 먼저 추천하게 만드세요
         </p>
 
@@ -71,39 +71,39 @@ export default function PricingPage() {
               }`}
             >
               {plan.badge && (
-                <div className={`text-sm font-semibold mb-2 ${plan.highlight ? "text-blue-100" : "text-blue-600"}`}>
+                <div className={`text-sm font-semibold mb-2 ${plan.highlight ? "text-white" : "text-blue-600"}`}>
                   {plan.badge}
                 </div>
               )}
               <div className={`text-2xl md:text-3xl font-bold mb-1 ${plan.highlight ? "text-white" : "text-gray-900"}`}>
                 {plan.name}
               </div>
-              <div className={`text-sm md:text-base mb-2 leading-snug ${plan.highlight ? "text-blue-200" : "text-gray-500"}`}>
+              <div className={`text-sm md:text-base mb-2 leading-snug ${plan.highlight ? "text-white" : "text-gray-600"}`}>
                 {plan.description}
               </div>
               {plan.killerFeature && (
                 <div className={`text-sm md:text-base font-medium mb-3 px-3 py-2 rounded-lg ${
-                  plan.highlight ? "bg-white/15 text-white" : "bg-amber-50 text-amber-800 border border-amber-200"
+                  plan.highlight ? "bg-blue-800 text-white" : "bg-amber-50 text-amber-800 border border-amber-200"
                 }`}>
                   ✦ {plan.killerFeature}
                 </div>
               )}
               <div className={`text-3xl md:text-4xl font-bold mb-1 mt-1 ${plan.highlight ? "text-white" : "text-gray-900"}`}>
                 {plan.price}
-                <span className={`text-base font-normal ${plan.highlight ? "text-blue-200" : "text-gray-500"}`}>
+                <span className={`text-base font-normal ${plan.highlight ? "text-white" : "text-gray-600"}`}>
                   {plan.period}
                 </span>
               </div>
               {plan.name === "Basic" && (
                 <div className={`mt-2 rounded-lg px-3 py-2 text-sm font-semibold ${
-                  plan.highlight ? "bg-emerald-400/20 text-emerald-100" : "bg-emerald-50 text-emerald-700"
+                  plan.highlight ? "bg-emerald-700 text-white" : "bg-emerald-50 text-emerald-700"
                 }`}>
                   첫 달 50% 할인 — 5,950원 (이후 월 11,900원)
                 </div>
               )}
               {plan.valueTag && (
                 <div className={`mt-3 text-sm md:text-base font-medium px-3 py-1.5 rounded-lg self-start ${
-                  plan.highlight ? "bg-blue-500/50 text-blue-100" : "bg-green-50 text-green-700 border border-green-200"
+                  plan.highlight ? "bg-blue-800 text-white" : "bg-green-50 text-green-700 border border-green-200"
                 }`}>
                   {plan.valueTag}
                 </div>
@@ -111,8 +111,8 @@ export default function PricingPage() {
 
               <ul className="mt-4 mb-6 space-y-2 md:space-y-2.5 flex-1">
                 {plan.features.map((f) => (
-                  <li key={f} className={`text-sm md:text-base flex gap-2 leading-snug ${plan.highlight ? "text-blue-100" : "text-gray-600"}`}>
-                    <span className={`mt-0.5 shrink-0 ${plan.highlight ? "text-blue-200" : "text-blue-500"}`}>✓</span>
+                  <li key={f} className={`text-sm md:text-base flex gap-2 leading-snug ${plan.highlight ? "text-white" : "text-gray-600"}`}>
+                    <span className={`mt-0.5 shrink-0 ${plan.highlight ? "text-white" : "text-blue-600"}`}>✓</span>
                     {f}
                   </li>
                 ))}
@@ -145,7 +145,7 @@ export default function PricingPage() {
 
         {/* ─── Biz 플랜 앵커 안내 ─── */}
         <div className="flex items-center justify-center gap-3 mb-6 -mt-4">
-          <span className="text-sm text-gray-500">여러 사업장이 필요하신가요?</span>
+          <span className="text-sm text-gray-600">여러 사업장이 필요하신가요?</span>
           <a href="#plan-Biz" className="text-sm font-semibold text-blue-600 hover:underline">
             Biz 플랜 보기 ↓
           </a>
@@ -163,7 +163,7 @@ export default function PricingPage() {
                 <div className="text-sm font-semibold text-blue-600 mb-2">{plan.badge}</div>
               )}
               <div className="text-2xl font-bold text-gray-900 mb-0.5">{plan.name}</div>
-              <div className="text-sm md:text-base text-gray-500 mb-1">{plan.description}</div>
+              <div className="text-sm md:text-base text-gray-600 mb-1">{plan.description}</div>
               {plan.valueTag && (
                 <div className="text-sm md:text-base font-medium mb-3 px-3 py-1.5 rounded-lg inline-block self-start bg-green-50 text-green-700 border border-green-200">
                   {plan.valueTag}
@@ -171,12 +171,12 @@ export default function PricingPage() {
               )}
               <div className="text-4xl font-bold text-gray-900 mb-1 mt-2">
                 {plan.price}
-                <span className="text-base font-normal text-gray-500">{plan.period}</span>
+                <span className="text-base font-normal text-gray-600">{plan.period}</span>
               </div>
               <ul className="mt-4 mb-6 space-y-2.5 flex-1">
                 {plan.features.map((f) => (
                   <li key={f} className="text-sm md:text-base flex gap-2 text-gray-600 leading-snug">
-                    <span className="text-blue-500 mt-0.5 shrink-0">✓</span>
+                    <span className="text-blue-600 mt-0.5 shrink-0">✓</span>
                     {f}
                   </li>
                 ))}
@@ -230,15 +230,15 @@ export default function PricingPage() {
         {/* ─── 플랜 기능 비교표 ─── */}
         <div className="overflow-x-auto mb-14">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1 text-center">플랜 기능 비교</h2>
-          <p className="text-sm text-gray-500 text-center mb-4 md:hidden">← 좌우로 밀어 비교하세요</p>
+          <p className="text-sm text-gray-600 text-center mb-4 md:hidden">← 좌우로 밀어 비교하세요</p>
           <table className="w-full min-w-[560px] text-sm border-collapse">
             <thead>
               <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-3 text-gray-500 font-medium w-36">기능</th>
-                <th className="text-center py-3 px-2 text-gray-700 font-semibold">창업패키지<br/><span className="font-normal text-gray-500 text-sm">12,900원</span></th>
-                <th className="text-center py-3 px-2 text-blue-600 font-semibold">Basic<br/><span className="font-normal text-blue-400 text-sm">11,900원</span></th>
-                <th className="text-center py-3 px-2 text-gray-700 font-semibold">Pro<br/><span className="font-normal text-gray-500 text-sm">23,900원</span></th>
-                <th className="text-center py-3 px-2 text-gray-700 font-semibold">Biz<br/><span className="font-normal text-gray-500 text-sm">49,900원</span></th>
+                <th className="text-left py-3 px-3 text-gray-600 font-medium w-36">기능</th>
+                <th className="text-center py-3 px-2 text-gray-700 font-semibold">창업패키지<br/><span className="font-normal text-gray-600 text-sm">12,900원</span></th>
+                <th className="text-center py-3 px-2 text-blue-600 font-semibold">Basic<br/><span className="font-normal text-blue-600 text-sm">11,900원</span></th>
+                <th className="text-center py-3 px-2 text-gray-700 font-semibold">Pro<br/><span className="font-normal text-gray-600 text-sm">23,900원</span></th>
+                <th className="text-center py-3 px-2 text-gray-700 font-semibold">Biz<br/><span className="font-normal text-gray-600 text-sm">49,900원</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -263,7 +263,7 @@ export default function PricingPage() {
                 <tr key={feature as string} className="hover:bg-gray-50">
                   <td className="py-2.5 px-3 text-gray-600">{feature}</td>
                   {vals.map((v, i) => (
-                    <td key={i} className={`py-2.5 px-2 text-center ${i === 1 ? "text-blue-600 font-medium" : "text-gray-600"} ${v === "—" ? "text-gray-500" : ""}`}>
+                    <td key={i} className={`py-2.5 px-2 text-center ${i === 1 ? "text-blue-600 font-medium" : "text-gray-600"} ${v === "—" ? "text-gray-600" : ""}`}>
                       {v}
                     </td>
                   ))}
@@ -271,7 +271,7 @@ export default function PricingPage() {
               ))}
             </tbody>
           </table>
-          <p className="text-sm text-gray-500 mt-2 text-right">— : 해당 플랜에 포함되지 않음</p>
+          <p className="text-sm text-gray-600 mt-2 text-right">— : 해당 플랜에 포함되지 않음</p>
         </div>
 
         {/* ─── 포함된 진단 도구 ─── */}
@@ -292,7 +292,7 @@ export default function PricingPage() {
                   <span className="text-xl" aria-hidden="true">📝</span>
                   <p className="font-semibold text-gray-900 text-sm">블로그 AI 진단</p>
                 </div>
-                <p className="text-sm text-gray-500 leading-relaxed break-keep">
+                <p className="text-sm text-gray-600 leading-relaxed break-keep">
                   내 블로그가 AI 브리핑에 인용되는지 분석 · 홍보형/정보형 비율 · 개선 제목 자동 제안
                 </p>
               </div>
@@ -301,7 +301,7 @@ export default function PricingPage() {
                   <span className="text-xl" aria-hidden="true">🏪</span>
                   <p className="font-semibold text-gray-900 text-sm">스마트플레이스 자동 점검</p>
                 </div>
-                <p className="text-sm text-gray-500 leading-relaxed break-keep">
+                <p className="text-sm text-gray-600 leading-relaxed break-keep">
                   채팅방 메뉴·소개글·최근 소식 누락 자동 확인 · 즉시 쓸 수 있는 초안 제공
                 </p>
               </div>
@@ -403,16 +403,16 @@ export default function PricingPage() {
             {/* 가치 비교 배너 */}
             <div className="bg-white rounded-xl border border-slate-100 p-4 md:p-5 mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-2xl font-bold text-red-500 mb-1">300,000원</div>
-                <div className="text-sm text-gray-500">키워드 광고 월 1일치</div>
-                <div className="text-sm text-gray-500 mt-1">광고 끄면 즉시 노출 0</div>
+                <div className="text-2xl font-bold text-red-700 mb-1">300,000원</div>
+                <div className="text-sm text-gray-600">키워드 광고 월 1일치</div>
+                <div className="text-sm text-gray-600 mt-1">광고 끄면 즉시 노출 0</div>
               </div>
-              <div className="flex items-center justify-center text-gray-500 text-3xl font-thin hidden sm:flex">vs</div>
+              <div className="flex items-center justify-center text-gray-600 text-3xl font-thin hidden sm:flex">vs</div>
               <div className="sm:hidden border-t border-gray-200 pt-3" />
               <div>
                 <div className="text-2xl font-bold text-blue-600 mb-1">11,900원</div>
-                <div className="text-sm text-gray-500">AEOlab Basic 한 달</div>
-                <div className="text-sm text-gray-500 mt-1">AI 노출 구조 자체를 개선</div>
+                <div className="text-sm text-gray-600">AEOlab Basic 한 달</div>
+                <div className="text-sm text-gray-600 mt-1">AI 노출 구조 자체를 개선</div>
               </div>
             </div>
 
@@ -488,7 +488,7 @@ export default function PricingPage() {
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-sm text-gray-500 leading-relaxed text-center">
+            <p className="mt-3 text-sm text-gray-600 leading-relaxed text-center">
               ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
               측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
             </p>
@@ -535,7 +535,7 @@ export default function PricingPage() {
         </div>
 
         {/* 법적 고지 */}
-        <p className="text-sm text-center text-gray-500">
+        <p className="text-sm text-center text-gray-600">
           구독 신청 시{" "}
           <a href="/terms" className="underline hover:text-gray-600">이용약관</a>
           {" "}및{" "}

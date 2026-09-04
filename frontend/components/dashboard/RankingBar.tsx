@@ -12,18 +12,18 @@ interface RankingBarProps {
 }
 
 function relativeLabel(diff: number): { text: string; className: string } {
-  if (diff === 0) return { text: '비슷한 수준', className: 'text-gray-500' }
+  if (diff === 0) return { text: '비슷한 수준', className: 'text-gray-600' }
   if (diff > 0) {
     // 경쟁사가 내 가게보다 앞선 경우
-    if (diff <= 5) return { text: '비슷한 수준이에요', className: 'text-gray-500' }
-    if (diff <= 20) return { text: 'AI에 더 많이 노출돼요', className: 'text-orange-500' }
-    return { text: 'AI에 훨씬 더 노출돼요', className: 'text-red-500 font-semibold' }
+    if (diff <= 5) return { text: '비슷한 수준이에요', className: 'text-gray-600' }
+    if (diff <= 20) return { text: 'AI에 더 많이 노출돼요', className: 'text-orange-700' }
+    return { text: 'AI에 훨씬 더 노출돼요', className: 'text-red-700 font-semibold' }
   }
   // 내 가게가 앞서는 경우
   const ahead = Math.abs(diff)
-  if (ahead <= 5) return { text: '비슷한 수준이에요', className: 'text-gray-500' }
-  if (ahead <= 20) return { text: '내가 더 많이 노출돼요', className: 'text-emerald-600' }
-  return { text: '내가 훨씬 더 노출돼요', className: 'text-emerald-600 font-semibold' }
+  if (ahead <= 5) return { text: '비슷한 수준이에요', className: 'text-gray-600' }
+  if (ahead <= 20) return { text: '내가 더 많이 노출돼요', className: 'text-emerald-700' }
+  return { text: '내가 훨씬 더 노출돼요', className: 'text-emerald-700 font-semibold' }
 }
 
 export function RankingBar({ items, title = '경쟁사 비교' }: RankingBarProps) {
@@ -41,7 +41,7 @@ export function RankingBar({ items, title = '경쟁사 비교' }: RankingBarProp
 
           return (
             <div key={idx} className="flex items-center gap-3">
-              <div className="w-5 text-sm text-gray-500 shrink-0 text-right">{idx + 1}</div>
+              <div className="w-5 text-sm text-gray-600 shrink-0 text-right">{idx + 1}</div>
               <div
                 className={`text-sm shrink-0 w-20 md:w-28 truncate font-medium ${
                   item.isMe ? 'text-blue-600' : 'text-gray-700'

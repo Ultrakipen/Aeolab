@@ -29,10 +29,10 @@ export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
       <div className="relative group">
         <button
           disabled
-          className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+          className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed"
         >
           <span>내보내기</span>
-          <span className="text-sm bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded">Basic+</span>
+          <span className="text-sm bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded">Basic+</span>
         </button>
         <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover:block z-10 w-56 bg-gray-900 text-white text-sm rounded-lg p-2 text-center">
           Basic(월 {PLAN_PRICES.basic.toLocaleString()}원)부터 CSV 내보내기,
@@ -86,10 +86,10 @@ export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
         <div className="relative group">
           <button
             disabled
-            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed whitespace-nowrap shrink-0"
+            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed whitespace-nowrap shrink-0"
           >
             <span>CSV</span>
-            <span className="text-sm bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded whitespace-nowrap">Basic+</span>
+            <span className="text-sm bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded whitespace-nowrap">Basic+</span>
           </button>
           <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover:block z-10 w-48 bg-gray-900 text-white text-sm rounded-lg p-2 text-center">
             Basic(월 {PLAN_PRICES.basic.toLocaleString()}원)부터 이용 가능합니다
@@ -111,10 +111,10 @@ export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
         <div className="relative group">
           <button
             disabled
-            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed whitespace-nowrap shrink-0"
+            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed whitespace-nowrap shrink-0"
           >
             <span>PDF 리포트</span>
-            <span className="text-sm bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded whitespace-nowrap">Pro+</span>
+            <span className="text-sm bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded whitespace-nowrap">Pro+</span>
           </button>
           <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover:block z-10 w-48 bg-gray-900 text-white text-sm rounded-lg p-2 text-center">
             Pro 플랜(월 {PLAN_PRICES.pro.toLocaleString()}원)부터 이용 가능합니다

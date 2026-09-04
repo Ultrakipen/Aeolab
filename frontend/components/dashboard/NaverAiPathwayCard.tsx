@@ -64,9 +64,9 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
         {briefingInactive && (
           <div className="mb-3 rounded-xl border border-green-300 bg-green-50 p-4">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sm font-black bg-green-600 text-white shrink-0">N</span>
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sm font-black bg-green-700 text-white shrink-0">N</span>
               <h3 className="text-sm md:text-base font-bold text-green-900">네이버 검색 상위노출 ★ 핵심</h3>
-              <span className="ml-auto inline-flex items-center rounded-full bg-green-600 text-white px-2 py-0.5 text-sm font-bold shrink-0 whitespace-nowrap">지금 바로 가능</span>
+              <span className="ml-auto inline-flex items-center rounded-full bg-green-700 text-white px-2 py-0.5 text-sm font-bold shrink-0 whitespace-nowrap">지금 바로 가능</span>
             </div>
             <ul className="space-y-1 text-sm text-slate-700 leading-snug">
               <li>• 스마트플레이스 소개글·사진·소식 업데이트 → 플레이스탭 상위 노출</li>
@@ -136,7 +136,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
             {/* M3 광고 경고 배너 — NAVER_AD_IN_BRIEFING_ACTIVE=true 시 노출 */}
             {NAVER_AD_IN_BRIEFING_ACTIVE && latestAdOnly === true && (
               <div className="mt-2 flex items-start gap-1.5 rounded px-2 py-1.5 bg-orange-50 border border-orange-200">
-                <span className="text-orange-500 text-sm shrink-0">⚠️</span>
+                <span className="text-orange-700 text-sm shrink-0">⚠️</span>
                 <p className="text-sm text-orange-800 leading-snug break-keep">
                   최근 스캔 결과 <strong>광고 영역</strong>에서 노출됨 — 유기 점수에 미반영. 자연 노출 강화가 필요합니다.
                 </p>
@@ -182,7 +182,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
               <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                 <span
-                  className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sm font-black bg-emerald-600 text-white"
+                  className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sm font-black bg-emerald-700 text-white"
                   aria-hidden="true"
                 >
                   C
@@ -222,7 +222,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
             <div className="rounded-xl border border-orange-200 bg-orange-50 p-3">
               <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                 <span
-                  className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sm font-black bg-orange-500 text-white"
+                  className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sm font-black bg-orange-700 text-white"
                   aria-hidden="true"
                 >
                   O
@@ -307,7 +307,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
           </div>
         )}
 
-        <p className="mt-3 text-sm text-gray-500 leading-snug break-keep">
+        <p className="mt-3 text-sm text-gray-600 leading-snug break-keep">
           AEOlab은 AI 채널별 노출 가능성을 측정합니다. 최종 노출 여부는 네이버·Google 알고리즘이 결정하며, 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
         </p>
       </div>

@@ -218,7 +218,7 @@ export default function DashboardDetailZone({
           ].map((p) => (
             <div key={p.name} className="bg-gray-50 rounded-xl py-3 px-2 border border-gray-100 text-center">
               <div className="font-semibold text-gray-800 text-sm">{p.name}</div>
-              <div className="text-gray-500 text-sm mt-0.5">{p.note}</div>
+              <div className="text-gray-600 text-sm mt-0.5">{p.note}</div>
             </div>
           ))}
         </div>
@@ -231,7 +231,7 @@ export default function DashboardDetailZone({
             <li>→ AI 노출 지수를 높이는 맞춤 개선 가이드</li>
           </ul>
         </div>
-        <p className="text-base text-gray-500">
+        <p className="text-base text-gray-600">
           상단 <strong className="text-gray-700">AI 스캔 시작</strong> 버튼을 눌러주세요 · 약 2~3분 소요
         </p>
       </div>
@@ -312,13 +312,13 @@ export default function DashboardDetailZone({
             const variation = calcScoreVariation(history ?? []);
             if (variation.hasData) {
               return (
-                <p className="text-sm text-gray-500 mt-1 px-1">
+                <p className="text-sm text-gray-600 mt-1 px-1">
                   지난 30일 변동 폭: ±{Math.round((variation.range ?? 0) / 2)}점 (측정 조건 따라 자연 변동)
                 </p>
               );
             }
             return (
-              <p className="text-sm text-gray-500 mt-1 px-1">
+              <p className="text-sm text-gray-600 mt-1 px-1">
                 측정 시점·기기·로그인 상태에 따라 결과가 달라질 수 있습니다 (실측 데이터 축적 후 변동 폭 표시)
               </p>
             );
@@ -457,7 +457,7 @@ export default function DashboardDetailZone({
                       : "bg-amber-50 border border-amber-200"
                   }`}
                 >
-                  <p className="text-sm text-gray-500 mb-1">근처 {rankingItems.length}곳 중</p>
+                  <p className="text-sm text-gray-600 mb-1">근처 {rankingItems.length}곳 중</p>
                   <p className={`text-4xl font-bold ${myRankInList === 1 ? "text-emerald-700" : "text-amber-700"}`}>
                     {myRankInList}위
                   </p>
@@ -475,7 +475,7 @@ export default function DashboardDetailZone({
               </div>
             ) : (
               <div className="text-center py-6">
-                <p className="text-sm text-gray-500 mb-3">
+                <p className="text-sm text-gray-600 mb-3">
                   경쟁 가게를 등록하면 AI 노출 지수를 비교할 수 있습니다
                 </p>
                 <Link
@@ -564,7 +564,7 @@ export default function DashboardDetailZone({
               <h3 className="text-base md:text-lg font-bold text-gray-800 mb-1">
                 내 가게 키워드가 네이버 블로그에 얼마나 있나요?
               </h3>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-gray-600 mb-4">
                 네이버 블로그 포스트 수 기준 비교입니다 (리뷰 키워드가 아닌, 블로그에 언급된 횟수).
               </p>
               <div className="space-y-4">
@@ -587,7 +587,7 @@ export default function DashboardDetailZone({
                           &ldquo;{kbc.keyword}&rdquo; 키워드
                         </p>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm text-gray-500 w-20 sm:w-24 truncate">
+                          <span className="text-sm text-gray-600 w-20 sm:w-24 truncate">
                             {kbc.competitor_name ?? "경쟁 1위"}
                           </span>
                           <div className="flex-1 bg-gray-100 rounded-full h-2.5">
@@ -626,7 +626,7 @@ export default function DashboardDetailZone({
                 <h3 className="text-base md:text-lg font-bold text-gray-800">
                   최근 사람들이 내 가게를 어떻게 쓰고 있나요?
                 </h3>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-600">
                   {naverResult?.blog_mentions?.toLocaleString()}건 언급
                 </span>
               </div>
@@ -650,10 +650,10 @@ export default function DashboardDetailZone({
                     >
                       <p className="text-sm font-medium text-gray-800 line-clamp-1">{blog.title}</p>
                       {blog.description && (
-                        <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{blog.description}</p>
+                        <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{blog.description}</p>
                       )}
                       {blog.postdate && (
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-gray-600 mt-1">
                           {blog.postdate.replace(/(\d{4})(\d{2})(\d{2})/, "$1.$2.$3")}
                         </p>
                       )}

@@ -73,7 +73,7 @@ export default function DashboardHeader({
     ? "bg-green-100 text-green-700"
     : plan === "basic"
     ? "bg-gray-100 text-gray-600"
-    : "bg-gray-50 text-gray-500";
+    : "bg-gray-50 text-gray-600";
 
   const planBadgeText = isAdmin
     ? "관리자"
@@ -166,7 +166,7 @@ export default function DashboardHeader({
               >
                 내 가게 등록하고 시작하기
               </a>
-              <p className="text-sm text-blue-500 text-center">무료로 시작 · 1분 소요</p>
+              <p className="text-sm text-blue-600 text-center">무료로 시작 · 1분 소요</p>
             </div>
           </div>
         </div>
@@ -188,7 +188,7 @@ export default function DashboardHeader({
               </div>
               {/* 메타 1줄 압축 — 위치·업종·브리핑 자격·자동스캔 정보를 한 행에 (진단 카드 위로 끌어올리기) */}
               <div className="mt-1 flex items-center gap-x-2 gap-y-1 flex-wrap">
-                <p className="text-sm text-gray-500 break-keep">
+                <p className="text-sm text-gray-600 break-keep">
                   {displayCity} · {CATEGORY_LABEL[business.category] ?? business.category}
                 </p>
                 {briefingEligibility === "active" ? (
@@ -200,11 +200,11 @@ export default function DashboardHeader({
                     △ AI 브리핑 확대 예정
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-sm font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 whitespace-nowrap">
+                  <span className="inline-flex items-center gap-1 text-sm font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 whitespace-nowrap">
                     ChatGPT·Gemini 노출 가능 업종
                   </span>
                 )}
-                <span className="text-sm text-gray-500 items-center gap-1 hidden sm:inline-flex">
+                <span className="text-sm text-gray-600 items-center gap-1 hidden sm:inline-flex">
                   <RefreshCw className="w-3 h-3 shrink-0" />
                   <span className="break-keep">{scanInfo.label}</span>
                 </span>
@@ -231,7 +231,7 @@ export default function DashboardHeader({
                 href={`/share/${business.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 border border-gray-200 hover:border-blue-300 px-3 py-2 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-blue-600 border border-gray-200 hover:border-blue-300 px-3 py-2 rounded-lg transition-colors"
               >
                 <Share2 className="w-4 h-4" /> 공유
               </a>
@@ -254,7 +254,7 @@ export default function DashboardHeader({
               </div>
               <a
                 href="/settings?tab=business"
-                className="shrink-0 text-sm font-semibold bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+                className="shrink-0 text-sm font-semibold bg-amber-700 hover:bg-amber-800 text-white px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
               >
                 키워드 추가하기 →
               </a>

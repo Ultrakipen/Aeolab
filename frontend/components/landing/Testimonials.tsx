@@ -28,33 +28,33 @@ export default function Testimonials() {
               <p className="text-2xl md:text-3xl font-bold text-blue-600">4종</p>
               <p className="text-sm text-gray-700 mt-1 leading-snug break-keep">
                 AI 측정<br />
-                <span className="text-sm text-gray-500">Gemini · ChatGPT<br />네이버 · Google</span>
+                <span className="text-sm text-gray-600">Gemini · ChatGPT<br />네이버 · Google</span>
               </p>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-3 md:p-4 shadow-sm">
               <p className="text-2xl md:text-3xl font-bold text-blue-600">100회</p>
               <p className="text-sm text-gray-700 mt-1 leading-snug break-keep">
                 Full 스캔<br />
-                <span className="text-sm text-gray-500">Gemini·ChatGPT<br />각 100회 샘플링</span>
+                <span className="text-sm text-gray-600">Gemini·ChatGPT<br />각 100회 샘플링</span>
               </p>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-3 md:p-4 shadow-sm">
               <p className="text-2xl md:text-3xl font-bold text-blue-600">59종+</p>
               <p className="text-sm text-gray-700 mt-1 leading-snug break-keep">
                 지원 업종<br />
-                <span className="text-sm text-gray-500">음식점·미용<br />법무·교육 등</span>
+                <span className="text-sm text-gray-600">음식점·미용<br />법무·교육 등</span>
               </p>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-3 md:p-4 shadow-sm">
               <p className="text-2xl md:text-3xl font-bold text-blue-600">7일</p>
               <p className="text-sm text-gray-700 mt-1 leading-snug break-keep">
                 자동 재측정<br />
-                <span className="text-sm text-gray-500">변화 추적<br />카카오톡 알림</span>
+                <span className="text-sm text-gray-600">변화 추적<br />카카오톡 알림</span>
               </p>
             </div>
           </div>
 
-          <p className="text-sm text-gray-500 mt-5 break-keep">
+          <p className="text-sm text-gray-600 mt-5 break-keep">
             * 베타 사용자 후기는 확보 후 추가 게시 — 측정 시점·기기·로그인 상태에 따라 결과가 달라질 수 있습니다
           </p>
         </div>
@@ -92,12 +92,12 @@ export default function Testimonials() {
                 <span className="text-sm font-semibold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">
                   {t.industry}
                 </span>
-                <span className="text-sm text-gray-500">{t.region}</span>
+                <span className="text-sm text-gray-600">{t.region}</span>
               </div>
 
               <p
                 className={`text-base md:text-lg leading-relaxed mb-4 break-keep ${
-                  t.isPlaceholder ? "text-gray-500" : "text-gray-800"
+                  t.isPlaceholder ? "text-gray-600" : "text-gray-800"
                 }`}
               >
                 &ldquo;{t.quote}&rdquo;
@@ -105,7 +105,7 @@ export default function Testimonials() {
 
               <p
                 className={`text-sm md:text-base font-bold ${
-                  t.isPlaceholder ? "text-gray-500" : "text-emerald-600"
+                  t.isPlaceholder ? "text-gray-600" : "text-emerald-700"
                 }`}
               >
                 결과: {t.result}

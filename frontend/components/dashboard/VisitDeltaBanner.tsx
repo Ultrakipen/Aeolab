@@ -81,9 +81,9 @@ export default function VisitDeltaBanner({ bizId }: Props) {
       {/* 아이콘 */}
       <div className="shrink-0 mt-0.5">
         {isPositive ? (
-          <TrendingUp className="w-5 h-5 text-green-600" />
+          <TrendingUp className="w-5 h-5 text-green-700" />
         ) : isNegative ? (
-          <TrendingDown className="w-5 h-5 text-orange-500" />
+          <TrendingDown className="w-5 h-5 text-orange-700" />
         ) : null}
       </div>
 
@@ -115,7 +115,7 @@ export default function VisitDeltaBanner({ bizId }: Props) {
       <button
         onClick={handleDismiss}
         aria-label="배너 닫기"
-        className="shrink-0 text-gray-500 hover:text-gray-600 transition-colors ml-1"
+        className="shrink-0 text-gray-600 hover:text-gray-700 transition-colors ml-1"
       >
         <X className="w-4 h-4" />
       </button>

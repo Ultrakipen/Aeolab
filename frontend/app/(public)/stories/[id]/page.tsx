@@ -83,7 +83,7 @@ export default async function StoryDetailPage({
         <div className="max-w-2xl mx-auto px-4 py-6 md:py-8">
           <Link
             href="/stories"
-            className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors mb-4"
+            className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-blue-600 transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
             성공 사례 목록
@@ -107,7 +107,7 @@ export default async function StoryDetailPage({
           <h1 className="text-xl md:text-2xl font-black text-gray-900 leading-tight break-keep">
             {story.title}
           </h1>
-          <p className="text-sm text-gray-500 mt-2">{formatDate(story.published_at)}</p>
+          <p className="text-sm text-gray-600 mt-2">{formatDate(story.published_at)}</p>
         </div>
       </div>
 
@@ -119,8 +119,8 @@ export default async function StoryDetailPage({
             <div className="flex items-center justify-center gap-4 md:gap-8">
               {/* Before */}
               <div className="text-center">
-                <p className="text-sm text-gray-500 mb-1">시작 전</p>
-                <p className="text-2xl font-black text-gray-500">
+                <p className="text-sm text-gray-600 mb-1">시작 전</p>
+                <p className="text-2xl font-black text-gray-600">
                   {story.score_before !== null ? getScoreTextLabel(story.score_before) : "—"}
                 </p>
               </div>
@@ -129,14 +129,14 @@ export default async function StoryDetailPage({
               <div className="flex flex-col items-center gap-1">
                 <ChevronRight className="w-8 h-8 text-blue-300" />
                 {story.score_delta !== null && story.score_delta > 0 && (
-                  <span className="text-sm font-bold text-emerald-600">향상</span>
+                  <span className="text-sm font-bold text-emerald-700">향상</span>
                 )}
               </div>
 
               {/* After */}
               <div className="text-center">
-                <p className="text-sm text-emerald-600 font-medium mb-1">30일 후</p>
-                <p className="text-2xl font-black text-emerald-600">
+                <p className="text-sm text-emerald-700 font-medium mb-1">30일 후</p>
+                <p className="text-2xl font-black text-emerald-700">
                   {story.score_after !== null ? getScoreTextLabel(story.score_after) : "—"}
                 </p>
               </div>
@@ -151,7 +151,7 @@ export default async function StoryDetailPage({
             {story.body}
           </div>
           {story.display_name && !story.is_anonymous && (
-            <p className="text-sm text-gray-500 mt-4 pt-4 border-t border-gray-50">
+            <p className="text-sm text-gray-600 mt-4 pt-4 border-t border-gray-50">
               — {story.display_name}
             </p>
           )}
@@ -161,7 +161,7 @@ export default async function StoryDetailPage({
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-2">
           <Link
             href="/stories"
-            className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-blue-600 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             목록으로 돌아가기

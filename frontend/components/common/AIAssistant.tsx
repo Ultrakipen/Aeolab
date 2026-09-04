@@ -146,7 +146,7 @@ export default function AIAssistant({ bizId, plan, authToken }: Props) {
           <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
             {!hasMessages && (
               <div className="text-center">
-                <p className="text-sm text-gray-500 mb-3">무엇이든 물어보세요</p>
+                <p className="text-sm text-gray-600 mb-3">무엇이든 물어보세요</p>
                 <div className="space-y-2">
                   {quickQuestions.map((q, i) => (
                     <button
@@ -158,7 +158,7 @@ export default function AIAssistant({ bizId, plan, authToken }: Props) {
                     </button>
                   ))}
                 </div>
-                <p className="text-sm text-gray-500 mt-3">
+                <p className="text-sm text-gray-600 mt-3">
                   {plan} 플랜: 월 {monthlyLimit}회 사용 가능
                 </p>
               </div>
@@ -185,7 +185,7 @@ export default function AIAssistant({ bizId, plan, authToken }: Props) {
               <div className="flex justify-start">
                 <div className="bg-gray-100 rounded-xl rounded-bl-sm px-4 py-3">
                   <div className="flex items-center gap-1">
-                    <span className="text-sm text-gray-500">답변 생성 중</span>
+                    <span className="text-sm text-gray-600">답변 생성 중</span>
                     <span className="flex gap-0.5">
                       {[0, 1, 2].map((i) => (
                         <span
@@ -232,7 +232,7 @@ export default function AIAssistant({ bizId, plan, authToken }: Props) {
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 text-white disabled:text-gray-400 rounded-lg px-3 py-2.5 transition-colors shrink-0"
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 text-white disabled:text-gray-600 rounded-lg px-3 py-2.5 transition-colors shrink-0"
               aria-label="전송"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

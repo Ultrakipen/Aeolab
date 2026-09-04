@@ -282,7 +282,7 @@ function TrendGraph({ days, annotation }: { days: number; annotation?: string })
           </>
         )}
       </svg>
-      <div className="flex justify-between mt-1 text-sm text-gray-500">
+      <div className="flex justify-between mt-1 text-sm text-gray-600">
         <span>{days === 90 ? "90일 전" : "30일 전"}</span>
         <span>오늘</span>
       </div>
@@ -332,14 +332,14 @@ function ComparisonTable() {
   ];
 
   const renderCell = (val: boolean | string) => {
-    if (val === true) return <span className="text-emerald-600 font-bold text-base">✅</span>;
-    if (val === false) return <span className="text-gray-500 text-base">❌</span>;
+    if (val === true) return <span className="text-emerald-700 font-bold text-base">✅</span>;
+    if (val === false) return <span className="text-gray-600 text-base">❌</span>;
     return <span className="text-sm font-semibold text-gray-700">{val}</span>;
   };
 
   return (
     <div>
-      <p className="text-sm text-gray-500 text-center mb-2 md:hidden">← 좌우로 밀어 비교하세요</p>
+      <p className="text-sm text-gray-600 text-center mb-2 md:hidden">← 좌우로 밀어 비교하세요</p>
       <div className="overflow-x-auto">
       <table className="w-full min-w-[480px] text-sm border-collapse">
         <thead>
@@ -347,7 +347,7 @@ function ComparisonTable() {
             <th className="text-left p-3 font-semibold text-gray-700 w-48">기능</th>
             <th className="p-3 font-semibold text-gray-700 text-center">Basic<br /><span className="text-indigo-600">11,900원</span></th>
             <th className="p-3 font-bold text-indigo-700 text-center bg-indigo-50">Pro<br /><span className="text-indigo-600">23,900원</span></th>
-            <th className="p-3 font-semibold text-gray-700 text-center">창업패키지<br /><span className="text-emerald-600">12,900원</span></th>
+            <th className="p-3 font-semibold text-gray-700 text-center">창업패키지<br /><span className="text-emerald-700">12,900원</span></th>
           </tr>
         </thead>
         <tbody>
@@ -392,7 +392,7 @@ function BasicContent({ d }: { d: MockData }) {
           <div className="bg-blue-50 rounded-xl p-3">
             <div className="text-sm text-blue-600 font-semibold mb-1">네이버 AI 채널</div>
             <div className="text-2xl font-black text-blue-700">{scoreLabel(d.track1)}</div>
-            <div className="text-sm text-blue-500 mt-0.5">스마트플레이스 기반</div>
+            <div className="text-sm text-blue-600 mt-0.5">스마트플레이스 기반</div>
           </div>
           <div className="bg-purple-50 rounded-xl p-3">
             <div className="text-sm text-purple-600 font-semibold mb-1">ChatGPT·구글 AI</div>
@@ -413,11 +413,11 @@ function BasicContent({ d }: { d: MockData }) {
           <p className="text-sm font-bold text-gray-700 mb-2">AI 100번 검색 결과</p>
           {Object.entries(d.platform_counts).map(([platform, count]) => (
             <div key={platform} className="flex items-center gap-3">
-              <span className={`text-base ${count > 0 ? "text-emerald-500" : "text-red-400"}`}>
+              <span className={`text-base ${count > 0 ? "text-emerald-700" : "text-red-400"}`}>
                 {count > 0 ? "✅" : "❌"}
               </span>
               <span className="text-sm text-gray-700 w-36 shrink-0">{PLATFORM_LABELS[platform]}</span>
-              <span className={`text-sm font-bold ${count > 0 ? "text-emerald-700" : "text-red-600"}`}>
+              <span className={`text-sm font-bold ${count > 0 ? "text-emerald-700" : "text-red-700"}`}>
                 {count > 0 ? `${count}번 나왔습니다` : "한 번도 안 나왔습니다"}
               </span>
             </div>
@@ -435,7 +435,7 @@ function BasicContent({ d }: { d: MockData }) {
       {/* 카드 2: 없는 키워드 */}
       <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
         <h3 className="text-base md:text-lg font-bold text-gray-900 mb-1">경쟁 가게는 갖고 있는데 내 가게엔 없는 키워드</h3>
-        <p className="text-sm text-gray-500 mb-4">이 키워드가 없으면 AI 추천 목록에서 빠집니다</p>
+        <p className="text-sm text-gray-600 mb-4">이 키워드가 없으면 AI 추천 목록에서 빠집니다</p>
 
         <div className="flex flex-wrap gap-2 mb-4">
           {d.missing_keywords.map((kw) => (
@@ -475,7 +475,7 @@ function BasicContent({ d }: { d: MockData }) {
       <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-3">
           <h3 className="text-base md:text-lg font-bold text-gray-900">주변 경쟁 가게와 AI 노출 비교</h3>
-          <span className="text-sm text-gray-500">Basic · 경쟁 가게 3곳까지</span>
+          <span className="text-sm text-gray-600">Basic · 경쟁 가게 3곳까지</span>
         </div>
         <CompetitorBar name={d.name} score={d.unified} max={maxScore} isMine />
         {comp3.map((name, i) => (
@@ -493,10 +493,10 @@ function BasicContent({ d }: { d: MockData }) {
       <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
           <h3 className="text-base md:text-lg font-bold text-gray-900">내 가게 AI 노출 점수 변화</h3>
-          <span className="text-sm text-gray-500">Basic · 최근 추이</span>
+          <span className="text-sm text-gray-600">Basic · 최근 추이</span>
         </div>
         <TrendGraph days={30} />
-        <p className="text-sm text-gray-500 mt-3">
+        <p className="text-sm text-gray-600 mt-3">
           점수가 낮아지는 날 = 경쟁 가게가 올라가는 날입니다.
           변화가 생기면 원인을 파악해 빠르게 대응해야 합니다.
         </p>
@@ -511,7 +511,7 @@ function BasicContent({ d }: { d: MockData }) {
             { q: `${d.missing_keywords[1]} 근처 가게`, found: false },
           ].map((item, i) => (
             <div key={i} className="flex items-center gap-2">
-              <span className={item.found ? "text-emerald-500" : "text-red-400"}>{item.found ? "✅" : "❌"}</span>
+              <span className={item.found ? "text-emerald-700" : "text-red-400"}>{item.found ? "✅" : "❌"}</span>
               <span className="text-sm text-gray-700">&quot;{item.q}&quot;</span>
             </div>
           ))}
@@ -528,7 +528,7 @@ function BasicContent({ d }: { d: MockData }) {
         <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
           <div className="bg-gray-50 border-b border-gray-200 px-3 py-2">
             <p className="text-sm font-bold text-gray-700">AI 노출 분석 리포트 · 1/3</p>
-            <p className="text-sm text-gray-500">2024년 12월 | {d.name}</p>
+            <p className="text-sm text-gray-600">2024년 12월 | {d.name}</p>
           </div>
           <div className="p-3 grid grid-cols-4 gap-1.5">
             {[
@@ -538,13 +538,13 @@ function BasicContent({ d }: { d: MockData }) {
               { label: "Gemini", value: "노출중" },
             ].map((c) => (
               <div key={c.label} className="border border-gray-100 rounded-lg px-1.5 py-2 text-center">
-                <p className="text-sm text-gray-400">{c.label}</p>
+                <p className="text-sm text-gray-600">{c.label}</p>
                 <p className="text-sm font-bold text-gray-700 mt-0.5">{c.value}</p>
               </div>
             ))}
           </div>
           <div className="px-3 pb-3">
-            <p className="text-sm text-gray-400">30일 추이 · 항목별 분석 (2p) · 이달의 실행 체크리스트 (3p)</p>
+            <p className="text-sm text-gray-600">30일 추이 · 항목별 분석 (2p) · 이달의 실행 체크리스트 (3p)</p>
           </div>
         </div>
       </LockedCard>
@@ -556,7 +556,7 @@ function BasicContent({ d }: { d: MockData }) {
         <Link href="/pricing#plan-Basic" className="inline-block bg-indigo-600 text-white font-bold text-base px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors">
           지금 구독하기 →
         </Link>
-        <p className="text-sm text-gray-500 mt-3">30일 무료 체험 없이 바로 시작 · 7일 이내 미사용 시 100% 환불</p>
+        <p className="text-sm text-gray-600 mt-3">30일 무료 체험 없이 바로 시작 · 7일 이내 미사용 시 100% 환불</p>
       </div>
     </div>
   );
@@ -581,16 +581,16 @@ function ProContent({ d }: { d: MockData }) {
           <span className="bg-indigo-100 text-indigo-700 text-sm font-bold px-2 py-0.5 rounded-full">Pro 전용</span>
           <h3 className="text-base md:text-lg font-bold text-gray-900">손님이 &apos;AI야, ~한 가게 알려줘&apos;라고 물을 때</h3>
         </div>
-        <p className="text-sm text-gray-500 mb-4">이런 검색에 내 가게가 나오는지 매주 확인합니다</p>
+        <p className="text-sm text-gray-600 mb-4">이런 검색에 내 가게가 나오는지 매주 확인합니다</p>
 
         <div className="space-y-2 mb-4">
           {d.condition_queries.map((item, i) => (
             <div key={i} className="flex items-center gap-3 py-1">
-              <span className={`text-base shrink-0 ${item.found ? "text-emerald-500" : "text-red-400"}`}>
+              <span className={`text-base shrink-0 ${item.found ? "text-emerald-700" : "text-red-400"}`}>
                 {item.found ? "✅" : "❌"}
               </span>
               <span className="text-sm text-gray-700 flex-1">&quot;{item.query}&quot;</span>
-              <span className={`text-sm font-semibold shrink-0 ${item.found ? "text-emerald-600" : "text-red-500"}`}>
+              <span className={`text-sm font-semibold shrink-0 ${item.found ? "text-emerald-700" : "text-red-700"}`}>
                 {item.found ? "나옵니다" : "안 나옵니다"}
               </span>
             </div>
@@ -602,7 +602,7 @@ function ProContent({ d }: { d: MockData }) {
             5개 검색 중 {foundCount}개에서 안 나옵니다.
             &apos;{d.missing_keywords.join(", ")}&apos; 키워드를 FAQ에 추가하면 해결됩니다.
           </p>
-          <p className="text-sm text-red-600 mt-1">→ 가이드에서 바로 복사 가능한 문구를 드립니다</p>
+          <p className="text-sm text-red-700 mt-1">→ 가이드에서 바로 복사 가능한 문구를 드립니다</p>
         </div>
       </div>
 
@@ -613,7 +613,7 @@ function ProContent({ d }: { d: MockData }) {
           <h3 className="text-base md:text-lg font-bold text-gray-900">90일 점수 변화 — 언제 올랐고 언제 내렸나</h3>
         </div>
         <TrendGraph days={90} annotation="성수기 ↑" />
-        <p className="text-sm text-gray-500 mt-3">
+        <p className="text-sm text-gray-600 mt-3">
           30일만 보면 놓치는 패턴이 있습니다.
           언제 집중 관리해야 하는지 90일 데이터로 파악합니다.
         </p>
@@ -647,7 +647,7 @@ function ProContent({ d }: { d: MockData }) {
             📊 엑셀로 데이터 내보내기
           </button>
         </div>
-        <p className="text-sm text-gray-500 mt-2">핵심은 매일 보는 대시보드이며, PDF·CSV는 필요할 때 내려받는 보조 자료입니다</p>
+        <p className="text-sm text-gray-600 mt-2">핵심은 매일 보는 대시보드이며, PDF·CSV는 필요할 때 내려받는 보조 자료입니다</p>
       </div>
 
       {/* 잠금: 창업패키지 전용 */}
@@ -685,7 +685,7 @@ function StartupContent({ d, category }: { d: MockData; category: CategoryKey })
           <span className="bg-emerald-100 text-emerald-700 text-sm font-bold px-2 py-0.5 rounded-full">창업패키지 전용</span>
           <h3 className="text-base md:text-lg font-bold text-gray-900">지금 이 업종·지역에서 창업하면 어떨까요?</h3>
         </div>
-        <p className="text-sm text-gray-500 mb-4">AI 검색 데이터 기반 창업 타이밍 분석</p>
+        <p className="text-sm text-gray-600 mb-4">AI 검색 데이터 기반 창업 타이밍 분석</p>
 
         <div className="grid grid-cols-3 gap-3 mb-4">
           <div className={`rounded-xl p-3 text-center ${d.market_timing_color}`}>
@@ -730,7 +730,7 @@ function StartupContent({ d, category }: { d: MockData; category: CategoryKey })
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-emerald-700 font-semibold">강점: {d.top_biz_strengths[i % d.top_biz_strengths.length]}</p>
-                <p className="text-sm text-red-600 font-semibold">약점: {d.top_biz_weaknesses[i % d.top_biz_weaknesses.length]}</p>
+                <p className="text-sm text-red-700 font-semibold">약점: {d.top_biz_weaknesses[i % d.top_biz_weaknesses.length]}</p>
               </div>
             </div>
           ))}
@@ -750,7 +750,7 @@ function StartupContent({ d, category }: { d: MockData; category: CategoryKey })
           <span className="bg-emerald-100 text-emerald-700 text-sm font-bold px-2 py-0.5 rounded-full">창업패키지 전용</span>
           <h3 className="text-base md:text-lg font-bold text-gray-900">AI가 추천하는 이 지역 창업 3대 전략</h3>
         </div>
-        <p className="text-sm text-gray-500 mb-4">Claude AI 분석 기반</p>
+        <p className="text-sm text-gray-600 mb-4">Claude AI 분석 기반</p>
 
         <div className="space-y-3">
           {d.entry_strategy.map((strategy, i) => {
@@ -762,7 +762,7 @@ function StartupContent({ d, category }: { d: MockData; category: CategoryKey })
                 </span>
                 <div>
                   <p className="text-sm font-semibold text-gray-900">{title}</p>
-                  {desc && <p className="text-sm text-gray-500 mt-0.5">→ {desc}</p>}
+                  {desc && <p className="text-sm text-gray-600 mt-0.5">→ {desc}</p>}
                 </div>
               </div>
             );
@@ -780,15 +780,15 @@ function StartupContent({ d, category }: { d: MockData; category: CategoryKey })
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
           <div className="bg-gray-50 rounded-xl p-3 text-center">
             <div className="text-2xl font-black text-gray-700">{scoreLabel(d.avg_score)}</div>
-            <div className="text-sm text-gray-500 mt-0.5">업종 평균 AI 노출</div>
+            <div className="text-sm text-gray-600 mt-0.5">업종 평균 AI 노출</div>
           </div>
           <div className="bg-gray-50 rounded-xl p-3 text-center">
             <div className="text-2xl font-black text-gray-700">{d.avg_reviews}개</div>
-            <div className="text-sm text-gray-500 mt-0.5">평균 리뷰 수</div>
+            <div className="text-sm text-gray-600 mt-0.5">평균 리뷰 수</div>
           </div>
           <div className="col-span-2 sm:col-span-1 bg-gray-50 rounded-xl p-3 text-center">
             <div className="text-2xl font-black text-gray-700">{d.briefing_ratio}%</div>
-            <div className="text-sm text-gray-500 mt-0.5">AI 브리핑 노출 비율</div>
+            <div className="text-sm text-gray-600 mt-0.5">AI 브리핑 노출 비율</div>
           </div>
         </div>
 
@@ -805,7 +805,7 @@ function StartupContent({ d, category }: { d: MockData; category: CategoryKey })
         <div className="space-y-2 p-2">
           {d.condition_queries.slice(0, 3).map((item, i) => (
             <div key={i} className="flex items-center gap-2">
-              <span className={item.found ? "text-emerald-500" : "text-red-400"}>{item.found ? "✅" : "❌"}</span>
+              <span className={item.found ? "text-emerald-700" : "text-red-400"}>{item.found ? "✅" : "❌"}</span>
               <span className="text-sm text-gray-700">&quot;{item.query}&quot;</span>
             </div>
           ))}
@@ -813,7 +813,7 @@ function StartupContent({ d, category }: { d: MockData; category: CategoryKey })
       </LockedCard>
 
       {/* CTA */}
-      <div className="bg-emerald-600 rounded-xl p-5 md:p-8 text-center text-white">
+      <div className="bg-emerald-700 rounded-xl p-5 md:p-8 text-center text-white">
         <p className="text-lg md:text-xl font-black mb-1">창업 준비 중이라면 창업패키지 — 12,900원/월</p>
         <p className="text-sm text-emerald-200 mb-4">창업 컨설팅 한 번 비용으로 6개월 AI 데이터 확보</p>
         <Link href="/pricing#plan-창업패키지" className="inline-block bg-white text-emerald-700 font-bold text-base px-6 py-3 rounded-xl hover:bg-emerald-50 transition-colors">
@@ -862,11 +862,11 @@ export default function PlansPreviewPage() {
           <h1 className="text-xl md:text-2xl font-black text-gray-900 mb-2">
             손님이 AI에서 내 가게를 찾을 때
           </h1>
-          <p className="text-sm md:text-base text-gray-500">
+          <p className="text-sm md:text-base text-gray-600">
             어떤 결과를 볼 수 있는지 미리 확인하세요
           </p>
           <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-3">
-            <span className="text-amber-600 text-sm font-semibold">실제 데모 데이터 · 구독 후 내 가게 분석 가능</span>
+            <span className="text-amber-700 text-sm font-semibold">실제 데모 데이터 · 구독 후 내 가게 분석 가능</span>
           </div>
         </div>
 
@@ -902,13 +902,13 @@ export default function PlansPreviewPage() {
                 className={`flex-1 py-2 px-1 rounded-xl text-sm font-bold transition-colors border-2 ${
                   selectedPlan === key
                     ? key === "startup"
-                      ? "bg-emerald-600 text-white border-emerald-600"
+                      ? "bg-emerald-700 text-white border-emerald-600"
                       : "bg-indigo-600 text-white border-indigo-600"
                     : "bg-gray-50 text-gray-600 border-transparent hover:bg-gray-100"
                 }`}
               >
                 <div>{label}</div>
-                <div className={`text-sm mt-0.5 ${selectedPlan === key ? "text-white/80" : "text-gray-500"}`}>{price}</div>
+                <div className={`text-sm mt-0.5 ${selectedPlan === key ? "text-white/80" : "text-gray-600"}`}>{price}</div>
               </button>
             ))}
           </div>
@@ -917,7 +917,7 @@ export default function PlansPreviewPage() {
         {/* 선택된 사업장 정보 표시 */}
         <div className="flex items-center gap-2 mb-4">
           <div className="w-2 h-2 bg-indigo-500 rounded-full" />
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-600">
             <strong className="text-gray-800">{d.name}</strong> ({CATEGORY_LABELS[selectedCategory]}) 기준 예시
           </p>
         </div>
@@ -938,7 +938,7 @@ export default function PlansPreviewPage() {
           <Link href="/pricing#plan-Basic" className="block bg-white border-2 border-indigo-200 text-indigo-700 font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-indigo-50 transition-colors">
             <div className="text-base font-black">Basic</div>
             <div className="text-indigo-600 font-black">11,900원/월</div>
-            <div className="text-sm text-gray-500 mt-1">지금 시작하기 →</div>
+            <div className="text-sm text-gray-600 mt-1">지금 시작하기 →</div>
           </Link>
           <Link href="/pricing#plan-Pro" className="block bg-indigo-600 text-white font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-indigo-700 transition-colors shadow-md">
             <div className="text-base font-black">Pro</div>
@@ -947,12 +947,12 @@ export default function PlansPreviewPage() {
           </Link>
           <Link href="/pricing#plan-창업패키지" className="block bg-white border-2 border-emerald-200 text-emerald-700 font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-emerald-50 transition-colors">
             <div className="text-base font-black">창업패키지</div>
-            <div className="text-emerald-600 font-black">12,900원/월</div>
-            <div className="text-sm text-gray-500 mt-1">지금 시작하기 →</div>
+            <div className="text-emerald-700 font-black">12,900원/월</div>
+            <div className="text-sm text-gray-600 mt-1">지금 시작하기 →</div>
           </Link>
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-4">7일 이내 미사용 시 100% 환불 · 구독 후 즉시 이용</p>
+        <p className="text-center text-sm text-gray-600 mt-4">7일 이내 미사용 시 100% 환불 · 구독 후 즉시 이용</p>
       </div>
     </div>
   );

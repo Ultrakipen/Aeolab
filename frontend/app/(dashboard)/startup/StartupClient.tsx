@@ -140,7 +140,7 @@ export function StartupClient() {
   return (
     <div className="p-4 md:p-8 max-w-3xl">
       <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">창업 시장 분석</h1>
-      <p className="text-sm text-gray-500 mb-4">실제 상권 규모·트렌드 분석 + 진입 전략 (창업 패키지·Biz 전용, Enterprise는 별도 문의)</p>
+      <p className="text-sm text-gray-600 mb-4">실제 상권 규모·트렌드 분석 + 진입 전략 (창업 패키지·Biz 전용, Enterprise는 별도 문의)</p>
 
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6 text-sm text-blue-900 leading-relaxed">
         <p className="font-semibold mb-1">이 기능은 이렇게 활용하세요</p>
@@ -174,7 +174,7 @@ export function StartupClient() {
               placeholder="예: 서울 강남"
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <p className="text-sm text-gray-500 mt-1">시·구 단위로 입력하세요 (예: &quot;강남&quot;, &quot;강남구&quot;, &quot;서울 강남구&quot; 모두 동일하게 인식)</p>
+            <p className="text-sm text-gray-600 mt-1">시·구 단위로 입력하세요 (예: &quot;강남&quot;, &quot;강남구&quot;, &quot;서울 강남구&quot; 모두 동일하게 인식)</p>
           </div>
         </div>
         <div className="mb-4">
@@ -194,9 +194,9 @@ export function StartupClient() {
             placeholder="예: 다른 후보 상권 (예: 홍대)"
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <p className="text-sm text-gray-500 mt-1">입력하면 이 지역의 상권 밀도를 비교 지역과 실측으로 비교해서 보여드립니다. 전국 평균은 농어촌 지역에 왜곡되어 사용하지 않습니다.</p>
+          <p className="text-sm text-gray-600 mt-1">입력하면 이 지역의 상권 밀도를 비교 지역과 실측으로 비교해서 보여드립니다. 전국 평균은 농어촌 지역에 왜곡되어 사용하지 않습니다.</p>
         </div>
-        {error && <p className="text-sm text-red-600 mb-3 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
+        {error && <p className="text-sm text-red-700 mb-3 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <button
           onClick={handleGenerate}
           disabled={loading}
@@ -210,7 +210,7 @@ export function StartupClient() {
       {report && (
         <>
           {restoredAt && (
-            <p className="text-sm text-gray-500 mb-3">
+            <p className="text-sm text-gray-600 mb-3">
               마지막 분석 결과를 불러왔습니다 ({new Date(restoredAt).toLocaleString("ko-KR")} 생성) — 다시 분석하려면 위 버튼을 눌러주세요.
             </p>
           )}

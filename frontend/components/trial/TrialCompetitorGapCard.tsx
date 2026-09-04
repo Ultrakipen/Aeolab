@@ -60,7 +60,7 @@ export default function TrialCompetitorGapCard({
       {/* 내 키워드 노출 현황 (속성 키워드별 순위) */}
       {attributeRanks.length > 0 && (
         <div className="mb-4">
-          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">내 입력 키워드 순위</p>
+          <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-2">내 입력 키워드 순위</p>
           <div className="space-y-2">
             {attributeRanks.map((kr, i) => {
               // "창원 단체 예약 가능 맛집" → "단체 예약 가능 맛집" (지역명 제거해서 표시)
@@ -71,12 +71,12 @@ export default function TrialCompetitorGapCard({
                 }`}>
                   <div>
                     <p className="text-sm font-medium text-gray-700">&ldquo;{displayQuery}&rdquo; 검색</p>
-                    <p className="text-sm text-gray-500 mt-0.5">네이버 지역 검색</p>
+                    <p className="text-sm text-gray-600 mt-0.5">네이버 지역 검색</p>
                   </div>
                   {kr.exposed && kr.rank ? (
                     <span className="text-sm font-bold text-green-700 shrink-0 ml-2">{kr.rank}위 노출</span>
                   ) : (
-                    <span className="text-sm font-bold text-red-600 shrink-0 ml-2">20위 밖</span>
+                    <span className="text-sm font-bold text-red-700 shrink-0 ml-2">20위 밖</span>
                   )}
                 </div>
               );
@@ -89,12 +89,12 @@ export default function TrialCompetitorGapCard({
       {naverCompetitors && naverCompetitors.length > 0 && (
         <div className="mb-3">
           <div className="flex items-center gap-2 mb-2">
-            <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">같은 업종 경쟁 현황</p>
+            <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">같은 업종 경쟁 현황</p>
             {searchQuery && (
               <span className="text-sm text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">&ldquo;{searchQuery}&rdquo; 기준</span>
             )}
           </div>
-          <p className="text-sm text-gray-500 mb-2 leading-relaxed">
+          <p className="text-sm text-gray-600 mb-2 leading-relaxed">
             업종 전체 기준 경쟁사입니다. 내 가게 특화 키워드 노출은 위 &lsquo;내 입력 키워드 순위&rsquo;를 확인하세요.
           </p>
         </div>
@@ -116,7 +116,7 @@ export default function TrialCompetitorGapCard({
                   comp.rank === 1 ? "bg-yellow-300 text-yellow-900"
                   : comp.rank === 2 ? "bg-gray-300 text-gray-700"
                   : comp.rank === 3 ? "bg-orange-200 text-orange-800"
-                  : "bg-white text-gray-500 border border-gray-200"
+                  : "bg-white text-gray-600 border border-gray-200"
                 }`}>
                   {comp.rank}
                 </span>
@@ -128,7 +128,7 @@ export default function TrialCompetitorGapCard({
             );
           })}
           {!myRank && (
-            <p className="text-sm text-red-600 mt-1 px-1">내 가게가 상위 20위 안에 없습니다</p>
+            <p className="text-sm text-red-700 mt-1 px-1">내 가게가 상위 20위 안에 없습니다</p>
           )}
         </div>
       )}
@@ -140,7 +140,7 @@ export default function TrialCompetitorGapCard({
 
           {/* 측정 방식 항상 안내 */}
           <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-2">
-            <p className="text-sm text-gray-500 leading-relaxed">
+            <p className="text-sm text-gray-600 leading-relaxed">
               <strong className="text-gray-600">측정 방식</strong> — 네이버 블로그 API에서 &ldquo;지역 + 가게명&rdquo;을 검색한 총 결과 수입니다.
               검색어에 지역명이 포함되어 해당 지역 결과를 우선 수집하며, 가게 후기뿐 아니라 해당 키워드가 포함된 모든 포스트가 합산됩니다.
               경쟁사는 같은 업종(예: 음식점) 기준으로 선택되며 세부 업종은 다를 수 있습니다.
@@ -192,17 +192,17 @@ export default function TrialCompetitorGapCard({
               </div>
               <div className="pt-1 space-y-0.5">
                 {blogSearchQuery && (
-                  <p className="text-sm text-gray-500">내 가게: 블로그 &ldquo;{blogSearchQuery}&rdquo; 검색 결과</p>
+                  <p className="text-sm text-gray-600">내 가게: 블로그 &ldquo;{blogSearchQuery}&rdquo; 검색 결과</p>
                 )}
                 {compBlogSearchQuery && (
-                  <p className="text-sm text-gray-500">경쟁사: 블로그 &ldquo;{compBlogSearchQuery}&rdquo; 검색 결과</p>
+                  <p className="text-sm text-gray-600">경쟁사: 블로그 &ldquo;{compBlogSearchQuery}&rdquo; 검색 결과</p>
                 )}
               </div>
             </div>
           )}
 
           {(topCompetitorBlogCount ?? 0) <= 50000 && (topCompetitorBlogCount ?? 0) > blogCount && (
-            <p className="text-sm text-red-600 mt-2">
+            <p className="text-sm text-red-700 mt-2">
               {(topCompetitorBlogCount ?? 0) > 1500
                 ? <>경쟁사 블로그 언급이 <strong>훨씬 많습니다</strong> — 가게명에 지역·업종 키워드가 포함돼 합산 부풀림 가능성 있음</>
                 : <>1위보다 <strong>{(topCompetitorBlogCount ?? 0) - blogCount}건</strong> 적습니다</>}

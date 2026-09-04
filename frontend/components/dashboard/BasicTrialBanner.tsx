@@ -71,7 +71,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
     return (
       <div className="rounded-xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-green-50 p-5 md:p-6 mb-4">
         <div className="flex items-start gap-3">
-          <Loader2 className="w-6 h-6 text-emerald-600 animate-spin shrink-0 mt-0.5" />
+          <Loader2 className="w-6 h-6 text-emerald-700 animate-spin shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-base md:text-lg font-bold text-emerald-900">
               전체 AI가 내 가게를 확인하고 있어요...
@@ -94,12 +94,12 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
       <div className="rounded-xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 p-5 md:p-6 mb-4 shadow-sm">
         <div className="flex items-start gap-3 mb-3">
           <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full bg-emerald-100 shrink-0">
-            <Gift className="w-5 h-5 md:w-6 md:h-6 text-emerald-600" />
+            <Gift className="w-5 h-5 md:w-6 md:h-6 text-emerald-700" />
           </div>
           <div className="flex-1 min-w-0 pr-10 md:pr-0">
             <h3 className="text-base md:text-lg font-bold text-emerald-900 flex items-center gap-2 flex-wrap">
               지금 <span className="underline decoration-2">무료로 전체 AI 체험</span> 한 번 사용해 보세요
-              <Sparkles className="w-4 h-4 text-emerald-600" />
+              <Sparkles className="w-4 h-4 text-emerald-700" />
             </h3>
             <p className="text-sm md:text-base text-emerald-800 mt-1.5 leading-relaxed">
               <strong>{businessName}</strong>에 대해 4개 AI(ChatGPT · 네이버 AI 브리핑 · 구글 AI · Gemini)가
@@ -109,7 +109,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
               <li>• Gemini·ChatGPT 각 50회 샘플링으로 AI 노출 빈도 측정</li>
               <li>• AI 개선 가이드 1회 자동 생성</li>
               <li>• 약 1분 소요 · 평생 1회 무료</li>
-              <li className="text-emerald-600">• Basic 구독 시 각 100회로 정확도 상승 + 주 2회 자동 반복 측정</li>
+              <li className="text-emerald-700">• Basic 구독 시 각 100회로 정확도 상승 + 주 2회 자동 반복 측정</li>
             </ul>
           </div>
         </div>
@@ -123,7 +123,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
         {!confirming ? (
           <button
             onClick={() => setConfirming(true)}
-            className="w-full md:w-auto px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm md:text-base font-semibold rounded-xl transition-colors shadow-sm"
+            className="w-full md:w-auto px-5 py-3 bg-emerald-700 hover:bg-emerald-800 text-white text-sm md:text-base font-semibold rounded-xl transition-colors shadow-sm"
           >
             지금 1회 무료로 전체 AI 체험
           </button>
@@ -135,7 +135,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
             <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={handleStart}
-                className="flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm md:text-base font-semibold rounded-lg transition-colors"
+                className="flex-1 px-4 py-3 bg-emerald-700 hover:bg-emerald-800 text-white text-sm md:text-base font-semibold rounded-lg transition-colors"
               >
                 네, 시작합니다
               </button>

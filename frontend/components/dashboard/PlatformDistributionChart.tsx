@@ -52,7 +52,7 @@ function PlatformRow({
     const statusClass = inBriefing
       ? 'text-sm font-semibold'
       : mentioned
-      ? 'text-sm font-semibold text-amber-600'
+      ? 'text-sm font-semibold text-amber-700'
       : 'text-sm text-gray-300'
 
     return (
@@ -93,7 +93,7 @@ function PlatformRow({
     const statusClass = tabVisible === true
       ? 'text-sm font-semibold'
       : tabVisible === null || tabVisible === undefined
-      ? 'text-sm text-amber-500'
+      ? 'text-sm text-amber-700'
       : 'text-sm text-gray-300'
     const barColor = tabVisible === true ? '#0ea5e9' : 'transparent'
 
@@ -145,12 +145,12 @@ function PlatformRow({
       <div className="w-20 text-right shrink-0">
         {hasError ? (
           platform.key === 'google' ? (
-            <span className="text-sm text-gray-500">측정 보류</span>
+            <span className="text-sm text-gray-600">측정 보류</span>
           ) : (
             <span className="text-sm text-gray-300">오류</span>
           )
         ) : platform.key === 'gemini' && exposureFreq !== undefined ? (
-          <span className={`text-sm font-semibold ${mentioned ? 'text-indigo-600' : 'text-gray-500'}`}>
+          <span className={`text-sm font-semibold ${mentioned ? 'text-indigo-600' : 'text-gray-600'}`}>
             {exposureFreq}회/{sampleSize}
           </span>
         ) : mentioned ? (
@@ -185,11 +185,11 @@ export function PlatformDistributionChart({
       <div className="flex items-center justify-between mb-4">
         <div>
           <div className="text-sm font-medium text-gray-700">AI 플랫폼별 노출 현황</div>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-gray-600 mt-0.5">
             네이버 생태계와 글로벌 AI 채널을 분리해 보여줍니다
           </p>
         </div>
-        <div className="flex gap-3 text-sm text-gray-500">
+        <div className="flex gap-3 text-sm text-gray-600">
           <span>
             노출 <strong className="text-gray-800">
               {naverMentionCount + globalMentionCount}
@@ -214,7 +214,7 @@ export function PlatformDistributionChart({
             return (
               <>
                 <div className="flex items-center gap-3">
-                  <div className="w-36 shrink-0 text-sm text-gray-500 font-medium truncate">
+                  <div className="w-36 shrink-0 text-sm text-gray-600 font-medium truncate">
                     네이버 AI 브리핑
                   </div>
                   <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
@@ -224,13 +224,13 @@ export function PlatformDistributionChart({
                   </div>
                   <div className="w-20 text-right shrink-0">
                     {infoTypeExposed ? (
-                      <span className="text-sm font-semibold text-green-600">정보형 노출 중</span>
+                      <span className="text-sm font-semibold text-green-700">정보형 노출 중</span>
                     ) : (
-                      <span className="text-sm text-gray-500">플레이스형 해당 없음</span>
+                      <span className="text-sm text-gray-600">플레이스형 해당 없음</span>
                     )}
                   </div>
                 </div>
-                <p className="text-sm text-gray-500 pl-1">
+                <p className="text-sm text-gray-600 pl-1">
                   {infoTypeExposed
                     ? '→ 블로그·콘텐츠 기반 정보형 AI 브리핑에 노출 중입니다 (가게 카드형은 이 업종 미대상)'
                     : '→ 블로그·콘텐츠로 정보형 AI 브리핑 노출 가능 · 네이버 일반 검색 상위노출(C-Rank · 리뷰·소식 최적화) 집중 권장'}
@@ -258,7 +258,7 @@ export function PlatformDistributionChart({
           <span className="text-sm font-semibold text-gray-600">
             글로벌 AI 채널
           </span>
-          <span className="text-sm text-gray-500 ml-1">
+          <span className="text-sm text-gray-600 ml-1">
             (ChatGPT 한국 MAU 2,000만+ 대응)
           </span>
         </div>
@@ -284,7 +284,7 @@ export function PlatformDistributionChart({
                   <div className="pl-[140px] mt-0.5 mb-0.5">
                     <span className="text-sm">
                       <span className="font-medium" style={{ color: p.color }}>{p.label}</span>
-                      <span className="text-gray-500"> — {channelHint}</span>
+                      <span className="text-gray-600"> — {channelHint}</span>
                     </span>
                   </div>
                 )}

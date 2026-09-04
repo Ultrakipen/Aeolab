@@ -70,9 +70,9 @@ function CopyButton({ text, label }: { text: string; label: string }) {
       onClick={handleCopy}
       className={`inline-flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors ${
         copied
-          ? "bg-emerald-500 text-white"
+          ? "bg-emerald-700 text-white"
           : copyFailed
-          ? "bg-amber-500 text-white"
+          ? "bg-amber-700 text-white"
           : "bg-blue-600 hover:bg-blue-700 text-white"
       }`}
     >
@@ -383,7 +383,7 @@ export default function AIProblemDiagnosis({
       {/* 섹션 1: 현재 문제 */}
       {problems.length > 0 && (
         <div className="px-4 md:px-5 pt-5 pb-4 border-b border-gray-100">
-          <p className="text-sm font-bold text-gray-500 mb-3">
+          <p className="text-sm font-bold text-gray-600 mb-3">
             1 현재 상태 — 핵심 문제 {problems.length}가지
           </p>
           <div className="space-y-2">
@@ -392,10 +392,10 @@ export default function AIProblemDiagnosis({
                 key={i}
                 className="flex gap-3 p-3 bg-red-50 rounded-xl border border-red-100"
               >
-                <XCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                <XCircle className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-gray-800">{p.text}</p>
-                  <p className="text-sm text-gray-500 mt-0.5">→ {p.impact}</p>
+                  <p className="text-sm text-gray-600 mt-0.5">→ {p.impact}</p>
                 </div>
               </div>
             ))}
@@ -406,7 +406,7 @@ export default function AIProblemDiagnosis({
       {/* 섹션 2: 해결 방안 */}
       {solutions.length > 0 && (
         <div className="px-4 md:px-5 pt-4 pb-4 border-b border-gray-100">
-          <p className="text-sm font-bold text-gray-500 mb-3">
+          <p className="text-sm font-bold text-gray-600 mb-3">
             2 오늘 바로 할 것 (순서대로)
           </p>
           <div className="space-y-3">
@@ -423,7 +423,7 @@ export default function AIProblemDiagnosis({
                     <p className="text-base font-bold text-gray-900">{s.title}</p>
                   </div>
                   <div className="flex gap-1 shrink-0">
-                    <span className="text-sm bg-green-600 text-white px-2 py-0.5 rounded-full">
+                    <span className="text-sm bg-green-700 text-white px-2 py-0.5 rounded-full">
                       {s.time}
                     </span>
                     <span className="text-sm bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
@@ -467,10 +467,10 @@ export default function AIProblemDiagnosis({
       {/* 섹션 A: 소개글 초안 */}
       {showIntroSection && (
         <div className="px-4 md:px-5 pt-4 pb-4 border-b border-gray-100">
-          <p className="text-sm font-bold text-gray-500 mb-1">
+          <p className="text-sm font-bold text-gray-600 mb-1">
             스마트플레이스 소개글 초안 — 바로 붙여넣으세요
           </p>
-          <p className="text-sm text-gray-500 mb-3">
+          <p className="text-sm text-gray-600 mb-3">
             아래 텍스트를 복사해 스마트플레이스 &gt; 기본 정보 &gt; 소개 에 붙여넣으세요.
             [ ] 부분만 실제 정보로 바꾸면 됩니다.
           </p>
@@ -489,14 +489,14 @@ export default function AIProblemDiagnosis({
       {showFaqSection && (
         <div className="px-4 md:px-5 pt-4 pb-4 border-b border-gray-100">
           <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
-            <p className="text-sm font-bold text-gray-500">
+            <p className="text-sm font-bold text-gray-600">
               소개글에 포함할 Q&amp;A 예시 5쌍
             </p>
-            <span className="text-sm bg-green-600 text-white px-2 py-0.5 rounded-full">
+            <span className="text-sm bg-green-700 text-white px-2 py-0.5 rounded-full">
               {isActive ? "AI 브리핑 인용 후보 경로" : "ChatGPT·Gemini 노출 강화"}
             </span>
           </div>
-          <p className="text-sm text-gray-500 mb-3">
+          <p className="text-sm text-gray-600 mb-3">
             소개글(업체정보 → 소개글)에 아래 Q&amp;A를 자연스럽게 포함하세요.
             [ ] 부분을 실제 정보로 바꿔 등록하세요.
           </p>
@@ -531,8 +531,8 @@ export default function AIProblemDiagnosis({
                     Q{idx + 1}. {faq.q}
                   </span>
                   {openFaqIdx === idx
-                    ? <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
-                    : <Plus className="w-4 h-4 text-gray-500 shrink-0" />
+                    ? <ChevronDown className="w-4 h-4 text-gray-600 shrink-0" />
+                    : <Plus className="w-4 h-4 text-gray-600 shrink-0" />
                   }
                 </button>
                 {openFaqIdx === idx && (
@@ -564,10 +564,10 @@ export default function AIProblemDiagnosis({
 
       {/* 섹션 C: 리뷰 요청 문자 초안 */}
       <div className="px-4 md:px-5 pt-4 pb-4 border-b border-gray-100">
-        <p className="text-sm font-bold text-gray-500 mb-1">
+        <p className="text-sm font-bold text-gray-600 mb-1">
           손님에게 보내는 리뷰 요청 문자 초안
         </p>
-        <p className="text-sm text-gray-500 mb-3">
+        <p className="text-sm text-gray-600 mb-3">
           방문 후 손님에게 카카오톡·문자로 보내세요. 리뷰가 쌓이면 AI 추천 확률이 높아집니다.
         </p>
         {reviewDraftText.includes("[") && (

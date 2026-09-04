@@ -18,7 +18,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
     return (
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
         <div className="text-sm font-medium text-gray-700 mb-1">웹사이트 AI 인식</div>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-gray-600 mb-4">
           독립 웹사이트가 없어도 네이버·카카오맵 채널로 서비스 이용이 가능합니다.
           ChatGPT·Gemini 노출을 더 높이려면 독립 웹사이트를 추가하면 도움이 됩니다.
         </p>
@@ -50,7 +50,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
   if (!checkResult) return (
     <div className="rounded-xl border border-gray-100 bg-white p-4 md:p-5">
       <h3 className="font-semibold text-gray-800 mb-2">웹사이트 AI 인식</h3>
-      <p className="text-sm text-gray-500">AI 스캔 실행 후 웹사이트 AI 인식 점수가 표시됩니다.</p>
+      <p className="text-sm text-gray-600">AI 스캔 실행 후 웹사이트 AI 인식 점수가 표시됩니다.</p>
     </div>
   )
 
@@ -59,7 +59,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
       <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
         <div className="text-sm font-medium text-gray-700 mb-2">웹사이트 AI 인식</div>
         <p className="text-sm text-gray-600 font-medium mb-1">등록된 웹사이트에 일시적으로 접속이 안 됩니다</p>
-        <p className="text-sm text-gray-500 mb-3">
+        <p className="text-sm text-gray-600 mb-3">
           서비스 이용에는 문제 없습니다. 사이트가 복구되면 다음 스캔 시 자동으로 반영됩니다.
           주소가 잘못됐다면 설정에서 수정할 수 있습니다.
         </p>
@@ -122,19 +122,19 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
         <div>
           <div className="text-sm font-medium text-gray-700">웹사이트 AI 인식 점검</div>
           {checkResult.title && (
-            <p className="text-sm text-gray-500 mt-0.5 truncate max-w-xs">{checkResult.title}</p>
+            <p className="text-sm text-gray-600 mt-0.5 truncate max-w-xs">{checkResult.title}</p>
           )}
         </div>
         <div className="text-right">
-          <div className={`text-lg font-bold ${passCount >= 5 ? 'text-green-600' : passCount >= 3 ? 'text-amber-600' : 'text-red-500'}`}>
+          <div className={`text-lg font-bold ${passCount >= 5 ? 'text-green-700' : passCount >= 3 ? 'text-amber-700' : 'text-red-700'}`}>
             {passCount}/{items.length}
           </div>
-          <div className="text-sm text-gray-500">통과</div>
+          <div className="text-sm text-gray-600">통과</div>
         </div>
       </div>
 
       {highFailCount > 0 && (
-        <div className="bg-red-50 rounded-xl px-3 py-2 mb-3 text-sm text-red-600">
+        <div className="bg-red-50 rounded-xl px-3 py-2 mb-3 text-sm text-red-700">
           중요 항목 {highFailCount}개 미흡 — ChatGPT 인용 가능성이 낮습니다
         </div>
       )}
@@ -142,20 +142,20 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
       <div className="space-y-2">
         {items.map((item) => (
           <div key={item.label} className="flex items-start gap-2.5">
-            <span className={`mt-0.5 shrink-0 text-sm ${item.ok ? 'text-green-500' : item.impact === 'high' ? 'text-red-400' : 'text-gray-300'}`}>
+            <span className={`mt-0.5 shrink-0 text-sm ${item.ok ? 'text-green-700' : item.impact === 'high' ? 'text-red-400' : 'text-gray-300'}`}>
               {item.ok ? '✓' : '✕'}
             </span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className={`text-sm font-medium ${item.ok ? 'text-gray-700' : 'text-gray-500'}`}>
+                <span className={`text-sm font-medium ${item.ok ? 'text-gray-700' : 'text-gray-600'}`}>
                   {item.label}
                 </span>
                 {!item.ok && item.impact === 'high' && (
-                  <span className="text-sm bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">중요</span>
+                  <span className="text-sm bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full">중요</span>
                 )}
               </div>
               {!item.ok && (
-                <p className="text-sm text-gray-500 mt-0.5">{item.tip}</p>
+                <p className="text-sm text-gray-600 mt-0.5">{item.tip}</p>
               )}
             </div>
           </div>

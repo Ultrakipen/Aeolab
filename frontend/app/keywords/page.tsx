@@ -54,7 +54,7 @@ export default function KeywordsIndexPage() {
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-10 md:py-14">
         {/* 상단 타이틀 */}
         <div className="mb-10">
-          <nav className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+          <nav className="flex items-center gap-2 text-sm text-gray-600 mb-4">
             <Link href="/" className="hover:text-gray-700">
               홈
             </Link>
@@ -96,7 +96,7 @@ export default function KeywordsIndexPage() {
           <section key={groupName} className="mb-12">
             <div className="flex items-center gap-3 mb-5">
               <h2 className="text-xl font-bold text-gray-900">{groupName}</h2>
-              <span className="text-sm text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
+              <span className="text-sm text-gray-600 bg-gray-100 px-2.5 py-1 rounded-full">
                 {pages.length}개
               </span>
             </div>
@@ -130,7 +130,7 @@ export default function KeywordsIndexPage() {
                     </h3>
 
                     {/* 설명 */}
-                    <p className="text-sm text-gray-500 break-keep line-clamp-2 mb-3">
+                    <p className="text-sm text-gray-600 break-keep line-clamp-2 mb-3">
                       {page.description}
                     </p>
 
@@ -144,7 +144,7 @@ export default function KeywordsIndexPage() {
                           {kw}
                         </span>
                       ))}
-                      <span className="text-sm text-gray-500 px-1 py-0.5">
+                      <span className="text-sm text-gray-600 px-1 py-0.5">
                         +{page.keywords.length - 3}
                       </span>
                     </div>

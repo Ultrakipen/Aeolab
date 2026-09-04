@@ -25,25 +25,25 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
         </p>
         <ul className="space-y-1 mb-3">
           <li className="flex items-start gap-2 text-sm text-gray-700">
-            <span className="text-green-600 font-bold shrink-0">①</span>
+            <span className="text-green-700 font-bold shrink-0">①</span>
             <span><strong>스마트플레이스 소개글·사진·소식</strong> 업데이트 → 플레이스탭 상위 노출</span>
           </li>
           <li className="flex items-start gap-2 text-sm text-gray-700">
-            <span className="text-green-600 font-bold shrink-0">②</span>
+            <span className="text-green-700 font-bold shrink-0">②</span>
             <span><strong>블로그 정기 발행</strong> (주 1~2회) → 네이버 검색 상위 노출 + <strong>'정보형 AI 브리핑'</strong> 인용 후보</span>
           </li>
           <li className="flex items-start gap-2 text-sm text-gray-700">
-            <span className="text-green-500 font-bold shrink-0">③</span>
+            <span className="text-green-700 font-bold shrink-0">③</span>
             <span><strong>AI탭 콘텐츠 준비</strong> — 자연어 질문형 키워드를 소개글에 포함</span>
           </li>
-          <li className="flex items-start gap-2 text-sm text-gray-500">
-            <span className="text-gray-500 font-bold shrink-0">④</span>
+          <li className="flex items-start gap-2 text-sm text-gray-600">
+            <span className="text-gray-600 font-bold shrink-0">④</span>
             <span>ChatGPT·Gemini — Google 비즈니스 프로필 등록 후 장기 준비</span>
           </li>
         </ul>
         <Link
           href="/guide"
-          className="inline-block text-sm font-semibold text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors"
+          className="inline-block text-sm font-semibold text-white bg-green-700 hover:bg-green-800 px-4 py-2 rounded-lg transition-colors"
         >
           개선 가이드 보기 →
         </Link>

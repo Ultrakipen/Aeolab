@@ -41,7 +41,7 @@ export default async function FAQPage() {
     <div className="p-4 md:p-8 max-w-3xl mx-auto">
       <div className="mb-4 md:mb-6">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">고객 지원</h1>
-        <p className="text-sm text-gray-500 mt-1">자주 묻는 질문 확인 및 1:1 문의</p>
+        <p className="text-sm text-gray-600 mt-1">자주 묻는 질문 확인 및 1:1 문의</p>
       </div>
       <FAQClient
         initialItems={items}

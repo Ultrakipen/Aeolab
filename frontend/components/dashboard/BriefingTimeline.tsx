@@ -46,26 +46,26 @@ export function BriefingTimeline({ history, businessName }: Props) {
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="text-sm font-semibold text-gray-900 mb-0.5">AI 브리핑 노출 성장 타임라인</div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-600">
             {formatFullDate(first.score_date)} ~ {formatFullDate(latest.score_date)}
           </p>
         </div>
         <div className="flex items-center gap-1">
           {totalChange > 0 ? (
-            <TrendingUp className="w-4 h-4 text-green-500" />
+            <TrendingUp className="w-4 h-4 text-green-700" />
           ) : totalChange < 0 ? (
-            <TrendingDown className="w-4 h-4 text-red-500" />
+            <TrendingDown className="w-4 h-4 text-red-700" />
           ) : (
-            <Minus className="w-4 h-4 text-gray-500" />
+            <Minus className="w-4 h-4 text-gray-600" />
           )}
           <span
             className={`text-sm font-bold ${
-              totalChange > 0 ? 'text-green-600' : totalChange < 0 ? 'text-red-500' : 'text-gray-500'
+              totalChange > 0 ? 'text-green-700' : totalChange < 0 ? 'text-red-700' : 'text-gray-600'
             }`}
           >
             {totalChange > 0 ? '향상 중' : totalChange < 0 ? '하락 중' : '유지'}
           </span>
-          <span className="text-sm text-gray-500 ml-1">전체 변화</span>
+          <span className="text-sm text-gray-600 ml-1">전체 변화</span>
         </div>
       </div>
 
@@ -98,12 +98,12 @@ export function BriefingTimeline({ history, businessName }: Props) {
                 <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800" />
               </div>
 
-              {isPeak && <Star className="w-3 h-3 text-amber-500" />}
+              {isPeak && <Star className="w-3 h-3 text-amber-700" />}
               <div
                 className={`w-full rounded-t-sm ${barColor} transition-all`}
                 style={{ height: `${heightPct}%` }}
               />
-              <span className="text-sm text-gray-500 leading-none">{formatDate(p.score_date)}</span>
+              <span className="text-sm text-gray-600 leading-none">{formatDate(p.score_date)}</span>
             </div>
           )
         })}
@@ -113,10 +113,10 @@ export function BriefingTimeline({ history, businessName }: Props) {
       <div className="space-y-1.5">
         {peakPoint && (
           <div className="flex items-center gap-2 text-sm">
-            <Star className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-            <span className="text-gray-500">
+            <Star className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+            <span className="text-gray-600">
               최고점 <span className="font-medium text-amber-700">{getScoreTextLabel(peakPoint.total_score)}</span> 달성
-              <span className="text-gray-500 ml-1">({formatFullDate(peakPoint.score_date)})</span>
+              <span className="text-gray-600 ml-1">({formatFullDate(peakPoint.score_date)})</span>
             </span>
           </div>
         )}
@@ -125,9 +125,9 @@ export function BriefingTimeline({ history, businessName }: Props) {
             <div className="w-3.5 h-3.5 rounded-full bg-green-500 flex items-center justify-center shrink-0">
               <span className="text-white font-bold leading-none" style={{ fontSize: 8 }}>A</span>
             </div>
-            <span className="text-gray-500">
+            <span className="text-gray-600">
               A등급 첫 달성
-              <span className="text-gray-500 ml-1">({formatFullDate(firstAGrade.score_date)})</span>
+              <span className="text-gray-600 ml-1">({formatFullDate(firstAGrade.score_date)})</span>
             </span>
           </div>
         )}
@@ -135,9 +135,9 @@ export function BriefingTimeline({ history, businessName }: Props) {
           <div className="w-3.5 h-3.5 rounded-full bg-blue-500 flex items-center justify-center shrink-0">
             <span className="text-white font-bold leading-none" style={{ fontSize: 8 }}>→</span>
           </div>
-          <span className="text-gray-500">
+          <span className="text-gray-600">
             현재 <span className="font-medium text-blue-700">{getScoreTextLabel(latest.total_score)}</span>
-            <span className="text-gray-500 ml-1">({formatFullDate(latest.score_date)})</span>
+            <span className="text-gray-600 ml-1">({formatFullDate(latest.score_date)})</span>
           </span>
         </div>
       </div>

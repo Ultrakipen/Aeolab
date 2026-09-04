@@ -15,8 +15,8 @@ function CalendarIcon({ dayIndex }: { dayIndex: number }) {
     <div
       className={`flex flex-col items-center justify-center w-9 h-9 rounded-lg text-sm font-bold border ${
         isProDay
-          ? "bg-emerald-500 border-emerald-400 text-white"
-          : "bg-gray-100 border-gray-200 text-gray-500"
+          ? "bg-emerald-700 border-emerald-400 text-white"
+          : "bg-gray-100 border-gray-200 text-gray-600"
       }`}
     >
       {WEEKDAY_LABELS[dayIndex]}
@@ -58,7 +58,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
             <span className="text-sm font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
               현재 Basic
             </span>
-            <span className="text-gray-500 text-sm">→</span>
+            <span className="text-gray-600 text-sm">→</span>
             <span className="text-sm font-semibold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700">
               Pro 업그레이드 시 추가
             </span>
@@ -66,7 +66,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
           <h2 className="text-base md:text-lg font-bold text-gray-900">
             Pro로 업그레이드하면 이런 결과가 추가됩니다
           </h2>
-          <p className="text-sm text-gray-500 mt-0.5">Pro · 월 23,900원 · 7일 이내 미사용 시 100% 환불</p>
+          <p className="text-sm text-gray-600 mt-0.5">Pro · 월 23,900원 · 7일 이내 미사용 시 100% 환불</p>
         </div>
         <Link
           href="/pricing"
@@ -82,14 +82,14 @@ export default function ProUpgradePreview({ businessName, category: _category, p
         {/* A. 스캔 빈도 비교 */}
         <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
           <h3 className="text-sm font-bold text-gray-700 mb-1">전체 AI 스캔 빈도</h3>
-          <p className="text-sm text-gray-500 mb-4">7개 AI 채널을 한 번에 분석하는 전체 스캔 횟수</p>
+          <p className="text-sm text-gray-600 mb-4">7개 AI 채널을 한 번에 분석하는 전체 스캔 횟수</p>
 
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
                 Basic (현재)
               </span>
-              <span className="text-sm text-gray-500">월요일만 전체 스캔</span>
+              <span className="text-sm text-gray-600">월요일만 전체 스캔</span>
             </div>
             <div className="flex gap-1.5 flex-wrap">
               {WEEKDAY_LABELS.map((label, i) => (
@@ -97,15 +97,15 @@ export default function ProUpgradePreview({ businessName, category: _category, p
                   key={label}
                   className={`flex flex-col items-center justify-center w-9 h-9 rounded-lg text-sm font-bold border ${
                     i === 0
-                      ? "bg-emerald-500 border-emerald-400 text-white"
-                      : "bg-gray-100 border-gray-200 text-gray-500"
+                      ? "bg-emerald-700 border-emerald-400 text-white"
+                      : "bg-gray-100 border-gray-200 text-gray-600"
                   }`}
                 >
                   {label}
                 </div>
               ))}
             </div>
-            <p className="text-sm text-gray-500 mt-1.5">나머지 날: Gemini+네이버만 분석</p>
+            <p className="text-sm text-gray-600 mt-1.5">나머지 날: Gemini+네이버만 분석</p>
           </div>
 
           <div>
@@ -113,7 +113,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
               <span className="text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
                 Pro (업그레이드 후)
               </span>
-              <span className="text-sm text-gray-500">월·수·금 전체 스캔</span>
+              <span className="text-sm text-gray-600">월·수·금 전체 스캔</span>
             </div>
             <div className="flex gap-1.5 flex-wrap">
               {WEEKDAY_LABELS.map((_, i) => (
@@ -129,7 +129,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
         {/* B. 히스토리 90일 */}
         <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
           <h3 className="text-sm font-bold text-gray-700 mb-1">점수 추이 히스토리</h3>
-          <p className="text-sm text-gray-500 mb-4">장기 추이 분석으로 계절성·이벤트 효과 파악</p>
+          <p className="text-sm text-gray-600 mb-4">장기 추이 분석으로 계절성·이벤트 효과 파악</p>
 
           <div className="relative h-28 w-full mb-3">
             <svg viewBox="0 0 280 80" className="w-full h-full" preserveAspectRatio="none">
@@ -164,7 +164,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div className="bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
               <p className="font-semibold text-emerald-700">Basic (현재)</p>
-              <p className="text-emerald-600 mt-0.5">최근 30일 추이만</p>
+              <p className="text-emerald-700 mt-0.5">최근 30일 추이만</p>
             </div>
             <div className="bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2">
               <p className="font-semibold text-indigo-700">Pro (업그레이드 후)</p>
@@ -176,7 +176,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
         {/* C. 조건 검색 결과 미리보기 */}
         <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
           <h3 className="text-sm font-bold text-gray-700 mb-1">조건 검색 분석</h3>
-          <p className="text-sm text-gray-500 mb-3">
+          <p className="text-sm text-gray-600 mb-3">
             고객이 &ldquo;추천&rdquo; &ldquo;맛집&rdquo; &ldquo;근처&rdquo; 같은 조건으로 검색할 때 내 가게가 나오는지 분석
           </p>
           <LockedOverlay label="Pro 전용 기능">
@@ -202,7 +202,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
         {/* D. ChatGPT 광고 대응 가이드 미리보기 */}
         <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
           <h3 className="text-sm font-bold text-gray-700 mb-1">ChatGPT 광고 대응 가이드</h3>
-          <p className="text-sm text-gray-500 mb-3">
+          <p className="text-sm text-gray-600 mb-3">
             2026년 8월 한국 도입된 ChatGPT 광고 속에서도 유기적 AI 노출을 유지하는 맞춤 전략 제공
           </p>
           <LockedOverlay label="Pro 전용 기능">
@@ -218,7 +218,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
                   "브랜드 키워드 콘텐츠 확보",
                   "구글 비즈니스 프로필 최적화",
                 ].map((s, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm text-gray-500">
+                  <div key={i} className="flex items-start gap-2 text-sm text-gray-600">
                     <span className="text-indigo-400 shrink-0 mt-0.5">•</span>
                     <span>{s}</span>
                   </div>
@@ -231,18 +231,18 @@ export default function ProUpgradePreview({ businessName, category: _category, p
         {/* E. PDF 리포트 & CSV 내보내기 */}
         <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6 md:col-span-2">
           <h3 className="text-sm font-bold text-gray-700 mb-1">리포트 내보내기</h3>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-gray-600 mb-4">
             전체 AI 노출 분석 결과를 PDF·CSV로 다운로드
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="relative border border-gray-200 rounded-xl p-4 flex items-center gap-4 overflow-hidden">
               <div className="pointer-events-none select-none opacity-40 flex items-center gap-4 flex-1">
                 <div className="w-10 h-12 bg-red-100 border border-red-200 rounded flex items-center justify-center shrink-0">
-                  <span className="text-red-600 font-bold text-sm">PDF</span>
+                  <span className="text-red-700 font-bold text-sm">PDF</span>
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-800">AI 노출 분석 리포트</p>
-                  <p className="text-sm text-gray-500">사업장 전체 분석 1페이지 요약 PDF</p>
+                  <p className="text-sm text-gray-600">사업장 전체 분석 1페이지 요약 PDF</p>
                 </div>
               </div>
               <div className="absolute inset-0 flex items-center justify-center gap-2 bg-white/80">
@@ -260,7 +260,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-gray-800">스캔 이력 데이터</p>
-                  <p className="text-sm text-gray-500">90일 점수 이력을 엑셀로 내보내기</p>
+                  <p className="text-sm text-gray-600">90일 점수 이력을 엑셀로 내보내기</p>
                 </div>
               </div>
               <div className="absolute inset-0 flex items-center justify-center gap-2 bg-white/80">
@@ -281,7 +281,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
             <p className="text-sm font-semibold text-gray-700">
               지금 Pro로 전환하면 위 기능을 즉시 이용할 수 있습니다
             </p>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-600 mt-0.5">
               현재 스캔 데이터는 Pro 전환 후에도 그대로 유지됩니다 · 7일 이내 미사용 시 100% 환불
             </p>
           </div>

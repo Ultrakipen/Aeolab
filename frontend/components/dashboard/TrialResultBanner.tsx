@@ -49,7 +49,7 @@ export default function TrialResultBanner() {
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start sm:items-center justify-between gap-3 flex-col sm:flex-row">
       <div className="flex items-start gap-3 flex-1 min-w-0">
-        <span className="text-amber-500 text-lg shrink-0">✓</span>
+        <span className="text-amber-700 text-lg shrink-0">✓</span>
         <div className="min-w-0">
           <p className="text-sm font-semibold text-amber-800">
             이전 무료 체험 결과가 있습니다
@@ -69,7 +69,7 @@ export default function TrialResultBanner() {
         </Link>
         <button
           onClick={handleDismiss}
-          className="text-amber-400 hover:text-amber-600 transition-colors p-1"
+          className="text-amber-400 hover:text-amber-700 transition-colors p-1"
           aria-label="닫기"
         >
           <X className="w-4 h-4" />

@@ -67,11 +67,11 @@ export interface ChannelTile {
 
 /** 상태 프리셋 — 아이콘/색 단일 소스 (DashboardHeroCard 색과 동일) */
 const PRESET = {
-  good:    { icon: "✓", iconClass: "bg-emerald-500 text-white", statusClass: "text-emerald-700" },
-  warn:    { icon: "!", iconClass: "bg-amber-500 text-white",   statusClass: "text-amber-700" },
+  good:    { icon: "✓", iconClass: "bg-emerald-700 text-white", statusClass: "text-emerald-700" },
+  warn:    { icon: "!", iconClass: "bg-amber-700 text-white",   statusClass: "text-amber-700" },
   expand:  { icon: "△", iconClass: "bg-yellow-400 text-white",  statusClass: "text-yellow-700" },
-  pending: { icon: "–", iconClass: "bg-gray-200 text-gray-500", statusClass: "text-gray-400" },
-  unknown: { icon: "?", iconClass: "bg-gray-200 text-gray-500", statusClass: "text-gray-400" },
+  pending: { icon: "–", iconClass: "bg-gray-200 text-gray-600", statusClass: "text-gray-600" },
+  unknown: { icon: "?", iconClass: "bg-gray-200 text-gray-600", statusClass: "text-gray-600" },
 } as const;
 
 type PresetKey = keyof typeof PRESET;

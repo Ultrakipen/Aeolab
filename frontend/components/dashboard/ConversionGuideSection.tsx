@@ -136,7 +136,7 @@ function TipCard({ tip, bizId }: { tip: ConversionTip; bizId: string }) {
         >
           {tip.evidence_badge}
         </span>
-        <span className="inline-flex items-center text-sm text-gray-500 px-2 py-1">
+        <span className="inline-flex items-center text-sm text-gray-600 px-2 py-1">
           ⏱ {tip.estimated_time}
         </span>
       </div>
@@ -146,7 +146,7 @@ function TipCard({ tip, bizId }: { tip: ConversionTip; bizId: string }) {
         {tip.title}
       </h3>
       <p className="text-sm md:text-base text-gray-700 leading-relaxed mb-3">
-        <AlertTriangle className="inline w-4 h-4 text-amber-500 mr-1 align-text-bottom" />
+        <AlertTriangle className="inline w-4 h-4 text-amber-700 mr-1 align-text-bottom" />
         {tip.reason}
       </p>
 
@@ -241,7 +241,7 @@ function TipCard({ tip, bizId }: { tip: ConversionTip; bizId: string }) {
               <button
                 type="button"
                 onClick={handleReset}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-600 border border-gray-200 hover:border-gray-300 bg-white px-3 py-1.5 rounded-lg transition-colors"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-700 border border-gray-200 hover:border-gray-300 bg-white px-3 py-1.5 rounded-lg transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 원래대로
@@ -423,13 +423,13 @@ export default function ConversionGuideSection({ bizId, plan }: Props) {
           ) : (
             <Link
               href="/guide"
-              className="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white text-base font-bold px-5 py-3 rounded-xl transition-colors"
+              className="flex items-center justify-center gap-2 w-full bg-green-700 hover:bg-green-800 text-white text-base font-bold px-5 py-3 rounded-xl transition-colors"
             >
               더 많은 맞춤 가이드 보기
               <ArrowRight className="w-4 h-4" />
             </Link>
           )}
-          <p className="text-sm text-center text-gray-500 mt-2">
+          <p className="text-sm text-center text-gray-600 mt-2">
             {isPaid
               ? "가이드 페이지에서 리뷰 답변 초안·FAQ·소식 초안을 업종별 맞춤으로 받을 수 있습니다."
               : "가입 후 모든 복사 문구와 경로별 상세 가이드를 바로 사용할 수 있습니다. 7일 이내 미사용 시 100% 환불 가능합니다."}

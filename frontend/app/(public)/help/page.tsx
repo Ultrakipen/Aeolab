@@ -85,7 +85,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
         {/* 헤더 */}
         <div className="mb-6 md:mb-8">
           <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">도움말 FAQ</h1>
-          <p className="text-sm md:text-base text-gray-500">자주 묻는 질문과 운영자 답변을 모아 두었습니다.</p>
+          <p className="text-sm md:text-base text-gray-600">자주 묻는 질문과 운영자 답변을 모아 두었습니다.</p>
 
           {/* 문의 CTA (로그인 상태에 따라 문구·링크 전환) */}
           <HelpContactCTA variant="banner" />
@@ -113,7 +113,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
         {filtered.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm py-16 text-center">
             <MessageCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-            <p className="text-base font-medium text-gray-500 mb-1">
+            <p className="text-base font-medium text-gray-600 mb-1">
               {categoryFilter ? "해당 카테고리의 FAQ가 없습니다." : "아직 공개 FAQ가 없습니다."}
             </p>
             <HelpContactCTA variant="footer" />
@@ -127,10 +127,10 @@ export default async function HelpPage({ searchParams }: PageProps) {
                   {/* 질문 */}
                   <div className="p-5">
                     <div className="flex items-start gap-3 mb-3">
-                      <span className="shrink-0 inline-block text-sm font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">
+                      <span className="shrink-0 inline-block text-sm font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
                         {CATEGORY_LABELS[ticket.category] ?? ticket.category}
                       </span>
-                      <span className="text-sm text-gray-500 mt-1">{formatDate(ticket.created_at)}</span>
+                      <span className="text-sm text-gray-600 mt-1">{formatDate(ticket.created_at)}</span>
                     </div>
                     <h2 className="text-base font-semibold text-gray-900 mb-2">Q. {ticket.title}</h2>
                     <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words">{ticket.body}</p>
@@ -154,7 +154,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
 
         {/* 하단 문의 CTA */}
         <div className="mt-8 text-center">
-          <p className="text-sm text-gray-500 mb-3">원하는 답변을 찾지 못하셨나요?</p>
+          <p className="text-sm text-gray-600 mb-3">원하는 답변을 찾지 못하셨나요?</p>
           <HelpContactCTA variant="button" />
         </div>
       </div>

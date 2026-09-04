@@ -128,20 +128,20 @@ export default function IndustryRotator() {
     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-4 md:p-6">
       {/* 상단 레이블 */}
       <div className="flex items-center justify-between mb-4">
-        <span className="text-sm font-semibold bg-gray-100 text-gray-500 px-3 py-1 rounded-full">
+        <span className="text-sm font-semibold bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
           업종별 AI 검색 현실
         </span>
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrev}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors text-sm"
+            className="w-7 h-7 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-600 hover:text-gray-700 hover:border-gray-300 transition-colors text-sm"
             aria-label="이전 업종"
           >
             ←
           </button>
           <button
             onClick={handleNext}
-            className="w-7 h-7 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors text-sm"
+            className="w-7 h-7 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-600 hover:text-gray-700 hover:border-gray-300 transition-colors text-sm"
             aria-label="다음 업종"
           >
             →
@@ -162,7 +162,7 @@ export default function IndustryRotator() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* ChatGPT 한계 */}
           <div className="bg-white/80 rounded-xl p-4 border border-amber-100">
-            <div className="text-sm font-semibold text-gray-500 mb-2">
+            <div className="text-sm font-semibold text-gray-600 mb-2">
               손님이 ChatGPT에 물어보면
             </div>
             <div className="bg-gray-50 rounded-lg px-3 py-2.5 mb-3 text-sm text-gray-700 font-medium border border-gray-100">
@@ -181,7 +181,7 @@ export default function IndustryRotator() {
               <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
                 <div className="text-sm text-amber-700 font-semibold mb-1">ChatGPT 조언</div>
                 <div className="text-sm text-gray-600">{industry.chatgptAdvice}</div>
-                <div className="text-sm text-amber-600 mt-1">→ 맞는 말, 그런데 내 가게 상황은 모름</div>
+                <div className="text-sm text-amber-700 mt-1">→ 맞는 말, 그런데 내 가게 상황은 모름</div>
               </div>
               <div className="bg-blue-50 rounded-xl p-3 border border-blue-200">
                 <div className="text-sm text-blue-700 font-semibold mb-1">AEOlab 측정 결과</div>

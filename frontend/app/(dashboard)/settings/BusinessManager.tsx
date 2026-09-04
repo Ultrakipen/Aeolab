@@ -67,15 +67,15 @@ const ICON_MAP: Record<string, LucideIcon> = {
 };
 
 const COLOR_MAP: Record<string, { bg: string; icon: string; border: string; ring: string; gradient: string }> = {
-  orange:  { bg: "bg-orange-50",  icon: "text-orange-500",  border: "border-orange-300",  ring: "ring-orange-300",  gradient: "from-orange-400 to-rose-500" },
-  amber:   { bg: "bg-amber-50",   icon: "text-amber-600",   border: "border-amber-300",   ring: "ring-amber-300",   gradient: "from-amber-400 to-orange-500" },
+  orange:  { bg: "bg-orange-50",  icon: "text-orange-700",  border: "border-orange-300",  ring: "ring-orange-300",  gradient: "from-orange-400 to-rose-500" },
+  amber:   { bg: "bg-amber-50",   icon: "text-amber-700",   border: "border-amber-300",   ring: "ring-amber-300",   gradient: "from-amber-400 to-orange-500" },
   yellow:  { bg: "bg-yellow-50",  icon: "text-yellow-600",  border: "border-yellow-300",  ring: "ring-yellow-300",  gradient: "from-yellow-400 to-amber-500" },
   purple:  { bg: "bg-purple-50",  icon: "text-purple-500",  border: "border-purple-300",  ring: "ring-purple-300",  gradient: "from-purple-500 to-violet-600" },
   pink:    { bg: "bg-pink-50",    icon: "text-pink-500",    border: "border-pink-300",    ring: "ring-pink-300",    gradient: "from-pink-400 to-rose-500" },
-  rose:    { bg: "bg-rose-50",    icon: "text-rose-500",    border: "border-rose-300",    ring: "ring-rose-300",    gradient: "from-rose-400 to-pink-500" },
-  blue:    { bg: "bg-blue-50",    icon: "text-blue-500",    border: "border-blue-300",    ring: "ring-blue-300",    gradient: "from-blue-500 to-indigo-600" },
-  green:   { bg: "bg-green-50",   icon: "text-green-600",   border: "border-green-300",   ring: "ring-green-300",   gradient: "from-green-400 to-emerald-500" },
-  red:     { bg: "bg-red-50",     icon: "text-red-500",     border: "border-red-300",     ring: "ring-red-300",     gradient: "from-red-400 to-rose-500" },
+  rose:    { bg: "bg-rose-50",    icon: "text-rose-700",    border: "border-rose-300",    ring: "ring-rose-300",    gradient: "from-rose-400 to-pink-500" },
+  blue:    { bg: "bg-blue-50",    icon: "text-blue-600",    border: "border-blue-300",    ring: "ring-blue-300",    gradient: "from-blue-500 to-indigo-600" },
+  green:   { bg: "bg-green-50",   icon: "text-green-700",   border: "border-green-300",   ring: "ring-green-300",   gradient: "from-green-400 to-emerald-500" },
+  red:     { bg: "bg-red-50",     icon: "text-red-700",     border: "border-red-300",     ring: "ring-red-300",     gradient: "from-red-400 to-rose-500" },
   teal:    { bg: "bg-teal-50",    icon: "text-teal-600",    border: "border-teal-300",    ring: "ring-teal-300",    gradient: "from-teal-400 to-cyan-500" },
   lime:    { bg: "bg-lime-50",    icon: "text-lime-600",    border: "border-lime-300",    ring: "ring-lime-300",    gradient: "from-lime-400 to-green-500" },
   indigo:  { bg: "bg-indigo-50",  icon: "text-indigo-500",  border: "border-indigo-300",  ring: "ring-indigo-300",  gradient: "from-indigo-500 to-blue-600" },
@@ -86,8 +86,8 @@ const COLOR_MAP: Record<string, { bg: string; icon: string; border: string; ring
   zinc:    { bg: "bg-zinc-50",    icon: "text-zinc-500",    border: "border-zinc-300",    ring: "ring-zinc-300",    gradient: "from-zinc-400 to-slate-500" },
   cyan:    { bg: "bg-cyan-50",    icon: "text-cyan-600",    border: "border-cyan-300",    ring: "ring-cyan-300",    gradient: "from-cyan-400 to-teal-500" },
   fuchsia: { bg: "bg-fuchsia-50", icon: "text-fuchsia-500", border: "border-fuchsia-300", ring: "ring-fuchsia-300", gradient: "from-fuchsia-500 to-pink-600" },
-  emerald: { bg: "bg-emerald-50", icon: "text-emerald-600", border: "border-emerald-300", ring: "ring-emerald-300", gradient: "from-emerald-400 to-teal-500" },
-  gray:    { bg: "bg-gray-50",    icon: "text-gray-500",    border: "border-gray-300",    ring: "ring-gray-300",    gradient: "from-gray-400 to-slate-500" },
+  emerald: { bg: "bg-emerald-50", icon: "text-emerald-700", border: "border-emerald-300", ring: "ring-emerald-300", gradient: "from-emerald-400 to-teal-500" },
+  gray:    { bg: "bg-gray-50",    icon: "text-gray-600",    border: "border-gray-300",    ring: "ring-gray-300",    gradient: "from-gray-400 to-slate-500" },
 };
 
 const EDIT_CATEGORIES = [
@@ -198,7 +198,7 @@ function CategoryIconGrid({ value, onChange }: CategoryGridProps) {
   return (
     <div className="space-y-2">
       {currentIsLegacy && (
-        <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5">
+        <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5">
           현재 선택된 업종({getCategoryLabel(value)})은 구 분류입니다. 아래에서 세부 업종을 재선택하면 분석 정확도가 높아집니다.
         </p>
       )}
@@ -320,7 +320,7 @@ function KeywordEditor({
       <div className="flex items-center justify-between">
         <label className="block text-sm font-semibold text-gray-800">
           핵심 키워드
-          <span className="ml-1.5 text-sm font-normal text-gray-500">AI가 이 키워드로 검색합니다</span>
+          <span className="ml-1.5 text-sm font-normal text-gray-600">AI가 이 키워드로 검색합니다</span>
         </label>
         {keywords.length > 0 && (
           <span className="text-sm text-blue-600 font-medium">{keywords.length}/10개 등록됨</span>
@@ -341,7 +341,7 @@ function KeywordEditor({
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); removeKeyword(kw); }}
-              className="ml-0.5 text-blue-200 hover:text-white text-base leading-none"
+              className="ml-0.5 text-blue-100 hover:text-white text-base leading-none"
             >×</button>
           </span>
         ))}
@@ -355,12 +355,12 @@ function KeywordEditor({
           className="flex-1 min-w-[120px] text-sm outline-none bg-transparent"
         />
       </div>
-      <p className="text-sm text-gray-500 -mt-1">Enter 또는 쉼표로 추가 · 칩의 ×로 삭제 · Backspace로 마지막 삭제</p>
+      <p className="text-sm text-gray-600 -mt-1">Enter 또는 쉼표로 추가 · 칩의 ×로 삭제 · Backspace로 마지막 삭제</p>
 
       {/* 업종별 추천 키워드 */}
       {suggestions.length > 0 && (
         <div>
-          <p className="text-sm font-medium text-gray-500 mb-1.5">추천 키워드 (클릭하여 추가)</p>
+          <p className="text-sm font-medium text-gray-600 mb-1.5">추천 키워드 (클릭하여 추가)</p>
           <div className="flex flex-wrap gap-1.5">
             {suggestions.slice(0, 10).map((s) => (
               <button
@@ -388,7 +388,7 @@ function KeywordEditor({
               </p>
             ))}
             {keywords.length > 3 && (
-              <p className="text-sm text-slate-500">+ {keywords.length - 3}개 키워드 더 검색됩니다</p>
+              <p className="text-sm text-slate-400">+ {keywords.length - 3}개 키워드 더 검색됩니다</p>
             )}
           </div>
         </div>
@@ -690,7 +690,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
 
   return (
     <div id="biz-edit-section">
-      {error && <p className="text-sm text-red-500 mb-3">{error}</p>}
+      {error && <p className="text-sm text-red-700 mb-3">{error}</p>}
 
       {/* ── 탭 바 ──────────────────────────────────────────────────── */}
       <div className="flex items-end gap-0 overflow-x-auto scrollbar-hide border-b border-gray-200">
@@ -713,13 +713,13 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 roundedClass,
                 isActive
                   ? "border-blue-600 border-b-2 border-b-white -mb-px bg-white text-blue-700 font-semibold z-10"
-                  : "border-gray-200 bg-gray-50 text-gray-500 hover:text-gray-700 hover:bg-gray-100",
+                  : "border-gray-200 bg-gray-50 text-gray-600 hover:text-gray-700 hover:bg-gray-100",
               ].join(" ")}
             >
               {/* 아이콘: 항상 표시 */}
               <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${isActive ? colors.bg : "bg-transparent"}`}>
                 {IconComp
-                  ? <IconComp className={`w-3.5 h-3.5 ${isActive ? colors.icon : "text-gray-500"}`} strokeWidth={1.8} />
+                  ? <IconComp className={`w-3.5 h-3.5 ${isActive ? colors.icon : "text-gray-600"}`} strokeWidth={1.8} />
                   : <span className="text-sm">{biz.category.slice(0, 1).toUpperCase()}</span>
                 }
               </div>
@@ -755,14 +755,14 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               })()}
               <div className="min-w-0">
                 <div className="text-sm font-semibold text-gray-900 truncate">{activeBiz.name}</div>
-                <div className="text-sm text-gray-500 truncate">
+                <div className="text-sm text-gray-600 truncate">
                   {activeBiz.region} · {getCategoryLabel(activeBiz.category)} · {formatDate(activeBiz.created_at)}
                 </div>
               </div>
             </div>
             <button
               onClick={() => { setDeleteId(activeBiz.id); setError(""); }}
-              className="shrink-0 ml-2 text-sm px-3 py-1.5 border border-red-100 text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+              className="shrink-0 ml-2 text-sm px-3 py-1.5 border border-red-100 text-red-700 rounded-lg hover:bg-red-50 transition-colors"
             >
               삭제
             </button>
@@ -773,7 +773,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
             <div className="border-b border-red-100 bg-red-50 px-4 py-4">
               <p className="text-sm text-red-700 mb-3">
                 <strong>{activeBiz.name}</strong>을(를) 삭제하시겠습니까?<br />
-                <span className="text-sm text-red-500">관련 스캔 기록, 경쟁사 데이터가 모두 비활성화됩니다.</span>
+                <span className="text-sm text-red-700">관련 스캔 기록, 경쟁사 데이터가 모두 비활성화됩니다.</span>
               </p>
               <div className="flex gap-2">
                 <button
@@ -857,7 +857,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
             <div>
               <label htmlFor={`biz-${activeBiz.id}-blog`} className="block text-sm font-medium text-gray-700 mb-1.5">
                 블로그 주소
-                <span className="ml-1 font-normal text-gray-500 text-sm">(선택)</span>
+                <span className="ml-1 font-normal text-gray-600 text-sm">(선택)</span>
               </label>
               <input
                 id={`biz-${activeBiz.id}-blog`}
@@ -871,15 +871,15 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 }`}
               />
               {editForm.blog_url && !(editForm.blog_url.startsWith('http://') || editForm.blog_url.startsWith('https://')) && (
-                <p className="text-sm text-red-500 mt-1">http:// 또는 https://로 시작하는 주소를 입력해주세요.</p>
+                <p className="text-sm text-red-700 mt-1">http:// 또는 https://로 시작하는 주소를 입력해주세요.</p>
               )}
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-600 mt-1">
                 블로그 주소를 등록하면 가이드 페이지에서 AI 브리핑 최적화 진단을 받을 수 있습니다.
               </p>
             </div>
             {/* 네이버 스마트플레이스 ID + URL + 카카오 */}
             <div className="bg-gray-100 rounded-xl px-4 py-3 space-y-3">
-              <p className="text-sm font-semibold text-gray-700">플랫폼 등록 정보 <span className="font-normal text-gray-500">(선택)</span></p>
+              <p className="text-sm font-semibold text-gray-700">플랫폼 등록 정보 <span className="font-normal text-gray-600">(선택)</span></p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor={`biz-${activeBiz.id}-naver-place`} className="block text-sm font-medium text-gray-700 mb-1">
@@ -892,7 +892,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                     placeholder="예: 12345678"
                     className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <p className="text-sm text-gray-500 mt-1">예: place.naver.com/place/<strong className="text-gray-500">12345678</strong> → 12345678</p>
+                  <p className="text-sm text-gray-600 mt-1">예: place.naver.com/place/<strong className="text-gray-600">12345678</strong> → 12345678</p>
                 </div>
                 <div>
                   <label htmlFor={`biz-${activeBiz.id}-google-place-id`} className="block text-sm font-medium text-gray-700 mb-1">
@@ -905,7 +905,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                     placeholder="예: ChIJN1t_..."
                     className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <p className="text-sm text-gray-500 mt-1">Google 지도 → 공유 → "장소 삽입"에서 확인 · 등록 시 AI 노출 점수 +10점</p>
+                  <p className="text-sm text-gray-600 mt-1">Google 지도 → 공유 → "장소 삽입"에서 확인 · 등록 시 AI 노출 점수 +10점</p>
                 </div>
               </div>
               <div>
@@ -919,7 +919,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   placeholder="예: https://map.naver.com/p/entry/place/12345678"
                   className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <p className="text-sm text-gray-500 mt-1">입력 시 소식·소개글 등록 여부를 스캔 때 자동으로 확인합니다.</p>
+                <p className="text-sm text-gray-600 mt-1">입력 시 소식·소개글 등록 여부를 스캔 때 자동으로 확인합니다.</p>
               </div>
               <div>
                 <label htmlFor={`biz-${activeBiz.id}-kakao-id`} className="block text-sm font-medium text-gray-700 mb-1">
@@ -932,7 +932,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   placeholder="예: 1234567890"
                   className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <p className="text-sm text-gray-500 mt-1">카카오맵 주소창 맨 끝 숫자 (예: map.kakao.com/장소/<strong className="text-gray-500">1234567890</strong>)</p>
+                <p className="text-sm text-gray-600 mt-1">카카오맵 주소창 맨 끝 숫자 (예: map.kakao.com/장소/<strong className="text-gray-600">1234567890</strong>)</p>
               </div>
             </div>
             {/* ── 핵심 키워드 편집 ─────────────────────────────── */}
@@ -982,10 +982,10 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               <div className="bg-white border border-amber-200 rounded-lg px-3 py-2.5 space-y-1.5">
                 <div className="text-sm font-semibold text-amber-800">리뷰 수 확인 방법</div>
                 <ol className="text-sm text-amber-700 space-y-1 pl-1">
-                  <li className="flex gap-1.5"><span className="shrink-0 font-bold text-amber-500">1.</span><span>네이버 앱 또는 PC에서 <strong>내 가게 이름</strong> 검색</span></li>
-                  <li className="flex gap-1.5"><span className="shrink-0 font-bold text-amber-500">2.</span><span>플레이스 카드 하단 <strong>"리뷰 N개"</strong> 탭 클릭</span></li>
-                  <li className="flex gap-1.5"><span className="shrink-0 font-bold text-amber-500">3.</span><span><strong>영수증 리뷰</strong>(네이버페이 결제 후 작성)와 <strong>방문자 리뷰</strong>(일반 리뷰) 수 각각 확인</span></li>
-                  <li className="flex gap-1.5"><span className="shrink-0 font-bold text-amber-500">4.</span><span>별점은 리뷰 탭 상단 <strong>평균 별점</strong> 숫자 확인</span></li>
+                  <li className="flex gap-1.5"><span className="shrink-0 font-bold text-amber-700">1.</span><span>네이버 앱 또는 PC에서 <strong>내 가게 이름</strong> 검색</span></li>
+                  <li className="flex gap-1.5"><span className="shrink-0 font-bold text-amber-700">2.</span><span>플레이스 카드 하단 <strong>"리뷰 N개"</strong> 탭 클릭</span></li>
+                  <li className="flex gap-1.5"><span className="shrink-0 font-bold text-amber-700">3.</span><span><strong>영수증 리뷰</strong>(네이버페이 결제 후 작성)와 <strong>방문자 리뷰</strong>(일반 리뷰) 수 각각 확인</span></li>
+                  <li className="flex gap-1.5"><span className="shrink-0 font-bold text-amber-700">4.</span><span>별점은 리뷰 탭 상단 <strong>평균 별점</strong> 숫자 확인</span></li>
                 </ol>
                 <a
                   href="https://smartplace.naver.com"
@@ -1001,7 +1001,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 <div>
                   <label htmlFor={`biz-${activeBiz.id}-receipt-review`} className="block text-sm font-medium text-gray-700 mb-1.5">
                     영수증 리뷰 수
-                    <span className="block font-normal text-gray-500 text-sm">네이버페이 결제 후 작성</span>
+                    <span className="block font-normal text-gray-600 text-sm">네이버페이 결제 후 작성</span>
                   </label>
                   <input
                     id={`biz-${activeBiz.id}-receipt-review`}
@@ -1015,7 +1015,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 <div>
                   <label htmlFor={`biz-${activeBiz.id}-visitor-review`} className="block text-sm font-medium text-gray-700 mb-1.5">
                     방문자 리뷰 수
-                    <span className="block font-normal text-gray-500 text-sm">일반 방문자 작성</span>
+                    <span className="block font-normal text-gray-600 text-sm">일반 방문자 작성</span>
                   </label>
                   <input
                     id={`biz-${activeBiz.id}-visitor-review`}
@@ -1029,7 +1029,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 <div>
                   <label htmlFor={`biz-${activeBiz.id}-rating`} className="block text-sm font-medium text-gray-700 mb-1.5">
                     평균 별점
-                    <span className="block font-normal text-gray-500 text-sm">0.0 ~ 5.0</span>
+                    <span className="block font-normal text-gray-600 text-sm">0.0 ~ 5.0</span>
                   </label>
                   <input
                     id={`biz-${activeBiz.id}-rating`}
@@ -1050,7 +1050,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                     const rating = editForm.avg_rating ?? 0;
                     return total > 0
                       ? <><strong>{total}개</strong> · 별점 <strong>{rating.toFixed(1)}점</strong></>
-                      : <><strong>0개</strong> <span className="text-gray-500 font-normal">(별점 미확인)</span></>;
+                      : <><strong>0개</strong> <span className="text-gray-600 font-normal">(별점 미확인)</span></>;
                   })()}
                 </span>
                 <button
@@ -1058,7 +1058,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   onClick={() => handleSyncReviews(activeBiz.id)}
                   disabled={syncingReviews || !editForm.naver_place_id}
                   title={!editForm.naver_place_id ? "위의 '네이버 스마트플레이스 ID' 항목을 먼저 입력하세요" : "네이버 플레이스에서 리뷰 수·별점을 자동으로 불러옵니다 (1시간 1회 제한)"}
-                  className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-green-700 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {syncingReviews ? (
                     <>
@@ -1077,7 +1077,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 </button>
               </div>
               {syncReviewMsg && (
-                <p className={`text-sm mt-1 ${syncReviewMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>
+                <p className={`text-sm mt-1 ${syncReviewMsg.startsWith("✓") ? "text-green-700" : "text-red-700"}`}>
                   {syncReviewMsg}
                 </p>
               )}
@@ -1087,7 +1087,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
             <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 space-y-3">
               <div>
                 <div className="text-sm font-semibold text-green-800">스마트플레이스 현황</div>
-                <div className="text-sm text-green-600 mt-0.5">
+                <div className="text-sm text-green-700 mt-0.5">
                   아래 항목이 AI 검색 노출 점수에 바로 반영됩니다. 실제 상태를 확인하고 체크해주세요.
                 </div>
               </div>
@@ -1115,11 +1115,11 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   type="checkbox"
                   checked={editForm.is_smart_place ?? false}
                   onChange={(e) => setEditForm({ ...editForm, is_smart_place: e.target.checked })}
-                  className="w-4 h-4 mt-0.5 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer shrink-0"
+                  className="w-4 h-4 mt-0.5 rounded border-gray-300 text-green-700 focus:ring-green-500 cursor-pointer shrink-0"
                 />
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-semibold text-gray-800 group-hover:text-gray-900">네이버 스마트플레이스 등록됨</span>
-                  <span className="block text-sm text-gray-500">네이버 지도·검색에서 내 가게 정보 카드가 뜨면 체크</span>
+                  <span className="block text-sm text-gray-600">네이버 지도·검색에서 내 가게 정보 카드가 뜨면 체크</span>
                 </div>
                 <span className="text-sm font-semibold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded shrink-0">
                   AI 노출 점수 반영
@@ -1136,16 +1136,16 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                       type="checkbox"
                       checked={editForm[key] ?? false}
                       onChange={(e) => setEditForm({ ...editForm, [key]: e.target.checked })}
-                      className="w-4 h-4 mt-0.5 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer shrink-0"
+                      className="w-4 h-4 mt-0.5 rounded border-gray-300 text-green-700 focus:ring-green-500 cursor-pointer shrink-0"
                     />
                     <div className="flex-1 min-w-0">
                       <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{label}</span>
-                      <span className="block text-sm text-gray-500">{desc}</span>
+                      <span className="block text-sm text-gray-600">{desc}</span>
                     </div>
                     <span className={`text-sm font-semibold px-1.5 py-0.5 rounded shrink-0 ${
                       points === "고영향"
-                        ? "text-red-600 bg-red-50"
-                        : "text-amber-600 bg-amber-50"
+                        ? "text-red-700 bg-red-50"
+                        : "text-amber-700 bg-amber-50"
                     }`}>
                       {points}
                     </span>
@@ -1161,10 +1161,10 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                       .join(" · ") || "미달성"}
                   </strong>
                   {isDirty && (
-                    <span className="ml-2 text-xs text-amber-500 font-medium">(미저장)</span>
+                    <span className="ml-2 text-xs text-amber-700 font-medium">(미저장)</span>
                   )}
                   {(!editForm.has_recent_post || !editForm.has_intro) && (
-                    <span className="text-amber-600 ml-1.5">
+                    <span className="text-amber-700 ml-1.5">
                       · {[!editForm.has_recent_post ? "소식" : null, !editForm.has_intro ? "소개글" : null]
                         .filter((v): v is string => v !== null)
                         .join("·")} 미완성
@@ -1176,7 +1176,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   onClick={() => handleSyncSmartplace(activeBiz.id)}
                   disabled={syncingSmartplace || !editForm.naver_place_id}
                   title={!editForm.naver_place_id ? "위의 '네이버 스마트플레이스 ID' 항목을 먼저 입력하세요" : "네이버 스마트플레이스에서 소식·소개글 등록 여부를 자동 확인합니다 (1시간 1회 제한 · IP 차단 시 실패 가능)"}
-                  className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-green-700 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {syncingSmartplace ? (
                     <><svg className="animate-spin w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>확인 중...</>
@@ -1186,15 +1186,15 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 </button>
               </div>
               {!editForm.naver_place_id && (
-                <p className="text-sm text-amber-600 mt-1">네이버 플레이스 ID를 먼저 등록해야 자동 확인이 가능합니다.</p>
+                <p className="text-sm text-amber-700 mt-1">네이버 플레이스 ID를 먼저 등록해야 자동 확인이 가능합니다.</p>
               )}
               {syncSmartplaceMsg ? (
-                <p className={`text-sm mt-1 ${syncSmartplaceMsg.startsWith("✓") ? "text-green-600" : "text-red-500"}`}>
+                <p className={`text-sm mt-1 ${syncSmartplaceMsg.startsWith("✓") ? "text-green-700" : "text-red-700"}`}>
                   {syncSmartplaceMsg}
                   {syncSmartplaceMsg.startsWith("✓") && " 결과가 실제와 다를 수 있으니 체크 항목을 직접 확인해 주세요."}
                 </p>
               ) : (
-                <p className="text-sm text-gray-500 mt-1">자동 확인은 1시간에 1회 가능 · 결과가 실제와 다를 수 있으니 직접 확인 후 체크하면 더 정확합니다.</p>
+                <p className="text-sm text-gray-600 mt-1">자동 확인은 1시간에 1회 가능 · 결과가 실제와 다를 수 있으니 직접 확인 후 체크하면 더 정확합니다.</p>
               )}
             </div>
 
@@ -1202,7 +1202,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 고객 리뷰 샘플
-                <span className="ml-1 font-normal text-gray-500">(키워드 갭 분석에 사용, 선택)</span>
+                <span className="ml-1 font-normal text-gray-600">(키워드 갭 분석에 사용, 선택)</span>
               </label>
               <textarea
                 rows={4}
@@ -1211,14 +1211,14 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 placeholder={"네이버 플레이스에서 받은 리뷰 2~3개를 붙여넣으세요.\n예: \"맛있어요, 분위기 좋아요, 다시 오고 싶어요\"\n\"친절하고 음식이 빨리 나와서 좋았습니다\""}
                 className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-600 mt-1">
                 리뷰 내 키워드를 분석해 부족한 키워드를 찾아드립니다
               </p>
             </div>
 
             <div className="flex items-center justify-between pt-2 gap-3">
               {saveSuccess ? (
-                <span className="text-sm text-green-600 font-medium flex items-center gap-1.5">
+                <span className="text-sm text-green-700 font-medium flex items-center gap-1.5">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>

@@ -172,7 +172,7 @@ export default async function BlogPostPage({
 
       <div className="max-w-4xl mx-auto px-4 md:px-6 py-10 md:py-14">
         {/* 브레드크럼 */}
-        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+        <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6">
           <Link href="/" className="hover:text-gray-700">
             홈
           </Link>
@@ -194,10 +194,10 @@ export default async function BlogPostPage({
             >
               {post.category}
             </span>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-600">
               {formatDate(post.publishedAt)}
             </span>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-600">
               읽기 {post.readTime}분
             </span>
           </div>
@@ -258,7 +258,7 @@ export default async function BlogPostPage({
                     <p className="text-sm font-semibold text-gray-800 break-keep group-hover:text-blue-700 transition-colors line-clamp-2 mb-1">
                       {r.title}
                     </p>
-                    <p className="text-sm text-gray-500">읽기 {r.readTime}분</p>
+                    <p className="text-sm text-gray-600">읽기 {r.readTime}분</p>
                   </Link>
                 );
               })}

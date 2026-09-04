@@ -70,7 +70,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps) {
   const isAdmin = !!(user?.email && ADMIN_EMAILS.includes(user.email));
   if (!isAdmin) {
     return (
-      <div className="p-4 md:p-8 text-center text-gray-500">
+      <div className="p-4 md:p-8 text-center text-gray-600">
         <p className="text-base">접근 권한이 없습니다.</p>
       </div>
     );
@@ -93,7 +93,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps) {
     <>
       <div className="mb-6">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">Q&A 문의 관리</h1>
-        <p className="text-sm text-gray-500 mt-1">사용자 문의 목록 및 답변 관리</p>
+        <p className="text-sm text-gray-600 mt-1">사용자 문의 목록 및 답변 관리</p>
       </div>
 
       {/* 상태 탭 */}
@@ -117,7 +117,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps) {
                 <span
                   className={[
                     "inline-flex items-center justify-center w-5 h-5 rounded-full text-sm font-bold",
-                    isActive ? "bg-white text-blue-600" : "bg-orange-500 text-white",
+                    isActive ? "bg-white text-blue-600" : "bg-orange-700 text-white",
                   ].join(" ")}
                 >
                   {open_count > 99 ? "99+" : open_count}
@@ -131,7 +131,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps) {
       {/* PC 테이블 */}
       <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         {tickets.length === 0 ? (
-          <div className="py-16 text-center text-base text-gray-500">
+          <div className="py-16 text-center text-base text-gray-600">
             {statusFilter
               ? `[${STATUS_META[statusFilter]?.label ?? statusFilter}] 상태의 문의가 없습니다.`
               : "문의가 없습니다."}
@@ -141,11 +141,11 @@ export default async function AdminSupportPage({ searchParams }: PageProps) {
             <table className="w-full min-w-[560px]">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50">
-                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-500 w-24">카테고리</th>
-                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-500">제목</th>
-                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-500 w-28">상태</th>
-                  <th className="text-right px-5 py-3 text-sm font-semibold text-gray-500 w-28">작성일</th>
-                  <th className="text-center px-5 py-3 text-sm font-semibold text-gray-500 w-20">상세</th>
+                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-600 w-24">카테고리</th>
+                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-600">제목</th>
+                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-600 w-28">상태</th>
+                  <th className="text-right px-5 py-3 text-sm font-semibold text-gray-600 w-28">작성일</th>
+                  <th className="text-center px-5 py-3 text-sm font-semibold text-gray-600 w-20">상세</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -169,7 +169,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps) {
                           {sm.label}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-right text-sm text-gray-500">
+                      <td className="px-5 py-4 text-right text-sm text-gray-600">
                         {formatDate(ticket.created_at)}
                       </td>
                       <td className="px-5 py-4 text-center">
@@ -192,7 +192,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps) {
       {/* 모바일 카드 목록 */}
       <div className="md:hidden space-y-3">
         {tickets.length === 0 ? (
-          <div className="py-12 text-center text-base text-gray-500 bg-white rounded-xl border border-gray-100">
+          <div className="py-12 text-center text-base text-gray-600 bg-white rounded-xl border border-gray-100">
             문의가 없습니다.
           </div>
         ) : (
@@ -214,7 +214,7 @@ export default async function AdminSupportPage({ searchParams }: PageProps) {
                       {sm.label}
                     </span>
                   </div>
-                  <span className="text-sm text-gray-500 shrink-0">{formatDate(ticket.created_at)}</span>
+                  <span className="text-sm text-gray-600 shrink-0">{formatDate(ticket.created_at)}</span>
                 </div>
                 <p className="text-sm font-semibold text-gray-900 truncate">
                   {ticket.title}

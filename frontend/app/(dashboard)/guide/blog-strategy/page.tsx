@@ -47,7 +47,7 @@ function ChecklistSection() {
         </span>
         <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
-            className="h-full bg-rose-500 rounded-full transition-all duration-300"
+            className="h-full bg-rose-700 rounded-full transition-all duration-300"
             style={{ width: `${(done / items.length) * 100}%` }}
           />
         </div>
@@ -64,7 +64,7 @@ function ChecklistSection() {
         >
           <span
             className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-              checked[i] ? "bg-rose-500 border-rose-500" : "border-gray-300"
+              checked[i] ? "bg-rose-700 border-rose-500" : "border-gray-300"
             }`}
           >
             {checked[i] && (
@@ -92,7 +92,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
         className="w-full flex items-center justify-between gap-3 px-4 py-4 text-left bg-white hover:bg-gray-50 transition-colors"
       >
         <span className="text-sm md:text-base font-medium text-gray-800">{q}</span>
-        <span className="flex-shrink-0 text-gray-500 text-lg leading-none">
+        <span className="flex-shrink-0 text-gray-600 text-lg leading-none">
           {open ? "−" : "+"}
         </span>
       </button>
@@ -115,13 +115,13 @@ export default function BlogStrategyGuidePage() {
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <Link
           href="/guide/ai-info-tab"
-          className="inline-flex items-center gap-1 text-sm md:text-base text-gray-500 hover:text-rose-600"
+          className="inline-flex items-center gap-1 text-sm md:text-base text-gray-600 hover:text-rose-700"
         >
           <ChevronLeft className="w-4 h-4" /> AI 브리핑 5단계 가이드로
         </Link>
         <Link
           href="/how-it-works"
-          className="inline-flex items-center gap-1 text-sm md:text-base text-rose-600 hover:underline font-medium"
+          className="inline-flex items-center gap-1 text-sm md:text-base text-rose-700 hover:underline font-medium"
         >
           서비스 안내 매뉴얼 →
         </Link>
@@ -138,7 +138,7 @@ export default function BlogStrategyGuidePage() {
 
         {/* 면책 배너 */}
         <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-          <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+          <AlertTriangle className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" />
           <p className="text-sm md:text-base text-amber-800 leading-relaxed">
             <span className="font-semibold">유의: </span>
             대가성 후기 작성 시 네이버 정책상 어뷰징으로 분류될 수 있습니다.
@@ -151,7 +151,7 @@ export default function BlogStrategyGuidePage() {
       <section className="space-y-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-rose-100 flex items-center justify-center flex-shrink-0">
-            <Lightbulb className="w-4 h-4 text-rose-600" />
+            <Lightbulb className="w-4 h-4 text-rose-700" />
           </div>
           <h2 className="text-lg md:text-xl font-bold text-gray-900">
             1. 왜 외부 블로그 후기가 중요한가?
@@ -205,25 +205,25 @@ export default function BlogStrategyGuidePage() {
             },
             {
               num: 2,
-              icon: <Gift className="w-5 h-5 text-emerald-500" />,
+              icon: <Gift className="w-5 h-5 text-emerald-700" />,
               title: "체험단·시식회 운영 — 월 1회 정기 이벤트",
               desc: "네이버 카페(맘카페·지역카페), 인스타 마이크로 인플루언서(팔로워 1천~1만), 체험단 플랫폼(레뷰·디너의여왕 등)을 활용. 신메뉴 출시·시즌 변경 시점에 진행하면 효과 극대.",
             },
             {
               num: 3,
-              icon: <Hash className="w-5 h-5 text-blue-500" />,
+              icon: <Hash className="w-5 h-5 text-blue-600" />,
               title: "고객 자발 후기 유도 — 가벼운 인센티브 + 해시태그",
               desc: '"리뷰 작성 시 음료 1잔 무료" 등 가벼운 수준 권장. 매장 내 안내문에 "#지역명_업종" 해시태그 안내 → 블로그 검색에 노출. 대가성 강조는 어뷰징 위험.',
             },
             {
               num: 4,
-              icon: <MessageCircle className="w-5 h-5 text-rose-500" />,
+              icon: <MessageCircle className="w-5 h-5 text-rose-700" />,
               title: "리뷰 답글 — 모든 후기에 1주 내 진정성 있는 답글",
               desc: "사장님 답글이 달린 리뷰는 검색 알고리즘에서 더 높은 가중치를 받습니다. 단순 감사 인사보다 후기 내용을 인용하며 구체적으로 답글 작성. 부정 후기에도 침착하게 응대.",
             },
             {
               num: 5,
-              icon: <BookOpen className="w-5 h-5 text-amber-500" />,
+              icon: <BookOpen className="w-5 h-5 text-amber-700" />,
               title: "사장님 블로그 직접 운영 — 월 2회 이상 포스팅",
               desc: "사장님이 직접 네이버 블로그를 운영하면 자체 신호도 함께 강화됩니다. 신메뉴·이벤트·운영 노하우·일상 소식 등 사실 기반 콘텐츠. AI는 일관된 업데이트 패턴을 신뢰합니다.",
             },
@@ -238,7 +238,7 @@ export default function BlogStrategyGuidePage() {
               key={num}
               className="flex items-start gap-4 p-4 bg-white border border-gray-200 rounded-xl"
             >
-              <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-rose-600 flex items-center justify-center text-white text-sm font-bold">
+              <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-rose-700 flex items-center justify-center text-white text-sm font-bold">
                 {num}
               </div>
               <div className="flex-1 min-w-0">
@@ -259,7 +259,7 @@ export default function BlogStrategyGuidePage() {
       <section className="space-y-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <AlertTriangle className="w-4 h-4 text-amber-700" />
           </div>
           <h2 className="text-lg md:text-xl font-bold text-gray-900">
             3. 어뷰징 금지선 — 절대 하지 말 것
@@ -299,7 +299,7 @@ export default function BlogStrategyGuidePage() {
       <section className="space-y-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-rose-100 flex items-center justify-center flex-shrink-0">
-            <CheckSquare className="w-4 h-4 text-rose-600" />
+            <CheckSquare className="w-4 h-4 text-rose-700" />
           </div>
           <h2 className="text-lg md:text-xl font-bold text-gray-900">
             4. 이번 달 실행 체크리스트
@@ -312,7 +312,7 @@ export default function BlogStrategyGuidePage() {
       <section className="space-y-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-            <HelpCircle className="w-4 h-4 text-amber-600" />
+            <HelpCircle className="w-4 h-4 text-amber-700" />
           </div>
           <h2 className="text-lg md:text-xl font-bold text-gray-900">5. 자주 묻는 질문</h2>
         </div>
@@ -341,7 +341,7 @@ export default function BlogStrategyGuidePage() {
       <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-gray-200">
         <Link
           href="/dashboard"
-          className="flex-1 inline-flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-xl px-5 py-3 text-sm md:text-base transition-colors min-h-[44px]"
+          className="flex-1 inline-flex items-center justify-center gap-2 bg-rose-700 hover:bg-rose-800 text-white font-semibold rounded-xl px-5 py-3 text-sm md:text-base transition-colors min-h-[44px]"
         >
           <BarChart2 className="w-4 h-4" />
           내 블로그 언급 수 확인하기 →

@@ -152,17 +152,17 @@ export default function DeliveryOrderClient({ orderId, initialMessages, isDisabl
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm flex flex-col">
       <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-        <MessageSquare className="w-4 h-4 text-gray-500" strokeWidth={1.5} />
+        <MessageSquare className="w-4 h-4 text-gray-600" strokeWidth={1.5} />
         <h2 className="text-base font-semibold text-gray-800">메시지</h2>
         {isDisabled && (
-          <span className="ml-auto text-sm text-gray-500">종료된 의뢰</span>
+          <span className="ml-auto text-sm text-gray-600">종료된 의뢰</span>
         )}
       </div>
 
       {/* 메시지 목록 */}
       <div className="flex-1 overflow-y-auto px-5 py-4 space-y-1 min-h-[240px] max-h-[480px]">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-gray-500">
+          <div className="flex flex-col items-center justify-center h-40 text-gray-600">
             <MessageSquare className="w-8 h-8 mb-2 opacity-30" strokeWidth={1.2} />
             <p className="text-sm">아직 메시지가 없습니다.</p>
             <p className="text-sm">의뢰 내용을 담당자에게 문의해 보세요.</p>
@@ -180,14 +180,14 @@ export default function DeliveryOrderClient({ orderId, initialMessages, isDisabl
                 {showDateDivider && (
                   <div className="flex items-center gap-3 py-2">
                     <div className="flex-1 h-px bg-gray-100" />
-                    <span className="text-sm text-gray-500 shrink-0">{dateLabel}</span>
+                    <span className="text-sm text-gray-600 shrink-0">{dateLabel}</span>
                     <div className="flex-1 h-px bg-gray-100" />
                   </div>
                 )}
                 <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-2`}>
                   <div className={`max-w-[80%] ${isUser ? "items-end" : "items-start"} flex flex-col gap-1`}>
                     {!isUser && (
-                      <span className="text-sm text-gray-500 font-medium px-1">AEOlab 담당자</span>
+                      <span className="text-sm text-gray-600 font-medium px-1">AEOlab 담당자</span>
                     )}
                     <div
                       className={[
@@ -199,7 +199,7 @@ export default function DeliveryOrderClient({ orderId, initialMessages, isDisabl
                     >
                       <p className="whitespace-pre-wrap break-words">{msg.body}</p>
                     </div>
-                    <span className="text-sm text-gray-500 px-1">{formatTime(msg.created_at)}</span>
+                    <span className="text-sm text-gray-600 px-1">{formatTime(msg.created_at)}</span>
                   </div>
                 </div>
               </div>
@@ -212,10 +212,10 @@ export default function DeliveryOrderClient({ orderId, initialMessages, isDisabl
       {/* 입력 영역 */}
       <div className="px-5 py-4 border-t border-gray-100">
         {error && (
-          <p className="text-sm text-red-600 mb-2">{error}</p>
+          <p className="text-sm text-red-700 mb-2">{error}</p>
         )}
         {isDisabled ? (
-          <p className="text-center text-sm text-gray-500 py-2">
+          <p className="text-center text-sm text-gray-600 py-2">
             완료 또는 취소된 의뢰는 메시지를 보낼 수 없습니다.
           </p>
         ) : (
@@ -227,7 +227,7 @@ export default function DeliveryOrderClient({ orderId, initialMessages, isDisabl
               placeholder="담당자에게 문의할 내용을 입력하세요. (Enter 전송, Shift+Enter 줄바꿈)"
               rows={2}
               disabled={sending}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-400 resize-none disabled:opacity-50"
+              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-600 resize-none disabled:opacity-50"
             />
             <button
               onClick={handleSend}
@@ -250,7 +250,7 @@ export default function DeliveryOrderClient({ orderId, initialMessages, isDisabl
         <div className="px-5 py-4 border-t border-gray-100 bg-amber-50 rounded-b-xl">
           {testimonialDone ? (
             <div className="flex items-center gap-2 text-emerald-700">
-              <Star className="w-4 h-4 fill-emerald-500 text-emerald-500" />
+              <Star className="w-4 h-4 fill-emerald-500 text-emerald-700" />
               <p className="text-sm font-medium">
                 후기 감사합니다! 코칭 쿠폰은 카카오톡으로 보내드립니다.
               </p>
@@ -265,7 +265,7 @@ export default function DeliveryOrderClient({ orderId, initialMessages, isDisabl
               </div>
               <button
                 onClick={() => setShowTestimonialModal(true)}
-                className="flex items-center gap-1.5 shrink-0 px-4 py-2 bg-amber-500 text-white text-sm font-bold rounded-xl hover:bg-amber-600 transition-colors"
+                className="flex items-center gap-1.5 shrink-0 px-4 py-2 bg-amber-700 text-white text-sm font-bold rounded-xl hover:bg-amber-700 transition-colors"
               >
                 <Star className="w-4 h-4" />
                 후기 작성
@@ -301,13 +301,13 @@ export default function DeliveryOrderClient({ orderId, initialMessages, isDisabl
                 >
                   서비스 후기 작성
                 </h2>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  후기를 작성하면 <span className="font-semibold text-amber-600">1:1 화상 코칭 1회 (30,000원 상당)</span>를 무료로 드립니다
+                <p className="text-sm text-gray-600 mt-0.5">
+                  후기를 작성하면 <span className="font-semibold text-amber-700">1:1 화상 코칭 1회 (30,000원 상당)</span>를 무료로 드립니다
                 </p>
               </div>
               <button
                 onClick={() => setShowTestimonialModal(false)}
-                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-500"
+                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-600"
                 aria-label="모달 닫기"
               >
                 <X className="w-5 h-5" />
@@ -321,11 +321,11 @@ export default function DeliveryOrderClient({ orderId, initialMessages, isDisabl
               placeholder="서비스를 이용하며 느낀 점, 개선된 부분, 담당자 친절함 등을 자유롭게 작성해주세요."
               rows={5}
               autoFocus
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-400 transition resize-none placeholder:text-gray-400 mb-3"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-400 transition resize-none placeholder:text-gray-600 mb-3"
             />
 
             {testimonialError && (
-              <p className="text-sm text-red-600 mb-3">{testimonialError}</p>
+              <p className="text-sm text-red-700 mb-3">{testimonialError}</p>
             )}
 
             {/* 버튼 */}
@@ -333,7 +333,7 @@ export default function DeliveryOrderClient({ orderId, initialMessages, isDisabl
               <button
                 onClick={handleTestimonialSubmit}
                 disabled={testimonialSubmitting || !testimonialBody.trim()}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-500 text-white text-sm font-bold rounded-xl hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-700 text-white text-sm font-bold rounded-xl hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {testimonialSubmitting ? (
                   <>

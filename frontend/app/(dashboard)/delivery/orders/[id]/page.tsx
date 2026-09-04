@@ -142,10 +142,10 @@ export default async function DeliveryOrderDetailPage({
     return (
       <div className="p-4 md:p-8 max-w-2xl mx-auto">
         <div className="bg-red-50 border border-red-200 rounded-xl p-5 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-red-700 shrink-0 mt-0.5" />
           <div>
             <p className="text-base font-medium text-red-800">의뢰를 찾을 수 없습니다.</p>
-            <p className="text-sm text-red-600 mt-1">
+            <p className="text-sm text-red-700 mt-1">
               존재하지 않거나 접근 권한이 없는 의뢰입니다.
             </p>
             <a href="/delivery/orders" className="text-sm text-blue-600 hover:underline mt-2 inline-block">
@@ -170,7 +170,7 @@ export default async function DeliveryOrderDetailPage({
   return (
     <div className="p-4 md:p-8">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+      <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
         <a href="/delivery" className="hover:text-blue-600 transition-colors">대행 서비스</a>
         <ChevronRight className="w-4 h-4" />
         <a href="/delivery/orders" className="hover:text-blue-600 transition-colors">내 의뢰 목록</a>
@@ -182,7 +182,7 @@ export default async function DeliveryOrderDetailPage({
           중복·상충(이 배너는 "운영자 연락 대기", 아래는 "직접 재시도 버튼")되므로 그때는 숨김 */}
       {payment === "fail" && order.status !== "received" && (
         <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-          <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+          <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-medium text-amber-800">결제가 완료되지 않았습니다.</p>
             <p className="text-sm text-amber-700 mt-0.5">
@@ -203,7 +203,7 @@ export default async function DeliveryOrderDetailPage({
             <div className="flex items-start justify-between gap-3 mb-4">
               <div>
                 <h1 className="text-lg md:text-xl font-bold text-gray-900">{order.request_title}</h1>
-                <p className="text-sm text-gray-500 mt-1">{formatDate(order.created_at)}</p>
+                <p className="text-sm text-gray-600 mt-1">{formatDate(order.created_at)}</p>
               </div>
               <span className={`shrink-0 text-sm font-semibold px-3 py-1.5 rounded-full ${statusMeta.color}`}>
                 {statusMeta.label}
@@ -233,7 +233,7 @@ export default async function DeliveryOrderDetailPage({
           {order.status === "completed" && order.completion_report && (
             <div className="bg-green-50 border border-green-200 rounded-xl p-5">
               <div className="flex items-center gap-2 mb-3">
-                <CheckCircle2 className="w-5 h-5 text-green-600" />
+                <CheckCircle2 className="w-5 h-5 text-green-700" />
                 <h2 className="text-base font-semibold text-green-800">완료 보고서</h2>
               </div>
               {order.completion_report.summary && (
@@ -271,7 +271,7 @@ export default async function DeliveryOrderDetailPage({
           {materials.length > 0 && (
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
               <div className="flex items-center gap-2 mb-3">
-                <Download className="w-4 h-4 text-blue-500" />
+                <Download className="w-4 h-4 text-blue-600" />
                 <h2 className="text-base font-semibold text-gray-800">납품 파일</h2>
               </div>
               <ul className="space-y-2">
@@ -325,8 +325,8 @@ export default async function DeliveryOrderDetailPage({
                           isActive
                             ? "bg-blue-600 border-blue-600 text-white"
                             : isDone
-                            ? "bg-green-500 border-green-500 text-white"
-                            : "bg-white border-gray-200 text-gray-500",
+                            ? "bg-green-700 border-green-500 text-white"
+                            : "bg-white border-gray-200 text-gray-600",
                         ].join(" ")}>
                           {isDone ? "✓" : idx + 1}
                         </div>
@@ -335,11 +335,11 @@ export default async function DeliveryOrderDetailPage({
                         )}
                       </div>
                       <div className="pt-1 pb-8 last:pb-0">
-                        <p className={`text-sm font-semibold ${isActive ? "text-blue-700" : isDone ? "text-green-700" : "text-gray-500"}`}>
+                        <p className={`text-sm font-semibold ${isActive ? "text-blue-700" : isDone ? "text-green-700" : "text-gray-600"}`}>
                           {STATUS_LABELS[step]}
                         </p>
                         {isActive && (
-                          <p className="text-sm text-gray-500 mt-0.5">현재 단계</p>
+                          <p className="text-sm text-gray-600 mt-0.5">현재 단계</p>
                         )}
                       </div>
                     </div>
@@ -358,27 +358,27 @@ export default async function DeliveryOrderDetailPage({
             <h2 className="text-base font-semibold text-gray-800 mb-3">패키지 정보</h2>
             <dl className="space-y-2.5">
               <div className="flex justify-between gap-2">
-                <dt className="text-sm text-gray-500">패키지</dt>
+                <dt className="text-sm text-gray-600">패키지</dt>
                 <dd className="text-sm font-medium text-gray-800 text-right">
                   {PACKAGE_DISPLAY[order.package_type] ?? order.package_type}
                 </dd>
               </div>
               <div className="flex justify-between gap-2">
-                <dt className="text-sm text-gray-500">결제 금액</dt>
+                <dt className="text-sm text-gray-600">결제 금액</dt>
                 <dd className="text-sm font-bold text-blue-600">
                   {order.amount?.toLocaleString()}원
                 </dd>
               </div>
               {order.business_name && (
                 <div className="flex justify-between gap-2">
-                  <dt className="text-sm text-gray-500">사업장</dt>
+                  <dt className="text-sm text-gray-600">사업장</dt>
                   <dd className="text-sm font-medium text-gray-800 text-right truncate max-w-[140px]">
                     {order.business_name}
                   </dd>
                 </div>
               )}
               <div className="flex justify-between gap-2">
-                <dt className="text-sm text-gray-500">신청일</dt>
+                <dt className="text-sm text-gray-600">신청일</dt>
                 <dd className="text-sm text-gray-600">
                   {new Date(order.created_at).toLocaleDateString("ko-KR")}
                 </dd>
@@ -389,12 +389,12 @@ export default async function DeliveryOrderDetailPage({
           {/* 위임 동의 현황 */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
             <h2 className="text-base font-semibold text-gray-800 mb-3">위임 동의 현황</h2>
-            <div className={`flex items-center gap-2 text-sm ${order.consent_agreed ? "text-green-700" : "text-red-600"}`}>
+            <div className={`flex items-center gap-2 text-sm ${order.consent_agreed ? "text-green-700" : "text-red-700"}`}>
               <div className={`w-2 h-2 rounded-full ${order.consent_agreed ? "bg-green-500" : "bg-red-400"}`} />
               {order.consent_agreed ? "부운영자 위임 동의 완료" : "동의 미완료"}
             </div>
             {order.consent_agreed && (
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-gray-600 mt-2">
                 작업 시작 전 부운영자 등록 방법을 안내드립니다.
               </p>
             )}

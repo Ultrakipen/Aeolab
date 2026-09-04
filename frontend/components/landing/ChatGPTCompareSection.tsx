@@ -59,7 +59,7 @@ export default function ChatGPTCompareSection() {
           <div className="grid grid-cols-3 text-sm font-bold" style={{ background: "#FFFFFF" }}>
             <div
               className="px-5 py-3.5 border-r"
-              style={{ color: "#64748B", borderColor: "#E2E8F0" }}
+              style={{ color: "#45556C", borderColor: "#E2E8F0" }}
             >
               비교 항목
             </div>
@@ -103,7 +103,7 @@ export default function ChatGPTCompareSection() {
                 className="px-5 py-3.5 flex items-center gap-2"
                 style={{ background: "#EFF6FF" }}
               >
-                <span className="font-bold shrink-0" style={{ color: "#059669" }}>✓</span>
+                <span className="font-bold shrink-0" style={{ color: "#007a55" }}>✓</span>
                 <span className="font-medium" style={{ color: "#0F172A" }}>{row.auto}</span>
               </div>
             </div>
@@ -147,7 +147,7 @@ export default function ChatGPTCompareSection() {
                     AEOlab 자동
                   </p>
                   <div className="flex items-start gap-1.5">
-                    <span className="text-sm font-bold shrink-0" style={{ color: "#059669" }}>✓</span>
+                    <span className="text-sm font-bold shrink-0" style={{ color: "#007a55" }}>✓</span>
                     <p className="text-sm font-medium" style={{ color: "#0F172A" }}>{row.auto}</p>
                   </div>
                 </div>
@@ -157,7 +157,7 @@ export default function ChatGPTCompareSection() {
         </div>
 
         {/* 면책 문구 */}
-        <p className="text-sm text-gray-500 text-center mt-4 fade-up">
+        <p className="text-sm text-gray-600 text-center mt-4 fade-up">
           ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다
         </p>
       </div>

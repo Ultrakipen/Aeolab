@@ -657,7 +657,7 @@ export default function TrialResultStep(props: TrialResultProps) {
       {(group === "INACTIVE" || group === "franchise") && (
         <div className="rounded-xl border-2 border-amber-400 bg-amber-50 px-4 py-3">
           <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+            <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0" />
             <p className="text-sm md:text-base font-bold text-amber-900">
               {group === "franchise"
                 ? "프랜차이즈 가맹점은 '플레이스형' 네이버 AI 브리핑 대상에서 제외됩니다"
@@ -705,7 +705,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           <span className={`text-sm font-semibold px-2 py-0.5 rounded-full ${msg.badgeColor}`}>
             {msg.badge}
           </span>
-          <span className="text-sm text-gray-500">{categoryLabel}</span>
+          <span className="text-sm text-gray-600">{categoryLabel}</span>
         </div>
         <p className="text-sm md:text-base text-gray-900 font-semibold leading-snug break-keep mb-1">
           {msg.headline}
@@ -951,17 +951,17 @@ export default function TrialResultStep(props: TrialResultProps) {
               </div>
             </div>
             <div className="ml-2.5 pl-4 border-l-2 border-blue-200">
-              <p className="text-xs text-blue-500 font-medium">▼ 2~4주</p>
+              <p className="text-xs text-blue-600 font-medium">▼ 2~4주</p>
             </div>
             <div className="flex items-start gap-2.5">
-              <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-green-500 text-white text-xs font-black flex items-center justify-center">2</span>
+              <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-green-700 text-white text-xs font-black flex items-center justify-center">2</span>
               <div>
                 <p className="text-sm font-semibold text-green-800 break-keep">네이버 지역 검색 상위권 노출</p>
                 <p className="text-sm text-slate-500 mt-0.5">네이버가 관련성 높은 가게로 평가 → 검색 상위 배치</p>
               </div>
             </div>
             <div className="ml-2.5 pl-4 border-l-2 border-green-200">
-              <p className="text-xs text-green-600 font-medium">▼ 수개월~1년</p>
+              <p className="text-xs text-green-700 font-medium">▼ 수개월~1년</p>
             </div>
             <div className="flex items-start gap-2.5">
               <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-purple-600 text-white text-xs font-black flex items-center justify-center">3</span>
@@ -1096,7 +1096,7 @@ function BriefingCategoryBadge({
   if (category === "active") {
     return (
       <div className="bg-green-50 border border-green-300 rounded-xl px-4 py-2.5 mb-3 flex items-center gap-2">
-        <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
+        <CheckCircle2 className="w-5 h-5 text-green-700 shrink-0" />
         <p className="text-sm font-semibold text-green-800">
           네이버 AI 브리핑 + AI탭 + ChatGPT·Gemini·Google AI — 5채널 모두 노출 가능 업종입니다
         </p>
@@ -1106,7 +1106,7 @@ function BriefingCategoryBadge({
   if (category === "likely") {
     return (
       <div className="bg-amber-50 border border-amber-300 rounded-xl px-4 py-2.5 mb-3 flex items-start gap-2">
-        <Clock className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+        <Clock className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-bold text-amber-800">
             AI탭 + ChatGPT·Gemini·Google AI — 4채널 노출이 가능합니다
@@ -1159,10 +1159,10 @@ function ScoreBreakdownBox({
     unifiedScore >= 60 ? CheckCircle2 : unifiedScore >= 40 ? AlertTriangle : XCircle;
   const scoreIconColor =
     unifiedScore >= 60
-      ? "text-green-600"
+      ? "text-green-700"
       : unifiedScore >= 40
-        ? "text-amber-500"
-        : "text-amber-600";
+        ? "text-amber-700"
+        : "text-amber-700";
 
   return (
     <div id="score-breakdown" className="bg-white border border-slate-200 rounded-xl p-4 md:p-5 mb-4 shadow-sm">
@@ -1203,7 +1203,7 @@ function ScoreBreakdownBox({
                           ? "text-blue-700"
                           : val >= 40
                             ? "text-amber-700"
-                            : "text-red-600"
+                            : "text-red-700"
                   }`}
                 >
                   {isUnmeasured
@@ -1297,7 +1297,7 @@ function NaverBriefingResultCard({
                   <p className="text-base font-semibold text-gray-800 mb-1">
                     &ldquo;{businessName}&rdquo;이 이번 네이버 검색에서 AI 브리핑에 ···
                   </p>
-                  <p className="text-sm text-gray-500">주요 원인 분석 · 개선 액션 3가지</p>
+                  <p className="text-sm text-gray-600">주요 원인 분석 · 개선 액션 3가지</p>
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center bg-white/70">
                   <div className="flex items-center gap-2 text-slate-600">
@@ -1364,19 +1364,19 @@ function NaverBriefingResultCard({
               <ul className="space-y-1.5">
                 {confirmedReasons.map((reason, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-gray-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-                    <span className="text-gray-500 shrink-0 mt-px">•</span>
+                    <span className="text-gray-600 shrink-0 mt-px">•</span>
                     {reason}
                   </li>
                 ))}
                 {!hasConfirmed && (
                   <li className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-gray-500 shrink-0 mt-px">•</span>
+                    <span className="text-gray-600 shrink-0 mt-px">•</span>
                     리뷰 키워드 다양성 부족 — 업종 대표 키워드가 리뷰에 충분히 쌓이지 않음
                   </li>
                 )}
                 {!hasConfirmed && (
-                  <li className="flex items-start gap-2 text-sm text-gray-500">
-                    <span className="text-gray-500 shrink-0 mt-px">•</span>
+                  <li className="flex items-start gap-2 text-sm text-gray-600">
+                    <span className="text-gray-600 shrink-0 mt-px">•</span>
                     정확한 원인은 구독 후 상세 분석에서 확인 가능합니다
                   </li>
                 )}
@@ -1400,7 +1400,7 @@ function NaverBriefingResultCard({
               <ol className="space-y-1.5">
                 {actions.map((action, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-gray-500 shrink-0 font-semibold mt-px">{i + 1}.</span>
+                    <span className="text-gray-600 shrink-0 font-semibold mt-px">{i + 1}.</span>
                     {action}
                   </li>
                 ))}
@@ -1413,7 +1413,7 @@ function NaverBriefingResultCard({
 
       {/* 면책 */}
       <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100">
-        <p className="text-sm text-gray-500 leading-relaxed">
+        <p className="text-sm text-gray-600 leading-relaxed">
           네이버 AI 브리핑은 검색어·시점·기기·로그인 상태에 따라 달라질 수 있습니다.
         </p>
       </div>
@@ -1453,7 +1453,7 @@ function ChatGPTResultCard({
           </div>
           <span className="text-sm font-semibold text-gray-700">ChatGPT 검색 결과</span>
         </div>
-        <span className="text-sm text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
+        <span className="text-sm text-gray-600 bg-gray-100 rounded-full px-2 py-0.5">
           {sampleSize}회 질의 기준
         </span>
       </div>
@@ -1462,7 +1462,7 @@ function ChatGPTResultCard({
       <div className="px-4 py-4 space-y-3">
         {/* 질의 목록 */}
         <div>
-          <p className="text-sm text-gray-500 mb-1.5 leading-snug">
+          <p className="text-sm text-gray-600 mb-1.5 leading-snug">
             실제 손님이 AI에게 묻는 방식으로 {sampleSize}회 테스트했습니다
             <span className="ml-1 text-slate-400">(가입 후 1회 무료체험은 50회, 구독 시엔 100회 — 표본이 많을수록 정확도 높아짐)</span>
           </p>
@@ -1473,7 +1473,7 @@ function ChatGPTResultCard({
               </li>
             ))}
           </ul>
-          <p className="text-sm text-gray-500 leading-snug">
+          <p className="text-sm text-gray-600 leading-snug">
             손님은 가게 이름을 모른 채 업종·지역 키워드로 AI에 묻습니다.
             위 질의에 &ldquo;{businessName}&rdquo;이 추천됐는지 확인한 결과입니다.
           </p>
@@ -1518,18 +1518,18 @@ function ChatGPTResultCard({
               <ul className="space-y-1.5">
                 {diagnosedReasons.map((reason, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-gray-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-                    <span className="text-gray-500 shrink-0 mt-px">•</span>
+                    <span className="text-gray-600 shrink-0 mt-px">•</span>
                     {reason}
                   </li>
                 ))}
                 {!hasConfirmed && (
                   <>
                     <li className="flex items-start gap-2 text-sm text-gray-600">
-                      <span className="text-gray-500 shrink-0 mt-px">•</span>
+                      <span className="text-gray-600 shrink-0 mt-px">•</span>
                       소개글·리뷰 키워드 데이터가 아직 AI 학습에 충분히 반영되지 않았을 수 있습니다
                     </li>
-                    <li className="flex items-start gap-2 text-sm text-gray-500">
-                      <span className="text-gray-500 shrink-0 mt-px">•</span>
+                    <li className="flex items-start gap-2 text-sm text-gray-600">
+                      <span className="text-gray-600 shrink-0 mt-px">•</span>
                       정확한 원인은 구독 후 상세 분석에서 확인 가능합니다
                     </li>
                   </>
@@ -1555,7 +1555,7 @@ function ChatGPTResultCard({
               <ol className="space-y-1.5">
                 {actions.map((action, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-gray-500 shrink-0 font-semibold mt-px">{i + 1}.</span>
+                    <span className="text-gray-600 shrink-0 font-semibold mt-px">{i + 1}.</span>
                     {action}
                   </li>
                 ))}
@@ -1567,7 +1567,7 @@ function ChatGPTResultCard({
 
       {/* 면책 */}
       <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100">
-        <p className="text-sm text-gray-500 leading-relaxed">
+        <p className="text-sm text-gray-600 leading-relaxed">
           ChatGPT 측정은 AI 학습 데이터 기반입니다. 실제 ChatGPT 앱의 검색 결과와 다를 수 있으며, 단기 콘텐츠 변경으로 점수가 즉시 변동되지 않습니다.
         </p>
       </div>
@@ -1824,7 +1824,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
         <p className="text-base md:text-lg font-bold text-gray-900">
           스마트플레이스 등록 상태
         </p>
-        <span className="text-sm text-gray-500">자동 확인됨</span>
+        <span className="text-sm text-gray-600">자동 확인됨</span>
       </div>
 
       {/* 실측 지표 — 리뷰 수·별점 (0이면 미감지) */}
@@ -1838,7 +1838,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
                 방문자 리뷰 {visitorReviewCount.toLocaleString()}건
               </span>
               {visitorReviewCount >= 100 && (
-                <span className="text-sm text-emerald-600">— 리뷰 신뢰도 양호</span>
+                <span className="text-sm text-emerald-700">— 리뷰 신뢰도 양호</span>
               )}
             </div>
           )}
@@ -1866,9 +1866,9 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
           >
             <div className="flex items-center gap-2.5 min-w-0 flex-1">
               {item.checked ? (
-                <Check className="w-5 h-5 text-emerald-600 shrink-0" />
+                <Check className="w-5 h-5 text-emerald-700 shrink-0" />
               ) : (
-                <X className="w-5 h-5 text-amber-500 shrink-0" />
+                <X className="w-5 h-5 text-amber-700 shrink-0" />
               )}
               <span
                 className={`text-sm md:text-base font-semibold break-keep ${
@@ -1919,7 +1919,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
       {/* AI탭 품질 향상 참고 사항 — 점수 미반영, advisory only */}
       {(check.has_reservation != null || check.photo_count != null) && (
         <div className="mt-3 border-t border-gray-100 pt-3">
-          <p className="text-sm text-gray-500 mb-2">AI탭 품질 향상 참고 사항 (점수 미반영)</p>
+          <p className="text-sm text-gray-600 mb-2">AI탭 품질 향상 참고 사항 (점수 미반영)</p>
           <div className="flex flex-col gap-2">
             {check.has_reservation != null && (
               <div
@@ -1932,7 +1932,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
                 {check.has_reservation ? (
                   <Check className="w-4 h-4 text-blue-600 shrink-0" />
                 ) : (
-                  <Info className="w-4 h-4 text-gray-500 shrink-0" />
+                  <Info className="w-4 h-4 text-gray-600 shrink-0" />
                 )}
                 <span className="text-sm text-gray-700 flex-1 break-keep">
                   {check.has_reservation
@@ -1961,7 +1961,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
               >
                 <Info
                   className={`w-4 h-4 shrink-0 ${
-                    (check.photo_count ?? 0) >= 10 ? "text-blue-500" : "text-amber-500"
+                    (check.photo_count ?? 0) >= 10 ? "text-blue-600" : "text-amber-700"
                   }`}
                 />
                 <span className="text-sm text-gray-700 break-keep">

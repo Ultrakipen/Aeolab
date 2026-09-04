@@ -107,7 +107,7 @@ export default async function AdminDeliveryDetailPage({
 
   if (!isAdmin) {
     return (
-      <div className="p-4 md:p-8 text-center text-gray-500">
+      <div className="p-4 md:p-8 text-center text-gray-600">
         <p className="text-base">접근 권한이 없습니다.</p>
       </div>
     );
@@ -132,7 +132,7 @@ export default async function AdminDeliveryDetailPage({
     return (
       <div className="max-w-2xl mx-auto">
         <div className="bg-red-50 border border-red-200 rounded-xl p-5 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-red-700 shrink-0 mt-0.5" />
           <div>
             <p className="text-base font-medium text-red-800">의뢰를 찾을 수 없습니다.</p>
             <Link href="/admin/delivery" className="text-sm text-blue-600 hover:underline mt-2 inline-block">
@@ -160,7 +160,7 @@ export default async function AdminDeliveryDetailPage({
   return (
     <>
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 flex-wrap">
+      <div className="flex items-center gap-2 text-sm text-gray-600 mb-4 flex-wrap">
         <Link href="/admin" className="hover:text-blue-600 transition-colors">관리자</Link>
         <ChevronRight className="w-4 h-4" />
         <Link href="/admin/delivery" className="hover:text-blue-600 transition-colors">대행 의뢰 관리</Link>
@@ -173,7 +173,7 @@ export default async function AdminDeliveryDetailPage({
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
           <div>
             <h1 className="text-lg md:text-xl font-bold text-gray-900">{order.request_title}</h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-600 mt-1">
               {PACKAGE_DISPLAY[order.package_type] ?? order.package_type} · {order.amount?.toLocaleString()}원 · {formatDate(order.created_at)}
             </p>
           </div>
@@ -185,7 +185,7 @@ export default async function AdminDeliveryDetailPage({
           <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{order.request_body}</p>
         </div>
         {order.consent_agreed !== undefined && (
-          <div className={`mt-3 flex items-center gap-2 text-sm ${order.consent_agreed ? "text-green-700" : "text-red-600"}`}>
+          <div className={`mt-3 flex items-center gap-2 text-sm ${order.consent_agreed ? "text-green-700" : "text-red-700"}`}>
             <div className={`w-2 h-2 rounded-full ${order.consent_agreed ? "bg-green-500" : "bg-red-400"}`} />
             {order.consent_agreed ? "부운영자 위임 동의 완료" : "동의 미완료"}
           </div>

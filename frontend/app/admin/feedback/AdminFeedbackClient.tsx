@@ -61,7 +61,7 @@ function DiaBinBar({ bin, max }: { bin: DiaBin; max: number }) {
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-sm text-gray-600 dark:text-gray-400 w-8 text-right shrink-0">
+      <span className="text-sm text-gray-600 dark:text-gray-600 w-8 text-right shrink-0">
         {bin.count}
       </span>
     </div>
@@ -113,7 +113,7 @@ function GoodBadBar({
           style={{ width: `${badPct}%` }}
         />
       </div>
-      <span className="text-sm text-gray-500 dark:text-gray-400 w-12 text-right shrink-0">
+      <span className="text-sm text-gray-600 dark:text-gray-600 w-12 text-right shrink-0">
         {goodPct}%
       </span>
     </div>
@@ -208,7 +208,7 @@ export default function AdminFeedbackClient() {
             <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
               피드백 현황
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-600 dark:text-gray-600 mt-0.5">
               이벤트별 만족도 집계
             </p>
           </div>
@@ -222,7 +222,7 @@ export default function AdminFeedbackClient() {
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     period === value
                       ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
-                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                      : "text-gray-600 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-200"
                   }`}
                 >
                   {label}
@@ -236,7 +236,7 @@ export default function AdminFeedbackClient() {
               aria-label="새로고침"
             >
               <RefreshCw
-                className={`w-4 h-4 text-gray-500 dark:text-gray-400 ${loading ? "animate-spin" : ""}`}
+                className={`w-4 h-4 text-gray-600 dark:text-gray-600 ${loading ? "animate-spin" : ""}`}
               />
             </button>
           </div>
@@ -262,7 +262,7 @@ export default function AdminFeedbackClient() {
             <p className="text-base font-medium text-gray-600 dark:text-gray-300">
               아직 피드백 데이터가 없습니다
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+            <p className="text-sm text-gray-600 dark:text-gray-600 mt-1">
               사용자가 피드백을 제출하면 여기에 표시됩니다.
             </p>
           </div>
@@ -281,19 +281,19 @@ export default function AdminFeedbackClient() {
                 {
                   label: "긍정 (좋아요)",
                   value: totalGood,
-                  color: "text-green-600 dark:text-green-400",
+                  color: "text-green-700 dark:text-green-400",
                 },
                 {
                   label: "부정 (별로)",
                   value: totalBad,
-                  color: "text-red-500 dark:text-red-400",
+                  color: "text-red-700 dark:text-red-400",
                 },
               ].map((item) => (
                 <div
                   key={item.label}
                   className="bg-white dark:bg-gray-800 rounded-xl p-4 md:p-5 shadow-sm"
                 >
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                  <div className="text-sm text-gray-600 dark:text-gray-600 mb-1">
                     {item.label}
                   </div>
                   <div className={`text-2xl font-bold ${item.color}`}>
@@ -318,15 +318,15 @@ export default function AdminFeedbackClient() {
                           {getLabel(key)}
                         </span>
                         <div className="flex items-center gap-3 text-sm">
-                          <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                          <span className="flex items-center gap-1 text-green-700 dark:text-green-400">
                             <ThumbsUp className="w-3.5 h-3.5" aria-hidden="true" />
                             {val.good}
                           </span>
-                          <span className="flex items-center gap-1 text-red-500 dark:text-red-400">
+                          <span className="flex items-center gap-1 text-red-700 dark:text-red-400">
                             <ThumbsDown className="w-3.5 h-3.5" aria-hidden="true" />
                             {val.bad}
                           </span>
-                          <span className="text-gray-500 dark:text-gray-500">
+                          <span className="text-gray-600 dark:text-gray-600">
                             총 {total}건
                           </span>
                         </div>
@@ -398,7 +398,7 @@ export default function AdminFeedbackClient() {
               aria-label="D.I.A. 통계 새로고침"
             >
               <RefreshCw
-                className={`w-4 h-4 text-gray-500 dark:text-gray-400 ${diaLoading ? "animate-spin" : ""}`}
+                className={`w-4 h-4 text-gray-600 dark:text-gray-600 ${diaLoading ? "animate-spin" : ""}`}
               />
             </button>
           </div>
@@ -430,15 +430,15 @@ export default function AdminFeedbackClient() {
                     value: diaStats.avg_score !== null ? `${diaStats.avg_score}점` : "N/A",
                     color:
                       diaStats.avg_score !== null && diaStats.avg_score >= 90
-                        ? "text-green-600 dark:text-green-400"
+                        ? "text-green-700 dark:text-green-400"
                         : diaStats.avg_score !== null && diaStats.avg_score >= 70
                         ? "text-yellow-600 dark:text-yellow-400"
-                        : "text-red-500 dark:text-red-400",
+                        : "text-red-700 dark:text-red-400",
                   },
                   {
                     label: "재생성 건수",
                     value: `${diaStats.regenerated_count}건`,
-                    color: diaStats.regenerated_count > 0 ? "text-orange-600 dark:text-orange-400" : "text-gray-900 dark:text-gray-100",
+                    color: diaStats.regenerated_count > 0 ? "text-orange-700 dark:text-orange-400" : "text-gray-900 dark:text-gray-100",
                   },
                   {
                     label: "재생성 성공률",
@@ -448,7 +448,7 @@ export default function AdminFeedbackClient() {
                         : "N/A",
                     color:
                       diaStats.regenerated_success_rate !== null && diaStats.regenerated_success_rate >= 80
-                        ? "text-green-600 dark:text-green-400"
+                        ? "text-green-700 dark:text-green-400"
                         : "text-yellow-600 dark:text-yellow-400",
                   },
                 ].map((item) => (
@@ -456,7 +456,7 @@ export default function AdminFeedbackClient() {
                     key={item.label}
                     className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3"
                   >
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-0.5">
+                    <div className="text-sm text-gray-600 dark:text-gray-600 mb-0.5">
                       {item.label}
                     </div>
                     <div className={`text-lg font-bold ${item.color}`}>{item.value}</div>
@@ -476,14 +476,14 @@ export default function AdminFeedbackClient() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500 dark:text-gray-500 text-center py-4">
+                <p className="text-sm text-gray-600 dark:text-gray-600 text-center py-4">
                   아직 D.I.A. 점수가 기록된 가이드가 없습니다.
                   <br />
                   <span className="text-sm">가이드 생성 후 tools_json.dia_score 필드가 저장되면 표시됩니다.</span>
                 </p>
               )}
 
-              <p className="text-sm text-gray-500 dark:text-gray-500 mt-3">
+              <p className="text-sm text-gray-600 dark:text-gray-600 mt-3">
                 최근 {diaStats.period_days}일 기준 · 90점+ 초회 통과 · 70~89점 조건부 통과 · 70점 미만 재생성 트리거
               </p>
             </div>

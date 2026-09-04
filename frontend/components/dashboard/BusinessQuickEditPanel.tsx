@@ -231,11 +231,11 @@ export default function BusinessQuickEditPanel({
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 shrink-0">
           <div>
             <h2 className="text-base font-bold text-gray-900">가게 정보 빠른 수정</h2>
-            <p className="text-sm text-gray-500 mt-0.5 truncate max-w-[200px]">{bizName}</p>
+            <p className="text-sm text-gray-600 mt-0.5 truncate max-w-[200px]">{bizName}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg text-gray-600 hover:text-gray-700 hover:bg-gray-100 transition-colors"
             aria-label="닫기"
           >
             <X className="w-5 h-5" />
@@ -260,7 +260,7 @@ export default function BusinessQuickEditPanel({
 
           {/* ① 핵심 키워드 */}
           <section>
-            <p className="text-sm font-semibold text-gray-500 mb-3">핵심 키워드</p>
+            <p className="text-sm font-semibold text-gray-600 mb-3">핵심 키워드</p>
             <div
               className="flex flex-wrap gap-1.5 p-2.5 border border-gray-300 rounded-xl min-h-[48px] cursor-text focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-200"
               onClick={() => inputRef.current?.focus()}
@@ -274,7 +274,7 @@ export default function BusinessQuickEditPanel({
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); removeKeyword(kw); }}
-                    className="ml-0.5 text-blue-500 hover:text-blue-800"
+                    className="ml-0.5 text-blue-600 hover:text-blue-800"
                     aria-label={`${kw} 삭제`}
                   >
                     <X className="w-3 h-3" />
@@ -295,8 +295,8 @@ export default function BusinessQuickEditPanel({
               />
             </div>
             <div className="flex items-center justify-between mt-1.5">
-              <p className="text-sm text-gray-500">Enter 또는 쉼표로 추가 · × 버튼으로 삭제</p>
-              <p className="text-sm text-gray-500">{keywords.length}/10</p>
+              <p className="text-sm text-gray-600">Enter 또는 쉼표로 추가 · × 버튼으로 삭제</p>
+              <p className="text-sm text-gray-600">{keywords.length}/10</p>
             </div>
             {keywords.length < 10 && keywordInput && (
               <button
@@ -311,7 +311,7 @@ export default function BusinessQuickEditPanel({
             {/* AI 자동 추천 (Phase A) */}
             <div className="mt-3 pt-3 border-t border-gray-100">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm text-gray-500">{keywords.length < 3 ? <span className="text-red-600 font-medium">3개 이상 필수</span> : "AI 추천으로 키워드 보강"}</p>
+                <p className="text-sm text-gray-600">{keywords.length < 3 ? <span className="text-red-700 font-medium">3개 이상 필수</span> : "AI 추천으로 키워드 보강"}</p>
                 <button
                   type="button"
                   disabled={suggesting || keywords.length >= 10}
@@ -359,7 +359,7 @@ export default function BusinessQuickEditPanel({
                         title={s.rationale}
                         className={`text-sm px-2 py-0.5 rounded-full border transition-colors ${
                           already
-                            ? "bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed"
+                            ? "bg-gray-100 text-gray-600 border-gray-200 cursor-not-allowed"
                             : "bg-white text-blue-700 border-blue-300 hover:bg-blue-50"
                         }`}
                       >
@@ -374,12 +374,12 @@ export default function BusinessQuickEditPanel({
 
           {/* ② 스마트플레이스 현황 */}
           <section>
-            <p className="text-sm font-semibold text-gray-500 mb-3">스마트플레이스 현황</p>
+            <p className="text-sm font-semibold text-gray-600 mb-3">스마트플레이스 현황</p>
             <div className="space-y-3">
               {[
-                { label: "소개글 Q&A 포함됨", hint: "(점수 미반영)", hintClass: "text-gray-500", value: hasFaq, setter: setHasFaq },
-                { label: "소개글 작성됨", hint: "(AI 노출 핵심 조건)", hintClass: "text-emerald-600 font-semibold", value: hasIntro, setter: setHasIntro },
-                { label: "최근 소식 등록됨", hint: "(검색 신선도 향상)", hintClass: "text-emerald-600 font-semibold", value: hasRecentPost, setter: setHasRecentPost },
+                { label: "소개글 Q&A 포함됨", hint: "(점수 미반영)", hintClass: "text-gray-600", value: hasFaq, setter: setHasFaq },
+                { label: "소개글 작성됨", hint: "(AI 노출 핵심 조건)", hintClass: "text-emerald-700 font-semibold", value: hasIntro, setter: setHasIntro },
+                { label: "최근 소식 등록됨", hint: "(검색 신선도 향상)", hintClass: "text-emerald-700 font-semibold", value: hasRecentPost, setter: setHasRecentPost },
               ].map(({ label, hint, hintClass, value, setter }) => (
                 <label
                   key={label}
@@ -424,14 +424,14 @@ export default function BusinessQuickEditPanel({
           {/* ③ 리뷰 현황 */}
           <section>
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-semibold text-gray-500">리뷰 현황</p>
+              <p className="text-sm font-semibold text-gray-600">리뷰 현황</p>
               <button
                 type="button"
                 onClick={handleSync}
                 disabled={syncing || syncCooldown || !initialData.naver_place_id}
                 className={`flex items-center gap-1.5 text-sm px-2.5 py-1.5 rounded-lg border transition-colors ${
                   syncing || syncCooldown || !initialData.naver_place_id
-                    ? "border-gray-200 text-gray-500 cursor-not-allowed"
+                    ? "border-gray-200 text-gray-600 cursor-not-allowed"
                     : "border-blue-300 text-blue-600 hover:bg-blue-50"
                 }`}
                 title={
@@ -449,7 +449,7 @@ export default function BusinessQuickEditPanel({
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor={`biz-quickedit-${bizId}-visitor-review`} className="block text-sm text-gray-500 mb-1">방문자 리뷰 수</label>
+                  <label htmlFor={`biz-quickedit-${bizId}-visitor-review`} className="block text-sm text-gray-600 mb-1">방문자 리뷰 수</label>
                   <input
                     id={`biz-quickedit-${bizId}-visitor-review`}
                     type="number"
@@ -460,7 +460,7 @@ export default function BusinessQuickEditPanel({
                   />
                 </div>
                 <div>
-                  <label htmlFor={`biz-quickedit-${bizId}-receipt-review`} className="block text-sm text-gray-500 mb-1">영수증 리뷰 수</label>
+                  <label htmlFor={`biz-quickedit-${bizId}-receipt-review`} className="block text-sm text-gray-600 mb-1">영수증 리뷰 수</label>
                   <input
                     id={`biz-quickedit-${bizId}-receipt-review`}
                     type="number"
@@ -472,7 +472,7 @@ export default function BusinessQuickEditPanel({
                 </div>
               </div>
               <div>
-                <label htmlFor={`biz-quickedit-${bizId}-rating`} className="block text-sm text-gray-500 mb-1">평균 별점 (0.0 ~ 5.0)</label>
+                <label htmlFor={`biz-quickedit-${bizId}-rating`} className="block text-sm text-gray-600 mb-1">평균 별점 (0.0 ~ 5.0)</label>
                 <div className="flex items-center gap-3">
                   <input
                     id={`biz-quickedit-${bizId}-rating`}
@@ -494,7 +494,7 @@ export default function BusinessQuickEditPanel({
 
           {/* ④ 네이버 플레이스 URL */}
           <section>
-            <p className="text-sm font-semibold text-gray-500 mb-3">네이버 플레이스 URL</p>
+            <p className="text-sm font-semibold text-gray-600 mb-3">네이버 플레이스 URL</p>
             <input
               type="url"
               value={naverPlaceUrl}
@@ -502,7 +502,7 @@ export default function BusinessQuickEditPanel({
               placeholder="https://map.naver.com/v5/entry/..."
               className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 placeholder-gray-400"
             />
-            <p className="text-sm text-gray-500 mt-1.5">
+            <p className="text-sm text-gray-600 mt-1.5">
               네이버 지도에서 내 가게 페이지 주소를 입력하세요
             </p>
           </section>
@@ -527,7 +527,7 @@ export default function BusinessQuickEditPanel({
           </button>
           <a
             href="/settings?tab=business"
-            className="w-full flex items-center justify-center gap-1 text-sm text-gray-500 hover:text-blue-600 py-2 transition-colors"
+            className="w-full flex items-center justify-center gap-1 text-sm text-gray-600 hover:text-blue-600 py-2 transition-colors"
           >
             전체 설정 보기 →
           </a>

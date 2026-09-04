@@ -34,14 +34,14 @@ interface Props {
 function BoolCell({ value }: { value: boolean | null }) {
   if (value === null) return <span className="text-gray-300 text-sm">-</span>;
   return value
-    ? <CheckCircle2 className="w-5 h-5 text-green-500 mx-auto" />
+    ? <CheckCircle2 className="w-5 h-5 text-green-700 mx-auto" />
     : <XCircle className="w-5 h-5 text-red-400 mx-auto" />;
 }
 
 function NumberCell({ value, isWeak }: { value: number | null; isWeak: boolean }) {
   if (value === null) return <span className="text-gray-300 text-sm">-</span>;
   return (
-    <span className={`font-semibold text-sm ${isWeak ? "text-red-600" : "text-gray-800"}`}>
+    <span className={`font-semibold text-sm ${isWeak ? "text-red-700" : "text-gray-800"}`}>
       {value.toLocaleString()}
     </span>
   );
@@ -49,12 +49,12 @@ function NumberCell({ value, isWeak }: { value: number | null; isWeak: boolean }
 
 function RatingCell({ value, synced, isWeak, noDataText }: { value: number | null; synced?: boolean; isWeak: boolean; noDataText?: string }) {
   if (value === null) {
-    if (noDataText) return <span className="text-gray-500 text-sm">{noDataText}</span>;
-    if (synced) return <span className="text-gray-500 text-sm">별점 없음</span>;
-    return <span className="text-amber-500 text-sm font-medium">동기화 필요</span>;
+    if (noDataText) return <span className="text-gray-600 text-sm">{noDataText}</span>;
+    if (synced) return <span className="text-gray-600 text-sm">별점 없음</span>;
+    return <span className="text-amber-700 text-sm font-medium">동기화 필요</span>;
   }
   return (
-    <span className={`font-semibold text-sm ${isWeak ? "text-red-600" : "text-gray-800"}`}>
+    <span className={`font-semibold text-sm ${isWeak ? "text-red-700" : "text-gray-800"}`}>
       ⭐ {value.toFixed(1)}
     </span>
   );
@@ -164,7 +164,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 md:px-6 py-4 border-b border-gray-100">
         <div>
           <h2 className="text-base md:text-lg font-bold text-gray-900">스마트플레이스 경쟁사 비교</h2>
-          <p className="text-sm text-gray-500 mt-0.5">항목별로 내 가게와 경쟁사를 1:1 비교합니다.</p>
+          <p className="text-sm text-gray-600 mt-0.5">항목별로 내 가게와 경쟁사를 1:1 비교합니다.</p>
         </div>
         <button
           onClick={() => void fetchData()}
@@ -190,14 +190,14 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
       {/* 내 가게 스마트플레이스 자동 점검 중 안내 */}
       {data?.sp_auto_syncing && (
         <div className="px-4 md:px-6 py-3 flex items-start gap-2 text-sm text-blue-700 bg-blue-50 border-b border-blue-100">
-          <Loader2 className="w-4 h-4 shrink-0 mt-0.5 animate-spin text-blue-500" />
+          <Loader2 className="w-4 h-4 shrink-0 mt-0.5 animate-spin text-blue-600" />
           <span>내 가게 스마트플레이스 정보를 처음 가져오고 있습니다. 약 30초 후 <strong>새로고침</strong>하면 소개글·메뉴 등록 여부가 정확히 표시됩니다.</span>
         </div>
       )}
 
       {/* 경쟁사 데이터 없음 안내 */}
       {data && !data.has_competitor_data && (
-        <div className="px-4 md:px-6 py-6 text-center text-sm text-gray-500">
+        <div className="px-4 md:px-6 py-6 text-center text-sm text-gray-600">
           <AlertTriangle className="w-8 h-8 text-amber-400 mx-auto mb-2" />
           <p className="font-semibold text-gray-700 mb-1">경쟁사 플레이스 데이터가 아직 없습니다</p>
           <p>경쟁사 AI 스캔 후 자동으로 채워집니다. 대시보드에서 스캔을 실행해 주세요.</p>
@@ -238,9 +238,9 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
                             onClick={() => void syncCompetitor(c.id!)}
                             disabled={syncingIds[c.id]}
                             title="네이버 플레이스 데이터 재스캔"
-                            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600 transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-50"
                           >
-                            <RefreshCw className={`w-3 h-3 ${syncingIds[c.id] ? 'animate-spin text-blue-500' : ''}`} />
+                            <RefreshCw className={`w-3 h-3 ${syncingIds[c.id] ? 'animate-spin text-blue-600' : ''}`} />
                             {syncingIds[c.id] ? '스캔 중' : '재스캔'}
                           </button>
                         )}
@@ -271,19 +271,19 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
                           <span className="break-keep">{row.label}</span>
                         </div>
                         {isBlogRow && (
-                          <span className="text-sm text-gray-500 mt-0.5 block leading-tight break-keep">
+                          <span className="text-sm text-gray-600 mt-0.5 block leading-tight break-keep">
                             네이버 블로그 검색 결과 건수
                           </span>
                         )}
                         {isWeak && (
-                          <span className="text-red-500 text-sm font-normal mt-0.5 block">개선 필요</span>
+                          <span className="text-red-700 text-sm font-normal mt-0.5 block">개선 필요</span>
                         )}
                       </td>
 
                       {/* 내 가게 셀 */}
                       <td className="px-4 py-3 text-center bg-blue-50/30">
                         {isBlogRow ? (
-                          <span className={`font-semibold text-sm ${isWeak ? "text-red-600" : "text-gray-800"}`}>
+                          <span className={`font-semibold text-sm ${isWeak ? "text-red-700" : "text-gray-800"}`}>
                             {row.mine !== null ? `${(row.mine as number).toLocaleString()}건` : "-"}
                           </span>
                         ) : row.type === "bool" ? (
@@ -320,12 +320,12 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
             {/* 모바일 스크롤 인디케이터 — md 이상에서는 숨김 */}
             <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent md:hidden" />
           </div>
-          <p className="md:hidden text-center text-sm text-gray-500 py-1.5">← 좌우로 스와이프하세요</p>
+          <p className="md:hidden text-center text-sm text-gray-600 py-1.5">← 좌우로 스와이프하세요</p>
 
             {/* 블로그 언급 수 데이터 출처 안내 */}
             {data.rows.some((r) => r.field === "blog_mention_count") && (
               <div className="px-4 md:px-6 py-2.5 border-t border-gray-100 bg-gray-50">
-                <p className="text-sm text-gray-500 leading-relaxed">
+                <p className="text-sm text-gray-600 leading-relaxed">
                   💡 <strong className="text-gray-600">블로그 언급 수</strong>는 네이버 블로그 API에
                   업체명을 검색한 총 결과 건수입니다. 동명 업체가 있거나 일반 명사와 겹치면 실제보다
                   높게 나올 수 있으며, 경쟁사 간 상대 비교 용도로 활용하세요.
@@ -383,7 +383,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
           <ul className="space-y-2">
             {actionItems.map((item) => (
               <li key={item.field} className="flex items-start gap-2 text-sm text-amber-800">
-                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-700" />
                 <span>
                   <span className="font-semibold">[{item.label}]</span>{" "}
                   {item.hint}
@@ -405,7 +405,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
       {/* 동기화 시각 */}
       {data?.synced_at && (
         <div className="px-4 md:px-6 py-2 border-t border-gray-100 text-right">
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-600">
             마지막 동기화: {new Date(data.synced_at).toLocaleString("ko-KR")}
           </span>
         </div>
@@ -413,7 +413,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
 
       {/* 초기 로딩 중 */}
       {!data && loading && (
-        <div className="px-4 md:px-6 py-8 text-center text-sm text-gray-500">
+        <div className="px-4 md:px-6 py-8 text-center text-sm text-gray-600">
           <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-blue-400" />
           <p>경쟁사 비교 데이터를 불러오고 있습니다...</p>
         </div>

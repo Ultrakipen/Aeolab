@@ -51,7 +51,7 @@ export default function DashboardGuidanceZone({
 
   return (
     <div className="space-y-4 border-t border-gray-100 pt-6">
-      <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">안내 및 가이드</p>
+      <p className="text-sm font-semibold text-gray-600 uppercase tracking-wide">안내 및 가이드</p>
 
       {/* 시즌 키워드 배너 */}
       {category && <SeasonalKeywordBanner category={category} />}
@@ -96,7 +96,7 @@ export default function DashboardGuidanceZone({
       </div>
 
       {/* 면책 문구 */}
-      <p className="text-sm text-gray-500 text-center leading-relaxed">
+      <p className="text-sm text-gray-600 text-center leading-relaxed">
         측정 시점·기기·로그인 상태에 따라 결과가 달라질 수 있습니다
       </p>
     </div>

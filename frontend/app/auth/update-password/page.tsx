@@ -47,12 +47,12 @@ export default function UpdatePasswordPage() {
         <div className="flex-1 flex items-center justify-center px-4">
           <div className="w-full max-w-sm text-center bg-white rounded-xl p-4 md:p-8 shadow-sm">
             <div className="w-14 h-14 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-7 h-7 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-7 h-7 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
             <h2 className="text-lg font-bold text-gray-900 mb-2">비밀번호가 변경되었습니다</h2>
-            <p className="text-sm text-gray-500">잠시 후 대시보드로 이동합니다...</p>
+            <p className="text-sm text-gray-600">잠시 후 대시보드로 이동합니다...</p>
           </div>
         </div>
         <SiteFooter />
@@ -66,7 +66,7 @@ export default function UpdatePasswordPage() {
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="text-2xl font-bold text-blue-600">AEOlab</Link>
-          <p className="text-base text-gray-500 mt-2">새 비밀번호 설정</p>
+          <p className="text-base text-gray-600 mt-2">새 비밀번호 설정</p>
         </div>
 
         <form onSubmit={handleUpdate} className="bg-white rounded-xl p-6 shadow-sm space-y-5">
@@ -81,7 +81,7 @@ export default function UpdatePasswordPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="8자 이상 입력하세요"
-              className="w-full border border-gray-300 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-600"
             />
           </div>
 
@@ -94,14 +94,14 @@ export default function UpdatePasswordPage() {
               value={passwordConfirm}
               onChange={(e) => setPasswordConfirm(e.target.value)}
               placeholder="비밀번호를 다시 입력하세요"
-              className="w-full border border-gray-300 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-600"
             />
           </div>
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-              <p className="text-base text-red-600">{error}</p>
-              <p className="text-sm text-red-500 mt-1.5">
+              <p className="text-base text-red-700">{error}</p>
+              <p className="text-sm text-red-700 mt-1.5">
                 <Link href="/reset-password" className="underline hover:text-red-700">
                   비밀번호 재설정 다시 요청하기 →
                 </Link>

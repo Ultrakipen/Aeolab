@@ -108,7 +108,7 @@ function PaymentSuccessContent() {
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-600 font-medium">플랜 활성화 확인 중...</p>
-          <p className="text-gray-500 text-sm mt-1">잠시만 기다려 주세요</p>
+          <p className="text-gray-600 text-sm mt-1">잠시만 기다려 주세요</p>
         </div>
       </main>
     );
@@ -119,10 +119,10 @@ function PaymentSuccessContent() {
       <main className="min-h-screen bg-gray-50 flex flex-col">
         <div className="flex-1 flex items-center justify-center px-4">
           <div className="bg-white rounded-xl p-6 md:p-8 shadow-sm max-w-sm w-full text-center">
-            <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" strokeWidth={1.5} />
+            <XCircle className="w-12 h-12 text-red-700 mx-auto mb-4" strokeWidth={1.5} />
             <h1 className="text-xl font-bold text-gray-900 mb-2">결제 오류</h1>
-            <p className="text-gray-500 text-sm mb-2">{errorMsg}</p>
-            <p className="text-gray-500 text-sm mb-6">
+            <p className="text-gray-600 text-sm mb-2">{errorMsg}</p>
+            <p className="text-gray-600 text-sm mb-6">
               카드 승인이 이미 진행되었을 수 있습니다. 중복 결제를 막기 위해 다시 시도하기 전에 1:1 문의로 결제 여부를 확인해주세요.
             </p>
             <div className="space-y-3">
@@ -151,7 +151,7 @@ function PaymentSuccessContent() {
     <main className="min-h-screen bg-gray-50 flex flex-col">
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="bg-white rounded-xl p-4 md:p-8 shadow-sm max-w-sm w-full text-center">
-          <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" strokeWidth={1.5} />
+          <CheckCircle2 className="w-14 h-14 text-green-700 mx-auto mb-4" strokeWidth={1.5} />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">구독 시작!</h1>
           <p className="text-gray-600 mb-1">
             <span className="font-semibold text-blue-600">{planName}</span> 플랜이 활성화되었습니다.
@@ -161,10 +161,10 @@ function PaymentSuccessContent() {
               오늘 <span className="font-semibold">{chargedAmount.toLocaleString()}원</span>이 결제되었습니다.
             </p>
           )}
-          <p className="text-gray-500 text-sm mb-2">
+          <p className="text-gray-600 text-sm mb-2">
             이제 네이버·Gemini·ChatGPT 3채널 자동 스캔과 개선 가이드를 이용할 수 있습니다.
           </p>
-          <p className="text-gray-500 text-sm mb-4">
+          <p className="text-gray-600 text-sm mb-4">
             {countdown}초 후 대시보드로 이동합니다...
           </p>
 

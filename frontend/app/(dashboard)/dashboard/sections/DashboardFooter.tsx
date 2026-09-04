@@ -34,7 +34,7 @@ export default function DashboardFooter({ bizId, bizName, plan, accessToken }: P
             <div className="font-bold text-gray-900 text-base md:text-lg leading-tight break-keep">
               {item.label}
             </div>
-            <div className="text-sm text-gray-500 mt-1.5 leading-snug break-keep">{item.desc}</div>
+            <div className="text-sm text-gray-600 mt-1.5 leading-snug break-keep">{item.desc}</div>
           </Link>
         ))}
       </div>

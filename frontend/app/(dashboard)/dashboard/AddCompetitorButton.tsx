@@ -26,7 +26,7 @@ export default function AddCompetitorButton({
   if (status === "done") {
     return (
       <span
-        className="text-sm font-semibold text-emerald-600 shrink-0"
+        className="text-sm font-semibold text-emerald-700 shrink-0"
         title="이미 경쟁사로 등록됨"
       >
         ✓ 등록됨

@@ -31,7 +31,7 @@ export default function QuickDiagnosisForm() {
     <section className="bg-gradient-to-br from-blue-600 to-indigo-700 py-10 md:py-12 px-4 md:px-6">
       <div className="max-w-xl mx-auto">
         <div className="text-center mb-6">
-          <p className="text-blue-200 text-sm font-semibold uppercase tracking-wider mb-2">
+          <p className="text-blue-100 text-sm font-semibold uppercase tracking-wider mb-2">
             지금 바로 확인
           </p>
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 break-keep">
@@ -66,7 +66,7 @@ export default function QuickDiagnosisForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
             <div>
               <label className="text-sm font-semibold text-gray-700 mb-1 block">
-                가게명 <span className="text-gray-500 font-normal">(선택)</span>
+                가게명 <span className="text-gray-600 font-normal">(선택)</span>
               </label>
               <input
                 type="text"
@@ -78,7 +78,7 @@ export default function QuickDiagnosisForm() {
             </div>
             <div>
               <label className="text-sm font-semibold text-gray-700 mb-1 block">
-                지역 <span className="text-gray-500 font-normal">(선택)</span>
+                지역 <span className="text-gray-600 font-normal">(선택)</span>
               </label>
               <input
                 type="text"
@@ -96,7 +96,7 @@ export default function QuickDiagnosisForm() {
           >
             내 가게 AI 노출 지금 확인 →
           </button>
-          <p className="text-sm text-gray-500 text-center mt-2">
+          <p className="text-sm text-gray-600 text-center mt-2">
             가입 불필요 · 무료
           </p>
         </form>

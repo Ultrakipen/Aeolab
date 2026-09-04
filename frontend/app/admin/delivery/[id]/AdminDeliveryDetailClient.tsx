@@ -215,7 +215,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
 
           <div className="flex-1 overflow-y-auto p-5 space-y-4" style={{ maxHeight: "500px" }}>
             {messages.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-8">메시지가 없습니다.</p>
+              <p className="text-sm text-gray-600 text-center py-8">메시지가 없습니다.</p>
             ) : (
               messages.map((msg) => (
                 <div
@@ -235,7 +235,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
                   >
                     {msg.body}
                   </div>
-                  <span className="text-sm text-gray-500">{formatDate(msg.created_at)}</span>
+                  <span className="text-sm text-gray-600">{formatDate(msg.created_at)}</span>
                 </div>
               ))
             )}
@@ -245,7 +245,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
           {/* 입력창 */}
           {!isDone && (
             <div className="border-t border-gray-100 p-4">
-              {msgError && <p className="text-sm text-red-500 mb-2">{msgError}</p>}
+              {msgError && <p className="text-sm text-red-700 mb-2">{msgError}</p>}
               <div className="flex gap-2">
                 <textarea
                   value={msgInput}
@@ -279,19 +279,19 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
           <h2 className="text-base font-semibold text-gray-800 mb-4">상태 변경</h2>
 
           {statusError && (
-            <p className="text-sm text-red-500 mb-3">{statusError}</p>
+            <p className="text-sm text-red-700 mb-3">{statusError}</p>
           )}
 
           <div className="space-y-2">
             {currentStatus === "received" && (
-              <p className="text-sm text-gray-500 mb-1">결제 대기 중 — 결제 완료 전에는 진행/완료 처리할 수 없습니다.</p>
+              <p className="text-sm text-gray-600 mb-1">결제 대기 중 — 결제 완료 전에는 진행/완료 처리할 수 없습니다.</p>
             )}
 
             {currentStatus === "paid" && (
               <button
                 onClick={() => handleStatusChange("in_progress")}
                 disabled={changingStatus === "in_progress"}
-                className="w-full py-3 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-orange-700 text-white text-sm font-semibold hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {changingStatus === "in_progress" ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                 진행 시작
@@ -302,7 +302,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
               <button
                 onClick={() => handleStatusChange("completed")}
                 disabled={!!changingStatus || completing}
-                className="w-full py-3 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-green-700 text-white text-sm font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 완료 처리
@@ -323,7 +323,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
               <button
                 onClick={() => handleStatusChange("in_progress")}
                 disabled={changingStatus === "in_progress"}
-                className="w-full py-3 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-orange-700 text-white text-sm font-semibold hover:bg-orange-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {changingStatus === "in_progress" ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                 재진행
@@ -344,14 +344,14 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
               <button
                 onClick={() => handleStatusChange("refunded")}
                 disabled={!!changingStatus}
-                className="w-full py-3 rounded-xl bg-gray-50 text-gray-500 text-sm font-medium hover:bg-gray-100 transition-colors disabled:opacity-50 border border-gray-200"
+                className="w-full py-3 rounded-xl bg-gray-50 text-gray-600 text-sm font-medium hover:bg-gray-100 transition-colors disabled:opacity-50 border border-gray-200"
               >
                 환불 처리 (토스 실환불)
               </button>
             )}
 
             {isDone && (
-              <p className="text-sm text-gray-500 text-center py-2">
+              <p className="text-sm text-gray-600 text-center py-2">
                 이미 종료된 의뢰입니다.
               </p>
             )}
@@ -361,11 +361,11 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
         {/* 납품 파일 관리 패널 */}
         <div className="mt-5 bg-white rounded-xl border border-gray-100 shadow-sm p-5">
         <div className="flex items-center gap-2 mb-4">
-          <Upload className="w-4 h-4 text-blue-500" />
+          <Upload className="w-4 h-4 text-blue-600" />
           <h2 className="text-base font-semibold text-gray-800">납품 파일 등록</h2>
         </div>
 
-        {matError && <p className="text-sm text-red-500 mb-3">{matError}</p>}
+        {matError && <p className="text-sm text-red-700 mb-3">{matError}</p>}
 
         <div className="space-y-2 mb-3">
           <input
@@ -410,7 +410,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
           </ul>
         )}
         {materials.length === 0 && (
-          <p className="text-sm text-gray-500 text-center py-2">등록된 납품 파일이 없습니다.</p>
+          <p className="text-sm text-gray-600 text-center py-2">등록된 납품 파일이 없습니다.</p>
         )}
         </div>
       </div>
@@ -451,7 +451,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
             </div>
 
             {completeError && (
-              <p className="text-sm text-red-500 mb-3">{completeError}</p>
+              <p className="text-sm text-red-700 mb-3">{completeError}</p>
             )}
 
             <div className="flex gap-3">
@@ -465,7 +465,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
               <button
                 onClick={handleComplete}
                 disabled={completing}
-                className="flex-1 py-3 rounded-xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-xl bg-green-700 text-white text-sm font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {completing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                 완료 처리

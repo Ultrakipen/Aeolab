@@ -112,7 +112,7 @@ export default function ScanResultNavBar({
 
   return (
     <div>
-      <p className="text-sm text-gray-500 mb-1.5 pl-0.5">아래 항목을 누르면 상세 개선 방법으로 이동합니다</p>
+      <p className="text-sm text-gray-600 mb-1.5 pl-0.5">아래 항목을 누르면 상세 개선 방법으로 이동합니다</p>
       <div className="flex flex-wrap gap-2">
         {items.map((item) => (
           <button
@@ -124,7 +124,7 @@ export default function ScanResultNavBar({
           >
             <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.dot}`} aria-hidden="true" />
             <span className="text-sm font-semibold text-gray-700">{item.label}</span>
-            <span className="text-xs text-blue-400 font-semibold group-hover:text-blue-600 transition-colors">보기</span>
+            <span className="text-xs text-blue-700 font-semibold group-hover:text-blue-800 transition-colors">보기</span>
           </button>
         ))}
       </div>

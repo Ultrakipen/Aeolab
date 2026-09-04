@@ -85,7 +85,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 // 소제목(핵심 액션·AI 최적화 팁 등) 공통 스타일 — 대문자+자간으로 "보고서 라벨" 느낌
-function SubLabel({ children, colorClass = "text-gray-500" }: { children: React.ReactNode; colorClass?: string }) {
+function SubLabel({ children, colorClass = "text-gray-600" }: { children: React.ReactNode; colorClass?: string }) {
   return <p className={`text-[11px] font-bold uppercase tracking-wider ${colorClass} mb-2.5`}>{children}</p>;
 }
 
@@ -170,12 +170,12 @@ export function StartupReportView({ report }: { report: StartupReport }) {
           </div>
           {/* AI 노출 개념 설명 — "AI노출"이라는 용어가 예비 창업자에게 낯설 수 있어
               처음 등장하는 이 카드에서 한 줄로 정의(2026-09-02 신설). */}
-          <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+          <p className="text-xs text-gray-600 mt-3 leading-relaxed">
             * AI 검색 노출 — ChatGPT·네이버 AI 등에서 이 업종이 얼마나 언급·추천되는지를 뜻합니다.
           </p>
           {/* 색상 범례 — 페이지 전체에서 이 3색이 무엇을 뜻하는지 한 번만 설명(2026-09-02
               신설). 아래 모든 배지·칩이 이 규칙을 따름. */}
-          <p className="text-xs text-gray-500 mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <p className="text-xs text-gray-600 mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>기회 신호</span>
             <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>주의 신호</span>
             <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-400 inline-block"></span>참고 정보</span>
@@ -190,7 +190,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
           (차후 내부 활용 목적), 이 페이지 화면에는 노출하지 않는다. */}
       <section className="bg-white rounded-2xl p-5 md:p-7 shadow-sm mb-5">
         <SectionTitle>시장 현황</SectionTitle>
-        <p className="text-sm text-gray-500 mb-4">국세청·카드사 등록 통계(또는 카카오맵 실측) 기준 실제 상권 규모와 생존 현황입니다.</p>
+        <p className="text-sm text-gray-600 mb-4">국세청·카드사 등록 통계(또는 카카오맵 실측) 기준 실제 상권 규모와 생존 현황입니다.</p>
 
         {/* source="sbiz"(소상공인시장진흥공단 상가정보, 국세청·카드사 기반)가 있으면
             우선 사용 — 더 권위 있는 실제 등록 사업자 수. 없으면 카카오맵 키워드 검색
@@ -245,7 +245,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
                       {mc.diff_pct != null && ` (${mc.diff_pct > 0 ? "+" : ""}${mc.diff_pct}%)`}
                     </span>
                     {mc.compare_density_per_km2 != null && (
-                      <span className="text-xs text-gray-500 ml-2">
+                      <span className="text-xs text-gray-600 ml-2">
                         {mc.compare_region}: {mc.compare_density_per_km2}/㎢
                       </span>
                     )}
@@ -286,7 +286,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
                           ) : (
                             <span className="font-medium">{s.name}</span>
                           )}
-                          <span className="text-blue-500"> — {s.address}</span>
+                          <span className="text-blue-600"> — {s.address}</span>
                         </span>
                       </li>
                     ))}
@@ -351,7 +351,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
                 <p className="text-xs text-slate-500 mt-3 leading-relaxed">
                   자영업은 업종 특성상 폐업 회전율 자체가 구조적으로 높습니다 — 이 숫자만으로 창업 여부를 단정하지 마세요.
                 </p>
-                <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">
+                <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">
                   * 역대 누적 기준 — 연간 폐업율이 아닙니다. 행정안전부 지방행정 인허가 데이터 기준이며, 측정 시점에 따라 달라질 수 있음.
                 </p>
               </div>
@@ -398,7 +398,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
                     경쟁사들이 이미 AI 검색 노출을 잘 관리하고 있다는 뜻 — 신규 진입 시 AI 채널 경쟁이 치열할 수 있습니다.
                   </p>
                 )}
-                <p className="text-xs text-gray-400 mt-3 leading-relaxed">
+                <p className="text-xs text-gray-600 mt-3 leading-relaxed">
                   * AEOlab 등록 사업장{ab.is_national_fallback ? "(지역 표본 부족으로 전국 기준)" : ""} 실측 데이터 기준(표본 {ab.sample_count}곳) — 표본이 작아 조회 시점에 따라 등급이 바뀔 수 있습니다.
                 </p>
               </div>
@@ -412,7 +412,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
         {report.competitor_readiness?.available && (
           <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
             <p className="text-sm font-bold text-emerald-900 mb-1.5">
-              실제 경쟁사 스마트플레이스 공개 조사 <span className="font-normal text-emerald-600">({report.competitor_readiness.checked}곳)</span>
+              실제 경쟁사 스마트플레이스 공개 조사 <span className="font-normal text-emerald-700">({report.competitor_readiness.checked}곳)</span>
             </p>
             <p className="text-sm text-emerald-800 leading-relaxed">
               소개글 없음 <span className="font-semibold">{report.competitor_readiness.no_intro_count ?? 0}곳</span>, 최근 소식 없음 <span className="font-semibold">{report.competitor_readiness.no_recent_post_count ?? 0}곳</span>
@@ -449,18 +449,18 @@ export function StartupReportView({ report }: { report: StartupReport }) {
               {report.search_trend.trend_direction === "rising" ? "상승세"
                 : report.search_trend.trend_direction === "falling" ? "하락세" : "안정"}
             </span>
-            <span className="text-sm text-gray-500 tabular-nums">
+            <span className="text-sm text-gray-600 tabular-nums">
               최근 3개월 {report.search_trend.trend_delta >= 0 ? "+" : ""}{report.search_trend.trend_delta.toFixed(1)}% 변화
             </span>
           </div>
           {report.search_trend.keywords_used.length > 0 && (
-            <p className="text-sm text-gray-500 mb-2">측정 키워드: {report.search_trend.keywords_used.join(", ")}</p>
+            <p className="text-sm text-gray-600 mb-2">측정 키워드: {report.search_trend.keywords_used.join(", ")}</p>
           )}
           {/* 절대 검색량 — DataLab 트렌드(%)는 방향만 알려주고 "한 달에 몇 번 검색되는지"라는
               규모는 안 줌. 이미 성장 리포트·블로그 진단이 쓰는 SearchAd 병합 패턴 재사용(2026-09-01). */}
           {!!report.search_trend.keyword_volumes?.length && (
             <div className="mb-3">
-              <p className="text-[11px] font-bold text-amber-500 uppercase tracking-wider mb-1.5">월간 검색량 (네이버 SearchAd)</p>
+              <p className="text-[11px] font-bold text-amber-700 uppercase tracking-wider mb-1.5">월간 검색량 (네이버 SearchAd)</p>
               <div className="flex flex-wrap gap-1.5">
                 {report.search_trend.keyword_volumes.map((v, i) => (
                   <span key={i} className="text-sm bg-amber-50 text-amber-800 border border-amber-100 rounded-full px-3 py-1 tabular-nums">
@@ -470,7 +470,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
               </div>
             </div>
           )}
-          <p className="text-xs text-gray-400">* 네이버 DataLab 모바일 검색 기준. 측정 시점·기기에 따라 달라질 수 있음.</p>
+          <p className="text-xs text-gray-600">* 네이버 DataLab 모바일 검색 기준. 측정 시점·기기에 따라 달라질 수 있음.</p>
         </section>
       )}
 
@@ -483,7 +483,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
           <div className="flex items-start justify-between gap-3 mb-1">
             <div>
               <SectionTitle>AI 진입 전략 상세</SectionTitle>
-              <p className="text-sm text-gray-500">위 &quot;AI 종합 판단&quot;의 근거가 된 구체적 실행 방안입니다.</p>
+              <p className="text-sm text-gray-600">위 &quot;AI 종합 판단&quot;의 근거가 된 구체적 실행 방안입니다.</p>
             </div>
             <button
               type="button"
@@ -515,7 +515,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
 
           {report.strategy.ai_optimization_tips && (
             <div className="mb-5">
-              <SubLabel colorClass="text-green-600">AI 최적화 팁</SubLabel>
+              <SubLabel colorClass="text-green-700">AI 최적화 팁</SubLabel>
               <ul className="space-y-3">
                 {report.strategy.ai_optimization_tips.map((t, i) => (
                   <li key={i} className="flex gap-3">
@@ -531,11 +531,11 @@ export function StartupReportView({ report }: { report: StartupReport }) {
 
           {report.strategy.risk_factors && (
             <div className="mb-5">
-              <SubLabel colorClass="text-orange-500">주의사항</SubLabel>
+              <SubLabel colorClass="text-orange-700">주의사항</SubLabel>
               <div className="space-y-2.5">
                 {report.strategy.risk_factors.map((r, i) => (
                   <div key={i} className="flex gap-2.5 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
-                    <span className="flex-none text-orange-600 font-bold">⚠</span>
+                    <span className="flex-none text-orange-700 font-bold">⚠</span>
                     <span className="text-sm md:text-base text-orange-900 leading-relaxed">{r}</span>
                   </div>
                 ))}
@@ -545,7 +545,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
 
           {report.strategy.estimated_time_to_visibility && (
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-              <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-1">예상 AI 노출 기간</p>
+              <p className="text-[11px] font-bold text-blue-600 uppercase tracking-wider mb-1">예상 AI 노출 기간</p>
               <p className="text-sm md:text-base text-blue-800 leading-relaxed">{report.strategy.estimated_time_to_visibility}</p>
             </div>
           )}

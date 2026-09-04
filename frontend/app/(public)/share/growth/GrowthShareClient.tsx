@@ -47,7 +47,7 @@ export default function GrowthShareClient({ shareUrl }: Props) {
       <button
         type="button"
         onClick={handleCopyLink}
-        className="text-sm text-gray-500 hover:text-gray-700 underline underline-offset-2 transition-colors"
+        className="text-sm text-gray-600 hover:text-gray-700 underline underline-offset-2 transition-colors"
       >
         링크 복사해서 공유하기
       </button>

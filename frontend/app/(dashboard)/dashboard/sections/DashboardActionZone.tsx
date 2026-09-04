@@ -107,7 +107,7 @@ export default function DashboardActionZone({
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-gray-900 leading-snug">맞춤 AI 개선 가이드가 준비됐습니다</p>
-              <p className="text-sm text-gray-500 mt-1 leading-snug">
+              <p className="text-sm text-gray-600 mt-1 leading-snug">
                 이번 스캔 결과를 바탕으로 네이버 AI 브리핑 노출을 높이는<br />
                 3가지 우선 개선 항목이 생성됐습니다.
               </p>
@@ -117,7 +117,7 @@ export default function DashboardActionZone({
               >
                 Basic 구독으로 가이드 확인 →
               </Link>
-              <p className="text-xs text-gray-500 mt-1.5">첫 달 5,950원 · 이후 11,900원/월</p>
+              <p className="text-xs text-gray-600 mt-1.5">첫 달 5,950원 · 이후 11,900원/월</p>
             </div>
           </div>
         </div>
@@ -129,7 +129,7 @@ export default function DashboardActionZone({
         icon={<Target className="w-3.5 h-3.5" />}
         label="오늘 할 일"
         description="가장 시급한 1개 미션 — 지금 바로 실행"
-        accent="bg-rose-500"
+        accent="bg-rose-700"
         badgeBg="bg-rose-100"
         badgeText="text-rose-800"
       />
@@ -146,17 +146,17 @@ export default function DashboardActionZone({
       ) : isTrialUser ? null : (
         <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-4 flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
-            <Zap className="w-4 h-4 text-rose-600" />
+            <Zap className="w-4 h-4 text-rose-700" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-800 leading-snug">
               첫 스캔 후 AI 노출 개선 미션이 표시됩니다
             </p>
-            <p className="text-sm text-gray-500 mt-0.5">스캔하면 경쟁 가게 대비 부족한 항목부터 안내합니다</p>
+            <p className="text-sm text-gray-600 mt-0.5">스캔하면 경쟁 가게 대비 부족한 항목부터 안내합니다</p>
           </div>
           <Link
             href="/scan"
-            className="shrink-0 text-sm font-semibold text-white bg-rose-500 hover:bg-rose-600 px-3 py-1.5 rounded-lg"
+            className="shrink-0 text-sm font-semibold text-white bg-rose-700 hover:bg-rose-800 px-3 py-1.5 rounded-lg"
           >
             스캔하기
           </Link>
@@ -180,7 +180,7 @@ export default function DashboardActionZone({
         <button
           onClick={() => setShowMore(true)}
           aria-expanded={false}
-          className="w-full flex items-center justify-center gap-1 py-2 text-sm text-gray-500 hover:text-gray-600 transition-colors"
+          className="w-full flex items-center justify-center gap-1 py-2 text-sm text-gray-600 hover:text-gray-700 transition-colors"
         >
           <ChevronDown className="w-4 h-4" />
           이달 체크리스트 · 행동 효과 · 대행 추천 보기

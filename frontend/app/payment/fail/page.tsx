@@ -36,7 +36,7 @@ function PaymentFailContent() {
           <h1 className="text-xl font-bold text-gray-900 mb-2">
             {isCardUpdate ? "카드 등록 실패" : "결제 실패"}
           </h1>
-          <p className="text-gray-500 text-sm mb-6">{displayMsg}</p>
+          <p className="text-gray-600 text-sm mb-6">{displayMsg}</p>
 
           <div className="bg-blue-50 rounded-xl p-4 mb-6 text-left">
             <p className="text-sm font-medium text-blue-800 mb-2">이런 경우 확인해보세요</p>
@@ -57,7 +57,7 @@ function PaymentFailContent() {
             </Link>
             <Link
               href={isCardUpdate ? "/dashboard" : "/"}
-              className="block text-sm text-gray-500 hover:text-gray-600 transition-colors"
+              className="block text-sm text-gray-600 hover:text-gray-700 transition-colors"
             >
               {isCardUpdate ? "대시보드로 이동" : "홈으로"}
             </Link>

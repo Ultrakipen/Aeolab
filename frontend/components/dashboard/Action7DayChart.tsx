@@ -98,7 +98,7 @@ export default function Action7DayChart({ bizId, accessToken }: Props) {
         <div className="flex items-center gap-2 mb-2">
           <span className="text-sm font-semibold text-slate-500 uppercase tracking-wide">행동-결과 7일 타임라인</span>
         </div>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-600">
           가이드 페이지에서 체크박스를 완료하면, 이곳에 행동 시점과 7일 후 점수 변화가 자동으로 기록됩니다.
         </p>
       </div>
@@ -157,7 +157,7 @@ export default function Action7DayChart({ bizId, accessToken }: Props) {
             <>
               {" → "}
               7일 후{" "}
-              <span className={delta >= 0 ? "font-bold text-emerald-700" : "font-bold text-red-600"}>
+              <span className={delta >= 0 ? "font-bold text-emerald-700" : "font-bold text-red-700"}>
                 <span className="font-semibold">{scoreToLabel(activeWindow.score_after)}</span>
                 {" "}({getDeltaLabel(delta)})
               </span>
@@ -208,12 +208,12 @@ export default function Action7DayChart({ bizId, accessToken }: Props) {
           </ResponsiveContainer>
         </div>
       ) : (
-        <p className="text-sm text-gray-500 text-center py-6">
+        <p className="text-sm text-gray-600 text-center py-6">
           아직 일별 분석 기록이 쌓이지 않았습니다. 매일 새벽 자동 스캔 후 분석 이력이 누적됩니다.
         </p>
       )}
 
-      <p className="text-sm text-gray-500 mt-3 text-center">
+      <p className="text-sm text-gray-600 mt-3 text-center">
         행동 시점 기준 -2일 ~ +7일 일별 측정값 · 대화형 ChatGPT로는 측정 불가능한 영역
       </p>
     </div>

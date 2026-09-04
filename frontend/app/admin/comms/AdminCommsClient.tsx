@@ -205,7 +205,7 @@ export function AdminCommsClient() {
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               tab === t.key
                 ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                : "border-transparent text-gray-600 hover:text-gray-700"
             }`}
           >
             {t.label}
@@ -225,7 +225,7 @@ export function AdminCommsClient() {
                 <div key={key} className="flex items-center justify-between p-4 bg-white border rounded-xl">
                   <div>
                     <p className="font-medium text-gray-900">{label}</p>
-                    <p className="text-sm text-gray-500">key: {key}</p>
+                    <p className="text-sm text-gray-600">key: {key}</p>
                   </div>
                   <button
                     onClick={() => toggleStatus(key, value)}
@@ -243,7 +243,7 @@ export function AdminCommsClient() {
               <div className="flex items-center justify-between p-4 bg-white border rounded-xl">
                 <div>
                   <p className="font-medium text-gray-900">스캔 상태</p>
-                  <p className="text-sm text-gray-500">key: scan_status · 현재: {status.scan_status}</p>
+                  <p className="text-sm text-gray-600">key: scan_status · 현재: {status.scan_status}</p>
                 </div>
                 <div className="flex gap-2">
                   {["normal", "degraded", "down"].map((v) => (
@@ -267,7 +267,7 @@ export function AdminCommsClient() {
               </div>
             </>
           ) : (
-            <p className="text-sm text-gray-500">불러오는 중...</p>
+            <p className="text-sm text-gray-600">불러오는 중...</p>
           )}
         </div>
       )}
@@ -280,7 +280,7 @@ export function AdminCommsClient() {
             <p className="text-sm font-semibold text-gray-700">새 팁 추가</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="min-w-0">
-                <label className="text-sm text-gray-500 mb-1 block">섹션</label>
+                <label className="text-sm text-gray-600 mb-1 block">섹션</label>
                 <select
                   value={tipForm.section}
                   onChange={(e) => setTipForm((f) => ({ ...f, section: e.target.value }))}
@@ -292,7 +292,7 @@ export function AdminCommsClient() {
                 </select>
               </div>
               <div className="min-w-0">
-                <label className="text-sm text-gray-500 mb-1 block">우선순위 (낮을수록 먼저)</label>
+                <label className="text-sm text-gray-600 mb-1 block">우선순위 (낮을수록 먼저)</label>
                 <input
                   type="number"
                   value={tipForm.priority}
@@ -325,18 +325,18 @@ export function AdminCommsClient() {
 
           {/* 목록 */}
           <div className="space-y-3">
-            {tips.length === 0 && <p className="text-sm text-gray-500">팁이 없습니다.</p>}
+            {tips.length === 0 && <p className="text-sm text-gray-600">팁이 없습니다.</p>}
             {tips.map((tip) => (
               <div key={tip.id} className={`p-4 border rounded-xl ${tip.is_active ? "bg-white" : "bg-gray-50 opacity-60"}`}>
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded">{tip.section}</span>
-                      <span className="text-sm text-gray-500">p{tip.priority}</span>
-                      {!tip.is_active && <span className="text-sm bg-gray-200 text-gray-500 px-2 py-0.5 rounded">비활성</span>}
+                      <span className="text-sm text-gray-600">p{tip.priority}</span>
+                      {!tip.is_active && <span className="text-sm bg-gray-200 text-gray-600 px-2 py-0.5 rounded">비활성</span>}
                     </div>
                     <p className="text-sm font-medium text-gray-900 truncate">{tip.title}</p>
-                    <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{tip.body}</p>
+                    <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{tip.body}</p>
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <button
@@ -347,7 +347,7 @@ export function AdminCommsClient() {
                     </button>
                     <button
                       onClick={() => deleteTip(tip)}
-                      className="px-3 py-1.5 text-sm rounded border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                      className="px-3 py-1.5 text-sm rounded border border-red-200 text-red-700 hover:bg-red-50 transition-colors"
                     >
                       삭제
                     </button>
@@ -367,7 +367,7 @@ export function AdminCommsClient() {
             <p className="text-sm font-semibold text-gray-700">새 메시지 추가</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="min-w-0">
-                <label className="text-sm text-gray-500 mb-1 block">대상 세그먼트</label>
+                <label className="text-sm text-gray-600 mb-1 block">대상 세그먼트</label>
                 <select
                   value={msgForm.target_segment}
                   onChange={(e) => setMsgForm((f) => ({ ...f, target_segment: e.target.value }))}
@@ -379,7 +379,7 @@ export function AdminCommsClient() {
                 </select>
               </div>
               <div className="min-w-0">
-                <label className="text-sm text-gray-500 mb-1 block">CTA 버튼 텍스트 (선택)</label>
+                <label className="text-sm text-gray-600 mb-1 block">CTA 버튼 텍스트 (선택)</label>
                 <input
                   placeholder="예: 자세히 보기"
                   value={msgForm.cta_label}
@@ -420,17 +420,17 @@ export function AdminCommsClient() {
 
           {/* 목록 */}
           <div className="space-y-3">
-            {messages.length === 0 && <p className="text-sm text-gray-500">메시지가 없습니다.</p>}
+            {messages.length === 0 && <p className="text-sm text-gray-600">메시지가 없습니다.</p>}
             {messages.map((m) => (
               <div key={m.id} className={`p-4 border rounded-xl ${m.is_active ? "bg-white" : "bg-gray-50 opacity-60"}`}>
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="text-sm bg-purple-100 text-purple-700 px-2 py-0.5 rounded">{m.target_segment}</span>
-                      {!m.is_active && <span className="text-sm bg-gray-200 text-gray-500 px-2 py-0.5 rounded">비활성</span>}
+                      {!m.is_active && <span className="text-sm bg-gray-200 text-gray-600 px-2 py-0.5 rounded">비활성</span>}
                     </div>
                     <p className="text-sm font-medium text-gray-900 truncate">{m.title}</p>
-                    <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{m.body}</p>
+                    <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">{m.body}</p>
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <button
@@ -441,7 +441,7 @@ export function AdminCommsClient() {
                     </button>
                     <button
                       onClick={() => deleteMessage(m)}
-                      className="px-3 py-1.5 text-sm rounded border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                      className="px-3 py-1.5 text-sm rounded border border-red-200 text-red-700 hover:bg-red-50 transition-colors"
                     >
                       삭제
                     </button>

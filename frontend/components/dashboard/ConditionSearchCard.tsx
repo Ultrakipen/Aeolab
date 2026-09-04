@@ -85,17 +85,17 @@ export default function ConditionSearchCard({
     return (
       <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-3">
-          <Search className="w-5 h-5 text-gray-500" />
+          <Search className="w-5 h-5 text-gray-600" />
           <h3 className="text-base font-bold text-gray-700">내 키워드로 AI에서 찾히는지 확인</h3>
           <span className="ml-auto text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Pro</span>
         </div>
         <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-          <Lock className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
+          <Lock className="w-5 h-5 text-gray-600 flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-sm text-gray-700 leading-relaxed">
               소개글·키워드가 AI 검색 의도에 얼마나 잘 맞는지 분석합니다. (실제 노출 횟수와 별개)
             </p>
-            <p className="text-sm text-gray-500 mt-1">Pro 플랜에서 이용 가능합니다.</p>
+            <p className="text-sm text-gray-600 mt-1">Pro 플랜에서 이용 가능합니다.</p>
           </div>
         </div>
       </div>
@@ -124,10 +124,10 @@ export default function ConditionSearchCard({
               </span>
             )}
           </div>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-gray-600 mt-0.5">
             소개글·키워드가 AI 검색 의도에 얼마나 잘 맞는지 분석합니다
           </p>
-          <p className="text-xs text-amber-600 mt-0.5">
+          <p className="text-xs text-amber-700 mt-0.5">
             ※ 소개글 준비도 평가이며, 실제 Gemini 노출 횟수와는 다릅니다
           </p>
         </div>
@@ -141,9 +141,9 @@ export default function ConditionSearchCard({
             등록 키워드와 소개글이<br />
             AI 검색 의도에 얼마나 적합한지 분석합니다
           </p>
-          <p className="text-sm text-gray-500 mb-5">소요 시간: 약 30초 / 1시간 캐시</p>
+          <p className="text-sm text-gray-600 mb-5">소요 시간: 약 30초 / 1시간 캐시</p>
           {error && (
-            <p className="text-sm text-red-500 mb-3">{error}</p>
+            <p className="text-sm text-red-700 mb-3">{error}</p>
           )}
           <button
             onClick={() => runSearch(false)}
@@ -162,7 +162,7 @@ export default function ConditionSearchCard({
 
       {/* 빈 결과 상태 */}
       {ran && results.length === 0 && (
-        <p className="text-sm text-gray-500 text-center py-6">
+        <p className="text-sm text-gray-600 text-center py-6">
           사업장 키워드를 등록하면 조건 검색 결과를 확인할 수 있습니다.
         </p>
       )}
@@ -181,19 +181,19 @@ export default function ConditionSearchCard({
               }
             >
               {r.mentioned ? (
-                <CheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                <CheckCircle className="w-5 h-5 text-emerald-700 flex-shrink-0 mt-0.5" />
               ) : (
                 <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-800">{r.query}</p>
                 {r.mentioned && r.excerpt && (
-                  <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">
+                  <p className="text-sm text-gray-600 mt-0.5 line-clamp-2">
                     {r.excerpt.slice(0, 80)}{r.excerpt.length > 80 ? '...' : ''}
                   </p>
                 )}
                 {!r.mentioned && r.gap_reason && (
-                  <p className="text-sm text-orange-600 mt-0.5">{r.gap_reason}</p>
+                  <p className="text-sm text-orange-700 mt-0.5">{r.gap_reason}</p>
                 )}
                 {!r.mentioned && r.gap_missing_keyword && (
                   <a
@@ -205,7 +205,7 @@ export default function ConditionSearchCard({
                 )}
               </div>
               {r.mentioned && (
-                <span className="text-sm text-emerald-600 font-semibold flex-shrink-0">
+                <span className="text-sm text-emerald-700 font-semibold flex-shrink-0">
                   적합도 {Math.round(r.confidence * 100)}%
                 </span>
               )}
@@ -214,7 +214,7 @@ export default function ConditionSearchCard({
 
           {/* 결과 요약 + 재실행 */}
           <div className="pt-2 flex items-center justify-between">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-600">
               {mentionedCount === 0
                 ? '소개글·키워드 콘텐츠 보강이 필요합니다.'
                 : mentionedCount === results.length
@@ -237,11 +237,11 @@ export default function ConditionSearchCard({
               {googlePlaceRegistered !== undefined && (
                 <div className="flex items-center gap-2.5 p-2.5 rounded-lg bg-gray-50 border border-gray-100">
                   {googlePlaceRegistered
-                    ? <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                    ? <CheckCircle className="w-4 h-4 text-emerald-700 flex-shrink-0" />
                     : <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />}
                   <div className="flex-1 min-w-0">
                     <span className="text-sm text-gray-800">구글 비즈니스 프로필</span>
-                    <span className={`ml-2 text-sm ${googlePlaceRegistered ? 'text-emerald-600' : 'text-red-500 font-medium'}`}>
+                    <span className={`ml-2 text-sm ${googlePlaceRegistered ? 'text-emerald-700' : 'text-red-700 font-medium'}`}>
                       {googlePlaceRegistered ? '등록됨' : '미등록 — Gemini 노출의 핵심'}
                     </span>
                   </div>
@@ -250,11 +250,11 @@ export default function ConditionSearchCard({
               {schemaMarkupApplied !== undefined && (
                 <div className="flex items-center gap-2.5 p-2.5 rounded-lg bg-gray-50 border border-gray-100">
                   {schemaMarkupApplied
-                    ? <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                    ? <CheckCircle className="w-4 h-4 text-emerald-700 flex-shrink-0" />
                     : <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />}
                   <div className="flex-1 min-w-0">
                     <span className="text-sm text-gray-800">웹사이트 Schema.org 마크업</span>
-                    <span className={`ml-2 text-sm ${schemaMarkupApplied ? 'text-emerald-600' : 'text-red-500 font-medium'}`}>
+                    <span className={`ml-2 text-sm ${schemaMarkupApplied ? 'text-emerald-700' : 'text-red-700 font-medium'}`}>
                       {schemaMarkupApplied ? '적용됨' : '미적용 — 검색엔진 인식률 향상'}
                     </span>
                   </div>
@@ -263,23 +263,23 @@ export default function ConditionSearchCard({
               {blogMentions !== undefined && (
                 <div className="flex items-center gap-2.5 p-2.5 rounded-lg bg-gray-50 border border-gray-100">
                   {blogMentions > 0
-                    ? <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                    ? <CheckCircle className="w-4 h-4 text-emerald-700 flex-shrink-0" />
                     : <XCircle className="w-4 h-4 text-orange-400 flex-shrink-0" />}
                   <div className="flex-1 min-w-0">
                     <span className="text-sm text-gray-800">온라인 블로그 언급</span>
-                    <span className={`ml-2 text-sm ${blogMentions > 0 ? 'text-emerald-600' : 'text-orange-500 font-medium'}`}>
+                    <span className={`ml-2 text-sm ${blogMentions > 0 ? 'text-emerald-700' : 'text-orange-700 font-medium'}`}>
                       {blogMentions > 0 ? `${blogMentions.toLocaleString()}건 발견` : '없음 — 블로그·리뷰 확충 필요'}
                     </span>
                   </div>
                 </div>
               )}
-              <p className="text-xs text-gray-500 pt-1">
+              <p className="text-xs text-gray-600 pt-1">
                 측정 시점·로그인 상태에 따라 달라질 수 있습니다
               </p>
             </div>
           )}
           {error && (
-            <p className="text-sm text-red-500 mt-1">{error}</p>
+            <p className="text-sm text-red-700 mt-1">{error}</p>
           )}
         </div>
       )}

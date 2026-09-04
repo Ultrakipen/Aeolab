@@ -17,7 +17,7 @@ const GROUP_CONTENT = {
     label: "AI 브리핑 노출 업종 (음식점·카페·베이커리·바·숙박)",
     color: "bg-emerald-50 border-emerald-200 dark:bg-emerald-950 dark:border-emerald-700",
     titleColor: "text-emerald-800 dark:text-emerald-200",
-    badge: "bg-emerald-600 text-white",
+    badge: "bg-emerald-700 text-white",
     badgeText: "AI 브리핑 대상",
     changes: [
       "네이버 AI 브리핑 노출 비중 강화 — 실제 브리핑에 노출되는 사업장 점수가 더 정확하게 반영됩니다.",
@@ -43,7 +43,7 @@ const GROUP_CONTENT = {
     label: "글로벌 AI 집중 업종 (법무·세무·교육·쇼핑·인테리어 등)",
     color: "bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-700",
     titleColor: "text-amber-800 dark:text-amber-200",
-    badge: "bg-amber-500 text-white",
+    badge: "bg-amber-700 text-white",
     badgeText: "글로벌 AI 집중",
     changes: [
       "네이버 '플레이스형' AI 브리핑 항목 비중이 0으로 조정됩니다 — 플레이스형 비대상 업종의 불필요한 항목을 제거합니다(정보형 AI 브리핑은 블로그 항목으로 반영).",
@@ -127,8 +127,8 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
           >
             ← 가이드 허브
           </Link>
-          <span className="text-gray-500">/</span>
-          <span className="text-sm text-gray-500 dark:text-gray-400">점수 기준 개선 안내</span>
+          <span className="text-gray-600">/</span>
+          <span className="text-sm text-gray-600 dark:text-gray-600">점수 기준 개선 안내</span>
         </div>
         <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">
           업종별 맞춤 점수 기준 개선 안내
@@ -140,7 +140,7 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
             </span>
           </div>
         )}
-        <p className="mt-3 text-gray-600 dark:text-gray-400 text-sm leading-relaxed break-keep">
+        <p className="mt-3 text-gray-600 dark:text-gray-600 text-sm leading-relaxed break-keep">
           업종별 계산 비중을 세밀하게 조정해 사장님 업종 특성에 맞는 진단을 제공합니다.
           'AI 브리핑 대상'·'AI 브리핑 확대 예정'·'글로벌 AI 집중' 세 유형으로 나뉘어
           각 유형에 실제로 의미 있는 채널에 더 높은 비중이 적용됩니다.
@@ -166,7 +166,7 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
           <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${groupContent.badge}`}>
             {groupContent.badgeText}
           </span>
-          {userGroup && <span className="text-sm text-gray-500">(내 업종)</span>}
+          {userGroup && <span className="text-sm text-gray-600">(내 업종)</span>}
         </div>
         <ul className="space-y-2 mb-4">
           {groupContent.changes.map((change, i) => (
@@ -197,7 +197,7 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
                 </div>
                 <ul className="space-y-1">
                   {c.changes.slice(0, 2).map((ch, i) => (
-                    <li key={i} className="text-sm text-gray-600 dark:text-gray-400 break-keep">
+                    <li key={i} className="text-sm text-gray-600 dark:text-gray-600 break-keep">
                       • {ch}
                     </li>
                   ))}
@@ -209,7 +209,7 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
 
       {/* 안심 메시지 */}
       <div className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 md:p-5 mb-6">
-        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-keep">
+        <p className="text-sm text-gray-600 dark:text-gray-600 leading-relaxed break-keep">
           점수 변동은 일시적이며 실제 노출 상태와 일치하도록 보정된 결과입니다.
           업종별 맞춤 기준이 현재 적용 중입니다. 점수 변동 관련 문의는 Q&A 게시판을 이용해 주세요.
         </p>
@@ -223,10 +223,10 @@ export function ScoreModelV31Client({ userCategory, userGroup }: Props) {
             <details key={i} className="group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
               <summary className="flex items-center justify-between p-4 cursor-pointer text-sm font-semibold text-gray-800 dark:text-gray-200 select-none list-none">
                 <span className="break-keep pr-4">{item.q}</span>
-                <span className="flex-shrink-0 text-gray-500 group-open:rotate-180 transition-transform duration-200">▼</span>
+                <span className="flex-shrink-0 text-gray-600 group-open:rotate-180 transition-transform duration-200">▼</span>
               </summary>
               <div className="px-4 pb-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed break-keep">
+                <p className="text-sm text-gray-600 dark:text-gray-600 leading-relaxed break-keep">
                   {item.a}
                 </p>
               </div>

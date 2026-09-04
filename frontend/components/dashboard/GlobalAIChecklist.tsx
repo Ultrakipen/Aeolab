@@ -76,7 +76,7 @@ export function GlobalAIChecklist({
             <h3 className="text-base font-bold text-gray-900">
               글로벌 AI 노출 체크리스트
             </h3>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-600 mt-0.5">
               Gemini 노출 준비 (수주~수개월)
             </p>
           </div>
@@ -97,12 +97,12 @@ export function GlobalAIChecklist({
           {geminiItems.map((item) => (
             <li key={item.label} className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
-                <span className={`shrink-0 text-base ${item.done ? "text-green-500" : "text-gray-300"}`}>
+                <span className={`shrink-0 text-base ${item.done ? "text-green-700" : "text-gray-300"}`}>
                   {item.done ? "✅" : "⬜"}
                 </span>
                 <span
                   className={`text-sm break-keep ${
-                    item.done ? "text-gray-500 line-through" : "text-gray-800"
+                    item.done ? "text-gray-600 line-through" : "text-gray-800"
                   }`}
                 >
                   {item.label}
@@ -157,7 +157,7 @@ export function GlobalAIChecklist({
 
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-1.5">
           <div className="flex items-start gap-2">
-            <span className="text-amber-500 text-base shrink-0 mt-0.5">⚠</span>
+            <span className="text-amber-700 text-base shrink-0 mt-0.5">⚠</span>
             <p className="text-sm text-amber-800 leading-relaxed">
               ChatGPT는 학습 데이터 기반으로 측정합니다.
             </p>
@@ -172,7 +172,7 @@ export function GlobalAIChecklist({
       </div>
 
       {/* 면책 문구 */}
-      <p className="text-sm text-gray-500 leading-relaxed border-t border-gray-100 pt-3">
+      <p className="text-sm text-gray-600 leading-relaxed border-t border-gray-100 pt-3">
         ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
         측정 시점·기기·로그인 상태에 따라 결과가 달라질 수 있습니다.
       </p>

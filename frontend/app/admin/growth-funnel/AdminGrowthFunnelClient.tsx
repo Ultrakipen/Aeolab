@@ -56,7 +56,7 @@ type TabKey = (typeof TABS)[number]["key"];
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-xl p-3 border border-gray-100">
-      <div className="text-sm text-gray-500 mb-0.5">{label}</div>
+      <div className="text-sm text-gray-600 mb-0.5">{label}</div>
       <div className="text-xl font-bold text-gray-800">{value}</div>
     </div>
   );
@@ -86,7 +86,7 @@ export default function AdminGrowthFunnelClient() {
     <div className="p-4 md:p-8">
       <div className="mb-6">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">성장 퍼널</h1>
-        <p className="text-sm text-gray-500 mt-1">최근 12주 기준 단계별 발생 건수 스냅샷</p>
+        <p className="text-sm text-gray-600 mt-1">최근 12주 기준 단계별 발생 건수 스냅샷</p>
       </div>
 
       <div className="flex gap-2 mb-6">
@@ -107,20 +107,20 @@ export default function AdminGrowthFunnelClient() {
       </div>
 
       {loading && (
-        <div className="flex items-center justify-center py-16 text-gray-400">
+        <div className="flex items-center justify-center py-16 text-gray-600">
           <Loader2 className="w-5 h-5 animate-spin" />
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-100 rounded-xl p-4 text-sm text-red-600">
+        <div className="bg-red-50 border border-red-100 rounded-xl p-4 text-sm text-red-700">
           {error}
         </div>
       )}
 
       {!loading && !error && data && tab === "signup" && (
         <div className="bg-white rounded-xl p-5 shadow-sm">
-          <p className="text-sm text-gray-500 mb-4">{data.data_caveat}</p>
+          <p className="text-sm text-gray-600 mb-4">{data.data_caveat}</p>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
             <StatCard label="무료체험" value={data.totals.trial_scans} />
             <StatCard label="가입" value={data.totals.signups} />
@@ -132,7 +132,7 @@ export default function AdminGrowthFunnelClient() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[560px]">
                 <thead>
-                  <tr className="text-left text-sm text-gray-500 border-b border-gray-100">
+                  <tr className="text-left text-sm text-gray-600 border-b border-gray-100">
                     <th className="pb-2 pr-3">주(월요일 시작)</th>
                     <th className="pb-2 pr-3">무료체험</th>
                     <th className="pb-2 pr-3">가입</th>
@@ -144,9 +144,9 @@ export default function AdminGrowthFunnelClient() {
                   {data.weekly.map((w) => (
                     <tr key={w.week} className="border-b border-gray-50">
                       <td className="py-2 pr-3 text-gray-700">{w.week}</td>
-                      <td className="py-2 pr-3 text-gray-500">{w.trial_scans}</td>
-                      <td className="py-2 pr-3 text-gray-500">{w.signups}</td>
-                      <td className="py-2 pr-3 text-gray-500">{w.businesses_registered}</td>
+                      <td className="py-2 pr-3 text-gray-600">{w.trial_scans}</td>
+                      <td className="py-2 pr-3 text-gray-600">{w.signups}</td>
+                      <td className="py-2 pr-3 text-gray-600">{w.businesses_registered}</td>
                       <td className="py-2 font-semibold text-gray-800">{w.paid_conversions}</td>
                     </tr>
                   ))}
@@ -154,14 +154,14 @@ export default function AdminGrowthFunnelClient() {
               </table>
             </div>
           ) : (
-            <p className="text-sm text-gray-500 py-8 text-center">최근 12주 내 데이터가 없습니다.</p>
+            <p className="text-sm text-gray-600 py-8 text-center">최근 12주 내 데이터가 없습니다.</p>
           )}
         </div>
       )}
 
       {!loading && !error && data && tab === "delivery" && (
         <div className="bg-white rounded-xl p-5 shadow-sm">
-          <p className="text-sm text-gray-500 mb-4">{data.delivery_funnel.data_caveat}</p>
+          <p className="text-sm text-gray-600 mb-4">{data.delivery_funnel.data_caveat}</p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
             <StatCard label="신청" value={data.delivery_funnel.totals.orders_created} />
             <StatCard label="결제완료" value={data.delivery_funnel.totals.paid} />
@@ -178,7 +178,7 @@ export default function AdminGrowthFunnelClient() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[400px]">
                 <thead>
-                  <tr className="text-left text-sm text-gray-500 border-b border-gray-100">
+                  <tr className="text-left text-sm text-gray-600 border-b border-gray-100">
                     <th className="pb-2 pr-3">주(월요일 시작)</th>
                     <th className="pb-2 pr-3">신청</th>
                     <th className="pb-2">결제완료</th>
@@ -188,7 +188,7 @@ export default function AdminGrowthFunnelClient() {
                   {data.delivery_funnel.weekly.map((w) => (
                     <tr key={w.week} className="border-b border-gray-50">
                       <td className="py-2 pr-3 text-gray-700">{w.week}</td>
-                      <td className="py-2 pr-3 text-gray-500">{w.orders_created}</td>
+                      <td className="py-2 pr-3 text-gray-600">{w.orders_created}</td>
                       <td className="py-2 font-semibold text-gray-800">{w.paid}</td>
                     </tr>
                   ))}
@@ -196,7 +196,7 @@ export default function AdminGrowthFunnelClient() {
               </table>
             </div>
           ) : (
-            <p className="text-sm text-gray-500 py-8 text-center">최근 12주 내 주문이 없습니다.</p>
+            <p className="text-sm text-gray-600 py-8 text-center">최근 12주 내 주문이 없습니다.</p>
           )}
         </div>
       )}

@@ -17,7 +17,7 @@ export default function NotFound() {
         <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">
           페이지를 찾을 수 없습니다
         </h1>
-        <p className="text-sm md:text-base text-gray-500 leading-relaxed mb-10">
+        <p className="text-sm md:text-base text-gray-600 leading-relaxed mb-10">
           요청하신 페이지가 존재하지 않거나, 이동되었거나,<br className="hidden sm:block" />
           삭제되었을 수 있습니다.
         </p>

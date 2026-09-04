@@ -344,7 +344,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               >
                 스마트플레이스 &rarr; AI 정보 탭에서 토글을 ON으로 설정 &#8599;
               </a>
-              <p className="text-sm text-gray-500 mt-1">저장은 즉시. 실제 노출 반영까지 2~4주 소요될 수 있습니다</p>
+              <p className="text-sm text-gray-600 mt-1">저장은 즉시. 실제 노출 반영까지 2~4주 소요될 수 있습니다</p>
             </div>
           </Step>
         )}
@@ -369,7 +369,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             <li>최신 정보(영업시간·휴무·시즌 메뉴) 명시</li>
           </ul>
           {/* Q&A 자동 감지 불가 안내 — 사용자 노출 원칙 §7 */}
-          <p className="text-sm text-gray-500 leading-snug mb-3">
+          <p className="text-sm text-gray-600 leading-snug mb-3">
             * AEOlab는 소개글 안에 Q&amp;A 구조가 포함됐는지 자동으로 감지하지 못합니다.
             소개글 입력 여부(has_intro)만 추적하므로, Q&amp;A 포함 여부는 직접 확인하세요.
           </p>
@@ -404,7 +404,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               <h3 className="text-base md:text-lg font-bold text-gray-900 break-keep">
                 (선택) 톡톡 채팅방 메뉴 등록
               </h3>
-              <p className="text-sm md:text-base text-gray-500 mt-0.5">예상 소요: 2~5분 (AI 자동 생성 이용 시)</p>
+              <p className="text-sm md:text-base text-gray-600 mt-0.5">예상 소요: 2~5분 (AI 자동 생성 이용 시)</p>
             </div>
           </div>
           <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed break-keep">
@@ -434,7 +434,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               <>
                 <strong>Free 플랜:</strong> 채팅방 메뉴 AI 자동 생성은 Basic 이상에서 사용 가능합니다.{" "}
                 <Link href="/pricing" className="text-blue-600 hover:underline font-medium">플랜 보기 →</Link>
-                <p className="mt-1 text-gray-500">직접 작성은 플랜 제한 없이 가능합니다.</p>
+                <p className="mt-1 text-gray-600">직접 작성은 플랜 제한 없이 가능합니다.</p>
               </>
             )}
           </div>
@@ -539,7 +539,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                     스마트플레이스 자체 AI가 리뷰 등록 시 답글 초안을 자동 생성합니다.
                     답글 스타일·길이 설정이 가능하며, 네이버플러스 구독 계정 대상 베타 서비스입니다.
                   </p>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-gray-600 mt-1">
                     * AEOlab{" "}
                     <Link href="/review-inbox" className="underline">리뷰 답변 관리</Link>
                     는 Claude AI 기반으로 모든 업종을 지원하는 별개 서비스입니다.
@@ -610,7 +610,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               <span
                 className={`shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
                   checkedPhotos[item.id]
-                    ? "bg-green-500 border-green-500 text-white"
+                    ? "bg-green-700 border-green-500 text-white"
                     : "bg-white border-gray-400"
                 }`}
               >
@@ -663,7 +663,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               <span
                 className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${
                   checkedCrank[item.key]
-                    ? "bg-green-500 text-white"
+                    ? "bg-green-700 text-white"
                     : "bg-amber-100 text-amber-700"
                 }`}
               >
@@ -701,7 +701,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
       }`}>
         <div className="flex items-start gap-3 mb-3">
           <span className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-            !blogScanned ? "bg-gray-100 text-gray-500" : blogCount === 0 ? "bg-rose-100 text-rose-700" : "bg-green-100 text-green-700"
+            !blogScanned ? "bg-gray-100 text-gray-600" : blogCount === 0 ? "bg-rose-100 text-rose-700" : "bg-green-100 text-green-700"
           }`}>
             {!blogScanned ? "?" : blogCount === 0 ? "!" : blogCount}
           </span>
@@ -730,7 +730,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             </p>
             <Link
               href="/guide/blog-strategy"
-              className="inline-block mt-1 px-4 py-2 bg-rose-600 text-white text-sm font-semibold rounded-lg hover:bg-rose-700 transition-colors"
+              className="inline-block mt-1 px-4 py-2 bg-rose-700 text-white text-sm font-semibold rounded-lg hover:bg-rose-700 transition-colors"
             >
               블로그 후기 늘리기 전략 →
             </Link>
@@ -793,7 +793,7 @@ function Step({ num, title, time, done, children }: StepProps) {
           <h3 className="text-base md:text-lg font-bold text-gray-900 break-keep">
             단계 {num}. {title}
           </h3>
-          <p className="text-sm md:text-base text-gray-500 mt-0.5">예상 소요: {time}</p>
+          <p className="text-sm md:text-base text-gray-600 mt-0.5">예상 소요: {time}</p>
         </div>
       </div>
       <div className="ml-0 md:ml-14">{children}</div>
@@ -812,18 +812,18 @@ function StepSkipped({ num, title, reason, alternative }: StepSkippedProps) {
   return (
     <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 md:p-6 opacity-70">
       <div className="flex items-start gap-3 mb-2">
-        <span className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-sm md:text-base bg-gray-200 text-gray-500">
+        <span className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-sm md:text-base bg-gray-200 text-gray-600">
           {num}
         </span>
         <div className="flex-1 min-w-0">
-          <h3 className="text-base md:text-lg font-bold text-gray-500 break-keep line-through">
+          <h3 className="text-base md:text-lg font-bold text-gray-600 break-keep line-through">
             단계 {num}. {title}
           </h3>
-          <p className="text-sm md:text-base text-gray-500 mt-0.5">해당 없음</p>
+          <p className="text-sm md:text-base text-gray-600 mt-0.5">해당 없음</p>
         </div>
       </div>
       <div className="ml-0 md:ml-14">
-        <p className="text-sm md:text-base text-gray-500 mb-2">{reason}</p>
+        <p className="text-sm md:text-base text-gray-600 mb-2">{reason}</p>
         {alternative}
       </div>
     </div>

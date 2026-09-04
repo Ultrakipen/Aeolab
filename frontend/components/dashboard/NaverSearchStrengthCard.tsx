@@ -33,8 +33,8 @@ interface Props {
 /** 순위 밴딩: 낮은 숫자 = 높은 순위 (1위가 최고) */
 function getRankBand(avgRank: number): { label: string; colorClass: string } {
   if (avgRank <= 3)  return { label: "상위권", colorClass: "text-emerald-700" };
-  if (avgRank <= 10) return { label: "중위권", colorClass: "text-amber-600" };
-  return                     { label: "하위권", colorClass: "text-red-600" };
+  if (avgRank <= 10) return { label: "중위권", colorClass: "text-amber-700" };
+  return                     { label: "하위권", colorClass: "text-red-700" };
 }
 
 /** 순위 추이: 숫자가 줄어들수록 순위 상승 (좋아짐) */
@@ -58,15 +58,15 @@ function getBlogTrend(trend: BlogTrendPoint[]): "up" | "down" | "stable" {
 }
 
 function TrendIcon({ direction }: { direction: "up" | "down" | "stable" }) {
-  if (direction === "up")   return <TrendingUp   className="w-4 h-4 text-emerald-600 shrink-0" aria-label="상승" />;
-  if (direction === "down") return <TrendingDown className="w-4 h-4 text-red-500 shrink-0"     aria-label="하락" />;
-  return                           <Minus        className="w-4 h-4 text-gray-500 shrink-0"    aria-label="유지" />;
+  if (direction === "up")   return <TrendingUp   className="w-4 h-4 text-emerald-700 shrink-0" aria-label="상승" />;
+  if (direction === "down") return <TrendingDown className="w-4 h-4 text-red-700 shrink-0"     aria-label="하락" />;
+  return                           <Minus        className="w-4 h-4 text-gray-600 shrink-0"    aria-label="유지" />;
 }
 
 function TrendLabel({ direction }: { direction: "up" | "down" | "stable" }) {
   if (direction === "up")   return <span className="text-sm text-emerald-700 font-medium">상승 중</span>;
-  if (direction === "down") return <span className="text-sm text-red-600 font-medium">하락 중</span>;
-  return                           <span className="text-sm text-gray-500">유지</span>;
+  if (direction === "down") return <span className="text-sm text-red-700 font-medium">하락 중</span>;
+  return                           <span className="text-sm text-gray-600">유지</span>;
 }
 
 export default function NaverSearchStrengthCard({ businessId, token }: Props) {
@@ -162,7 +162,7 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
           </h2>
         </div>
         {planLocked && (
-          <div className="flex items-center gap-1 text-sm text-gray-500 shrink-0">
+          <div className="flex items-center gap-1 text-sm text-gray-600 shrink-0">
             <Lock className="w-4 h-4" />
             <span className="hidden sm:inline">Basic 이상</span>
           </div>
@@ -176,13 +176,13 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
         {planLocked && (
           <div className="flex flex-col items-center gap-4 py-6 text-center">
             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-              <Lock className="w-6 h-6 text-gray-500" />
+              <Lock className="w-6 h-6 text-gray-600" />
             </div>
             <div>
               <p className="text-base font-semibold text-gray-800 mb-1">
                 네이버 검색·블로그 발행 30일 추이
               </p>
-              <p className="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed break-keep">
+              <p className="text-sm text-gray-600 max-w-xs mx-auto leading-relaxed break-keep">
                 키워드 순위와 블로그 발행 추이를 30일 단위로 확인하세요.
               </p>
             </div>
@@ -208,8 +208,8 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
 
         {/* 에러 */}
         {!planLocked && !loading && fetchError && (
-          <div className="flex items-center gap-2 text-sm text-gray-500 py-4">
-            <AlertCircle className="w-4 h-4 text-gray-500 shrink-0" />
+          <div className="flex items-center gap-2 text-sm text-gray-600 py-4">
+            <AlertCircle className="w-4 h-4 text-gray-600 shrink-0" />
             데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
           </div>
         )}
@@ -218,7 +218,7 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
         {!planLocked && !loading && !fetchError && data && !hasTrendData && (
           <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
             <span className="text-3xl" aria-hidden="true">📈</span>
-            <p className="text-sm text-gray-500 break-keep max-w-xs mx-auto leading-relaxed">
+            <p className="text-sm text-gray-600 break-keep max-w-xs mx-auto leading-relaxed">
               데이터 수집 중 — 스캔·블로그 분석을 진행하면 표시됩니다
             </p>
           </div>
@@ -242,12 +242,12 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
                       <TrendIcon direction={rankTrend} />
                       <TrendLabel direction={rankTrend} />
                     </div>
-                    <p className="text-sm text-gray-500 leading-snug">
+                    <p className="text-sm text-gray-600 leading-snug">
                       최근 {data.keyword_rank_trend.length}회 측정 기준
                     </p>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">아직 순위 데이터 없음</p>
+                  <p className="text-sm text-gray-600">아직 순위 데이터 없음</p>
                 )}
               </div>
 
@@ -263,18 +263,18 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
                       <TrendIcon direction={blogTrend} />
                       <TrendLabel direction={blogTrend} />
                     </div>
-                    <p className="text-sm text-gray-500 leading-snug">
+                    <p className="text-sm text-gray-600 leading-snug">
                       최근 {data.blog_trend.length}회 측정 기준
                     </p>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">블로그 분석 후 표시됩니다</p>
+                  <p className="text-sm text-gray-600">블로그 분석 후 표시됩니다</p>
                 )}
               </div>
             </div>
 
             {/* 면책 문구 */}
-            <p className="text-sm text-gray-500 leading-snug">
+            <p className="text-sm text-gray-600 leading-snug">
               네이버 검색 순위는 측정 시점·기기·지역·로그인 상태에 따라 달라질 수 있습니다
             </p>
           </div>

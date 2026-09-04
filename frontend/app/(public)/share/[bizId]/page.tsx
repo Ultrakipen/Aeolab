@@ -92,7 +92,7 @@ export default async function SharePage({ params }: Props) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-500 mb-4">분석 결과를 찾을 수 없습니다.</p>
+          <p className="text-gray-600 mb-4">분석 결과를 찾을 수 없습니다.</p>
           <Link href="/" className="text-blue-600 hover:underline text-sm">AEOlab 홈으로</Link>
         </div>
       </div>
@@ -127,7 +127,7 @@ export default async function SharePage({ params }: Props) {
                   style={{ width: `${Math.min(data.score, 100)}%` }}
                 />
               </div>
-              <p className="text-sm text-gray-500 mt-1 text-right">{stage.label} 기준</p>
+              <p className="text-sm text-gray-600 mt-1 text-right">{stage.label} 기준</p>
             </div>
           </div>
 
@@ -150,7 +150,7 @@ export default async function SharePage({ params }: Props) {
             <details className="group">
               <summary className="flex items-center justify-between cursor-pointer text-sm text-blue-600 font-medium list-none select-none">
                 <span>성장 단계 기준 및 계산 방법</span>
-                <span className="text-gray-500 group-open:rotate-180 transition-transform duration-200 text-sm">▼</span>
+                <span className="text-gray-600 group-open:rotate-180 transition-transform duration-200 text-sm">▼</span>
               </summary>
               <div className="mt-3 space-y-2">
                 {([
@@ -164,11 +164,11 @@ export default async function SharePage({ params }: Props) {
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm ${item.bg} ${stage.label === item.label ? "ring-2 ring-blue-400" : ""}`}
                   >
                     <span className="font-bold text-slate-700 shrink-0 min-w-[72px]">{item.label}</span>
-                    <span className="text-gray-500 text-sm shrink-0">{item.range}</span>
+                    <span className="text-gray-600 text-sm shrink-0">{item.range}</span>
                     <span className="text-gray-600 text-sm">{item.desc}</span>
                   </div>
                 ))}
-                <p className="text-sm text-gray-500 pt-1 leading-relaxed">
+                <p className="text-sm text-gray-600 pt-1 leading-relaxed">
                   지역에서 &apos;{data.category} 추천&apos; 같은 질문을 AI에 100번 물었을 때 노출 빈도 + 리뷰·정보 완성도로 계산합니다.
                 </p>
               </div>
@@ -196,7 +196,7 @@ export default async function SharePage({ params }: Props) {
           <div className="px-5 pb-4">
             <div className="flex items-center gap-2 my-2">
               <div className="flex-1 h-px bg-gray-100" />
-              <span className="text-sm text-gray-500 shrink-0">이 결과를 공유받으신 분께</span>
+              <span className="text-sm text-gray-600 shrink-0">이 결과를 공유받으신 분께</span>
               <div className="flex-1 h-px bg-gray-100" />
             </div>
             <Link

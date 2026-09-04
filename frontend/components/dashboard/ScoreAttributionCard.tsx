@@ -62,12 +62,12 @@ function DeltaBadge({ delta }: { delta: number }) {
     );
   if (label === "크게 하락" || label === "소폭 하락")
     return (
-      <span className="inline-flex items-center gap-1 text-red-600 bg-red-50 border border-red-200 rounded-full px-2 py-0.5 text-sm font-bold">
+      <span className="inline-flex items-center gap-1 text-red-700 bg-red-50 border border-red-200 rounded-full px-2 py-0.5 text-sm font-bold">
         <TrendingDown size={13} /> {label}
       </span>
     );
   return (
-    <span className="inline-flex items-center gap-1 text-gray-500 bg-gray-50 border border-gray-200 rounded-full px-2 py-0.5 text-sm">
+    <span className="inline-flex items-center gap-1 text-gray-600 bg-gray-50 border border-gray-200 rounded-full px-2 py-0.5 text-sm">
       <Minus size={13} /> 변화 없음
     </span>
   );
@@ -99,7 +99,7 @@ function DimBar({ change, maxAbs }: { change: DimensionChange; maxAbs: number })
           style={{ width: `${Math.max(pct, 4)}%` }}
         />
       </div>
-      <span className={`w-20 text-right text-sm font-medium ${positive ? "text-green-700" : "text-red-600"}`}>
+      <span className={`w-20 text-right text-sm font-medium ${positive ? "text-green-700" : "text-red-700"}`}>
         {positive ? "+" : "-"}{contribLabel}
       </span>
     </div>
@@ -128,12 +128,12 @@ function AttributionItem({ item }: { item: ActionAttribution }) {
         aria-expanded={open}
       >
         <div className="flex items-center gap-3 min-w-0">
-          <span className="text-sm text-gray-500 shrink-0">{dateStr}</span>
+          <span className="text-sm text-gray-600 shrink-0">{dateStr}</span>
           <span className="text-sm font-medium text-gray-800 truncate">{item.action_label}</span>
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-2">
           <DeltaBadge delta={item.delta} />
-          {open ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
+          {open ? <ChevronUp size={14} className="text-gray-600" /> : <ChevronDown size={14} className="text-gray-600" />}
         </div>
       </button>
 
@@ -147,20 +147,20 @@ function AttributionItem({ item }: { item: ActionAttribution }) {
 
           {item.dimension_changes.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-500">채널별 영향</p>
+              <p className="text-sm font-medium text-gray-600">채널별 영향</p>
               {item.dimension_changes.map((d) => (
                 <DimBar key={d.dimension} change={d} maxAbs={maxAbs} />
               ))}
             </div>
           )}
 
-          <div className="flex gap-2 text-sm text-gray-500 pt-1 items-center">
+          <div className="flex gap-2 text-sm text-gray-600 pt-1 items-center">
             <span>
               이전: <strong className="text-gray-700">{beforeLabel}</strong>
             </span>
             <span>→</span>
             <span>
-              이후: <strong className={sameLabel ? "text-gray-700" : item.delta > 0 ? "text-green-700" : "text-red-600"}>
+              이후: <strong className={sameLabel ? "text-gray-700" : item.delta > 0 ? "text-green-700" : "text-red-700"}>
                 {afterLabel}
               </strong>
             </span>
@@ -207,7 +207,7 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
     return (
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h3 className="text-base font-semibold text-gray-800 mb-2">내 행동의 효과</h3>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-600">
           {message || "기록된 행동이 없습니다. 가이드를 실행하고 행동을 기록하면 효과를 확인할 수 있습니다."}
         </p>
       </div>
@@ -233,7 +233,7 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
                 className={`px-2 py-1 rounded-lg text-sm font-medium transition-colors ${
                   days === d
                     ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
                 {d}일
@@ -244,7 +244,7 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
 
         {total_attributed_gain > 0.5 && (
           <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-3">
-            <TrendingUp className="text-green-600 shrink-0" size={18} />
+            <TrendingUp className="text-green-700 shrink-0" size={18} />
             <div>
               <p className="text-sm font-semibold text-green-800">
                 최근 {days}일간 노출 지수 {gainLabel}
@@ -266,7 +266,7 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
         ))}
       </div>
 
-      <div className="px-5 pb-4 text-sm text-gray-500">
+      <div className="px-5 pb-4 text-sm text-gray-600">
         재스캔 후 최신 효과를 확인할 수 있습니다.
       </div>
     </div>

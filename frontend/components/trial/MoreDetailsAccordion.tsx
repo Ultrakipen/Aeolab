@@ -33,7 +33,7 @@ export default function MoreDetailsAccordion({
           <ChevronDown className={`w-5 h-5 shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
           {label}
         </span>
-        <span className="text-sm text-gray-500 shrink-0">
+        <span className="text-sm text-gray-600 shrink-0">
           {open ? "접기" : "펼치기"}
         </span>
       </button>

@@ -67,13 +67,13 @@ function EmptyState() {
     <div
       role="status"
       aria-live="polite"
-      className="col-span-full flex flex-col items-center justify-center py-16 text-gray-500"
+      className="col-span-full flex flex-col items-center justify-center py-16 text-gray-600"
     >
       <svg className="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
       </svg>
       <p className="text-base font-medium text-gray-600">아직 등록된 성공 사례가 없습니다.</p>
-      <p className="text-sm text-gray-500 mt-1">첫 번째 성공 사례를 기다리고 있습니다.</p>
+      <p className="text-sm text-gray-600 mt-1">첫 번째 성공 사례를 기다리고 있습니다.</p>
     </div>
   );
 }
@@ -127,13 +127,13 @@ export default function StoriesClient() {
         <div className="max-w-5xl mx-auto px-4 py-8 md:py-12">
           <Link
             href="/"
-            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600 transition-colors mb-4"
+            className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
             홈으로
           </Link>
           <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">고객 성공 사례</h1>
-          <p className="text-sm md:text-base text-gray-500">AEOlab 대행 서비스 30일 결과 — 실제 고객 사례</p>
+          <p className="text-sm md:text-base text-gray-600">AEOlab 대행 서비스 30일 결과 — 실제 고객 사례</p>
         </div>
       </div>
 
@@ -196,7 +196,7 @@ export default function StoriesClient() {
                         {CATEGORY_LABELS[story.category] ?? story.category}
                       </span>
                       {story.region && (
-                        <span className="text-sm text-gray-500">{story.region}</span>
+                        <span className="text-sm text-gray-600">{story.region}</span>
                       )}
                     </div>
                     {story.score_delta !== null && story.score_delta > 0 && (
@@ -212,7 +212,7 @@ export default function StoriesClient() {
                   </h2>
 
                   {/* 본문 미리보기 */}
-                  <p className="text-sm text-gray-500 line-clamp-2 mb-3">
+                  <p className="text-sm text-gray-600 line-clamp-2 mb-3">
                     {story.body}
                   </p>
 
@@ -220,14 +220,14 @@ export default function StoriesClient() {
                   <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-50">
                     {story.score_before !== null && story.score_after !== null ? (
                       <div className="flex items-center gap-1.5 text-sm">
-                        <span className="text-gray-500">{getScoreTextLabel(story.score_before)}</span>
+                        <span className="text-gray-600">{getScoreTextLabel(story.score_before)}</span>
                         <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
-                        <span className="font-bold text-emerald-600">{getScoreTextLabel(story.score_after)}</span>
+                        <span className="font-bold text-emerald-700">{getScoreTextLabel(story.score_after)}</span>
                       </div>
                     ) : (
                       <span />
                     )}
-                    <span className="text-sm text-gray-500">{formatDate(story.published_at)}</span>
+                    <span className="text-sm text-gray-600">{formatDate(story.published_at)}</span>
                   </div>
                 </Link>
               ))}
@@ -244,7 +244,7 @@ export default function StoriesClient() {
                   <ArrowLeft className="w-4 h-4" />
                   이전
                 </button>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-600">
                   {page} / {totalPages}
                 </span>
                 <button
@@ -263,7 +263,7 @@ export default function StoriesClient() {
         {/* 하단 CTA */}
         <div className="mt-12 text-center py-10 bg-blue-50 rounded-xl border border-blue-100">
           <p className="text-base font-bold text-gray-900 mb-1">나도 성공 사례 주인공이 될 수 있어요</p>
-          <p className="text-sm text-gray-500 mb-4">30일 대행 서비스로 AI 검색 노출을 높여보세요</p>
+          <p className="text-sm text-gray-600 mb-4">30일 대행 서비스로 AI 검색 노출을 높여보세요</p>
           <Link
             href="/delivery"
             className="inline-block px-6 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition-colors"

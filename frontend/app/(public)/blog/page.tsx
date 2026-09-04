@@ -56,7 +56,7 @@ export default function BlogIndexPage() {
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-10 md:py-14">
         {/* 타이틀 */}
         <div className="mb-10">
-          <nav className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+          <nav className="flex items-center gap-2 text-sm text-gray-600 mb-4">
             <Link href="/" className="hover:text-gray-700">
               홈
             </Link>
@@ -85,10 +85,10 @@ export default function BlogIndexPage() {
             >
               {featured.category}
             </span>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-600">
               {formatDate(featured.publishedAt)}
             </span>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-600">
               읽기 {featured.readTime}분
             </span>
           </div>
@@ -119,18 +119,18 @@ export default function BlogIndexPage() {
                 >
                   {post.category}
                 </span>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-600">
                   읽기 {post.readTime}분
                 </span>
               </div>
               <h2 className="text-base md:text-lg font-bold text-gray-900 mb-2 break-keep group-hover:text-blue-700 transition-colors line-clamp-2">
                 {post.title}
               </h2>
-              <p className="text-sm text-gray-500 break-keep line-clamp-3 mb-3">
+              <p className="text-sm text-gray-600 break-keep line-clamp-3 mb-3">
                 {post.description}
               </p>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-600">
                   {formatDate(post.publishedAt)}
                 </span>
                 <span className="text-sm font-semibold text-blue-600 group-hover:underline">

@@ -9,7 +9,7 @@ import { Inbox } from "lucide-react";
  * 모든 데이터 부재 카드는 이 컴포넌트로 통일.
  * - 일관된 padding (py-8 md:py-10)
  * - 일관된 아이콘 톤 (text-gray-300)
- * - 일관된 텍스트 크기·색상 (text-sm md:text-base, text-gray-500)
+ * - 일관된 텍스트 크기·색상 (text-sm md:text-base, text-gray-600)
  * - 선택적 CTA 버튼 또는 보조 액션
  */
 
@@ -19,7 +19,7 @@ const TONE_STYLES: Record<Tone, { icon: string; title: string; desc: string }> =
   default: {
     icon: "text-gray-300",
     title: "text-gray-800",
-    desc: "text-gray-500",
+    desc: "text-gray-600",
   },
   info: {
     icon: "text-blue-300",

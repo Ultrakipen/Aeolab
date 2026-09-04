@@ -47,7 +47,7 @@ export default function SubscriptionScreenshotPreview({
           구독하면 이런 화면도 볼 수 있어요
         </p>
       </div>
-      <p className="text-sm text-gray-500 mb-4 ml-7 leading-relaxed break-keep">
+      <p className="text-sm text-gray-600 mb-4 ml-7 leading-relaxed break-keep">
         AI가 내 가게를 어떤 질문에서 언급하는지 실제 검색 화면으로 확인
       </p>
 
@@ -73,14 +73,14 @@ export default function SubscriptionScreenshotPreview({
               </div>
               {/* 잠금 오버레이 */}
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-white/60 backdrop-blur-[1px]">
-                <Lock className="w-5 h-5 text-gray-500" />
+                <Lock className="w-5 h-5 text-gray-600" />
                 <span className="text-sm font-semibold text-gray-600">구독 후 실제 화면 확인</span>
               </div>
             </div>
 
             {/* 하단 안내 */}
             <div className={`px-3 py-2 flex items-center gap-1.5 border-t ${s.captionColor}`}>
-              <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-green-700 shrink-0" />
               <span className="text-sm text-gray-600 break-keep">
                 <span className="font-semibold">&ldquo;{businessName}&rdquo;</span> 언급 여부 + 인용 문장 캡처
               </span>

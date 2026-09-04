@@ -14,9 +14,9 @@ const PLATFORM_COLORS: Record<string, string> = {
 }
 
 const SENTIMENT_BADGE: Record<string, { label: string; cls: string }> = {
-  positive: { label: '긍정', cls: 'bg-emerald-50 text-emerald-600' },
-  negative: { label: '부정', cls: 'bg-red-50 text-red-600' },
-  neutral:  { label: '중립', cls: 'bg-gray-50 text-gray-500' },
+  positive: { label: '긍정', cls: 'bg-emerald-50 text-emerald-700' },
+  negative: { label: '부정', cls: 'bg-red-50 text-red-700' },
+  neutral:  { label: '중립', cls: 'bg-gray-50 text-gray-600' },
 }
 
 interface Citation {
@@ -115,7 +115,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
             <p className="text-sm text-amber-700 mt-0.5">네이버 AI탭(업종 제한 발표 없음, 2026-06-25 정식 출시) · ChatGPT · Gemini 노출 현황을 확인합니다.</p>
           </div>
         )}
-        <p className="text-sm text-gray-500 leading-relaxed">
+        <p className="text-sm text-gray-600 leading-relaxed">
           아직 AI 인용 데이터가 없습니다. 스캔을 완료하면 자동으로 분석됩니다.
         </p>
         <div className="mt-4 bg-amber-50 rounded-lg p-3">
@@ -137,10 +137,10 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
   return (
     <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
       <div className="flex items-center gap-2 mb-4">
-        <MessageSquareQuote className="w-5 h-5 text-blue-500" />
+        <MessageSquareQuote className="w-5 h-5 text-blue-600" />
         <div>
           <h3 className="text-base font-bold text-gray-900">AI 검색 언급 분석</h3>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-600">
             {isNaverInactive
               ? "AI탭 · 정보형 AI 브리핑 · Gemini · ChatGPT 추천 시뮬레이션 (이 업종은 플레이스형 AI 브리핑 비대상)"
               : "네이버 AI 브리핑 실제 문장 · Gemini/ChatGPT 추천 시뮬레이션"}
@@ -208,28 +208,28 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
                   </div>
                 )
               ) : c.platform === 'google' ? (
-                <p className="text-sm text-gray-500 italic">
+                <p className="text-sm text-gray-600 italic">
                   이번 스캔에서 Google AI Overview에 노출되지 않았습니다.
                   구글 비즈니스 프로필 등록 시 2~4주 내 인식이 개선될 수 있습니다.
                 </p>
               ) : c.platform === 'chatgpt' ? (
-                <p className="text-sm text-gray-500 italic">
+                <p className="text-sm text-gray-600 italic">
                   ChatGPT 학습 데이터에 아직 포함되지 않았습니다.
                   한국 소상공인 ChatGPT 평균 언급률 약 1~3%(추정) — 현재 수준이 일반적입니다.
                 </p>
               ) : c.platform === 'gemini' ? (
-                <p className="text-sm text-gray-500 italic">
+                <p className="text-sm text-gray-600 italic">
                   이번 스캔에서 Gemini가 가게를 언급하지 않았습니다.
                   구글 비즈니스 프로필 등록 시 개선 가능합니다.
                 </p>
               ) : (
-                <p className="text-sm text-gray-500 italic">
+                <p className="text-sm text-gray-600 italic">
                   이번 스캔에서 인용 문장이 감지되지 않았습니다.
                 </p>
               )}
               {/* 부정 sentiment 인용에 개선 링크 */}
               {c.sentiment === 'negative' && (
-                <Link href="/guide" className="text-sm text-red-600 hover:underline mt-1 block">
+                <Link href="/guide" className="text-sm text-red-700 hover:underline mt-1 block">
                   이 부분 개선 방법 →
                 </Link>
               )}

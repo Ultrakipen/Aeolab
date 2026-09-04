@@ -148,7 +148,7 @@ const SidebarContent = memo(function SidebarContent({
           {isFree && (
             <a
               href="/pricing"
-              className="text-sm text-gray-500 hover:text-blue-600 transition-colors"
+              className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
               onClick={onClose}
             >
               업그레이드
@@ -175,7 +175,7 @@ const SidebarContent = memo(function SidebarContent({
             {/* 그룹 라벨 — 카드 외부에 배치하여 시각 분리 강화 */}
             <div className="flex items-center gap-2 px-2 mb-2">
               <span className="w-1.5 h-4 rounded-full bg-blue-500 shrink-0" aria-hidden="true" />
-              <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">
+              <p className="text-sm font-bold text-gray-600 uppercase tracking-wider">
                 {group.label}
               </p>
             </div>
@@ -194,7 +194,7 @@ const SidebarContent = memo(function SidebarContent({
                       active
                         ? "bg-blue-50 text-blue-700 font-semibold border border-blue-300"
                         : locked
-                        ? "text-gray-500 hover:bg-gray-50"
+                        ? "text-gray-600 hover:bg-gray-50"
                         : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
                     ].join(" ")}
                     title={locked ? "업그레이드 후 이용 가능" : undefined}
@@ -205,7 +205,7 @@ const SidebarContent = memo(function SidebarContent({
                     <item.Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.5} />
                     <span className="flex-1 font-medium truncate min-w-0">{item.label}</span>
                     {item.badge && !locked && (
-                      <span className="text-sm bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full font-semibold shrink-0">{item.badge}</span>
+                      <span className="text-sm bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full font-semibold shrink-0">{item.badge}</span>
                     )}
                     {locked && !needsBiz && <Lock className="w-3.5 h-3.5 text-gray-300 shrink-0" />}
                     {needsBiz && !locked && (
@@ -223,7 +223,7 @@ const SidebarContent = memo(function SidebarContent({
           <div className="mb-6 mt-2 pt-4 border-t border-gray-200">
             <div className="flex items-center gap-2 px-2 mb-2">
               <span className="w-1.5 h-4 rounded-full bg-blue-500 shrink-0" aria-hidden="true" />
-              <p className="text-sm font-bold text-gray-500 uppercase tracking-wider">도움말</p>
+              <p className="text-sm font-bold text-gray-600 uppercase tracking-wider">도움말</p>
             </div>
             <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-2 space-y-1">
               {filteredFooter.map((item) => {
@@ -253,7 +253,7 @@ const SidebarContent = memo(function SidebarContent({
         {query && filteredGroups.length === 0 && filteredFooter.length === 0 && (
           <div className="px-3 py-8 text-center">
             <Search className="w-8 h-8 text-gray-200 mx-auto mb-2" aria-hidden="true" />
-            <p className="text-sm text-gray-500">검색 결과 없음</p>
+            <p className="text-sm text-gray-600">검색 결과 없음</p>
           </div>
         )}
       </nav>
@@ -282,7 +282,7 @@ const SidebarContent = memo(function SidebarContent({
           <Settings className="w-[18px] h-[18px] shrink-0" />
           <span className="flex flex-col min-w-0">
             <span className="font-medium text-[15px]">설정</span>
-            <span className="truncate text-sm text-gray-500">{email}</span>
+            <span className="truncate text-sm text-gray-600">{email}</span>
           </span>
         </Link>
         <LogoutButton />
@@ -347,7 +347,7 @@ export function DashboardSidebar({
         <Link href="/" className="text-xl font-bold text-blue-600" prefetch={false}>AEOlab</Link>
         <button
           onClick={() => setOpen(!open)}
-          className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+          className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
           aria-label="메뉴 열기"
         >
           {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

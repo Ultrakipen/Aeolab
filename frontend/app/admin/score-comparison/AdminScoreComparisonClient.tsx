@@ -77,28 +77,28 @@ const DIAGNOSIS_CONFIG = {
     bg: "bg-emerald-50 dark:bg-emerald-950",
     border: "border-emerald-300 dark:border-emerald-700",
     title: "text-emerald-800 dark:text-emerald-200",
-    badge: "bg-emerald-600 text-white",
+    badge: "bg-emerald-700 text-white",
     badgeText: "활성화 권장",
     icon: "✓",
-    iconColor: "text-emerald-600",
+    iconColor: "text-emerald-700",
   },
   yellow: {
     bg: "bg-amber-50 dark:bg-amber-950",
     border: "border-amber-300 dark:border-amber-700",
     title: "text-amber-800 dark:text-amber-200",
-    badge: "bg-amber-500 text-white",
+    badge: "bg-amber-700 text-white",
     badgeText: "추가 모니터링 필요",
     icon: "!",
-    iconColor: "text-amber-600",
+    iconColor: "text-amber-700",
   },
   red: {
     bg: "bg-rose-50 dark:bg-rose-950",
     border: "border-rose-300 dark:border-rose-700",
     title: "text-rose-800 dark:text-rose-200",
-    badge: "bg-rose-600 text-white",
+    badge: "bg-rose-700 text-white",
     badgeText: "활성화 보류 권장",
     icon: "✗",
-    iconColor: "text-rose-600",
+    iconColor: "text-rose-700",
   },
 };
 
@@ -116,17 +116,17 @@ function GroupCard({ groupKey, stats }: { groupKey: string; stats: GroupStats })
             {GROUP_LABELS[groupKey] ?? groupKey}
           </span>
         </div>
-        <p className="text-sm text-gray-500 dark:text-gray-500">데이터 없음</p>
+        <p className="text-sm text-gray-600 dark:text-gray-600">데이터 없음</p>
       </div>
     );
   }
   const diff = stats.diff_avg ?? 0;
   const isSignificant = Math.abs(diff) >= 5;
   const diffColor = diff > 0
-    ? "text-emerald-600 dark:text-emerald-400"
+    ? "text-emerald-700 dark:text-emerald-400"
     : diff < 0
-    ? "text-rose-600 dark:text-rose-400"
-    : "text-gray-500";
+    ? "text-rose-700 dark:text-rose-400"
+    : "text-gray-600";
   const diffSign = diff > 0 ? "+" : "";
 
   return (
@@ -146,24 +146,24 @@ function GroupCard({ groupKey, stats }: { groupKey: string; stats: GroupStats })
       </div>
       <div className="grid grid-cols-2 gap-2 text-sm">
         <div>
-          <span className="text-gray-500 dark:text-gray-400">사업장 수</span>
+          <span className="text-gray-600 dark:text-gray-600">사업장 수</span>
           <div className="font-bold text-gray-900 dark:text-gray-100">{stats.count}개</div>
         </div>
         <div>
-          <span className="text-gray-500 dark:text-gray-400">평균 변화량</span>
+          <span className="text-gray-600 dark:text-gray-600">평균 변화량</span>
           <div className={`font-bold text-lg ${diffColor}`}>{diffSign}{diff.toFixed(1)}점</div>
         </div>
         <div>
-          <span className="text-gray-500 dark:text-gray-400">v3.0 평균</span>
+          <span className="text-gray-600 dark:text-gray-600">v3.0 평균</span>
           <div className="font-semibold text-gray-800 dark:text-gray-200">{(stats.v30_avg ?? 0).toFixed(1)}</div>
         </div>
         <div>
-          <span className="text-gray-500 dark:text-gray-400">v3.1 평균</span>
+          <span className="text-gray-600 dark:text-gray-600">v3.1 평균</span>
           <div className="font-semibold text-gray-800 dark:text-gray-200">{(stats.v31_avg ?? 0).toFixed(1)}</div>
         </div>
       </div>
       <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-        <span className="text-gray-500 dark:text-gray-500 text-sm">표준편차: {(stats.diff_stddev ?? 0).toFixed(1)}</span>
+        <span className="text-gray-600 dark:text-gray-600 text-sm">표준편차: {(stats.diff_stddev ?? 0).toFixed(1)}</span>
       </div>
     </div>
   );
@@ -177,10 +177,10 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: { payl
   const diffSign = diff > 0 ? "+" : "";
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-3 shadow-lg text-sm">
-      <p className="text-gray-500 dark:text-gray-400 mb-1">{GROUP_LABELS[d.user_group] ?? d.user_group}</p>
+      <p className="text-gray-600 dark:text-gray-600 mb-1">{GROUP_LABELS[d.user_group] ?? d.user_group}</p>
       <p className="text-gray-800 dark:text-gray-200">v3.0: <strong>{d.v30.toFixed(1)}</strong></p>
       <p className="text-gray-800 dark:text-gray-200">v3.1: <strong>{d.v31.toFixed(1)}</strong></p>
-      <p className={`font-bold ${diff >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+      <p className={`font-bold ${diff >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"}`}>
         변화: {diffSign}{diff.toFixed(1)}점
       </p>
     </div>
@@ -250,12 +250,12 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
           <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-2">
             아직 v3.1 Shadow 데이터가 없습니다
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed max-w-md mx-auto">
+          <p className="text-gray-600 dark:text-gray-600 text-sm leading-relaxed max-w-md mx-auto">
             Supabase SQL Editor에서 v3.1 Shadow 컬럼 ALTER를 실행하고,
             30일 자동 스캔이 쌓인 후 다시 확인해 주세요.
           </p>
           <div className="mt-6 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 text-left">
-            <p className="text-sm text-gray-500 dark:text-gray-400 font-mono">
+            <p className="text-sm text-gray-600 dark:text-gray-600 font-mono">
               ALTER TABLE scan_results<br />
               &nbsp;&nbsp;ADD COLUMN IF NOT EXISTS track1_score_v31 FLOAT,<br />
               &nbsp;&nbsp;ADD COLUMN IF NOT EXISTS track2_score_v31 FLOAT,<br />
@@ -329,7 +329,7 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
                   </span>
                 </div>
                 <p className={`text-sm leading-relaxed ${diag.title}`}>{data.diagnosis_reason}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                <p className="text-sm text-gray-600 dark:text-gray-600 mt-2">
                   분석 대상: <strong>{data.total_scans}</strong>건 ({days}일 기준)
                 </p>
               </div>
@@ -353,7 +353,7 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
                 <h2 className="text-base md:text-lg font-bold text-gray-800 dark:text-gray-200 mb-1">
                   v3.0 vs v3.1 산점도
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                <p className="text-sm text-gray-600 dark:text-gray-600 mb-4">
                   대각선(y=x) 기준으로 위는 v3.1 상승, 아래는 하락
                 </p>
                 <div className="overflow-x-auto">
@@ -404,7 +404,7 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
                 <h2 className="text-base md:text-lg font-bold text-gray-800 dark:text-gray-200 mb-1">
                   이상 변동 사업장 (차이 ±20 이상)
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                <p className="text-sm text-gray-600 dark:text-gray-600 mb-4">
                   총 {data.outliers.length}건, 차이 큰 순 정렬
                 </p>
                 <div className="overflow-x-auto">
@@ -414,7 +414,7 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
                         {["사업장명", "업종", "v3.0", "v3.1", "변화량"].map((h) => (
                           <th
                             key={h}
-                            className="text-left py-2 pr-3 text-gray-500 dark:text-gray-400 font-medium text-sm uppercase tracking-wide"
+                            className="text-left py-2 pr-3 text-gray-600 dark:text-gray-600 font-medium text-sm uppercase tracking-wide"
                           >
                             {h}
                           </th>
@@ -425,8 +425,8 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
                       {visibleOutliers.map((row) => {
                         const diffSign = row.diff > 0 ? "+" : "";
                         const diffColor = row.diff > 0
-                          ? "text-emerald-600 dark:text-emerald-400 font-bold"
-                          : "text-rose-600 dark:text-rose-400 font-bold";
+                          ? "text-emerald-700 dark:text-emerald-400 font-bold"
+                          : "text-rose-700 dark:text-rose-400 font-bold";
                         return (
                           <tr
                             key={row.biz_id}
@@ -435,7 +435,7 @@ export function AdminScoreComparisonClient({ isAdmin }: { isAdmin: boolean }) {
                             <td className="py-2.5 pr-3 text-gray-800 dark:text-gray-200 font-medium max-w-[160px] truncate">
                               {row.biz_name}
                             </td>
-                            <td className="py-2.5 pr-3 text-gray-500 dark:text-gray-400">{row.category}</td>
+                            <td className="py-2.5 pr-3 text-gray-600 dark:text-gray-600">{row.category}</td>
                             <td className="py-2.5 pr-3 text-gray-700 dark:text-gray-300">{row.v30.toFixed(1)}</td>
                             <td className="py-2.5 pr-3 text-gray-700 dark:text-gray-300">{row.v31.toFixed(1)}</td>
                             <td className={`py-2.5 ${diffColor}`}>

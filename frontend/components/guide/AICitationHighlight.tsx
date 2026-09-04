@@ -39,7 +39,7 @@ const PLATFORM_COLOR: Record<string, string> = {
 const SENTIMENT_CONFIG: Record<string, { label: string; color: string }> = {
   positive: { label: '긍정', color: 'bg-green-100 text-green-700' },
   negative: { label: '부정', color: 'bg-red-100 text-red-700' },
-  neutral: { label: '중립', color: 'bg-gray-100 text-gray-500' },
+  neutral: { label: '중립', color: 'bg-gray-100 text-gray-600' },
 }
 
 function AICitationContent({ businessId, authToken, isInactive }: { businessId: string; authToken: string | null; isInactive?: boolean }) {
@@ -105,7 +105,7 @@ function AICitationContent({ businessId, authToken, isInactive }: { businessId: 
             <span className="text-sm font-semibold text-gray-900">{title}</span>
           </div>
           {isInactive && (
-            <span className="text-sm text-gray-500 pl-6">플레이스형 AI 브리핑 비대상 업종 · 정보형 AI 브리핑·ChatGPT·Gemini·Google 기준</span>
+            <span className="text-sm text-gray-600 pl-6">플레이스형 AI 브리핑 비대상 업종 · 정보형 AI 브리핑·ChatGPT·Gemini·Google 기준</span>
           )}
         </div>
         {totalMentioned > 0 && (
@@ -117,7 +117,7 @@ function AICitationContent({ businessId, authToken, isInactive }: { businessId: 
 
       {totalMentioned === 0 ? (
         <div className="bg-white/70 rounded-xl p-4 text-center">
-          <p className="text-sm text-gray-500 leading-relaxed whitespace-pre-line">{emptyMessage}</p>
+          <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{emptyMessage}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -130,7 +130,7 @@ function AICitationContent({ businessId, authToken, isInactive }: { businessId: 
                   <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${platformColor}`}>
                     {c.platform_label || c.platform}
                   </span>
-                  <span className="text-sm text-gray-500 truncate max-w-[200px]">"{c.query}"</span>
+                  <span className="text-sm text-gray-600 truncate max-w-[200px]">"{c.query}"</span>
                 </div>
                 {c.excerpt && (
                   <div className="border-l-4 border-blue-400 pl-3 py-1 bg-blue-50/60 rounded-r-lg">
@@ -153,7 +153,7 @@ function AICitationContent({ businessId, authToken, isInactive }: { businessId: 
 
       {totalNotMentioned > 0 && (
         <div className="mt-3 bg-white/60 rounded-xl p-3 flex items-center gap-2">
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-600">
             아직 {totalNotMentioned}개 플랫폼에 미노출
           </span>
           <span className="text-sm font-medium text-indigo-600">→ 재스캔으로 확인</span>

@@ -55,7 +55,7 @@ export default function DeliveryPaymentRetryButton({ orderId, packageType, amoun
 
   return (
     <div className="mt-3">
-      {error && <p className="text-sm text-red-600 mb-2">{error}</p>}
+      {error && <p className="text-sm text-red-700 mb-2">{error}</p>}
       <button
         onClick={handlePayment}
         disabled={loading}

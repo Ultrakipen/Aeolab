@@ -61,7 +61,7 @@ export default function FirstTimeEducationCard() {
     <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 md:p-6 mb-5">
       <div className="flex items-start justify-between gap-3 mb-4">
         <div>
-          <span className="text-sm font-semibold text-blue-500 uppercase tracking-wide">처음 오셨나요?</span>
+          <span className="text-sm font-semibold text-blue-600 uppercase tracking-wide">처음 오셨나요?</span>
           <h3 className="text-lg md:text-xl font-bold text-blue-900 mt-0.5">
             네이버 AI 브리핑 — 30초 핵심 정리
           </h3>

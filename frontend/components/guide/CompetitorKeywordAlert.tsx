@@ -74,11 +74,11 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
     return (
       <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5 shadow-sm">
         <div className="flex items-center gap-2 mb-3">
-          <AlertTriangle className="w-4 h-4 text-gray-500" />
+          <AlertTriangle className="w-4 h-4 text-gray-600" />
           <span className="text-sm font-semibold text-gray-900">경쟁사 키워드 위협 분석</span>
         </div>
         <div className="bg-gray-50 rounded-xl p-4 text-center">
-          <p className="text-sm text-gray-500 leading-relaxed">
+          <p className="text-sm text-gray-600 leading-relaxed">
             스캔이 2회 이상 필요합니다.<br />
             재스캔 후 경쟁사 키워드 변화를 추적할 수 있습니다.
           </p>
@@ -99,11 +99,11 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
     <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-5 shadow-sm">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-orange-500" />
+          <AlertTriangle className="w-4 h-4 text-orange-700" />
           <span className="text-sm font-semibold text-gray-900">경쟁사 키워드 위협 분석</span>
         </div>
         {data.scan_date_previous && data.scan_date_current && (
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-600">
             {formatDate(data.scan_date_previous)} ~ {formatDate(data.scan_date_current)}
           </span>
         )}
@@ -112,7 +112,7 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
       {/* 우위 유지 배너 */}
       {isAllGood && (
         <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl p-3 mb-3">
-          <ShieldCheck className="w-4 h-4 text-green-600 shrink-0" />
+          <ShieldCheck className="w-4 h-4 text-green-700 shrink-0" />
           <p className="text-sm font-medium text-green-700">경쟁사 대비 우위 유지 중</p>
         </div>
       )}
@@ -125,7 +125,7 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
           {gained.length > 0 && (
             <div className="bg-green-50 border border-green-100 rounded-xl p-3">
               <div className="flex items-center gap-1.5 mb-2">
-                <TrendingUp className="w-3.5 h-3.5 text-green-600" />
+                <TrendingUp className="w-3.5 h-3.5 text-green-700" />
                 <span className="text-sm font-medium text-green-700">
                   새로 커버된 키워드 {gained.length}개
                 </span>
@@ -143,14 +143,14 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
           {lost.length > 0 && (
             <div className="bg-red-50 border border-red-100 rounded-xl p-3">
               <div className="flex items-center gap-1.5 mb-2">
-                <TrendingDown className="w-3.5 h-3.5 text-red-500" />
-                <span className="text-sm font-medium text-red-600">
+                <TrendingDown className="w-3.5 h-3.5 text-red-700" />
+                <span className="text-sm font-medium text-red-700">
                   주의: {lost.length}개 키워드 커버리지 감소
                 </span>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {lost.map((kw) => (
-                  <span key={kw} className="text-sm bg-red-100 text-red-600 px-2.5 py-0.5 rounded-full">
+                  <span key={kw} className="text-sm bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full">
                     {kw}
                   </span>
                 ))}
@@ -168,7 +168,7 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
             {highThreats.length > 0 && (
               <div className="border border-red-200 rounded-xl p-3">
                 <div className="flex items-center gap-1.5 mb-2">
-                  <span className="text-sm bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">
+                  <span className="text-sm bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
                     긴급
                   </span>
                 </div>
@@ -176,8 +176,8 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
                   {highThreats.map((t, i) => (
                     <div key={i} className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium text-gray-700">{t.competitor_name}</span>
-                      <span className="text-sm text-gray-500">→</span>
-                      <span className="text-sm bg-red-50 text-red-600 px-2 py-0.5 rounded-full">
+                      <span className="text-sm text-gray-600">→</span>
+                      <span className="text-sm bg-red-50 text-red-700 px-2 py-0.5 rounded-full">
                         {t.keyword}
                       </span>
                     </div>
@@ -189,7 +189,7 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
             {mediumThreats.length > 0 && (
               <div className="border border-orange-200 rounded-xl p-3">
                 <div className="flex items-center gap-1.5 mb-2">
-                  <span className="text-sm bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-medium">
+                  <span className="text-sm bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">
                     주의
                   </span>
                 </div>
@@ -197,8 +197,8 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
                   {mediumThreats.map((t, i) => (
                     <div key={i} className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium text-gray-700">{t.competitor_name}</span>
-                      <span className="text-sm text-gray-500">→</span>
-                      <span className="text-sm bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full">
+                      <span className="text-sm text-gray-600">→</span>
+                      <span className="text-sm bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full">
                         {t.keyword}
                       </span>
                     </div>

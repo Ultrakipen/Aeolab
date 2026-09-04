@@ -132,7 +132,7 @@ export default function ReviewKeywordGapCard({ bizId, plan }: Props) {
           </h2>
         </div>
         {isFree && (
-          <div className="flex items-center gap-1 text-sm text-gray-500 shrink-0">
+          <div className="flex items-center gap-1 text-sm text-gray-600 shrink-0">
             <Lock className="w-4 h-4" />
             <span className="hidden sm:inline">Basic 이상</span>
           </div>
@@ -146,13 +146,13 @@ export default function ReviewKeywordGapCard({ bizId, plan }: Props) {
         {isFree && (
           <div className="flex flex-col items-center gap-4 py-6 text-center">
             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-              <Lock className="w-6 h-6 text-gray-500" />
+              <Lock className="w-6 h-6 text-gray-600" />
             </div>
             <div>
               <p className="text-base font-semibold text-gray-800 mb-1">
                 리뷰 키워드 분포 비교
               </p>
-              <p className="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed break-keep">
+              <p className="text-sm text-gray-600 max-w-xs mx-auto leading-relaxed break-keep">
                 내 가게 리뷰에 어떤 키워드가 많은지 경쟁사와 비교합니다. 부족한 키워드를 파악해 소개글에 반영하세요.
               </p>
             </div>
@@ -175,8 +175,8 @@ export default function ReviewKeywordGapCard({ bizId, plan }: Props) {
 
         {/* 에러 */}
         {!isFree && !loading && error && (
-          <div className="flex items-center gap-2 text-sm text-gray-500 py-4">
-            <AlertCircle className="w-4 h-4 text-gray-500 shrink-0" />
+          <div className="flex items-center gap-2 text-sm text-gray-600 py-4">
+            <AlertCircle className="w-4 h-4 text-gray-600 shrink-0" />
             데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
           </div>
         )}
@@ -185,7 +185,7 @@ export default function ReviewKeywordGapCard({ bizId, plan }: Props) {
         {!isFree && !loading && !error && dataUnavailable && (
           <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
             <BarChart2 className="w-8 h-8 text-gray-300" />
-            <p className="text-sm text-gray-500 break-keep max-w-xs mx-auto leading-relaxed">
+            <p className="text-sm text-gray-600 break-keep max-w-xs mx-auto leading-relaxed">
               스캔 후 데이터가 충분히 쌓이면 표시됩니다
             </p>
           </div>
@@ -228,11 +228,11 @@ export default function ReviewKeywordGapCard({ bizId, plan }: Props) {
             </div>
 
             {competitorDataMissing && (
-              <p className="mt-3 text-sm text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
+              <p className="mt-3 text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">
                 경쟁사 리뷰 데이터가 아직 수집되지 않았습니다. 경쟁사 스캔 후 비교 그래프가 표시됩니다.
               </p>
             )}
-            <p className="mt-3 text-sm text-gray-500 leading-snug">
+            <p className="mt-3 text-sm text-gray-600 leading-snug">
               측정 시점·기기·로그인 상태에 따라 달라질 수 있음. 리뷰 키워드 분류는 AI 분석 기반 추정치입니다.
             </p>
           </>

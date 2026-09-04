@@ -56,9 +56,9 @@ const PLATFORM_LABEL: Record<string, string> = {
 }
 
 const PLATFORM_COLOR: Record<string, string> = {
-  naver_blog: "text-green-600 bg-green-50 border-green-200",
+  naver_blog: "text-green-700 bg-green-50 border-green-200",
   naver_ai: "text-blue-600 bg-blue-50 border-blue-200",
-  google: "text-orange-600 bg-orange-50 border-orange-200",
+  google: "text-orange-700 bg-orange-50 border-orange-200",
 }
 
 interface LightboxProps {
@@ -131,7 +131,7 @@ interface ImageThumbProps {
 function ImageThumb({ item, label, isBefore, onClick }: ImageThumbProps) {
   const dateStr = new Date(item.created_at).toLocaleDateString("ko-KR")
   const borderClass = isBefore ? "border-gray-200" : "border-blue-200"
-  const labelClass = isBefore ? "text-gray-500" : "text-blue-600 font-medium"
+  const labelClass = isBefore ? "text-gray-600" : "text-blue-600 font-medium"
   const [imgError, setImgError] = useState(false)
   const [imgLoaded, setImgLoaded] = useState(false)
 
@@ -145,7 +145,7 @@ function ImageThumb({ item, label, isBefore, onClick }: ImageThumbProps) {
             className={`w-full rounded-lg border ${borderClass} bg-gray-50 aspect-video flex flex-col items-center justify-center gap-1`}
           >
             <span className="text-gray-300 text-2xl">🖼</span>
-            <span className="text-sm text-gray-500 text-center px-2">이미지를 불러올 수 없습니다</span>
+            <span className="text-sm text-gray-600 text-center px-2">이미지를 불러올 수 없습니다</span>
           </div>
         ) : (
           <div className={`relative w-full aspect-video overflow-hidden rounded-lg border ${borderClass}`}>
@@ -172,7 +172,7 @@ function ImageThumb({ item, label, isBefore, onClick }: ImageThumbProps) {
           </div>
         )}
       </div>
-      <div className="text-sm text-gray-500 text-center mt-1">{dateStr}</div>
+      <div className="text-sm text-gray-600 text-center mt-1">{dateStr}</div>
     </div>
   )
 }
@@ -252,7 +252,7 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
     return (
       <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm">
         <div className="text-base font-medium text-gray-700 mb-2">Before / After 비교</div>
-        <p className="text-sm text-gray-500">Before 스크린샷이 아직 준비되지 않았습니다.</p>
+        <p className="text-sm text-gray-600">Before 스크린샷이 아직 준비되지 않았습니다.</p>
       </div>
     )
   }
@@ -294,7 +294,7 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
                 className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                   activePlatform === p
                     ? PLATFORM_COLOR[p]
-                    : "text-gray-500 bg-white border-gray-200 hover:bg-gray-50"
+                    : "text-gray-600 bg-white border-gray-200 hover:bg-gray-50"
                 }`}
               >
                 {PLATFORM_LABEL[p] ?? p}
@@ -307,7 +307,7 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
         {platforms.length === 1 && (
           <div
             className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-medium border mb-3 ${
-              PLATFORM_COLOR[activePlatform] ?? "text-gray-500 bg-gray-50 border-gray-200"
+              PLATFORM_COLOR[activePlatform] ?? "text-gray-600 bg-gray-50 border-gray-200"
             }`}
           >
             {PLATFORM_LABEL[activePlatform] ?? activePlatform}
@@ -335,7 +335,7 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
             ))}
             {afters.length === 0 && (
               <div className="col-span-3 flex items-center justify-center bg-gray-50 rounded-lg h-24">
-                <p className="text-sm text-gray-500 text-center px-4">
+                <p className="text-sm text-gray-600 text-center px-4">
                   가입 1주 후 After 스크린샷이
                   <br />
                   자동으로 생성됩니다.
@@ -350,7 +350,7 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
               <div key={group.key}>
                 {/* 섹션 제목 */}
                 <div className="flex items-center gap-1.5 text-sm font-medium text-gray-600 mb-3">
-                  <Search className="w-4 h-4 text-gray-500 shrink-0" />
+                  <Search className="w-4 h-4 text-gray-600 shrink-0" />
                   <span className="truncate max-w-full">{group.sectionLabel}</span>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -383,7 +383,7 @@ export function BeforeAfterCard({ items, businessName }: BeforeAfterCardProps) {
                     ))}
                   {idx === 0 && afters.length === 0 && (
                     <div className="col-span-2 md:col-span-3 flex items-center justify-center bg-gray-50 rounded-lg h-20">
-                      <p className="text-sm text-gray-500 text-center px-4">
+                      <p className="text-sm text-gray-600 text-center px-4">
                         1주 후 After 스크린샷이 자동 생성됩니다.
                       </p>
                     </div>

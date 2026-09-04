@@ -54,7 +54,7 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
   const isAdmin = !!(user?.email && ADMIN_EMAILS.includes(user.email));
   if (!isAdmin) {
     return (
-      <div className="p-4 md:p-8 text-center text-gray-500">
+      <div className="p-4 md:p-8 text-center text-gray-600">
         <p className="text-base">접근 권한이 없습니다.</p>
       </div>
     );
@@ -86,7 +86,7 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
     <>
       <div className="mb-6">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">대행 의뢰 관리</h1>
-        <p className="text-sm text-gray-500 mt-1">전체 대행 의뢰 목록 및 상태 관리</p>
+        <p className="text-sm text-gray-600 mt-1">전체 대행 의뢰 목록 및 상태 관리</p>
       </div>
 
       {/* 상태 필터 */}
@@ -116,7 +116,7 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
       {/* PC 테이블 */}
       <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         {rows.length === 0 ? (
-          <div className="py-16 text-center text-base text-gray-500">
+          <div className="py-16 text-center text-base text-gray-600">
             {statusFilter ? `[${STATUS_META[statusFilter]?.label ?? statusFilter}] 상태의 의뢰가 없습니다.` : "의뢰가 없습니다."}
           </div>
         ) : (
@@ -124,12 +124,12 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
             <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50">
-                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-500">상태</th>
-                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-500">패키지</th>
-                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-500">제목</th>
-                  <th className="text-right px-5 py-3 text-sm font-semibold text-gray-500">금액</th>
-                  <th className="text-right px-5 py-3 text-sm font-semibold text-gray-500">신청일</th>
-                  <th className="text-center px-5 py-3 text-sm font-semibold text-gray-500">액션</th>
+                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-600">상태</th>
+                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-600">패키지</th>
+                  <th className="text-left px-5 py-3 text-sm font-semibold text-gray-600">제목</th>
+                  <th className="text-right px-5 py-3 text-sm font-semibold text-gray-600">금액</th>
+                  <th className="text-right px-5 py-3 text-sm font-semibold text-gray-600">신청일</th>
+                  <th className="text-center px-5 py-3 text-sm font-semibold text-gray-600">액션</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -153,7 +153,7 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
                       <td className="px-5 py-4 text-right text-sm font-semibold text-gray-900">
                         {order.amount?.toLocaleString()}원
                       </td>
-                      <td className="px-5 py-4 text-right text-sm text-gray-500">
+                      <td className="px-5 py-4 text-right text-sm text-gray-600">
                         {formatDate(order.created_at)}
                       </td>
                       <td className="px-5 py-4 text-center">
@@ -176,7 +176,7 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
       {/* 모바일 카드 목록 */}
       <div className="md:hidden space-y-3">
         {rows.length === 0 ? (
-          <div className="py-12 text-center text-base text-gray-500 bg-white rounded-xl border border-gray-100">
+          <div className="py-12 text-center text-base text-gray-600 bg-white rounded-xl border border-gray-100">
             의뢰가 없습니다.
           </div>
         ) : (
@@ -192,13 +192,13 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
                   <span className={`shrink-0 text-sm font-semibold px-2.5 py-1 rounded-full ${sm.color}`}>
                     {sm.label}
                   </span>
-                  <span className="text-sm text-gray-500">{formatDate(order.created_at)}</span>
+                  <span className="text-sm text-gray-600">{formatDate(order.created_at)}</span>
                 </div>
                 <p className="text-sm font-semibold text-gray-900 mb-1 truncate">
                   {order.request_title}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-600">
                     {PACKAGE_DISPLAY[order.package_type] ?? order.package_type}
                   </span>
                   <span className="text-sm font-bold text-blue-600">

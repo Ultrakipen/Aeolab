@@ -162,22 +162,22 @@ export default function ServiceMechanismSection() {
                 <li className="flex gap-2">
                   <span className="shrink-0 font-bold" style={{ color: "#2563EB" }}>•</span>
                   <span>
-                    AI 브리핑 사용자 <strong>3,000만명+</strong> <span style={{ color: "#64748B", fontSize: "0.75rem" }}>(추정치)</span>, 통합검색 질의 약 <strong>20%</strong> 적용{" "}
-                    <a href="https://news.nate.com/view/20250808n07723" target="_blank" rel="noopener noreferrer" style={{ color: "#64748B" }} className="text-xs hover:underline whitespace-nowrap">[출처: 네이버 컨콜 2025.08]</a>
+                    AI 브리핑 사용자 <strong>3,000만명+</strong> <span style={{ color: "#45556C", fontSize: "0.75rem" }}>(추정치)</span>, 통합검색 질의 약 <strong>20%</strong> 적용{" "}
+                    <a href="https://news.nate.com/view/20250808n07723" target="_blank" rel="noopener noreferrer" style={{ color: "#45556C" }} className="text-xs hover:underline whitespace-nowrap">[출처: 네이버 컨콜 2025.08]</a>
                   </span>
                 </li>
                 <li className="flex gap-2">
                   <span className="shrink-0 font-bold" style={{ color: "#2563EB" }}>•</span>
                   <span>
                     음식점 적용 후 — 체류시간 <strong>+10.4%</strong> / 클릭률 <strong>+27.4%</strong> / 예약 <strong>+8%</strong>{" "}
-                    <a href="https://www.hankyung.com/article/202508212669g" target="_blank" rel="noopener noreferrer" style={{ color: "#64748B" }} className="text-xs hover:underline whitespace-nowrap">[출처: 한국경제 2025.08.21]</a>
+                    <a href="https://www.hankyung.com/article/202508212669g" target="_blank" rel="noopener noreferrer" style={{ color: "#45556C" }} className="text-xs hover:underline whitespace-nowrap">[출처: 한국경제 2025.08.21]</a>
                   </span>
                 </li>
                 <li className="flex gap-2">
                   <span className="shrink-0 font-bold" style={{ color: "#2563EB" }}>•</span>
                   <span>
                     숙박 <strong>1만 5천 개</strong> 업체 적용 (2026년 기준){" "}
-                    <a href="https://www.viva100.com/article/20260401500944" target="_blank" rel="noopener noreferrer" style={{ color: "#64748B" }} className="text-xs hover:underline whitespace-nowrap">[출처: 브릿지경제 2026.04.01]</a>
+                    <a href="https://www.viva100.com/article/20260401500944" target="_blank" rel="noopener noreferrer" style={{ color: "#45556C" }} className="text-xs hover:underline whitespace-nowrap">[출처: 브릿지경제 2026.04.01]</a>
                   </span>
                 </li>
               </ul>
@@ -222,7 +222,7 @@ interface GateCardProps {
 
 const GATE_COLORS = {
   blue:  { bg: "#EFF6FF", border: "#BFDBFE", activeTxt: "#2563EB", numBg: "#BFDBFE", numTxt: "#1D4ED8" },
-  green: { bg: "#ECFDF5", border: "#6EE7B7", activeTxt: "#059669", numBg: "#6EE7B7", numTxt: "#065F46" },
+  green: { bg: "#ECFDF5", border: "#6EE7B7", activeTxt: "#007a55", numBg: "#6EE7B7", numTxt: "#065F46" },
   amber: { bg: "#FFFBEB", border: "#FDE68A", activeTxt: "#D97706", numBg: "#FDE68A", numTxt: "#92400E" },
 } as const;
 

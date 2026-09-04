@@ -154,7 +154,7 @@ export default async function DeliveryPage() {
       {/* 헤더 */}
       <div className="mb-6 md:mb-8">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">대행 서비스 신청</h1>
-        <p className="text-sm md:text-base text-gray-500 mt-1">
+        <p className="text-sm md:text-base text-gray-600 mt-1">
           진단 결과를 직접 실행할 시간이 없으신가요? 전문가가 대신 실행해 드립니다.
         </p>
       </div>
@@ -184,10 +184,10 @@ export default async function DeliveryPage() {
               <div className="p-5 md:p-6 flex flex-col flex-1">
                 <div className="mb-4">
                   <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">{pkg.name}</h2>
-                  <p className="text-sm text-gray-500">{pkg.description}</p>
+                  <p className="text-sm text-gray-600">{pkg.description}</p>
                   <div className="flex items-center gap-2 mt-2">
-                    <Clock className="w-3.5 h-3.5 text-gray-500" />
-                    <span className="text-sm text-gray-500">{pkg.work_hours}</span>
+                    <Clock className="w-3.5 h-3.5 text-gray-600" />
+                    <span className="text-sm text-gray-600">{pkg.work_hours}</span>
                   </div>
                 </div>
 
@@ -207,9 +207,9 @@ export default async function DeliveryPage() {
                     <span className="text-2xl md:text-3xl font-bold text-gray-900">
                       {pkg.price.toLocaleString()}
                     </span>
-                    <span className="text-base text-gray-500">원</span>
+                    <span className="text-base text-gray-600">원</span>
                     {pkg.type === "comprehensive" && (
-                      <span className="ml-1 text-sm text-gray-500 line-through">138,000원</span>
+                      <span className="ml-1 text-sm text-gray-600 line-through">138,000원</span>
                     )}
                   </div>
                   <Link
@@ -232,7 +232,7 @@ export default async function DeliveryPage() {
 
       {/* 안내 배너 */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 flex items-start gap-3">
-        <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+        <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-medium text-amber-800">부운영자 권한 위임 안내</p>
           <p className="text-sm text-amber-700 mt-0.5">
@@ -255,8 +255,8 @@ export default async function DeliveryPage() {
 
         {orders.length === 0 ? (
           <div className="px-5 py-10 text-center">
-            <p className="text-base text-gray-500 mb-2">아직 신청 내역이 없습니다.</p>
-            <p className="text-sm text-gray-500">위에서 패키지를 선택해 첫 대행을 신청해 보세요.</p>
+            <p className="text-base text-gray-600 mb-2">아직 신청 내역이 없습니다.</p>
+            <p className="text-sm text-gray-600">위에서 패키지를 선택해 첫 대행을 신청해 보세요.</p>
           </div>
         ) : (
           <ul className="divide-y divide-gray-50">
@@ -273,11 +273,11 @@ export default async function DeliveryPage() {
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{order.request_title}</p>
-                      <p className="text-sm text-gray-500 mt-0.5">
+                      <p className="text-sm text-gray-600 mt-0.5">
                         {PACKAGE_DISPLAY[order.package_type] ?? order.package_type} · {order.amount?.toLocaleString()}원
                       </p>
                     </div>
-                    <span className="text-sm text-gray-500 shrink-0">{formatDate(order.created_at)}</span>
+                    <span className="text-sm text-gray-600 shrink-0">{formatDate(order.created_at)}</span>
                   </Link>
                 </li>
               );

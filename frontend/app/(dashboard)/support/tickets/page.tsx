@@ -20,7 +20,7 @@ interface Ticket {
 const STATUS_META: Record<string, { label: string; color: string }> = {
   open: { label: "답변 대기", color: "bg-blue-100 text-blue-700" },
   answered: { label: "답변 완료", color: "bg-green-100 text-green-700" },
-  closed: { label: "종료", color: "bg-gray-100 text-gray-500" },
+  closed: { label: "종료", color: "bg-gray-100 text-gray-600" },
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -85,7 +85,7 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">1:1 문의</h1>
-            <p className="text-sm text-gray-500 mt-1">문의 내역을 확인하고 새 문의를 작성할 수 있습니다.</p>
+            <p className="text-sm text-gray-600 mt-1">문의 내역을 확인하고 새 문의를 작성할 수 있습니다.</p>
           </div>
           <Link
             href="/support/tickets/new"
@@ -118,16 +118,16 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
         {ticketsFetchFailed ? (
           <div className="bg-red-50 border border-red-200 rounded-xl py-12 px-6 text-center">
             <MessageCircle className="w-10 h-10 text-red-300 mx-auto mb-3" />
-            <p className="text-base font-medium text-red-600 mb-1">문의 내역을 불러오지 못했습니다.</p>
+            <p className="text-base font-medium text-red-700 mb-1">문의 내역을 불러오지 못했습니다.</p>
             <p className="text-sm text-red-400">잠시 후 새로고침해 주세요.</p>
           </div>
         ) : tickets.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm py-12 px-6 text-center">
             <MessageCircle className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-            <p className="text-base font-medium text-gray-500 mb-1">
+            <p className="text-base font-medium text-gray-600 mb-1">
               {statusFilter ? "해당 상태의 문의가 없습니다." : "아직 문의가 없습니다."}
             </p>
-            <p className="text-sm text-gray-500 mb-5">결제·기능 사용·점수 해석·버그 등 궁금한 점을 문의해 주세요. 평균 1~2 영업일 이내 답변 드립니다.</p>
+            <p className="text-sm text-gray-600 mb-5">결제·기능 사용·점수 해석·버그 등 궁금한 점을 문의해 주세요. 평균 1~2 영업일 이내 답변 드립니다.</p>
             <Link
               href="/support/tickets/new"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
@@ -144,10 +144,10 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
                 <table className="w-full min-w-[480px]">
                   <thead>
                     <tr className="border-b border-gray-100 bg-gray-50">
-                      <th className="text-left px-5 py-3 text-sm font-semibold text-gray-500">카테고리</th>
-                      <th className="text-left px-5 py-3 text-sm font-semibold text-gray-500">제목</th>
-                      <th className="text-center px-5 py-3 text-sm font-semibold text-gray-500">상태</th>
-                      <th className="text-right px-5 py-3 text-sm font-semibold text-gray-500">날짜</th>
+                      <th className="text-left px-5 py-3 text-sm font-semibold text-gray-600">카테고리</th>
+                      <th className="text-left px-5 py-3 text-sm font-semibold text-gray-600">제목</th>
+                      <th className="text-center px-5 py-3 text-sm font-semibold text-gray-600">상태</th>
+                      <th className="text-right px-5 py-3 text-sm font-semibold text-gray-600">날짜</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -156,7 +156,7 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
                       return (
                         <tr key={ticket.id} className="hover:bg-gray-50 transition-colors">
                           <td className="px-5 py-4">
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-gray-600">
                               {CATEGORY_LABELS[ticket.category] ?? ticket.category}
                             </span>
                           </td>
@@ -173,9 +173,9 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
                               {sm.label}
                             </span>
                           </td>
-                          <td className="px-5 py-4 text-right text-sm text-gray-500">
+                          <td className="px-5 py-4 text-right text-sm text-gray-600">
                             {ticket.status === "answered" && ticket.answered_at ? (
-                              <span className="text-green-600 font-medium">답변 {formatDate(ticket.answered_at)}</span>
+                              <span className="text-green-700 font-medium">답변 {formatDate(ticket.answered_at)}</span>
                             ) : (
                               formatDate(ticket.created_at)
                             )}
@@ -199,7 +199,7 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
                     className="block bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-center justify-between gap-3 mb-2">
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-gray-600">
                         {CATEGORY_LABELS[ticket.category] ?? ticket.category}
                       </span>
                       <span className={`text-sm font-semibold px-2.5 py-1 rounded-full ${sm.color}`}>
@@ -209,9 +209,9 @@ export default async function SupportTicketsPage({ searchParams }: PageProps) {
                     <p className="text-sm font-semibold text-gray-900 truncate">{ticket.title}</p>
                     <p className="text-sm mt-1">
                       {ticket.status === "answered" && ticket.answered_at ? (
-                        <span className="text-green-600 font-medium">답변 {formatDate(ticket.answered_at)}</span>
+                        <span className="text-green-700 font-medium">답변 {formatDate(ticket.answered_at)}</span>
                       ) : (
-                        <span className="text-gray-500">{formatDate(ticket.created_at)}</span>
+                        <span className="text-gray-600">{formatDate(ticket.created_at)}</span>
                       )}
                     </p>
                   </Link>

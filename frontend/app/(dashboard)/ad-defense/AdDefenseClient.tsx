@@ -185,7 +185,7 @@ export function AdDefenseClient({
     <div className="p-4 md:p-8 max-w-6xl mx-auto">
     <div className="max-w-3xl">
       <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">AI 광고 대비 가이드</h1>
-      <p className="text-base text-gray-500 mb-5">
+      <p className="text-base text-gray-600 mb-5">
         이미 도입되어 확대되고 있는 ChatGPT 광고 속 유기적 AI 노출을 유지하는 전략을 제공합니다.
       </p>
 
@@ -211,7 +211,7 @@ export function AdDefenseClient({
               {step}
             </div>
             <div className="text-sm font-semibold text-gray-900 mb-0.5">{label}</div>
-            <div className="text-sm text-gray-500 leading-relaxed">{desc}</div>
+            <div className="text-sm text-gray-600 leading-relaxed">{desc}</div>
           </div>
         ))}
       </div>
@@ -247,7 +247,7 @@ export function AdDefenseClient({
                 <span>마지막 스캔 {formatScanDate(lastScanDate!)} — 재스캔하면 최신 데이터로 가이드가 개선됩니다</span>
               </p>
             ) : (
-              <p className="text-sm text-gray-500 flex items-center gap-1">
+              <p className="text-sm text-gray-600 flex items-center gap-1">
                 <span>✓</span>
                 <span>마지막 스캔 {formatScanDate(lastScanDate!)}</span>
               </p>
@@ -255,7 +255,7 @@ export function AdDefenseClient({
           </div>
         </div>
 
-        {error && <p className="text-sm text-red-600 mb-3 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
+        {error && <p className="text-sm text-red-700 mb-3 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
         <button
           onClick={handleGenerate}
           disabled={loading || !bizId}
@@ -283,7 +283,7 @@ export function AdDefenseClient({
             <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
               <h2 className="text-base font-semibold text-gray-700">현재 상황</h2>
               {resultSavedAt && (
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-600">
                   마지막 생성 결과 · {formatScanDate(resultSavedAt)}
                 </span>
               )}
@@ -291,29 +291,29 @@ export function AdDefenseClient({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
               <div className={`text-center p-4 rounded-xl ${scoreStatusBg(result.current_score)}`}>
                 <div className="text-lg md:text-xl font-bold text-gray-900">{getScoreTextLabel(result.current_score)}</div>
-                <div className="text-sm text-gray-500 mt-1">AI 노출 상태</div>
+                <div className="text-sm text-gray-600 mt-1">AI 노출 상태</div>
               </div>
               <div className={`text-center p-4 rounded-xl ${result.sample_size === 0 ? "bg-gray-50" : geminiExposureBg(result.exposure_freq, result.sample_size ?? 0)}`}>
                 {result.sample_size === 0 ? (
-                  <div className="text-lg md:text-xl font-bold text-gray-500">측정 실패</div>
+                  <div className="text-lg md:text-xl font-bold text-gray-600">측정 실패</div>
                 ) : (
                   <div className="text-2xl md:text-3xl font-bold text-gray-900">{result.exposure_freq}</div>
                 )}
-                <div className="text-sm text-gray-500 mt-1">
+                <div className="text-sm text-gray-600 mt-1">
                   {result.sample_size === 0 ? "Gemini 언급 (이번 스캔 측정 안 됨)" : `Gemini 언급(/${result.sample_size ?? 50}회 중)`}
                 </div>
               </div>
               {result.chatgpt_measured === false ? (
                 <div className="text-center p-4 rounded-xl bg-gray-50">
-                  <div className="text-lg md:text-xl font-bold text-gray-500">측정 실패</div>
-                  <div className="text-sm text-gray-500 mt-1">ChatGPT</div>
+                  <div className="text-lg md:text-xl font-bold text-gray-600">측정 실패</div>
+                  <div className="text-sm text-gray-600 mt-1">ChatGPT</div>
                 </div>
               ) : (
                 <div className={`text-center p-4 rounded-xl ${result.chatgpt_mentioned ? "bg-green-50" : "bg-red-50"}`}>
                   <div className={`text-xl font-bold ${result.chatgpt_mentioned ? "text-green-700" : "text-red-700"}`}>
                     {result.chatgpt_mentioned ? "언급됨" : "미언급"}
                   </div>
-                  <div className="text-sm text-gray-500 mt-1">ChatGPT</div>
+                  <div className="text-sm text-gray-600 mt-1">ChatGPT</div>
                 </div>
               )}
             </div>
@@ -343,7 +343,7 @@ export function AdDefenseClient({
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-base font-semibold text-gray-700">유기적 노출 강화 전략</h2>
                 {result.id && (
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-600">
                     {checkedItems.size}/{result.guide.organic_strategies.length} 실행 완료
                   </span>
                 )}
@@ -363,17 +363,17 @@ export function AdDefenseClient({
                       />
                     )}
                     <div className="min-w-0">
-                      <p className={`text-base font-semibold ${checkedItems.has(i) ? "text-gray-400 line-through" : "text-gray-900"}`}>{s.title}</p>
+                      <p className={`text-base font-semibold ${checkedItems.has(i) ? "text-gray-600 line-through" : "text-gray-900"}`}>{s.title}</p>
                       {/* steps(신규, 배열)가 있으면 실제 목록으로 렌더링 — 없으면(과거 저장된
                           가이드) description 문단을 그대로 표시(하위호환, 2026-09-02) */}
                       {s.steps && s.steps.length > 0 ? (
                         <>
                           {s.summary && (
-                            <p className={`text-sm mt-0.5 leading-relaxed ${checkedItems.has(i) ? "text-gray-400" : "text-gray-600"}`}>{s.summary}</p>
+                            <p className={`text-sm mt-0.5 leading-relaxed ${checkedItems.has(i) ? "text-gray-600" : "text-gray-600"}`}>{s.summary}</p>
                           )}
                           <ul className="mt-1.5 space-y-1">
                             {s.steps.map((step, si) => (
-                              <li key={si} className={`text-sm leading-relaxed flex gap-1.5 ${checkedItems.has(i) ? "text-gray-400" : "text-gray-600"}`}>
+                              <li key={si} className={`text-sm leading-relaxed flex gap-1.5 ${checkedItems.has(i) ? "text-gray-600" : "text-gray-600"}`}>
                                 <span className="shrink-0">·</span>{step}
                               </li>
                             ))}
@@ -381,7 +381,7 @@ export function AdDefenseClient({
                         </>
                       ) : (
                         s.description && (
-                          <p className={`text-sm mt-0.5 leading-relaxed ${checkedItems.has(i) ? "text-gray-400" : "text-gray-600"}`}>{s.description}</p>
+                          <p className={`text-sm mt-0.5 leading-relaxed ${checkedItems.has(i) ? "text-gray-600" : "text-gray-600"}`}>{s.description}</p>
                         )
                       )}
                     </div>

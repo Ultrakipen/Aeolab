@@ -606,7 +606,7 @@ export default function TrialPage() {
             AEOlab
           </Link>
           <div className="flex items-center gap-2 md:gap-3">
-            <span className="text-sm text-gray-500">무료 AI 노출 진단</span>
+            <span className="text-sm text-gray-600">무료 AI 노출 진단</span>
             <AuthNavControlClient />
           </div>
         </div>

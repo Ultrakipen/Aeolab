@@ -44,7 +44,7 @@ export default async function AdDefensePage() {
     return (
       <div className="p-4 md:p-8 max-w-2xl">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">AI 광고 대비 가이드</h1>
-        <p className="text-sm text-gray-500 mb-6">2026년 8월 11일 한국에도 도입된 ChatGPT 광고 속에서 유기적 AI 노출을 유지하는 전략 (Pro 이상 전용)</p>
+        <p className="text-sm text-gray-600 mb-6">2026년 8월 11일 한국에도 도입된 ChatGPT 광고 속에서 유기적 AI 노출을 유지하는 전략 (Pro 이상 전용)</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {features.map((f) => (
@@ -54,7 +54,7 @@ export default async function AdDefensePage() {
               </div>
               <div>
                 <div className="font-medium text-gray-900 text-sm mb-0.5">{f.title}</div>
-                <div className="text-sm text-gray-500">{f.desc}</div>
+                <div className="text-sm text-gray-600">{f.desc}</div>
               </div>
             </div>
           ))}

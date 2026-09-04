@@ -72,10 +72,10 @@ export default function TodayOneActionBox({ category }: Props) {
       </p>
       <div className="bg-white border border-amber-200 rounded-xl p-3 md:p-4 mb-3">
         <p className="text-sm md:text-base text-gray-800 mb-1">
-          <span className="font-semibold text-gray-500">Q:</span> {faq.q}
+          <span className="font-semibold text-gray-600">Q:</span> {faq.q}
         </p>
         <p className="text-sm md:text-base text-gray-800 break-keep leading-relaxed">
-          <span className="font-semibold text-gray-500">A:</span> {faq.a}
+          <span className="font-semibold text-gray-600">A:</span> {faq.a}
         </p>
       </div>
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -84,8 +84,8 @@ export default function TodayOneActionBox({ category }: Props) {
           onClick={handleCopy}
           className={`flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm md:text-base font-semibold transition-colors ${
             copied
-              ? "bg-green-600 text-white"
-              : "bg-amber-500 text-white hover:bg-amber-600"
+              ? "bg-green-700 text-white"
+              : "bg-amber-700 text-white hover:bg-amber-700"
           }`}
         >
           {copied ? "✓ 복사 완료" : "📋 문구 복사하기"}

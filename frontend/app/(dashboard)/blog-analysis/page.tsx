@@ -46,7 +46,7 @@ export default async function BlogPage() {
     <div className="p-4 md:p-8">
       <div className="mb-6">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">블로그 AI 진단</h1>
-        <p className="text-gray-500 text-base mt-1">포스트별로 실제 AI 인용 여부를 확인하고, 개선하면 더 많은 채널에서 인용되도록 안내합니다.</p>
+        <p className="text-gray-600 text-base mt-1">포스트별로 실제 AI 인용 여부를 확인하고, 개선하면 더 많은 채널에서 인용되도록 안내합니다.</p>
       </div>
       <BlogClient
         businesses={businesses.map((b) => ({

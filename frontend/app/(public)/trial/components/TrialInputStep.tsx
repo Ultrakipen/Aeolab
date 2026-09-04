@@ -195,7 +195,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                       ? "bg-blue-600 text-white"
                       : ["category", "tags", "info", "search"].indexOf(step) > i
                         ? "bg-blue-100 text-blue-600"
-                        : "bg-gray-100 text-gray-500"
+                        : "bg-gray-100 text-gray-600"
                   }`}
                 >
                   <span>{i + 1}</span>
@@ -214,7 +214,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
                 지금 내 가게, AI 검색에서 찾히나요?
               </h1>
-              <p className="text-sm text-gray-500 leading-relaxed">
+              <p className="text-sm text-gray-600 leading-relaxed">
                 업종과 가게 이름을 입력하면 네이버·ChatGPT·Google AI에서
                 내 가게가 검색되는지 확인하고,
                 <br />
@@ -224,7 +224,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 아래에서 업종을 선택해 주세요
               </p>
             </div>
-            <p className="text-gray-500 text-center text-sm mb-3">
+            <p className="text-gray-600 text-center text-sm mb-3">
               가장 가까운 업종을 선택하세요
             </p>
 
@@ -235,7 +235,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 { dot: "bg-blue-400", label: "AI 브리핑 확대 예정" },
                 { dot: "bg-violet-400", label: "글로벌 AI (ChatGPT·Gemini)" },
               ].map(({ dot, label }) => (
-                <span key={label} className="flex items-center gap-1.5 text-sm text-gray-500">
+                <span key={label} className="flex items-center gap-1.5 text-sm text-gray-600">
                   <span className={`w-2 h-2 rounded-full ${dot} inline-block shrink-0`} aria-hidden="true" />
                   {label}
                 </span>
@@ -307,11 +307,11 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                           >
                             {Icon ? (
                               <Icon
-                                className={`w-5 h-5 ${cfg?.text ?? "text-gray-500"}`}
+                                className={`w-5 h-5 ${cfg?.text ?? "text-gray-600"}`}
                                 strokeWidth={1.8}
                               />
                             ) : (
-                              <Store className="w-5 h-5 text-gray-500" aria-hidden="true" />
+                              <Store className="w-5 h-5 text-gray-600" aria-hidden="true" />
                             )}
                           </div>
                           <span
@@ -320,7 +320,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                             {cat.label}
                           </span>
                           {cat.typeTags && cat.typeTags.length > 0 && (
-                            <span className="text-xs text-gray-500 text-center leading-tight truncate w-full px-1">
+                            <span className="text-xs text-gray-600 text-center leading-tight truncate w-full px-1">
                               {cat.typeTags.slice(0, 2).join("·")} 등
                             </span>
                           )}
@@ -358,7 +358,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
             <button
               onClick={() => setStep("category")}
               aria-label="업종 다시 선택"
-              className="text-base text-gray-500 hover:text-gray-600 mb-4 flex items-center gap-1"
+              className="text-base text-gray-600 hover:text-gray-700 mb-4 flex items-center gap-1"
             >
               <ChevronLeft className="w-4 h-4" aria-hidden="true" /> 업종 다시 선택
             </button>
@@ -370,7 +370,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 return (
                   <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 mb-5">
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" aria-hidden="true" />
+                      <CheckCircle2 className="w-5 h-5 text-green-700 shrink-0" aria-hidden="true" />
                       <div>
                         <p className="text-sm font-bold text-green-900">
                           네이버 AI 브리핑 대상 업종입니다
@@ -478,9 +478,9 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 </div>
               );
             })()}
-            <p className="text-base text-gray-500 mb-4">
+            <p className="text-base text-gray-600 mb-4">
               해당하는 서비스를 모두 선택하세요{" "}
-              <span className="text-blue-500">(복수 선택 가능)</span>
+              <span className="text-blue-600">(복수 선택 가능)</span>
             </p>
 
             {CATEGORIES_WITH_TYPE_KEYWORDS.has(selectedCategory) ? (
@@ -506,7 +506,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                           className={`text-sm px-2 py-0.5 rounded-full font-medium ${
                             hasTypeSelected
                               ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-600"
+                              : "bg-red-100 text-red-700"
                           }`}
                         >
                           {hasTypeSelected ? "선택됨" : "1개 이상 필수"}
@@ -541,7 +541,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                     <div className="mb-4">
                       <p className="text-sm font-bold text-gray-800 mb-2">
                         특징 키워드{" "}
-                        <span className="text-sm font-normal text-gray-500">
+                        <span className="text-sm font-normal text-gray-600">
                           (선택사항)
                         </span>
                       </p>
@@ -610,7 +610,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
             <button
               onClick={() => setStep(selectedTags.length > 0 ? "tags" : "category")}
               aria-label={selectedTags.length > 0 ? "서비스 다시 선택" : "업종 다시 선택"}
-              className="text-base text-gray-500 hover:text-gray-600 mb-4 flex items-center gap-1"
+              className="text-base text-gray-600 hover:text-gray-700 mb-4 flex items-center gap-1"
             >
               <ChevronLeft className="w-4 h-4" aria-hidden="true" />
               {selectedTags.length > 0 ? "서비스 다시 선택" : "업종 다시 선택"}
@@ -628,7 +628,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 className={`text-sm px-3 py-1.5 rounded-full border-2 font-medium transition-all flex items-center gap-1.5 ${
                   isStartupMode
                     ? "border-amber-500 bg-amber-50 text-amber-700"
-                    : "border-gray-200 text-gray-500 hover:border-amber-400 hover:text-amber-600"
+                    : "border-gray-200 text-gray-600 hover:border-amber-400 hover:text-amber-700"
                 }`}
               >
                 {isStartupMode ? (
@@ -728,7 +728,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                     maxLength={20}
                   />
                   {keywordError && (
-                    <p className="text-sm font-semibold text-red-600 mt-1.5 flex items-center gap-1.5" role="alert">
+                    <p className="text-sm font-semibold text-red-700 mt-1.5 flex items-center gap-1.5" role="alert">
                       <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden="true" />
                       키워드를 직접 입력해 주세요. 분석 기준이 되는 가장 중요한 항목입니다.
                     </p>
@@ -740,7 +740,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                     </div>
                   ) : !keywordError && previewKeyword && !isStartupMode ? (
                     <div className="mt-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-start gap-1.5">
-                      <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" aria-hidden="true" />
+                      <AlertTriangle className="w-4 h-4 text-red-700 shrink-0 mt-0.5" aria-hidden="true" />
                       <p className="text-sm text-red-700">
                         <strong>지역을 아래에 입력</strong>해야 <strong className="text-slate-700">&ldquo;[지역] {previewKeyword} 추천&rdquo;</strong> 형태로 정확하게 질의합니다.
                       </p>
@@ -759,7 +759,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
                   businessType === "location_based"
                     ? "border-blue-600 bg-blue-50 text-blue-700"
-                    : "border-gray-200 text-gray-500 hover:border-gray-300"
+                    : "border-gray-200 text-gray-600 hover:border-gray-300"
                 }`}
               >
                 <Store className="w-4 h-4" aria-hidden="true" /> 오프라인 매장
@@ -770,7 +770,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 className={`py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
                   businessType === "non_location"
                     ? "border-blue-600 bg-blue-50 text-blue-700"
-                    : "border-gray-200 text-gray-500 hover:border-gray-300"
+                    : "border-gray-200 text-gray-600 hover:border-gray-300"
                 }`}
               >
                 <Laptop className="w-4 h-4" aria-hidden="true" /> 배달·온라인·전문직
@@ -808,7 +808,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                   {/* 인라인 선택 완료 표시 */}
                   {inlineSelectedCandidate && (
                     <div className="mt-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2.5 flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0 mt-0.5" aria-hidden="true" />
+                      <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0 mt-0.5" aria-hidden="true" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-green-800 leading-tight">네이버 스마트플레이스에서 찾았습니다</p>
                         {inlineSelectedCandidate.address && (
@@ -871,7 +871,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                   className="w-full border border-slate-300 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                   maxLength={200}
                 />
-                <p className={`text-sm mt-1 ${description ? "text-blue-600" : "text-amber-600"}`}>
+                <p className={`text-sm mt-1 ${description ? "text-blue-600" : "text-amber-700"}`}>
                   {description
                     ? "네이버·ChatGPT·Gemini가 가게를 더 정확하게 파악합니다"
                     : "비워두면 업종 평균 데이터로 추정합니다 — 짧아도 좋으니 한 줄 적어보세요"}
@@ -885,7 +885,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 >
                   지역
                   {!isStartupMode ? (
-                    <span className="text-red-500 ml-0.5">*</span>
+                    <span className="text-red-700 ml-0.5">*</span>
                   ) : (
                     <span className="text-slate-500 font-normal ml-1">(선택)</span>
                   )}
@@ -921,7 +921,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                   }`}
                 />
                 {regionError && (
-                  <p className="text-sm font-semibold text-red-600 mt-1.5 flex items-center gap-1.5" role="alert">
+                  <p className="text-sm font-semibold text-red-700 mt-1.5 flex items-center gap-1.5" role="alert">
                     <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden="true" />
                     {businessType === "non_location"
                       ? "서비스 지역을 입력해 주세요. 전국 서비스라면 '전국'으로 입력하세요."
@@ -964,7 +964,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                   {/* 인라인 선택 시: 자동 확인 표시 */}
                   {inlineSelectedCandidate ? (
                     <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2.5 mb-3">
-                      <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" aria-hidden="true" />
+                      <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0" aria-hidden="true" />
                       <p className="text-sm font-semibold text-green-800 flex-1">스마트플레이스 등록됨 (자동 확인)</p>
                       <button
                         type="button"
@@ -1003,9 +1003,9 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                         {(() => {
                           const answered = [hasIntro, hasRecentPost, hasFaq].filter(v => v !== undefined).length;
                           return answered < 3 ? (
-                            <span className="text-sm text-amber-600 font-semibold">{answered}/3 답변됨</span>
+                            <span className="text-sm text-amber-700 font-semibold">{answered}/3 답변됨</span>
                           ) : (
-                            <span className="text-sm text-green-600 font-semibold">모두 답변됨</span>
+                            <span className="text-sm text-green-700 font-semibold">모두 답변됨</span>
                           );
                         })()}
                       </div>
@@ -1026,8 +1026,8 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                                 onClick={() => item.onChange(true)}
                                 className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all ${
                                   item.value === true
-                                    ? "bg-green-600 text-white border-green-600 shadow-sm"
-                                    : "bg-white text-slate-400 border-slate-200 hover:border-green-400 hover:text-green-600"
+                                    ? "bg-green-700 text-white border-green-600 shadow-sm"
+                                    : "bg-white text-slate-400 border-slate-200 hover:border-green-400 hover:text-green-700"
                                 }`}
                               >
                                 있어요
@@ -1118,7 +1118,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                       </span>
                     </label>
                     {emailConsentError && (
-                      <p className="text-red-500 text-sm mt-1" role="alert">
+                      <p className="text-red-700 text-sm mt-1" role="alert">
                         이메일 수신을 원하시면 개인정보 수집·이용에 동의해주세요.
                       </p>
                     )}
@@ -1148,7 +1148,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                       className="block text-base font-medium text-gray-700 mb-1"
                     >
                       손님 리뷰 1~3개 붙여넣기{" "}
-                      <span className="text-gray-500 font-normal">
+                      <span className="text-gray-600 font-normal">
                         (선택 — 건너뛰어도 됩니다)
                       </span>
                     </label>
@@ -1162,7 +1162,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                       onChange={(e) => setReviewText(e.target.value)}
                       className="w-full border border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                     />
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-gray-600 mt-1">
                       없으면 업종 평균으로 추정합니다.
                     </p>
                   </div>
@@ -1192,7 +1192,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 </div>
               )}
               {error && !cooldownMs && (
-                <p className="text-red-500 text-sm" role="alert">
+                <p className="text-red-700 text-sm" role="alert">
                   {error}
                 </p>
               )}
@@ -1286,7 +1286,7 @@ function SearchStep({
       <button
         onClick={onBack}
         aria-label="입력 정보 다시 보기"
-        className="text-base text-gray-500 hover:text-gray-600 mb-4 flex items-center gap-1"
+        className="text-base text-gray-600 hover:text-gray-700 mb-4 flex items-center gap-1"
       >
         <ChevronLeft className="w-4 h-4" aria-hidden="true" /> 입력 정보 다시 보기
       </button>
@@ -1294,7 +1294,7 @@ function SearchStep({
       <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">
         이 중에 내 가게가 있나요?
       </h2>
-      <p className="text-sm md:text-base text-gray-500 mb-5 leading-relaxed">
+      <p className="text-sm md:text-base text-gray-600 mb-5 leading-relaxed">
         네이버 지역검색 결과입니다. 정확히 일치하는 가게를 선택하면 실제 데이터로
         진단해 드립니다.
       </p>
@@ -1347,18 +1347,18 @@ function SearchStep({
                 </div>
                 {c.address && (
                   <p className="text-sm md:text-base text-gray-600 leading-relaxed flex items-start gap-1.5">
-                    <MapPin className="w-4 h-4 text-gray-500 shrink-0 mt-0.5" aria-hidden="true" />
+                    <MapPin className="w-4 h-4 text-gray-600 shrink-0 mt-0.5" aria-hidden="true" />
                     <span>{c.address}</span>
                   </p>
                 )}
                 {c.phone && (
-                  <p className="text-sm md:text-base text-gray-500 mt-1 flex items-center gap-1.5">
-                    <Phone className="w-4 h-4 text-gray-500 shrink-0" aria-hidden="true" />
+                  <p className="text-sm md:text-base text-gray-600 mt-1 flex items-center gap-1.5">
+                    <Phone className="w-4 h-4 text-gray-600 shrink-0" aria-hidden="true" />
                     <span>{c.phone}</span>
                   </p>
                 )}
                 {!hasRealId && (
-                  <p className="text-sm text-gray-500 mt-2">
+                  <p className="text-sm text-gray-600 mt-2">
                     ※ 정보 자동 진단은 사용 불가 — 입력하신 체크박스 정보로 진단합니다
                   </p>
                 )}
@@ -1392,7 +1392,7 @@ function SearchStep({
           : "입력한 정보로 진단받기"}
       </button>
 
-      <p className="text-sm text-gray-500 text-center mt-3">
+      <p className="text-sm text-gray-600 text-center mt-3">
         {selectedCandidateKey
           ? "선택한 가게로 진단을 시작합니다..."
           : "가게를 선택하거나 직접 진단받기 버튼을 눌러주세요"}

@@ -45,7 +45,7 @@ function NaverSection({
     <>
       {/* 섹션 헤더 */}
       <tr>
-        <td colSpan={3} className="px-4 md:px-6 py-2 bg-gray-50 text-sm font-semibold text-gray-500 uppercase tracking-wide">
+        <td colSpan={3} className="px-4 md:px-6 py-2 bg-gray-50 text-sm font-semibold text-gray-600 uppercase tracking-wide">
           네이버 AI 생태계
         </td>
       </tr>
@@ -58,22 +58,22 @@ function NaverSection({
           </td>
           <td className="px-4 md:px-6 py-3">
             {naver.error ? (
-              <span className="text-gray-500 text-sm">오류</span>
+              <span className="text-gray-600 text-sm">오류</span>
             ) : inSearch ? (
-              <span className="inline-flex items-center gap-1 text-green-600 font-medium text-sm">
+              <span className="inline-flex items-center gap-1 text-green-700 font-medium text-sm">
                 ✓ 검색 노출{placeRank ? ` (${placeRank}위)` : ''}
               </span>
             ) : (
-              <span className="text-gray-500 text-sm">검색 미노출</span>
+              <span className="text-gray-600 text-sm">검색 미노출</span>
             )}
           </td>
           <td className="px-4 md:px-6 py-3">
             {naver.blog_mentions !== undefined ? (
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-600">
                 블로그 언급 <strong className="text-gray-700">{naver.blog_mentions}건</strong>
               </span>
             ) : (
-              <span className="text-sm text-gray-500">—</span>
+              <span className="text-sm text-gray-600">—</span>
             )}
           </td>
         </tr>
@@ -87,25 +87,25 @@ function NaverSection({
           </td>
           <td className="px-4 md:px-6 py-3">
             {naver.error ? (
-              <span className="text-gray-500 text-sm">오류</span>
+              <span className="text-gray-600 text-sm">오류</span>
             ) : inBrief ? (
-              <span className="inline-flex items-center gap-1 bg-green-600 text-white text-sm px-2.5 py-0.5 rounded-full font-medium w-fit">
+              <span className="inline-flex items-center gap-1 bg-green-700 text-white text-sm px-2.5 py-0.5 rounded-full font-medium w-fit">
                 🤖 브리핑 포함
               </span>
             ) : briefingEligibility === 'inactive' ? (
               <div className="space-y-1">
                 <span className="text-gray-600 text-sm font-medium block">미지원 업종</span>
-                <span className="text-gray-500 text-sm block">이 업종은 현재 '플레이스형' AI 브리핑 대상이 아닙니다 (정보형은 콘텐츠로 노출 가능)</span>
+                <span className="text-gray-600 text-sm block">이 업종은 현재 '플레이스형' AI 브리핑 대상이 아닙니다 (정보형은 콘텐츠로 노출 가능)</span>
               </div>
             ) : (
               <div className="space-y-1">
-                <span className="text-amber-600 text-sm font-medium block">미포함</span>
-                <span className="text-gray-500 text-sm block">소식·리뷰 응답으로 노출 확률 높아집니다</span>
+                <span className="text-amber-700 text-sm font-medium block">미포함</span>
+                <span className="text-gray-600 text-sm block">소식·리뷰 응답으로 노출 확률 높아집니다</span>
               </div>
             )}
           </td>
           <td className="px-4 md:px-6 py-3">
-            <span className="text-sm text-gray-500">—</span>
+            <span className="text-sm text-gray-600">—</span>
           </td>
         </tr>
       )}
@@ -120,21 +120,21 @@ function NaverSection({
             {aiTabVisible === null || aiTabVisible === undefined ? (
               <div className="space-y-1">
                 <span className="text-gray-600 text-sm font-medium block">측정 예정</span>
-                <span className="text-gray-500 text-sm block">다음 정기 스캔에서 자동 측정됩니다</span>
+                <span className="text-gray-600 text-sm block">다음 정기 스캔에서 자동 측정됩니다</span>
               </div>
             ) : aiTabVisible ? (
-              <span className="inline-flex items-center gap-1 text-green-600 font-medium text-sm">
+              <span className="inline-flex items-center gap-1 text-green-700 font-medium text-sm">
                 ✓ AI탭 노출됨
               </span>
             ) : (
-              <span className="text-gray-500 text-sm">미노출</span>
+              <span className="text-gray-600 text-sm">미노출</span>
             )}
           </td>
           <td className="px-4 md:px-6 py-3">
             {aiTabVisible && aiTab.excerpt ? (
-              <span className="text-sm text-gray-500 truncate max-w-xs block">&ldquo;{aiTab.excerpt}&rdquo;</span>
+              <span className="text-sm text-gray-600 truncate max-w-xs block">&ldquo;{aiTab.excerpt}&rdquo;</span>
             ) : (
-              <span className="text-sm text-gray-500">—</span>
+              <span className="text-sm text-gray-600">—</span>
             )}
           </td>
         </tr>
@@ -154,15 +154,15 @@ function GlobalRow({ platformKey, result }: { platformKey: string; result: AIRes
   const statusCell = () => {
     if (result.error) return (
       platformKey === 'google'
-        ? <span className="text-gray-500 text-sm">측정 보류</span>
-        : <span className="text-gray-500 text-sm">오류</span>
+        ? <span className="text-gray-600 text-sm">측정 보류</span>
+        : <span className="text-gray-600 text-sm">오류</span>
     )
-    if (!result.mentioned) return <span className="text-gray-500 text-sm">미노출</span>
+    if (!result.mentioned) return <span className="text-gray-600 text-sm">미노출</span>
     return (
       <div className="flex items-center flex-wrap gap-1.5">
-        <span className="inline-flex items-center gap-1 text-green-600 font-medium text-sm">
+        <span className="inline-flex items-center gap-1 text-green-700 font-medium text-sm">
           ✓ 노출됨
-          {result.rank && <span className="text-gray-500 ml-0.5 font-normal">{result.rank}위</span>}
+          {result.rank && <span className="text-gray-600 ml-0.5 font-normal">{result.rank}위</span>}
         </span>
         {result.in_ai_overview && (
           <span className="inline-flex items-center gap-1 bg-blue-600 text-white text-sm px-2 py-0.5 rounded-full font-medium">
@@ -177,16 +177,16 @@ function GlobalRow({ platformKey, result }: { platformKey: string; result: AIRes
     if ((platformKey === 'gemini' || platformKey === 'chatgpt') && result.exposure_freq !== undefined) {
       const sampleSize = result.sample_size ?? 100
       return (
-        <span className={`text-sm font-medium ${result.mentioned ? 'text-indigo-600' : 'text-gray-500'}`}>
+        <span className={`text-sm font-medium ${result.mentioned ? 'text-indigo-600' : 'text-gray-600'}`}>
           {sampleSize}회 중 {result.exposure_freq}회 노출
         </span>
       )
     }
-    if (result.in_ai_overview) return <span className="text-sm text-gray-500">Google AI Overview에 포함</span>
+    if (result.in_ai_overview) return <span className="text-sm text-gray-600">Google AI Overview에 포함</span>
     if (result.excerpt) return (
-      <span className="text-sm text-gray-500 truncate max-w-xs block">&ldquo;{result.excerpt}&rdquo;</span>
+      <span className="text-sm text-gray-600 truncate max-w-xs block">&ldquo;{result.excerpt}&rdquo;</span>
     )
-    return <span className="text-sm text-gray-500">—</span>
+    return <span className="text-sm text-gray-600">—</span>
   }
 
   return (
@@ -208,7 +208,7 @@ export function ResultTable({ results, briefingEligibility }: ResultTableProps) 
     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
       <div className="px-4 md:px-6 py-4 border-b border-gray-100">
         <div className="text-sm font-semibold text-gray-800">AI별 노출 결과</div>
-        <div className="text-sm text-gray-500 mt-0.5">
+        <div className="text-sm text-gray-600 mt-0.5">
           각 AI 플랫폼에서 내 가게가 검색 결과에 나타나는지 확인합니다
         </div>
       </div>
@@ -216,9 +216,9 @@ export function ResultTable({ results, briefingEligibility }: ResultTableProps) 
         <table className="w-full text-sm min-w-[480px]">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
-              <th className="text-left px-4 md:px-6 py-3 text-sm font-semibold text-gray-500 uppercase tracking-wide w-[40%]">AI 플랫폼</th>
-              <th className="text-left px-4 md:px-6 py-3 text-sm font-semibold text-gray-500 uppercase tracking-wide w-[35%]">노출 여부</th>
-              <th className="text-left px-4 md:px-6 py-3 text-sm font-semibold text-gray-500 uppercase tracking-wide w-[25%]">상세</th>
+              <th className="text-left px-4 md:px-6 py-3 text-sm font-semibold text-gray-600 uppercase tracking-wide w-[40%]">AI 플랫폼</th>
+              <th className="text-left px-4 md:px-6 py-3 text-sm font-semibold text-gray-600 uppercase tracking-wide w-[35%]">노출 여부</th>
+              <th className="text-left px-4 md:px-6 py-3 text-sm font-semibold text-gray-600 uppercase tracking-wide w-[25%]">상세</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -234,7 +234,7 @@ export function ResultTable({ results, briefingEligibility }: ResultTableProps) 
             {globalEntries.length > 0 && (
               <>
                 <tr>
-                  <td colSpan={3} className="px-4 md:px-6 py-2 bg-gray-50 text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                  <td colSpan={3} className="px-4 md:px-6 py-2 bg-gray-50 text-sm font-semibold text-gray-600 uppercase tracking-wide">
                     글로벌 AI 채널
                   </td>
                 </tr>

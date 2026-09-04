@@ -82,7 +82,7 @@ export default async function KeywordPage({
 
       <div className="max-w-4xl mx-auto px-4 md:px-6 py-10 md:py-14">
         {/* 브레드크럼 */}
-        <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+        <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6">
           <Link href="/" className="hover:text-gray-700">
             홈
           </Link>
@@ -121,7 +121,7 @@ export default async function KeywordPage({
 
         {/* 사장님들이 자주 묻는 질문 (예시 — 특정 인물의 실제 발언 아님) */}
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 mb-8">
-          <p className="text-sm font-bold text-gray-500 mb-2">
+          <p className="text-sm font-bold text-gray-600 mb-2">
             {page.region} {page.category} 사장님들이 자주 묻는 질문
           </p>
           <p className="text-base font-semibold text-gray-800 break-keep">
@@ -156,7 +156,7 @@ export default async function KeywordPage({
               </span>
             ))}
           </div>
-          <p className="text-sm text-gray-500 mt-3">
+          <p className="text-sm text-gray-600 mt-3">
             * 이 키워드들이 스마트플레이스·블로그·리뷰에 자연스럽게 포함될수록
             AI 노출 가능성이 높아집니다.
           </p>

@@ -14,7 +14,7 @@ export default function PrivacyPage() {
         {/* 상단 네비게이션 */}
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 mb-6"
+          className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-800 mb-6"
         >
           ← 돌아가기
         </Link>
@@ -22,7 +22,7 @@ export default function PrivacyPage() {
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
           개인정보처리방침
         </h1>
-        <p className="text-sm text-gray-500 mb-8">시행일: 2026년 4월 1일</p>
+        <p className="text-sm text-gray-600 mb-8">시행일: 2026년 4월 1일</p>
 
         <div className="prose prose-gray max-w-none space-y-8 text-sm md:text-base leading-relaxed text-gray-700">
 
@@ -186,7 +186,7 @@ export default function PrivacyPage() {
             <div className="bg-gray-50 rounded-lg p-4 space-y-1">
               <p><strong>성명:</strong> 김봉후</p>
               <p><strong>이메일:</strong> <a href="mailto:contact@aeolab.co.kr" className="text-blue-600 hover:underline">contact@aeolab.co.kr</a></p>
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-gray-600 mt-2">
                 개인정보 처리에 관한 문의, 불만, 피해 구제 등은 위 연락처로 문의해 주시기 바랍니다.
               </p>
             </div>

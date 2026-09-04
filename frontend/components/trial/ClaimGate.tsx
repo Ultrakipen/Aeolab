@@ -141,7 +141,7 @@ export default function ClaimGate({
             htmlFor="claim-email"
             className="block text-sm md:text-base font-medium text-gray-800 mb-1"
           >
-            이메일 <span className="text-red-500">*</span>
+            이메일 <span className="text-red-700">*</span>
           </label>
           <input
             id="claim-email"
@@ -161,7 +161,7 @@ export default function ClaimGate({
             htmlFor="claim-phone"
             className="block text-sm md:text-base font-medium text-gray-800 mb-1"
           >
-            휴대폰 <span className="text-gray-500">(선택)</span>
+            휴대폰 <span className="text-gray-600">(선택)</span>
           </label>
           <input
             id="claim-phone"
@@ -173,7 +173,7 @@ export default function ClaimGate({
             placeholder="010-1234-5678"
             className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm md:text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-600">
             카카오 알림톡으로 점수 변화를 알려드립니다. 입력하지 않으면 이메일로만 알림 드립니다.
           </p>
         </div>
@@ -186,7 +186,7 @@ export default function ClaimGate({
             className="mt-1 h-4 w-4 md:h-5 md:w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-200"
           />
           <span className="text-sm md:text-base text-gray-700 leading-snug">
-            마케팅 정보 수신에 동의합니다 <span className="text-gray-500">(선택)</span> —
+            마케팅 정보 수신에 동의합니다 <span className="text-gray-600">(선택)</span> —
             업종 트렌드·신규 기능 안내 메일을 받습니다.
           </span>
         </label>
@@ -208,10 +208,10 @@ export default function ClaimGate({
           {submitting ? "저장 중..." : "결과 저장 + 7일 후 재진단 알림 받기"}
         </button>
 
-        <p className="text-sm text-gray-500 text-center">
+        <p className="text-sm text-gray-600 text-center">
           가입은 다음 단계에서 진행됩니다. 결과는 30일간 보관됩니다.
         </p>
-        <p className="text-center text-sm text-gray-500 mt-2">
+        <p className="text-center text-sm text-gray-600 mt-2">
           <a href="/pricing" className="underline hover:text-gray-700">요금제 전체 보기</a>
         </p>
       </form>

@@ -146,7 +146,7 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
             style={{ maxHeight: "520px" }}
           >
             {replies.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-8">
+              <p className="text-sm text-gray-600 text-center py-8">
                 아직 답글이 없습니다.
               </p>
             ) : (
@@ -166,7 +166,7 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
                       {reply.author_type === "admin" ? "운영자" : "사용자"}
                     </span>
                     {reply.author_type === "admin" && !isPublic && (
-                      <span className="text-sm text-gray-500 flex items-center gap-0.5">
+                      <span className="text-sm text-gray-600 flex items-center gap-0.5">
                         <EyeOff className="w-3.5 h-3.5" />
                         비공개
                       </span>
@@ -182,7 +182,7 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
                   >
                     {reply.body}
                   </div>
-                  <span className="text-sm text-gray-500">{formatDate(reply.created_at)}</span>
+                  <span className="text-sm text-gray-600">{formatDate(reply.created_at)}</span>
                 </div>
               ))
             )}
@@ -193,7 +193,7 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
           {!isClosed && (
             <div className="border-t border-gray-100 p-4">
               {replyError && (
-                <p className="text-sm text-red-500 mb-2">{replyError}</p>
+                <p className="text-sm text-red-700 mb-2">{replyError}</p>
               )}
               <div className="flex gap-2">
                 <textarea
@@ -235,7 +235,7 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
           <div className="space-y-3">
             {/* 공개/비공개 토글 */}
             <div>
-              <p className="text-sm text-gray-500 mb-1.5">게시물 공개 설정</p>
+              <p className="text-sm text-gray-600 mb-1.5">게시물 공개 설정</p>
               <button
                 onClick={handleToggleVisibility}
                 disabled={togglingVisibility}
@@ -261,15 +261,15 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
                 )}
               </button>
               {visibilityError && (
-                <p className="text-sm text-red-500 mt-1.5">{visibilityError}</p>
+                <p className="text-sm text-red-700 mt-1.5">{visibilityError}</p>
               )}
             </div>
 
             {/* 종료 버튼 */}
             <div>
-              <p className="text-sm text-gray-500 mb-1.5">문의 종료</p>
+              <p className="text-sm text-gray-600 mb-1.5">문의 종료</p>
               {isClosed ? (
-                <p className="text-sm text-gray-500 py-2 text-center">종료된 문의입니다.</p>
+                <p className="text-sm text-gray-600 py-2 text-center">종료된 문의입니다.</p>
               ) : (
                 <button
                   onClick={handleClose}
@@ -287,7 +287,7 @@ export function AdminSupportClient({ ticketId, initialReplies, currentStatus, is
                 </button>
               )}
               {statusError && (
-                <p className="text-sm text-red-500 mt-1.5">{statusError}</p>
+                <p className="text-sm text-red-700 mt-1.5">{statusError}</p>
               )}
             </div>
           </div>

@@ -10,7 +10,7 @@ interface Props {
 const PLATFORM_COLOR: Record<string, { dot: string; text: string; bg: string; initial: string }> = {
   chatgpt: { dot: 'bg-emerald-500', text: 'text-emerald-700', bg: 'bg-emerald-100', initial: 'C' },
   gemini:  { dot: 'bg-violet-500',  text: 'text-violet-700',  bg: 'bg-violet-100',  initial: 'G' },
-  naver:   { dot: 'bg-rose-500',    text: 'text-rose-700',    bg: 'bg-rose-100',    initial: 'N' },
+  naver:   { dot: 'bg-rose-700',    text: 'text-rose-700',    bg: 'bg-rose-100',    initial: 'N' },
   google:  { dot: 'bg-blue-500',    text: 'text-blue-700',    bg: 'bg-blue-100',    initial: 'G' },
 }
 
@@ -92,9 +92,9 @@ export function MentionContextCard({ citation }: Props) {
             <div className={`w-7 h-7 rounded-full ${platformColor.dot} flex items-center justify-center opacity-60`}>
               <span className="text-white text-xs font-bold">{platformColor.initial}</span>
             </div>
-            <span className="font-semibold text-sm text-gray-500">{platformLabel}</span>
+            <span className="font-semibold text-sm text-gray-600">{platformLabel}</span>
           </div>
-          <span className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">
+          <span className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">
             <XCircle className="w-3 h-3" />
             미언급
           </span>
@@ -102,10 +102,10 @@ export function MentionContextCard({ citation }: Props) {
         {citation.query && (
           <div className="inline-flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3 py-1 mb-3">
             <Search className="w-3.5 h-3.5 text-gray-300 shrink-0" />
-            <span className="text-sm text-gray-500 font-medium">&ldquo;{citation.query}&rdquo;</span>
+            <span className="text-sm text-gray-600 font-medium">&ldquo;{citation.query}&rdquo;</span>
           </div>
         )}
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-600">
           이 검색어에서 아직 언급되지 않았습니다.{' '}
           <span className="text-xs">온라인 콘텐츠가 쌓이면 수개월 내 개선됩니다.</span>
         </p>
@@ -151,7 +151,7 @@ export function MentionContextCard({ citation }: Props) {
       {/* 2. 검색어 pill */}
       {citation.query && (
         <div className="inline-flex items-center gap-1.5 bg-white/80 border border-white rounded-full px-3 py-1 mb-3">
-          <Search className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+          <Search className="w-3.5 h-3.5 text-gray-600 shrink-0" />
           <span className="text-sm text-gray-700 font-medium">&ldquo;{citation.query}&rdquo;</span>
         </div>
       )}
@@ -165,7 +165,7 @@ export function MentionContextCard({ citation }: Props) {
 
       {/* 4. mention_type 라벨 */}
       {typeLabel && (
-        <p className="text-xs text-gray-500 mb-2">{typeLabel}</p>
+        <p className="text-xs text-gray-600 mb-2">{typeLabel}</p>
       )}
 
       {/* 5. 속성 태그들 */}

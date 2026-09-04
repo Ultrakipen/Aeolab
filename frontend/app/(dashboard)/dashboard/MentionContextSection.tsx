@@ -57,7 +57,7 @@ export function MentionContextSection({ bizId, token, currentPlan, isPro = false
     return (
       <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-3">
-          <MessageSquare className="w-5 h-5 text-gray-500" />
+          <MessageSquare className="w-5 h-5 text-gray-600" />
           <h2 className="text-base font-bold text-gray-700">AI 언급 맥락 분석</h2>
           <span className="ml-auto text-sm bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Pro</span>
         </div>
@@ -80,7 +80,7 @@ export function MentionContextSection({ bizId, token, currentPlan, isPro = false
             </div>
           </div>
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 rounded-xl">
-            <Lock className="w-6 h-6 text-gray-500 mb-2" />
+            <Lock className="w-6 h-6 text-gray-600 mb-2" />
             <p className="text-sm font-semibold text-gray-700 text-center px-4">AI가 내 가게를 어떤 질문에서 언급하는지,<br/>어떤 질문에서 빠지는지 확인합니다.</p>
             <a href="/pricing" className="mt-3 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-4 py-1.5 rounded-full transition-colors">Pro로 업그레이드 →</a>
           </div>
@@ -95,10 +95,10 @@ export function MentionContextSection({ bizId, token, currentPlan, isPro = false
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
         <div className="flex items-center gap-2 mb-2">
-          <MessageSquare className="w-5 h-5 text-gray-500" />
+          <MessageSquare className="w-5 h-5 text-gray-600" />
           <h2 className="text-base font-bold text-gray-700">AI 언급 맥락 분석</h2>
         </div>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-600">
           스캔 결과에서 AI 언급 데이터를 불러오지 못했습니다. 스캔을 다시 실행해 주세요.
         </p>
       </div>
@@ -126,7 +126,7 @@ export function MentionContextSection({ bizId, token, currentPlan, isPro = false
       {/* 헤더 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-5 h-5 text-gray-500" />
+          <MessageSquare className="w-5 h-5 text-gray-600" />
           <h2 className="text-base md:text-lg font-bold text-gray-900">AI 언급 맥락 분석</h2>
         </div>
         {mentionedCount > 0 && (
@@ -159,7 +159,7 @@ export function MentionContextSection({ bizId, token, currentPlan, isPro = false
             </span>
           )}
           {(summary.not_mentioned_count ?? 0) > 0 && (
-            <span className="inline-flex items-center gap-1 text-sm bg-gray-100 text-gray-500 px-2.5 py-1 rounded-full font-medium">
+            <span className="inline-flex items-center gap-1 text-sm bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full font-medium">
               <XCircle className="w-3.5 h-3.5" />
               미언급 {summary.not_mentioned_count}
             </span>
@@ -173,7 +173,7 @@ export function MentionContextSection({ bizId, token, currentPlan, isPro = false
           <span className="font-semibold">미언급은 오류가 아닙니다.</span>{' '}
           ChatGPT·Gemini 같은 글로벌 AI는 온라인에 콘텐츠가 충분히 쌓인 사업장부터 인식합니다.
           처음 스캔에서는 전체 미언급이 정상 결과이며, 블로그 리뷰·구글 비즈니스 프로필 보강 후 수개월 내 개선됩니다.
-          <span className="text-blue-500 text-xs block mt-1">※ ChatGPT·Gemini 측정은 AI 학습 데이터 기반이며 실시간 검색 결과와 다를 수 있습니다.</span>
+          <span className="text-blue-600 text-xs block mt-1">※ ChatGPT·Gemini 측정은 AI 학습 데이터 기반이며 실시간 검색 결과와 다를 수 있습니다.</span>
         </div>
       )}
 

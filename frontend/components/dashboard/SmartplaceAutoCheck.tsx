@@ -109,7 +109,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
       <span className="text-2xl shrink-0">🏪</span>
       <div>
         <p className="text-sm font-semibold text-gray-700">스마트플레이스 자동 점검 사용 가능</p>
-        <p className="text-sm text-gray-500 mt-0.5">
+        <p className="text-sm text-gray-600 mt-0.5">
           네이버 플레이스 URL을 등록하면 소개글·소식·사진 등 AI 브리핑 영향 항목을 자동으로 점검해 드립니다
         </p>
         <a
@@ -135,7 +135,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
         <div>
           <h3 className="text-base font-bold text-gray-900">스마트플레이스 실시간 점검</h3>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-gray-600 mt-0.5">
             지금 실제 스마트플레이스 상태를 직접 확인합니다 (위 스캔 점수와 다를 수 있음)
           </p>
         </div>
@@ -146,7 +146,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                 : scorePct >= 40
                 ? 'bg-amber-50 text-amber-700 border-amber-200'
-                : 'bg-red-50 text-red-600 border-red-200'
+                : 'bg-red-50 text-red-700 border-red-200'
             }`}>
               {scorePct >= 70 ? '양호' : scorePct >= 40 ? '보통' : '개선 필요'}
             </span>
@@ -184,8 +184,8 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
       {/* 로딩 */}
       {loading && (
         <div className="flex flex-col items-center justify-center py-8 gap-3">
-          <Loader2 className="w-7 h-7 text-blue-500 animate-spin" />
-          <p className="text-sm text-gray-500 text-center">
+          <Loader2 className="w-7 h-7 text-blue-600 animate-spin" />
+          <p className="text-sm text-gray-600 text-center">
             스마트플레이스 정보를 읽고 있습니다... (최대 45초)
           </p>
         </div>
@@ -194,7 +194,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
       {/* 오류 */}
       {!loading && checkError && (
         <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 text-center">
-          <AlertCircle className="w-6 h-6 text-gray-500 mx-auto mb-2" />
+          <AlertCircle className="w-6 h-6 text-gray-600 mx-auto mb-2" />
           <p className="text-sm text-gray-600 mb-2">
             자동 점검을 사용할 수 없습니다. 수동으로 확인해주세요.
           </p>
@@ -213,7 +213,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
       {/* 결과 없음 (첫 방문, 캐시 없음) */}
       {!loading && !result && !checkError && (
         <div className="flex flex-col items-center justify-center py-8 gap-3 text-center">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-600">
             점검 시작 버튼을 누르면 소개글·소식·영업시간 항목을 자동으로 확인합니다.
           </p>
         </div>
@@ -228,11 +228,11 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
               <span className="text-gray-600 font-medium">완성도</span>
               <div className="flex items-center gap-2">
                 {result.checkedAt && (
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-600">
                     마지막 점검: {formatCheckedAt(result.checkedAt)}
                   </span>
                 )}
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-600">
                   {passedItems.length}/{failedItems.length + passedItems.length}항목 완료
                 </span>
               </div>
@@ -262,7 +262,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
                     <XCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800">{item.label}</p>
-                      <p className="text-sm text-red-600 mt-0.5">
+                      <p className="text-sm text-red-700 mt-0.5">
                         {item.score_impact >= 5 ? '⚡ 우선 개선 권장' : '개선 권장'}
                       </p>
                     </div>
@@ -295,9 +295,9 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
                     key={i}
                     className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3"
                   >
-                    <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-emerald-700 shrink-0" />
                     <p className="text-sm font-medium text-gray-800 flex-1">{item.label}</p>
-                    <span className="text-sm text-emerald-600 font-semibold shrink-0">
+                    <span className="text-sm text-emerald-700 font-semibold shrink-0">
                       ✓ 완료
                     </span>
                   </div>

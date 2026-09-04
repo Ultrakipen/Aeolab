@@ -43,7 +43,7 @@ export default function UpgradeNudgeCard({ plan, hasLatestScan }: Props) {
       <button
         onClick={handleDismiss}
         aria-label="업그레이드 안내 닫기"
-        className="absolute top-3 right-3 text-amber-400 hover:text-amber-600 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+        className="absolute top-3 right-3 text-amber-400 hover:text-amber-700 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
       >
         <X className="w-4 h-4" />
       </button>
@@ -60,34 +60,34 @@ export default function UpgradeNudgeCard({ plan, hasLatestScan }: Props) {
 
       <ul className="text-sm text-gray-700 space-y-1.5 mb-4">
         <li className="flex items-start gap-2">
-          <span className="text-amber-500 font-bold shrink-0">→</span>
+          <span className="text-amber-700 font-bold shrink-0">→</span>
           <span>
-            <span className="line-through text-gray-500">수동 스캔 0회/일</span>
+            <span className="line-through text-gray-600">수동 스캔 0회/일</span>
             {" → "}
             <span className="font-medium text-emerald-700">2회/일</span>
-            <span className="text-gray-500 text-sm ml-1">(스캔 버튼 비활성화 이유)</span>
+            <span className="text-gray-600 text-sm ml-1">(스캔 버튼 비활성화 이유)</span>
           </span>
         </li>
         <li className="flex items-start gap-2">
-          <span className="text-amber-500 font-bold shrink-0">→</span>
+          <span className="text-amber-700 font-bold shrink-0">→</span>
           <span>
-            <span className="line-through text-gray-500">경쟁사 분석 잠금</span>
+            <span className="line-through text-gray-600">경쟁사 분석 잠금</span>
             {" → "}
             <span className="font-medium text-emerald-700">최대 3곳 비교</span>
           </span>
         </li>
         <li className="flex items-start gap-2">
-          <span className="text-amber-500 font-bold shrink-0">→</span>
+          <span className="text-amber-700 font-bold shrink-0">→</span>
           <span>
-            <span className="line-through text-gray-500">AI 개선 가이드 잠금</span>
+            <span className="line-through text-gray-600">AI 개선 가이드 잠금</span>
             {" → "}
             <span className="font-medium text-emerald-700">월 3회 맞춤 가이드</span>
           </span>
         </li>
         <li className="flex items-start gap-2">
-          <span className="text-amber-500 font-bold shrink-0">→</span>
+          <span className="text-amber-700 font-bold shrink-0">→</span>
           <span>
-            <span className="line-through text-gray-500">키워드 순위 추적 잠금</span>
+            <span className="line-through text-gray-600">키워드 순위 추적 잠금</span>
             {" → "}
             <span className="font-medium text-emerald-700">주 1회 자동 측정</span>
           </span>
@@ -96,12 +96,12 @@ export default function UpgradeNudgeCard({ plan, hasLatestScan }: Props) {
 
       <Link
         href="/pricing?from=dashboard_nudge"
-        className="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
+        className="inline-flex items-center gap-1.5 bg-amber-700 hover:bg-amber-800 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors"
       >
         Basic 시작하기 — 첫 달 {discountPrice}원
         <ArrowRight className="w-4 h-4" />
       </Link>
-      <p className="text-sm text-gray-500 mt-2">첫 달 50% 할인 · 7일 이내 미사용 시 100% 환불</p>
+      <p className="text-sm text-gray-600 mt-2">첫 달 50% 할인 · 7일 이내 미사용 시 100% 환불</p>
     </div>
   );
 }

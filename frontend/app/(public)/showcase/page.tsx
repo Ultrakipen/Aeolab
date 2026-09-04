@@ -24,11 +24,11 @@ export default function ShowcasePage() {
           <h1 className="text-xl md:text-2xl font-black text-gray-900 mb-2">
             실제 구독 사업장 화면 그대로
           </h1>
-          <p className="text-sm md:text-base text-gray-500">
+          <p className="text-sm md:text-base text-gray-600">
             음악 교습소 사업장이 실제로 사용 중인 8개 화면입니다. 가공 없는 실제 분석 결과입니다.
           </p>
           <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-3">
-            <span className="text-amber-600 text-sm font-semibold">
+            <span className="text-amber-700 text-sm font-semibold">
               실제 데이터 · 상호명만 비공개 처리(OO음악학원) · 나머지는 실측 그대로
             </span>
           </div>

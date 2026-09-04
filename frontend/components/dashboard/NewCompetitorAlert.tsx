@@ -62,7 +62,7 @@ export function NewCompetitorAlert({ businessId }: Props) {
             key={alert.id}
             className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3"
           >
-            <Store className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <Store className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
               <p className="text-sm text-amber-900 font-medium">
                 {places.length > 0
@@ -71,7 +71,7 @@ export function NewCompetitorAlert({ businessId }: Props) {
               </p>
               <a
                 href="/competitors"
-                className="flex items-center gap-1 text-sm text-amber-600 hover:text-amber-800 mt-0.5 font-medium"
+                className="flex items-center gap-1 text-sm text-amber-700 hover:text-amber-800 mt-0.5 font-medium"
               >
                 경쟁사로 등록하기 <ExternalLink className="w-3 h-3" />
               </a>
@@ -82,7 +82,7 @@ export function NewCompetitorAlert({ businessId }: Props) {
                 try { localStorage.setItem('dismissed_competitor_alerts', JSON.stringify([...next])) } catch {}
                 return next
               })}
-              className="text-amber-400 hover:text-amber-600 transition-colors shrink-0"
+              className="text-amber-400 hover:text-amber-700 transition-colors shrink-0"
             >
               <X className="w-4 h-4" />
             </button>

@@ -45,7 +45,7 @@ export default async function StartupPage() {
     return (
       <div className="p-4 md:p-8 max-w-2xl">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">창업 시장 분석</h1>
-        <p className="text-base text-gray-500 mb-6">업종·지역 AI 노출 경쟁 강도 + 진입 전략 (창업 패키지·Biz 전용, Enterprise는 별도 문의)</p>
+        <p className="text-base text-gray-600 mb-6">업종·지역 AI 노출 경쟁 강도 + 진입 전략 (창업 패키지·Biz 전용, Enterprise는 별도 문의)</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {features.map((f) => (
@@ -55,7 +55,7 @@ export default async function StartupPage() {
               </div>
               <div>
                 <div className="font-medium text-gray-900 text-sm mb-0.5">{f.title}</div>
-                <div className="text-sm text-gray-500">{f.desc}</div>
+                <div className="text-sm text-gray-600">{f.desc}</div>
               </div>
             </div>
           ))}

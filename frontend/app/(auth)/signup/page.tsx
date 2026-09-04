@@ -348,7 +348,7 @@ function SignupForm() {
           </Link>
         </p>
         <p className="text-center mt-3">
-          <Link href="/" className="text-sm text-gray-600 hover:text-gray-600">
+          <Link href="/" className="text-sm text-gray-600 hover:text-gray-700">
             ← 홈으로
           </Link>
         </p>

@@ -25,7 +25,7 @@ export function NoBusiness({ Icon, title, description, features, planBadge }: No
             <span className="text-sm bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-medium">{planBadge}</span>
           )}
         </div>
-        <p className="text-gray-500 text-sm mt-1">{description}</p>
+        <p className="text-gray-600 text-sm mt-1">{description}</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
@@ -36,7 +36,7 @@ export function NoBusiness({ Icon, title, description, features, planBadge }: No
             </div>
             <div>
               <div className="font-medium text-gray-900 text-sm mb-0.5">{f.title}</div>
-              <div className="text-sm text-gray-500">{f.desc}</div>
+              <div className="text-sm text-gray-600">{f.desc}</div>
             </div>
           </div>
         ))}
@@ -48,7 +48,7 @@ export function NoBusiness({ Icon, title, description, features, planBadge }: No
         </div>
         <div className="flex-1">
           <div className="font-semibold text-gray-900 text-sm mb-0.5">사업장을 등록하면 바로 이용할 수 있습니다</div>
-          <div className="text-sm text-gray-500">대시보드에서 사업장을 먼저 등록해 주세요.</div>
+          <div className="text-sm text-gray-600">대시보드에서 사업장을 먼저 등록해 주세요.</div>
         </div>
         <Link
           href="/dashboard"

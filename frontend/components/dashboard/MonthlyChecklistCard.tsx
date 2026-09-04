@@ -82,7 +82,7 @@ export default function MonthlyChecklistCard({ bizId, authToken }: Props) {
         <h3 className="text-base font-semibold text-gray-900">
           {month_label} 이달의 할 일
         </h3>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-gray-600">
           {completed_count}/{total_count} 완료
         </span>
       </div>
@@ -117,21 +117,21 @@ export default function MonthlyChecklistCard({ bizId, authToken }: Props) {
           .map((item) => (
             <li key={item.id} className="flex items-start gap-3">
               {item.completed ? (
-                <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-green-700 mt-0.5 flex-shrink-0" />
               ) : (
                 <Circle className="w-5 h-5 text-gray-300 mt-0.5 flex-shrink-0" />
               )}
               <div className="min-w-0">
                 <p
                   className={`text-sm font-medium leading-snug ${
-                    item.completed ? "line-through text-gray-500" : "text-gray-800"
+                    item.completed ? "line-through text-gray-600" : "text-gray-800"
                   }`}
                 >
                   {item.title}
                 </p>
                 <p
                   className={`text-sm mt-0.5 ${
-                    item.completed ? "text-gray-500" : "text-gray-500"
+                    item.completed ? "text-gray-600" : "text-gray-600"
                   }`}
                 >
                   {item.description}

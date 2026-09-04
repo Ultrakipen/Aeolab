@@ -47,7 +47,7 @@ const CONTENT_ITEMS = [
 const PRIORITY_STYLE = {
   필수: "bg-red-100 text-red-700",
   권장: "bg-amber-100 text-amber-700",
-  선택: "bg-gray-100 text-gray-500",
+  선택: "bg-gray-100 text-gray-600",
 } as const;
 
 type ItemState = "done" | "undone" | "unknown";
@@ -78,9 +78,9 @@ export default function SchemaCheckCard({
       <div className="rounded-xl border border-gray-200 bg-white p-4 md:p-5">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-sm font-semibold text-gray-800">AI에 가게 정보 등록</span>
-          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">설정 현황</span>
+          <span className="text-xs text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded-full">설정 현황</span>
         </div>
-        <p className="text-sm text-gray-500">첫 스캔 후 웹사이트 AI 인식 설정 현황이 표시됩니다.</p>
+        <p className="text-sm text-gray-600">첫 스캔 후 웹사이트 AI 인식 설정 현황이 표시됩니다.</p>
       </div>
     );
   }
@@ -149,9 +149,9 @@ export default function SchemaCheckCard({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-gray-800">AI에 가게 정보 등록</span>
-          <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-full">설정 현황</span>
+          <span className="text-xs text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded-full">설정 현황</span>
         </div>
-        <span className={`text-sm font-semibold ${allDone ? "text-emerald-600" : "text-gray-500"}`}>
+        <span className={`text-sm font-semibold ${allDone ? "text-emerald-700" : "text-gray-600"}`}>
           {doneCount} / {totalCount} 완료
         </span>
       </div>
@@ -169,7 +169,7 @@ export default function SchemaCheckCard({
           <div key={item.label} className="flex items-start gap-2">
             {/* 상태 아이콘 */}
             <span className={`shrink-0 mt-0.5 text-sm font-bold w-4 text-center ${
-              item.state === "done" ? "text-emerald-500" : "text-gray-300"
+              item.state === "done" ? "text-emerald-700" : "text-gray-300"
             }`}>
               {item.state === "done" ? "✓" : item.state === "unknown" ? "?" : "✕"}
             </span>
@@ -178,19 +178,19 @@ export default function SchemaCheckCard({
             <div className="flex-1 min-w-0">
               <span className={`text-sm break-keep ${
                 item.state === "done"
-                  ? "text-gray-500 line-through"
+                  ? "text-gray-600 line-through"
                   : item.state === "unknown"
-                  ? "text-gray-500"
+                  ? "text-gray-600"
                   : "text-gray-700 font-medium"
               }`}>
                 {item.label}
               </span>
               {/* 미설정 항목에만 설명 표시 */}
               {item.state === "undone" && (
-                <p className="text-xs text-gray-500 mt-0.5 break-keep">{item.desc}</p>
+                <p className="text-xs text-gray-600 mt-0.5 break-keep">{item.desc}</p>
               )}
               {item.state === "unknown" && (
-                <p className="text-xs text-gray-500 mt-0.5">확인 불가</p>
+                <p className="text-xs text-gray-600 mt-0.5">확인 불가</p>
               )}
             </div>
 
@@ -226,7 +226,7 @@ export default function SchemaCheckCard({
                 href={item.externalHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="shrink-0 text-xs text-gray-500 hover:underline whitespace-nowrap mt-0.5"
+                className="shrink-0 text-xs text-gray-600 hover:underline whitespace-nowrap mt-0.5"
               >
                 {item.externalLabel}
               </a>
@@ -237,7 +237,7 @@ export default function SchemaCheckCard({
 
       {/* 미설정 안내 */}
       {!allDone && (
-        <p className="text-sm text-gray-500 mb-3 leading-relaxed break-keep">
+        <p className="text-sm text-gray-600 mb-3 leading-relaxed break-keep">
           설정 시 ChatGPT·구글 AI 검색에서 가게 정보 노출 가능성이 높아집니다.
         </p>
       )}
@@ -253,7 +253,7 @@ export default function SchemaCheckCard({
           </Link>
         ) : (
           <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
-            <p className="text-sm text-gray-500 mb-2">AI 검색 코드 자동 생성은 Basic 플랜(월 11,900원)부터</p>
+            <p className="text-sm text-gray-600 mb-2">AI 검색 코드 자동 생성은 Basic 플랜(월 11,900원)부터</p>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
               <Link href="/pricing" className="text-sm font-semibold text-blue-600 hover:underline">
                 플랜 업그레이드 →
@@ -262,7 +262,7 @@ export default function SchemaCheckCard({
                 href={GOOGLE_RICHRESULTS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-gray-500 hover:underline"
+                className="text-sm text-gray-600 hover:underline"
               >
                 직접 등록 방법 보기 →
               </a>

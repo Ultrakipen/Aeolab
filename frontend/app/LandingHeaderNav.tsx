@@ -126,7 +126,7 @@ export function LandingHeaderNav() {
                 href="/settings"
                 title={email}
                 onClick={() => setMenuOpen(false)}
-                className="block px-3 py-2 text-sm text-gray-500 truncate border-b border-slate-100 hover:text-blue-600"
+                className="block px-3 py-2 text-sm text-gray-600 truncate border-b border-slate-100 hover:text-blue-600"
               >
                 {email}
               </Link>

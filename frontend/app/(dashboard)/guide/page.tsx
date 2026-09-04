@@ -126,7 +126,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
           >
             플랜 업그레이드 (월 11,900원~) →
           </a>
-          <a href="/dashboard" className="block text-sm text-gray-500 hover:text-gray-700 transition-colors">
+          <a href="/dashboard" className="block text-sm text-gray-600 hover:text-gray-700 transition-colors">
             대시보드로 돌아가기
           </a>
         </div>
@@ -158,7 +158,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
     <div className="p-4 md:p-8 max-w-4xl mx-auto">
       <div className="mb-6 md:mb-8">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">AI 개선 가이드</h1>
-        <p className="text-gray-500 text-sm mt-1 leading-relaxed">스캔 결과를 바탕으로 AI가 분석한 <strong>지금 당장 실천 가능한</strong> 개선 방법을 알려드립니다.</p>
+        <p className="text-gray-600 text-sm mt-1 leading-relaxed">스캔 결과를 바탕으로 AI가 분석한 <strong>지금 당장 실천 가능한</strong> 개선 방법을 알려드립니다.</p>
       </div>
 
       {businesses && businesses.length > 1 && (
@@ -191,7 +191,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
 
       {/* 채널별 심화 가이드 — 가이드 본문 아래에 배치 (탐색 링크) */}
       <div className="mt-10 pt-8 border-t border-gray-100">
-        <p className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">채널별 심화 가이드</p>
+        <p className="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wide">채널별 심화 가이드</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
           {/* AI 브리핑 가이드 */}
           <Link

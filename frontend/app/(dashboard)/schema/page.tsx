@@ -21,7 +21,7 @@ export default async function SchemaPage() {
       <div className="p-4 md:p-8 max-w-4xl mx-auto">
         <div className="mb-6">
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">AI 검색 최적화 도구</h1>
-          <p className="text-gray-500 text-sm mt-1 leading-relaxed">
+          <p className="text-gray-600 text-sm mt-1 leading-relaxed">
             스마트플레이스 소개글·블로그 초안 3종 자동 생성, AI 브리핑 키워드 점수 확인, 홈페이지 AI 인식 코드(JSON-LD)까지 한 번에 만들어 드립니다.
           </p>
         </div>
@@ -30,10 +30,10 @@ export default async function SchemaPage() {
             <Lock className="w-7 h-7 text-blue-400" strokeWidth={1.5} />
           </div>
           <h2 className="text-lg font-bold text-gray-900 mb-1">Basic 플랜부터 이용 가능합니다</h2>
-          <p className="text-base text-gray-500 mb-2 leading-relaxed">
+          <p className="text-base text-gray-600 mb-2 leading-relaxed">
             스마트플레이스 소개글·블로그 초안 3종·AI 인식 코드(JSON-LD) 자동 생성 + 소개글 AI 브리핑 키워드 점수 확인.
           </p>
-          <p className="text-base text-gray-500 mb-6">현재 플랜: 무료 체험</p>
+          <p className="text-base text-gray-600 mb-6">현재 플랜: 무료 체험</p>
           <Link
             href="/pricing"
             className="bg-blue-600 text-white px-6 py-3.5 rounded-xl font-semibold hover:bg-blue-700 transition-colors text-sm"

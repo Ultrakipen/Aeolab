@@ -107,7 +107,7 @@ export function AccountClient({ currentEmail }: Props) {
       {/* 비밀번호 변경 */}
       <div className="border border-gray-100 rounded-xl p-4 md:p-5">
         <h3 className="text-base font-semibold text-gray-800 mb-1">비밀번호 변경</h3>
-        <p className="text-sm text-gray-500 mb-3">새 비밀번호는 8자 이상이어야 합니다.</p>
+        <p className="text-sm text-gray-600 mb-3">새 비밀번호는 8자 이상이어야 합니다.</p>
         <form onSubmit={handlePasswordChange} className="space-y-2.5">
           <input
             type="password"
@@ -126,7 +126,7 @@ export function AccountClient({ currentEmail }: Props) {
             className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {pwMsg && (
-            <p className={`text-sm ${pwMsg.type === "ok" ? "text-green-600" : "text-red-500"}`}>{pwMsg.text}</p>
+            <p className={`text-sm ${pwMsg.type === "ok" ? "text-green-700" : "text-red-700"}`}>{pwMsg.text}</p>
           )}
           <div className="flex justify-end pt-1">
             <button
@@ -143,7 +143,7 @@ export function AccountClient({ currentEmail }: Props) {
       {/* 이메일 변경 */}
       <div className="border border-gray-100 rounded-xl p-4 md:p-5">
         <h3 className="text-base font-semibold text-gray-800 mb-1">이메일 변경</h3>
-        <p className="text-sm text-gray-500 mb-3">
+        <p className="text-sm text-gray-600 mb-3">
           현재: <span className="text-gray-600">{currentEmail}</span>
           <br className="sm:hidden" />
           <span className="hidden sm:inline">{" "}—{" "}</span>
@@ -168,18 +168,18 @@ export function AccountClient({ currentEmail }: Props) {
           </button>
         </form>
         {emailMsg && (
-          <p className={`text-sm mt-2 ${emailMsg.type === "ok" ? "text-green-600" : "text-red-500"}`}>{emailMsg.text}</p>
+          <p className={`text-sm mt-2 ${emailMsg.type === "ok" ? "text-green-700" : "text-red-700"}`}>{emailMsg.text}</p>
         )}
       </div>
 
       {/* 계정 탈퇴 */}
       <div className="border border-red-100 rounded-xl p-4 md:p-5">
         <h3 className="text-base font-semibold text-red-700 mb-1">계정 탈퇴</h3>
-        <p className="text-sm text-gray-500 mb-3">탈퇴 시 모든 사업장, 스캔 기록, 구독이 영구 삭제됩니다.</p>
+        <p className="text-sm text-gray-600 mb-3">탈퇴 시 모든 사업장, 스캔 기록, 구독이 영구 삭제됩니다.</p>
         {!showDeleteConfirm ? (
           <button
             onClick={() => setShowDeleteConfirm(true)}
-            className="text-sm text-red-500 hover:text-red-700 underline transition-colors"
+            className="text-sm text-red-700 hover:text-red-800 underline transition-colors"
           >
             계정 탈퇴하기
           </button>
@@ -197,7 +197,7 @@ export function AccountClient({ currentEmail }: Props) {
               placeholder="탈퇴합니다"
               className="w-full border border-red-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-red-400"
             />
-            {deleteMsg && <p className="text-sm text-red-500">{deleteMsg}</p>}
+            {deleteMsg && <p className="text-sm text-red-700">{deleteMsg}</p>}
             <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={handleDeleteAccount}

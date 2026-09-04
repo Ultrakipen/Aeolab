@@ -209,10 +209,10 @@ export function IntroGeneratorCard({
       {generated && (
         <div className="mt-4 space-y-3">
           {introType === "naver" && currentIntro && !stats && (
-            <p className="text-sm text-gray-500 mb-2">이전에 생성된 소개글입니다. 하단 &apos;다시 생성&apos; 버튼으로 새로 만들 수 있습니다.</p>
+            <p className="text-sm text-gray-600 mb-2">이전에 생성된 소개글입니다. 하단 &apos;다시 생성&apos; 버튼으로 새로 만들 수 있습니다.</p>
           )}
           {introType === "global" && globalCurrentIntro && !stats && (
-            <p className="text-sm text-gray-500 mb-2">이전에 생성된 글로벌 AI용 소개글입니다. 하단 &apos;다시 생성&apos; 버튼으로 새로 만들 수 있습니다.</p>
+            <p className="text-sm text-gray-600 mb-2">이전에 생성된 글로벌 AI용 소개글입니다. 하단 &apos;다시 생성&apos; 버튼으로 새로 만들 수 있습니다.</p>
           )}
 
           {stats && (
@@ -256,7 +256,7 @@ export function IntroGeneratorCard({
           </div>
 
           {localGeneratedAt && (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-600">
               마지막 생성: {new Date(localGeneratedAt).toLocaleString("ko-KR")}
             </p>
           )}
@@ -271,7 +271,7 @@ export function IntroGeneratorCard({
           <div className="flex flex-col md:flex-row gap-2">
             <button
               onClick={handleCopy}
-              className="flex-1 px-4 py-3 bg-green-600 text-white rounded font-medium text-sm md:text-base hover:bg-green-700 transition-colors"
+              className="flex-1 px-4 py-3 bg-green-700 text-white rounded font-medium text-sm md:text-base hover:bg-green-700 transition-colors"
             >
               {copied ? "복사됨!" : "클립보드에 복사"}
             </button>

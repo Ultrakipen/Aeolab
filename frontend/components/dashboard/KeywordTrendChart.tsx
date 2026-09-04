@@ -93,10 +93,10 @@ export default function KeywordTrendChart({ bizId, accessToken, categoryKo }: Pr
     return (
       <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-2">
-          <TrendingUp className="w-5 h-5 text-gray-500" />
+          <TrendingUp className="w-5 h-5 text-gray-600" />
           <h3 className="text-base font-bold text-gray-700">키워드 검색 트렌드</h3>
         </div>
-        <p className="text-sm text-gray-500">네이버 DataLab 분석은 추후 제공 예정입니다.</p>
+        <p className="text-sm text-gray-600">네이버 DataLab 분석은 추후 제공 예정입니다.</p>
         <p className="text-sm text-gray-300 mt-1">현재 등록 키워드 기반 월간 검색량은 키워드 현황 카드에서 확인하세요.</p>
       </div>
     )
@@ -106,10 +106,10 @@ export default function KeywordTrendChart({ bizId, accessToken, categoryKo }: Pr
     return (
       <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-5 h-5 text-gray-500" />
+          <TrendingUp className="w-5 h-5 text-gray-600" />
           <h3 className="text-base font-bold text-gray-700">키워드 트렌드</h3>
         </div>
-        <p className="text-sm text-gray-500">트렌드 데이터를 불러올 수 없습니다.</p>
+        <p className="text-sm text-gray-600">트렌드 데이터를 불러올 수 없습니다.</p>
       </div>
     )
   }
@@ -135,9 +135,9 @@ export default function KeywordTrendChart({ bizId, accessToken, categoryKo }: Pr
       {/* 헤더 */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-blue-500 shrink-0" />
+          <TrendingUp className="w-5 h-5 text-blue-600 shrink-0" />
           <h3 className="text-base font-bold text-gray-900">키워드 검색 트렌드</h3>
-          <span className="text-sm text-gray-500">네이버 검색 관심도 · 3개월</span>
+          <span className="text-sm text-gray-600">네이버 검색 관심도 · 3개월</span>
         </div>
         {/* 키워드 배지 행 */}
         <div className="flex flex-wrap gap-2">
@@ -162,7 +162,7 @@ export default function KeywordTrendChart({ bizId, accessToken, categoryKo }: Pr
         </div>
       </div>
       {topKeywords.some((k) => k.monthly_volume !== null && k.monthly_volume > 0) && (
-        <p className="text-sm text-gray-500 mb-3">
+        <p className="text-sm text-gray-600 mb-3">
           키워드 옆 숫자(예: 월 4.1k회)는 최근 1개월간 네이버에서 검색된 횟수예요 — 숫자가 클수록 찾는 사람이 많다는 뜻입니다.
         </p>
       )}
@@ -210,7 +210,7 @@ export default function KeywordTrendChart({ bizId, accessToken, categoryKo }: Pr
         </LineChart>
       </ResponsiveContainer>
 
-      <p className="text-sm text-gray-500 mt-3 text-center">
+      <p className="text-sm text-gray-600 mt-3 text-center">
         {data.region} · {categoryKo ?? data.category} 업종 · 네이버 검색 관심도 지수 (0~100, 100=최고점)
       </p>
     </div>

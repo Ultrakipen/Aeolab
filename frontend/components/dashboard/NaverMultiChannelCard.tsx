@@ -35,7 +35,7 @@ function ChannelBlock({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <span className="text-gray-500">{icon}</span>
+        <span className="text-gray-600">{icon}</span>
         <span className="text-sm font-medium text-gray-700">{label}</span>
       </div>
       {mentioned ? (
@@ -43,12 +43,12 @@ function ChannelBlock({
           언급 {mentionCount}건
         </span>
       ) : (
-        <span className="inline-flex w-fit items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-sm font-medium text-gray-500">
+        <span className="inline-flex w-fit items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-sm font-medium text-gray-600">
           언급 없음
         </span>
       )}
       {topExcerpt && (
-        <p className="text-sm text-gray-500 leading-snug line-clamp-2 break-all">
+        <p className="text-sm text-gray-600 leading-snug line-clamp-2 break-all">
           &ldquo;{topExcerpt.length > 60 ? topExcerpt.slice(0, 60) + "…" : topExcerpt}&rdquo;
         </p>
       )}
@@ -95,7 +95,7 @@ export default function NaverMultiChannelCard({ cafeResult, jisikResult }: Props
       </div>
 
       {/* 면책 문구 */}
-      <p className="mt-4 text-sm text-gray-500 leading-snug">
+      <p className="mt-4 text-sm text-gray-600 leading-snug">
         측정 시점·검색어에 따라 달라질 수 있음. 일 25,000건 API 공유 한도 내 측정.
       </p>
     </div>

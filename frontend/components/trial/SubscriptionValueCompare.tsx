@@ -56,12 +56,12 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
               <li
                 key={f.label}
                 className={`flex items-start gap-2 text-sm leading-relaxed break-keep ${
-                  f.locked ? "text-gray-500" : "text-gray-700"
+                  f.locked ? "text-gray-600" : "text-gray-700"
                 }`}
               >
                 {f.locked
                   ? <X className="w-4 h-4 text-red-300 shrink-0 mt-0.5" />
-                  : <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  : <Check className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
                 }
                 <span>{f.label}</span>
               </li>
@@ -71,7 +71,7 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
 
         {/* 우측 — 구독은 매주 */}
         <div className="bg-white rounded-xl border-2 border-emerald-300 p-4 md:p-5 shadow-md relative">
-          <div className="absolute -top-2 -right-2 bg-emerald-500 text-white text-sm font-bold px-2.5 py-1 rounded-full shadow-md">
+          <div className="absolute -top-2 -right-2 bg-emerald-700 text-white text-sm font-bold px-2.5 py-1 rounded-full shadow-md">
             추천
           </div>
           <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
@@ -86,7 +86,7 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
                 key={f.label}
                 className="flex items-start gap-2 text-sm leading-relaxed break-keep text-gray-800"
               >
-                <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                <Check className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
                 <span>{f.label}</span>
               </li>
             ))}

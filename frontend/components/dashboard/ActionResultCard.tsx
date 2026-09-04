@@ -39,7 +39,7 @@ function ActionTypeLabel({ type }: { type: string }): React.ReactElement {
     intro_update: '소개글 수정',
     keyword_add: '키워드 추가',
   }
-  return <span className="text-sm text-gray-500">{map[type] ?? type}</span>
+  return <span className="text-sm text-gray-600">{map[type] ?? type}</span>
 }
 
 export default function ActionResultCard({ actions }: Props) {
@@ -54,7 +54,7 @@ export default function ActionResultCard({ actions }: Props) {
       {done.length > 0 && (
         <div className="bg-white rounded-xl border p-4 md:p-6">
           <h3 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-green-500" />
+            <CheckCircle2 className="w-5 h-5 text-green-700" />
             행동 결과 확인
           </h3>
           <div className="space-y-3">
@@ -92,13 +92,13 @@ export default function ActionResultCard({ actions }: Props) {
                       <p className="text-sm text-gray-600 mt-1">{a.result_summary}</p>
                     )}
                     {(a.before_score !== null && a.after_score !== null) && (
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-gray-600 mt-1">
                         점수 변화:{" "}
                         <span className={
                           a.after_score > a.before_score
-                            ? "text-emerald-600 font-semibold"
+                            ? "text-emerald-700 font-semibold"
                             : a.after_score < a.before_score
-                            ? "text-amber-600 font-semibold"
+                            ? "text-amber-700 font-semibold"
                             : "text-gray-600"
                         }>
                           {a.after_score > a.before_score ? "개선됨 ↑" : a.after_score < a.before_score ? "하락 ↓" : "변화 없음"}
@@ -106,7 +106,7 @@ export default function ActionResultCard({ actions }: Props) {
                       </p>
                     )}
                   </div>
-                  <span className="text-sm text-gray-500 shrink-0">{formatDate(a.completed_at)}</span>
+                  <span className="text-sm text-gray-600 shrink-0">{formatDate(a.completed_at)}</span>
                 </div>
               </div>
             ))}
@@ -118,7 +118,7 @@ export default function ActionResultCard({ actions }: Props) {
       {pending.length > 0 && (
         <div className="bg-white rounded-xl border p-4 md:p-6">
           <h3 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-gray-500" />
+            <Clock className="w-5 h-5 text-gray-600" />
             분석 대기 중
           </h3>
           <div className="space-y-3">
@@ -136,15 +136,15 @@ export default function ActionResultCard({ actions }: Props) {
                       )}
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <Clock className="w-3.5 h-3.5 text-gray-500" />
-                      <span className="text-sm text-gray-500">
+                      <Clock className="w-3.5 h-3.5 text-gray-600" />
+                      <span className="text-sm text-gray-600">
                         {daysLeft > 0
                           ? `${daysLeft}일 후 자동 확인 예정`
                           : '곧 자동 확인됩니다'}
                       </span>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">{formatDate(a.completed_at)} 완료 등록</p>
+                  <p className="text-sm text-gray-600 mt-1">{formatDate(a.completed_at)} 완료 등록</p>
                 </div>
               )
             })}

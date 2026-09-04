@@ -62,7 +62,7 @@ export default function ResultSummaryHero({
         <div className="flex items-center gap-1.5 mb-3">
           <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" aria-hidden="true" />
           <p className="text-sm font-bold text-gray-700">{groupLabel ?? (isInactiveOrFranchise ? "네이버 노출 현황" : "네이버 AI 현황")}</p>
-          <span className="ml-1 text-sm text-gray-500 hidden sm:inline">소상공인 핵심 채널</span>
+          <span className="ml-1 text-sm text-gray-600 hidden sm:inline">소상공인 핵심 채널</span>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {tiles.map((card) => (
@@ -74,9 +74,9 @@ export default function ResultSummaryHero({
                 {card.icon}
               </span>
               <div>
-                <p className="text-sm font-medium text-gray-500 leading-tight break-keep">{card.platform}</p>
+                <p className="text-sm font-medium text-gray-600 leading-tight break-keep">{card.platform}</p>
                 <p className={`text-sm font-bold mt-0.5 leading-tight ${card.statusClass}`}>{card.status}</p>
-                <p className="text-sm text-gray-500 mt-0.5 leading-tight break-keep">{card.detail}</p>
+                <p className="text-sm text-gray-600 mt-0.5 leading-tight break-keep">{card.detail}</p>
               </div>
             </div>
           ))}
@@ -91,13 +91,13 @@ export default function ResultSummaryHero({
             className="flex items-center justify-between gap-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl px-4 py-3 transition-colors group"
           >
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-rose-500 text-base shrink-0">↳</span>
+              <span className="text-rose-700 text-base shrink-0">↳</span>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-rose-600 leading-tight">지금 할 일</p>
+                <p className="text-sm font-semibold text-rose-700 leading-tight">지금 할 일</p>
                 <p className="text-sm font-semibold text-gray-800 leading-snug break-keep line-clamp-3 mt-0.5">{todayAction}</p>
               </div>
             </div>
-            <span className="text-sm font-bold text-rose-500 group-hover:text-rose-700 shrink-0 whitespace-nowrap">실행 →</span>
+            <span className="text-sm font-bold text-rose-700 group-hover:text-rose-800 shrink-0 whitespace-nowrap">실행 →</span>
           </a>
         </div>
       )}

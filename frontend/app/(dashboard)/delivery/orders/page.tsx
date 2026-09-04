@@ -72,7 +72,7 @@ export default async function DeliveryOrdersPage() {
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-5 md:mb-6">
         <div>
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
+          <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
             <a href="/delivery" className="hover:text-blue-600 transition-colors">대행 서비스</a>
             <ChevronRight className="w-4 h-4" />
             <span className="text-gray-700">내 의뢰 목록</span>
@@ -95,7 +95,7 @@ export default async function DeliveryOrdersPage() {
             <p className="text-base font-medium text-gray-700 mb-2">
               아직 신청한 의뢰가 없습니다.
             </p>
-            <p className="text-sm text-gray-500 mb-5">
+            <p className="text-sm text-gray-600 mb-5">
               대행 서비스를 신청하면 전문가가 직접 실행해 드립니다.
             </p>
             <Link
@@ -108,7 +108,7 @@ export default async function DeliveryOrdersPage() {
         ) : (
           <>
             {/* PC 테이블 헤더 */}
-            <div className="hidden md:grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-4 px-5 py-3 bg-gray-50 border-b border-gray-100 text-sm font-medium text-gray-500">
+            <div className="hidden md:grid grid-cols-[auto_1fr_auto_auto_auto] items-center gap-4 px-5 py-3 bg-gray-50 border-b border-gray-100 text-sm font-medium text-gray-600">
               <span>상태</span>
               <span>제목</span>
               <span>패키지</span>
@@ -130,7 +130,7 @@ export default async function DeliveryOrdersPage() {
                         <span className={`shrink-0 text-sm font-semibold px-2.5 py-1 rounded-full ${statusMeta.color}`}>
                           {statusMeta.label}
                         </span>
-                        <span className="text-sm text-gray-500 md:hidden">{formatDate(order.created_at)}</span>
+                        <span className="text-sm text-gray-600 md:hidden">{formatDate(order.created_at)}</span>
                       </div>
 
                       {/* 제목 */}
@@ -139,12 +139,12 @@ export default async function DeliveryOrdersPage() {
                           {order.request_title}
                         </p>
                         {order.business_name && (
-                          <p className="text-sm text-gray-500 mt-0.5">{order.business_name}</p>
+                          <p className="text-sm text-gray-600 mt-0.5">{order.business_name}</p>
                         )}
                       </div>
 
                       {/* 패키지명 */}
-                      <span className="text-sm text-gray-500 md:text-right">
+                      <span className="text-sm text-gray-600 md:text-right">
                         {PACKAGE_DISPLAY[order.package_type] ?? order.package_type}
                       </span>
 
@@ -154,7 +154,7 @@ export default async function DeliveryOrdersPage() {
                       </span>
 
                       {/* 날짜 (PC) */}
-                      <span className="hidden md:block text-sm text-gray-500 text-right whitespace-nowrap">
+                      <span className="hidden md:block text-sm text-gray-600 text-right whitespace-nowrap">
                         {formatDate(order.created_at)}
                       </span>
                     </Link>

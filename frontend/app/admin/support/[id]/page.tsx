@@ -90,7 +90,7 @@ export default async function AdminSupportDetailPage({
 
   if (!isAdmin) {
     return (
-      <div className="p-4 md:p-8 text-center text-gray-500">
+      <div className="p-4 md:p-8 text-center text-gray-600">
         <p className="text-base">접근 권한이 없습니다.</p>
       </div>
     );
@@ -103,7 +103,7 @@ export default async function AdminSupportDetailPage({
     return (
       <div className="max-w-2xl mx-auto">
         <div className="bg-red-50 border border-red-200 rounded-xl p-5 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-red-700 shrink-0 mt-0.5" />
           <div>
             <p className="text-base font-medium text-red-800">문의를 찾을 수 없습니다.</p>
             <Link
@@ -136,7 +136,7 @@ export default async function AdminSupportDetailPage({
   return (
     <>
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-500 mb-4 flex-wrap">
+      <div className="flex items-center gap-2 text-sm text-gray-600 mb-4 flex-wrap">
         <Link href="/admin" className="hover:text-blue-600 transition-colors">
           관리자
         </Link>
@@ -163,7 +163,7 @@ export default async function AdminSupportDetailPage({
             <h1 className="text-lg md:text-xl font-bold text-gray-900 break-words">
               {ticket.title}
             </h1>
-            <p className="text-sm text-gray-500 mt-1">{formatDate(ticket.created_at)}</p>
+            <p className="text-sm text-gray-600 mt-1">{formatDate(ticket.created_at)}</p>
           </div>
         </div>
 
@@ -178,23 +178,23 @@ export default async function AdminSupportDetailPage({
       {/* 문의자 사업장 정보 (고객지원 조회용) */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-5">
         <div className="flex items-center gap-2 mb-3">
-          <Store className="w-4 h-4 text-gray-500" />
+          <Store className="w-4 h-4 text-gray-600" />
           <h2 className="text-base font-semibold text-gray-800">문의자 사업장</h2>
         </div>
         {!ticket.businesses || ticket.businesses.length === 0 ? (
-          <p className="text-sm text-gray-500">등록된 사업장이 없습니다.</p>
+          <p className="text-sm text-gray-600">등록된 사업장이 없습니다.</p>
         ) : (
           <div className="space-y-3">
             {ticket.businesses.map((biz) => (
               <div key={biz.id} className="border border-gray-100 rounded-xl p-4">
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   <span className="text-sm font-semibold text-gray-900">{biz.name}</span>
-                  <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                  <span className="text-sm text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
                     {CATEGORY_LABEL[biz.category] ?? biz.category}
                   </span>
-                  {biz.region && <span className="text-sm text-gray-500">{biz.region}</span>}
+                  {biz.region && <span className="text-sm text-gray-600">{biz.region}</span>}
                   {!biz.is_active && (
-                    <span className="text-sm text-red-600 bg-red-50 px-2 py-0.5 rounded-full">비활성</span>
+                    <span className="text-sm text-red-700 bg-red-50 px-2 py-0.5 rounded-full">비활성</span>
                   )}
                 </div>
                 {biz.latest_scan ? (
@@ -205,7 +205,7 @@ export default async function AdminSupportDetailPage({
                     <span>글로벌 트랙 {biz.latest_scan.track2_score?.toFixed(1) ?? "—"}점</span>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500">아직 스캔 이력이 없습니다.</p>
+                  <p className="text-sm text-gray-600">아직 스캔 이력이 없습니다.</p>
                 )}
               </div>
             ))}

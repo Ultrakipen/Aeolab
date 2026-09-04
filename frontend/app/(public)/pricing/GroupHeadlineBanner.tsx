@@ -75,7 +75,7 @@ export default function GroupHeadlineBanner() {
       )}
 
       {!category && (
-        <p className="mt-3 text-sm text-gray-500">
+        <p className="mt-3 text-sm text-gray-600">
           업종을 선택하면 내 가게에 맞는 AEOlab 활용 방법을 안내해 드립니다.
         </p>
       )}

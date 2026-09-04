@@ -280,7 +280,7 @@ export function KeywordManagerModal({
               <h2 id="keyword-manager-title" className="text-lg md:text-xl font-bold text-gray-900">
                 내 키워드 설정
               </h2>
-              <p className="text-sm md:text-base text-gray-500 mt-0.5 leading-relaxed">
+              <p className="text-sm md:text-base text-gray-600 mt-0.5 leading-relaxed">
                 추가한 키워드는 내 강점으로 반영되고, 제외한 키워드는 분석에서 빠집니다.
               </p>
             </div>
@@ -289,7 +289,7 @@ export function KeywordManagerModal({
             type="button"
             onClick={onClose}
             aria-label="닫기"
-            className="shrink-0 w-9 h-9 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors"
+            className="shrink-0 w-9 h-9 rounded-lg text-gray-600 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -304,7 +304,7 @@ export function KeywordManagerModal({
               className={`px-3 md:px-4 py-2.5 text-base md:text-lg font-semibold whitespace-nowrap border-b-2 -mb-px transition-colors ${
                 activeTab === 'custom'
                   ? 'border-emerald-500 text-emerald-700'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  : 'border-transparent text-gray-600 hover:text-gray-700'
               }`}
             >
               <span className="inline-flex items-center gap-1.5">
@@ -319,7 +319,7 @@ export function KeywordManagerModal({
               className={`px-3 md:px-4 py-2.5 text-base md:text-lg font-semibold whitespace-nowrap border-b-2 -mb-px transition-colors ${
                 activeTab === 'excluded'
                   ? 'border-gray-700 text-gray-900'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  : 'border-transparent text-gray-600 hover:text-gray-700'
               }`}
             >
               <span className="inline-flex items-center gap-1.5">
@@ -341,7 +341,7 @@ export function KeywordManagerModal({
           )}
 
           {loading ? (
-            <div className="flex items-center justify-center py-12 text-gray-500">
+            <div className="flex items-center justify-center py-12 text-gray-600">
               <Loader2 className="w-5 h-5 animate-spin mr-2" />
               <span className="text-base">불러오는 중...</span>
             </div>
@@ -364,13 +364,13 @@ export function KeywordManagerModal({
                       placeholder={customAtLimit ? '최대 개수에 도달했습니다' : '예: 무알콜 칵테일, 반려견 동반'}
                       maxLength={MAX_LEN}
                       disabled={submitting || customAtLimit || !!fatalError}
-                      className="flex-1 text-base md:text-lg px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none disabled:bg-gray-50 disabled:text-gray-400"
+                      className="flex-1 text-base md:text-lg px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none disabled:bg-gray-50 disabled:text-gray-600"
                     />
                     <button
                       type="button"
                       onClick={handleAddCustom}
                       disabled={submitting || customAtLimit || !!fatalError || !input.trim()}
-                      className="shrink-0 inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 disabled:cursor-not-allowed text-white font-semibold text-base md:text-lg px-4 py-3 rounded-xl transition-colors"
+                      className="shrink-0 inline-flex items-center justify-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 disabled:bg-emerald-300 disabled:cursor-not-allowed text-white font-semibold text-base md:text-lg px-4 py-3 rounded-xl transition-colors"
                     >
                       {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
                       추가
@@ -379,7 +379,7 @@ export function KeywordManagerModal({
 
                   {/* Badges */}
                   {custom.length === 0 ? (
-                    <div className="text-center py-8 text-sm md:text-base text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    <div className="text-center py-8 text-sm md:text-base text-gray-600 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                       아직 추가한 키워드가 없습니다. 위 입력창에 내 가게 강점을 적어 보세요.
                     </div>
                   ) : (
@@ -396,7 +396,7 @@ export function KeywordManagerModal({
                             disabled={submitting}
                             aria-label={`${kw} 삭제`}
                             title={`${kw} 삭제`}
-                            className="ml-1 w-6 h-6 rounded-full hover:bg-emerald-200 text-emerald-600 hover:text-red-600 flex items-center justify-center disabled:opacity-40"
+                            className="ml-1 w-6 h-6 rounded-full hover:bg-emerald-200 text-emerald-700 hover:text-red-700 flex items-center justify-center disabled:opacity-40"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -424,7 +424,7 @@ export function KeywordManagerModal({
                       placeholder="제외할 키워드 입력"
                       maxLength={MAX_LEN}
                       disabled={submitting || !!fatalError}
-                      className="flex-1 text-base md:text-lg px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 outline-none disabled:bg-gray-50 disabled:text-gray-400"
+                      className="flex-1 text-base md:text-lg px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-500 focus:border-gray-500 outline-none disabled:bg-gray-50 disabled:text-gray-600"
                     />
                     <button
                       type="button"
@@ -439,7 +439,7 @@ export function KeywordManagerModal({
 
                   {/* Badges */}
                   {excluded.length === 0 ? (
-                    <div className="text-center py-8 text-sm md:text-base text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    <div className="text-center py-8 text-sm md:text-base text-gray-600 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                       제외된 키워드가 없습니다.
                     </div>
                   ) : (
@@ -456,7 +456,7 @@ export function KeywordManagerModal({
                             disabled={submitting}
                             aria-label={`${kw} 제외 해제`}
                             title={`${kw} 제외 해제`}
-                            className="ml-1 w-6 h-6 rounded-full hover:bg-gray-200 text-gray-500 hover:text-emerald-600 flex items-center justify-center disabled:opacity-40"
+                            className="ml-1 w-6 h-6 rounded-full hover:bg-gray-200 text-gray-600 hover:text-emerald-700 flex items-center justify-center disabled:opacity-40"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -472,7 +472,7 @@ export function KeywordManagerModal({
 
         {/* Footer */}
         <div className="px-5 md:px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <p className="text-sm text-gray-500 leading-relaxed">
+          <p className="text-sm text-gray-600 leading-relaxed">
             변경 사항은 즉시 반영되며, 다음 스캔·분석부터 적용됩니다.
           </p>
           <button

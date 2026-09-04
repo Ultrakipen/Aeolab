@@ -118,9 +118,9 @@ function CollapsibleSub({
           <span className="text-sm font-bold text-gray-700 break-keep">{label}</span>
         </span>
         {open ? (
-          <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" />
+          <ChevronUp className="w-4 h-4 text-gray-600 shrink-0" />
         ) : (
-          <span className="flex items-center gap-1 text-xs text-gray-500 font-medium shrink-0 whitespace-nowrap">
+          <span className="flex items-center gap-1 text-xs text-gray-600 font-medium shrink-0 whitespace-nowrap">
             눌러서 보기 <ChevronDown className="w-4 h-4" />
           </span>
         )}
@@ -242,7 +242,7 @@ export default function DashboardInsightZone({
       {/* 핵심 가치 제안 한 줄 배너 — 상세 설명은 하단 "상세 분석 데이터" ScoreEvidenceCard가 유일 소스(중복 금지 원칙 유지),
           여기는 항상 보이는 섹션 최상단에 짧게 노출해 클릭 2회 없이도 인지 가능하게 함 (2026-07-11) */}
       <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 flex items-start gap-2">
-        <span className="text-blue-500 text-sm shrink-0 mt-0.5" aria-hidden="true">🔍</span>
+        <span className="text-blue-600 text-sm shrink-0 mt-0.5" aria-hidden="true">🔍</span>
         <p className="text-sm text-blue-900 leading-relaxed break-keep">
           {isActiveOrLikely ? (
             <><strong>아래 AI 브리핑·AI탭 노출을 높이는 개선 활동은 네이버 일반 검색 상위 노출에도 함께 도움이 됩니다.</strong> 소개글·리뷰·블로그를 채울수록 검색 순위와 AI 노출이 같이 올라갑니다.</>
@@ -279,7 +279,7 @@ export default function DashboardInsightZone({
         <button
           onClick={() => setShowMore(true)}
           aria-expanded={false}
-          className="w-full flex items-center justify-center gap-1 py-2.5 text-sm text-gray-500 hover:text-gray-600 transition-colors border border-dashed border-gray-200 rounded-lg"
+          className="w-full flex items-center justify-center gap-1 py-2.5 text-sm text-gray-600 hover:text-gray-700 transition-colors border border-dashed border-gray-200 rounded-lg"
         >
           <ChevronDown className="w-4 h-4" />
           카페·지식채널 · 사진 카테고리 · 리뷰 키워드 상세 보기
@@ -300,7 +300,7 @@ export default function DashboardInsightZone({
           <button
             onClick={() => setShowMore(false)}
             aria-expanded={true}
-            className="w-full flex items-center justify-center gap-1 py-2 text-sm text-gray-500 hover:text-gray-600"
+            className="w-full flex items-center justify-center gap-1 py-2 text-sm text-gray-600 hover:text-gray-700"
           >
             <ChevronUp className="w-4 h-4" />
             접기

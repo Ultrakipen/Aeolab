@@ -165,11 +165,11 @@ function DiagnosisAccordionHeader({
     >
       <span className="flex items-center gap-2 min-w-0">
         {isOpen
-          ? <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
-          : <ChevronRight className="w-4 h-4 text-gray-500 shrink-0" />}
+          ? <ChevronDown className="w-4 h-4 text-gray-600 shrink-0" />
+          : <ChevronRight className="w-4 h-4 text-gray-600 shrink-0" />}
         <span className="text-base font-bold text-gray-900">심층 진단 · 측정 상세</span>
       </span>
-      <span className="text-sm text-gray-500 shrink-0 ml-2">
+      <span className="text-sm text-gray-600 shrink-0 ml-2">
         {isOpen ? "접기" : "자세히 보기"}
       </span>
     </button>
@@ -337,15 +337,15 @@ export default function TrialDetailAccordion({
                 <p className="text-sm font-semibold text-gray-600 mb-0.5">
                   네이버 AI 노출 점수
                 </p>
-                <p className="text-sm text-gray-500 mb-2 leading-tight">
+                <p className="text-sm text-gray-600 mb-2 leading-tight">
                   네이버 브리핑 · 카카오맵
                 </p>
                 <div
                   className={`text-2xl md:text-3xl font-black mb-1 ${
                     naverChannelScore >= 70
-                      ? "text-green-500"
+                      ? "text-green-700"
                       : naverChannelScore >= 40
-                        ? "text-amber-500"
+                        ? "text-amber-700"
                         : "text-red-400"
                   }`}
                 >
@@ -368,15 +368,15 @@ export default function TrialDetailAccordion({
                 <p className="text-sm font-semibold text-gray-600 mb-0.5">
                   Gemini·ChatGPT 인식 현황
                 </p>
-                <p className="text-sm text-gray-500 mb-2 leading-tight">
+                <p className="text-sm text-gray-600 mb-2 leading-tight">
                   Gemini는 콘텐츠로 개선 가능 · ChatGPT는 장기 전략
                 </p>
                 <div
                   className={`text-2xl md:text-3xl font-black mb-1 ${
                     globalChannelScore >= 70
-                      ? "text-green-500"
+                      ? "text-green-700"
                       : globalChannelScore >= 40
-                        ? "text-blue-500"
+                        ? "text-blue-600"
                         : "text-red-400"
                   }`}
                 >

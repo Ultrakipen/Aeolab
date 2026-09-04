@@ -73,7 +73,7 @@ export function HowAeolabIntegrated() {
                 <div className="mb-2 pb-2 border-b" style={{ borderColor: "#E2E8F0" }}>
                   <p className="mb-0.5" style={{ color: "#475569" }}>이번 주 AI 노출 현황</p>
                   <p className="text-base font-black" style={{ color: "#2563EB" }}>
-                    노출 늘었어요 ↑ <span className="text-sm text-green-600 font-bold">(양호 단계 진입)</span>
+                    노출 늘었어요 ↑ <span className="text-sm text-green-700 font-bold">(양호 단계 진입)</span>
                   </p>
                 </div>
                 <p className="mb-0.5" style={{ color: "#475569" }}>ChatGPT 언급: <span className="font-bold text-gray-800">31회 → 38회</span></p>
@@ -162,7 +162,7 @@ export function HowAeolabIntegrated() {
         <p className="text-sm font-bold" style={{ color: "#0F172A" }}>
           키워드 갭 + 7주 추세
         </p>
-        <span className="text-sm text-gray-500">(예시)</span>
+        <span className="text-sm text-gray-600">(예시)</span>
       </div>
       <div className="space-y-1.5 mb-3">
         {[
@@ -419,7 +419,7 @@ export function HowAeolabIntegrated() {
                 <svg
                   className={`w-4 h-4 transition-transform ${mobileOpen === step ? "rotate-180" : ""}`}
                   fill="none"
-                  stroke="#64748B"
+                  stroke="#45556C"
                   viewBox="0 0 24 24"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

@@ -154,7 +154,7 @@ export default function TrialStatusSummary({
   region,
 }: TrialStatusSummaryProps) {
   const scoreColor =
-    score >= 70 ? "text-green-600" : score >= 40 ? "text-blue-600" : "text-red-500";
+    score >= 70 ? "text-green-700" : score >= 40 ? "text-blue-600" : "text-red-700";
   const stageBadgeColor =
     score >= 70
       ? "bg-green-100 text-green-700"
@@ -172,19 +172,19 @@ export default function TrialStatusSummary({
   if (userGroup === "INACTIVE" || userGroup === "franchise") {
     briefingStatus = "na";
     briefingValue = userGroup === "franchise" ? "프랜차이즈 제외" : "비대상 업종";
-    briefingStatusColor = "text-gray-500";
+    briefingStatusColor = "text-gray-600";
   } else if (userGroup === "LIKELY") {
     briefingStatus = "na";
     briefingValue = "확장 예정";
-    briefingStatusColor = "text-blue-500";
+    briefingStatusColor = "text-blue-600";
   } else if (inBriefing === true) {
     briefingStatus = "ok";
     briefingValue = "노출 중";
-    briefingStatusColor = "text-green-600";
+    briefingStatusColor = "text-green-700";
   } else if (inBriefing === false) {
     briefingStatus = "no";
     briefingValue = "미노출";
-    briefingStatusColor = "text-red-500";
+    briefingStatusColor = "text-red-700";
   } else {
     briefingStatus = "na";
     briefingValue = "무료 체험 미포함";
@@ -194,14 +194,14 @@ export default function TrialStatusSummary({
   // ChatGPT 상태
   const chatgptStatus: "ok" | "no" = chatgptMentioned === true ? "ok" : "no";
   const chatgptValue = chatgptMentioned === true ? "언급됨" : "미언급";
-  const chatgptStatusColor = chatgptMentioned === true ? "text-green-600" : "text-red-500";
+  const chatgptStatusColor = chatgptMentioned === true ? "text-green-700" : "text-red-700";
 
   // 블로그 후기 상태
   const blogStatus: "ok" | "warn" | "no" =
     blogCount >= 10 ? "ok" : blogCount >= 3 ? "warn" : "no";
   const blogValue = `${blogCount}건`;
   const blogStatusColor =
-    blogCount >= 10 ? "text-green-600" : blogCount >= 3 ? "text-yellow-600" : "text-red-500";
+    blogCount >= 10 ? "text-green-700" : blogCount >= 3 ? "text-yellow-600" : "text-red-700";
 
   // 소개글 Q&A 상태
   let faqStatus: "ok" | "no" | "na";
@@ -211,15 +211,15 @@ export default function TrialStatusSummary({
   if (!isSmartPlace) {
     faqStatus = "na";
     faqValue = "스마트플레이스 미등록";
-    faqStatusColor = "text-gray-500";
+    faqStatusColor = "text-gray-600";
   } else if (hasFaq) {
     faqStatus = "ok";
     faqValue = "있음";
-    faqStatusColor = "text-green-600";
+    faqStatusColor = "text-green-700";
   } else {
     faqStatus = "no";
     faqValue = "없음";
-    faqStatusColor = "text-red-500";
+    faqStatusColor = "text-red-700";
   }
 
   const conclusion = getConclusion({ inBriefing, isSmartPlace, hasFaq, userGroup });
@@ -241,7 +241,7 @@ export default function TrialStatusSummary({
             {businessName} AI 검색 현황
           </p>
           {categoryLabel && region && (
-            <p className="text-sm text-gray-500 mb-2">
+            <p className="text-sm text-gray-600 mb-2">
               {categoryLabel} · {region}
             </p>
           )}
@@ -259,7 +259,7 @@ export default function TrialStatusSummary({
               <span className={`text-4xl font-black leading-none ${scoreColor}`}>
                 {score}
               </span>
-              <span className="text-lg text-gray-500 font-normal mb-1">/ 100</span>
+              <span className="text-lg text-gray-600 font-normal mb-1">/ 100</span>
             </div>
           </div>
 
@@ -273,17 +273,17 @@ export default function TrialStatusSummary({
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex gap-4 text-sm">
               <div>
-                <span className="text-gray-500">네이버</span>
+                <span className="text-gray-600">네이버</span>
                 <span className="ml-1.5 font-bold text-blue-700">{track1}점</span>
               </div>
               <div>
-                <span className="text-gray-500">글로벌 AI</span>
+                <span className="text-gray-600">글로벌 AI</span>
                 <span className="ml-1.5 font-bold text-gray-600">{track2}점</span>
               </div>
             </div>
             <a
               href="#score-breakdown"
-              className="text-sm text-blue-500 underline underline-offset-2 hover:text-blue-700 transition-colors"
+              className="text-sm text-blue-600 underline underline-offset-2 hover:text-blue-700 transition-colors"
             >
               점수 계산 방법 ↓
             </a>
@@ -295,7 +295,7 @@ export default function TrialStatusSummary({
           <p className="text-sm font-bold text-gray-700 mb-2">지금 어떤 AI가 내 가게를 알고 있나요?</p>
           <div>
             <StatusRow
-              icon={<Sparkles className="w-5 h-5 text-green-600" />}
+              icon={<Sparkles className="w-5 h-5 text-green-700" />}
               iconBg="bg-green-50"
               label="네이버 AI 브리핑"
               status={briefingStatus}
@@ -319,7 +319,7 @@ export default function TrialStatusSummary({
               value={blogValue}
             />
             <StatusRow
-              icon={<PenLine className="w-5 h-5 text-orange-500" />}
+              icon={<PenLine className="w-5 h-5 text-orange-700" />}
               iconBg="bg-orange-50"
               label="소개글 Q&A 여부"
               status={faqStatus}

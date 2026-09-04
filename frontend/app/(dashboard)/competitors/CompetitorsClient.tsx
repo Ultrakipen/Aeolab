@@ -171,11 +171,11 @@ function planAtLeast(current: string, required: string): boolean {
 // 점수 색상 유틸
 function getScoreColor(score: number, compare?: number): string {
   if (compare !== undefined) {
-    return score >= compare ? 'text-red-500' : 'text-emerald-600'
+    return score >= compare ? 'text-red-700' : 'text-emerald-700'
   }
-  if (score >= 70) return 'text-emerald-600'
-  if (score >= 40) return 'text-amber-600'
-  return 'text-red-500'
+  if (score >= 70) return 'text-emerald-700'
+  if (score >= 40) return 'text-amber-700'
+  return 'text-red-700'
 }
 function getScoreBarColor(score: number, compare?: number): string {
   if (compare !== undefined) {
@@ -188,7 +188,7 @@ function getScoreBarColor(score: number, compare?: number): string {
 function getScoreBadgeCls(score: number): string {
   if (score >= 70) return 'bg-emerald-50 text-emerald-700 border-emerald-200'
   if (score >= 40) return 'bg-amber-50 text-amber-700 border-amber-200'
-  return 'bg-red-50 text-red-600 border-red-200'
+  return 'bg-red-50 text-red-700 border-red-200'
 }
 
 // GrowthStage 텍스트 헬퍼 (score_engine.py 기준)
@@ -196,7 +196,7 @@ function getGrowthStageText(score: number): { label: string; cls: string } {
   if (score >= 75) return { label: '지역 1등', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' }
   if (score >= 55) return { label: '빠른 성장', cls: 'bg-blue-50 text-blue-700 border-blue-200' }
   if (score >= 30) return { label: '성장 중',  cls: 'bg-amber-50 text-amber-700 border-amber-200' }
-  return { label: '시작 단계', cls: 'bg-gray-100 text-gray-500 border-gray-200' }
+  return { label: '시작 단계', cls: 'bg-gray-100 text-gray-600 border-gray-200' }
 }
 
 // 순위 배지
@@ -211,7 +211,7 @@ function RankBadge({ rank }: { rank: number }) {
     <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-orange-300 text-white font-black text-sm shadow-sm">3</span>
   )
   return (
-    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 text-gray-500 font-bold text-sm">{rank}</span>
+    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 text-gray-600 font-bold text-sm">{rank}</span>
   )
 }
 
@@ -231,9 +231,9 @@ function LockedFeature({ requiredPlan, feature }: { requiredPlan: string; featur
         </div>
       </div>
       <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/85 backdrop-blur-sm rounded-xl">
-        <Lock className="w-5 h-5 text-gray-500 mb-1.5" />
+        <Lock className="w-5 h-5 text-gray-600 mb-1.5" />
         <p className="text-sm font-semibold text-gray-700">{requiredPlan} 플랜 전용</p>
-        <p className="text-sm text-gray-500 mb-3 text-center px-4">{feature}</p>
+        <p className="text-sm text-gray-600 mb-3 text-center px-4">{feature}</p>
         <a href="/pricing" className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-lg hover:bg-blue-700 transition-colors font-medium">
           업그레이드
         </a>
@@ -268,7 +268,7 @@ function FreePlanPreview() {
           <div className="bg-blue-600 px-4 py-3 flex items-center gap-2">
             <Shield className="w-4 h-4 text-white" />
             <span className="text-white font-bold text-sm">Basic 플랜</span>
-            <span className="ml-auto text-blue-200 text-sm font-medium">월 {PLAN_PRICES.basic.toLocaleString()}원</span>
+            <span className="ml-auto text-blue-100 text-sm font-medium">월 {PLAN_PRICES.basic.toLocaleString()}원</span>
           </div>
           <div className="p-4">
             <p className="text-sm font-semibold text-gray-800 mb-3">경쟁 가게 AI 노출 점수 비교</p>
@@ -279,7 +279,7 @@ function FreePlanPreview() {
                 { label: '경쟁사 B', width: '38%', color: 'bg-emerald-300' },
               ].map(item => (
                 <div key={item.label}>
-                  <div className="flex justify-between text-sm text-gray-500 mb-1">
+                  <div className="flex justify-between text-sm text-gray-600 mb-1">
                     <span>{item.label}</span>
                     <div className="h-3 w-12 bg-gray-200 rounded animate-pulse" />
                   </div>
@@ -300,14 +300,14 @@ function FreePlanPreview() {
           <div className="bg-purple-600 px-4 py-3 flex items-center gap-2">
             <Zap className="w-4 h-4 text-white" />
             <span className="text-white font-bold text-sm">Pro 플랜</span>
-            <span className="ml-auto text-purple-200 text-sm font-medium">월 {PLAN_PRICES.pro.toLocaleString()}원</span>
+            <span className="ml-auto text-purple-100 text-sm font-medium">월 {PLAN_PRICES.pro.toLocaleString()}원</span>
           </div>
           <div className="p-4">
             <p className="text-sm font-semibold text-gray-800 mb-3">키워드 차이 분석 + 성장 단계 비교</p>
             <div className="space-y-2 blur-sm pointer-events-none select-none">
               <div className="flex flex-wrap gap-1.5">
                 {['혼밥', '혼술', '웨이팅'].map(k => (
-                  <span key={k} className="bg-red-100 text-red-600 text-sm px-2 py-0.5 rounded-full border border-red-200">{k}</span>
+                  <span key={k} className="bg-red-100 text-red-700 text-sm px-2 py-0.5 rounded-full border border-red-200">{k}</span>
                 ))}
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -315,8 +315,8 @@ function FreePlanPreview() {
                   <span key={k} className="bg-emerald-100 text-emerald-700 text-sm px-2 py-0.5 rounded-full border border-emerald-200">{k}</span>
                 ))}
               </div>
-              <div className="bg-gray-50 rounded-lg p-2 text-sm text-gray-500">
-                성장 단계: <span className="font-semibold text-amber-600">성장 중</span> → <span className="font-semibold text-emerald-600">빠른 성장</span> 진입 가능
+              <div className="bg-gray-50 rounded-lg p-2 text-sm text-gray-600">
+                성장 단계: <span className="font-semibold text-amber-700">성장 중</span> → <span className="font-semibold text-emerald-700">빠른 성장</span> 진입 가능
               </div>
             </div>
             <a href="/pricing" className="mt-4 block w-full text-center bg-purple-600 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-purple-700 transition-colors">
@@ -358,7 +358,7 @@ function FreePlanPreview() {
 
       <div className="bg-gray-900 rounded-xl p-5 md:p-6 text-center">
         <p className="text-white font-bold text-base md:text-lg mb-1">무료 체험으로 지금 바로 시작</p>
-        <p className="text-gray-500 text-sm mb-4">신용카드 없이 무료 진단 후, 유료 구독 첫 달 50% 할인</p>
+        <p className="text-gray-600 text-sm mb-4">신용카드 없이 무료 진단 후, 유료 구독 첫 달 50% 할인</p>
         <a href="/pricing" className="inline-flex items-center gap-2 bg-white text-gray-900 font-bold text-sm px-6 py-2.5 rounded-xl hover:bg-gray-100 transition-colors">
           요금제 보기 <ArrowRight className="w-4 h-4" />
         </a>
@@ -452,24 +452,24 @@ function GapCard({
     <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Share2 className="w-4 h-4 text-gray-500" />
+          <Share2 className="w-4 h-4 text-gray-600" />
           <div>
             <div className="text-sm font-semibold text-gray-700">AI 경쟁 현황 카드</div>
-            <div className="text-sm text-gray-500">카카오톡·SNS 공유용 이미지</div>
+            <div className="text-sm text-gray-600">카카오톡·SNS 공유용 이미지</div>
           </div>
         </div>
         {loading && (
-          <span className="text-sm text-gray-500 flex items-center gap-1.5">
+          <span className="text-sm text-gray-600 flex items-center gap-1.5">
             <RefreshCw className="w-3.5 h-3.5 animate-spin" />생성 중...
           </span>
         )}
       </div>
       {!loading && !imgUrl && genError && (
         <div className="flex items-center justify-between gap-3 bg-red-50 border border-red-100 rounded-xl px-3 py-2.5">
-          <p className="text-sm text-red-600">카드 생성에 실패했습니다.</p>
+          <p className="text-sm text-red-700">카드 생성에 실패했습니다.</p>
           <button
             onClick={() => generate()}
-            className="text-sm font-semibold text-red-600 hover:text-red-700 shrink-0"
+            className="text-sm font-semibold text-red-700 hover:text-red-800 shrink-0"
           >
             다시 시도
           </button>
@@ -504,7 +504,7 @@ function GapCard({
             </button>
             <button
               onClick={() => { setImgUrl(null); generate() }}
-              className="text-sm border border-gray-200 text-gray-500 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+              className="text-sm border border-gray-200 text-gray-600 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors"
               title="카드 새로고침"
             >
               <RefreshCw className="w-4 h-4" />
@@ -512,14 +512,14 @@ function GapCard({
           </div>
           {isScoreSuspect && (
             <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-800">
-              <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+              <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="font-semibold mb-1">경쟁사 점수가 비슷하게 나타납니다.</p>
                 <p>처음 등록된 경쟁사는 스캔 전 상태입니다. AI 스캔을 실행하면 각 경쟁사의 실제 점수가 계산됩니다.</p>
                 {onRequestScan && (
                   <button
                     onClick={onRequestScan}
-                    className="mt-2 inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold px-3 py-1.5 rounded-lg transition-colors"
+                    className="mt-2 inline-flex items-center gap-1.5 bg-amber-700 hover:bg-amber-800 text-white text-sm font-bold px-3 py-1.5 rounded-lg transition-colors"
                   >
                     <Zap className="w-3.5 h-3.5" />
                     지금 AI 스캔 실행
@@ -699,10 +699,10 @@ function InlineScanModal({
           {step === 'done' ? (
             <>
               <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-7 h-7 text-emerald-600" />
+                <CheckCircle2 className="w-7 h-7 text-emerald-700" />
               </div>
               <h3 className="font-bold text-gray-900 text-base md:text-lg mb-2 text-center">스캔 완료!</h3>
-              <p className="text-sm text-gray-500 text-center">{enrichMsg || '경쟁사 분석 중...'}</p>
+              <p className="text-sm text-gray-600 text-center">{enrichMsg || '경쟁사 분석 중...'}</p>
               <div className="mt-3 flex justify-center">
                 <div className="flex gap-1">
                   {[0,1,2].map(i => (
@@ -717,13 +717,13 @@ function InlineScanModal({
                 <PlayCircle className="w-7 h-7 text-blue-600" />
               </div>
               <h3 className="font-bold text-gray-900 text-base md:text-lg mb-2 text-center">AI 스캔 실행</h3>
-              <p className="text-sm text-gray-500 mb-1 text-center leading-relaxed">
+              <p className="text-sm text-gray-600 mb-1 text-center leading-relaxed">
                 내 가게와 등록된 경쟁사를 동시에 분석합니다.
               </p>
-              <p className="text-sm text-gray-500 mb-5 text-center">약 1~2분 소요됩니다</p>
+              <p className="text-sm text-gray-600 mb-5 text-center">약 1~2분 소요됩니다</p>
 
               {step === 'error' && errorMsg && (
-                <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2.5 mb-4 border border-red-100">
+                <div className="flex items-center gap-2 text-sm text-red-700 bg-red-50 rounded-xl px-3 py-2.5 mb-4 border border-red-100">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   {errorMsg}
                 </div>
@@ -762,10 +762,10 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
     return (
       <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm border border-gray-100">
         <div className="flex items-center gap-2 mb-2">
-          <BarChart2 className="w-4 h-4 text-gray-500" />
+          <BarChart2 className="w-4 h-4 text-gray-600" />
           <div className="text-sm font-semibold text-gray-700">경쟁사 점수 비교</div>
         </div>
-        <p className="text-sm text-gray-500 leading-relaxed">AI 스캔을 실행하면 경쟁사와의 점수를 비교할 수 있습니다.</p>
+        <p className="text-sm text-gray-600 leading-relaxed">AI 스캔을 실행하면 경쟁사와의 점수를 비교할 수 있습니다.</p>
       </div>
     )
   }
@@ -836,7 +836,7 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <BarChart2 className="w-4 h-4 text-blue-500" />
+          <BarChart2 className="w-4 h-4 text-blue-600" />
           <div>
             <div className="text-sm font-semibold text-gray-700">경쟁사 점수 비교</div>
             <div className="text-sm text-gray-600">
@@ -864,8 +864,8 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
                   {e.delta !== null && e.delta !== 0 && (
                     <span className={`text-sm font-bold ${
                       e.isMe
-                        ? (e.delta > 0 ? 'text-emerald-600' : 'text-red-500')
-                        : (e.delta > 0 ? 'text-red-500' : 'text-emerald-600')
+                        ? (e.delta > 0 ? 'text-emerald-700' : 'text-red-700')
+                        : (e.delta > 0 ? 'text-red-700' : 'text-emerald-700')
                     }`}>
                       {e.delta > 0 ? '↑' : '↓'}
                     </span>
@@ -895,15 +895,15 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
             Object.values(s.competitor_scores).some(c => c.name === name)
           )
         ) ? (
-          <p className="text-sm text-blue-500">※ 스캔 미완료 경쟁사는 다음 스캔 후 그래프에 나타납니다.</p>
+          <p className="text-sm text-blue-600">※ 스캔 미완료 경쟁사는 다음 스캔 후 그래프에 나타납니다.</p>
         ) : null}
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <p className="text-sm text-gray-500">막대 길이 = 최신 점수 기반 · 화살표 = 이전 스캔 대비 변화</p>
+          <p className="text-sm text-gray-600">막대 길이 = 최신 점수 기반 · 화살표 = 이전 스캔 대비 변화</p>
           <a href="/guide" className="text-sm text-blue-600 font-medium hover:underline flex items-center gap-1 shrink-0">
             점수 올리는 방법 보기 <ArrowRight className="w-3.5 h-3.5" />
           </a>
         </div>
-        <p className="text-sm text-amber-600 bg-amber-50 rounded px-2 py-1">{TRACK1_ESTIMATED_NOTE}</p>
+        <p className="text-sm text-amber-700 bg-amber-50 rounded px-2 py-1">{TRACK1_ESTIMATED_NOTE}</p>
       </div>
     </div>
   )
@@ -1026,7 +1026,7 @@ function CompetitorMap({
           },
         })
         const iw = new nMaps.InfoWindow({
-          content: `<div style="padding:8px 12px;font-size:13px"><div style="font-weight:600;color:#f97316;margin-bottom:2px">등록된 경쟁사</div><div style="font-weight:600;margin-bottom:1px">${c.name}</div>${c.address ? `<div style="color:#666;font-size:12px">${c.address}</div>` : ''}</div>`,
+          content: `<div style="padding:8px 12px;font-size:13px"><div style="font-weight:600;color:#ca3500;margin-bottom:2px">등록된 경쟁사</div><div style="font-weight:600;margin-bottom:1px">${c.name}</div>${c.address ? `<div style="color:#666;font-size:12px">${c.address}</div>` : ''}</div>`,
         })
         nMaps.Event.addListener(marker, 'click', () => {
           infoWindowsRef.current.forEach(w => w.close())
@@ -1082,7 +1082,7 @@ function CompetitorMap({
       <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
       {mapLoading && !mapError && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-50" style={{ zIndex: 5 }}>
-          <div className="text-center text-gray-500 text-sm">
+          <div className="text-center text-gray-600 text-sm">
             <div className="w-6 h-6 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-2" />
             지도 불러오는 중...
           </div>
@@ -1189,7 +1189,7 @@ function CompetitorSparkline({ competitorName, trendScans }: { competitorName: s
         </ResponsiveContainer>
       </div>
       {trend !== 0 && (
-        <span className={`text-sm font-bold ${trend > 0 ? 'text-red-500' : 'text-emerald-600'}`}
+        <span className={`text-sm font-bold ${trend > 0 ? 'text-red-700' : 'text-emerald-700'}`}
           title={trend > 0 ? '경쟁사 상승 (내 가게 기준으로 불리)' : '경쟁사 하락 (내 가게 기준으로 유리)'}>
           {trend > 0 ? '↑' : '↓'}
         </span>
@@ -1262,13 +1262,13 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
         <div className="flex items-center justify-between px-5 md:px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10 rounded-t-2xl">
           <div>
             <p className="text-base md:text-lg font-bold text-gray-900">1:1 상세 비교</p>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-600 mt-0.5">
               <span className="text-blue-600 font-semibold">{bizName}</span>
-              <span className="mx-2 text-gray-300 font-bold">vs</span>
+              <span className="mx-2 text-gray-600 font-bold">vs</span>
               <span className="text-gray-800 font-semibold">{competitor.name}</span>
             </p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-600 transition-colors">
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-700 transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -1282,7 +1282,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
               {/* AI 노출 총점 */}
               <div>
                 <p className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5">
-                  <BarChart2 className="w-4 h-4 text-gray-500" />AI 노출 총점
+                  <BarChart2 className="w-4 h-4 text-gray-600" />AI 노출 총점
                 </p>
                 {[
                   { name: `${bizName}`, label: '내 가게', score: myTotal, stageScore: myStageTotal, isMe: true },
@@ -1291,7 +1291,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                   <div key={e.name} className="mb-3">
                     <div className="flex items-center justify-between text-sm mb-1.5 gap-2">
                       <span className={`font-semibold truncate max-w-[140px] ${e.isMe ? 'text-blue-700' : 'text-gray-700'}`}>
-                        <span className="text-sm text-gray-500 mr-1">{e.label}</span>{e.name}
+                        <span className="text-sm text-gray-600 mr-1">{e.label}</span>{e.name}
                       </span>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${
@@ -1310,9 +1310,9 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                   </div>
                 ))}
                 <div className={`text-sm font-semibold mt-1 px-3 py-2 rounded-lg ${
-                  compTotal > myTotal ? 'bg-red-50 text-red-600' :
+                  compTotal > myTotal ? 'bg-red-50 text-red-700' :
                   compTotal < myTotal ? 'bg-emerald-50 text-emerald-700' :
-                  'bg-gray-50 text-gray-500'
+                  'bg-gray-50 text-gray-600'
                 }`}>
                   {compTotal > myTotal
                     ? `경쟁사가 ${getGrowthStageText(compTotal).label} 단계로 앞서 있습니다`
@@ -1320,18 +1320,18 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                     ? `내 가게가 ${getGrowthStageText(myStageTotal).label} 단계로 앞서 있습니다`
                     : '두 가게 같은 성장 단계'}
                 </div>
-                <p className="text-sm text-gray-500 mt-1.5">{`* '지역 1등'·'빠른 성장'·'성장 중'은 변화 기록·성장 리포트의 '양호'·'보통'·'주의 필요'와 같은 구간입니다`}</p>
+                <p className="text-sm text-gray-600 mt-1.5">{`* '지역 1등'·'빠른 성장'·'성장 중'은 변화 기록·성장 리포트의 '양호'·'보통'·'주의 필요'와 같은 구간입니다`}</p>
               </div>
 
               {/* 수치 비교 */}
               <div>
                 <p className="text-sm font-bold text-gray-700 mb-1 flex items-center gap-1.5">
-                  <Star className="w-4 h-4 text-gray-500" />주요 수치 비교
+                  <Star className="w-4 h-4 text-gray-600" />주요 수치 비교
                 </p>
-                <p className="text-sm text-gray-500 mb-3">* 마지막 동기화 시점 기준 — 실시간 값과 다를 수 있습니다</p>
+                <p className="text-sm text-gray-600 mb-3">* 마지막 동기화 시점 기준 — 실시간 값과 다를 수 있습니다</p>
                 <div className="overflow-x-auto">
                 <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-100 min-w-[280px]">
-                  <div className="grid grid-cols-3 text-sm font-semibold text-gray-500 px-4 py-2.5 border-b border-gray-200 bg-gray-100">
+                  <div className="grid grid-cols-3 text-sm font-semibold text-gray-600 px-4 py-2.5 border-b border-gray-200 bg-gray-100">
                     <span>항목</span>
                     <span className="text-center text-blue-600">내 가게</span>
                     <span className="text-center text-gray-600">경쟁사</span>
@@ -1346,8 +1346,8 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                       return (
                         <div key={row.label} className="grid grid-cols-3 px-4 py-3 border-b border-gray-100 last:border-0 items-center">
                           <span className="text-sm text-gray-600 font-medium">{row.label}</span>
-                          <span className="text-center text-sm text-gray-500">{isRatingRow ? '정보 없음' : '측정 실패'}</span>
-                          <span className="text-center text-sm font-bold text-gray-500">
+                          <span className="text-center text-sm text-gray-600">{isRatingRow ? '정보 없음' : '측정 실패'}</span>
+                          <span className="text-center text-sm font-bold text-gray-600">
                             {row.decimals ? Number(row.compVal).toFixed(row.decimals) : String(row.compVal)}{row.unit}
                           </span>
                         </div>
@@ -1360,10 +1360,10 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                     return (
                       <div key={row.label} className="grid grid-cols-3 px-4 py-3 border-b border-gray-100 last:border-0 items-center">
                         <span className="text-sm text-gray-600 font-medium">{row.label}</span>
-                        <span className={`text-center text-sm font-bold ${!tie && myWin ? 'text-emerald-600' : !tie ? 'text-red-500' : 'text-gray-500'}`}>
+                        <span className={`text-center text-sm font-bold ${!tie && myWin ? 'text-emerald-700' : !tie ? 'text-red-700' : 'text-gray-600'}`}>
                           {myV}{row.unit}
                         </span>
-                        <span className={`text-center text-sm font-bold ${!tie && !myWin ? 'text-red-500' : !tie ? 'text-emerald-600' : 'text-gray-500'}`}>
+                        <span className={`text-center text-sm font-bold ${!tie && !myWin ? 'text-red-700' : !tie ? 'text-emerald-700' : 'text-gray-600'}`}>
                           {cmpV}{row.unit}
                         </span>
                       </div>
@@ -1380,7 +1380,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
               {(competitor.place_has_faq !== undefined || competitor.place_has_menu !== undefined) && (
                 <div>
                   <p className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-gray-500" />스마트플레이스 (경쟁사)
+                    <MapPin className="w-4 h-4 text-gray-600" />스마트플레이스 (경쟁사)
                   </p>
                   <div className="grid grid-cols-2 gap-2">
                     {[
@@ -1390,7 +1390,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                       { label: '메뉴·가격',     val: competitor.place_has_menu },
                     ].map(({ label, val }) => val !== undefined ? (
                       <div key={label} className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold border ${
-                        val ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-500 border-gray-200'
+                        val ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-600 border-gray-200'
                       }`}>
                         {val
                           ? <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -1400,8 +1400,8 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                     ) : null)}
                   </div>
                   {competitor.place_photo_count != null && (
-                    <p className="text-sm text-gray-500 mt-2.5 flex items-center gap-1.5">
-                      <span className="text-gray-500">사진</span>
+                    <p className="text-sm text-gray-600 mt-2.5 flex items-center gap-1.5">
+                      <span className="text-gray-600">사진</span>
                       <strong className="text-gray-700">{competitor.place_photo_count}장</strong>
                     </p>
                   )}
@@ -1411,7 +1411,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
               {/* 웹사이트 */}
               <div>
                 <p className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-1.5">
-                  <Share2 className="w-4 h-4 text-gray-500" />웹사이트
+                  <Share2 className="w-4 h-4 text-gray-600" />웹사이트
                 </p>
                 <div className={`flex items-center justify-between px-4 py-3 rounded-xl border ${
                   competitor.website_url ? 'bg-emerald-50 border-emerald-200' : 'bg-gray-50 border-gray-200'
@@ -1419,21 +1419,21 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                   <span className="text-sm font-semibold text-gray-700">경쟁사 웹사이트</span>
                   {competitor.website_url ? (
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-emerald-600">있음</span>
+                      <span className="text-sm font-bold text-emerald-700">있음</span>
                       {competitor.website_seo_score != null && (
                         <span className={`text-sm font-semibold px-2 py-0.5 rounded-lg border ${
                           competitor.website_seo_score >= 70
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                             : competitor.website_seo_score >= 40
                             ? 'bg-amber-50 text-amber-700 border-amber-200'
-                            : 'bg-red-50 text-red-600 border-red-200'
+                            : 'bg-red-50 text-red-700 border-red-200'
                         }`}>
                           AI 최적화 {competitor.website_seo_score >= 70 ? '양호' : competitor.website_seo_score >= 40 ? '보통' : '미흡'}
                         </span>
                       )}
                     </div>
                   ) : (
-                    <span className="text-sm font-semibold text-gray-500">없음</span>
+                    <span className="text-sm font-semibold text-gray-600">없음</span>
                   )}
                 </div>
                 {!competitor.website_url && (
@@ -1447,9 +1447,9 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
           {compScore && (
             <div className="mt-5 pt-5 border-t border-gray-100">
               <p className="text-sm font-bold text-gray-700 mb-1 flex items-center gap-1.5">
-                <Target className="w-4 h-4 text-gray-500" />경쟁사 요약
+                <Target className="w-4 h-4 text-gray-600" />경쟁사 요약
               </p>
-              <p className="text-sm text-amber-600 bg-amber-50 rounded px-2 py-1 mb-3">{TRACK1_ESTIMATED_NOTE}</p>
+              <p className="text-sm text-amber-700 bg-amber-50 rounded px-2 py-1 mb-3">{TRACK1_ESTIMATED_NOTE}</p>
               {(() => {
                 const bd = compScore.breakdown ?? {}
 
@@ -1480,7 +1480,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                         <div className="flex items-center justify-between text-sm mb-1">
                           <span className="text-gray-600">AI 언급 여부 (추정)</span>
                           <span className={`text-sm font-semibold px-1.5 py-0.5 rounded-full ${
-                            aiMention >= 70 ? 'bg-emerald-50 text-emerald-700' : aiMention >= 40 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'
+                            aiMention >= 70 ? 'bg-emerald-50 text-emerald-700' : aiMention >= 40 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'
                           }`}>
                             {aiMention >= 70 ? '양호' : aiMention >= 40 ? '보통' : '미흡'}
                           </span>
@@ -1507,7 +1507,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                         </div>
                         {/* 리뷰 0개인데 평점만 존재 — 크롤링 부분 실패 가능성, 사용자 혼동 방지 캐비엇 */}
                         {competitor.place_review_count === 0 && typeof competitor.place_avg_rating === 'number' && competitor.place_avg_rating > 0 && (
-                          <p className="text-sm text-amber-600 mt-0.5 flex items-center gap-1">
+                          <p className="text-sm text-amber-700 mt-0.5 flex items-center gap-1">
                             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                             동기화 불완전 — 리뷰 수 미확인. 재스캔을 권장합니다.
                           </p>
@@ -1518,7 +1518,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                         <div className="flex items-center justify-between text-sm mb-1">
                           <span className="text-gray-600">리뷰·평점 (추정)</span>
                           <span className={`text-sm font-semibold px-1.5 py-0.5 rounded-full ${
-                            reviewEstScore >= 70 ? 'bg-emerald-50 text-emerald-700' : reviewEstScore >= 40 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'
+                            reviewEstScore >= 70 ? 'bg-emerald-50 text-emerald-700' : reviewEstScore >= 40 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'
                           }`}>
                             {reviewEstScore >= 70 ? '양호' : reviewEstScore >= 40 ? '보통' : '미흡'}
                           </span>
@@ -1538,17 +1538,17 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                         <span className="text-gray-600 shrink-0">스마트플레이스</span>
                         <div className="flex items-center gap-2 flex-wrap justify-end">
                           {competitor.place_has_intro !== undefined && (
-                            <span className={`font-medium ${competitor.place_has_intro ? 'text-emerald-600' : 'text-gray-500'}`}>
+                            <span className={`font-medium ${competitor.place_has_intro ? 'text-emerald-700' : 'text-gray-600'}`}>
                               {competitor.place_has_intro ? '✓' : '✗'} 소개글
                             </span>
                           )}
                           {competitor.place_has_recent_post !== undefined && (
-                            <span className={`font-medium ${competitor.place_has_recent_post ? 'text-emerald-600' : 'text-gray-500'}`}>
+                            <span className={`font-medium ${competitor.place_has_recent_post ? 'text-emerald-700' : 'text-gray-600'}`}>
                               {competitor.place_has_recent_post ? '✓' : '✗'} 최신 소식
                             </span>
                           )}
                           {competitor.place_has_menu !== undefined && (
-                            <span className={`font-medium ${competitor.place_has_menu ? 'text-emerald-600' : 'text-gray-500'}`}>
+                            <span className={`font-medium ${competitor.place_has_menu ? 'text-emerald-700' : 'text-gray-600'}`}>
                               {competitor.place_has_menu ? '✓' : '✗'} 메뉴
                             </span>
                           )}
@@ -1559,7 +1559,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                         <div className="flex items-center justify-between text-sm mb-1">
                           <span className="text-gray-600">스마트플레이스 완성도 (추정)</span>
                           <span className={`text-sm font-semibold px-1.5 py-0.5 rounded-full ${
-                            spEstScore >= 70 ? 'bg-emerald-50 text-emerald-700' : spEstScore >= 40 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-600'
+                            spEstScore >= 70 ? 'bg-emerald-50 text-emerald-700' : spEstScore >= 40 ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'
                           }`}>
                             {spEstScore >= 70 ? '양호' : spEstScore >= 40 ? '보통' : '미흡'}
                           </span>
@@ -1575,7 +1575,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                   </div>
                 )
               })()}
-              <p className="text-sm text-gray-500 mt-3">낮은 점수 항목이 내 가게의 선점 기회입니다.</p>
+              <p className="text-sm text-gray-600 mt-3">낮은 점수 항목이 내 가게의 선점 기회입니다.</p>
             </div>
           )}
         </div>
@@ -1591,8 +1591,8 @@ function SectionDivider({ title, icon: Icon }: { title: string; icon?: React.Com
     <div className="flex items-center gap-3 my-2">
       <div className="flex-1 h-px bg-gray-200" />
       <div className="flex items-center gap-1.5 shrink-0">
-        {Icon && <Icon className="w-3.5 h-3.5 text-gray-500" />}
-        <span className="text-sm font-semibold text-gray-500 tracking-wide">{title}</span>
+        {Icon && <Icon className="w-3.5 h-3.5 text-gray-600" />}
+        <span className="text-sm font-semibold text-gray-600 tracking-wide">{title}</span>
       </div>
       <div className="flex-1 h-px bg-gray-200" />
     </div>
@@ -2032,7 +2032,7 @@ export function CompetitorsClient({
                 등록된 경쟁 가게
               </div>
               {lastScannedAt && (
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-gray-600">
                   마지막 스캔 {new Date(lastScannedAt).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
                 </div>
               )}
@@ -2051,7 +2051,7 @@ export function CompetitorsClient({
             </button>
             <span className={`text-sm font-semibold px-3 py-1 rounded-full border ${
               limitReached
-                ? 'bg-red-50 text-red-600 border-red-200'
+                ? 'bg-red-50 text-red-700 border-red-200'
                 : 'bg-blue-50 text-blue-600 border-blue-200'
             }`}>
               {planLimit >= 999 ? `${competitors.length}개` : `${competitors.length} / ${planLimit}개`}
@@ -2066,13 +2066,13 @@ export function CompetitorsClient({
         const unscannedCount = competitors.filter(c => !competitorScores?.[c.id]).length
         return unscannedCount > 0 && competitorScores && Object.keys(competitorScores).length > 0 ? (
           <div className="px-4 md:px-6 py-3 bg-amber-50 border-b border-amber-200 flex flex-col sm:flex-row sm:items-center gap-2">
-            <Zap className="w-4 h-4 text-amber-600 shrink-0" />
+            <Zap className="w-4 h-4 text-amber-700 shrink-0" />
             <p className="text-sm text-amber-800 flex-1">
               <strong>{unscannedCount}개 경쟁사</strong>는 이번 스캔에 포함되지 않았습니다. AI 스캔을 다시 실행하면 모든 경쟁사 점수를 최신화합니다.
             </p>
             <button
               onClick={() => setShowInlineScan(true)}
-              className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+              className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold bg-amber-700 hover:bg-amber-800 text-white px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
             >
               <Zap className="w-3.5 h-3.5" />지금 스캔
             </button>
@@ -2135,7 +2135,7 @@ export function CompetitorsClient({
               <p className="text-base md:text-lg font-bold text-white mb-1">
                 경쟁사 1곳을 추가하면 AI 노출 비교 분석을 받을 수 있습니다
               </p>
-              <p className="text-sm text-blue-200 leading-relaxed">
+              <p className="text-sm text-blue-100 leading-relaxed">
                 어느 가게가 AI에 더 잘 나오는지, 내가 없는 키워드는 무엇인지 바로 확인하세요.
               </p>
             </div>
@@ -2154,16 +2154,16 @@ export function CompetitorsClient({
               <Building2 className="w-7 h-7 text-blue-400" />
             </div>
             <p className="text-base font-bold text-gray-800 mb-1">아직 경쟁 가게가 없습니다</p>
-            <p className="text-sm text-gray-500 mb-5 leading-relaxed max-w-xs mx-auto">
+            <p className="text-sm text-gray-600 mb-5 leading-relaxed max-w-xs mx-auto">
               주변 경쟁 가게를 등록하면 AI 검색 노출 점수를 비교할 수 있습니다.
             </p>
-            <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-left space-y-2 text-sm text-gray-500 max-w-sm mx-auto">
+            <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-left space-y-2 text-sm text-gray-600 max-w-sm mx-auto">
               <p className="font-semibold text-gray-700 mb-2 flex items-center gap-1.5">
-                <Info className="w-4 h-4 text-blue-500" />사용 방법
+                <Info className="w-4 h-4 text-blue-600" />사용 방법
               </p>
-              <p className="flex items-start gap-2"><span className="text-blue-500 font-bold shrink-0">1.</span> 아래 &quot;지역 검색&quot; 탭에서 경쟁 가게 이름 입력</p>
-              <p className="flex items-start gap-2"><span className="text-blue-500 font-bold shrink-0">2.</span> 검색 결과에서 경쟁 가게 선택 후 등록</p>
-              <p className="flex items-start gap-2"><span className="text-blue-500 font-bold shrink-0">3.</span> 대시보드에서 &quot;AI 스캔 시작&quot; → 점수 비교 확인</p>
+              <p className="flex items-start gap-2"><span className="text-blue-600 font-bold shrink-0">1.</span> 아래 &quot;지역 검색&quot; 탭에서 경쟁 가게 이름 입력</p>
+              <p className="flex items-start gap-2"><span className="text-blue-600 font-bold shrink-0">2.</span> 검색 결과에서 경쟁 가게 선택 후 등록</p>
+              <p className="flex items-start gap-2"><span className="text-blue-600 font-bold shrink-0">3.</span> 대시보드에서 &quot;AI 스캔 시작&quot; → 점수 비교 확인</p>
             </div>
           </div>
         </div>
@@ -2198,7 +2198,7 @@ export function CompetitorsClient({
                     <div className="flex items-start gap-3 flex-1 min-w-[200px]">
                       <div className="shrink-0 mt-0.5">
                         {cs ? <RankBadge rank={compRank} /> : (
-                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 text-gray-500 font-bold text-sm">{compRank}</span>
+                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 text-gray-600 font-bold text-sm">{compRank}</span>
                         )}
                       </div>
 
@@ -2206,7 +2206,7 @@ export function CompetitorsClient({
                         {/* 1행: 이름 + 핀 + 메모 + 변화감지 */}
                         <div className="flex items-center gap-2 flex-wrap">
                           {pinnedIds.has(c.id) && (
-                            <Pin className="w-3 h-3 text-blue-500 fill-blue-400 shrink-0" />
+                            <Pin className="w-3 h-3 text-blue-600 fill-blue-400 shrink-0" />
                           )}
                           <span className="font-bold text-gray-900 text-sm md:text-base">{c.name}</span>
                           {memos[c.id] && (
@@ -2228,7 +2228,7 @@ export function CompetitorsClient({
                             </span>
                           )}
                           {csDelta !== null && csDelta !== 0 && (
-                            <span className={`hidden md:inline-flex text-sm font-bold px-1.5 py-0.5 rounded-full ${csDelta > 0 ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-600'}`}
+                            <span className={`hidden md:inline-flex text-sm font-bold px-1.5 py-0.5 rounded-full ${csDelta > 0 ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}
                               title={csDelta > 0 ? '지난 스캔 대비 상승 (경쟁사 강화)' : '지난 스캔 대비 하락 (내 가게에 유리)'}>
                               {csDelta > 0 ? '↑ 상승' : '↓ 하락'}
                             </span>
@@ -2248,7 +2248,7 @@ export function CompetitorsClient({
                             <span className={`text-sm px-2 py-0.5 rounded-full font-medium border ${
                               cs.mentioned
                                 ? 'bg-orange-50 text-orange-700 border-orange-200'
-                                : 'bg-gray-50 text-gray-500 border-gray-200'
+                                : 'bg-gray-50 text-gray-600 border-gray-200'
                             }`}>
                               {cs.mentioned ? 'AI 노출됨' : 'AI 미노출'}
                             </span>
@@ -2259,14 +2259,14 @@ export function CompetitorsClient({
                               </span>
                             )}
                             {csDelta !== null && csDelta !== 0 && (
-                              <span className={`md:hidden text-sm font-bold px-1.5 py-0.5 rounded-full ${csDelta > 0 ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-600'}`}>
+                              <span className={`md:hidden text-sm font-bold px-1.5 py-0.5 rounded-full ${csDelta > 0 ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>
                                 {csDelta > 0 ? '↑' : '↓'}
                               </span>
                             )}
                           </div>
                         )}
                         {c.address && (
-                          <div className="flex items-center gap-1 text-sm text-gray-500 mt-0.5">
+                          <div className="flex items-center gap-1 text-sm text-gray-600 mt-0.5">
                             <MapPin className="w-3 h-3 shrink-0" />
                             <span className="truncate">{c.address}</span>
                           </div>
@@ -2281,7 +2281,7 @@ export function CompetitorsClient({
                                 동기화 완료! 페이지를 새로고침합니다.
                               </div>
                             ) : syncingIds[c.id] === 'error' ? (
-                              <div className="flex items-center gap-2 text-sm text-red-600 font-semibold">
+                              <div className="flex items-center gap-2 text-sm text-red-700 font-semibold">
                                 <AlertCircle className="w-4 h-4 shrink-0" />
                                 네이버에서 업체를 찾지 못했습니다. 잠시 후 다시 시도하세요.
                               </div>
@@ -2296,7 +2296,7 @@ export function CompetitorsClient({
                                 <button
                                   onClick={() => handleSyncPlace(c.id)}
                                   disabled={syncingIds[c.id] === 'loading'}
-                                  className="inline-flex items-center gap-1.5 shrink-0 text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-lg transition-colors disabled:opacity-60 whitespace-nowrap"
+                                  className="inline-flex items-center gap-1.5 shrink-0 text-sm font-semibold bg-amber-700 hover:bg-amber-800 text-white px-3 py-2 rounded-lg transition-colors disabled:opacity-60 whitespace-nowrap"
                                 >
                                   {syncingIds[c.id] === 'loading' ? (
                                     <><RefreshCw className="w-3.5 h-3.5 animate-spin" />동기화 중...</>
@@ -2311,21 +2311,21 @@ export function CompetitorsClient({
 
                         {/* 네이버 플레이스 핵심 수치 — 동기화 완료 시 인라인 표시 */}
                         {c.place_synced_at && (c.place_review_count !== null || c.place_avg_rating !== null) && (
-                          <div className="flex items-center gap-2 flex-wrap mt-1.5 text-sm text-gray-500">
+                          <div className="flex items-center gap-2 flex-wrap mt-1.5 text-sm text-gray-600">
                             {typeof c.place_review_count === 'number' && (
                               <span>
-                                리뷰 <strong className={c.place_review_count > myReviewCount ? 'text-red-600' : 'text-emerald-600'}>{c.place_review_count}개</strong>
+                                리뷰 <strong className={c.place_review_count > myReviewCount ? 'text-red-700' : 'text-emerald-700'}>{c.place_review_count}개</strong>
                               </span>
                             )}
                             {typeof c.place_avg_rating === 'number' && c.place_avg_rating > 0 ? (
                               <span>⭐ <strong>{c.place_avg_rating.toFixed(1)}</strong></span>
                             ) : c.detail_synced_at ? (
-                              <span className="text-sm text-gray-500">별점 없음</span>
+                              <span className="text-sm text-gray-600">별점 없음</span>
                             ) : (
                               <button
                                 onClick={() => handleSyncPlace(c.id)}
                                 disabled={syncingIds[c.id] === 'loading'}
-                                className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600 transition-colors disabled:opacity-50"
+                                className="flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-50"
                                 title="평점을 가져옵니다"
                               >
                                 <RefreshCw className={`w-3 h-3 ${syncingIds[c.id] === 'loading' ? 'animate-spin' : ''}`} />
@@ -2333,7 +2333,7 @@ export function CompetitorsClient({
                               </button>
                             )}
                             {typeof c.place_has_recent_post === 'boolean' && (
-                              <span className={c.place_has_recent_post ? 'text-emerald-600 font-medium' : 'text-gray-500'}>
+                              <span className={c.place_has_recent_post ? 'text-emerald-700 font-medium' : 'text-gray-600'}>
                                 포스팅 {c.place_has_recent_post ? '최신' : '미갱신'}
                               </span>
                             )}
@@ -2341,7 +2341,7 @@ export function CompetitorsClient({
                         )}
                         {/* 리뷰 0개인데 평점만 존재 — 크롤링 부분 실패 가능성, 사용자 혼동 방지 캐비엇 */}
                         {c.place_synced_at && c.place_review_count === 0 && typeof c.place_avg_rating === 'number' && c.place_avg_rating > 0 && (
-                          <p className="text-sm text-amber-600 mt-1 flex items-center gap-1">
+                          <p className="text-sm text-amber-700 mt-1 flex items-center gap-1">
                             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                             동기화 불완전 — 리뷰 수 미확인. 재스캔을 권장합니다.
                           </p>
@@ -2379,17 +2379,17 @@ export function CompetitorsClient({
                                 <div className="mt-1.5">
                                   <div className="flex items-center gap-1.5 flex-wrap">
                                     <span
-                                      className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${naverOn ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-500 border-gray-200'}`}
+                                      className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${naverOn ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-600 border-gray-200'}`}
                                     >
-                                      네이버 AI {naverOn ? '노출됨' : '미노출'} <span className="font-normal opacity-70">(추정)</span>
+                                      네이버 AI {naverOn ? '노출됨' : '미노출'} <span className="font-normal">(추정)</span>
                                     </span>
                                     <span
-                                      className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${globalOn ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-500 border-gray-200'}`}
+                                      className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${globalOn ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200'}`}
                                     >
-                                      ChatGPT·Gemini {globalOn ? '노출됨' : '미노출'} <span className="font-normal opacity-70">(추정)</span>
+                                      ChatGPT·Gemini {globalOn ? '노출됨' : '미노출'} <span className="font-normal">(추정)</span>
                                     </span>
                                   </div>
-                                  <p className="text-sm text-gray-500 mt-0.5">Gemini AI 단일 스캔 기반 추정 — 실제와 다를 수 있음</p>
+                                  <p className="text-sm text-gray-600 mt-0.5">Gemini AI 단일 스캔 기반 추정 — 실제와 다를 수 있음</p>
                                 </div>
                               )
                             })()}
@@ -2398,17 +2398,17 @@ export function CompetitorsClient({
                               <div className="mt-1.5 flex items-center gap-2 flex-wrap">
                                 {cs.score > myScore ? (
                                   <>
-                                    <span className="text-sm text-red-500 font-medium">경쟁사가 앞서 있습니다</span>
+                                    <span className="text-sm text-red-700 font-medium">경쟁사가 앞서 있습니다</span>
                                     {getGrowthStageText(cs.score).label !== getGrowthStageText(myStageScore).label && (
                                       <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(cs.score).cls}`}>
                                         {getGrowthStageText(cs.score).label}
                                       </span>
                                     )}
-                                    <a href="/guide" className="text-sm text-red-600 underline underline-offset-2">가이드 →</a>
+                                    <a href="/guide" className="text-sm text-red-700 underline underline-offset-2">가이드 →</a>
                                   </>
                                 ) : cs.score < myScore ? (
                                   <>
-                                    <span className="text-sm text-emerald-600 font-medium">내 가게가 앞서 있습니다</span>
+                                    <span className="text-sm text-emerald-700 font-medium">내 가게가 앞서 있습니다</span>
                                     {getGrowthStageText(cs.score).label !== getGrowthStageText(myStageScore).label && (
                                       <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(cs.score).cls}`}>
                                         {getGrowthStageText(cs.score).label}
@@ -2416,13 +2416,13 @@ export function CompetitorsClient({
                                     )}
                                   </>
                                 ) : (
-                                  <span className="text-sm text-gray-500 font-medium">내 가게와 같은 단계</span>
+                                  <span className="text-sm text-gray-600 font-medium">내 가게와 같은 단계</span>
                                 )}
                               </div>
                             )}
                             {/* AI 검색 발췌 — 축약 1줄 */}
                             {cs.excerpt && (
-                              <p className="mt-1.5 text-sm text-gray-500 truncate max-w-full overflow-hidden" title={cs.excerpt}>
+                              <p className="mt-1.5 text-sm text-gray-600 truncate max-w-full overflow-hidden" title={cs.excerpt}>
                                 AI 소개: {cs.excerpt}
                               </p>
                             )}
@@ -2430,7 +2430,7 @@ export function CompetitorsClient({
                         ) : (
                           <div className="mt-2 space-y-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 text-sm font-semibold">
+                              <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-600 border border-gray-200 rounded-full px-2 py-0.5 text-sm font-semibold">
                                 <Clock className="w-3 h-3" />
                                 스캔 대기
                               </span>
@@ -2441,7 +2441,7 @@ export function CompetitorsClient({
                                 <Zap className="w-3 h-3" />지금 스캔하기
                               </button>
                             </div>
-                            <p className="text-sm text-gray-500">스캔 후 AI 노출 여부·성장 단계·점수 격차를 확인할 수 있습니다</p>
+                            <p className="text-sm text-gray-600">스캔 후 AI 노출 여부·성장 단계·점수 격차를 확인할 수 있습니다</p>
                           </div>
                         )}
                       </div>
@@ -2469,7 +2469,7 @@ export function CompetitorsClient({
                           className={`flex items-center gap-1 text-sm font-semibold rounded-lg px-1.5 sm:px-2.5 py-1.5 transition-colors min-h-[34px] min-w-[34px] justify-center border ${
                             isExpanded
                               ? 'bg-blue-50 text-blue-700 border-blue-300'
-                              : 'text-blue-500 border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300'
+                              : 'text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300'
                           }`}
                           title={isExpanded ? '상세 접기' : '상세 분석 보기'}
                         >
@@ -2480,7 +2480,7 @@ export function CompetitorsClient({
                       )}
                       <button
                         onClick={() => togglePin(c.id)}
-                        className={`hidden sm:flex p-2 rounded-lg transition-colors min-h-[36px] min-w-[36px] items-center justify-center ${pinnedIds.has(c.id) ? 'text-blue-500 hover:text-blue-700 hover:bg-blue-50' : 'text-gray-300 hover:text-gray-500 hover:bg-gray-50'}`}
+                        className={`hidden sm:flex p-2 rounded-lg transition-colors min-h-[36px] min-w-[36px] items-center justify-center ${pinnedIds.has(c.id) ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50' : 'text-gray-300 hover:text-gray-600 hover:bg-gray-50'}`}
                         title={pinnedIds.has(c.id) ? '고정 해제' : '상단 고정'}
                       >
                         <Pin className={`w-3.5 h-3.5 ${pinnedIds.has(c.id) ? 'fill-blue-400' : ''}`} />
@@ -2490,7 +2490,7 @@ export function CompetitorsClient({
                           if (openMemoId === c.id) { setOpenMemoId(null) }
                           else { setOpenMemoId(c.id); setMemoInput(memos[c.id] ?? '') }
                         }}
-                        className={`hidden sm:flex p-2 rounded-lg transition-colors min-h-[36px] min-w-[36px] items-center justify-center ${memos[c.id] ? 'text-amber-500 hover:text-amber-700 hover:bg-amber-50' : 'text-gray-300 hover:text-gray-500 hover:bg-gray-50'}`}
+                        className={`hidden sm:flex p-2 rounded-lg transition-colors min-h-[36px] min-w-[36px] items-center justify-center ${memos[c.id] ? 'text-amber-700 hover:text-amber-800 hover:bg-amber-50' : 'text-gray-300 hover:text-gray-600 hover:bg-gray-50'}`}
                         title={memos[c.id] ? '메모 보기/편집' : '메모 추가'}
                       >
                         <Pencil className="w-3.5 h-3.5" />
@@ -2557,11 +2557,11 @@ export function CompetitorsClient({
                       items.map(([key, val]) => (
                         <div key={key} className="space-y-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-500">{BREAKDOWN_LABELS[key] ?? key}</span>
+                            <span className="text-sm text-gray-600">{BREAKDOWN_LABELS[key] ?? key}</span>
                             <span className={`text-sm font-semibold px-1.5 py-0.5 rounded-full ${
                               Math.round(val) >= 70 ? 'bg-emerald-50 text-emerald-700' :
                               Math.round(val) >= 40 ? 'bg-amber-50 text-amber-700' :
-                              'bg-red-50 text-red-600'
+                              'bg-red-50 text-red-700'
                             }`}>
                               {Math.round(val) >= 70 ? '양호' : Math.round(val) >= 40 ? '보통' : '미흡'}
                             </span>
@@ -2576,7 +2576,7 @@ export function CompetitorsClient({
                       <div className="mt-4 pt-4 border-t border-gray-100 space-y-5">
                         {t1.length > 0 && (
                           <div>
-                            <p className="text-sm text-amber-600 bg-amber-50 rounded px-2 py-1 mb-2">
+                            <p className="text-sm text-amber-700 bg-amber-50 rounded px-2 py-1 mb-2">
                               {TRACK1_ESTIMATED_NOTE}
                             </p>
                             <div className="flex items-center gap-1.5 text-sm font-bold text-blue-700 mb-1">
@@ -2613,9 +2613,9 @@ export function CompetitorsClient({
                           </div>
                         )}
                         <div className="mt-2 pt-2 border-t border-gray-100 space-y-1">
-                          <p className="text-sm text-gray-500">막대 길이 = 최신 점수 기반 · 화살표 = 이전 스캔 대비 변화</p>
+                          <p className="text-sm text-gray-600">막대 길이 = 최신 점수 기반 · 화살표 = 이전 스캔 대비 변화</p>
                           {allEntries.some(([k]) => TRACK1_KEYS.includes(k)) && (
-                            <p className="text-sm text-gray-500">* (추정) 항목은 Gemini AI 단일 스캔 기반 간접 측정값입니다</p>
+                            <p className="text-sm text-gray-600">* (추정) 항목은 Gemini AI 단일 스캔 기반 간접 측정값입니다</p>
                           )}
                         </div>
                       </div>
@@ -2629,7 +2629,7 @@ export function CompetitorsClient({
                         <span className="text-sm font-semibold text-amber-800 flex items-center gap-1.5">
                           <Pencil className="w-3.5 h-3.5" />내 메모
                         </span>
-                        <button onClick={() => setOpenMemoId(null)} className="text-amber-400 hover:text-amber-600 transition-colors">
+                        <button onClick={() => setOpenMemoId(null)} className="text-amber-400 hover:text-amber-700 transition-colors">
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -2640,11 +2640,11 @@ export function CompetitorsClient({
                         className="w-full border border-amber-200 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
                         rows={3}
                       />
-                      <p className="text-sm text-gray-500 mt-1">※ 메모는 이 기기에만 저장되며 다른 기기에서는 보이지 않습니다.</p>
+                      <p className="text-sm text-gray-600 mt-1">※ 메모는 이 기기에만 저장되며 다른 기기에서는 보이지 않습니다.</p>
                       <div className="flex justify-end mt-2">
                         <button
                           onClick={() => { saveMemo(c.id, memoInput); setOpenMemoId(null) }}
-                          className="text-sm bg-amber-500 text-white px-4 py-1.5 rounded-lg hover:bg-amber-600 transition-colors font-semibold"
+                          className="text-sm bg-amber-700 text-white px-4 py-1.5 rounded-lg hover:bg-amber-700 transition-colors font-semibold"
                         >
                           저장
                         </button>
@@ -2681,7 +2681,7 @@ export function CompetitorsClient({
           <div className="px-4 md:px-6 py-4 bg-amber-50 border-t border-amber-200">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="flex items-start gap-2.5 flex-1">
-                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-amber-900">AI 스캔이 아직 실행되지 않았습니다</p>
                   <p className="text-sm text-amber-700 mt-0.5">
@@ -2691,7 +2691,7 @@ export function CompetitorsClient({
               </div>
               <button
                 onClick={() => setShowInlineScan(true)}
-                className="inline-flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors shadow-sm shrink-0"
+                className="inline-flex items-center justify-center gap-1.5 bg-amber-700 hover:bg-amber-800 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors shadow-sm shrink-0"
               >
                 <Zap className="w-4 h-4" />
                 AI 스캔 시작
@@ -2710,7 +2710,7 @@ export function CompetitorsClient({
       {(planLimitHit || limitReached) && (
         <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 md:p-5">
           <div className="flex items-start gap-3 mb-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
+            <AlertCircle className="w-5 h-5 text-amber-700 mt-0.5 shrink-0" />
             <div>
               <p className="text-sm md:text-base font-bold text-amber-900">
                 경쟁사 등록 한도 ({planLimit}개)에 도달했습니다
@@ -2728,7 +2728,7 @@ export function CompetitorsClient({
           </div>
           <a
             href="/pricing"
-            className="inline-flex items-center gap-1.5 text-sm font-bold bg-amber-500 text-white px-4 py-2 rounded-xl hover:bg-amber-600 transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm font-bold bg-amber-700 text-white px-4 py-2 rounded-xl hover:bg-amber-700 transition-colors"
           >
             요금제 보기 <ArrowRight className="w-3.5 h-3.5" />
           </a>
@@ -2738,7 +2738,7 @@ export function CompetitorsClient({
         <div className="px-4 py-3.5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
-              <Plus className="w-4 h-4 text-emerald-600" />
+              <Plus className="w-4 h-4 text-emerald-700" />
             </div>
             <span className="text-sm md:text-base font-bold text-gray-800">경쟁 가게 추가하기</span>
           </div>
@@ -2755,13 +2755,13 @@ export function CompetitorsClient({
                   ? 'text-gray-300 cursor-not-allowed'
                   : tab === 'search'
                   ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  : 'text-gray-600 hover:text-gray-700'
               }`}
             >
               <span className="flex items-center gap-1 text-sm font-semibold whitespace-nowrap">
                 <Search className="w-3.5 h-3.5 shrink-0" />지역 검색
               </span>
-              <span className="text-sm font-normal text-gray-500 leading-tight text-center">카카오맵 근처 동종업체</span>
+              <span className="text-sm font-normal text-gray-600 leading-tight text-center">카카오맵 근처 동종업체</span>
             </button>
             <button
               onClick={() => !limitReached && setTab('manual')}
@@ -2771,13 +2771,13 @@ export function CompetitorsClient({
                   ? 'text-gray-300 cursor-not-allowed'
                   : tab === 'manual'
                   ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  : 'text-gray-600 hover:text-gray-700'
               }`}
             >
               <span className="flex items-center gap-1 text-sm font-semibold whitespace-nowrap">
                 <Plus className="w-3.5 h-3.5 shrink-0" />직접 입력
               </span>
-              <span className="text-sm font-normal text-gray-500 leading-tight text-center">이름·주소 직접 입력</span>
+              <span className="text-sm font-normal text-gray-600 leading-tight text-center">이름·주소 직접 입력</span>
             </button>
           </div>
         </div>
@@ -2785,7 +2785,7 @@ export function CompetitorsClient({
         <div className="p-4">
           {tab === 'search' && (
             <div className="space-y-3">
-              <p className="text-sm text-gray-500 leading-relaxed">
+              <p className="text-sm text-gray-600 leading-relaxed">
                 <span className="font-semibold text-gray-700">{business.region}</span> 지역 내 경쟁 가게를 검색합니다.
                 같은 업종의 가게 이름이나 업종을 입력하세요.
               </p>
@@ -2806,7 +2806,7 @@ export function CompetitorsClient({
               </form>
 
               {searchError && (
-                <div className="flex items-center gap-1.5 text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-1.5 text-sm text-red-700 bg-red-50 rounded-lg px-3 py-2">
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />{searchError}
                 </div>
               )}
@@ -2827,7 +2827,7 @@ export function CompetitorsClient({
                       }`}>
                         <div className="flex items-start gap-3 p-3">
                           <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 mt-0.5">
-                            <Building2 className="w-4 h-4 text-gray-500" />
+                            <Building2 className="w-4 h-4 text-gray-600" />
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-2">
@@ -2835,11 +2835,11 @@ export function CompetitorsClient({
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                   <span className="text-sm font-semibold text-gray-900">{r.name}</span>
                                   {r.category && (
-                                    <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{r.category}</span>
+                                    <span className="text-sm text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">{r.category}</span>
                                   )}
                                 </div>
                                 {r.address && (
-                                  <div className="flex items-center gap-1 text-sm text-gray-500 mt-0.5">
+                                  <div className="flex items-center gap-1 text-sm text-gray-600 mt-0.5">
                                     <MapPin className="w-3 h-3 shrink-0" />
                                     <span className="truncate">{r.address}</span>
                                   </div>
@@ -2847,7 +2847,7 @@ export function CompetitorsClient({
                                 <div className="flex items-center gap-2 mt-1">
                                   {r.kakao_url && (
                                     <a href={r.kakao_url} target="_blank" rel="noopener noreferrer"
-                                      className="text-sm text-amber-600 hover:text-amber-800 underline" title="카카오맵에서 확인">
+                                      className="text-sm text-amber-700 hover:text-amber-800 underline" title="카카오맵에서 확인">
                                       카카오맵
                                     </a>
                                   )}
@@ -2857,7 +2857,7 @@ export function CompetitorsClient({
                                       : r.naver_url
                                     return (
                                       <a href={href} target="_blank" rel="noopener noreferrer"
-                                        className="text-sm text-emerald-600 hover:text-emerald-800 underline"
+                                        className="text-sm text-emerald-700 hover:text-emerald-800 underline"
                                         title={r.naver_place_id ? "네이버 플레이스 바로가기" : "네이버 지도에서 확인"}>
                                         네이버지도{r.naver_place_id && ' ↗'}
                                       </a>
@@ -2873,7 +2873,7 @@ export function CompetitorsClient({
                                     ? 'border-gray-200 text-gray-300 cursor-default bg-gray-50'
                                     : isPending
                                     ? 'border-blue-300 text-blue-400 cursor-default bg-blue-50'
-                                    : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50 bg-white'
+                                    : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50 bg-white'
                                 }`}
                               >
                                 {added ? <CheckCircle2 className="w-4 h-4" /> : addingName === r.name ? <RefreshCw className="w-4 h-4 animate-spin" /> : isPending ? '입력 중' : '+ 추가'}
@@ -2887,7 +2887,7 @@ export function CompetitorsClient({
                           <div className="mx-3 mb-3 bg-white border border-blue-200 rounded-xl p-3 space-y-2.5">
                             <div className="text-sm font-semibold text-gray-800">
                               네이버 플레이스 ID
-                              <span className="font-normal text-gray-500 text-sm ml-1">(선택 사항)</span>
+                              <span className="font-normal text-gray-600 text-sm ml-1">(선택 사항)</span>
                             </div>
                             <input
                               autoFocus
@@ -2898,10 +2898,10 @@ export function CompetitorsClient({
                               onChange={e => setPendingPlaceId(e.target.value.replace(/\D/g, ''))}
                               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
                             />
-                            <p className="text-sm text-gray-500 leading-relaxed">
+                            <p className="text-sm text-gray-600 leading-relaxed">
                               네이버 지도 URL의 숫자를 복사 (map.naver.com/p/entry/place/<strong>1234567890</strong>)
                             </p>
-                            <p className="text-sm text-blue-500 font-medium">입력 시 리뷰 수·평점을 자동으로 가져옵니다</p>
+                            <p className="text-sm text-blue-600 font-medium">입력 시 리뷰 수·평점을 자동으로 가져옵니다</p>
                             <div className="flex gap-2">
                               <button
                                 onClick={() => doAddFromPending(pendingPlaceId || undefined)}
@@ -2932,7 +2932,7 @@ export function CompetitorsClient({
             <form onSubmit={addManual} className="space-y-3">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  경쟁 가게 이름 <span className="text-red-500">*</span>
+                  경쟁 가게 이름 <span className="text-red-700">*</span>
                 </label>
                 <input
                   required
@@ -2944,7 +2944,7 @@ export function CompetitorsClient({
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  주소 <span className="text-gray-500 font-normal">(선택)</span>
+                  주소 <span className="text-gray-600 font-normal">(선택)</span>
                 </label>
                 <input
                   placeholder="예: 서울시 마포구 홍대 앞"
@@ -2955,7 +2955,7 @@ export function CompetitorsClient({
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  네이버 플레이스 ID <span className="text-gray-500 font-normal">(선택)</span>
+                  네이버 플레이스 ID <span className="text-gray-600 font-normal">(선택)</span>
                 </label>
                 <input
                   placeholder="예: 123456789"
@@ -2963,13 +2963,13 @@ export function CompetitorsClient({
                   onChange={e => setForm({ ...form, naver_place_id: e.target.value.replace(/\D/g, '') })}
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white transition-colors"
                 />
-                <p className="text-sm text-gray-500 mt-1.5 leading-relaxed">
+                <p className="text-sm text-gray-600 mt-1.5 leading-relaxed">
                   네이버 지도에서 업체 검색 후 URL의 숫자 복사 (map.naver.com/p/entry/place/<strong>1234567890</strong>)
                 </p>
-                <p className="text-sm text-blue-500 mt-1 font-medium">입력 시 리뷰 수·평점을 자동으로 가져옵니다</p>
+                <p className="text-sm text-blue-600 mt-1 font-medium">입력 시 리뷰 수·평점을 자동으로 가져옵니다</p>
               </div>
               {formError && (
-                <div className="flex items-center gap-1.5 text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-1.5 text-sm text-red-700 bg-red-50 rounded-lg px-3 py-2">
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />{formError}
                 </div>
               )}
@@ -2994,7 +2994,7 @@ export function CompetitorsClient({
             <span className="text-sm font-bold text-white">추천 경쟁사</span>
             <span className="text-sm font-semibold bg-white/20 text-white px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">최대 5개</span>
           </div>
-          <span className="text-sm text-blue-200">같은 업종·지역 미등록 업체</span>
+          <span className="text-sm text-blue-100">같은 업종·지역 미등록 업체</span>
         </div>
 
         {/* 본문 */}
@@ -3018,17 +3018,17 @@ export function CompetitorsClient({
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-sm text-gray-500 font-bold w-4 shrink-0">{idx + 1}</span>
+                      <span className="text-sm text-gray-600 font-bold w-4 shrink-0">{idx + 1}</span>
                       <span className="text-sm font-semibold text-gray-800 truncate">{s.name}</span>
                       {s.ai_competitor && (
                         <span className="shrink-0 text-sm font-bold text-blue-700 bg-blue-100 border border-blue-200 px-1.5 py-0.5 rounded-full">AI 언급</span>
                       )}
                       {s.category_name && (
-                        <span className="shrink-0 text-sm text-gray-500 bg-white border border-gray-200 px-1.5 py-0.5 rounded-full truncate max-w-[110px]">{s.category_name}</span>
+                        <span className="shrink-0 text-sm text-gray-600 bg-white border border-gray-200 px-1.5 py-0.5 rounded-full truncate max-w-[110px]">{s.category_name}</span>
                       )}
                     </div>
                     {s.address && (
-                      <div className="text-sm text-gray-500 truncate mt-0.5 pl-5">
+                      <div className="text-sm text-gray-600 truncate mt-0.5 pl-5">
                         <MapPin className="w-3 h-3 inline mr-0.5" />{s.address}
                       </div>
                     )}
@@ -3042,7 +3042,7 @@ export function CompetitorsClient({
                     </button>
                     <button
                       onClick={() => handleDismissSuggestion(s.name)}
-                      className="text-gray-300 hover:text-gray-500 transition-colors p-2 min-h-[36px] min-w-[36px] flex items-center justify-center"
+                      className="text-gray-300 hover:text-gray-600 transition-colors p-2 min-h-[36px] min-w-[36px] flex items-center justify-center"
                       title="이 추천 숨기기"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -3054,8 +3054,8 @@ export function CompetitorsClient({
           ) : (
             <div className="text-center py-5">
               <Search className="w-8 h-8 text-blue-200 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-gray-500">AI 스캔 후 경쟁사가 자동으로 발견됩니다</p>
-              <p className="text-sm text-gray-500 mt-1">스캔을 먼저 실행해주세요</p>
+              <p className="text-sm font-semibold text-gray-600">AI 스캔 후 경쟁사가 자동으로 발견됩니다</p>
+              <p className="text-sm text-gray-600 mt-1">스캔을 먼저 실행해주세요</p>
             </div>
           )}
         </div>
@@ -3094,7 +3094,7 @@ export function CompetitorsClient({
       {/* 네이버 전용 리스크 경고 */}
       {gapAnalysis.naver_only_risk && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-amber-800">웹사이트 없음 — ChatGPT·Gemini 노출 제한</p>
             <p className="text-sm text-amber-700 mt-0.5 leading-relaxed">
@@ -3151,7 +3151,7 @@ export function CompetitorsClient({
         return (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 md:p-5">
             <div className="flex items-center gap-2 mb-3">
-              <Target className="w-4 h-4 text-gray-500" />
+              <Target className="w-4 h-4 text-gray-600" />
               <span className="text-sm font-bold text-gray-700">키워드 격차 분석</span>
             </div>
             {/* 탭 */}
@@ -3164,7 +3164,7 @@ export function CompetitorsClient({
                   title={!t.show ? '스캔 후 데이터가 채워집니다' : undefined}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
                     !t.show
-                      ? 'opacity-40 cursor-not-allowed text-gray-500'
+                      ? 'opacity-40 cursor-not-allowed text-gray-600'
                       : activeTabKey === t.key
                         ? 'bg-white text-blue-600 shadow-sm'
                         : 'text-gray-600 hover:text-gray-800'
@@ -3173,7 +3173,7 @@ export function CompetitorsClient({
                   {t.label}
                   {t.count > 0 && (
                     <span className={`text-sm px-1.5 py-0.5 rounded-full font-bold ${
-                      activeTabKey === t.key ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-500'
+                      activeTabKey === t.key ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-600'
                     }`}>{t.count}</span>
                   )}
                 </button>
@@ -3183,13 +3183,13 @@ export function CompetitorsClient({
             {/* 탭 콘텐츠 */}
             {activeTabKey === 'exclusive' && hasExclusive && (
               <div>
-                <p className="text-sm text-red-600 mb-3">경쟁 가게 리뷰에는 있지만 내 리뷰에는 없는 키워드입니다. 리뷰 유도 문구에 반영하세요.</p>
+                <p className="text-sm text-red-700 mb-3">경쟁 가게 리뷰에는 있지만 내 리뷰에는 없는 키워드입니다. 리뷰 유도 문구에 반영하세요.</p>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {kw.competitor_only_keywords.map((w: string) => (
                     <span key={w} className="bg-red-100 text-red-700 text-sm font-medium px-3 py-1 rounded-full border border-red-200">{w}</span>
                   ))}
                 </div>
-                <a href="/guide" className="inline-flex items-center gap-1 text-sm text-red-600 font-semibold hover:underline">
+                <a href="/guide" className="inline-flex items-center gap-1 text-sm text-red-700 font-semibold hover:underline">
                   가이드에서 이 키워드 개선 방법 보기 <ArrowRight className="w-3.5 h-3.5" />
                 </a>
               </div>
@@ -3256,9 +3256,9 @@ export function CompetitorsClient({
       <div className={`rounded-xl border p-4 md:p-5 mb-5 ${myRank === 1 ? 'bg-emerald-50 border-emerald-200' : gap > 15 ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
         <div className="flex items-center gap-4">
           {/* 순위 배지 */}
-          <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex flex-col items-center justify-center shrink-0 ${myRank === 1 ? 'bg-emerald-600' : gap > 15 ? 'bg-red-500' : 'bg-amber-500'}`}>
+          <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex flex-col items-center justify-center shrink-0 ${myRank === 1 ? 'bg-emerald-700' : gap > 15 ? 'bg-red-700' : 'bg-amber-700'}`}>
             <span className="text-white font-black text-2xl md:text-3xl leading-none">{myRank}위</span>
-            <span className="text-white/80 text-sm font-medium">/ {total}곳</span>
+            <span className="text-white text-sm font-medium">/ {total}곳</span>
           </div>
           {/* 상황 요약 + topTip */}
           <div className="flex-1 min-w-0">
@@ -3287,7 +3287,7 @@ export function CompetitorsClient({
           <div className="mt-3 pt-3 border-t border-black/5">
             <div className="flex items-center justify-between text-sm mb-1.5 gap-2 flex-wrap">
               <span className="flex items-center gap-1.5 flex-wrap">
-                <span className={`font-semibold ${myRank === 1 ? 'text-emerald-700' : gap > 15 ? 'text-red-600' : 'text-amber-700'}`}>
+                <span className={`font-semibold ${myRank === 1 ? 'text-emerald-700' : gap > 15 ? 'text-red-700' : 'text-amber-700'}`}>
                   내 가게
                 </span>
                 <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(Math.round(myStageScore)).cls}`}>
@@ -3296,7 +3296,7 @@ export function CompetitorsClient({
               </span>
               {!leader.isMe && (
                 <span className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-gray-500 text-sm">1위 {leader.name}</span>
+                  <span className="text-gray-600 text-sm">1위 {leader.name}</span>
                   <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(leader.score).cls}`}>
                     {getGrowthStageText(leader.score).label}
                   </span>
@@ -3310,7 +3310,7 @@ export function CompetitorsClient({
               />
             </div>
             {!leader.isMe && gap > 0 && gap <= 15 && (
-              <p className="text-sm mt-1 text-gray-500">
+              <p className="text-sm mt-1 text-gray-600">
                 조금만 더 노력하면 1위에 올라갈 수 있습니다. <a href="/guide" className="text-blue-600 font-semibold underline underline-offset-2">가이드 →</a>
               </p>
             )}
@@ -3382,14 +3382,14 @@ export function CompetitorsClient({
           <SectionDivider title="격차 분석" icon={Target} />
           {gapPanel ? (
             <>
-              <p className="text-sm text-gray-500 -mt-3 mb-1">경쟁사와 차이가 나는 항목입니다. 점수 차이가 가장 큰 항목부터 개선하세요.</p>
+              <p className="text-sm text-gray-600 -mt-3 mb-1">경쟁사와 차이가 나는 항목입니다. 점수 차이가 가장 큰 항목부터 개선하세요.</p>
               {gapPanel}
             </>
           ) : (
             <div className="text-center py-8 bg-gray-50 rounded-xl border border-gray-100 -mt-2">
               <Target className="w-8 h-8 text-gray-300 mx-auto mb-2.5" />
-              <p className="text-sm font-semibold text-gray-500 mb-1">격차 분석 데이터 없음</p>
-              <p className="text-sm text-gray-500">경쟁사를 등록하고 AI 스캔을 실행하면 격차 분석이 표시됩니다.</p>
+              <p className="text-sm font-semibold text-gray-600 mb-1">격차 분석 데이터 없음</p>
+              <p className="text-sm text-gray-600">경쟁사를 등록하고 AI 스캔을 실행하면 격차 분석이 표시됩니다.</p>
             </div>
           )}
         </>
@@ -3402,13 +3402,13 @@ export function CompetitorsClient({
               className="w-full flex items-center justify-between px-4 md:px-5 py-3.5 text-left hover:bg-gray-50 transition-colors"
             >
               <div className="flex items-center gap-2">
-                <Share2 className="w-4 h-4 text-gray-500" />
+                <Share2 className="w-4 h-4 text-gray-600" />
                 <span className="text-sm font-semibold text-gray-700">경쟁 현황 카드 만들기</span>
-                <span className="text-sm text-gray-500">SNS · 카카오톡 공유용</span>
+                <span className="text-sm text-gray-600">SNS · 카카오톡 공유용</span>
               </div>
               {showGapCard
-                ? <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" />
-                : <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
+                ? <ChevronUp className="w-4 h-4 text-gray-600 shrink-0" />
+                : <ChevronDown className="w-4 h-4 text-gray-600 shrink-0" />
               }
             </button>
             {showGapCard && (
@@ -3486,14 +3486,14 @@ export function CompetitorsClient({
           <div className="space-y-4">
             {gapPanel ? (
               <>
-                <p className="text-sm text-gray-500">경쟁사와 차이가 나는 항목입니다. 점수 차이가 가장 큰 항목부터 개선하세요.</p>
+                <p className="text-sm text-gray-600">경쟁사와 차이가 나는 항목입니다. 점수 차이가 가장 큰 항목부터 개선하세요.</p>
                 {gapPanel}
               </>
             ) : (
               <div className="text-center py-10 bg-gray-50 rounded-xl border border-gray-100">
                 <Target className="w-8 h-8 text-gray-300 mx-auto mb-2.5" />
-                <p className="text-sm font-semibold text-gray-500 mb-1">격차 분석 데이터 없음</p>
-                <p className="text-sm text-gray-500">경쟁사를 등록하고 AI 스캔을 실행하면<br />격차 분석이 표시됩니다.</p>
+                <p className="text-sm font-semibold text-gray-600 mb-1">격차 분석 데이터 없음</p>
+                <p className="text-sm text-gray-600">경쟁사를 등록하고 AI 스캔을 실행하면<br />격차 분석이 표시됩니다.</p>
               </div>
             )}
           </div>
@@ -3511,13 +3511,13 @@ export function CompetitorsClient({
                   className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <Share2 className="w-4 h-4 text-gray-500" />
+                    <Share2 className="w-4 h-4 text-gray-600" />
                     <span className="text-sm font-semibold text-gray-700">경쟁 현황 카드 만들기</span>
-                    <span className="text-sm text-gray-500">SNS · 카카오</span>
+                    <span className="text-sm text-gray-600">SNS · 카카오</span>
                   </div>
                   {showGapCard
-                    ? <ChevronUp className="w-4 h-4 text-gray-500 shrink-0" />
-                    : <ChevronDown className="w-4 h-4 text-gray-500 shrink-0" />
+                    ? <ChevronUp className="w-4 h-4 text-gray-600 shrink-0" />
+                    : <ChevronDown className="w-4 h-4 text-gray-600 shrink-0" />
                   }
                 </button>
                 {showGapCard && (
@@ -3583,16 +3583,16 @@ export function CompetitorsClient({
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
             <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="w-7 h-7 text-emerald-600" />
+              <CheckCircle2 className="w-7 h-7 text-emerald-700" />
             </div>
             <h3 className="font-bold text-gray-900 text-base md:text-lg mb-2 text-center">경쟁 가게가 추가되었습니다!</h3>
-            <p className="text-sm md:text-base text-gray-500 mb-1 text-center leading-relaxed">
+            <p className="text-sm md:text-base text-gray-600 mb-1 text-center leading-relaxed">
               지금 바로 스캔하면 <strong className="text-gray-900">{scanPromptName}</strong>과의<br />
               AI 검색 노출 점수를 비교할 수 있습니다.
             </p>
-            <p className="text-sm text-amber-600 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-2 text-center leading-relaxed">
+            <p className="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-2 text-center leading-relaxed">
               지금 스캔하지 않으면 <strong>내일 새벽</strong> 자동 스캔 후 데이터가 표시됩니다.<br />
-              <span className="text-sm text-amber-500">(점수 비교: 새벽 2시 / 키워드 분석: 새벽 4시)</span>
+              <span className="text-sm text-amber-700">(점수 비교: 새벽 2시 / 키워드 분석: 새벽 4시)</span>
             </p>
             <div className="flex flex-col gap-2.5">
               <button
@@ -3603,7 +3603,7 @@ export function CompetitorsClient({
               </button>
               <button
                 onClick={() => setScanPromptName(null)}
-                className="w-full text-gray-500 py-1.5 text-sm hover:text-gray-600 transition-colors"
+                className="w-full text-gray-600 py-1.5 text-sm hover:text-gray-600 transition-colors"
               >
                 나중에 하기
               </button>

@@ -70,7 +70,7 @@ export default function ActionHeroCard({
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 md:p-5 mb-4">
       {/* 헤더 */}
-      <p className="text-sm font-semibold text-blue-500 mb-3">
+      <p className="text-sm font-semibold text-blue-600 mb-3">
         오늘 {businessName}의 AI 노출 현황
       </p>
 
@@ -85,7 +85,7 @@ export default function ActionHeroCard({
               {exposureCount !== null ? (
                 <span className="text-xl md:text-2xl">{exposureCount}</span>
               ) : (
-                <span className="text-gray-500">측정 중</span>
+                <span className="text-gray-600">측정 중</span>
               )}
               {exposureCount !== null && "번"} 언급
             </span>
@@ -121,7 +121,7 @@ export default function ActionHeroCard({
                 <p className="text-sm font-semibold text-blue-600 mb-0.5">오늘 할 일</p>
                 <p className="text-sm text-gray-800 font-medium">{todayActionText}</p>
                 {copyText && (
-                  <p className="text-sm text-gray-500 mt-1 line-clamp-2">{copyText}</p>
+                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">{copyText}</p>
                 )}
               </div>
             </div>

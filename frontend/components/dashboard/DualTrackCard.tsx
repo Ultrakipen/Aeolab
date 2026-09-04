@@ -126,17 +126,17 @@ const INACTIVE_NAVER_SEO_TIPS: Record<string, string> = {
 
 function getScoreStatusLabel(score: number, channelType: 'naver' | 'global' = 'naver'): { text: string; color: string } {
   if (channelType === 'global') {
-    if (score < 10) return { text: "미측정 수준",   color: "text-red-600" };
-    if (score < 35) return { text: "낮음 (일반적)", color: "text-amber-600" };
+    if (score < 10) return { text: "미측정 수준",   color: "text-red-700" };
+    if (score < 35) return { text: "낮음 (일반적)", color: "text-amber-700" };
     if (score < 60) return { text: "보통",          color: "text-yellow-600" };
     if (score < 80) return { text: "양호",          color: "text-blue-600" };
-    return             { text: "우수",              color: "text-emerald-600" };
+    return             { text: "우수",              color: "text-emerald-700" };
   }
-  if (score < 25) return { text: "주의 필요", color: "text-red-600" };
-  if (score < 45) return { text: "미흡",     color: "text-amber-600" };
+  if (score < 25) return { text: "주의 필요", color: "text-red-700" };
+  if (score < 45) return { text: "미흡",     color: "text-amber-700" };
   if (score < 65) return { text: "보통",     color: "text-yellow-600" };
   if (score < 80) return { text: "양호",     color: "text-blue-600" };
-  return             { text: "우수",         color: "text-emerald-600" };
+  return             { text: "우수",         color: "text-emerald-700" };
 }
 
 const STAGE_COLORS: Record<string, string> = {
@@ -184,7 +184,7 @@ function ScoreBar({
   const barWidth = Math.min(100, Math.max(0, score));
 
   // scoreColor — isWeak/isVeryLow ring 로직에서 간접 활용 가능하나 현재 span은 getScoreStatusLabel로 대체
-  void (score < 30 ? "text-amber-600" : score < 60 ? "text-yellow-600" : "text-emerald-600");
+  void (score < 30 ? "text-amber-700" : score < 60 ? "text-yellow-600" : "text-emerald-700");
 
   // ring 색상: 30 미만은 amber (기회 프레임), 30~59는 yellow
   const ringClass = isVeryLow
@@ -198,7 +198,7 @@ function ScoreBar({
       <div className="flex items-start justify-between gap-2 mb-1">
         <div className="flex-1 min-w-0">
           <span className="font-semibold text-gray-800 text-base leading-tight block">{label}</span>
-          <span className="text-sm text-gray-500 bg-gray-200 rounded-full px-2 py-0.5 inline-block mt-0.5">
+          <span className="text-sm text-gray-600 bg-gray-200 rounded-full px-2 py-0.5 inline-block mt-0.5">
             전체 진단 {pct}% 반영
           </span>
         </div>
@@ -212,14 +212,14 @@ function ScoreBar({
           style={{ width: `${barWidth}%` }}
         />
       </div>
-      <p className="text-base text-gray-500 leading-relaxed">{sublabel}</p>
+      <p className="text-base text-gray-600 leading-relaxed">{sublabel}</p>
       {sourceNote && (
-        <p className="text-sm text-gray-500 mt-1">{sourceNote}</p>
+        <p className="text-sm text-gray-600 mt-1">{sourceNote}</p>
       )}
       {/* 30점 미만: 개선 기회 프레임 메시지 */}
       {isVeryLow && opportunityMsg && (
         <div className="mt-2 flex items-start gap-2 text-sm text-amber-700 font-medium bg-amber-100 rounded-lg px-3 py-2 leading-relaxed">
-          <Lightbulb className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
+          <Lightbulb className="w-4 h-4 shrink-0 mt-0.5 text-amber-700" />
           <span className="whitespace-pre-line">{opportunityMsg}</span>
         </div>
       )}
@@ -244,7 +244,7 @@ function ScoreBar({
             {channelType === 'global' ? "장기 개선 방향" : "지금 할 것"}
           </div>
           <p className="text-sm text-amber-700 leading-relaxed pl-6">{tip}</p>
-          <p className="text-sm text-amber-600 pl-6 font-medium">
+          <p className="text-sm text-amber-700 pl-6 font-medium">
             1. {immediateAction ?? "스마트플레이스 → 소개글 하단에 Q&A 1개 추가 (5분)"}
           </p>
         </div>
@@ -349,11 +349,11 @@ function GrowthProgressBar({ stage, score }: { stage: string; score: number }) {
   return (
     <div className="mt-2">
       <div className="flex items-center justify-between text-sm mb-1">
-        <span className="text-gray-500">현재 단계 진행률</span>
+        <span className="text-gray-600">현재 단계 진행률</span>
         {range.next ? (
-          <span className="text-gray-500">다음 단계: <span className="font-bold text-indigo-600">{range.next}</span></span>
+          <span className="text-gray-600">다음 단계: <span className="font-bold text-indigo-600">{range.next}</span></span>
         ) : (
-          <span className="text-emerald-600 font-bold">최고 단계 달성!</span>
+          <span className="text-emerald-700 font-bold">최고 단계 달성!</span>
         )}
       </div>
       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -436,7 +436,7 @@ export default function DualTrackCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <h2 className="text-base md:text-lg font-bold text-gray-900">AI 검색 노출 현황</h2>
-            <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">
+            <p className="text-sm text-gray-600 mt-0.5 leading-relaxed">
               {isInactive
                 ? "네이버 검색 노출 + ChatGPT·Gemini 통합 진단"
                 : isLikely
@@ -451,7 +451,7 @@ export default function DualTrackCard({
               className="w-5 h-5 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
               aria-label="점수 계산 방식 보기"
             >
-              <Info className="w-3.5 h-3.5 text-gray-500" />
+              <Info className="w-3.5 h-3.5 text-gray-600" />
             </button>
             {showTooltip && (
               <div className="absolute right-0 top-7 z-10 w-64 bg-gray-900 text-white text-sm rounded-xl p-3 shadow-xl leading-relaxed">
@@ -460,7 +460,7 @@ export default function DualTrackCard({
                   = 네이버 AI 채널 × {naverPct}%<br />
                   + 글로벌 AI 채널 × {globalPct}%
                 </p>
-                <p className="text-gray-500 mt-1.5 text-sm">업종별 비율이 다릅니다. 소상공인 가게는 네이버 비중이 높습니다.</p>
+                <p className="text-gray-600 mt-1.5 text-sm">업종별 비율이 다릅니다. 소상공인 가게는 네이버 비중이 높습니다.</p>
               </div>
             )}
           </div>
@@ -488,7 +488,7 @@ export default function DualTrackCard({
             <div className={`px-2 py-1 rounded-lg text-sm font-semibold ${
               unifiedScore >= benchmarkAvg
                 ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                : "bg-red-50 text-red-600 border border-red-200"
+                : "bg-red-50 text-red-700 border border-red-200"
             }`}>
               {unifiedScore >= benchmarkAvg
                 ? "▲ 업종 평균 이상"
@@ -500,7 +500,7 @@ export default function DualTrackCard({
           }`}>
             {STAGE_ICONS[growthStage]} {growthStageLabel}
             {isKeywordEstimated && (
-              <span className="text-gray-500 font-normal ml-1">(추정)</span>
+              <span className="text-gray-600 font-normal ml-1">(추정)</span>
             )}
           </span>
         </div>
@@ -517,7 +517,7 @@ export default function DualTrackCard({
             <MapPin className="w-3.5 h-3.5 inline-block" />
             {track1LabelText}
             {isKeywordEstimated && (
-              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full ml-2">키워드 추정값</span>
+              <span className="text-sm text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full ml-2">키워드 추정값</span>
             )}
           </span>
         }
@@ -565,7 +565,7 @@ export default function DualTrackCard({
                 </div>
               ))}
             </div>
-            <p className="text-sm text-green-600 border-t border-green-100 pt-2">
+            <p className="text-sm text-green-700 border-t border-green-100 pt-2">
               네이버 검색 상위노출이 올라갈수록 네이버 AI탭 노출 가능성도 함께 높아집니다
             </p>
           </div>
@@ -598,7 +598,7 @@ export default function DualTrackCard({
         channelType="global"
       />
       {/* Track 2 면책 문구 — AI 데이터 유무와 무관하게 항상 표시 */}
-      <p className="text-xs text-gray-500 -mt-1 leading-relaxed px-1">
+      <p className="text-xs text-gray-600 -mt-1 leading-relaxed px-1">
         ChatGPT·Gemini 스캐너 점수는 AI 학습 데이터 기반 — 한국 소상공인 포함률이 낮아 낮은 점수가 일반적, 스캐너 점수 개선 반영 수개월~1년. 단, Google AI Overview(구글 검색 상단 AI 요약)는 구글 비즈니스 프로필 등록 후 수 주 내 개선 시작 가능.
       </p>
 
@@ -621,7 +621,7 @@ export default function DualTrackCard({
                   <span>ChatGPT</span>
                   <span className="font-semibold">
                     {chatgptRate}%
-                    <span className="text-xs text-gray-500 font-normal ml-1">
+                    <span className="text-xs text-gray-600 font-normal ml-1">
                       ({aiExposureData.chatgptSampleSize}번 질의 중 {aiExposureData.chatgptFreq}번 가게명 언급)
                     </span>
                   </span>
@@ -631,7 +631,7 @@ export default function DualTrackCard({
                 </div>
               </div>
             ) : (
-              <div className="flex justify-between text-sm text-gray-500">
+              <div className="flex justify-between text-sm text-gray-600">
                 <span>ChatGPT</span>
                 <span className="text-sm">{plan && plan !== "free" ? "재스캔 시 측정 포함" : "Basic+ 스캔 후 확인"}</span>
               </div>
@@ -642,7 +642,7 @@ export default function DualTrackCard({
                   <span>Google Gemini</span>
                   <span className="font-semibold">
                     {geminiRate}%
-                    <span className="text-xs text-gray-500 font-normal ml-1">
+                    <span className="text-xs text-gray-600 font-normal ml-1">
                       ({aiExposureData.geminiSampleSize}번 질의 중 {aiExposureData.geminiFreq}번 가게명 언급)
                     </span>
                   </span>
@@ -652,13 +652,13 @@ export default function DualTrackCard({
                 </div>
               </div>
             ) : (
-              <div className="flex justify-between text-sm text-gray-500">
+              <div className="flex justify-between text-sm text-gray-600">
                 <span>Google Gemini</span>
                 <span className="text-sm">{plan && plan !== "free" ? "재스캔 시 측정 포함" : "Basic+ 스캔 후 확인"}</span>
               </div>
             )}
           </div>
-          <p className="text-sm text-gray-500 mt-2.5 leading-relaxed">
+          <p className="text-sm text-gray-600 mt-2.5 leading-relaxed">
             ChatGPT는 과거 학습 데이터 기반 — 한국 소상공인은 낮은 점수가 일반적이며 단기 변동이 없습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.
           </p>
         </div>
@@ -682,7 +682,7 @@ export default function DualTrackCard({
             </span>
             <Link
               href="/blog-analysis?reanalyze=1"
-              className="text-blue-500 underline text-sm whitespace-nowrap ml-2"
+              className="text-blue-600 underline text-sm whitespace-nowrap ml-2"
               onClick={(e) => { e.currentTarget.textContent = "재분석 중..."; }}
             >
               재분석
@@ -691,12 +691,12 @@ export default function DualTrackCard({
           {blogContribution.aiCitedChannels && blogContribution.aiCitedChannels.length > 0 ? (
             <p className="text-sm text-green-700 font-medium">
               ✓ {blogContribution.aiCitedChannels.map((ch) => BLOG_CHANNEL_LABELS[ch] ?? ch).join(" · ")}에서 내 블로그 인용 확인됨
-              <Link href="/blog-analysis" className="text-blue-500 underline ml-1">자세히 →</Link>
+              <Link href="/blog-analysis" className="text-blue-600 underline ml-1">자세히 →</Link>
             </p>
           ) : (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-600">
               아직 AI 채널 인용 확인 안 됨 · 블로그 진단에서 자세히 확인하세요
-              <Link href="/blog-analysis" className="text-blue-500 underline ml-1">바로가기 →</Link>
+              <Link href="/blog-analysis" className="text-blue-600 underline ml-1">바로가기 →</Link>
             </p>
           )}
         </div>

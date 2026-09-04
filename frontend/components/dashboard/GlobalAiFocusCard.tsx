@@ -36,7 +36,7 @@ export default function GlobalAiFocusCard({ globalWeight, categoryLabel, categor
       className="rounded-xl border border-emerald-200 dark:border-emerald-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden"
     >
       <div className="flex items-center gap-2 px-4 py-3 md:px-6 md:py-4 border-b border-emerald-100 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/30">
-        <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+        <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-emerald-700 dark:text-emerald-400 shrink-0" />
         <h2
           id="global-ai-focus-title"
           className="text-base md:text-lg font-bold text-emerald-900 dark:text-emerald-100 break-keep"
@@ -53,7 +53,7 @@ export default function GlobalAiFocusCard({ globalWeight, categoryLabel, categor
             글로벌 AI {globalPct}%
           </span>
           {" "}
-          <span className="text-sm text-gray-500 dark:text-gray-400">vs 네이버 {naverPct}%</span> 입니다.
+          <span className="text-sm text-gray-600 dark:text-gray-600">vs 네이버 {naverPct}%</span> 입니다.
           ChatGPT·Gemini·Google AI 노출에 우선 투자하는 것이 효율적입니다.
         </p>
 
@@ -61,7 +61,7 @@ export default function GlobalAiFocusCard({ globalWeight, categoryLabel, categor
           {/* ChatGPT */}
           <div className="rounded-xl border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 p-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sm font-black bg-emerald-600 text-white">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-md text-sm font-black bg-emerald-700 text-white">
                 G
               </span>
               <h3 className="text-sm md:text-base font-bold text-emerald-900 dark:text-emerald-100">
@@ -167,7 +167,7 @@ export default function GlobalAiFocusCard({ globalWeight, categoryLabel, categor
           </div>
         </div>
 
-        <div className="mt-3 flex items-start gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+        <div className="mt-3 flex items-start gap-1.5 text-sm text-gray-600 dark:text-gray-600">
           <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" aria-hidden="true" />
           <p className="leading-snug break-keep">
             ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.

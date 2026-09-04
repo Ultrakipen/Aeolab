@@ -99,7 +99,7 @@ export function ScoreDeltaBanner({ bizId, accessToken }: Props) {
             className="inline-flex items-center gap-1 text-sm bg-white border border-indigo-200 text-indigo-700 rounded-full px-2.5 py-0.5"
           >
             {item.label}
-            <span className="text-emerald-600 font-semibold">↑</span>
+            <span className="text-emerald-700 font-semibold">↑</span>
           </span>
         ))}
       </div>
@@ -114,17 +114,17 @@ export function ScoreDeltaBanner({ bizId, accessToken }: Props) {
                 : data.delta >= 2
                 ? "개선 예상"
                 : "소폭 개선 예상"}
-              <span className="text-xs text-gray-500 ml-1">(추정)</span>
+              <span className="text-xs text-gray-600 ml-1">(추정)</span>
             </span>
           )}
-          <span className="text-sm text-gray-500 flex items-center gap-1">
+          <span className="text-sm text-gray-600 flex items-center gap-1">
             <Clock size={12} />
             자동 측정 {nextScanLabel}
           </span>
         </div>
 
         {dailyLimit > 0 && (
-          <span className="text-sm text-gray-500 flex items-center gap-1 shrink-0">
+          <span className="text-sm text-gray-600 flex items-center gap-1 shrink-0">
             <RefreshCw size={12} />
             {remaining > 0
               ? `오늘 ${remaining}/${dailyLimit}회 측정 가능`
@@ -134,7 +134,7 @@ export function ScoreDeltaBanner({ bizId, accessToken }: Props) {
       </div>
 
       {/* 면책 문구 */}
-      <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+      <p className="text-xs text-gray-600 mt-2 leading-relaxed">
         키워드 커버리지·AI 브리핑 노출은 마지막 스캔 기준이며 실제 점수는 측정 후 확정됩니다.
       </p>
     </div>

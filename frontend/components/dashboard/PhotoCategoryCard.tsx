@@ -64,7 +64,7 @@ export default function PhotoCategoryCard({
         className="mb-4 md:mb-6 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden"
       >
         <div className="flex items-center gap-2 px-4 py-3 md:px-6 md:py-4 border-b border-gray-100 bg-gray-50">
-          <ImageOff className="w-4 h-4 md:w-5 md:h-5 text-gray-500 shrink-0" />
+          <ImageOff className="w-4 h-4 md:w-5 md:h-5 text-gray-600 shrink-0" />
           <h2
             id="photo-category-title"
             className="text-base md:text-lg font-bold text-gray-900 break-keep"
@@ -77,7 +77,7 @@ export default function PhotoCategoryCard({
           {isEmpty ? (
             <div className="flex flex-col items-center justify-center py-6 text-center gap-2">
               <ImageOff className="w-8 h-8 text-gray-300" />
-              <p className="text-sm text-gray-500">다음 스캔 후 표시됩니다</p>
+              <p className="text-sm text-gray-600">다음 스캔 후 표시됩니다</p>
             </div>
           ) : (
             <>
@@ -101,7 +101,7 @@ export default function PhotoCategoryCard({
                           {catName}
                         </span>
                         {hasPhotos ? (
-                          <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+                          <CheckCircle2 className="w-5 h-5 text-green-700 shrink-0" />
                         ) : (
                           <XCircle className="w-5 h-5 text-red-400 shrink-0" />
                         )}
@@ -110,14 +110,14 @@ export default function PhotoCategoryCard({
                       {hasPhotos ? (
                         <p className="text-2xl font-bold text-green-700">
                           {count.toLocaleString()}
-                          <span className="text-sm font-normal text-green-600 ml-1">장</span>
+                          <span className="text-sm font-normal text-green-700 ml-1">장</span>
                         </p>
                       ) : (
                         <div className="flex flex-col gap-2">
                           <span className="inline-flex items-center self-start rounded-full bg-red-100 border border-red-300 text-red-700 px-2.5 py-0.5 text-sm font-semibold">
                             0장
                           </span>
-                          <p className="text-sm text-red-600 break-keep leading-snug">
+                          <p className="text-sm text-red-700 break-keep leading-snug">
                             이번 달 추가 권장
                           </p>
                           {hasGuide && (
@@ -143,7 +143,7 @@ export default function PhotoCategoryCard({
                 })}
               </div>
 
-              <p className="mt-3 text-sm text-gray-500 leading-snug">
+              <p className="mt-3 text-sm text-gray-600 leading-snug">
                 측정 시점·기기·로그인 상태에 따라 달라질 수 있음. 스마트플레이스 관리자에서 직접 확인을 권장합니다.
               </p>
             </>

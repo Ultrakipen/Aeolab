@@ -11,9 +11,9 @@ import { cardIssuerName } from "@/lib/cardIssuers";
 const PLAN_META: Record<string, { name: string; color: string; gradient: string; badge: string }> = {
   free:       { name: "무료 플랜",      color: "text-gray-600",    gradient: "from-gray-400 to-slate-500",    badge: "bg-gray-100 text-gray-600" },
   basic:      { name: "Basic",          color: "text-blue-600",    gradient: "from-blue-500 to-indigo-600",   badge: "bg-blue-100 text-blue-700" },
-  startup:    { name: "창업 패키지",    color: "text-amber-600",   gradient: "from-amber-400 to-orange-500",  badge: "bg-amber-100 text-amber-700" },
+  startup:    { name: "창업 패키지",    color: "text-amber-700",   gradient: "from-amber-400 to-orange-500",  badge: "bg-amber-100 text-amber-700" },
   pro:        { name: "Pro",            color: "text-violet-600",  gradient: "from-violet-500 to-purple-600", badge: "bg-violet-100 text-violet-700" },
-  biz:        { name: "Biz",            color: "text-emerald-600", gradient: "from-emerald-500 to-teal-600",  badge: "bg-emerald-100 text-emerald-700" },
+  biz:        { name: "Biz",            color: "text-emerald-700", gradient: "from-emerald-500 to-teal-600",  badge: "bg-emerald-100 text-emerald-700" },
 };
 
 const PLAN_PRICE: Record<string, string> = {
@@ -30,7 +30,7 @@ const STATUS_META: Record<string, { label: string; color: string; dot: string }>
   suspended:    { label: "정지됨",   color: "text-red-700 bg-red-50 border border-red-200",              dot: "bg-red-500" },
   cancelled:    { label: "해지됨",   color: "text-gray-600 bg-gray-100 border border-gray-200",          dot: "bg-gray-400" },
   expired:      { label: "만료됨",   color: "text-gray-600 bg-gray-100 border border-gray-200",          dot: "bg-gray-400" },
-  inactive:     { label: "미구독",   color: "text-gray-500 bg-gray-50 border border-gray-200",           dot: "bg-gray-300" },
+  inactive:     { label: "미구독",   color: "text-gray-600 bg-gray-50 border border-gray-200",           dot: "bg-gray-300" },
 };
 
 const PLAN_LIMITS: Record<string, { scan: string; competitors: string; autoScan: string }> = {
@@ -152,7 +152,7 @@ export default async function SettingsPage({
       {/* 페이지 헤더 */}
       <div className="mb-5 md:mb-6 max-w-3xl mx-auto">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">설정 · 구독 관리</h1>
-        <p className="text-sm text-gray-500 mt-1">{user.email}</p>
+        <p className="text-sm text-gray-600 mt-1">{user.email}</p>
       </div>
 
       {/* ── Grace Period 만료 임박 배너 ── */}
@@ -168,7 +168,7 @@ export default async function SettingsPage({
           </div>
           <Link
             href="/payment/card-update"
-            className="shrink-0 text-sm font-bold bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
+            className="shrink-0 text-sm font-bold bg-amber-700 hover:bg-amber-800 text-white px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
           >
             결제 수단 변경
           </Link>
@@ -180,13 +180,13 @@ export default async function SettingsPage({
         <div className="max-w-3xl mx-auto overflow-x-auto">
           <div className="flex items-center gap-1 py-2 whitespace-nowrap">
             <a href="#section-subscription" className="text-sm text-gray-600 hover:text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors shrink-0">구독</a>
-            <span className="text-gray-300">·</span>
+            <span className="text-gray-500">·</span>
             <a href="#section-notification" className="text-sm text-gray-600 hover:text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors shrink-0">알림·결제</a>
-            <span className="text-gray-300">·</span>
+            <span className="text-gray-500">·</span>
             <a href="#section-plans" className="text-sm text-gray-600 hover:text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors shrink-0">요금제 비교</a>
-            <span className="text-gray-300">·</span>
+            <span className="text-gray-500">·</span>
             <a href="#section-business" className="text-sm text-gray-600 hover:text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors shrink-0">사업장 정보</a>
-            <span className="text-gray-300">·</span>
+            <span className="text-gray-500">·</span>
             <a href="#section-account" className="text-sm text-gray-600 hover:text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-50 transition-colors shrink-0">계정</a>
           </div>
         </div>
@@ -232,28 +232,28 @@ export default async function SettingsPage({
                     {/* 날짜 정보 */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
-                        <Calendar className="w-4 h-4 text-gray-500 shrink-0" strokeWidth={1.8} />
+                        <Calendar className="w-4 h-4 text-gray-600 shrink-0" strokeWidth={1.8} />
                         <div>
-                          <div className="text-sm text-gray-500">구독 시작</div>
+                          <div className="text-sm text-gray-600">구독 시작</div>
                           <div className="text-base font-semibold text-gray-800">{formatDate(sub.start_at)}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
-                        <Clock className="w-4 h-4 text-gray-500 shrink-0" strokeWidth={1.8} />
+                        <Clock className="w-4 h-4 text-gray-600 shrink-0" strokeWidth={1.8} />
                         <div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-gray-600">
                             {isYearly ? "연간 구독 갱신일" : "다음 결제일"}
                           </div>
                           <div className="text-base font-semibold text-gray-800">
                             {formatDate(sub.end_at)}
                             {daysUntilEnd !== null && daysUntilEnd > 0 && (
-                              <span className="ml-1.5 text-sm text-gray-500 font-normal">({daysUntilEnd}일 후)</span>
+                              <span className="ml-1.5 text-sm text-gray-600 font-normal">({daysUntilEnd}일 후)</span>
                             )}
                           </div>
                         </div>
                       </div>
                       {firstPaymentAmount !== null && sub.start_at && (
-                        <p className="text-sm text-gray-500 px-1">
+                        <p className="text-sm text-gray-600 px-1">
                           첫 결제: {firstPaymentAmount.toLocaleString("ko-KR")}원 · {formatDate(sub.start_at)}
                         </p>
                       )}
@@ -261,14 +261,14 @@ export default async function SettingsPage({
 
                     {/* 플랜 한도 요약 */}
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-gray-500 px-1">플랜 사용 한도</p>
+                      <p className="text-sm font-medium text-gray-600 px-1">플랜 사용 한도</p>
                       {[
                         { label: "직접 스캔",  value: planLimits.scan },
                         { label: "경쟁사",     value: planLimits.competitors },
                         { label: "자동 스캔",  value: planLimits.autoScan },
                       ].map(({ label, value }) => (
                         <div key={label} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2.5">
-                          <span className="text-sm text-gray-500">{label}</span>
+                          <span className="text-sm text-gray-600">{label}</span>
                           <span className="text-base font-bold text-gray-800">{value}</span>
                         </div>
                       ))}
@@ -299,7 +299,7 @@ export default async function SettingsPage({
                       <div key={label} className="text-center bg-blue-50 rounded-xl p-3 md:p-4">
                         <div className="text-base md:text-lg font-bold text-blue-700">{value}</div>
                         <div className="text-sm font-medium text-blue-600 mt-0.5">{label}</div>
-                        <div className="text-sm text-blue-400 hidden sm:block mt-0.5">{desc}</div>
+                        <div className="text-sm text-blue-600 hidden sm:block mt-0.5">{desc}</div>
                       </div>
                     ))}
                   </div>
@@ -324,7 +324,7 @@ export default async function SettingsPage({
             <section id="section-notification" className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-4 md:px-5 py-4 border-b border-gray-100">
                 <h2 className="text-base md:text-lg font-semibold text-gray-800">알림 · 결제 설정</h2>
-                <p className="text-sm text-gray-500 mt-0.5">카카오 알림톡 수신 번호 및 결제 카드를 관리합니다.</p>
+                <p className="text-sm text-gray-600 mt-0.5">카카오 알림톡 수신 번호 및 결제 카드를 관리합니다.</p>
               </div>
               <div className="p-4 md:p-5">
                 <SettingsClient
@@ -362,7 +362,7 @@ export default async function SettingsPage({
                           free: "무료", basic: "Basic", startup: "창업패키지", pro: "Pro", biz: "Biz",
                         };
                         return (
-                          <th key={plan} className={`pb-3 text-center font-medium min-w-[72px] text-sm ${isCurrent ? meta.color : "text-gray-500"}`}>
+                          <th key={plan} className={`pb-3 text-center font-medium min-w-[72px] text-sm ${isCurrent ? meta.color : "text-gray-600"}`}>
                             {planLabel[plan]}
                             {isCurrent && (
                               <span className={`block text-sm font-semibold mt-0.5 px-1.5 py-0.5 rounded-full mx-auto w-fit ${meta.badge}`}>
@@ -392,10 +392,10 @@ export default async function SettingsPage({
                           return (
                             <td
                               key={i}
-                              className={`py-2.5 text-center text-sm ${isCurrent ? "bg-blue-50/60 font-medium" : ""} ${val === "—" ? "text-gray-300" : "text-gray-700"}`}
+                              className={`py-2.5 text-center text-sm ${isCurrent ? "bg-blue-50/60 font-medium" : ""} ${val === "—" ? "text-gray-500" : "text-gray-700"}`}
                             >
                               {val === "✓" ? (
-                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 text-sm font-bold">✓</span>
+                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">✓</span>
                               ) : val}
                             </td>
                           );
@@ -424,7 +424,7 @@ export default async function SettingsPage({
             <section id="section-business" className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-4 md:px-5 py-4 border-b border-gray-100">
                 <h2 className="text-base md:text-lg font-semibold text-gray-800">등록된 사업장</h2>
-                <p className="text-sm text-gray-500 mt-0.5">사업장 정보를 수정하면 AI 분석 정확도가 높아집니다.</p>
+                <p className="text-sm text-gray-600 mt-0.5">사업장 정보를 수정하면 AI 분석 정확도가 높아집니다.</p>
               </div>
               <div className="p-4 md:p-5">
                 <BusinessManager businesses={businesses} userId={user.id} autoEdit={autoEditBiz} autoEditId={autoEditBizId} autoField={autoEditField} />
@@ -436,7 +436,7 @@ export default async function SettingsPage({
           <section id="section-account" className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-4 md:px-5 py-4 border-b border-gray-100">
               <h2 className="text-base md:text-lg font-semibold text-gray-800">계정 설정</h2>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <p className="text-sm text-gray-600 mt-0.5">
                 {user.email} · 가입일 {formatDate(user.created_at)}
               </p>
             </div>

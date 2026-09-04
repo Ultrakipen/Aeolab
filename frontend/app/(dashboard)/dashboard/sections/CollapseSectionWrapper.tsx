@@ -59,7 +59,7 @@ export default function CollapseSectionWrapper({
         <div className="flex items-center gap-2 min-w-0">
           <span className={`w-2 h-2 rounded-full ${iconColor.replace("text-", "bg-")} shrink-0`} />
           <span className="text-base font-bold text-gray-800 shrink-0 whitespace-nowrap">{title}</span>
-          {description && <span className="text-sm text-gray-500 truncate min-w-0">{description}</span>}
+          {description && <span className="text-sm text-gray-600 truncate min-w-0">{description}</span>}
           {highlight && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold shrink-0 whitespace-nowrap">
               핵심
@@ -77,7 +77,7 @@ export default function CollapseSectionWrapper({
           )}
         </div>
         <ChevronDown
-          className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`w-5 h-5 text-gray-600 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
       {isOpen && (

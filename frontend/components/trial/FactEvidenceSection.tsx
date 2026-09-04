@@ -106,7 +106,7 @@ export default function FactEvidenceSection({
                 <ResultBadge ok={naver!.in_briefing === true} />
               </div>
               {naver?.search_query && (
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-600">
                   &ldquo;{naver.search_query}&rdquo; 검색
                 </span>
               )}
@@ -122,19 +122,19 @@ export default function FactEvidenceSection({
             </p>
             {naverExcerpt ? (
               <div className="bg-gray-100 border-l-4 border-gray-300 rounded-r-lg px-4 py-3 mb-2">
-                <p className="text-sm text-gray-500 font-semibold mb-1">실제 브리핑 문장:</p>
+                <p className="text-sm text-gray-600 font-semibold mb-1">실제 브리핑 문장:</p>
                 <p className="text-sm md:text-base text-gray-800 leading-relaxed italic break-words">
                   &ldquo;{naverExcerpt}&rdquo;
                 </p>
               </div>
             ) : !naver!.in_briefing ? (
-              <p className="text-sm text-gray-500 leading-relaxed">
+              <p className="text-sm text-gray-600 leading-relaxed">
                 {isActive
                   ? "소개글에 Q&A를 포함하면 AI 브리핑 인용 후보 가능성이 높아집니다. 반영까지 2~4주 정도 소요될 수 있습니다(추정)."
                   : "소개글에 키워드를 포함하면 네이버 AI탭 노출에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 더 직접적입니다."}
               </p>
             ) : null}
-            <p className="text-sm text-gray-500 italic mt-2">
+            <p className="text-sm text-gray-600 italic mt-2">
               정식 구독은 매주 자동 재확인 + 경쟁사 브리핑 비교 제공
             </p>
           </div>
@@ -167,7 +167,7 @@ export default function FactEvidenceSection({
                     className={
                       chatgptResult!.exposure_freq > 0
                         ? "text-emerald-700"
-                        : "text-amber-600"
+                        : "text-amber-700"
                     }
                   >
                     {chatgptResult!.exposure_freq}회 언급
@@ -176,7 +176,7 @@ export default function FactEvidenceSection({
               )}
             {chatgptResult!.excerpt ? (
               <div className="bg-gray-100 border-l-4 border-gray-300 rounded-r-lg px-4 py-3 mb-2">
-                <p className="text-sm text-gray-500 font-semibold mb-1">실제 ChatGPT 응답:</p>
+                <p className="text-sm text-gray-600 font-semibold mb-1">실제 ChatGPT 응답:</p>
                 <p className="text-sm md:text-base text-gray-800 leading-relaxed italic break-words">
                   &ldquo;{chatgptResult!.excerpt}&rdquo;
                 </p>
@@ -185,21 +185,21 @@ export default function FactEvidenceSection({
               <>
                 {/* 측정 증거 — 미노출 신뢰도 향상 */}
                 <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-2">
-                  <p className="text-sm text-gray-500 font-semibold mb-0.5">측정 방법</p>
+                  <p className="text-sm text-gray-600 font-semibold mb-0.5">측정 방법</p>
                   <p className="text-sm text-gray-700">
                     ChatGPT에게 &ldquo;{regionPrefix ?? "지역"} {keyword ?? "해당 업종"} 추천&rdquo;을{" "}
                     {chatgptResult!.sample_size ?? 5}번 질문했습니다.
                   </p>
                 </div>
-                <p className="text-sm text-gray-500 leading-relaxed">
+                <p className="text-sm text-gray-600 leading-relaxed">
                   ChatGPT는 미국 데이터(Google 비즈니스·해외 사이트)를 주로 봅니다. Google 비즈니스 프로필 등록만으로 노출 가능성이 크게 높아집니다.
                 </p>
               </>
             ) : null}
-            <p className="text-sm text-gray-500 italic mt-2">
+            <p className="text-sm text-gray-600 italic mt-2">
               정식 구독은 Gemini·ChatGPT 각 50회 (총 100회) 반복 측정 + 매주 추적 + 변화 알림
             </p>
-            <p className="text-sm text-gray-500 leading-relaxed mt-1">
+            <p className="text-sm text-gray-600 leading-relaxed mt-1">
               ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
               측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
             </p>
@@ -238,7 +238,7 @@ export default function FactEvidenceSection({
                 style={{ width: `${Math.min((exposureFreq! / totalSamples) * 100, 100)}%` }}
               />
             </div>
-            <p className="text-sm text-gray-500 leading-relaxed">
+            <p className="text-sm text-gray-600 leading-relaxed">
               같은 질문을 {totalSamples}번 반복했을 때 AI가 내 가게를 추천한 횟수입니다.
               {exposureFreq! === 0
                 ? " AI가 내 가게를 모르고 있습니다."
@@ -249,7 +249,7 @@ export default function FactEvidenceSection({
             {/* Gemini 미노출 시 측정 증거 — 신뢰도 향상 */}
             {exposureFreq! === 0 && (
               <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-2 mt-2">
-                <p className="text-sm text-gray-500 font-semibold mb-0.5">측정 방법</p>
+                <p className="text-sm text-gray-600 font-semibold mb-0.5">측정 방법</p>
                 <p className="text-sm text-gray-700">
                   Gemini에게 &ldquo;{regionPrefix ?? "지역"} {keyword ?? "해당 업종"} 추천&rdquo;을{" "}
                   {totalSamples}번 반복 질문했습니다.
@@ -270,7 +270,7 @@ export default function FactEvidenceSection({
                   </p>
                 </div>
               ))}
-            <p className="text-sm text-gray-500 italic mt-2">
+            <p className="text-sm text-gray-600 italic mt-2">
               정식 구독은 Gemini·ChatGPT 각 50회 (총 100회) + 매일 변화 추적
             </p>
           </div>

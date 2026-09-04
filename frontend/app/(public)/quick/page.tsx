@@ -63,10 +63,10 @@ const CATEGORIES = [
 
 // 점수 → 색상
 function scoreColor(score: number): string {
-  if (score >= 70) return "text-emerald-600";
+  if (score >= 70) return "text-emerald-700";
   if (score >= 50) return "text-yellow-500";
-  if (score >= 30) return "text-orange-500";
-  return "text-red-500";
+  if (score >= 30) return "text-orange-700";
+  return "text-red-700";
 }
 
 function scoreBg(score: number): string {
@@ -263,7 +263,7 @@ export default function QuickPage() {
         <div className="max-w-md mx-auto flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-blue-600">AEOlab</Link>
           <div className="flex items-center gap-2 md:gap-3">
-            <span className="hidden sm:inline text-sm text-gray-500 font-medium whitespace-nowrap">30초 간이 AI 진단</span>
+            <span className="hidden sm:inline text-sm text-gray-600 font-medium whitespace-nowrap">30초 간이 AI 진단</span>
             <AuthNavControlClient />
           </div>
         </div>
@@ -279,7 +279,7 @@ export default function QuickPage() {
               <h1 className="text-2xl font-bold text-gray-900 mb-2 leading-snug break-keep">
                 AI가 내 가게를 알고 있나요?
               </h1>
-              <p className="text-base text-gray-500 leading-relaxed break-keep">
+              <p className="text-base text-gray-600 leading-relaxed break-keep">
                 가게 이름과 지역만 입력하면
                 <br />
                 <strong className="text-gray-700">30초 안에 AI 노출 점수</strong>를 무료로 알려드립니다.
@@ -288,14 +288,14 @@ export default function QuickPage() {
 
             {/* 신뢰 배지 */}
             <div className="flex justify-center gap-4 mb-6">
-              <span className="text-sm text-gray-500 flex items-center gap-1">
-                <span className="text-green-500 font-bold">✓</span> 무료
+              <span className="text-sm text-gray-600 flex items-center gap-1">
+                <span className="text-green-700 font-bold">✓</span> 무료
               </span>
-              <span className="text-sm text-gray-500 flex items-center gap-1">
-                <span className="text-green-500 font-bold">✓</span> 회원가입 불필요
+              <span className="text-sm text-gray-600 flex items-center gap-1">
+                <span className="text-green-700 font-bold">✓</span> 회원가입 불필요
               </span>
-              <span className="text-sm text-gray-500 flex items-center gap-1">
-                <span className="text-green-500 font-bold">✓</span> 30초
+              <span className="text-sm text-gray-600 flex items-center gap-1">
+                <span className="text-green-700 font-bold">✓</span> 30초
               </span>
             </div>
 
@@ -310,7 +310,7 @@ export default function QuickPage() {
                 </p>
                 <Link
                   href="/signup"
-                  className="inline-block bg-amber-500 text-white font-bold text-base px-6 py-3 rounded-xl hover:bg-amber-600 transition-colors"
+                  className="inline-block bg-amber-700 text-white font-bold text-base px-6 py-3 rounded-xl hover:bg-amber-700 transition-colors"
                 >
                   회원가입하면 결제 없이 전체 AI 1회 무료체험
                 </Link>
@@ -322,7 +322,7 @@ export default function QuickPage() {
               {/* 가게 이름 */}
               <div>
                 <label className="block text-base font-semibold text-gray-700 mb-1.5">
-                  가게 이름 <span className="text-red-500">*</span>
+                  가게 이름 <span className="text-red-700">*</span>
                 </label>
                 <input
                   type="text"
@@ -331,14 +331,14 @@ export default function QuickPage() {
                   placeholder="예: 파리바게뜨 수원점"
                   required
                   disabled={cooldownMs > 0}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-600"
                 />
               </div>
 
               {/* 지역 */}
               <div>
                 <label className="block text-base font-semibold text-gray-700 mb-1.5">
-                  지역 <span className="text-red-500">*</span>
+                  지역 <span className="text-red-700">*</span>
                 </label>
                 <input
                   type="text"
@@ -347,20 +347,20 @@ export default function QuickPage() {
                   placeholder="예: 수원시 팔달구"
                   required
                   disabled={cooldownMs > 0}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-600"
                 />
               </div>
 
               {/* 업종 — 선택(드롭다운) */}
               <div>
                 <label className="block text-base font-semibold text-gray-700 mb-1.5">
-                  업종 <span className="text-sm font-normal text-gray-500">(선택)</span>
+                  업종 <span className="text-sm font-normal text-gray-600">(선택)</span>
                 </label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   disabled={cooldownMs > 0}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-100 disabled:text-gray-500"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-4 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-100 disabled:text-gray-600"
                 >
                   {CATEGORIES.map((c) => (
                     <option key={c.value} value={c.value}>{c.label}</option>
@@ -370,21 +370,21 @@ export default function QuickPage() {
 
               {/* 오류 메시지 */}
               {error && (
-                <p className="text-red-500 text-sm bg-red-50 rounded-xl px-4 py-3 leading-relaxed">{error}</p>
+                <p className="text-red-700 text-sm bg-red-50 rounded-xl px-4 py-3 leading-relaxed">{error}</p>
               )}
 
               {/* 진단 버튼 */}
               <button
                 type="submit"
                 disabled={cooldownMs > 0}
-                className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-lg py-5 rounded-2xl transition-colors shadow-md shadow-green-100"
+                className="w-full bg-green-700 hover:bg-green-800 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-lg py-5 rounded-2xl transition-colors shadow-md shadow-green-100"
               >
                 {cooldownMs > 0
                   ? `${formatCooldown(cooldownMs)} 후 다시 이용 가능`
                   : "AI 진단 시작"}
               </button>
 
-              <p className="text-center text-sm text-gray-500 mt-2">
+              <p className="text-center text-sm text-gray-600 mt-2">
                 하루 3회 무료 · 결과는 약 30초 내 표시됩니다
               </p>
             </form>
@@ -420,7 +420,7 @@ export default function QuickPage() {
             <h2 className="text-xl font-bold text-gray-900 mb-2">
               {name} 분석 중...
             </h2>
-            <p className="text-base text-gray-500 mb-8">
+            <p className="text-base text-gray-600 mb-8">
               AI에게 &ldquo;{region} {CATEGORIES.find(c => c.value === category)?.label ?? "가게"} 추천&rdquo;을<br />물어보고 있습니다
             </p>
 
@@ -434,12 +434,12 @@ export default function QuickPage() {
                       ? "bg-green-50 text-green-700"
                       : i === scanStep
                       ? "bg-blue-50 text-blue-700 font-semibold"
-                      : "bg-gray-50 text-gray-500"
+                      : "bg-gray-50 text-gray-600"
                   }`}
                 >
                   <span className="w-5 h-5 flex items-center justify-center shrink-0">
                     {i < scanStep ? (
-                      <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <svg className="w-5 h-5 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     ) : i === scanStep ? (
@@ -475,7 +475,7 @@ export default function QuickPage() {
 
             {/* 점수 카드 */}
             <div className={`rounded-xl border-2 p-6 ${scoreBg(score)}`}>
-              <p className="text-sm font-semibold text-gray-500 mb-3">
+              <p className="text-sm font-semibold text-gray-600 mb-3">
                 {name} · {region} — AI 검색 노출 점수
               </p>
 
@@ -499,13 +499,13 @@ export default function QuickPage() {
               {/* 트랙 점수 */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-white/70 rounded-xl p-3">
-                  <p className="text-sm text-gray-500 mb-1">네이버 AI 노출</p>
+                  <p className="text-sm text-gray-600 mb-1">네이버 AI 노출</p>
                   <p className={`text-xl font-bold ${scoreColor(track1)}`}>
                     {getScoreTextLabel(Math.round(track1))}
                   </p>
                 </div>
                 <div className="bg-white/70 rounded-xl p-3">
-                  <p className="text-sm text-gray-500 mb-1">글로벌 AI 노출</p>
+                  <p className="text-sm text-gray-600 mb-1">글로벌 AI 노출</p>
                   <p className={`text-xl font-bold ${scoreColor(track2)}`}>
                     {getScoreTextLabel(Math.round(track2))}
                   </p>
@@ -524,7 +524,7 @@ export default function QuickPage() {
                     <span className="text-2xl shrink-0 mt-0.5">{issue.icon}</span>
                     <div>
                       <p className="text-base font-semibold text-gray-800 mb-0.5">{issue.title}</p>
-                      <p className="text-sm text-gray-500 leading-relaxed">{issue.desc}</p>
+                      <p className="text-sm text-gray-600 leading-relaxed">{issue.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -544,7 +544,7 @@ export default function QuickPage() {
                     </span>
                   ))}
                 </div>
-                <p className="text-sm text-amber-600 mt-3">
+                <p className="text-sm text-amber-700 mt-3">
                   이 키워드를 스마트플레이스 소개글·FAQ에 추가하면 AI 노출이 개선됩니다.
                 </p>
               </div>
@@ -565,7 +565,7 @@ export default function QuickPage() {
             >
               무료 회원가입으로 매주 자동 분석받기
             </Link>
-            <p className="text-center text-sm text-gray-500">Basic 월 11,900원 · 7일 이내 미사용 시 100% 환불</p>
+            <p className="text-center text-sm text-gray-600">Basic 월 11,900원 · 7일 이내 미사용 시 100% 환불</p>
 
             {/* 다시 진단 */}
             <button

@@ -110,15 +110,15 @@ export default function ChatGptSearchGuidePage() {
               <p className="text-sm font-semibold text-blue-800 mb-2">실사용자 ChatGPT 웹검색 (검색엔진 인덱싱 참고)</p>
               <ul className="space-y-1.5 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
-                  <span className="shrink-0 text-blue-500 mt-0.5">•</span>
+                  <span className="shrink-0 text-blue-600 mt-0.5">•</span>
                   <span>자체 웹사이트 신규 등록 → 검색엔진 인덱싱: <strong>약 1~2주</strong> (Bing 기준 참고치)</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="shrink-0 text-blue-500 mt-0.5">•</span>
+                  <span className="shrink-0 text-blue-600 mt-0.5">•</span>
                   <span>구글 비즈니스 프로필 등록 → 웹 전파 후 반영: <strong>약 2~4주</strong></span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="shrink-0 text-blue-500 mt-0.5">•</span>
+                  <span className="shrink-0 text-blue-600 mt-0.5">•</span>
                   <span>Bing 웹마스터 도구 등록은 보조적으로 도움이 될 수 있음 (OpenAI 자체 인덱스·구글 경로는 소요기간 미공개)</span>
                 </li>
               </ul>
@@ -129,12 +129,12 @@ export default function ChatGptSearchGuidePage() {
                 ChatGPT 모델 재학습 주기에 의존<br />
                 <strong>수개월~1년</strong> 이상 소요
               </p>
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-gray-600 mt-2">
                 GPT-4.1-mini 학습 데이터 컷오프: 2024년 6월 기준
               </p>
             </div>
           </div>
-          <p className="text-sm text-gray-500 leading-relaxed">
+          <p className="text-sm text-gray-600 leading-relaxed">
             ※ AEOlab 점수는 학습 데이터 기반 측정이며, 실사용자 ChatGPT 웹검색 결과와 다를 수 있습니다.
             이 페이지의 체크리스트는 이 중 &lsquo;실사용자 웹검색&rsquo; 트랙을 돕는 항목이며, AEOlab 대시보드 점수와는 별개로 움직입니다.
           </p>
@@ -154,29 +154,29 @@ export default function ChatGptSearchGuidePage() {
                   <Globe className="w-5 h-5" aria-hidden="true" />
                 </div>
                 <p className="text-sm font-semibold text-gray-900">내 사업장 정보</p>
-                <p className="text-sm text-gray-500">웹사이트 · 구글 비즈니스 프로필</p>
+                <p className="text-sm text-gray-600">웹사이트 · 구글 비즈니스 프로필</p>
               </div>
 
-              <ArrowDown className="w-5 h-5 text-gray-400 shrink-0 md:hidden" aria-hidden="true" />
-              <ArrowRight className="w-5 h-5 text-gray-400 shrink-0 hidden md:block" aria-hidden="true" />
+              <ArrowDown className="w-5 h-5 text-gray-600 shrink-0 md:hidden" aria-hidden="true" />
+              <ArrowRight className="w-5 h-5 text-gray-600 shrink-0 hidden md:block" aria-hidden="true" />
 
               <div className="flex flex-col items-center text-center gap-1.5 w-full md:w-auto">
                 <div className="w-11 h-11 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
                   <Bot className="w-5 h-5" aria-hidden="true" />
                 </div>
                 <p className="text-sm font-semibold text-gray-900">OpenAI 인덱싱</p>
-                <p className="text-sm text-gray-500">OAI-SearchBot · 구글 인덱스</p>
+                <p className="text-sm text-gray-600">OAI-SearchBot · 구글 인덱스</p>
               </div>
 
-              <ArrowDown className="w-5 h-5 text-gray-400 shrink-0 md:hidden" aria-hidden="true" />
-              <ArrowRight className="w-5 h-5 text-gray-400 shrink-0 hidden md:block" aria-hidden="true" />
+              <ArrowDown className="w-5 h-5 text-gray-600 shrink-0 md:hidden" aria-hidden="true" />
+              <ArrowRight className="w-5 h-5 text-gray-600 shrink-0 hidden md:block" aria-hidden="true" />
 
               <div className="flex flex-col items-center text-center gap-1.5 w-full md:w-auto">
                 <div className="w-11 h-11 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
                   <MessageSquareText className="w-5 h-5" aria-hidden="true" />
                 </div>
                 <p className="text-sm font-semibold text-gray-900">ChatGPT 응답</p>
-                <p className="text-sm text-gray-500">질문에 대한 답으로 인용</p>
+                <p className="text-sm text-gray-600">질문에 대한 답으로 인용</p>
               </div>
             </div>
           </div>
@@ -248,7 +248,7 @@ export default function ChatGptSearchGuidePage() {
               <p className="text-sm md:text-base text-gray-800 leading-relaxed italic">
                 &ldquo;맛있는 음식을 제공합니다.&rdquo;
               </p>
-              <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+              <p className="text-sm text-gray-600 mt-2 leading-relaxed">
                 구체적 정보 없음 — ChatGPT가 인용할 근거가 부족합니다.
               </p>
             </div>
@@ -257,7 +257,7 @@ export default function ChatGptSearchGuidePage() {
               <p className="text-sm md:text-base text-gray-800 leading-relaxed italic">
                 &ldquo;Q. 대표 메뉴는? A. 시그니처 파스타(15,000원)와 트러플 리조또(18,000원)입니다.&rdquo;
               </p>
-              <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+              <p className="text-sm text-gray-600 mt-2 leading-relaxed">
                 Q&amp;A 구조 + 구체 수치 → 질문에 바로 답하는 형태로 인용 가능합니다.
               </p>
             </div>
@@ -269,7 +269,7 @@ export default function ChatGptSearchGuidePage() {
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
             ChatGPT 노출 체크리스트
           </h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-gray-600 mb-4">
             체크 상태는 이 브라우저에 저장됩니다 (새 기기·시크릿 모드에서는 초기화됩니다).
           </p>
           <ChatGptChecklist items={CHECKLIST_ITEMS} />

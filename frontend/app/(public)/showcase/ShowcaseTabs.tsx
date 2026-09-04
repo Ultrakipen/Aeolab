@@ -51,7 +51,7 @@ export function ShowcaseTabs() {
       <section>
         <div className="mb-3">
           <h2 className="text-lg md:text-xl font-black text-gray-900">{item.title}</h2>
-          <p className="text-sm md:text-base text-gray-500 mt-1">{item.desc}</p>
+          <p className="text-sm md:text-base text-gray-600 mt-1">{item.desc}</p>
         </div>
 
         {/* 모바일: 실제 모바일 레이아웃 캡처를 원본 크기로 표시 (모바일 화면 폭과 거의 일치해 스크롤 불필요) */}

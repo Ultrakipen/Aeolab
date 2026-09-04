@@ -19,19 +19,19 @@ const CHANNEL_ROWS: ChannelRow[] = [
   {
     channel: "네이버 AI탭",
     duration: "2~4주",
-    durationColor: "text-green-600",
+    durationColor: "text-green-700",
     note: "스마트플레이스 최적화 후 반영",
   },
   {
     channel: "네이버 일반검색",
     duration: "2~4주",
-    durationColor: "text-green-600",
+    durationColor: "text-green-700",
     note: "소개글·리뷰 업데이트 후 반영",
   },
   {
     channel: "네이버 AI 브리핑",
     duration: "2~4주",
-    durationColor: "text-green-600",
+    durationColor: "text-green-700",
     note: "AI 정보 탭 ON + 리뷰 확보 후",
     showOnlyFor: "active_likely",
   },
@@ -45,7 +45,7 @@ const CHANNEL_ROWS: ChannelRow[] = [
   {
     channel: "ChatGPT",
     duration: "수개월~1년",
-    durationColor: "text-amber-600",
+    durationColor: "text-amber-700",
     note: "AI 학습 데이터 기반 — 단기 변동 없음",
     extraNote: "(지금 낮아도 정상)",
     isGlobal: true,
@@ -53,7 +53,7 @@ const CHANNEL_ROWS: ChannelRow[] = [
   {
     channel: "Google AI",
     duration: "수 주~수개월",
-    durationColor: "text-orange-500",
+    durationColor: "text-orange-700",
     note: "구글 비즈니스 프로필 + JSON-LD 등록 후 반영",
     isGlobal: true,
   },
@@ -84,7 +84,7 @@ export default function ChannelTimelineBox({
             <span className={`font-bold ${row.durationColor}`}>{row.duration}</span>
           </span>
         ))}
-        <span className="text-xs text-gray-500 ml-auto">참고값</span>
+        <span className="text-xs text-gray-600 ml-auto">참고값</span>
       </div>
     );
   }
@@ -107,10 +107,10 @@ export default function ChannelTimelineBox({
               {row.duration}
             </span>
             {!compact && (
-              <span className="text-sm text-gray-500 min-w-0">
+              <span className="text-sm text-gray-600 min-w-0">
                 {row.note}
                 {row.extraNote && (
-                  <span className="ml-1 text-amber-600 font-medium">
+                  <span className="ml-1 text-amber-700 font-medium">
                     {row.extraNote}
                   </span>
                 )}
@@ -119,7 +119,7 @@ export default function ChannelTimelineBox({
           </div>
         ))}
       </div>
-      <p className="text-xs text-gray-500 mt-2 leading-snug">
+      <p className="text-xs text-gray-600 mt-2 leading-snug">
         꾸준한 관리 활동 기준 참고값입니다
       </p>
     </div>

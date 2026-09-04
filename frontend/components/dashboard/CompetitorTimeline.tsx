@@ -195,7 +195,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
       summaries.push({
         name,
         change,
-        color: change > 0 ? 'text-red-600' : change < 0 ? 'text-emerald-600' : 'text-gray-500',
+        color: change > 0 ? 'text-red-700' : change < 0 ? 'text-emerald-700' : 'text-gray-600',
       })
     })
   }
@@ -259,7 +259,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
 
       {/* 에러 */}
       {!loading && error && (
-        <div className="flex items-center gap-2 text-sm text-red-500 py-6 justify-center">
+        <div className="flex items-center gap-2 text-sm text-red-700 py-6 justify-center">
           <AlertCircle className="w-4 h-4" />
           {error}
         </div>
@@ -268,7 +268,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
       {/* 데이터 없음 */}
       {!loading && !error && chartData.length === 0 && (
         <div className="py-10 text-center">
-          <p className="text-sm text-gray-500 leading-relaxed">
+          <p className="text-sm text-gray-600 leading-relaxed">
             {scans.length === 0
               ? <>경쟁사를 등록하고 첫 스캔이 완료되면<br />비교 그래프가 나타납니다.</>
               : <>지난 {effectiveDays}일간 스캔 내역이 없습니다.<br />AI 스캔을 실행하면 비교 그래프가 업데이트됩니다.</>
@@ -361,7 +361,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
           </ResponsiveContainer>
 
           {compNames.length === 0 && (
-            <p className="text-sm text-gray-500 text-center mt-2">
+            <p className="text-sm text-gray-600 text-center mt-2">
               경쟁사를 등록하면 비교 선이 표시됩니다.
             </p>
           )}
@@ -369,7 +369,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
           {/* 현재 점수 순위 — 차트에서 겹쳐 보이지 않는 경쟁사도 명확히 표시 */}
           {compNames.length > 0 && (
             <div className="mt-3 pt-3 border-t border-gray-100">
-              <div className="text-sm font-semibold text-gray-500 mb-2">최근 스캔 기준 점수 순위</div>
+              <div className="text-sm font-semibold text-gray-600 mb-2">최근 스캔 기준 점수 순위</div>
               <div className="space-y-1.5">
                 {(() => {
                   // 순위는 unified(total_score) 기준 — 위 차트의 내가게 값·CompetitorTrendChart와
@@ -389,7 +389,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
                   const maxScore = Math.max(...rows.map(r => r.score), 10)
                   return rows.map((row, rank) => (
                     <div key={row.name} className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500 w-5 shrink-0">#{rank + 1}</span>
+                      <span className="text-sm text-gray-600 w-5 shrink-0">#{rank + 1}</span>
                       <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all"
@@ -399,22 +399,22 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
                       <span className={`text-sm truncate max-w-[130px] ${row.isMe ? 'font-bold text-blue-700' : 'text-gray-600'}`}>
                         {row.isMe ? `${row.name} (내 가게)` : row.name}
                       </span>
-                      <span className={`text-sm font-semibold shrink-0 px-1.5 py-0.5 rounded ${row.isMe ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>{rank === 0 ? '1위' : `${rank + 1}위`}</span>
+                      <span className={`text-sm font-semibold shrink-0 px-1.5 py-0.5 rounded ${row.isMe ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>{rank === 0 ? '1위' : `${rank + 1}위`}</span>
                     </div>
                   ))
                 })()}
               </div>
               {compNames.some(n => (lastKnownScore[n] ?? 0) <= 15) && (
-                <p className="mt-1.5 text-sm text-gray-500">※ 막대가 짧은 경쟁사는 AI 검색에 미노출 상태입니다</p>
+                <p className="mt-1.5 text-sm text-gray-600">※ 막대가 짧은 경쟁사는 AI 검색에 미노출 상태입니다</p>
               )}
             </div>
           )}
 
           {/* 안내 */}
           <div className="mt-2 pt-2 border-t border-gray-100 space-y-1">
-            <p className="text-sm text-gray-500">실선 = 내 가게 · 점선 = 경쟁사 추이</p>
+            <p className="text-sm text-gray-600">실선 = 내 가게 · 점선 = 경쟁사 추이</p>
             {compNames.length > 1 && (
-              <p className="text-sm text-gray-500">※ 같은 점수 경쟁사는 시각 구분을 위해 약간 다른 높이로 표시됩니다</p>
+              <p className="text-sm text-gray-600">※ 같은 점수 경쟁사는 시각 구분을 위해 약간 다른 높이로 표시됩니다</p>
             )}
           </div>
         </>

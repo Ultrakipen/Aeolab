@@ -48,7 +48,7 @@ export function MobileBottomTabs({ onMoreClick }: Props) {
           "min-h-[56px] text-sm font-medium transition-colors",
           active
             ? "text-blue-600"
-            : "text-gray-500 hover:text-gray-900",
+            : "text-gray-600 hover:text-gray-900",
         ].join(" ");
 
         const inner = (

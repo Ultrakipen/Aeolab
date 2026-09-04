@@ -32,19 +32,19 @@ const DIRECTION_CONFIG = {
     label: "상승",
     icon: TrendingUp,
     badgeCls: "bg-green-100 text-green-700 border-green-200",
-    iconCls: "text-green-600",
+    iconCls: "text-green-700",
   },
   falling: {
     label: "하락",
     icon: TrendingDown,
-    badgeCls: "bg-red-100 text-red-600 border-red-200",
-    iconCls: "text-red-500",
+    badgeCls: "bg-red-100 text-red-700 border-red-200",
+    iconCls: "text-red-700",
   },
   stable: {
     label: "유지",
     icon: Minus,
     badgeCls: "bg-gray-100 text-gray-600 border-gray-200",
-    iconCls: "text-gray-500",
+    iconCls: "text-gray-600",
   },
 };
 
@@ -76,9 +76,9 @@ export function IndustryTrendCard({ trend, category, isLoading = false }: Props)
   const deltaSign = trend.trend_delta >= 0 ? "+" : "";
   const deltaColor =
     trend.trend_direction === "rising"
-      ? "text-green-600"
+      ? "text-green-700"
       : trend.trend_direction === "falling"
-      ? "text-red-500"
+      ? "text-red-700"
       : "text-gray-600";
 
   return (
@@ -99,7 +99,7 @@ export function IndustryTrendCard({ trend, category, isLoading = false }: Props)
         </span>
       </div>
 
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="text-sm text-gray-600 mb-4">
         최근 3개월 <strong className="text-gray-700">{category}</strong> 검색 트렌드:{" "}
         <span className={`font-semibold ${deltaColor}`}>
           {deltaSign}{trend.trend_delta.toFixed(1)}pt {config.label} 중
@@ -149,13 +149,13 @@ export function IndustryTrendCard({ trend, category, isLoading = false }: Props)
           </ResponsiveContainer>
         </div>
       ) : (
-        <div className="h-36 flex items-center justify-center text-sm text-gray-500 bg-gray-50 rounded-xl">
+        <div className="h-36 flex items-center justify-center text-sm text-gray-600 bg-gray-50 rounded-xl">
           트렌드 데이터 없음
         </div>
       )}
 
       {/* 주의 문구 */}
-      <p className="text-sm text-gray-500 mt-3">
+      <p className="text-sm text-gray-600 mt-3">
         * 네이버 상대 지수 기준 (절대 검색량 아님). 100 = 최고 검색 시점.
       </p>
     </div>

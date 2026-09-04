@@ -46,10 +46,10 @@ function OpeningHoursBuilder({ rows, onChange }: { rows: HoursRow[]; onChange: (
                 {d.label}
               </button>
             ))}
-            <button type="button" onClick={() => removeRow(row.id)} className="ml-auto text-sm text-gray-500 hover:text-red-500 px-2">삭제</button>
+            <button type="button" onClick={() => removeRow(row.id)} className="ml-auto text-sm text-gray-600 hover:text-red-700 px-2">삭제</button>
           </div>
           <div className="flex items-center gap-2">
-            <label className="flex items-center gap-1.5 text-sm text-gray-500 cursor-pointer">
+            <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
               <input type="checkbox" checked={row.closed} onChange={(e) => updateRow(row.id, 'closed', e.target.checked)} className="accent-red-500" />
               휴무
             </label>
@@ -58,7 +58,7 @@ function OpeningHoursBuilder({ rows, onChange }: { rows: HoursRow[]; onChange: (
                 <select value={row.open} onChange={(e) => updateRow(row.id, 'open', e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm">
                   {HOURS.map((h) => <option key={h.value} value={h.value}>{h.label}</option>)}
                 </select>
-                <span className="text-gray-500 text-sm">~</span>
+                <span className="text-gray-600 text-sm">~</span>
                 <select value={row.close} onChange={(e) => updateRow(row.id, 'close', e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm">
                   {HOURS.map((h) => <option key={h.value} value={h.value}>{h.label}</option>)}
                 </select>
@@ -68,7 +68,7 @@ function OpeningHoursBuilder({ rows, onChange }: { rows: HoursRow[]; onChange: (
         </div>
       ))}
       <button type="button" onClick={addRow}
-        className="w-full border border-dashed border-gray-300 text-gray-500 text-sm py-2 rounded-xl hover:border-blue-400 hover:text-blue-500 transition-colors">
+        className="w-full border border-dashed border-gray-300 text-gray-600 text-sm py-2 rounded-xl hover:border-blue-400 hover:text-blue-600 transition-colors">
         + 시간대 추가 (예: 주말 별도 설정)
       </button>
     </div>
@@ -85,7 +85,7 @@ function CopyButton({ text, label = '복사' }: { text: string; label?: string }
   }
   return (
     <button onClick={handleCopy}
-      className={`flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg font-medium transition-colors ${copied ? 'bg-green-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
+      className={`flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg font-medium transition-colors ${copied ? 'bg-green-700 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
       {copied ? <><Check className="w-3.5 h-3.5" />복사됨!</> : <><ClipboardCopy className="w-3.5 h-3.5" />{label}</>}
     </button>
   )
@@ -128,11 +128,11 @@ function ChecklistItem({
       <div className="flex items-center gap-3 px-4 py-3">
         <button onClick={toggle} className="shrink-0">
           {checked
-            ? <CheckCircle2 className="w-5 h-5 text-green-500" />
+            ? <CheckCircle2 className="w-5 h-5 text-green-700" />
             : <div className="w-5 h-5 rounded-full border-2 border-gray-300" />}
         </button>
         <span className={`flex-1 text-sm ${checked ? 'text-green-700 line-through' : 'text-gray-700'}`}>{item}</span>
-        <button onClick={() => setOpen(!open)} aria-expanded={open} className="text-gray-500 hover:text-gray-600 shrink-0">
+        <button onClick={() => setOpen(!open)} aria-expanded={open} className="text-gray-600 hover:text-gray-700 shrink-0">
           {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
       </div>
@@ -151,10 +151,10 @@ const GRADE_LABEL: Record<string, string> = { A: '우수', B: '양호', C: '보�
 
 function IntroScoreGauge({ introScore }: { introScore: IntroScore }) {
   const GRADE_COLOR: Record<string, { ring: string; text: string; bg: string }> = {
-    A: { ring: 'stroke-green-500', text: 'text-green-600', bg: 'bg-green-50' },
+    A: { ring: 'stroke-green-500', text: 'text-green-700', bg: 'bg-green-50' },
     B: { ring: 'stroke-blue-500', text: 'text-blue-600', bg: 'bg-blue-50' },
     C: { ring: 'stroke-yellow-500', text: 'text-yellow-600', bg: 'bg-yellow-50' },
-    D: { ring: 'stroke-red-500', text: 'text-red-600', bg: 'bg-red-50' },
+    D: { ring: 'stroke-red-500', text: 'text-red-700', bg: 'bg-red-50' },
   }
   const color = GRADE_COLOR[introScore.grade] ?? GRADE_COLOR.C
   const circumference = 2 * Math.PI * 40
@@ -181,7 +181,7 @@ function IntroScoreGauge({ introScore }: { introScore: IntroScore }) {
         </div>
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-gray-500 mb-1">
+        <p className="text-sm text-gray-600 mb-1">
           총 {introScore.total_checked}개 키워드 중 {introScore.matched_keywords.length}개 포함됨
         </p>
         <div className="w-full bg-gray-100 rounded-full h-2 mb-3">
@@ -195,7 +195,7 @@ function IntroScoreGauge({ introScore }: { introScore: IntroScore }) {
         ) : (
           <p className="text-sm text-gray-600 leading-relaxed">
             아래 부족한 키워드를 소개글에 추가하면 <span className="font-semibold text-blue-600">네이버 AI탭·AI 브리핑(대상 업종) 및 글로벌 AI 키워드 커버리지가 높아집니다.</span>
-            <span className="block mt-1 text-gray-500">해당 없는 키워드는 추가하지 않아도 됩니다.</span>
+            <span className="block mt-1 text-gray-600">해당 없는 키워드는 추가하지 않아도 됩니다.</span>
           </p>
         )}
       </div>
@@ -316,7 +316,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
       {/* 헤더 */}
       <div className="mb-6">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">AI 검색 최적화 도구</h1>
-        <p className="text-gray-500 text-sm mt-1 leading-relaxed">
+        <p className="text-gray-600 text-sm mt-1 leading-relaxed">
           AI 검색 등록 코드(JSON-LD) 생성, 스마트플레이스 소개글 AI 키워드 점수 확인, 블로그 초안 3종을 한 번에 만들어 드립니다.
         </p>
         <div className="mt-3 space-y-2">
@@ -384,7 +384,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
         {/* 메뉴·서비스 (핵심) */}
         <div>
           <label htmlFor="sc-menu-items" className="block text-sm font-medium text-gray-700 mb-1">
-            메뉴 · 서비스 <span className="text-gray-500 font-normal text-sm">(AI가 가장 많이 활용하는 정보)</span>
+            메뉴 · 서비스 <span className="text-gray-600 font-normal text-sm">(AI가 가장 많이 활용하는 정보)</span>
           </label>
           <textarea id="sc-menu-items" rows={2} value={form.menu_items} onChange={(e) => setForm({ ...form, menu_items: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
@@ -394,7 +394,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
         {/* 특징·강점 */}
         <div>
           <label htmlFor="sc-specialty" className="block text-sm font-medium text-gray-700 mb-1">
-            가게 특징 · 강점 <span className="text-gray-500 font-normal text-sm">(소개글에 반영됩니다)</span>
+            가게 특징 · 강점 <span className="text-gray-600 font-normal text-sm">(소개글에 반영됩니다)</span>
           </label>
           <textarea id="sc-specialty" rows={2} value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
@@ -404,14 +404,14 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
         {/* 영업시간 */}
         <div>
           <h2 className="text-sm font-semibold text-gray-700 mb-1">영업시간</h2>
-          <p className="text-sm text-gray-500 mb-3">요일을 선택하고 시간을 설정하세요.</p>
+          <p className="text-sm text-gray-600 mb-3">요일을 선택하고 시간을 설정하세요.</p>
           <OpeningHoursBuilder rows={hoursRows} onChange={setHoursRows} />
         </div>
 
         {/* 홈페이지 (선택) */}
         <div>
           <label htmlFor="sc-website-url" className="block text-sm font-medium text-gray-700 mb-1">
-            홈페이지 주소 <span className="text-gray-500 font-normal text-sm">(없으면 비워도 됩니다)</span>
+            홈페이지 주소 <span className="text-gray-600 font-normal text-sm">(없으면 비워도 됩니다)</span>
           </label>
           <input id="sc-website-url" value={form.website_url} onChange={(e) => setForm({ ...form, website_url: e.target.value })}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="https://내가게.com (없으면 비워두세요)" />
@@ -427,7 +427,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
           ) : 'AI 검색 코드 · 소개글 · 블로그 초안 생성하기'}
         </button>
         {generateError && (
-          <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+          <div className="flex items-center gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
             <AlertCircle className="w-4 h-4 shrink-0" />
             {generateError}
           </div>
@@ -438,12 +438,12 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
       {result && (
         <div id="result-section" className="space-y-4">
           <div className="bg-green-50 border border-green-100 rounded-xl p-4 flex items-center gap-3">
-            <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" strokeWidth={1.5} />
+            <CheckCircle2 className="w-5 h-5 text-green-700 shrink-0" strokeWidth={1.5} />
             <span className="text-sm font-medium text-green-800">완성됐습니다! 아래 탭에서 복사해 바로 사용하세요.</span>
           </div>
           {result.is_fallback && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" strokeWidth={1.5} />
+              <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" strokeWidth={1.5} />
               <span className="text-sm text-amber-800">
                 일시적인 AI 생성 오류로 입력하신 정보 기반의 <strong>기본 템플릿</strong>이 대신 표시됐습니다.
                 맞춤 문구가 아니니 내용을 확인 후 직접 다듬어서 사용해 주세요. 잠시 후 다시 생성하면 AI 맞춤 소개글을 받을 수 있습니다.
@@ -456,7 +456,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
             <div className="flex border-b border-gray-100 overflow-x-auto">
               {tabs.map((t) => (
                 <button key={t.key} onClick={() => setTab(t.key)}
-                  className={`flex items-center gap-1.5 px-3 md:px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${tab === t.key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+                  className={`flex items-center gap-1.5 px-3 md:px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${tab === t.key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-700'}`}>
                   {t.icon}
                   <span className="hidden sm:inline">{t.label}</span>
                   <span className="sm:hidden">{t.mobileLabel}</span>
@@ -471,13 +471,13 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                 <div className="space-y-5">
                   <div>
                     <div className="text-sm font-semibold text-gray-800 mb-1">소개글 키워드 점수</div>
-                    <p className="text-sm text-gray-500">AI가 생성한 소개글에 업종 핵심 키워드가 얼마나 포함됐는지 분석합니다. 부족한 키워드를 추가한 뒤 스마트플레이스에 등록하세요.</p>
+                    <p className="text-sm text-gray-600">AI가 생성한 소개글에 업종 핵심 키워드가 얼마나 포함됐는지 분석합니다. 부족한 키워드를 추가한 뒤 스마트플레이스에 등록하세요.</p>
                   </div>
 
                   {result.intro_score ? (
                     <IntroScoreGauge introScore={result.intro_score} />
                   ) : (
-                    <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-500">
+                    <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-600">
                       소개글 점수 분석 결과가 아직 없습니다. 소개글을 입력 후 생성해주세요.
                     </div>
                   )}
@@ -496,21 +496,21 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                   {result.intro_score && result.intro_score.missing_top_keywords.length > 0 && (
                     <div>
                       <div className="text-sm font-semibold text-gray-700 mb-2">
-                        부족한 키워드 <span className="text-red-500">— 소개글에 추가 권장</span>
+                        부족한 키워드 <span className="text-red-700">— 소개글에 추가 권장</span>
                       </div>
                       <div className="flex flex-wrap gap-2 mb-3">
                         {result.intro_score.missing_top_keywords.map((kw) => (
                           <button
                             key={kw}
                             onClick={() => navigator.clipboard.writeText(kw).catch(() => {})}
-                            className="text-sm bg-red-50 text-red-600 px-2.5 py-1 rounded-full border border-red-200 hover:bg-red-100 transition-colors"
+                            className="text-sm bg-red-50 text-red-700 px-2.5 py-1 rounded-full border border-red-200 hover:bg-red-100 transition-colors"
                             title="클릭하여 복사"
                           >
                             {kw}
                           </button>
                         ))}
                       </div>
-                      <p className="text-sm text-gray-500 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+                      <p className="text-sm text-gray-600 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
                         위 키워드를 스마트플레이스 소개글에 자연스럽게 포함하면 네이버 AI 브리핑(&apos;플레이스형&apos;, 음식점·카페·숙박 등 대상 업종) 및 AI탭 노출 가능성이 높아집니다. 법률·IT·부동산 등 비대상 업종도 블로그·콘텐츠로 &apos;정보형 AI 브리핑&apos; 노출이 가능하며, ChatGPT·Gemini·Google AI 노출 개선에도 동일하게 효과적입니다.
                       </p>
                     </div>
@@ -526,7 +526,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                   {/* AI 핵심 키워드 */}
                   <div>
                     <div className="text-sm font-semibold text-gray-800 mb-2">추천 검색 키워드 {result.keywords.length}개</div>
-                    <p className="text-sm text-gray-500 mb-3">지역·업종 기반 조합 키워드입니다. 스마트플레이스 소개글·메뉴명·소식 포스트에 자연스럽게 포함하면 관련 검색 노출에 도움이 됩니다.</p>
+                    <p className="text-sm text-gray-600 mb-3">지역·업종 기반 조합 키워드입니다. 스마트플레이스 소개글·메뉴명·소식 포스트에 자연스럽게 포함하면 관련 검색 노출에 도움이 됩니다.</p>
                     <div className="flex flex-wrap gap-2">
                       {result.keywords.map((kw) => (
                         <button
@@ -549,14 +549,14 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="text-sm font-semibold text-gray-800">스마트플레이스 소개글</div>
-                      <p className="text-sm text-gray-500 mt-0.5">복사 → 네이버 스마트플레이스 관리 → 기본 정보 → 소개글에 붙여넣기</p>
+                      <p className="text-sm text-gray-600 mt-0.5">복사 → 네이버 스마트플레이스 관리 → 기본 정보 → 소개글에 붙여넣기</p>
                     </div>
                     <CopyButton text={result.smartplace_intro} label="소개글 복사" />
                   </div>
                   <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap break-words leading-relaxed border border-gray-100">
                     {result.smartplace_intro}
                   </div>
-                  <div className={`text-sm text-right ${result.smartplace_intro.length < 500 ? 'text-amber-700 font-medium' : 'text-gray-500'}`}>
+                  <div className={`text-sm text-right ${result.smartplace_intro.length < 500 ? 'text-amber-700 font-medium' : 'text-gray-600'}`}>
                     {result.smartplace_intro.length}자{result.smartplace_intro.length < 500 ? ' — 500자 이상 권장, 소개글 탭에서 직접 추가하세요' : ' (500자 이상 ✓)'}
                   </div>
 
@@ -580,7 +580,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                 <div className="space-y-4">
                   <div>
                     <div className="text-sm font-semibold text-gray-800 mb-1">블로그 포스트 초안 3종</div>
-                    <p className="text-sm text-gray-500">목적에 맞는 초안을 선택해 복사하세요.</p>
+                    <p className="text-sm text-gray-600">목적에 맞는 초안을 선택해 복사하세요.</p>
                   </div>
 
                   {/* 3종 탭 선택 */}
@@ -617,7 +617,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
 
                       {/* 제목 */}
                       <div>
-                        <div className="text-sm text-gray-500 mb-1">포스트 제목</div>
+                        <div className="text-sm text-gray-600 mb-1">포스트 제목</div>
                         <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
                           <span className="flex-1 text-sm font-medium text-gray-800">{selectedDraft.title}</span>
                           <CopyButton text={selectedDraft.title} label="제목 복사" />
@@ -626,12 +626,12 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
 
                       {/* 본문 */}
                       <div>
-                        <div className="text-sm text-gray-500 mb-1">포스트 본문</div>
+                        <div className="text-sm text-gray-600 mb-1">포스트 본문</div>
                         <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap break-words leading-relaxed border border-gray-100 max-h-80 overflow-y-auto">
                           {selectedDraft.content}
                         </div>
                         <div className="flex justify-between items-center mt-2">
-                          <span className="text-sm text-gray-500">복사 후 네이버 블로그 글쓰기에 붙여넣기</span>
+                          <span className="text-sm text-gray-600">복사 후 네이버 블로그 글쓰기에 붙여넣기</span>
                           <CopyButton text={`${selectedDraft.title}\n\n${selectedDraft.content}`} label="전체 복사" />
                         </div>
                       </div>
@@ -640,14 +640,14 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                     /* blog_drafts가 없으면 기존 단일 초안 표시 (하위호환) */
                     <div className="space-y-3">
                       <div>
-                        <div className="text-sm text-gray-500 mb-1">포스트 제목</div>
+                        <div className="text-sm text-gray-600 mb-1">포스트 제목</div>
                         <div className="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
                           <span className="flex-1 text-sm font-medium text-gray-800">{result.blog_title}</span>
                           <CopyButton text={result.blog_title} label="제목 복사" />
                         </div>
                       </div>
                       <div>
-                        <div className="text-sm text-gray-500 mb-1">포스트 본문</div>
+                        <div className="text-sm text-gray-600 mb-1">포스트 본문</div>
                         <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-700 whitespace-pre-wrap break-words leading-relaxed border border-gray-100 max-h-80 overflow-y-auto">
                           {result.blog_content}
                         </div>
@@ -689,7 +689,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="text-sm font-semibold text-gray-800">스마트플레이스 AI 최적화 체크리스트</div>
-                      <p className="text-sm text-gray-500 mt-0.5">항목을 클릭해 완료 표시, 물음표(▾)를 눌러 이유를 확인하세요.</p>
+                      <p className="text-sm text-gray-600 mt-0.5">항목을 클릭해 완료 표시, 물음표(▾)를 눌러 이유를 확인하세요.</p>
                     </div>
                   </div>
 
@@ -707,7 +707,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                         />
                       </div>
                       {checkedCount === totalChecklist && totalChecklist > 0 && (
-                        <p className="text-sm text-green-600 font-medium mt-2">모든 항목을 완료했습니다!</p>
+                        <p className="text-sm text-green-700 font-medium mt-2">모든 항목을 완료했습니다!</p>
                       )}
                     </div>
                   )}
@@ -758,7 +758,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="text-sm font-semibold text-gray-800">AI 검색 최적화 코드</div>
-                      <p className="text-sm text-gray-500 mt-0.5">복사 후 홈페이지 &lt;/head&gt; 바로 위에 붙여넣기</p>
+                      <p className="text-sm text-gray-600 mt-0.5">복사 후 홈페이지 &lt;/head&gt; 바로 위에 붙여넣기</p>
                     </div>
                     <CopyButton text={result.script_tag} label="코드 복사" />
                   </div>
@@ -778,7 +778,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                 <div className="space-y-4">
                   <div>
                     <div className="text-sm font-semibold text-gray-800 mb-1">홈페이지 없이 AI 검색 노출 높이는 방법</div>
-                    <p className="text-sm text-gray-500">홈페이지가 없어도 아래 3가지 플랫폼에 정보를 충실히 등록하면 AI 검색 노출을 높일 수 있습니다.</p>
+                    <p className="text-sm text-gray-600">홈페이지가 없어도 아래 3가지 플랫폼에 정보를 충실히 등록하면 AI 검색 노출을 높일 수 있습니다.</p>
                   </div>
 
                   {result.no_website_guide && (
@@ -817,7 +817,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                           <span className="text-sm font-semibold text-gray-800">{platform.name}</span>
                           <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${platform.badgeColor}`}>{platform.badge}</span>
                         </div>
-                        <p className="text-sm text-gray-500 leading-relaxed">{platform.desc}</p>
+                        <p className="text-sm text-gray-600 leading-relaxed">{platform.desc}</p>
                       </div>
                       <a
                         href={platform.url}
@@ -841,7 +841,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
               : <>스마트플레이스 소개글과 블로그 초안을 적용한 뒤, 대시보드에서 스캔을 다시 실행하면 변화된 점수를 확인할 수 있습니다.</>
             }
           </div>
-          <p className="text-sm text-center text-gray-500">
+          <p className="text-sm text-center text-gray-600">
             적용 후 네이버 AI 브리핑·AI탭은 2~4주 후 AEOlab 스캔에서 점수 변화를 확인하세요. Gemini·ChatGPT는 학습 데이터 기반 측정이라 수개월~1년 소요됩니다.
           </p>
         </div>

@@ -5,13 +5,13 @@ export default function ProblemSection() {
     {
       Icon: SearchX,
       text: "검색해도 우리 가게가 안 나온다",
-      iconColor: "text-red-500",
+      iconColor: "text-red-700",
       bgColor: "bg-red-50",
     },
     {
       Icon: TrendingDown,
       text: "광고비는 계속 쓰는데 손님이 안 온다",
-      iconColor: "text-orange-500",
+      iconColor: "text-orange-700",
       bgColor: "bg-orange-50",
     },
     {
@@ -27,7 +27,7 @@ export default function ProblemSection() {
         <h2 className="text-xl md:text-2xl font-bold text-center text-gray-900 mb-2 break-keep">
           혹시 이런 상황인가요?
         </h2>
-        <p className="text-sm text-center text-gray-500 mb-7 break-keep">
+        <p className="text-sm text-center text-gray-600 mb-7 break-keep">
           광고 문제가 아닙니다 — 네이버 검색 순위와 AI 추천, 두 가지 모두 같은 곳에서 막히고 있습니다
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

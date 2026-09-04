@@ -60,7 +60,7 @@ export default function DashboardContentZone({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-sm font-bold text-gray-900">AI가 내 가게 맞춤 소개글·채팅 메뉴를 대신 써줍니다</p>
-              <p className="text-sm text-gray-500 mt-1 leading-snug">
+              <p className="text-sm text-gray-600 mt-1 leading-snug">
                 스마트플레이스 소개글·톡톡 채팅방 메뉴를 AI가 초안 작성 →<br />
                 직접 수정·복사해서 바로 등록
               </p>

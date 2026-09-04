@@ -177,7 +177,7 @@ function DeliveryNewForm() {
   if (loadingBiz) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
       </div>
     );
   }
@@ -187,13 +187,13 @@ function DeliveryNewForm() {
       <div className="max-w-xl mx-auto">
         {/* 헤더 */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+          <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
             <a href="/delivery" className="hover:text-blue-600 transition-colors">대행 서비스</a>
             <ChevronRight className="w-4 h-4" />
             <span className="text-gray-700">의뢰 작성</span>
           </div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">대행 서비스 신청</h1>
-          <p className="text-sm text-gray-500 mt-1">패키지를 선택하고 의뢰 내용을 작성해 주세요.</p>
+          <p className="text-sm text-gray-600 mt-1">패키지를 선택하고 의뢰 내용을 작성해 주세요.</p>
         </div>
 
         <div className="space-y-5">
@@ -229,7 +229,7 @@ function DeliveryNewForm() {
                         {p.price.toLocaleString()}원
                       </span>
                     </div>
-                    <p className="text-sm text-gray-500 mt-0.5">{p.description}</p>
+                    <p className="text-sm text-gray-600 mt-0.5">{p.description}</p>
                   </div>
                 </label>
               ))}
@@ -244,7 +244,7 @@ function DeliveryNewForm() {
             </h2>
             {businesses.length === 0 ? (
               <div className="text-center py-4">
-                <p className="text-sm text-gray-500 mb-3">등록된 사업장이 없습니다.</p>
+                <p className="text-sm text-gray-600 mb-3">등록된 사업장이 없습니다.</p>
                 <a
                   href="/onboarding"
                   className="inline-block text-sm text-blue-600 hover:text-blue-700 font-medium"
@@ -276,7 +276,7 @@ function DeliveryNewForm() {
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  제목 <span className="text-red-500">*</span>
+                  제목 <span className="text-red-700">*</span>
                 </label>
                 <input
                   type="text"
@@ -284,13 +284,13 @@ function DeliveryNewForm() {
                   onChange={(e) => setTitle(e.target.value.slice(0, 100))}
                   maxLength={100}
                   placeholder="예: 한식당 스마트플레이스 최적화 의뢰"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-400"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-600"
                 />
-                <p className="text-sm text-gray-500 mt-1 text-right">{title.length}/100</p>
+                <p className="text-sm text-gray-600 mt-1 text-right">{title.length}/100</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  내용 <span className="text-red-500">*</span>
+                  내용 <span className="text-red-700">*</span>
                 </label>
                 <textarea
                   value={body}
@@ -298,9 +298,9 @@ function DeliveryNewForm() {
                   maxLength={2000}
                   rows={6}
                   placeholder="매장 콘셉트, 시그니처 메뉴, 특별 요청사항 등을 작성해 주세요."
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-400 resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-600 resize-none"
                 />
-                <p className="text-sm text-gray-500 mt-1 text-right">{body.length}/2000</p>
+                <p className="text-sm text-gray-600 mt-1 text-right">{body.length}/2000</p>
               </div>
             </div>
           </div>
@@ -322,7 +322,7 @@ function DeliveryNewForm() {
                 <p className="text-sm font-medium text-gray-800">
                   네이버 스마트플레이스 부운영자 권한을 AEOlab에 위임하는 데 동의합니다.
                 </p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-600 mt-1">
                   결제 후 작업 시작 전 부운영자 권한 등록 방법을 안내해 드립니다.
                   작업 완료 후 자동 해제됩니다.
                 </p>
@@ -333,7 +333,7 @@ function DeliveryNewForm() {
           {/* 에러 메시지 */}
           {error && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl p-4">
-              <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
               <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
@@ -385,7 +385,7 @@ export default function DeliveryNewPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
       </div>
     }>
       <DeliveryNewForm />

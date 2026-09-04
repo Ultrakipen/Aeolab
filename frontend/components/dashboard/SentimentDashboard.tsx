@@ -54,7 +54,7 @@ export function SentimentDashboard({ bizId, token }: Props) {
         </div>
         <p className="text-sm text-gray-600">
           리뷰 스캔 데이터가 아직 없습니다.<br/>
-          <span className="text-sm text-gray-500">AI 스캔을 실행하면 리뷰 감정 분석이 자동으로 시작됩니다.</span>
+          <span className="text-sm text-gray-600">AI 스캔을 실행하면 리뷰 감정 분석이 자동으로 시작됩니다.</span>
         </p>
       </div>
     );
@@ -70,7 +70,7 @@ export function SentimentDashboard({ bizId, token }: Props) {
       <div className="flex items-center gap-2 mb-4">
         <BarChart3 className="w-5 h-5 text-blue-600" />
         <h3 className="text-base md:text-lg font-bold text-gray-900">리뷰 감정 분석</h3>
-        <span className="ml-auto text-sm text-gray-500">{data.total}건 분석</span>
+        <span className="ml-auto text-sm text-gray-600">{data.total}건 분석</span>
       </div>
 
       {/* 비율 바 */}
@@ -83,19 +83,19 @@ export function SentimentDashboard({ bizId, token }: Props) {
       {/* 수치 카드 */}
       <div className="grid grid-cols-3 gap-2 md:gap-3 mb-4">
         <div className="bg-emerald-50 rounded-xl p-3 text-center">
-          <ThumbsUp className="w-4 h-4 text-emerald-600 mx-auto mb-1" />
+          <ThumbsUp className="w-4 h-4 text-emerald-700 mx-auto mb-1" />
           <div className="text-xl md:text-2xl font-bold text-emerald-700">{posRate}%</div>
-          <div className="text-sm text-emerald-600 mt-0.5">긍정 {data.positive}건</div>
+          <div className="text-sm text-emerald-700 mt-0.5">긍정 {data.positive}건</div>
         </div>
         <div className="bg-gray-50 rounded-xl p-3 text-center">
-          <Minus className="w-4 h-4 text-gray-500 mx-auto mb-1" />
+          <Minus className="w-4 h-4 text-gray-600 mx-auto mb-1" />
           <div className="text-xl md:text-2xl font-bold text-gray-600">{neuRate}%</div>
-          <div className="text-sm text-gray-500 mt-0.5">중립 {data.neutral}건</div>
+          <div className="text-sm text-gray-600 mt-0.5">중립 {data.neutral}건</div>
         </div>
         <div className="bg-red-50 rounded-xl p-3 text-center">
-          <ThumbsDown className="w-4 h-4 text-red-500 mx-auto mb-1" />
-          <div className="text-xl md:text-2xl font-bold text-red-600">{negRate}%</div>
-          <div className="text-sm text-red-500 mt-0.5">부정 {data.negative}건</div>
+          <ThumbsDown className="w-4 h-4 text-red-700 mx-auto mb-1" />
+          <div className="text-xl md:text-2xl font-bold text-red-700">{negRate}%</div>
+          <div className="text-sm text-red-700 mt-0.5">부정 {data.negative}건</div>
         </div>
       </div>
 
@@ -114,10 +114,10 @@ export function SentimentDashboard({ bizId, token }: Props) {
           )}
           {(data.top_negative?.length ?? 0) > 0 && (
             <div>
-              <p className="text-sm font-semibold text-red-600 mb-1.5">개선 필요 키워드</p>
+              <p className="text-sm font-semibold text-red-700 mb-1.5">개선 필요 키워드</p>
               <div className="flex flex-wrap gap-1">
                 {(data.top_negative ?? []).slice(0, 3).map((kw) => (
-                  <span key={kw} className="px-2 py-0.5 bg-red-100 text-red-600 text-sm rounded-full">{kw}</span>
+                  <span key={kw} className="px-2 py-0.5 bg-red-100 text-red-700 text-sm rounded-full">{kw}</span>
                 ))}
               </div>
             </div>

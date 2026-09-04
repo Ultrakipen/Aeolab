@@ -74,7 +74,7 @@ export default function CompetitorFAQCard({ bizId, accessToken }: Props) {
           </span>
           <span className="ml-auto text-sm text-slate-500">스캔마다 갱신</span>
         </div>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-600">
           {data?.message ||
             "첫 스캔이 완료되면 경쟁사 키워드 기반 Q&A 제안이 표시됩니다."}
         </p>
@@ -126,7 +126,7 @@ export default function CompetitorFAQCard({ bizId, accessToken }: Props) {
         ))}
       </div>
 
-      <p className="text-sm text-gray-500 mt-3 text-center">
+      <p className="text-sm text-gray-600 mt-3 text-center">
         경쟁사 {data.competitors.length}곳의 Q&amp;A 데이터 기반 분석
       </p>
     </div>

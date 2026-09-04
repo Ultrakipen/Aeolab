@@ -95,14 +95,14 @@ export default function NoticesClient({ initialItems, initialTotal }: Props) {
       </div>
 
       {loading && (
-        <div className="flex justify-center py-10 text-gray-500 text-sm">
+        <div className="flex justify-center py-10 text-gray-600 text-sm">
           불러오는 중...
         </div>
       )}
 
       {!loading && items.length === 0 && (
         <div className="py-16 text-center">
-          <p className="text-gray-500 text-base">등록된 공지사항이 없습니다.</p>
+          <p className="text-gray-600 text-base">등록된 공지사항이 없습니다.</p>
         </div>
       )}
 
@@ -111,7 +111,7 @@ export default function NoticesClient({ initialItems, initialTotal }: Props) {
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 text-gray-500 text-left">
+                <tr className="border-b border-gray-200 text-gray-600 text-left">
                   <th className="pb-2 pr-3 font-medium w-20">구분</th>
                   <th className="pb-2 font-medium">제목</th>
                   <th className="pb-2 pl-3 font-medium w-28 text-right">날짜</th>
@@ -127,11 +127,11 @@ export default function NoticesClient({ initialItems, initialTotal }: Props) {
                     </td>
                     <td className="py-3">
                       <Link href={"/notices/" + notice.id} className="flex items-center gap-2 hover:text-blue-600 transition-colors">
-                        {notice.is_pinned && <span className="text-red-500 font-bold text-sm shrink-0">📌</span>}
+                        {notice.is_pinned && <span className="text-red-700 font-bold text-sm shrink-0">📌</span>}
                         <span className={notice.is_pinned ? "font-medium" : ""}>{notice.title}</span>
                       </Link>
                     </td>
-                    <td className="py-3 pl-3 text-gray-500 text-right whitespace-nowrap">
+                    <td className="py-3 pl-3 text-gray-600 text-right whitespace-nowrap">
                       {formatDate(notice.created_at)}
                     </td>
                   </tr>
@@ -144,14 +144,14 @@ export default function NoticesClient({ initialItems, initialTotal }: Props) {
             {items.map((notice) => (
               <Link key={notice.id} href={"/notices/" + notice.id} className="block bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-colors">
                 <div className="flex items-start gap-2 mb-1.5">
-                  {notice.is_pinned && <span className="text-red-500 text-sm shrink-0 mt-0.5">📌</span>}
+                  {notice.is_pinned && <span className="text-red-700 text-sm shrink-0 mt-0.5">📌</span>}
                   <p className={"text-sm text-gray-900 leading-snug " + (notice.is_pinned ? "font-medium" : "")}>{notice.title}</p>
                 </div>
                 <div className="flex items-center gap-2 mt-2">
                   <span className={"inline-block px-2 py-0.5 rounded text-sm font-medium " + CATEGORY_BADGE[notice.category]}>
                     {CATEGORY_LABEL[notice.category]}
                   </span>
-                  <span className="text-sm text-gray-500">{formatDate(notice.created_at)}</span>
+                  <span className="text-sm text-gray-600">{formatDate(notice.created_at)}</span>
                 </div>
               </Link>
             ))}
