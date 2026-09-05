@@ -39,8 +39,10 @@ interface PageProps {
 
 async function fetchPublicFAQ(): Promise<PublicTicket[]> {
   try {
+    // cache:"no-store"와 next.revalidate는 상호배타적 — 함께 쓰면 no-store가
+    // 우선 적용돼 5분 캐시 의도가 무시되고 매 방문마다 백엔드를 실시간 호출한다
+    // (2026-09-05 실측: /help TTFB 984~2373ms, 다른 공개 페이지 대비 유독 느림).
     const res = await fetch(`${BACKEND_URL}/api/support/public`, {
-      cache: "no-store",
       next: { revalidate: 300 },
     });
     if (!res.ok) return [];

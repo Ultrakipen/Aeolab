@@ -40,8 +40,22 @@ export const getCachedUser = cache(async (): Promise<User | null> => {
   try {
     const { data, error } = await supabase.auth.getUser();
     if (!error && data.user) return data.user;
-  } catch {
-    // Invalid Refresh Token 등 인증 에러 → 비로그인 처리
+  } catch (e) {
+    // Supabase Auth 일시 타임아웃/연결끊김은 재시도 — 그 외(Invalid Refresh
+    // Token 등 실제 인증 실패)는 즉시 비로그인 처리. 재시도 없이 곧바로
+    // null 반환하면 (dashboard)/layout.tsx가 정상 로그인 사용자를 순간
+    // 네트워크 지연만으로 /login으로 튕겨낸다(백엔드 plan_gate.py에 이미
+    // 적용한 것과 동일한 클래스의 문제, 2026-09-05).
+    const msg = String(e);
+    if (msg.includes("AuthRetryableError") || msg.includes("timed out") || msg.includes("fetch failed") || msg.includes("disconnected")) {
+      try {
+        const retrySupabase = await createClient();
+        const { data, error } = await retrySupabase.auth.getUser();
+        if (!error && data.user) return data.user;
+      } catch {
+        // 재시도도 실패 — 비로그인 처리
+      }
+    }
   }
   return null;
 });
