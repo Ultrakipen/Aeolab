@@ -7,11 +7,15 @@ import KakaoSDKLoader from "@/components/common/KakaoSDKLoader";
 import MobileFloatingCTA from "@/components/common/MobileFloatingCTA";
 import { PLAN_PRICES } from "@/lib/plans";
 
+// 2026-09-05: 실사용 굵기가 400~900뿐(전수 grep 확인, font-thin(100)은
+// pricing/page.tsx 1곳뿐)이라 fonttools varLib.instancer로 45~930 가변축을
+// 400~930으로 트리밍 — 2.06MB→1.45MB(29% 감소), 400~900 렌더링은 픽셀 단위로
+// 동일함을 스크린샷 비교로 확인. weight 선언도 실제 파일 범위에 맞춤.
 const pretendard = localFont({
   src: "../public/fonts/PretendardVariable.woff2",
   variable: "--font-pretendard",
   display: "swap",
-  weight: "100 900",
+  weight: "400 900",
 });
 
 export const viewport: Viewport = {
