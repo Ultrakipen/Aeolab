@@ -1569,11 +1569,15 @@ async def get_gap_card(biz_id: str, user=Depends(get_current_user)):
 async def get_gap_analysis(biz_id: str, user=Depends(get_current_user)):
     """격차 분석 — 내 점수와 1위 경쟁사의 항목별 격차 계산 (Basic+)"""
     supabase = get_client()
-    await _verify_biz_ownership(supabase, biz_id, user["id"])
 
-    # Basic+ 플랜 체크 — free 플랜은 gap 분석 불가
+    # 소유권 확인 + 플랜 조회 병렬화 — 대시보드/경쟁사 페이지 양쪽이 매 로드마다
+    # 부르는 핫패스라 Supabase 왕복 1회 절감 (2026-09-05). 소유권 실패 시
+    # asyncio.gather가 그 예외를 그대로 전파하므로 404 동작은 기존과 동일.
     from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
-    plan = await get_user_plan(user["id"], supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, user["id"]),
+        get_user_plan(user["id"], supabase),
+    )
     if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("basic", 1):
         raise HTTPException(
             status_code=403,

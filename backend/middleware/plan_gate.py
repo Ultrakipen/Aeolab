@@ -8,7 +8,7 @@ _DEV_MODE = os.getenv("DEV_MODE", "").lower() in ("1", "true", "yes")
 from functools import wraps
 from typing import Optional
 from datetime import date
-from db.supabase_client import get_client, execute as _exec
+from db.supabase_client import get_client, execute as _exec, _reset_client
 
 _logger = logging.getLogger(__name__)
 
@@ -485,6 +485,21 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
         raise
     except Exception as e:
         import logging
+        err_str = str(e)
+        # Supabase Auth 서비스 일시 타임아웃/연결끊김 — db/supabase_client.py execute()와
+        # 동일하게 클라이언트 재생성 후 1회 재시도 (2026-09-05 실측: 정상 토큰인데도
+        # "AuthRetryableError: read operation timed out"/"Server disconnected"로 401이
+        # 떨어져 로그인 화면으로 튕기는 사고 발생 — 172개 엔드포인트 공유 의존성이라
+        # 재시도 없이 즉시 401 처리하면 순간 트래픽에도 사용자가 로그아웃당한 것처럼 보임).
+        if "AuthRetryableError" in type(e).__name__ or "timed out" in err_str or "Server disconnected" in err_str:
+            try:
+                _reset_client()
+                retry_supabase = get_client()
+                response = await asyncio.to_thread(retry_supabase.auth.get_user, token)
+                if response and response.user:
+                    return {"id": response.user.id, "email": response.user.email}
+            except Exception as retry_exc:
+                logging.getLogger(__name__).warning(f"Token validation 재시도 실패: {type(retry_exc).__name__}: {retry_exc}")
         logging.getLogger(__name__).warning(f"Token validation failed: {type(e).__name__}: {e}")
         raise HTTPException(status_code=401, detail="토큰 검증에 실패했습니다")
 
