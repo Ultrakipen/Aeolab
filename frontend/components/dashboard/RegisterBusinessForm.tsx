@@ -20,7 +20,7 @@ import {
   Droplet, Wrench, Tag, Footprints, Pencil, Mic, Circle, Lock, Compass, Radio,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { Search, ChevronLeft, Loader2 } from 'lucide-react'
+import { Search, ChevronLeft, Loader2, MapPin } from 'lucide-react'
 import BusinessSearchDropdown, { mapKakaoCategory } from '@/components/dashboard/BusinessSearchDropdown'
 import type { BusinessSearchResult } from '@/types'
 import { useBriefingCategories } from '@/lib/useBriefingCategories'
@@ -759,7 +759,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
             onClick={() => setShowAdvanced((v) => !v)}
             className="w-full flex items-center justify-between text-sm text-gray-600 hover:text-blue-600 transition-colors py-1"
           >
-            <span>📌 Google / 카카오 Place ID 입력 <span className="text-gray-300">(선택 · 고급)</span></span>
+            <span className="flex items-center gap-1"><MapPin className="w-4 h-4 text-gray-600 shrink-0" aria-hidden="true" />Google / 카카오 Place ID 입력 <span className="text-gray-300">(선택 · 고급)</span></span>
             <span>{showAdvanced ? '▲ 접기' : '▼ 펼치기'}</span>
           </button>
           {showAdvanced && (

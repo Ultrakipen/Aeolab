@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles, AlertTriangle } from "lucide-react";
+import { Sparkles, AlertTriangle, Search } from "lucide-react";
 
 interface Props {
   /** 업종의 글로벌 AI 비중 (0~1). DUAL_TRACK_RATIO[category].global 기준 */
@@ -138,8 +138,8 @@ export default function GlobalAiFocusCard({ globalWeight, categoryLabel, categor
 
         {/* 네이버도 놓치지 마세요 */}
         <div className="mt-4 rounded-lg border border-blue-100 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800 p-3">
-          <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
-            🔍 네이버도 놓치지 마세요
+          <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-1.5">
+            <Search className="w-4 h-4 shrink-0" aria-hidden="true" />네이버도 놓치지 마세요
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-blue-800 dark:text-blue-200">
             <div className="flex items-start gap-1.5">

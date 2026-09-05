@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertCircle, Lock, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { AlertCircle, Lock, TrendingUp, TrendingDown, Minus, BarChart2 } from "lucide-react";
 import Link from "next/link";
 import { authFetch } from "@/lib/api";
 
@@ -153,7 +153,7 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
       {/* 헤더 */}
       <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6 md:py-4 border-b border-gray-100 bg-gray-50">
         <div className="flex items-center gap-2">
-          <span className="text-base shrink-0" aria-hidden="true">📊</span>
+          <BarChart2 className="w-4 h-4 shrink-0 text-gray-700" aria-hidden="true" />
           <h2
             id="naver-seo-strength-title"
             className="text-base md:text-lg font-bold text-gray-900 break-keep"
@@ -217,7 +217,7 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
         {/* 데이터 없음 */}
         {!planLocked && !loading && !fetchError && data && !hasTrendData && (
           <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
-            <span className="text-3xl" aria-hidden="true">📈</span>
+            <TrendingUp className="w-8 h-8 text-gray-700" aria-hidden="true" />
             <p className="text-sm text-gray-600 break-keep max-w-xs mx-auto leading-relaxed">
               데이터 수집 중 — 스캔·블로그 분석을 진행하면 표시됩니다
             </p>

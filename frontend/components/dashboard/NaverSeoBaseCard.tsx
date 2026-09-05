@@ -1,5 +1,6 @@
 import PhotoConfirmButton from "./PhotoConfirmButton";
 import RecentPostConfirmButton from "./RecentPostConfirmButton";
+import { Search, Megaphone, FileEdit } from "lucide-react";
 
 interface NaverSeoBaseCardProps {
   reviewCount: number;
@@ -126,7 +127,7 @@ export default function NaverSeoBaseCard({
     <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 md:px-5 py-4">
       {/* 헤더 */}
       <div className="flex items-start gap-2.5 mb-3">
-        <span className="text-xl shrink-0">🔍</span>
+        <Search className="w-5 h-5 shrink-0 text-gray-700" aria-hidden="true" />
         <div className="min-w-0">
           <p className="text-sm md:text-base font-semibold text-gray-900">
             네이버 검색 기반 강화 현황
@@ -207,7 +208,7 @@ export default function NaverSeoBaseCard({
                 rel="noopener noreferrer"
                 className="flex items-center justify-between rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 gap-2 hover:bg-amber-100 transition-colors"
               >
-                <span className="text-sm text-amber-800">📢 소식 탭 직접 확인 →</span>
+                <span className="text-sm text-amber-800 inline-flex items-center gap-1.5"><Megaphone className="w-4 h-4 shrink-0" aria-hidden="true" />소식 탭 직접 확인 →</span>
                 <span className="text-sm px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap bg-amber-100 text-amber-700">
                   {recentPostEffect}
                 </span>
@@ -228,7 +229,7 @@ export default function NaverSeoBaseCard({
       <div className="mt-3 pt-3 border-t border-emerald-200">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <span className="text-sm text-gray-800">📝 블로그 후기 언급 {blogMentionCount}건</span>
+            <span className="text-sm text-gray-800 inline-flex items-center gap-1.5"><FileEdit className="w-4 h-4 shrink-0" aria-hidden="true" />블로그 후기 언급 {blogMentionCount}건</span>
             <p className="text-xs text-gray-600 mt-0.5 leading-snug">네이버 AI탭은 블로그 후기를 답변 소스로 활용합니다</p>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">

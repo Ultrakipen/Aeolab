@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, CheckCircle2 } from "lucide-react";
 
 interface DashboardHeroCardProps {
   unifiedScore: number;
@@ -210,7 +210,7 @@ export default function DashboardHeroCard({
             className="flex items-center justify-between gap-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl px-4 py-3 transition-colors group"
           >
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-rose-700 text-lg shrink-0">✅</span>
+              <CheckCircle2 className="w-5 h-5 text-rose-700 shrink-0" aria-hidden="true" />
               <div className="min-w-0">
                 <p className="text-xs font-semibold text-rose-700 leading-tight">오늘의 개선 미션</p>
                 <p className="text-sm font-semibold text-gray-800 leading-snug break-keep mt-0.5 line-clamp-2">{todayAction}</p>

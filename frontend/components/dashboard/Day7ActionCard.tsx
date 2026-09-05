@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, ChevronDown, ChevronUp, Copy, Loader2, X } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronUp, Copy, Loader2, X, PenLine } from "lucide-react";
 import { getSafeSession } from "@/lib/supabase/client";
 import { trackOnboardingAction } from "@/lib/analytics";
 
@@ -291,8 +291,8 @@ export default function Day7ActionCard({
           </button>
           {copyOpen && (
             <div className="px-3 pb-3 border-t border-gray-100">
-              <p className="mt-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-1.5 leading-relaxed">
-                ✏️ 내 가게 상황에 맞게 수정 후 붙여넣으세요. <span className="font-semibold">[ ] 표시 항목</span>과 <span className="font-semibold">두 선택지 중 하나</span>를 골라 나머지를 지우세요.
+              <p className="mt-2 flex items-start gap-1.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-1.5 leading-relaxed">
+                <PenLine className="w-3.5 h-3.5 shrink-0 mt-0.5" aria-hidden="true" />내 가게 상황에 맞게 수정 후 붙여넣으세요. <span className="font-semibold">[ ] 표시 항목</span>과 <span className="font-semibold">두 선택지 중 하나</span>를 골라 나머지를 지우세요.
               </p>
               <p className="mt-2 text-sm text-gray-900 whitespace-pre-line break-words">
                 {data.copy_template}

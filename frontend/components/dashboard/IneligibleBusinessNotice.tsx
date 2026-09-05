@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Pin, CheckCircle2, Target } from "lucide-react";
 
 interface Props {
   category: string;
@@ -20,8 +21,8 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
       <div className="rounded-xl border border-green-200 bg-green-50 p-4">
         {/* 메시지 반복 제거 — '네이버 검색·플레이스가 핵심'은 상단 Hero가 유일 소스.
             이 카드는 실행 리스트(①②③④)만 담당해 같은 말 4회→2회로 축소 (점검 기준 #4) */}
-        <p className="text-sm md:text-base font-bold text-green-900 mb-2.5 break-keep">
-          📍 {label} — 네이버 노출 키우려면 지금 바로 할 것
+        <p className="text-sm md:text-base font-bold text-green-900 mb-2.5 break-keep flex items-center gap-1.5">
+          <Pin className="w-4 h-4 shrink-0" aria-hidden="true" />{label} — 네이버 노출 키우려면 지금 바로 할 것
         </p>
         <ul className="space-y-1 mb-3">
           <li className="flex items-start gap-2 text-sm text-gray-700">
@@ -58,10 +59,10 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
         {categoryLabel} 업종 — AI 브리핑 확대 예정 · 지금 준비하세요
       </p>
       <div className="space-y-1.5 text-sm text-gray-700">
-        <p>✅ 네이버 AI탭 — 모든 업종 대상 대화형 검색 지원</p>
-        <p>✅ 네이버 블로그·일반 검색 — 지금도 최적화 가능</p>
+        <p className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 shrink-0 text-indigo-600" aria-hidden="true" />네이버 AI탭 — 모든 업종 대상 대화형 검색 지원</p>
+        <p className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 shrink-0 text-indigo-600" aria-hidden="true" />네이버 블로그·일반 검색 — 지금도 최적화 가능</p>
         <p>🔮 AI 브리핑(플레이스형) — 업종 확대 시 자동 활성화 · 블로그·콘텐츠로 &apos;정보형 AI 브리핑&apos; 노출은 지금도 가능</p>
-        <p>🎯 ChatGPT·Gemini·Google AI — 글로벌 채널 데이터 축적 중</p>
+        <p className="inline-flex items-center gap-1.5"><Target className="w-4 h-4 shrink-0 text-indigo-600" aria-hidden="true" />ChatGPT·Gemini·Google AI — 글로벌 채널 데이터 축적 중</p>
       </div>
       <Link
         href={`/guide/ai-tab`}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Gift, Sparkles, Loader2, Lock } from "lucide-react";
+import { Gift, Sparkles, Loader2, Lock, PartyPopper } from "lucide-react";
 import { getBasicTrialStatus, runBasicTrial, ApiError, type BasicTrialStatus } from "@/lib/api";
 import { FIRST_MONTH_DISCOUNT_PRICES, PLAN_PRICES } from "@/lib/plans";
 
@@ -170,7 +170,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
               주 2회(월·목) 자동 스캔과 개선 가이드를 지속해서 받을 수 있습니다.
             </p>
             <p className="text-sm md:text-base font-semibold text-emerald-700 mt-2">
-              🎉 지금 가입하면 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 (50% 할인) · 이후 월 {PLAN_PRICES.basic.toLocaleString()}원
+              <span className="flex items-center gap-1.5"><PartyPopper className="w-4 h-4 shrink-0" aria-hidden="true" />지금 가입하면 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 (50% 할인) · 이후 월 {PLAN_PRICES.basic.toLocaleString()}원</span>
             </p>
             <div className="mt-3 flex flex-col sm:flex-row gap-2">
               <a

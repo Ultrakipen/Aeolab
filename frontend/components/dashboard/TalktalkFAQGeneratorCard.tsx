@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Sparkles } from "lucide-react";
 import { getSafeSession } from "@/lib/supabase/client";
 
 interface FAQItem {
@@ -222,8 +223,8 @@ export function TalktalkFAQGeneratorCard({
           )}
           {!generated.is_fallback && (
             <div className="rounded-lg bg-indigo-50 border border-indigo-100 px-3 py-2.5">
-              <p className="text-sm text-indigo-800 font-medium">
-                ✨ 실제 업종별 자주 묻는 문의 패턴을 반영해 AI가 방금 작성했습니다
+              <p className="text-sm text-indigo-800 font-medium flex items-start gap-1.5">
+                <Sparkles className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />실제 업종별 자주 묻는 문의 패턴을 반영해 AI가 방금 작성했습니다
               </p>
             </div>
           )}

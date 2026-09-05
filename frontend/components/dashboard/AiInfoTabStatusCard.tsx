@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { CheckCircle2, AlertOctagon, AlertTriangle, Info, HelpCircle, type LucideIcon } from "lucide-react";
 import { apiBase } from "@/lib/api";
 
 export type AiInfoTabStatus = "not_visible" | "off" | "on" | "disabled" | "unknown";
@@ -23,12 +24,12 @@ interface Props {
   adOnly?: boolean;
 }
 
-const STATUS_LABELS: Record<AiInfoTabStatus, { label: string; color: string; icon: string }> = {
-  on:          { label: "ON 상태 (정상)",          color: "text-green-700 bg-green-50 border-green-200",  icon: "✅" },
-  off:         { label: "OFF 상태 (즉시 변경 필요)", color: "text-red-700 bg-red-50 border-red-200",       icon: "🚨" },
-  disabled:    { label: "비활성 (조건 미달)",        color: "text-amber-700 bg-amber-50 border-amber-200", icon: "⚠️" },
-  not_visible: { label: "메뉴 없음 (비대상 업종)",   color: "text-gray-600 bg-gray-50 border-gray-200",   icon: "ℹ️" },
-  unknown:     { label: "아직 확인 안함",           color: "text-blue-700 bg-blue-50 border-blue-200",    icon: "❓" },
+const STATUS_LABELS: Record<AiInfoTabStatus, { label: string; color: string; icon: LucideIcon; iconColor: string }> = {
+  on:          { label: "ON 상태 (정상)",          color: "text-green-700 bg-green-50 border-green-200",  icon: CheckCircle2,  iconColor: "text-green-600" },
+  off:         { label: "OFF 상태 (즉시 변경 필요)", color: "text-red-700 bg-red-50 border-red-200",       icon: AlertOctagon,  iconColor: "text-red-600" },
+  disabled:    { label: "비활성 (조건 미달)",        color: "text-amber-700 bg-amber-50 border-amber-200", icon: AlertTriangle, iconColor: "text-amber-600" },
+  not_visible: { label: "메뉴 없음 (비대상 업종)",   color: "text-gray-600 bg-gray-50 border-gray-200",   icon: Info,          iconColor: "text-gray-500" },
+  unknown:     { label: "아직 확인 안함",           color: "text-blue-700 bg-blue-50 border-blue-200",    icon: HelpCircle,    iconColor: "text-blue-600" },
 };
 
 export function AiInfoTabStatusCard({
@@ -77,7 +78,7 @@ export function AiInfoTabStatusCard({
   // INACTIVE 업종은 "아직 확인 안함" 배지 대신 비대상 안내로 덮어쓰기
   const displayBadge =
     eligibility === "inactive"
-      ? { label: "플레이스형 AI 브리핑 비대상 업종", color: "text-gray-600 bg-gray-50 border-gray-200", icon: "ℹ️" }
+      ? { label: "플레이스형 AI 브리핑 비대상 업종", color: "text-gray-600 bg-gray-50 border-gray-200", icon: Info, iconColor: "text-gray-500" }
       : current;
 
   // 업종별 안내 톤 분기
@@ -101,7 +102,7 @@ export function AiInfoTabStatusCard({
   return (
     <div className="rounded-xl border bg-white p-4 md:p-6">
       <div className="flex items-start gap-3 mb-4">
-        <span className="text-2xl" aria-hidden="true">{displayBadge.icon}</span>
+        <displayBadge.icon className={`w-6 h-6 shrink-0 ${displayBadge.iconColor}`} aria-hidden="true" />
         <div className="flex-1">
           <h3 className="text-base md:text-lg font-bold text-gray-900 mb-0.5">
             네이버 AI 브리핑 노출 설정

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Sprout, TrendingUp, Flame, Trophy, MapPin, Globe, Zap, Lightbulb, Info, Target } from "lucide-react";
+import { Sprout, TrendingUp, Flame, Trophy, MapPin, Globe, Zap, Lightbulb, Info, Target, CheckCircle2, FileEdit, Bell, Bot, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import type { JSX } from "react";
 import { SCORE_LABELS } from "@/lib/score-labels";
@@ -548,7 +548,7 @@ export default function DualTrackCard({
         if (allManaged) {
           return (
             <div className="bg-green-50 border border-green-100 rounded-xl p-3 md:p-4">
-              <p className="text-sm font-semibold text-green-800 mb-1">✅ 네이버 기본 관리가 잘 되고 있습니다</p>
+              <p className="text-sm font-semibold text-green-800 mb-1 flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden="true" />네이버 기본 관리가 잘 되고 있습니다</p>
               <p className="text-sm text-green-700">리뷰 답글을 꾸준히 유지하면서 블로그 키워드 다양화로 다음 단계를 노려보세요.</p>
             </div>
           );
@@ -556,7 +556,7 @@ export default function DualTrackCard({
 
         return (
           <div className="bg-green-50 border border-green-100 rounded-xl p-3 md:p-4">
-            <p className="text-sm font-semibold text-green-800 mb-2">📝 네이버 검색 노출 개선 방법</p>
+            <p className="text-sm font-semibold text-green-800 mb-2 flex items-center gap-1.5"><FileEdit className="w-4 h-4 shrink-0" aria-hidden="true" />네이버 검색 노출 개선 방법</p>
             <div className="space-y-1.5 mb-2">
               {remainingTips.map((tip, i) => (
                 <div key={i} className="flex items-start gap-1.5 text-sm text-green-700">
@@ -575,7 +575,7 @@ export default function DualTrackCard({
       {/* LIKELY: AI 브리핑 확대 예정 안내 */}
       {isLikely && (
         <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-3 md:p-4">
-          <p className="text-sm font-semibold text-yellow-800 mb-1">🔔 네이버 AI 브리핑 확대 예정 업종</p>
+          <p className="text-sm font-semibold text-yellow-800 mb-1 flex items-center gap-1.5"><Bell className="w-4 h-4 shrink-0" aria-hidden="true" />네이버 AI 브리핑 확대 예정 업종</p>
           <p className="text-sm text-yellow-700 leading-relaxed">
             지금은 블로그·스마트플레이스 관리로 네이버 검색 노출을 높이세요. 이 개선이 '정보형 AI 브리핑'·AI탭 노출의 기반이 됩니다. '플레이스형' AI 브리핑 업종 확대 시 자동으로 전환됩니다.
           </p>
@@ -612,7 +612,7 @@ export default function DualTrackCard({
       {/* AI 도구별 노출 현황 (실측) */}
       {hasAiData && (
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 md:p-4">
-          <p className="text-sm font-semibold text-blue-800 mb-2.5">🤖 AI 도구별 노출 현황 (실측)</p>
+          <p className="text-sm font-semibold text-blue-800 mb-2.5 flex items-center gap-1.5"><Bot className="w-4 h-4 shrink-0" aria-hidden="true" />AI 도구별 노출 현황 (실측)</p>
           <p className="text-xs text-blue-600 mb-2.5 -mt-1">업종 키워드로 AI에 직접 질의했을 때 가게명이 언급된 횟수입니다</p>
           <div className="space-y-2.5">
             {chatgptRate !== null && aiExposureData?.chatgptSampleSize ? (
@@ -666,10 +666,10 @@ export default function DualTrackCard({
 
       {/* 추정값 안내 — 강조 배너 */}
       {isKeywordEstimated && (
-        <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-700">
-          ⚠️ 키워드 데이터가 부족해 <strong>일부 지수는 업종 평균으로 추정</strong>됩니다.
+        <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-700 flex items-start gap-1.5">
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" /><span>키워드 데이터가 부족해 <strong>일부 지수는 업종 평균으로 추정</strong>됩니다.
           리뷰 텍스트를 입력하면 더 정확해집니다.
-          <Link href="/guide" className="underline ml-1">가이드에서 입력하기 →</Link>
+          <Link href="/guide" className="underline ml-1">가이드에서 입력하기 →</Link></span>
         </div>
       )}
 

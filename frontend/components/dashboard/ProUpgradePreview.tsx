@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Lock } from "lucide-react";
 
 interface Props {
   businessName: string;
@@ -29,7 +30,7 @@ function LockedOverlay({ children, label }: { children: React.ReactNode; label?:
     <div className="relative rounded-xl overflow-hidden">
       <div className="blur-sm pointer-events-none select-none">{children}</div>
       <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/75 gap-2 rounded-xl">
-        <span className="text-2xl">🔒</span>
+        <Lock className="w-6 h-6 text-gray-600" aria-hidden="true" />
         {label && (
           <span className="text-sm font-semibold text-gray-600 bg-white border border-gray-200 px-3 py-1 rounded-full shadow-sm">
             {label}
@@ -156,7 +157,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
               <text x="200" y="10" fontSize="8" fill="#6366f1" opacity="0.7">+60일 (Pro)</text>
             </svg>
             <div className="absolute top-0 right-0 bottom-0 w-[35%] bg-gradient-to-l from-white/90 to-transparent rounded-r-xl flex flex-col items-center justify-center gap-1">
-              <span className="text-lg">🔒</span>
+              <Lock className="w-5 h-5 text-indigo-600" aria-hidden="true" />
               <span className="text-sm font-semibold text-indigo-600">Pro 전용</span>
             </div>
           </div>
@@ -246,7 +247,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
                 </div>
               </div>
               <div className="absolute inset-0 flex items-center justify-center gap-2 bg-white/80">
-                <span className="text-base">🔒</span>
+                <Lock className="w-4 h-4 text-gray-600" aria-hidden="true" />
                 <span className="text-sm font-semibold text-gray-600 bg-white border border-gray-200 px-3 py-1 rounded-full shadow-sm">
                   Pro 전용
                 </span>
@@ -264,7 +265,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
                 </div>
               </div>
               <div className="absolute inset-0 flex items-center justify-center gap-2 bg-white/80">
-                <span className="text-base">🔒</span>
+                <Lock className="w-4 h-4 text-gray-600" aria-hidden="true" />
                 <span className="text-sm font-semibold text-gray-600 bg-white border border-gray-200 px-3 py-1 rounded-full shadow-sm">
                   Pro 전용
                 </span>

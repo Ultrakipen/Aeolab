@@ -136,7 +136,7 @@ export default function ConditionSearchCard({
       {/* 실행 전 안내 */}
       {!ran && (
         <div className="text-center py-6">
-          <div className="text-4xl mb-3">🔍</div>
+          <Search className="w-10 h-10 mx-auto mb-3 text-gray-600" aria-hidden="true" />
           <p className="text-sm text-gray-600 mb-1 leading-relaxed">
             등록 키워드와 소개글이<br />
             AI 검색 의도에 얼마나 적합한지 분석합니다

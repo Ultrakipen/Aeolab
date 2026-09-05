@@ -1,5 +1,7 @@
 "use client";
 
+import { AlertTriangle, Search } from "lucide-react";
+
 interface Props {
   geminiCount: number             // latestScan.gemini_result?.exposure_freq
   geminiSampleSize?: number       // 100 (full) 또는 50 (Basic 자동) 또는 10 (Quick) — 미지정 시 100 가정
@@ -134,7 +136,7 @@ export default function ChatGPTDiffCard({
 
       {/* ChatGPT 단기 개선 불가 안내 */}
       <div className="mb-3 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
-        <span className="text-amber-700 text-sm mt-0.5 shrink-0">⚠</span>
+        <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
         <p className="text-sm text-amber-800 leading-snug">
           <span className="font-semibold">ChatGPT 인식은 학습 데이터 기반입니다.</span>{" "}
           블로그·소개글 작성으로 단기 변동이 없으며, 수개월~1년 후 모델 업데이트 시 반영됩니다. <span className="font-medium">현재 인식 현황 파악 목적으로 활용하세요.</span>
@@ -180,7 +182,7 @@ export default function ChatGPTDiffCard({
           </li>
           {chatgptTopQuery && (
             <li className="flex items-start gap-1.5">
-              <span className="mt-0.5 text-emerald-700 shrink-0">🔍</span>
+              <Search className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" aria-hidden="true" />
               <span>
                 <span className="font-semibold">실측 인용 쿼리:</span>{" "}
                 <span className="font-mono text-sm bg-white px-1.5 py-0.5 rounded border border-indigo-200">

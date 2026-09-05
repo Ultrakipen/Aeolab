@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { getSafeSession } from "@/lib/supabase/client";
-import { RefreshCw, CheckCircle2, XCircle, AlertTriangle, Loader2, ChevronUp, ChevronDown } from "lucide-react";
+import { RefreshCw, CheckCircle2, XCircle, AlertTriangle, Loader2, ChevronUp, ChevronDown, Star, Lightbulb } from "lucide-react";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -54,8 +54,8 @@ function RatingCell({ value, synced, isWeak, noDataText }: { value: number | nul
     return <span className="text-amber-700 text-sm font-medium">동기화 필요</span>;
   }
   return (
-    <span className={`font-semibold text-sm ${isWeak ? "text-red-700" : "text-gray-800"}`}>
-      ⭐ {value.toFixed(1)}
+    <span className={`font-semibold text-sm ${isWeak ? "text-red-700" : "text-gray-800"} inline-flex items-center gap-1`}>
+      <Star className="w-4 h-4 text-amber-400 fill-amber-400 shrink-0" aria-hidden="true" />{value.toFixed(1)}
     </span>
   );
 }
@@ -325,10 +325,10 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
             {/* 블로그 언급 수 데이터 출처 안내 */}
             {data.rows.some((r) => r.field === "blog_mention_count") && (
               <div className="px-4 md:px-6 py-2.5 border-t border-gray-100 bg-gray-50">
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  💡 <strong className="text-gray-600">블로그 언급 수</strong>는 네이버 블로그 API에
+                <p className="text-sm text-gray-600 leading-relaxed flex items-start gap-1.5">
+                  <Lightbulb className="w-4 h-4 shrink-0 mt-0.5 text-gray-500" aria-hidden="true" /><span><strong className="text-gray-600">블로그 언급 수</strong>는 네이버 블로그 API에
                   업체명을 검색한 총 결과 건수입니다. 동명 업체가 있거나 일반 명사와 겹치면 실제보다
-                  높게 나올 수 있으며, 경쟁사 간 상대 비교 용도로 활용하세요.
+                  높게 나올 수 있으며, 경쟁사 간 상대 비교 용도로 활용하세요.</span>
                 </p>
               </div>
             )}

@@ -2,7 +2,7 @@
 // Track 1 6항목: 키워드 검색 노출 · 리뷰 품질 · 스마트플레이스 · 블로그 C-rank · 지도/카카오 · AI 브리핑
 // v3.0 응답(model_version 없음·"v3.0") → 기존 4항목 유지
 
-import { CheckCircle2, XCircle, AlertTriangle, AlertOctagon, Lock } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, AlertOctagon, Lock, Info, Search } from "lucide-react";
 import type { MissingItem } from "@/types/diagnosis";
 import MissingKeywordBadges from "@/components/dashboard/MissingKeywordBadges";
 import { SCORE_LABELS } from "@/lib/score-labels";
@@ -602,7 +602,7 @@ function V31SixItems({
             </div>
           )}
           <div className="flex items-start gap-2 bg-indigo-50 rounded-lg p-3 mt-2">
-            <span className="text-indigo-500 text-sm shrink-0 mt-0.5">ℹ️</span>
+            <Info className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" aria-hidden="true" />
             <p className="text-sm text-indigo-700">
               {(aiTabItem?.score ?? 0) > 0
                 ? "AI탭에 노출됩니다. 소개글·사진·키워드 최적화를 유지하세요."
@@ -1013,7 +1013,7 @@ export default function ScoreEvidenceCard({
             <div className="mb-3 space-y-2">
               {/* 네이버 SEO 검색 노출 안내 */}
               <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 flex items-start gap-2">
-                <span className="text-blue-600 text-sm shrink-0 mt-0.5">🔍</span>
+                <Search className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" aria-hidden="true" />
                 <p className="text-sm text-blue-900 leading-relaxed">
                   <strong>네이버 일반 검색 상위 노출은 가능합니다.</strong>{" "}
                   AI 브리핑 대상은 아니지만, <strong>스마트플레이스 최적화·블로그 후기·키워드 관리</strong>로
@@ -1023,7 +1023,7 @@ export default function ScoreEvidenceCard({
               </div>
               {/* AI탭 안내 */}
               <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-3 flex items-start gap-2">
-                <span className="text-indigo-400 text-sm shrink-0 mt-0.5">ℹ️</span>
+                <Info className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" aria-hidden="true" />
                 <p className="text-sm text-indigo-800 leading-relaxed">
                   <strong>네이버 AI탭</strong>은 업종 제한 없이 노출 가능합니다 (2026-06-25 정식 출시).{" "}
                   소개글 200자 이상·사진 10장 이상·블로그 후기 확보가 핵심입니다.
@@ -1035,7 +1035,7 @@ export default function ScoreEvidenceCard({
           {/* ACTIVE/LIKELY: 이 서비스의 개선 항목 = 네이버 SEO 상위노출로 직결된다는 정방향 안내 (2026-07-09 신설) */}
           {(effectiveGroup === "ACTIVE" || effectiveGroup === "LIKELY") && (
             <div className="mb-3 rounded-lg border border-blue-100 bg-blue-50 p-3 flex items-start gap-2">
-              <span className="text-blue-600 text-sm shrink-0 mt-0.5">🔍</span>
+              <Search className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" aria-hidden="true" />
               <p className="text-sm text-blue-900 leading-relaxed">
                 <strong>아래 항목 점수를 올리면 네이버 일반 검색 상위 노출도 함께 좋아집니다.</strong>{" "}
                 <strong>①키워드 검색 노출</strong>은 네이버에서 실제 검색했을 때의 순위 그 자체이며,

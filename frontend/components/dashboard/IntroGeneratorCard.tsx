@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Sparkles } from "lucide-react";
 import { getSafeSession } from "@/lib/supabase/client";
 import DiaScoreBadge, { diaScoreLabel, type DiaScore } from "./DiaScoreBadge";
 import { FeedbackPopup } from "./FeedbackPopup";
@@ -217,8 +218,8 @@ export function IntroGeneratorCard({
 
           {stats && (
             <div className="rounded-lg bg-indigo-50 border border-indigo-100 px-3 py-2.5">
-              <p className="text-sm text-indigo-800 font-medium">
-                ✨ 실제 업종 키워드·Q&amp;A 구조를 반영해 AI가 방금 작성한 소개글입니다
+              <p className="text-sm text-indigo-800 font-medium flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 shrink-0" aria-hidden="true" />실제 업종 키워드·Q&amp;A 구조를 반영해 AI가 방금 작성한 소개글입니다
               </p>
               <div className="flex flex-wrap gap-2 mt-2">
                 <span className="text-sm bg-white text-gray-700 border border-gray-200 px-2.5 py-1 rounded font-medium">

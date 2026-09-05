@@ -1,5 +1,7 @@
 'use client'
 
+import { Search } from "lucide-react";
+
 interface Props {
   competitorKeywordSources: Record<string, string[]>
 }
@@ -9,7 +11,7 @@ export default function CompetitorKeywordCompare({ competitorKeywordSources }: P
 
   if (entries.length === 0) return (
     <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-start gap-3">
-      <span className="text-2xl shrink-0">🔍</span>
+      <Search className="w-6 h-6 shrink-0 text-gray-700" aria-hidden="true" />
       <div>
         <p className="text-sm font-semibold text-gray-700">경쟁사 키워드 비교 준비 중</p>
         <p className="text-sm text-gray-600 mt-0.5">
@@ -25,7 +27,7 @@ export default function CompetitorKeywordCompare({ competitorKeywordSources }: P
   return (
     <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100">
       <div className="flex items-center gap-2 mb-4">
-        <span className="text-xl">🔍</span>
+        <Search className="w-5 h-5 text-gray-700 shrink-0" aria-hidden="true" />
         <div>
           <h3 className="text-base font-bold text-gray-900">경쟁사가 갖고 있는 키워드</h3>
           <p className="text-sm text-gray-600 mt-0.5">이 키워드를 내 스마트플레이스에 추가하면 경쟁력이 높아집니다</p>

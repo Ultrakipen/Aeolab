@@ -1,3 +1,4 @@
+import { Search, Bot, BarChart2, CheckCircle2 } from "lucide-react";
 import { createClient, getCachedUser, getCachedActivePlan } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { SUPPORTED_CATEGORIES as PHOTO_SUPPORTED_CATEGORIES } from "@/lib/photoCategories";
@@ -477,14 +478,14 @@ export default async function DashboardPage({
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {([
-                      { icon: "🔍", title: "네이버 3채널 실측", desc: "AI 브리핑·AI탭·일반검색 노출 여부" },
-                      { icon: "🤖", title: "ChatGPT·Gemini 측정", desc: "50회 질문 중 내 가게 언급 횟수" },
-                      { icon: "📊", title: "경쟁사 순위 비교", desc: "동네 경쟁 가게 대비 내 위치" },
-                      { icon: "✅", title: "오늘 할 일 안내", desc: "AI 노출 높이는 구체적 액션" },
-                    ] as { icon: string; title: string; desc: string }[]).map(({ icon, title, desc }) => (
+                      { icon: Search, title: "네이버 3채널 실측", desc: "AI 브리핑·AI탭·일반검색 노출 여부" },
+                      { icon: Bot, title: "ChatGPT·Gemini 측정", desc: "50회 질문 중 내 가게 언급 횟수" },
+                      { icon: BarChart2, title: "경쟁사 순위 비교", desc: "동네 경쟁 가게 대비 내 위치" },
+                      { icon: CheckCircle2, title: "오늘 할 일 안내", desc: "AI 노출 높이는 구체적 액션" },
+                    ]).map(({ icon: Icon, title, desc }) => (
                       <div key={title} className="bg-white rounded-lg border border-gray-100 px-3 py-2.5">
                         <div className="flex items-center gap-1.5 mb-1">
-                          <span className="text-base leading-none">{icon}</span>
+                          <Icon className="w-4 h-4 text-gray-700 shrink-0" aria-hidden="true" />
                           <p className="text-sm font-semibold text-gray-800 leading-tight">{title}</p>
                         </div>
                         <p className="text-xs text-gray-600 leading-snug">{desc}</p>
@@ -505,7 +506,7 @@ export default async function DashboardPage({
           {latestScan && plan !== "free" && (competitors?.length ?? 0) === 0 && (
             <div className="flex items-center justify-between gap-3 bg-orange-50 border border-orange-100 rounded-xl px-4 py-3">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="text-base shrink-0">📊</span>
+                <BarChart2 className="w-4 h-4 text-orange-600 shrink-0" aria-hidden="true" />
                 <p className="text-sm text-gray-700 leading-snug">
                   <span className="font-semibold">경쟁사를 등록</span>하면 내 가게 순위와 키워드 격차를 확인할 수 있습니다
                 </p>

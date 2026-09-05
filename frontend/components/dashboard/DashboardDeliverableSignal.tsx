@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Gift } from "lucide-react";
 
 interface Props {
   /** 네이버 소개글 초안 생성 여부 (실측) */
@@ -31,7 +32,7 @@ export default function DashboardDeliverableSignal({
   return (
     <div className="rounded-xl border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 px-4 py-3.5">
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-base" aria-hidden="true">🎁</span>
+        <Gift className="w-4 h-4 text-purple-600 shrink-0" aria-hidden="true" />
         <p className="text-sm md:text-base font-bold text-gray-900 break-keep">
           AI가 준비한 내 가게 맞춤 자료
         </p>

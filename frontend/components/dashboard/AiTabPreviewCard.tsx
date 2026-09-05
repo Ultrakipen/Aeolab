@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Lock, Sparkles, CheckCircle2, AlertCircle, Clock } from "lucide-react";
+import { Lock, Sparkles, CheckCircle2, AlertCircle, Clock, Lightbulb, Bot, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { getSafeSession } from "@/lib/supabase/client";
 import { authFetch } from "@/lib/api";
@@ -450,7 +450,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                         ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                         : "bg-orange-50 text-orange-700 border-orange-200"
                     }`}>
-                      {data.has_reservation ? "✓ 예약 연동 확인" : "⚠ 예약 미연동"}
+                      {data.has_reservation ? <><CheckCircle2 className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />예약 연동 확인</> : <><AlertTriangle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />예약 미연동</>}
                     </span>
                   )}
                   {data.photo_count !== null && data.photo_count !== undefined && (
@@ -459,7 +459,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                         ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                         : "bg-orange-50 text-orange-700 border-orange-200"
                     }`}>
-                      {data.photo_count >= 10 ? `✓ 사진 ${data.photo_count}장+` : `⚠ 사진 ${data.photo_count}장 (10장 권장)`}
+                      {data.photo_count >= 10 ? <><CheckCircle2 className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />사진 {data.photo_count}장+</> : <><AlertTriangle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />사진 {data.photo_count}장 (10장 권장)</>}
                     </span>
                   )}
                 </div>
@@ -642,8 +642,8 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                 </div>
                 {(blogMentionCount ?? 0) < 5 && (
                   <div className="mt-2 pt-2 border-t border-gray-200">
-                    <p className="text-sm text-gray-600 break-keep leading-relaxed">
-                      💡 방문 고객에게 <strong>네이버 블로그</strong>에 후기를 남겨달라고 요청해 보세요.
+                    <p className="text-sm text-gray-600 break-keep leading-relaxed flex items-start gap-1.5">
+                      <Lightbulb className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />방문 고객에게 <strong>네이버 블로그</strong>에 후기를 남겨달라고 요청해 보세요.
                       고객 후기가 많을수록 AI탭에서 신뢰도 있는 정보로 인식됩니다.
                     </p>
                   </div>
@@ -796,7 +796,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
             <div className="mt-4 pt-4 border-t border-gray-100">
               <div className="rounded-xl bg-indigo-50 border border-indigo-200 p-3 md:p-4">
                 <div className="flex items-start gap-2">
-                  <span className="text-base shrink-0">🤖</span>
+                  <Bot className="w-4 h-4 shrink-0 text-indigo-700" aria-hidden="true" />
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-indigo-900">
                       네이버 로컬 에이전트 준비 (H2 2026 예정)

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Sparkles, Info } from "lucide-react";
+import { Sparkles, Info, AlertTriangle } from "lucide-react";
 import ChannelTimelineBox from "@/components/common/ChannelTimelineBox";
 
 // M3 사전 작업: Q2 광고 도입 감지 시 true로 변경 → 광고 경고 배너 즉시 활성화
@@ -136,7 +136,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
             {/* M3 광고 경고 배너 — NAVER_AD_IN_BRIEFING_ACTIVE=true 시 노출 */}
             {NAVER_AD_IN_BRIEFING_ACTIVE && latestAdOnly === true && (
               <div className="mt-2 flex items-start gap-1.5 rounded px-2 py-1.5 bg-orange-50 border border-orange-200">
-                <span className="text-orange-700 text-sm shrink-0">⚠️</span>
+                <AlertTriangle className="w-4 h-4 text-orange-700 shrink-0" aria-hidden="true" />
                 <p className="text-sm text-orange-800 leading-snug break-keep">
                   최근 스캔 결과 <strong>광고 영역</strong>에서 노출됨 — 유기 점수에 미반영. 자연 노출 강화가 필요합니다.
                 </p>

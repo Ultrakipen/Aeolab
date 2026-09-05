@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ThumbsUp, ThumbsDown, Minus, BarChart3 } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Minus, BarChart3, Lightbulb } from "lucide-react";
 import Link from "next/link";
 
 interface SentimentData {
@@ -143,8 +143,8 @@ export function SentimentDashboard({ bizId, token }: Props) {
       {/* 긍정 키워드 강화 안내 */}
       {(data.top_positive?.length ?? 0) > 0 && (
         <div className="mt-3 bg-emerald-50 rounded-lg p-3">
-          <p className="text-sm text-emerald-700">
-            💡 &ldquo;{data.top_positive.slice(0, 2).join('", "')}&rdquo; 키워드를 소개글·Q&A 섹션에 넣으면 AI가 더 자주 인용합니다.
+          <p className="text-sm text-emerald-700 flex items-start gap-1.5">
+            <Lightbulb className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />&ldquo;{data.top_positive.slice(0, 2).join('", "')}&rdquo; 키워드를 소개글·Q&A 섹션에 넣으면 AI가 더 자주 인용합니다.
           </p>
         </div>
       )}

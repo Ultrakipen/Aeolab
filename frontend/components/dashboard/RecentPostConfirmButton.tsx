@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { CheckCircle2, Megaphone } from "lucide-react";
 
 interface Props {
   bizId: string;
@@ -54,8 +55,8 @@ export default function RecentPostConfirmButton({
       : null;
     return (
       <div className="flex items-center justify-between rounded-lg bg-emerald-50 border border-emerald-100 px-3 py-2 gap-2">
-        <span className="text-sm text-gray-800">
-          ✅ 90일 이내 소식 게시 확인됨
+        <span className="text-sm text-gray-800 flex items-center gap-1">
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" aria-hidden="true" />90일 이내 소식 게시 확인됨
           {displayDate && (
             <span className="text-sm text-gray-600 ml-1">
               ({displayDate} 직접 확인 · 90일 후 만료)
@@ -77,7 +78,7 @@ export default function RecentPostConfirmButton({
         rel="noopener noreferrer"
         className="flex items-center justify-between rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 gap-2 hover:bg-amber-100 transition-colors"
       >
-        <span className="text-sm text-amber-800">📢 소식 탭 직접 확인 →</span>
+        <span className="text-sm text-amber-800 inline-flex items-center gap-1.5"><Megaphone className="w-4 h-4 shrink-0" aria-hidden="true" />소식 탭 직접 확인 →</span>
         <span className="text-sm px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap bg-amber-100 text-amber-700">
           {effect}
         </span>
@@ -85,9 +86,9 @@ export default function RecentPostConfirmButton({
       <button
         onClick={handleConfirm}
         disabled={loading}
-        className="w-full text-sm text-center py-1.5 rounded-lg border border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 transition-colors disabled:opacity-50"
+        className="w-full text-sm text-center py-1.5 rounded-lg border border-emerald-300 text-emerald-700 bg-white hover:bg-emerald-50 transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1"
       >
-        {loading ? '저장 중...' : '✅ 90일 이내 소식 올렸어요'}
+        {loading ? '저장 중...' : <><CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden="true" />90일 이내 소식 올렸어요</>}
       </button>
     </div>
   );

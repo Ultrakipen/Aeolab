@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, type ReactNode } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Bot, Sparkles, Search, BarChart2, Target, type LucideIcon } from "lucide-react";
 import KeywordRankCard from "@/components/dashboard/KeywordRankCard";
 import { AiInfoTabStatusCard } from "@/components/dashboard/AiInfoTabStatusCard";
 import AiTabPreviewCard from "@/components/dashboard/AiTabPreviewCard";
@@ -80,10 +80,10 @@ interface Props {
 }
 
 /** 소섹션 레이블 */
-function SubSectionLabel({ icon, label, borderClass }: { icon: string; label: string; borderClass: string }) {
+function SubSectionLabel({ icon: Icon, label, borderClass }: { icon: LucideIcon; label: string; borderClass: string }) {
   return (
     <div className={`flex items-center gap-2 mb-3 pb-2 border-b-2 ${borderClass}`}>
-      <span className="text-base" aria-hidden="true">{icon}</span>
+      <Icon className="w-4 h-4 text-gray-600" aria-hidden="true" />
       <span className="text-sm font-bold text-gray-700">{label}</span>
     </div>
   );
@@ -92,8 +92,8 @@ function SubSectionLabel({ icon, label, borderClass }: { icon: string; label: st
 /** 접이식 소섹션 — 헤더가 SubSectionLabel과 동일 스타일이되 클릭 토글.
     점진적 공개: 무거운 카드(순위표·AI탭·브리핑)를 기본 접힘으로 두어 읽기 부담 감소 */
 function CollapsibleSub({
-  icon, label, borderClass, defaultOpen = false, mobileDefaultOpen, id, children,
-}: { icon: string; label: string; borderClass: string; defaultOpen?: boolean; mobileDefaultOpen?: boolean; id?: string; children: ReactNode }) {
+  icon: Icon, label, borderClass, defaultOpen = false, mobileDefaultOpen, id, children,
+}: { icon: LucideIcon; label: string; borderClass: string; defaultOpen?: boolean; mobileDefaultOpen?: boolean; id?: string; children: ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
 
   // 모바일(<768px) 전용 기본 상태 — CollapseSectionWrapper와 동일 패턴 (하이드레이션 후 적용)
@@ -114,7 +114,7 @@ function CollapsibleSub({
         className={`w-full flex items-center justify-between gap-2 mb-3 pb-2 border-b-2 ${borderClass} text-left hover:opacity-80 transition-opacity`}
       >
         <span className="flex items-center gap-2 min-w-0">
-          <span className="text-base shrink-0" aria-hidden="true">{icon}</span>
+          <Icon className="w-4 h-4 text-gray-600 shrink-0" aria-hidden="true" />
           <span className="text-sm font-bold text-gray-700 break-keep">{label}</span>
         </span>
         {open ? (
@@ -163,7 +163,7 @@ export default function DashboardInsightZone({
   const isActiveOrLikely = userGroup === "ACTIVE" || userGroup === "LIKELY";
 
   const sectionAiTab = (
-    <CollapsibleSub id="naver-aitab-anchor" icon="🤖" label="네이버 AI탭 — 노출 높이는 방법" borderClass="border-blue-400" defaultOpen={false}>
+    <CollapsibleSub id="naver-aitab-anchor" icon={Bot} label="네이버 AI탭 — 노출 높이는 방법" borderClass="border-blue-400" defaultOpen={false}>
       {/* 노출 상태(✓/✗/–)는 상단 진단 카드에서 한 번만 표시 — 여기서는 개선 방법만 안내 (중복 제거) */}
       <AiTabPreviewCard
         bizId={bizId}
@@ -177,7 +177,7 @@ export default function DashboardInsightZone({
 
   const sectionBriefing = accessToken && briefingMeta ? (
     // ACTIVE/LIKELY는 브리핑이 핵심 채널 → 펼침. INACTIVE는 비대상 → 접힘
-    <CollapsibleSub id="naver-briefing-anchor" icon="✨" label="네이버 AI 브리핑" borderClass="border-purple-400" defaultOpen={isActiveOrLikely}>
+    <CollapsibleSub id="naver-briefing-anchor" icon={Sparkles} label="네이버 AI 브리핑" borderClass="border-purple-400" defaultOpen={isActiveOrLikely}>
       <AiInfoTabStatusCard
         bizId={bizId}
         accessToken={accessToken}
@@ -193,7 +193,7 @@ export default function DashboardInsightZone({
   const sectionNaverSearch = (
     <div id="naver-seo-anchor">
       {/* 체크리스트는 가볍고 핵심 → 항상 펼침. 순위표(무거움)만 접힘 처리 */}
-      <SubSectionLabel icon="🔍" label="네이버 일반검색 노출" borderClass="border-green-400" />
+      <SubSectionLabel icon={Search} label="네이버 일반검색 노출" borderClass="border-green-400" />
       <NaverSeoBaseCard
         reviewCount={reviewCount ?? 0}
         hasIntro={hasIntro ?? false}
@@ -215,14 +215,17 @@ export default function DashboardInsightZone({
             const summary = summarizeKeywordRanks(keywords, initialKeywordRanks);
             if (!summary) return null;
             return (
-              <p className="md:hidden text-sm font-semibold text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-2 break-keep">
-                {summary.measured === 0
-                  ? `🎯 등록 키워드 ${summary.total}개 — 순위 측정 전, 눌러서 확인`
-                  : `🎯 등록 키워드 ${summary.total}개 중 ${summary.onFirstPage}개 1페이지 노출 중`}
+              <p className="md:hidden flex items-start gap-1.5 text-sm font-semibold text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-2 break-keep">
+                <Target className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+                <span>
+                  {summary.measured === 0
+                    ? `등록 키워드 ${summary.total}개 — 순위 측정 전, 눌러서 확인`
+                    : `등록 키워드 ${summary.total}개 중 ${summary.onFirstPage}개 1페이지 노출 중`}
+                </span>
               </p>
             );
           })()}
-          <CollapsibleSub icon="📊" label="내 키워드 네이버 검색 순위" borderClass="border-green-400" defaultOpen={true} mobileDefaultOpen={false}>
+          <CollapsibleSub icon={BarChart2} label="내 키워드 네이버 검색 순위" borderClass="border-green-400" defaultOpen={true} mobileDefaultOpen={false}>
             <KeywordRankCard
               bizId={bizId}
               keywords={keywords}
@@ -242,7 +245,7 @@ export default function DashboardInsightZone({
       {/* 핵심 가치 제안 한 줄 배너 — 상세 설명은 하단 "상세 분석 데이터" ScoreEvidenceCard가 유일 소스(중복 금지 원칙 유지),
           여기는 항상 보이는 섹션 최상단에 짧게 노출해 클릭 2회 없이도 인지 가능하게 함 (2026-07-11) */}
       <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 flex items-start gap-2">
-        <span className="text-blue-600 text-sm shrink-0 mt-0.5" aria-hidden="true">🔍</span>
+        <Search className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" aria-hidden="true" />
         <p className="text-sm text-blue-900 leading-relaxed break-keep">
           {isActiveOrLikely ? (
             <><strong>아래 AI 브리핑·AI탭 노출을 높이는 개선 활동은 네이버 일반 검색 상위 노출에도 함께 도움이 됩니다.</strong> 소개글·리뷰·블로그를 채울수록 검색 순위와 AI 노출이 같이 올라갑니다.</>

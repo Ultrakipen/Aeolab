@@ -1,5 +1,7 @@
 "use client";
 
+import { CheckCircle2, Circle, AlertTriangle } from "lucide-react";
+
 import Link from "next/link";
 
 interface CheckItem {
@@ -97,9 +99,7 @@ export function GlobalAIChecklist({
           {geminiItems.map((item) => (
             <li key={item.label} className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 min-w-0">
-                <span className={`shrink-0 text-base ${item.done ? "text-green-700" : "text-gray-300"}`}>
-                  {item.done ? "✅" : "⬜"}
-                </span>
+                {item.done ? <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0" aria-hidden="true" /> : <Circle className="w-4 h-4 text-gray-300 shrink-0" aria-hidden="true" />}
                 <span
                   className={`text-sm break-keep ${
                     item.done ? "text-gray-600 line-through" : "text-gray-800"
@@ -157,7 +157,7 @@ export function GlobalAIChecklist({
 
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-1.5">
           <div className="flex items-start gap-2">
-            <span className="text-amber-700 text-base shrink-0 mt-0.5">⚠</span>
+            <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
             <p className="text-sm text-amber-800 leading-relaxed">
               ChatGPT는 학습 데이터 기반으로 측정합니다.
             </p>

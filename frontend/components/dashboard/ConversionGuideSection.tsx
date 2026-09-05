@@ -361,7 +361,7 @@ export default function ConversionGuideSection({ bizId, plan }: Props) {
                 key={p}
                 className="inline-flex items-center gap-1 text-sm font-medium bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-full"
               >
-                ⚠ {p} 미노출
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />{p} 미노출
               </span>
             ))}
           </div>

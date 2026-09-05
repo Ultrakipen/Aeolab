@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Bot, FileEdit, MessageCircle, type LucideIcon } from "lucide-react";
 import { IntroGeneratorCard } from "@/components/dashboard/IntroGeneratorCard";
 import { TalktalkFAQGeneratorCard } from "@/components/dashboard/TalktalkFAQGeneratorCard";
 
@@ -26,10 +27,10 @@ interface Props {
   talktalkFaqGeneratedAt?: string;
 }
 
-function SubLabel({ icon, label, borderClass }: { icon: string; label: string; borderClass: string }) {
+function SubLabel({ icon: Icon, label, borderClass }: { icon: LucideIcon; label: string; borderClass: string }) {
   return (
     <div className={`flex items-center gap-2 mb-3 pb-2 border-b-2 ${borderClass}`}>
-      <span className="text-base" aria-hidden="true">{icon}</span>
+      <Icon className="w-4 h-4 text-gray-600" aria-hidden="true" />
       <span className="text-sm font-bold text-gray-700">{label}</span>
     </div>
   );
@@ -49,7 +50,7 @@ export default function DashboardContentZone({
     <div className="space-y-6">
       {plan !== "free" && (
         <div className="flex items-center gap-2">
-          <span className="text-base" aria-hidden="true">🤖</span>
+          <Bot className="w-5 h-5 text-gray-700" aria-hidden="true" />
           <h2 className="text-base md:text-lg font-bold text-gray-900">AI 콘텐츠 자동 생성</h2>
           <span className="text-sm bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium">{planLabel} 전용</span>
         </div>
@@ -78,7 +79,7 @@ export default function DashboardContentZone({
 
       {/* 네이버 소개글 생성 */}
       <div id="naver-intro-anchor">
-        <SubLabel icon="📝" label="네이버 소개글 생성" borderClass="border-blue-300" />
+        <SubLabel icon={FileEdit} label="네이버 소개글 생성" borderClass="border-blue-300" />
         <IntroGeneratorCard
           bizId={bizId}
           currentIntro={naverIntroDraft}
@@ -92,7 +93,7 @@ export default function DashboardContentZone({
 
       {/* 톡톡 채팅방 메뉴 초안 */}
       <div id="naver-talktalk-anchor">
-        <SubLabel icon="💬" label="톡톡 채팅방 메뉴 초안" borderClass="border-purple-300" />
+        <SubLabel icon={MessageCircle} label="톡톡 채팅방 메뉴 초안" borderClass="border-purple-300" />
         <TalktalkFAQGeneratorCard
           bizId={bizId}
           initialDraft={talktalkFaqDraft ?? null}
