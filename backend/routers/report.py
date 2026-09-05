@@ -224,8 +224,10 @@ async def get_history(biz_id: str, user=Depends(get_current_user)):
     """점수 추세 — scan_results 직접 읽기 (competitor_scores 포함), 플랜별 행 수 제한"""
     from middleware.plan_gate import get_user_plan, PLAN_LIMITS
     supabase = get_client()
-    await _verify_biz_ownership(supabase, biz_id, user["id"])
-    plan = await get_user_plan(user["id"], supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, user["id"]),
+        get_user_plan(user["id"], supabase),
+    )
     history_days = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])["history_days"]
     limit_rows = history_days if history_days < 999 else 3650
     if limit_rows == 0:
@@ -820,10 +822,11 @@ async def export_csv(biz_id: str, user=Depends(get_current_user)):
     """Basic+ 전용: 스캔 히스토리 CSV 내보내기"""
     supabase = get_client()
     x_user_id = user["id"]
-    await _verify_biz_ownership(supabase, biz_id, x_user_id)
-
     from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
-    plan = await get_user_plan(x_user_id, supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, x_user_id),
+        get_user_plan(x_user_id, supabase),
+    )
     if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("basic", 1):
         raise HTTPException(
             status_code=403,
@@ -1003,11 +1006,12 @@ async def export_pdf(biz_id: str, user=Depends(get_current_user)):
     """Pro+ 전용: AI Visibility 리포트 PDF 다운로드"""
     supabase = get_client()
     x_user_id = user["id"]
-    await _verify_biz_ownership(supabase, biz_id, x_user_id)
-
     # 플랜 확인
     from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
-    plan = await get_user_plan(x_user_id, supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, x_user_id),
+        get_user_plan(x_user_id, supabase),
+    )
     if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("pro", 1):
         raise HTTPException(
             status_code=403,
@@ -1129,11 +1133,12 @@ async def export_keyword_rank_csv(biz_id: str, user=Depends(get_current_user)):
     측정 데이터가 없으면 "측정 후 표시" 안내 행 1줄만 포함합니다.
     """
     supabase = get_client()
-    await _verify_biz_ownership(supabase, biz_id, user["id"])
-
     # 플랜 확인 — Pro+ 전용 (get_user_plan 단일 소스: ADMIN_EMAILS 우회 포함)
     from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
-    plan = await get_user_plan(user["id"], supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, user["id"]),
+        get_user_plan(user["id"], supabase),
+    )
     if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("pro", 1):
         raise HTTPException(
             status_code=403,
@@ -1415,11 +1420,12 @@ async def get_mention_context(biz_id: str, user=Depends(get_current_user)):
     """최근 스캔의 AI 인용 맥락 데이터 조회 (Pro+ 전용)"""
     supabase = get_client()
     x_user_id = user["id"]
-    await _verify_biz_ownership(supabase, biz_id, x_user_id)
-
     # 플랜 확인 (get_user_plan 사용 — 어드민 바이패스 포함)
     from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
-    plan = await get_user_plan(x_user_id, supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, x_user_id),
+        get_user_plan(x_user_id, supabase),
+    )
     if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("pro", 0):
         raise HTTPException(
             status_code=403,
@@ -1485,11 +1491,12 @@ async def get_mention_context(biz_id: str, user=Depends(get_current_user)):
 async def get_gap_card(biz_id: str, user=Depends(get_current_user)):
     """갭 카드 PNG 즉시 생성 — 경쟁사 AI 순위 시각화 (Basic+)"""
     supabase = get_client()
-    await _verify_biz_ownership(supabase, biz_id, user["id"])
-
     # Basic+ 플랜 체크
     from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
-    plan = await get_user_plan(user["id"], supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, user["id"]),
+        get_user_plan(user["id"], supabase),
+    )
     if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("basic", 1):
         raise HTTPException(
             status_code=403,
@@ -1636,11 +1643,12 @@ async def get_ai_tab_preview(biz_id: str, user=Depends(get_current_user)):
     1시간 캐시 적용.
     """
     supabase = get_client()
-    await _verify_biz_ownership(supabase, biz_id, user["id"])
-
     # Basic+ 플랜 체크
     from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
-    plan = await get_user_plan(user["id"], supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, user["id"]),
+        get_user_plan(user["id"], supabase),
+    )
     if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("basic", 1):
         raise HTTPException(
             status_code=403,
@@ -1720,10 +1728,11 @@ async def confirm_ai_tab_checklist(
     Basic+ 전용.
     """
     supabase = get_client()
-    await _verify_biz_ownership(supabase, biz_id, user["id"])
-
     from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
-    plan = await get_user_plan(user["id"], supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, user["id"]),
+        get_user_plan(user["id"], supabase),
+    )
     if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("basic", 1):
         raise HTTPException(
             status_code=403,
@@ -2725,10 +2734,11 @@ async def get_keyword_volumes(biz_id: str, user=Depends(get_current_user)):
     from middleware.plan_gate import get_user_plan, PLAN_LIMITS
 
     supabase = get_client()
-    await _verify_biz_ownership(supabase, biz_id, user["id"])
-
     # Basic+ 플랜 확인
-    plan = await get_user_plan(user["id"], supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, user["id"]),
+        get_user_plan(user["id"], supabase),
+    )
     if plan not in ("basic", "startup", "pro", "biz"):
         raise HTTPException(
             status_code=403,
@@ -2850,9 +2860,10 @@ async def get_keyword_volume(biz_id: str, user=Depends(get_current_user)):
     from middleware.plan_gate import get_user_plan
 
     supabase = get_client()
-    await _verify_biz_ownership(supabase, biz_id, user["id"])
-
-    plan = await get_user_plan(user["id"], supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, user["id"]),
+        get_user_plan(user["id"], supabase),
+    )
     if plan not in ("basic", "startup", "pro", "biz"):
         raise HTTPException(
             status_code=403,
@@ -2932,9 +2943,10 @@ async def get_place_compare(biz_id: str, background_tasks: BackgroundTasks, user
     from middleware.plan_gate import get_user_plan
 
     supabase = get_client()
-    await _verify_biz_ownership(supabase, biz_id, user["id"])
-
-    plan = await get_user_plan(user["id"], supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, user["id"]),
+        get_user_plan(user["id"], supabase),
+    )
     if plan not in ("basic", "startup", "pro", "biz"):
         raise HTTPException(
             status_code=403,
@@ -4209,11 +4221,12 @@ async def capture_blog_screenshots(
     """
 
     supabase = get_client()
-    await _verify_biz_ownership(supabase, biz_id, user["id"])
-
     # 플랜 체크 (Basic 이상, get_user_plan 단일 소스: ADMIN_EMAILS 우회 포함)
     from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
-    plan = await get_user_plan(user["id"], supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, user["id"]),
+        get_user_plan(user["id"], supabase),
+    )
     if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("basic", 1):
         raise HTTPException(status_code=403, detail="Basic 이상 구독이 필요합니다.")
 
@@ -4799,9 +4812,10 @@ async def get_ai_search_screenshots(biz_id: str, user=Depends(get_current_user))
     """AI 검색 화면 스크린샷 조회 — Basic+"""
     from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
     supabase = get_client()
-    await _verify_biz_ownership(supabase, biz_id, user["id"])
-
-    plan = await get_user_plan(user["id"], supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, user["id"]),
+        get_user_plan(user["id"], supabase),
+    )
     if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("basic", 1):
         raise HTTPException(
             status_code=403,
@@ -4847,9 +4861,10 @@ async def get_keyword_trend(biz_id: str, user=Depends(get_current_user)):
     from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
 
     supabase = get_client()
-    await _verify_biz_ownership(supabase, biz_id, user["id"])
-
-    plan = await get_user_plan(user["id"], supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, user["id"]),
+        get_user_plan(user["id"], supabase),
+    )
     if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("basic", 1):
         raise HTTPException(
             status_code=403,
@@ -4939,9 +4954,10 @@ async def get_keyword_volume_by_query(
     from middleware.plan_gate import get_user_plan, PLAN_HIERARCHY
 
     supabase = get_client()
-    await _verify_biz_ownership(supabase, biz_id, user["id"])
-
-    plan = await get_user_plan(user["id"], supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, user["id"]),
+        get_user_plan(user["id"], supabase),
+    )
     if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("basic", 1):
         raise HTTPException(
             status_code=403,
@@ -5047,9 +5063,10 @@ async def post_smartplace_check(
         raise HTTPException(status_code=422, detail="biz_id와 naver_place_url이 필요합니다")
 
     supabase = get_client()
-    await _verify_biz_ownership(supabase, biz_id, user["id"])
-
-    plan = await get_user_plan(user["id"], supabase)
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, user["id"]),
+        get_user_plan(user["id"], supabase),
+    )
     if PLAN_HIERARCHY.get(plan, 0) < PLAN_HIERARCHY.get("basic", 1):
         raise HTTPException(
             status_code=403,
@@ -6290,11 +6307,11 @@ async def get_naver_seo_strength(biz_id: str, user: dict = Depends(get_current_u
     supabase = get_client()
     user_id = user["id"]
 
-    # 소유권 검증
-    await _verify_biz_ownership(supabase, biz_id, user_id)
-
-    # Basic 미만 플랜 차단
-    plan = await get_user_plan(user_id, supabase)
+    # 소유권 검증 + 플랜 조회 병렬화
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, user_id),
+        get_user_plan(user_id, supabase),
+    )
     if plan not in ("basic", "startup", "pro", "biz", "enterprise"):
         raise HTTPException(
             status_code=403,
