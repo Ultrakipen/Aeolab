@@ -749,9 +749,20 @@ async def _trigger_blog_analysis_bg(
 
 @router.get("/{biz_id}/blog-mentions")
 async def get_my_blog_mentions(biz_id: str, user=Depends(get_current_user)):
-    """내 가게 이름으로 네이버 블로그 언급 수 조회 (경쟁사와 동일 방식)"""
+    """내 가게 이름으로 네이버 블로그 언급 수 조회 (경쟁사와 동일 방식)
+
+    2026-09-05: 캐시 없이 매 페이지 로드마다 네이버 API를 실시간 호출(최대 2회
+    순차, 각 6초 타임아웃)하던 것이 /dashboard/competitors 페이지 간헐적
+    5초+ 응답지연의 원인으로 확인됨 — 블로그 언급 수는 분 단위로 변하지
+    않으므로 1시간 캐시 추가.
+    """
     x_user_id = user["id"]
     supabase = get_client()
+
+    cache_key = _cache._make_key("blog_mentions", biz_id)
+    cached = _cache.get(cache_key)
+    if cached is not None:
+        return cached
 
     biz_result = await execute(
         supabase.table("businesses")
@@ -771,7 +782,9 @@ async def get_my_blog_mentions(biz_id: str, user=Depends(get_current_user)):
             biz["name"],
             biz.get("region", "")
         )
-        return {"count": count, "measured": True}
+        result = {"count": count, "measured": True}
+        _cache.set(cache_key, result, ttl=3600)
+        return result
     except Exception as e:
         logger.warning(f"blog-mentions fetch failed [{biz_id}]: {e}")
         # 크롤러 실패와 실제 0건을 구분 — count는 하위호환용, measured로 실측 여부 판별
