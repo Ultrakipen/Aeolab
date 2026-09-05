@@ -64,6 +64,7 @@ export function ShowcaseTabs() {
               height={item.mobileHeight}
               alt={`AEOlab ${item.title} 모바일 화면`}
               className="block w-full h-auto"
+              loading="lazy"
             />
           </div>
         </div>
@@ -79,6 +80,7 @@ export function ShowcaseTabs() {
                 height={item.desktopHeight}
                 alt={`AEOlab ${item.title} 실제 화면`}
                 className="block max-w-none"
+                loading="lazy"
               />
             </div>
           </div>
