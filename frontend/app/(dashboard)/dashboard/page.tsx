@@ -1,4 +1,4 @@
-import { Search, Bot, BarChart2, CheckCircle2 } from "lucide-react";
+import { Search, Bot, BarChart2, CheckCircle2, Calendar } from "lucide-react";
 import { createClient, getCachedUser, getCachedActivePlan } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { SUPPORTED_CATEGORIES as PHOTO_SUPPORTED_CATEGORIES } from "@/lib/photoCategories";
@@ -432,7 +432,10 @@ export default async function DashboardPage({
                   )
                 )}
                 <div className="mt-3 pt-3 border-t border-gray-100 space-y-0.5">
-                  <p className="text-sm font-semibold text-slate-600 leading-snug">📅 개선 후 반영 예상 기간</p>
+                  <p className="text-sm font-semibold text-slate-600 leading-snug flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4 shrink-0" aria-hidden="true" />
+                    개선 후 반영 예상 기간
+                  </p>
                   <p className="text-sm text-slate-500 leading-snug">· 스마트플레이스 정보 업데이트: <strong className="text-slate-700">즉시~수일</strong></p>
                   <p className="text-sm text-slate-500 leading-snug">· 네이버 검색 순위 변화: <strong className="text-slate-700">2~4주</strong> <span className="text-xs text-gray-600">(경쟁·지역 따라 다름)</span></p>
                   <p className="text-sm text-slate-500 leading-snug">· 네이버 AI 브리핑·AI탭: <strong className="text-slate-700">2~4주</strong> <span className="text-xs text-gray-600">(추정, 네이버 미공개)</span></p>

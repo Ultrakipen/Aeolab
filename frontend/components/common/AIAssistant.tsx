@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { MessageCircle } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -127,7 +128,7 @@ export default function AIAssistant({ bizId, plan, authToken }: Props) {
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-blue-600 rounded-t-2xl">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                <span className="text-base">💬</span>
+                <MessageCircle className="w-4 h-4 text-white" aria-hidden="true" />
               </div>
               <span className="text-base font-bold text-white">AI 도우미</span>
             </div>
@@ -258,7 +259,7 @@ export default function AIAssistant({ bizId, plan, authToken }: Props) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         ) : (
-          <span className="text-2xl leading-none">💬</span>
+          <MessageCircle className="w-6 h-6 text-white" aria-hidden="true" />
         )}
       </button>
     </>

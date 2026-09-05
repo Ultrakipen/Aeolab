@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { RefreshCw } from 'lucide-react'
 import { ScanProgress } from '@/components/scan/ScanProgress'
 import { useRouter } from 'next/navigation'
 import { getSafeSession } from '@/lib/supabase/client'
@@ -264,7 +265,12 @@ export function ScanTrigger({
                   : "bg-blue-600 text-white border border-blue-600 hover:bg-blue-700"
               } px-5 py-2.5 rounded-lg text-base font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${stacked ? "w-full" : "w-full sm:w-auto"}`}
             >
-              {loading ? '준비 중...' : limitReached ? `오늘 스캔 완료 (${scanUsed}/${scanLimit}회)` : secondary ? '🔄 AI 다시 스캔' : 'AI 스캔 시작'}
+              {loading ? '준비 중...' : limitReached ? `오늘 스캔 완료 (${scanUsed}/${scanLimit}회)` : secondary ? (
+                <span className="inline-flex items-center gap-1.5 justify-center">
+                  <RefreshCw className="w-4 h-4" aria-hidden="true" />
+                  AI 다시 스캔
+                </span>
+              ) : 'AI 스캔 시작'}
             </button>
 
             {/* 스캔 횟수 */}
