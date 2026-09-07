@@ -256,6 +256,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
       {!isPreview && dedupedCitations.length > INITIAL_VISIBLE && (
         <button
           onClick={() => setExpanded(v => !v)}
+          aria-expanded={expanded}
           className="mt-3 w-full flex items-center justify-center gap-1 text-sm text-blue-600 hover:text-blue-800 py-1"
         >
           {expanded ? (

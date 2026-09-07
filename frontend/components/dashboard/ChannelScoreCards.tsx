@@ -107,7 +107,7 @@ export function ChannelScoreCards({
                   <span className={item.ok ? 'text-green-700' : item.unmeasured ? 'text-gray-200' : 'text-gray-300'}>
                     {item.ok ? '✓' : item.unmeasured ? '—' : '○'}
                   </span>
-                  <span className={item.ok ? 'text-gray-700' : item.unmeasured ? 'text-gray-300' : 'text-gray-600'}>
+                  <span className={item.ok ? 'text-gray-700' : item.unmeasured ? 'text-gray-500' : 'text-gray-600'}>
                     {item.label}
                   </span>
                 </div>
@@ -151,7 +151,7 @@ export function ChannelScoreCards({
                   <span className={item.ok ? 'text-green-700' : item.optional ? 'text-gray-200' : 'text-gray-300'}>
                     {item.ok ? '✓' : '○'}
                   </span>
-                  <span className={item.ok ? 'text-gray-700' : item.optional ? 'text-gray-300' : 'text-gray-600'}>
+                  <span className={item.ok ? 'text-gray-700' : item.optional ? 'text-gray-500' : 'text-gray-600'}>
                     {item.label}
                   </span>
                 </div>

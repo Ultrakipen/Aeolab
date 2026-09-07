@@ -53,7 +53,7 @@ function PlatformRow({
       ? 'text-sm font-semibold'
       : mentioned
       ? 'text-sm font-semibold text-amber-700'
-      : 'text-sm text-gray-300'
+      : 'text-sm text-gray-500'
 
     return (
       <div className="flex items-center gap-3">
@@ -70,7 +70,7 @@ function PlatformRow({
         </div>
         <div className="w-20 text-right shrink-0">
           {hasError ? (
-            <span className="text-sm text-gray-300">오류</span>
+            <span className="text-sm text-gray-500">오류</span>
           ) : (
             <span className={statusClass} style={inBriefing ? { color: labelColor! } : undefined}>
               {statusText}
@@ -94,7 +94,7 @@ function PlatformRow({
       ? 'text-sm font-semibold'
       : tabVisible === null || tabVisible === undefined
       ? 'text-sm text-amber-700'
-      : 'text-sm text-gray-300'
+      : 'text-sm text-gray-500'
     const barColor = tabVisible === true ? '#0ea5e9' : 'transparent'
 
     return (
@@ -147,7 +147,7 @@ function PlatformRow({
           platform.key === 'google' ? (
             <span className="text-sm text-gray-600">측정 보류</span>
           ) : (
-            <span className="text-sm text-gray-300">오류</span>
+            <span className="text-sm text-gray-500">오류</span>
           )
         ) : platform.key === 'gemini' && exposureFreq !== undefined ? (
           <span className={`text-sm font-semibold ${mentioned ? 'text-indigo-600' : 'text-gray-600'}`}>
@@ -158,7 +158,7 @@ function PlatformRow({
             노출됨{inAiOverview ? ' (AI Overview)' : ''}
           </span>
         ) : (
-          <span className="text-sm text-gray-300">미노출</span>
+          <span className="text-sm text-gray-500">미노출</span>
         )}
       </div>
     </div>

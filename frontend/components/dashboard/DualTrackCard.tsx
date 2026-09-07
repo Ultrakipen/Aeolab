@@ -460,7 +460,7 @@ export default function DualTrackCard({
                   = 네이버 AI 채널 × {naverPct}%<br />
                   + 글로벌 AI 채널 × {globalPct}%
                 </p>
-                <p className="text-gray-600 mt-1.5 text-sm">업종별 비율이 다릅니다. 소상공인 가게는 네이버 비중이 높습니다.</p>
+                <p className="text-gray-300 mt-1.5 text-sm">업종별 비율이 다릅니다. 소상공인 가게는 네이버 비중이 높습니다.</p>
               </div>
             )}
           </div>

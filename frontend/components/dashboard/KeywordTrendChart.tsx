@@ -97,7 +97,7 @@ export default function KeywordTrendChart({ bizId, accessToken, categoryKo }: Pr
           <h3 className="text-base font-bold text-gray-700">키워드 검색 트렌드</h3>
         </div>
         <p className="text-sm text-gray-600">네이버 DataLab 분석은 추후 제공 예정입니다.</p>
-        <p className="text-sm text-gray-300 mt-1">현재 등록 키워드 기반 월간 검색량은 키워드 현황 카드에서 확인하세요.</p>
+        <p className="text-sm text-gray-600 mt-1">현재 등록 키워드 기반 월간 검색량은 키워드 현황 카드에서 확인하세요.</p>
       </div>
     )
   }

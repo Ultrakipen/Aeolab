@@ -50,7 +50,7 @@ export default function DashboardDeliverableSignal({
           </Link>
         ))}
       </div>
-      <p className="text-xs text-gray-600 mt-2 leading-snug break-keep">
+      <p className="text-sm text-gray-600 mt-2 leading-snug break-keep">
         바로 복사해 스마트플레이스·톡톡에 붙여넣으면 됩니다 · 내용은 다시 생성하면 갱신됩니다
       </p>
     </div>
