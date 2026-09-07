@@ -525,7 +525,7 @@ export default async function DashboardPage({
           )}
 
           {/* ① 네이버 채널별 개선 방법 — 소상공인 최우선 채널. Hero 바로 다음에 배치 */}
-          <CollapseSectionWrapper id="section-naver" title="네이버 채널별 개선 방법" description="노출 높이는 구체적 방법 — 요약 상태는 위 진단 카드 참고" iconColor="text-green-700" defaultOpen={true} highlight={true}>
+          <CollapseSectionWrapper id="section-naver" title="네이버 채널별 개선 방법" description="노출 높이는 구체적 방법 — 요약 상태는 위 진단 카드 참고" iconColor="text-green-700" defaultOpen={true} mobileDefaultOpen={false} highlight={true}>
             <>
               {/* 4타일 NavBar — 섹션 최상단 */}
               {latestScan && (
