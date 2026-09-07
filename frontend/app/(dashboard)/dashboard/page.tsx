@@ -439,7 +439,8 @@ export default async function DashboardPage({
                   <p className="text-sm text-slate-500 leading-snug">· 스마트플레이스 정보 업데이트: <strong className="text-slate-700">즉시~수일</strong></p>
                   <p className="text-sm text-slate-500 leading-snug">· 네이버 검색 순위 변화: <strong className="text-slate-700">2~4주</strong> <span className="text-xs text-gray-600">(경쟁·지역 따라 다름)</span></p>
                   <p className="text-sm text-slate-500 leading-snug">· 네이버 AI 브리핑·AI탭: <strong className="text-slate-700">2~4주</strong> <span className="text-xs text-gray-600">(추정, 네이버 미공개)</span></p>
-                  <p className="text-sm text-slate-500 leading-snug">· Gemini·ChatGPT: <strong className="text-slate-700">수개월~1년</strong> (AEOlab 스캐너는 학습 데이터 기반 측정)</p>
+                  <p className="text-sm text-slate-500 leading-snug">· Gemini: <strong className="text-slate-700">2~4주 내 시작, 안정적 인용까지 수개월</strong> <span className="text-xs text-gray-600">(Google 실시간 검색 연동)</span></p>
+                  <p className="text-sm text-slate-500 leading-snug">· ChatGPT: <strong className="text-slate-700">수개월~1년</strong> <span className="text-xs text-gray-600">(학습 데이터 기반 측정)</span></p>
                 </div>
               </div>
             </div>
