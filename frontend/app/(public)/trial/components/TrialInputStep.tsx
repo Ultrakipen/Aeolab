@@ -16,6 +16,13 @@ import { useBriefingCategories } from "@/lib/useBriefingCategories";
 import type { TrialBusinessCandidate } from "@/types";
 import type { TrialInputStepProps } from "./TrialSharedTypes";
 
+// 업종 선택 화면 상단 바로가기 — 전체 59개 목록은 그대로 두고 자주 찾는 업종만 추가 노출
+// (59개 카드 스크롤 없이 1탭으로 선택 가능하게, 2026-09-07 외부 진단 반영)
+const POPULAR_CATEGORIES = [
+  "restaurant", "cafe", "beauty", "nail", "fitness",
+  "medical", "pet", "education", "bakery", "bar",
+];
+
 /**
  * Trial — 입력 4단계 (category → tags → info → search) 렌더링
  *
@@ -253,6 +260,41 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 className="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white"
               />
             </div>
+
+            {/* 자주 찾는 업종 — 검색어가 없을 때만, 아래 전체 목록은 그대로 유지 (2026-09-07 외부 진단 반영) */}
+            {!categorySearch.trim() && (
+              <div className="mb-5 max-w-2xl mx-auto">
+                <p className="text-sm font-semibold text-slate-500 mb-2 px-1">자주 찾는 업종</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {POPULAR_CATEGORIES.map((value) => {
+                    const cat = FLAT_CATEGORY_MAP[value];
+                    if (!cat) return null;
+                    const cfg = CATEGORY_ICON_MAP[value];
+                    const Icon = cfg?.Icon;
+                    const selected = selectedCategory === value;
+                    return (
+                      <button
+                        key={value}
+                        aria-label={`${cat.label} 업종 선택 (자주 찾는 업종)`}
+                        onClick={() => {
+                          setSelectedCategory(value);
+                          setSelectedTags([]);
+                          setStep("tags");
+                        }}
+                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full border-2 text-sm font-semibold transition-all hover:shadow-sm ${
+                          selected
+                            ? `${cfg?.bg ?? "bg-blue-50"} ${cfg?.border ?? "border-blue-300"} ${cfg?.text ?? "text-blue-600"}`
+                            : "bg-white border-slate-200 text-gray-700 hover:border-gray-300"
+                        }`}
+                      >
+                        {Icon && <Icon className="w-4 h-4" strokeWidth={1.8} aria-hidden="true" />}
+                        {cat.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* 59개 평면 업종 (그룹별) */}
             <div className="space-y-5">
