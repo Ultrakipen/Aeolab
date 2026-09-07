@@ -69,7 +69,7 @@ export default function ScoreGuidePage() {
             </p>
           </div>
         </div>
-        <p className="text-sm text-indigo-400 mt-4">아래 전체 설명은 더 자세히 알고 싶은 분을 위한 내용입니다.</p>
+        <p className="text-sm text-indigo-600 mt-4">아래 전체 설명은 더 자세히 알고 싶은 분을 위한 내용입니다.</p>
       </div>
 
       {/* 3. 개요 카드 */}
@@ -102,7 +102,7 @@ export default function ScoreGuidePage() {
         </h2>
         <div className="space-y-3">
           <div className="flex items-start gap-3">
-            <span className="shrink-0 text-slate-400 font-bold mt-0.5">→</span>
+            <span className="shrink-0 text-slate-600 font-bold mt-0.5" aria-hidden="true">→</span>
             <p className="text-sm md:text-base text-slate-700 leading-relaxed">
               <strong>지표 개선</strong>은 AI 검색 노출 가능성을 높이는 방향입니다.
               채널별 반영 속도가 다릅니다 — 네이버 AI 브리핑·AI탭은 콘텐츠 개선 후
@@ -115,11 +115,11 @@ export default function ScoreGuidePage() {
             <p className="text-sm text-slate-600 font-semibold mb-1.5">인과 경로</p>
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <span className="bg-blue-100 text-blue-800 font-medium px-2.5 py-1 rounded-lg">점수 개선</span>
-              <span className="text-slate-400">→</span>
+              <span className="text-slate-600" aria-hidden="true">→</span>
               <span className="bg-blue-100 text-blue-800 font-medium px-2.5 py-1 rounded-lg">AI 검색 노출 증가</span>
-              <span className="text-slate-400">→</span>
+              <span className="text-slate-600" aria-hidden="true">→</span>
               <span className="bg-blue-100 text-blue-800 font-medium px-2.5 py-1 rounded-lg">잠재 고객 발견</span>
-              <span className="text-slate-400">→</span>
+              <span className="text-slate-600" aria-hidden="true">→</span>
               <span className="bg-emerald-100 text-emerald-800 font-medium px-2.5 py-1 rounded-lg">방문·구매 가능성↑</span>
             </div>
           </div>

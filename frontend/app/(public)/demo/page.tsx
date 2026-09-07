@@ -752,7 +752,7 @@ export default function DemoPage() {
                 >
                   {c.label}
                   {(c.value === "photo" || c.value === "music") && (
-                    <span className="ml-1 text-sm text-blue-400 font-normal">실사례</span>
+                    <span className="ml-1 text-sm text-blue-600 font-normal">실사례</span>
                   )}
                 </button>
               ))}
@@ -1147,7 +1147,7 @@ export default function DemoPage() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm md:text-base font-medium text-gray-800 line-clamp-1">{blog.title}</p>
                           <p className="text-sm text-gray-600 line-clamp-1 mt-0.5">{blog.desc}</p>
-                          <p className={`text-sm mt-0.5 font-medium ${blog.isOld ? "text-orange-400" : "text-gray-600"}`}>
+                          <p className={`text-sm mt-0.5 font-medium ${blog.isOld ? "text-orange-600" : "text-gray-600"}`}>
                             {blog.dateLabel}{blog.isOld && " · 오래된 후기"}
                           </p>
                         </div>

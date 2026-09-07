@@ -468,7 +468,7 @@ export default function OnboardingPage() {
                   <div className={`text-xs sm:text-sm font-semibold leading-tight break-keep ${step === s.id ? "text-gray-900" : "text-gray-600"}`}>
                     {s.label}
                   </div>
-                  <div className={`hidden sm:block text-sm leading-tight break-keep ${step === s.id ? "text-gray-600" : "text-gray-300"}`}>
+                  <div className={`hidden sm:block text-sm leading-tight break-keep ${step === s.id ? "text-gray-600" : "text-gray-500"}`}>
                     {s.desc}
                   </div>
                 </div>
@@ -952,7 +952,7 @@ export default function OnboardingPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                     <span className="text-base font-bold text-yellow-900">카카오맵 비즈니스 프로필도 확인해보세요</span>
-                    <span className="text-sm font-medium px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-600 border border-yellow-300">선택 사항</span>
+                    <span className="text-sm font-medium px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300">선택 사항</span>
                   </div>
                   <p className="text-base text-yellow-800 leading-relaxed mb-2">
                     카카오맵은 한국에서 네이버 다음으로 많이 사용되는 지역 검색 플랫폼입니다.

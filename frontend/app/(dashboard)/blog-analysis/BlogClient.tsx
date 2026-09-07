@@ -495,6 +495,8 @@ function WeeklyActionsCard({ actions, businessId }: { actions: WeeklyAction[]; b
           >
             <button
               onClick={() => toggle(idx)}
+              aria-label={checked[idx] ? "완료 취소" : "완료로 표시"}
+              aria-pressed={checked[idx]}
               className={`w-6 h-6 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-colors ${checked[idx] ? "bg-green-700 border-green-500 text-white" : "border-gray-300 hover:border-blue-400"}`}
             >
               {checked[idx] && <CheckCircle2 className="w-4 h-4" />}
@@ -935,7 +937,6 @@ function TopicSuggestionsV2Card({
           <div
             key={idx}
             className="border border-gray-200 rounded-xl p-3 flex flex-col gap-2 cursor-pointer hover:border-indigo-300 transition-colors"
-            role="button"
             tabIndex={0}
             onClick={async () => {
               if (expandedIdx === idx) {
@@ -1697,7 +1698,7 @@ function BlogMentionBenchmarkCard({
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e5e7eb" />
           <XAxis
             type="number"
-            tick={{ fontSize: 12, fill: "#6b7280" }}
+            tick={{ fontSize: 12, fill: "#4b5563" }}
             tickLine={false}
             axisLine={false}
           />
@@ -1724,7 +1725,7 @@ function BlogMentionBenchmarkCard({
                 value: `평균 ${data.avg_count}건`,
                 position: "top",
                 fontSize: 11,
-                fill: "#d97706",
+                fill: "#b45309",
               }}
             />
           )}
@@ -2386,7 +2387,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
             {/* RSS 접근 제한 안내 배너 — API 스니펫 전용 분석 시 표시 */}
             {result.rss_failed && (
               <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-start gap-3">
-                <span className="text-blue-400 shrink-0 mt-0.5">&#x2139;&#xFE0F;</span>
+                <span className="text-blue-600 shrink-0 mt-0.5">&#x2139;&#xFE0F;</span>
                 <p className="text-sm text-blue-800 leading-relaxed">
                   이번 분석은 일부 데이터(이미지·본문 길이)에 접근하지 못해 측정이 제한적입니다. 다시 분석하면 더 정확한 결과를 받을 수 있어요.
                 </p>

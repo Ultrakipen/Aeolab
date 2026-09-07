@@ -69,7 +69,7 @@ export interface ChannelTile {
 const PRESET = {
   good:    { icon: "✓", iconClass: "bg-emerald-700 text-white", statusClass: "text-emerald-700" },
   warn:    { icon: "!", iconClass: "bg-amber-700 text-white",   statusClass: "text-amber-700" },
-  expand:  { icon: "△", iconClass: "bg-yellow-400 text-white",  statusClass: "text-yellow-700" },
+  expand:  { icon: "△", iconClass: "bg-yellow-400 text-yellow-900",  statusClass: "text-yellow-700" },
   pending: { icon: "–", iconClass: "bg-gray-200 text-gray-600", statusClass: "text-gray-600" },
   unknown: { icon: "?", iconClass: "bg-gray-200 text-gray-600", statusClass: "text-gray-600" },
 } as const;
