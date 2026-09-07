@@ -120,7 +120,7 @@ function CollapsibleSub({
         {open ? (
           <ChevronUp className="w-4 h-4 text-gray-600 shrink-0" />
         ) : (
-          <span className="flex items-center gap-1 text-xs text-gray-600 font-medium shrink-0 whitespace-nowrap">
+          <span className="flex items-center gap-1 text-sm text-gray-600 font-medium shrink-0 whitespace-nowrap">
             눌러서 보기 <ChevronDown className="w-4 h-4" />
           </span>
         )}

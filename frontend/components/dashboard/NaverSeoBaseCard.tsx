@@ -230,7 +230,7 @@ export default function NaverSeoBaseCard({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <span className="text-sm text-gray-800 inline-flex items-center gap-1.5"><FileEdit className="w-4 h-4 shrink-0" aria-hidden="true" />블로그 후기 언급 {blogMentionCount}건</span>
-            <p className="text-xs text-gray-600 mt-0.5 leading-snug">네이버 AI탭은 블로그 후기를 답변 소스로 활용합니다</p>
+            <p className="text-sm text-gray-600 mt-0.5 leading-snug">네이버 AI탭은 블로그 후기를 답변 소스로 활용합니다</p>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <span className="text-emerald-700 font-bold">→</span>
