@@ -82,11 +82,19 @@ export default function TrialInputStep(props: TrialInputStepProps) {
   const [categorySearch, setCategorySearch] = useState("");
   const [agreeEmailPrivacy, setAgreeEmailPrivacy] = useState(false);
   const [emailConsentError, setEmailConsentError] = useState(false);
+  // 스마트플레이스 세부 질문(hasIntro/hasRecentPost/hasFaq) 펼침 상태
+  // 기본: 접힘(false). 명시적 "등록됨" 클릭 시 자동 펼침, 인라인 후보 변경 시 자동 접힘.
+  const [showSmartPlaceDetail, setShowSmartPlaceDetail] = useState(false);
   const briefingCats = useBriefingCategories();
 
   useEffect(() => {
     if (step === "category") setCategorySearch("");
   }, [step]);
+
+  // 인라인 후보가 바뀌면(새 가게 선택 또는 해제) 세부 질문 패널을 접어 마찰 제거
+  useEffect(() => {
+    setShowSmartPlaceDetail(false);
+  }, [inlineSelectedCandidate]);
   const keywordInputRef = useRef<HTMLInputElement>(null);
   const regionInputRef = useRef<HTMLInputElement>(null);
 
@@ -995,7 +1003,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                   ) : (
                     <div className="grid grid-cols-3 gap-2 mb-3">
                       {[
-                        { label: "등록됨", isSelected: form.is_smart_place === true, onClick: () => setForm((p) => ({ ...p, is_smart_place: true })) },
+                        { label: "등록됨", isSelected: form.is_smart_place === true, onClick: () => { setForm((p) => ({ ...p, is_smart_place: true })); setShowSmartPlaceDetail(true); } },
                         { label: "미등록", isSelected: form.is_smart_place === false, onClick: () => setForm((p) => ({ ...p, is_smart_place: false })) },
                         { label: "모르겠어요", isSelected: form.is_smart_place === undefined, onClick: () => setForm((p) => ({ ...p, is_smart_place: undefined })) },
                       ].map((opt) => (
@@ -1016,59 +1024,81 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                   )}
                   {form.is_smart_place === true && (
                     <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="text-sm font-semibold text-green-800">어디까지 설정하셨나요?</p>
-                        {(() => {
-                          const answered = [hasIntro, hasRecentPost, hasFaq].filter(v => v !== undefined).length;
-                          return answered < 3 ? (
-                            <span className="text-sm text-amber-700 font-semibold">{answered}/3 답변됨</span>
-                          ) : (
-                            <span className="text-sm text-green-700 font-semibold">모두 답변됨</span>
-                          );
-                        })()}
-                      </div>
-                      <p className="text-sm text-green-700 mb-2.5">있어요 / 없어요 중 하나를 선택하면 진단 점수가 정확해집니다</p>
-                      <div className="space-y-1.5">
-                        {[
-                          { key: "has_intro", value: hasIntro, onChange: setHasIntro, label: "소개글 작성" },
-                          { key: "has_recent_post", value: hasRecentPost, onChange: setHasRecentPost, label: "최근 7일 내 소식" },
-                          { key: "has_faq", value: hasFaq, onChange: setHasFaq, label: "소개글 Q&A 포함" },
-                        ].map((item) => (
-                          <div key={item.key} className="flex items-center gap-3 py-1.5 border-b border-green-100 last:border-b-0">
-                            <span className={`flex-1 text-sm font-medium ${item.value === undefined ? "text-slate-700" : "text-slate-800"}`}>
-                              {item.label}
-                            </span>
-                            <div className="flex gap-1.5 shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => item.onChange(true)}
-                                className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all ${
-                                  item.value === true
-                                    ? "bg-green-700 text-white border-green-600 shadow-sm"
-                                    : "bg-white text-slate-400 border-slate-200 hover:border-green-400 hover:text-green-700"
-                                }`}
-                              >
-                                있어요
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => item.onChange(false)}
-                                className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all ${
-                                  item.value === false
-                                    ? "bg-slate-100 text-slate-700 border-slate-400"
-                                    : "bg-white text-slate-400 border-slate-200 hover:border-slate-400 hover:text-slate-600"
-                                }`}
-                              >
-                                없어요
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      {[hasIntro, hasRecentPost, hasFaq].some(v => v === undefined) && (
-                        <p className="text-sm text-amber-700 bg-amber-50 rounded-lg px-2.5 py-1.5 mt-2.5 border border-amber-200">
-                          각 항목에 답해주세요 — 선택하지 않으면 기본값(없어요)으로 처리됩니다
+                      {/* 토글 헤더 — 기본 접힘, 명시적 "등록됨" 클릭 시 자동 펼침 */}
+                      <button
+                        type="button"
+                        onClick={() => setShowSmartPlaceDetail((v) => !v)}
+                        aria-expanded={showSmartPlaceDetail}
+                        className="w-full flex items-center justify-between text-left"
+                      >
+                        <p className="text-sm font-semibold text-green-800">
+                          더 정확한 진단{" "}
+                          <span className="font-normal text-green-600">(선택사항)</span>
                         </p>
+                        <span className="flex items-center gap-1 text-sm text-green-700 shrink-0 ml-2">
+                          {showSmartPlaceDetail ? (
+                            <><ChevronUp className="w-4 h-4" aria-hidden="true" /> 접기</>
+                          ) : (
+                            <><ChevronDown className="w-4 h-4" aria-hidden="true" /> 답하기</>
+                          )}
+                        </span>
+                      </button>
+                      {/* 접힌 상태 — 간략 안내만 */}
+                      {!showSmartPlaceDetail && (
+                        <p className="text-sm text-green-700 mt-1.5">
+                          소개글·최근 소식·Q&amp;A 설정 여부를 답하면 진단이 더 정확해집니다 —{" "}
+                          <span className="text-green-600 font-medium">몰라도 됩니다</span>
+                        </p>
+                      )}
+                      {/* 펼친 상태 — 3개 질문 */}
+                      {showSmartPlaceDetail && (
+                        <>
+                          <p className="text-sm text-green-700 mt-2 mb-2.5">
+                            있어요 / 없어요 중 하나를 선택하면 진단 점수가 정확해집니다 — 모르면 건너뛰어도 됩니다
+                          </p>
+                          <div className="space-y-1.5">
+                            {[
+                              { key: "has_intro", value: hasIntro, onChange: setHasIntro, label: "소개글 작성" },
+                              { key: "has_recent_post", value: hasRecentPost, onChange: setHasRecentPost, label: "최근 7일 내 소식" },
+                              { key: "has_faq", value: hasFaq, onChange: setHasFaq, label: "소개글 Q&A 포함" },
+                            ].map((item) => (
+                              <div key={item.key} className="flex items-center gap-3 py-1.5 border-b border-green-100 last:border-b-0">
+                                <span className={`flex-1 text-sm font-medium ${item.value === undefined ? "text-slate-700" : "text-slate-800"}`}>
+                                  {item.label}
+                                </span>
+                                <div className="flex gap-1.5 shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => item.onChange(true)}
+                                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all ${
+                                      item.value === true
+                                        ? "bg-green-700 text-white border-green-600 shadow-sm"
+                                        : "bg-white text-slate-400 border-slate-200 hover:border-green-400 hover:text-green-700"
+                                    }`}
+                                  >
+                                    있어요
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => item.onChange(false)}
+                                    className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all ${
+                                      item.value === false
+                                        ? "bg-slate-100 text-slate-700 border-slate-400"
+                                        : "bg-white text-slate-400 border-slate-200 hover:border-slate-400 hover:text-slate-600"
+                                    }`}
+                                  >
+                                    없어요
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          {[hasIntro, hasRecentPost, hasFaq].some((v) => v === undefined) && (
+                            <p className="text-sm text-slate-400 mt-2">
+                              미선택 항목은 기본값(없어요)으로 처리됩니다
+                            </p>
+                          )}
+                        </>
                       )}
                     </div>
                   )}
