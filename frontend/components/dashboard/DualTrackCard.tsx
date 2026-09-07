@@ -598,8 +598,9 @@ export default function DualTrackCard({
         channelType="global"
       />
       {/* Track 2 면책 문구 — AI 데이터 유무와 무관하게 항상 표시 */}
-      <p className="text-xs text-gray-600 -mt-1 leading-relaxed px-1">
-        ChatGPT·Gemini 스캐너 점수는 AI 학습 데이터 기반 — 한국 소상공인 포함률이 낮아 낮은 점수가 일반적, 스캐너 점수 개선 반영 수개월~1년. 단, Google AI Overview(구글 검색 상단 AI 요약)는 구글 비즈니스 프로필 등록 후 수 주 내 개선 시작 가능.
+      <p className="text-sm text-gray-600 -mt-1 leading-relaxed px-1">
+        한국 소상공인 포함률이 낮아 두 채널 모두 낮은 점수가 일반적입니다. Gemini는 구글 검색 실시간 연동으로 수 주~수개월 내 개선되지만,
+        ChatGPT는 학습 데이터 기반이라 개선 반영까지 수개월~1년 소요됩니다. Google AI Overview(구글 검색 상단 AI 요약)는 구글 비즈니스 프로필 등록 후 수 주 내 개선 시작 가능합니다.
       </p>
 
       {/* 집중 채널 추천 */}
