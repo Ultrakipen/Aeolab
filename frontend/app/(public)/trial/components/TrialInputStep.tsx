@@ -854,30 +854,6 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 </div>
               )}
 
-              {/* 가게 소개 한 줄 */}
-              <div>
-                <label
-                  htmlFor="trial-description"
-                  className="block text-base font-semibold text-slate-700 mb-1"
-                >
-                  가게 소개 한 줄
-                </label>
-                <textarea
-                  id="trial-description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="예: 20년 전통 손칼국수 전문점 / 주차 넓고 단체석 운영"
-                  rows={2}
-                  className="w-full border border-slate-300 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                  maxLength={200}
-                />
-                <p className={`text-sm mt-1 ${description ? "text-blue-600" : "text-amber-700"}`}>
-                  {description
-                    ? "네이버·ChatGPT·Gemini가 가게를 더 정확하게 파악합니다"
-                    : "비워두면 업종 평균 데이터로 추정합니다 — 짧아도 좋으니 한 줄 적어보세요"}
-                </p>
-              </div>
-
               <div>
                 <label
                   htmlFor="trial-region"
@@ -1136,12 +1112,35 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 {showAdvanced ? (
                   <><ChevronUp className="w-4 h-4" /> 접기</>
                 ) : (
-                  <><ChevronDown className="w-4 h-4" /> 손님 리뷰 붙여넣기 — 키워드 분석 정밀도 향상 (선택)</>
+                  <><ChevronDown className="w-4 h-4" /> 가게 소개·손님 리뷰 추가하기 — 분석 정밀도 향상 (선택)</>
                 )}
               </button>
 
               {showAdvanced && (
                 <div className="space-y-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                  <div>
+                    <label
+                      htmlFor="trial-description"
+                      className="block text-base font-medium text-gray-700 mb-1"
+                    >
+                      가게 소개 한 줄{" "}
+                      <span className="text-gray-600 font-normal">
+                        (선택 — 건너뛰어도 됩니다)
+                      </span>
+                    </label>
+                    <textarea
+                      id="trial-description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="예: 20년 전통 손칼국수 전문점 / 주차 넓고 단체석 운영"
+                      rows={2}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      maxLength={200}
+                    />
+                    <p className="text-sm text-gray-600 mt-1">
+                      없으면 업종 평균 데이터로 추정합니다.
+                    </p>
+                  </div>
                   <div>
                     <label
                       htmlFor="trial-review-text"

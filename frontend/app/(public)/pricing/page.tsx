@@ -42,7 +42,7 @@ export default function PricingPage() {
         {/* 타이틀 */}
         <h1 className="text-3xl md:text-5xl font-bold text-center text-gray-900 mb-3">요금제</h1>
         <p className="text-center text-base md:text-xl text-gray-600 mb-6">
-          네이버 AI 브리핑 · ChatGPT · Gemini — AI가 내 가게를 먼저 추천하게 만드세요
+          손님이 네이버·ChatGPT에 물어볼 때, 내 가게가 먼저 나오게 — AI 브리핑·ChatGPT·Gemini 진단
         </p>
 
         {/* 실사용 화면 유도 배너 */}
@@ -57,6 +57,11 @@ export default function PricingPage() {
 
         {/* 업종 선택 → 그룹별 가치 메시지 */}
         <GroupHeadlineBanner />
+
+        {/* ─── 상황 질문 → 추천 플랜 (15초 퀴즈를 비교표보다 먼저 노출) ─── */}
+        <div className="mb-10 mt-8">
+          <PlanRecommender />
+        </div>
 
         {/* ─── 플랜 카드: 상단 3개 ─── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 mt-8">
@@ -227,9 +232,17 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* ─── 플랜 기능 비교표 ─── */}
-        <div className="overflow-x-auto mb-14" tabIndex={0}>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1 text-center">플랜 기능 비교</h2>
+        {/* ─── 플랜 기능 비교표 (기본 접힘 — 2026-09-07 외부 진단 반영) ─── */}
+        <details className="group bg-slate-50 border border-slate-200 rounded-xl mb-14 overflow-hidden">
+          <summary className="flex items-center justify-between cursor-pointer px-6 py-5 select-none list-none">
+            <span className="text-lg md:text-xl font-bold text-slate-900">전체 기능 비교표 보기 (16개 항목)</span>
+            <span className="ml-4 shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-180">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+          </summary>
+          <div className="px-4 md:px-6 pb-6 overflow-x-auto" tabIndex={0}>
           <p className="text-sm text-gray-600 text-center mb-4 md:hidden">← 좌우로 밀어 비교하세요</p>
           <table className="w-full min-w-[560px] text-sm border-collapse">
             <thead>
@@ -272,7 +285,10 @@ export default function PricingPage() {
             </tbody>
           </table>
           <p className="text-sm text-gray-600 mt-2 text-right">— : 해당 플랜에 포함되지 않음</p>
-        </div>
+          </div>
+        </details>
+
+        {/* PlanRecommender는 상단(GroupHeadlineBanner 직후)으로 이동함 — 2026-09-07 외부 진단 반영 */}
 
         {/* ─── 포함된 진단 도구 ─── */}
         <div className="mb-14">
@@ -307,11 +323,6 @@ export default function PricingPage() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* ─── 상황 질문 → 추천 플랜 ─── */}
-        <div className="mb-14">
-          <PlanRecommender />
         </div>
 
         {/* ─── 업종별 노출 범위 안내 (면책 문구) ─── */}

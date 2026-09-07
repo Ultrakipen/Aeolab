@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Lightbulb, Store, BarChart2, TrendingUp, BookOpen } from "lucide-react";
+import { Store, BookOpen } from "lucide-react";
 import AIAssistant from "@/components/common/AIAssistant";
 
 interface Props {
@@ -9,19 +9,19 @@ interface Props {
   accessToken: string;
 }
 
+// 가이드(/guide)·경쟁사(/competitors)·변화기록(/history)은 데스크톱 사이드바(DashboardSidebar)
+// 와 모바일 하단 탭바(MobileBottomTabs) 양쪽에 이미 있어 여기서 제거함(중복 네비게이션,
+// 2026-09-07 외부 진단 반영). 아래 2개만 두 네비게이션 어디에도 없는 항목.
 const NAV_ITEMS = [
-  { href: "/guide",       Icon: Lightbulb,  label: "오늘 할 일 보기",       desc: "AI가 추천하는 개선 방법" },
-  { href: "/schema",      Icon: Store,       label: "소개글 · 스키마 만들기", desc: "소개글·블로그 자동 생성" },
-  { href: "/competitors", Icon: BarChart2,   label: "경쟁사 관리",            desc: "주변 경쟁 점포와 비교" },
-  { href: "/history",     Icon: TrendingUp,  label: "30일 변화 기록",         desc: "점수 변화 추이 보기" },
-  { href: "/guide/channels", Icon: BookOpen, label: "가이드 자료실",           desc: "업종별 AI 검색 노출 체크리스트" },
+  { href: "/schema",        Icon: Store,     label: "소개글 · 스키마 만들기", desc: "소개글·블로그 자동 생성" },
+  { href: "/guide/channels", Icon: BookOpen, label: "가이드 자료실",          desc: "업종별 AI 검색 노출 체크리스트" },
 ];
 
 export default function DashboardFooter({ bizId, bizName, plan, accessToken }: Props) {
   return (
     <>
-      {/* 빠른 이동 그리드 */}
-      <div className="mt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+      {/* 빠른 이동 그리드 — 사이드바·탭바에 없는 항목만 */}
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 max-w-xl mx-auto sm:mx-0">
         {NAV_ITEMS.map((item) => (
           <Link
             key={item.href}
