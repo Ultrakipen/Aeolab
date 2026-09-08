@@ -166,6 +166,7 @@ async def get_score(biz_id: str, user=Depends(get_current_user)):
         "is_https":                   wc.get("is_https", False),
         "title":                      wc.get("title", ""),
         "error":                      wc.get("error"),
+        "ai_crawler_blocked_bots":    wc.get("ai_crawler_blocked_bots", []),
         "checked": bool(wc),
     }
 
@@ -4085,6 +4086,14 @@ async def get_score_explanation(biz_id: str, user=Depends(get_current_user)):
 
     # ── Track2 설명 생성 ──────────────────────────────────────────────────────
     t2_parts = []
+
+    blocked_bots = wc.get("ai_crawler_blocked_bots") or []
+    if blocked_bots:
+        t2_parts.append(
+            "⚠️ robots.txt에서 AI 크롤러 차단 중 (" + ", ".join(blocked_bots) + ") — "
+            "웹사이트를 아무리 개선해도 해당 AI 채널 노출이 원천적으로 막혀 있을 수 있음. "
+            "robots.txt 수정(해당 봇 Disallow 제거) 최우선 권장"
+        )
 
     multi_ai = breakdown.get("multi_ai_exposure", 0)
     ef = int(r.get("exposure_freq") or 0)

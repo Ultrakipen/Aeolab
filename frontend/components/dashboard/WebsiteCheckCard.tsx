@@ -115,6 +115,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
   const passCount = items.filter((i) => i.ok).length
   const failCount = items.length - passCount
   const highFailCount = items.filter((i) => !i.ok && i.impact === 'high').length
+  const blockedBots = checkResult.ai_crawler_blocked_bots || []
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm">
@@ -132,6 +133,18 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
           <div className="text-sm text-gray-600">통과</div>
         </div>
       </div>
+
+      {blockedBots.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2.5 mb-3">
+          <p className="text-sm font-semibold text-red-700">
+            robots.txt에서 AI 크롤러를 차단 중입니다 ({blockedBots.join(', ')})
+          </p>
+          <p className="text-sm text-red-700 mt-0.5">
+            다른 항목을 아무리 개선해도 이 채널 노출이 원천적으로 막혀 있을 수 있어요.
+            홈페이지 제작사·개발자에게 robots.txt에서 해당 봇 차단을 해제해달라고 요청하세요.
+          </p>
+        </div>
+      )}
 
       {highFailCount > 0 && (
         <div className="bg-red-50 rounded-xl px-3 py-2 mb-3 text-sm text-red-700">

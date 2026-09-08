@@ -51,7 +51,56 @@ _EMPTY = {
     "is_https": False,
     "title": "",
     "error": None,
+    "ai_crawler_blocked_bots": [],
+    "ai_crawler_checked": False,
 }
+
+# AEOlab이 실제로 측정하는 채널(ChatGPT·Gemini)에 대응하는 크롤러만 추적한다.
+# GPTBot=OpenAI 학습 크롤러, OAI-SearchBot=ChatGPT 실시간 검색 인용 크롤러,
+# Google-Extended=Gemini 학습 크롤러 — 단 Google AI Overview는 Googlebot을 쓰므로
+# Google-Extended 차단은 AI Overview 노출과 무관함 (2026-09-08 WebSearch로 확인, 혼동 금지)
+_AI_BOT_LABELS = {
+    "gptbot": "GPTBot(ChatGPT 학습)",
+    "oai-searchbot": "OAI-SearchBot(ChatGPT 실시간 인용)",
+    "google-extended": "Google-Extended(Gemini 학습)",
+}
+
+
+def _parse_blocked_ai_bots(robots_txt: str) -> list[str]:
+    """robots.txt에서 AI 봇(GPTBot 등)이 루트 전체(Disallow: /)로 차단됐는지 확인.
+
+    단순화된 파서 — User-agent 그룹별 최우선 규칙(allow/disallow 우선순위)까지는
+    반영하지 않고, "루트 전체 차단" 여부만 본다(실무에서 가장 흔한 실수 케이스).
+    """
+    blocked: set[str] = set()
+    current_agents: list[str] = []
+    seen_directive = False
+
+    for raw_line in robots_txt.splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if not line or ":" not in line:
+            continue
+        key, _, value = line.partition(":")
+        key = key.strip().lower()
+        value = value.strip()
+
+        if key == "user-agent":
+            if seen_directive:
+                current_agents = []
+                seen_directive = False
+            current_agents.append(value.lower())
+        elif key == "disallow":
+            seen_directive = True
+            if value == "/":
+                for agent in current_agents:
+                    if agent == "*":
+                        blocked.update(_AI_BOT_LABELS.keys())
+                    elif agent in _AI_BOT_LABELS:
+                        blocked.add(agent)
+        elif key in ("allow", "crawl-delay", "sitemap"):
+            seen_directive = True
+
+    return sorted(_AI_BOT_LABELS[b] for b in blocked)
 
 
 async def check_website_seo(url: str) -> dict:
@@ -170,5 +219,19 @@ async def check_website_seo(url: str) -> dict:
     if title_match:
         raw_title = re.sub(r'<[^>]+>', '', title_match.group(1)).strip()
         result["title"] = raw_title[:100]
+
+    # ── robots.txt AI 크롤러 차단 확인 (best-effort, 실패해도 전체 체크는 성공 처리) ──
+    try:
+        robots_url = f"{parsed.scheme}://{parsed.netloc}/robots.txt"
+        async with aiohttp.ClientSession(timeout=_TIMEOUT, headers=_HEADERS) as session:
+            async with session.get(robots_url, allow_redirects=True, ssl=False) as resp:
+                if resp.status < 400:
+                    robots_raw = await resp.content.read(51_200)
+                    robots_txt = robots_raw.decode("utf-8", errors="replace")
+                    result["ai_crawler_blocked_bots"] = _parse_blocked_ai_bots(robots_txt)
+                result["ai_crawler_checked"] = True
+    except Exception as e:
+        _logger.warning(f"robots.txt check failed for {url}: {e}")
+        result["ai_crawler_checked"] = False
 
     return result

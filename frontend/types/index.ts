@@ -25,6 +25,7 @@ export interface WebsiteCheckResult {
   is_https: boolean;
   title: string;
   error: string | null;
+  ai_crawler_blocked_bots?: string[];
 }
 
 export interface ScanResult {

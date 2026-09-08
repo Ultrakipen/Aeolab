@@ -686,6 +686,12 @@ class GuideGenerator:
         # 웹사이트 문제 요약
         website_issues = []
         if website_check:
+            _blocked_bots = website_check.get("ai_crawler_blocked_bots") or []
+            if _blocked_bots:
+                website_issues.append(
+                    "robots.txt에서 AI 크롤러 차단 중 (" + ", ".join(_blocked_bots) + ") "
+                    "— 다른 개선보다 최우선으로 robots.txt 수정 필요 (구조적 노출 차단)"
+                )
             if not website_check.get("has_json_ld"):
                 website_issues.append("AI 인식 정보 코드 없음 (AI가 사업장 정보 파악 불가)")
             if not website_check.get("has_open_graph"):
