@@ -84,7 +84,7 @@ function CustomTooltip({ active, payload, label }: {
         )}
         {entry.gemini_freq !== null && entry.gemini_size !== null && (
           <div className="text-gray-500 ml-3.5">
-            오늘 측정 {entry.gemini_size}번 중 {entry.gemini_freq}번
+            이날 측정 {entry.gemini_size}번 중 {entry.gemini_freq}번
           </div>
         )}
       </div>
@@ -101,7 +101,7 @@ function CustomTooltip({ active, payload, label }: {
         )}
         {entry.chatgpt_freq !== null && entry.chatgpt_size !== null && (
           <div className="text-gray-500 ml-3.5">
-            오늘 측정 {entry.chatgpt_size}번 중 {entry.chatgpt_freq}번
+            이날 측정 {entry.chatgpt_size}번 중 {entry.chatgpt_freq}번
           </div>
         )}
       </div>
