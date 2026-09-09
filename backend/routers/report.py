@@ -6413,3 +6413,81 @@ async def get_naver_seo_strength(biz_id: str, user: dict = Depends(get_current_u
     }
     _cache.set(cache_key, result, 1800)
     return result
+
+
+_TTL_CHANNEL_TREND = 1800  # 채널 트렌드: 30분
+
+
+@router.get("/channel-trend/{biz_id}")
+async def get_channel_trend(biz_id: str, user=Depends(get_current_user)):
+    """Gemini·ChatGPT 채널별 원시 노출률(%) 시계열 — 대시보드 채널별 트렌드 위젯용.
+
+    합성 점수(track1_score 등)는 포함하지 않는다(CLAUDE.md 점수 표시 원칙).
+    scan_results.gemini_result / chatgpt_result JSONB에서
+    exposure_freq, exposure_rate, sample_size 만 추출해 반환한다.
+    """
+    from middleware.plan_gate import get_user_plan, PLAN_LIMITS
+
+    supabase = get_client()
+    _, plan = await asyncio.gather(
+        _verify_biz_ownership(supabase, biz_id, user["id"]),
+        get_user_plan(user["id"], supabase),
+    )
+    history_days = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])["history_days"]
+    # Free 플랜(history_days=0)은 빈 배열 반환 — 기존 /history/{biz_id} 패턴과 동일
+    if history_days == 0:
+        return []
+    # 최대 90개 행으로 캡 (채널 트렌드는 최근 3개월이면 충분)
+    limit_rows = min(history_days if history_days < 999 else 3650, 90)
+
+    cache_key = _cache._make_key("channel_trend", biz_id, plan)
+    cached = _cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    res = await execute(
+        supabase.table("scan_results")
+        .select("scanned_at, gemini_result, chatgpt_result")
+        .eq("business_id", biz_id)
+        .order("scanned_at", desc=True)
+        .limit(limit_rows)
+    )
+    rows = res.data or []
+
+    result = []
+    for row in rows:
+        scan_date = _scanned_at_to_kst_date(row.get("scanned_at"))
+
+        gemini = row.get("gemini_result") or {}
+        chatgpt = row.get("chatgpt_result") or {}
+
+        def _rate_pct(d: dict, key: str = "exposure_rate"):
+            val = d.get(key)
+            if val is None:
+                return None
+            try:
+                return round(float(val) * 100)
+            except (TypeError, ValueError):
+                return None
+
+        def _int_or_none(d: dict, key: str):
+            val = d.get(key)
+            if val is None:
+                return None
+            try:
+                return int(val)
+            except (TypeError, ValueError):
+                return None
+
+        result.append({
+            "scan_date": scan_date,
+            "gemini_exposure_rate": _rate_pct(gemini) if gemini else None,
+            "gemini_exposure_freq": _int_or_none(gemini, "exposure_freq") if gemini else None,
+            "gemini_sample_size":   _int_or_none(gemini, "sample_size") if gemini else None,
+            "chatgpt_exposure_rate": _rate_pct(chatgpt) if chatgpt else None,
+            "chatgpt_exposure_freq": _int_or_none(chatgpt, "exposure_freq") if chatgpt else None,
+            "chatgpt_sample_size":   _int_or_none(chatgpt, "sample_size") if chatgpt else None,
+        })
+
+    _cache.set(cache_key, result, _TTL_CHANNEL_TREND)
+    return result
