@@ -110,7 +110,7 @@ export default async function DashboardPage({
   const [
     { data: scanResults }, { data: competitors }, { data: history },
     benchmarkRes, { data: latestGuide }, { count: scanUsedToday },
-    actionLogRes, gapRes, photoGuideRes, blogCitationRes,
+    actionLogRes, gapRes, photoGuideRes, blogCitationRes, channelTrendRes,
   ] = business
     ? await Promise.all([
         supabase.from("scan_results")
@@ -143,10 +143,14 @@ export default async function DashboardPage({
         business.blog_url && accessToken
           ? fetch(`${BACKEND}/api/blog/result/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : null).catch(() => null)
           : Promise.resolve(null),
+        // 채널별 AI 노출률 추이 — Basic+ 유료 플랜만 조회 (Free는 백엔드가 [] 반환)
+        accessToken
+          ? fetch(`${BACKEND}/api/report/channel-trend/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : []).catch(() => [])
+          : Promise.resolve([]),
       ])
     : [
         { data: null }, { data: null }, { data: null }, null, { data: null },
-        { count: 0 }, null, null, null, null,
+        { count: 0 }, null, null, null, null, [],
       ];
 
   // ── 데이터 조합 ──────────────────────────────────────────────
@@ -335,6 +339,7 @@ export default async function DashboardPage({
 
   const dimensions = (gapRes as { dimensions?: Array<{ dimension_key: string; dimension_label: string; current_score: number; max_score: number; gap_to_top: number; gap_reason: string; priority: number }>; is_competitor_estimated?: boolean } | null)?.dimensions;
   const isCompetitorEstimated = !!(gapRes as { is_competitor_estimated?: boolean } | null)?.is_competitor_estimated;
+  const channelTrend = (channelTrendRes as import("@/lib/api").ChannelTrendPoint[] | null) ?? [];
 
   // ── 최근 행동 로그 파생 ───────────────────────────────────────
   const recentActionType = actionLogs[0]?.action_label ?? null;
@@ -690,6 +695,7 @@ export default async function DashboardPage({
               aiExposureData={aiExposureData}
               blogContribution={blogContribution}
               scoreChangeDiff={scoreChangeDiff}
+              channelTrend={channelTrend}
             />
           </CollapseSectionWrapper>
 

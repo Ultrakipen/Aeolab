@@ -12,6 +12,7 @@ import KeywordTrendChart from "@/components/dashboard/KeywordTrendChart";
 import AICitationCard from "@/components/dashboard/AICitationCard";
 import ChatGPTDiffCard from "@/components/dashboard/ChatGPTDiffCard";
 import { BriefingTimeline } from "@/components/dashboard/BriefingTimeline";
+import ChannelExposureTrendChart, { type ChannelTrendPoint } from "@/components/dashboard/ChannelExposureTrendChart";
 import { SentimentDashboard } from "@/components/dashboard/SentimentDashboard";
 import { MentionContextSection } from "../MentionContextSection";
 import ConditionSearchCard from "@/components/dashboard/ConditionSearchCard";
@@ -143,6 +144,7 @@ interface Props {
   };
   blogContribution?: BlogContribution;
   scoreChangeDiff: number | null;
+  channelTrend?: ChannelTrendPoint[];
 }
 
 function iGa(name: string): string {
@@ -191,6 +193,7 @@ export default function DashboardDetailZone({
   aiExposureData,
   blogContribution,
   scoreChangeDiff,
+  channelTrend,
 }: Props) {
   if (!hasLatestScan) {
     /* 스캔 없는 Empty State */
@@ -408,6 +411,9 @@ export default function DashboardDetailZone({
           />
           {history && history.length >= 2 && (
             <BriefingTimeline history={history} businessName={business.name} />
+          )}
+          {["basic", "startup", "pro", "biz"].includes(plan) && accessToken && channelTrend !== undefined && (
+            <ChannelExposureTrendChart data={channelTrend} />
           )}
           {["basic", "startup", "pro", "biz"].includes(plan) && accessToken && (
             <SentimentDashboard bizId={business.id} token={accessToken} />

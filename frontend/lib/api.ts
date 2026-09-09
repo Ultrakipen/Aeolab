@@ -707,6 +707,29 @@ export async function syncCompetitorPlace(competitorId: string, token?: string):
   });
 }
 
+// ── 채널별 AI 노출률 추이 ────────────────────────────────────────────────────
+// 합성 점수(track1_score 등) 미포함 — 원시 exposure_freq/rate/sample_size만 반환
+export interface ChannelTrendPoint {
+  scan_date: string
+  gemini_exposure_rate: number | null
+  gemini_exposure_freq: number | null
+  gemini_sample_size: number | null
+  chatgpt_exposure_rate: number | null
+  chatgpt_exposure_freq: number | null
+  chatgpt_sample_size: number | null
+}
+
+export async function getChannelTrend(bizId: string, token: string): Promise<ChannelTrendPoint[]> {
+  try {
+    return await apiCall<ChannelTrendPoint[]>(
+      `${BACKEND_URL}/api/report/channel-trend/${encodeURIComponent(bizId)}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    )
+  } catch {
+    return []
+  }
+}
+
 // ── 블로그 진단 ───────────────────────────────────────────────────────────────
 
 export async function analyzeBlog(
