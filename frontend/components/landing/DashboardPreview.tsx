@@ -158,53 +158,73 @@ export default function DashboardPreview() {
             </div>
           </div>
 
-          {/* 7주 추세 — 예시 SVG 라인차트 */}
+          {/* 7주 추세 — 업그레이드된 라인 차트 */}
           <div
-            className="col-span-2 md:col-span-3 rounded-xl p-4 border"
+            className="col-span-2 md:col-span-3 rounded-xl p-5 border"
             style={{ background: "#FFFFFF", borderColor: "#E2E8F0", boxShadow: "var(--aeo-shadow)" }}
           >
-            {/* 헤더: 스토리 텍스트로 점수 의미 전달 */}
-            <div className="flex items-start justify-between mb-3">
+            {/* 헤더 */}
+            <div className="flex items-start justify-between mb-4">
               <div>
-                <p className="text-sm font-bold mb-1" style={{ color: "#0F172A" }}>7주 추세 · 노출 단계 변화</p>
-                <p className="text-sm" style={{ color: "#475569" }}>
-                  <span className="font-semibold px-1.5 py-0.5 rounded" style={{ background: "#FEF9C3", color: "#92400E" }}>보통</span>
-                  <span className="mx-1.5 text-gray-600">→ 7주 후 →</span>
-                  <span className="font-semibold px-1.5 py-0.5 rounded" style={{ background: "#DBEAFE", color: "#1D4ED8" }}>양호</span>
-                  <span className="ml-1.5 text-green-700 font-semibold">↑ 한 단계 성장</span>
-                </p>
+                <p className="text-sm font-bold mb-2" style={{ color: "#0F172A" }}>7주 추세 · 노출 단계 변화</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-semibold px-2.5 py-1 rounded-full" style={{ background: "#FEF9C3", color: "#92400E" }}>보통</span>
+                  <span className="text-sm font-medium" style={{ color: "#94A3B8" }}>→ 7주 후 →</span>
+                  <span className="text-sm font-semibold px-2.5 py-1 rounded-full" style={{ background: "#DBEAFE", color: "#1D4ED8" }}>양호</span>
+                  <span className="text-sm font-semibold" style={{ color: "#16A34A" }}>↑ 한 단계 성장</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-sm font-bold px-2 py-0.5 rounded-full" style={{ background: "#ECFDF5", color: "#065F46" }}>한 단계 성장</span>
-                <span className="text-sm text-gray-600">(예시)</span>
-              </div>
+              <span className="text-sm shrink-0 ml-2" style={{ color: "#94A3B8" }}>(예시)</span>
             </div>
-            {/* 납작한 스파크라인 — viewBox 가로:세로 = 8:1로 높이 최소화 */}
-            <svg viewBox="0 0 400 50" className="w-full h-auto" aria-hidden="true">
+
+            {/* 확대된 라인 차트 */}
+            <svg viewBox="0 0 420 155" className="w-full h-auto" aria-hidden="true">
               <defs>
-                <linearGradient id="trend-fill2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#2563EB" stopOpacity="0.15" />
-                  <stop offset="100%" stopColor="#2563EB" stopOpacity="0.01" />
+                <linearGradient id="trend-fill3" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#2563EB" stopOpacity="0.22" />
+                  <stop offset="100%" stopColor="#2563EB" stopOpacity="0.02" />
                 </linearGradient>
               </defs>
-              {/* 가이드라인 1개 (중간선) */}
-              <line x1="0" y1="25" x2="400" y2="25" stroke="#F1F5F9" strokeWidth="1" />
-              {/* 면 채우기 — y 정규화: score48→y=38, score76→y=5 */}
+
+              {/* 가로 가이드라인 (점선) */}
+              <line x1="20" y1="32" x2="410" y2="32" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="4 3" />
+              <line x1="20" y1="66" x2="410" y2="66" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="4 3" />
+              <line x1="20" y1="100" x2="410" y2="100" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="4 3" />
+
+              {/* 면 채우기 */}
               <path
-                d="M 20,38 L 83,33 L 146,36 L 209,25 L 272,22 L 335,17 L 385,5 L 385,43 L 20,43 Z"
-                fill="url(#trend-fill2)"
+                d="M 40,105 L 100,90 L 160,97 L 220,75 L 280,68 L 340,52 L 400,22 L 400,110 L 40,110 Z"
+                fill="url(#trend-fill3)"
               />
-              {/* 라인 */}
+
+              {/* 메인 라인 */}
               <path
-                d="M 20,38 L 83,33 L 146,36 L 209,25 L 272,22 L 335,17 L 385,5"
-                stroke="#2563EB" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"
+                d="M 40,105 L 100,90 L 160,97 L 220,75 L 280,68 L 340,52 L 400,22"
+                stroke="#2563EB" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"
               />
-              {/* 시작·끝 점만 강조 */}
-              <circle cx="20"  cy="38" r="3" fill="#FFFFFF" stroke="#94A3B8" strokeWidth="1.5" />
-              <circle cx="385" cy="5"  r="4" fill="#2563EB" stroke="#2563EB" strokeWidth="1.5" />
+
+              {/* 중간 점 마커 */}
+              {([[100, 90], [160, 97], [220, 75], [280, 68], [340, 52]] as [number, number][]).map(([cx, cy], i) => (
+                <circle key={i} cx={cx} cy={cy} r="3.5" fill="#FFFFFF" stroke="#2563EB" strokeWidth="1.8" />
+              ))}
+
+              {/* 시작점 (보통) */}
+              <circle cx="40" cy="105" r="5.5" fill="#FFFFFF" stroke="#94A3B8" strokeWidth="2" />
+
+              {/* 끝점 (양호) */}
+              <circle cx="400" cy="22" r="7" fill="#2563EB" stroke="#FFFFFF" strokeWidth="2.5" />
+
+              {/* 시작점 라벨 칩 "보통" */}
+              <rect x="8" y="82" width="50" height="18" rx="9" fill="#FEF9C3" />
+              <text x="33" y="95" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#92400E">보통</text>
+
+              {/* 끝점 라벨 칩 "양호" */}
+              <rect x="365" y="5" width="50" height="18" rx="9" fill="#DBEAFE" />
+              <text x="390" y="18" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#1D4ED8">양호</text>
+
               {/* 주차 레이블 */}
               {["1주", "2주", "3주", "4주", "5주", "6주", "7주"].map((label, i) => (
-                <text key={i} x={20 + i * 60.8} y="50" textAnchor="middle" fontSize="7" fill="#CBD5E1">{label}</text>
+                <text key={i} x={40 + i * 60} y="138" textAnchor="middle" fontSize="10.5" fill="#94A3B8">{label}</text>
               ))}
             </svg>
           </div>
