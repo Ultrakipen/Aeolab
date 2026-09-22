@@ -127,6 +127,26 @@ network:
 
 ---
 
+## 5.5 같은 날 후속 — "유료 플랜 제외" 범위에서 안전 확장 2건 완료
+
+**A. SSR 공개도메인 fetch, 잔여 12개 파일 수정**(git `dce35ac`). §1과 같은 패턴을 `delivery/*`, `notices/*`, `support/*`, `help`, `index`, `share/[bizId]`, `stories/[id]`, `auth/callback/route.ts`로 확장. `lib/api.ts`(client 컴포넌트 20곳 전용이라 브라우저가 공개도메인을 직접 호출하는 게 정상 — 문제 없음 확인 후 제외)와 `lib/briefingCategoriesServer.ts`(이미 올바른 패턴)는 제외.
+
+**⚠️ 도중 발견한 실버그**: `share/[bizId]/page.tsx`의 `og:image`·다운로드 `href`는 카카오톡·페이스북 크롤러 및 브라우저가 **외부에서** 접근하는 공개 URL이다. `BACKEND`(localhost 우선)를 그대로 썼으면 `og:image`가 `http://localhost:8000/...`로 렌더돼 카카오톡 공유가 깨질 뻔했다 — `PUBLIC_BACKEND`(`NEXT_PUBLIC_BACKEND_URL` 고정) 변수로 분리해 해결, 실제 bizId로 og:image 정상 렌더링 확인. **교훈**: "서버 컴포넌트의 fetch니까 localhost로 바꾼다"가 항상 맞지 않는다 — 그 값이 HTML에 그대로 노출돼 외부(브라우저·크롤러)가 다시 접근해야 하는 URL인지 매번 구분해야 한다. 이 패턴으로 다른 파일을 고칠 때도 `og:`/`href`/`src`에 같은 변수가 쓰이는지 먼저 grep할 것.
+
+**B. RLS 나머지 21개 테이블**(git 미커밋 상태의 `scripts/supabase_schema.sql`에 SQL 기록, Supabase live 실행 완료). §4의 8개 테이블과 패턴이 균일하지 않아 테이블별로 분기:
+- **완전 중복만 통합**: `before_after`, `blog_analysis`, `business_action_log`, `review_snapshots`, `team_members`(3→1)
+- **개별 유지**(명령별 권한 범위가 달라 `FOR ALL`로 합치면 실수로 권한이 확대됨 — 예: `assistant_logs`/`blog_score_history`/`inquiries`/`keyword_serp_cache`/`keyword_volumes`는 애초에 UPDATE/DELETE 정책 자체가 없음): `auth.uid()`/`auth.role()`만 `(select ...)`로 감싸고 정책 개수는 그대로 둠
+- **`gap_cards`**: INSERT 정책만 존재(SELECT 없음) — 그대로 유지
+- **`review_replies`**: `Users manage own review replies`(직접 `user_id`)와 `own_review_replies`(사업장 경유 `EXISTS`) 조건이 달라 병합하지 않음. 프론트가 이 테이블을 직접 조회하는 곳이 없어(백엔드 service_role 전용, `backend/routers/guide.py`만 insert) 실사용 트래픽 영향은 미미. 완전 중복인 `own_review_replies_insert`만 제거
+- **`support_replies`**: `user_see_own_replies`와 `user_view_ticket_replies`가 조건 문자열까지 바이트 단위로 동일한 진짜 중복(이름만 다른 leftover) — 1개만 제거
+- **`support_tickets.public_answered_tickets`, `trial_scans` 전체**: `auth.<function>()` 호출이 없어 애초에 대상 아님 — 손대지 않음
+
+검증: 21개 테이블 전부 소유자 조회 200·오류 0건 + 신규 QA 계정으로 교차 테넌트 유출 0건(`industry_trends`·`keyword_volumes`는 "인증만 되면 전체 공개 읽기" 정책이라 신규 계정도 보이는 게 정상 — 유출 아님). QA 계정 삭제 완료.
+
+**⚠️ 별도 발견(이번 조치 범위 밖, 성능이 아닌 보안 사안, 미조치)**: `trial_scans`의 `service_role_all`(ALL)·`trial_scans_insert`(INSERT) 두 정책 모두 `qual`/`with_check`가 리터럴 `true`이고 `roles={public}`이다 — 정책 이름과 달리 실제로는 역할 제한이 없어 **anon 키로도 전체 행 접근이 가능해 보인다.** 테이블 GRANT까지 확인해야 실제 위험이 확정되므로 다음 세션에서 별도 점검 권장.
+
+---
+
 ## 6. 다음 후보 (미착수 — 사용자 결정 필요)
 
 | 방안 | 성격 | 비고 |

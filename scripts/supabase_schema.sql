@@ -2903,9 +2903,184 @@ CREATE POLICY "own_api_keys" ON api_keys
 
 COMMIT;
 
--- 잔여(미착수, 2026-09-22 기준): team_members·before_after·ai_citations·notifications·
--- review_replies·support_tickets/replies·inquiries·keyword_volumes·industry_trends·
--- action_completions·competitor_faqs·review_snapshots·business_action_log·blog_analysis·
--- blog_score_history·keyword_serp_cache·assistant_logs 등 나머지 테이블도 같은 패턴의
--- auth_rls_initplan/multiple_permissive_policies 경고가 남아있음(대시보드 직결 아니라 보류).
--- 조치 전 pg_policies로 실제 운영 정책 원문 재확인 필수(이 스키마 파일은 스냅샷).
+-- ===========================================================
+-- 2026-09-22 (같은 날 후속): 위 8개 테이블 외 나머지 21개 테이블도 동일 조치 완료.
+-- pg_policies 원문을 SQL Editor로 재조회해 대조(스키마 파일은 스냅샷이라 신뢰 금지 원칙 준수).
+-- 위 8개와 달리 여기는 패턴이 균일하지 않아 테이블별로 다르게 처리:
+--   - 완전 중복(같은 조건 정책 2~4개)만 통합: before_after, blog_analysis,
+--     business_action_log, review_snapshots, team_members(3→1)
+--   - 명령별 권한 범위가 다른 테이블은 개별 유지(합치면 권한 확대 위험) — 예:
+--     assistant_logs/blog_score_history/inquiries/keyword_serp_cache/keyword_volumes는
+--     SELECT·INSERT만 있고 UPDATE/DELETE 정책 자체가 없음(합쳐서 FOR ALL로 만들면
+--     실수로 UPDATE/DELETE 권한을 새로 부여하게 됨) → auth.uid()/auth.role()만
+--     (select ...)로 감싸고 정책 개수는 그대로 둠
+--   - gap_cards: INSERT 정책만 존재(SELECT 없음) — 그대로 유지, 감싸기만
+--   - review_replies: "Users manage own review replies"(직접 user_id)와
+--     "own_review_replies"(EXISTS 경유 business_id)가 조건이 달라 병합하지 않음
+--     (프론트에서 이 테이블을 직접 조회하는 곳이 없어 백엔드 service_role 전용 —
+--     실사용 트래픽에서 이 정책들은 거의 평가되지 않음, backend/routers/guide.py만 insert).
+--     완전 중복인 own_review_replies_insert만 제거
+--   - support_replies: user_see_own_replies와 user_view_ticket_replies가 조건 문자열까지
+--     바이트 단위로 동일한 진짜 중복(정책 이름만 다른 leftover) — 1개만 제거
+--   - support_tickets.public_answered_tickets, trial_scans 전체: auth.<function>() 호출이
+--     없어 애초에 대상 아님(트리거 안 걸림) — 손대지 않음
+-- 검증: 21개 테이블 전부 소유자 조회 200/오류 0건 + 신규 QA 계정으로 교차 테넌트 유출 0건
+-- 확인(industry_trends·keyword_volumes는 "인증만 되면 전체 공개 읽기" 정책이라 신규 계정도
+-- 정상적으로 보임 — 유출 아님). QA 계정 삭제 완료.
+-- ⚠️ 미해결 발견(이번 조치 범위 밖, 성능 아닌 보안 사안): trial_scans의 두 정책
+-- (service_role_all, trial_scans_insert) 모두 qual/with_check가 리터럴 "true"이고
+-- roles={public} — 이름과 달리 실제로는 역할 제한이 없어 anon 키로도 전체 행 접근이
+-- 가능해 보임(테이블 GRANT까지 확인해야 실제 위험 확정, 별도 점검 필요).
+-- ===========================================================
+BEGIN;
+
+DROP POLICY IF EXISTS "users can manage own actions" ON action_completions;
+CREATE POLICY "users can manage own actions" ON action_completions
+  FOR ALL USING ((select auth.uid()) = user_id);
+
+DROP POLICY IF EXISTS "own_citation" ON ai_citations;
+CREATE POLICY "own_citation" ON ai_citations
+  FOR ALL USING (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = ai_citations.business_id AND b.user_id = (select auth.uid())
+  ));
+
+DROP POLICY IF EXISTS "own_assistant_logs_insert" ON assistant_logs;
+CREATE POLICY "own_assistant_logs_insert" ON assistant_logs
+  FOR INSERT WITH CHECK (user_id = (select auth.uid()));
+DROP POLICY IF EXISTS "own_assistant_logs_select" ON assistant_logs;
+CREATE POLICY "own_assistant_logs_select" ON assistant_logs
+  FOR SELECT USING (user_id = (select auth.uid()));
+
+DROP POLICY IF EXISTS "own_before_after_insert" ON before_after;
+DROP POLICY IF EXISTS "own_before_after" ON before_after;
+CREATE POLICY "own_before_after" ON before_after
+  FOR ALL USING (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = before_after.business_id AND b.user_id = (select auth.uid())
+  ));
+
+DROP POLICY IF EXISTS "own_blog_analysis_insert" ON blog_analysis;
+DROP POLICY IF EXISTS "own_blog_analysis" ON blog_analysis;
+CREATE POLICY "own_blog_analysis" ON blog_analysis
+  FOR ALL USING (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = blog_analysis.business_id AND b.user_id = (select auth.uid())
+  ));
+
+DROP POLICY IF EXISTS "own_blog_score_history_insert" ON blog_score_history;
+CREATE POLICY "own_blog_score_history_insert" ON blog_score_history
+  FOR INSERT WITH CHECK (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = blog_score_history.business_id AND b.user_id = (select auth.uid())
+  ));
+DROP POLICY IF EXISTS "own_blog_score_history_select" ON blog_score_history;
+CREATE POLICY "own_blog_score_history_select" ON blog_score_history
+  FOR SELECT USING (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = blog_score_history.business_id AND b.user_id = (select auth.uid())
+  ));
+
+DROP POLICY IF EXISTS "own_business_action_log_insert" ON business_action_log;
+DROP POLICY IF EXISTS "own_business_action_log" ON business_action_log;
+CREATE POLICY "own_business_action_log" ON business_action_log
+  FOR ALL USING (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = business_action_log.business_id AND b.user_id = (select auth.uid())
+  ));
+
+DROP POLICY IF EXISTS "competitor_faqs_select_via_owner" ON competitor_faqs;
+CREATE POLICY "competitor_faqs_select_via_owner" ON competitor_faqs
+  FOR SELECT USING (EXISTS (
+    SELECT 1 FROM competitors c JOIN businesses b ON b.id = c.business_id
+    WHERE c.id = competitor_faqs.competitor_id AND b.user_id = (select auth.uid())
+  ));
+
+DROP POLICY IF EXISTS "user_own_order_messages" ON delivery_messages;
+CREATE POLICY "user_own_order_messages" ON delivery_messages
+  FOR ALL USING (EXISTS (
+    SELECT 1 FROM delivery_orders o WHERE o.id = delivery_messages.order_id AND o.user_id = (select auth.uid())
+  ));
+
+DROP POLICY IF EXISTS "user_own_orders" ON delivery_orders;
+CREATE POLICY "user_own_orders" ON delivery_orders
+  FOR ALL USING ((select auth.uid()) = user_id);
+
+DROP POLICY IF EXISTS "own_gap_cards_insert" ON gap_cards;
+CREATE POLICY "own_gap_cards_insert" ON gap_cards
+  FOR INSERT WITH CHECK (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = gap_cards.business_id AND b.user_id = (select auth.uid())
+  ));
+
+DROP POLICY IF EXISTS "authenticated users can read industry trends" ON industry_trends;
+CREATE POLICY "authenticated users can read industry trends" ON industry_trends
+  FOR SELECT USING ((select auth.role()) = 'authenticated');
+
+DROP POLICY IF EXISTS "inquiries_insert" ON inquiries;
+CREATE POLICY "inquiries_insert" ON inquiries
+  FOR INSERT WITH CHECK (((select auth.uid()) = user_id) OR (user_id IS NULL));
+DROP POLICY IF EXISTS "inquiries_select_own" ON inquiries;
+CREATE POLICY "inquiries_select_own" ON inquiries
+  FOR SELECT USING ((select auth.uid()) = user_id);
+
+DROP POLICY IF EXISTS "authenticated users can read keyword serp cache" ON keyword_serp_cache;
+CREATE POLICY "authenticated users can read keyword serp cache" ON keyword_serp_cache
+  FOR SELECT USING ((select auth.role()) = 'authenticated');
+DROP POLICY IF EXISTS "service role can manage keyword serp cache" ON keyword_serp_cache;
+CREATE POLICY "service role can manage keyword serp cache" ON keyword_serp_cache
+  FOR ALL USING ((select auth.role()) = 'service_role');
+
+DROP POLICY IF EXISTS "authenticated users can read keyword volumes" ON keyword_volumes;
+CREATE POLICY "authenticated users can read keyword volumes" ON keyword_volumes
+  FOR SELECT USING ((select auth.role()) = 'authenticated');
+DROP POLICY IF EXISTS "service role can manage keyword volumes" ON keyword_volumes;
+CREATE POLICY "service role can manage keyword volumes" ON keyword_volumes
+  FOR ALL USING ((select auth.role()) = 'service_role');
+
+DROP POLICY IF EXISTS "own_notifications" ON notifications;
+CREATE POLICY "own_notifications" ON notifications
+  FOR ALL USING ((select auth.uid()) = user_id);
+
+DROP POLICY IF EXISTS "own_review_replies_insert" ON review_replies;
+DROP POLICY IF EXISTS "Users manage own review replies" ON review_replies;
+CREATE POLICY "Users manage own review replies" ON review_replies
+  FOR ALL USING (user_id = (select auth.uid()));
+DROP POLICY IF EXISTS "own_review_replies" ON review_replies;
+CREATE POLICY "own_review_replies" ON review_replies
+  FOR ALL USING (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = review_replies.business_id AND b.user_id = (select auth.uid())
+  ));
+
+DROP POLICY IF EXISTS "own_review_snapshots_insert" ON review_snapshots;
+DROP POLICY IF EXISTS "own_review_snapshots" ON review_snapshots;
+CREATE POLICY "own_review_snapshots" ON review_snapshots
+  FOR ALL USING (EXISTS (
+    SELECT 1 FROM businesses b WHERE b.id = review_snapshots.business_id AND b.user_id = (select auth.uid())
+  ));
+
+DROP POLICY IF EXISTS "user_view_ticket_replies" ON support_replies;
+DROP POLICY IF EXISTS "user_insert_reply" ON support_replies;
+CREATE POLICY "user_insert_reply" ON support_replies
+  FOR INSERT WITH CHECK (
+    author_type = 'user' AND author_id = (select auth.uid()) AND EXISTS (
+      SELECT 1 FROM support_tickets t
+      WHERE t.id = support_replies.ticket_id AND t.user_id = (select auth.uid()) AND t.status <> 'closed'
+    )
+  );
+DROP POLICY IF EXISTS "user_see_own_replies" ON support_replies;
+CREATE POLICY "user_see_own_replies" ON support_replies
+  FOR SELECT USING (EXISTS (
+    SELECT 1 FROM support_tickets t
+    WHERE t.id = support_replies.ticket_id
+      AND (t.user_id = (select auth.uid()) OR (t.visibility = 'public' AND t.status = 'answered'))
+  ));
+
+DROP POLICY IF EXISTS "user_own_tickets" ON support_tickets;
+CREATE POLICY "user_own_tickets" ON support_tickets
+  FOR ALL USING ((select auth.uid()) = user_id);
+
+DROP POLICY IF EXISTS "own_team_members_delete" ON team_members;
+DROP POLICY IF EXISTS "own_team_members_insert" ON team_members;
+DROP POLICY IF EXISTS "own_team_members" ON team_members;
+CREATE POLICY "own_team_members" ON team_members
+  FOR ALL USING ((select auth.uid()) = owner_id);
+
+COMMIT;
+
+-- 잔여: trial_scans(auth함수 없어 대상 아님, 위 보안 발견 참조)·keyword_serp_cache의
+-- service_role 정책(service_role은 BYPASSRLS라 실제로는 평가 안 될 가능성 높음, 제거는
+-- 별도 검증 후) 정도. Performance Advisor 206건 중 duplicate_index 3건은 미착수.
