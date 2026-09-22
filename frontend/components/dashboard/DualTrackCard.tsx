@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sprout, TrendingUp, Flame, Trophy, MapPin, Globe, Zap, Lightbulb, Info, Target, CheckCircle2, FileEdit, Bell, Bot, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import type { JSX } from "react";
@@ -8,6 +8,8 @@ import { SCORE_LABELS } from "@/lib/score-labels";
 import type { SmartPlaceStatus } from "@/app/(dashboard)/dashboard/sections/pageHelpers";
 
 void SCORE_LABELS; // 미사용 경고 방지 (향후 dynamic rendering 시 활용)
+
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 /**
  * DualTrackCard — 업종별 듀얼트랙 AI 가시성 카드 (v3.0)
@@ -38,7 +40,6 @@ interface DualTrackCardProps {
     keywordCoverage: number;
     analyzedAt?: string;
     blogUrl?: string;
-    aiCitedChannels?: string[];
   };
   eligibility?: "active" | "likely" | "inactive";
   aiExposureData?: {
@@ -389,6 +390,29 @@ export default function DualTrackCard({
   plan,
 }: DualTrackCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  // 블로그 AI 인용 채널 — null=조회 전/조회 중, []=조회 완료·인용 없음, [...]=인용 확인됨.
+  // 대시보드 SSR 블로킹 경로에서 빼서 여기서 직접 조회(2026-09-22, blog-result가
+  // dash-slow 실측에서 매번 최상위 기여자였음). null과 []을 구분해야 로딩 중에
+  // "아직 인용 확인 안 됨"이 먼저 잘못 보였다가 뒤집히는 깜빡임을 피할 수 있다.
+  const [citedChannels, setCitedChannels] = useState<string[] | null>(null);
+  useEffect(() => {
+    if (!blogContribution?.active || !bizId || !token) return;
+    let cancelled = false;
+    fetch(`${BACKEND}/api/blog/result/${bizId}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { multi_channel_citations?: Record<string, { mentioned_count?: number }> } | null) => {
+        if (cancelled) return;
+        const channels = d?.multi_channel_citations
+          ? Object.entries(d.multi_channel_citations)
+              .filter(([, v]) => (v?.mentioned_count ?? 0) > 0)
+              .map(([k]) => k)
+          : [];
+        setCitedChannels(channels);
+      })
+      .catch(() => { if (!cancelled) setCitedChannels([]); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blogContribution?.active, bizId, token]);
   const isTrack1Weak = track1Score < 40;
   const isTrack2Weak = track2Score < 40;
   const isTrack1VeryLow = track1Score < 30;
@@ -689,9 +713,11 @@ export default function DualTrackCard({
               재분석
             </Link>
           </div>
-          {blogContribution.aiCitedChannels && blogContribution.aiCitedChannels.length > 0 ? (
+          {citedChannels === null ? (
+            <p className="text-sm text-gray-400 animate-pulse">AI 채널 인용 확인 중...</p>
+          ) : citedChannels.length > 0 ? (
             <p className="text-sm text-green-700 font-medium">
-              ✓ {blogContribution.aiCitedChannels.map((ch) => BLOG_CHANNEL_LABELS[ch] ?? ch).join(" · ")}에서 내 블로그 인용 확인됨
+              ✓ {citedChannels.map((ch) => BLOG_CHANNEL_LABELS[ch] ?? ch).join(" · ")}에서 내 블로그 인용 확인됨
               <Link href="/blog-analysis" className="text-blue-600 underline ml-1">자세히 →</Link>
             </p>
           ) : (

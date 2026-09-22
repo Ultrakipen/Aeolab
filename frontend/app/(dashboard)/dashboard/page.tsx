@@ -123,7 +123,7 @@ export default async function DashboardPage({
   const [
     { data: scanResults }, { data: competitors }, { data: history },
     benchmarkRes, { data: latestGuide }, { count: scanUsedToday },
-    actionLogRes, gapRes, photoGuideRes, blogCitationRes, channelTrendRes,
+    actionLogRes, gapRes, photoGuideRes, channelTrendRes,
   ] = business
     ? await Promise.all([
         supabase.from("scan_results")
@@ -153,9 +153,10 @@ export default async function DashboardPage({
         business.category && PHOTO_SUPPORTED_CATEGORIES.includes(business.category)
           ? tf("photo-guide", `${BACKEND}/api/report/photo-guide/${business.category}`).then((r) => r.ok ? r.json() : null).catch(() => null)
           : Promise.resolve(null),
-        business.blog_url && accessToken
-          ? tf("blog-result", `${BACKEND}/api/blog/result/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : null).catch(() => null)
-          : Promise.resolve(null),
+        // 블로그 인용 채널(blog-result)은 여기서 제외 — DualTrackCard가 클라이언트에서
+        // 직접 조회(2026-09-22). B/D(인용·언급수)는 스캔마다 최신이어야 해 캐시 불가한
+        // 데다(routers/blog.py 설계 의도), 이 페이지의 dash-slow 실측에서 매번 최상위
+        // 기여자였음 — SSR 블로킹 경로에서 빼서 화면 나머지는 즉시 렌더되게 함.
         // 채널별 AI 노출률 추이 — Basic+ 유료 플랜만 조회 (Free는 백엔드가 [] 반환)
         accessToken
           ? tf("channel-trend", `${BACKEND}/api/report/channel-trend/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : []).catch(() => [])
@@ -163,7 +164,7 @@ export default async function DashboardPage({
       ])
     : [
         { data: null }, { data: null }, { data: null }, null, { data: null },
-        { count: 0 }, null, null, null, null, [],
+        { count: 0 }, null, null, null, [],
       ];
 
   _m.stage2 = Date.now() - _s2;
@@ -338,19 +339,14 @@ export default async function DashboardPage({
   const cafeResult = (latestScan?.naver_result as Record<string, unknown> | null | undefined)?.cafe_result as { mentioned: boolean; mention_count: number; exposure_score: number; top_excerpts: string[] } | null ?? null;
   const jisikResult = (latestScan?.naver_result as Record<string, unknown> | null | undefined)?.jisik_result as { mentioned: boolean; mention_count: number; exposure_score: number; top_excerpts: string[] } | null ?? null;
   const blogBiz = business as { blog_url?: string; blog_analyzed_at?: string; blog_post_count?: number; blog_keyword_coverage?: number } | null;
-  const _blogCitData = blogCitationRes as { multi_channel_citations?: Record<string, { mentioned_count?: number }> } | null;
-  const blogAiCitedChannels: string[] = _blogCitData?.multi_channel_citations
-    ? Object.entries(_blogCitData.multi_channel_citations)
-        .filter(([, v]) => (v?.mentioned_count ?? 0) > 0)
-        .map(([k]) => k)
-    : [];
+  // aiCitedChannels는 더 이상 여기서 채우지 않음 — DualTrackCard가 클라이언트에서
+  // /api/blog/result를 직접 조회해 채운다(위 blog-result 제외 사유 참조).
   const blogContribution = blogBiz?.blog_url ? {
     active: !!(blogBiz.blog_analyzed_at) && !isKeywordEstimated,
     postCount: blogBiz.blog_post_count ?? 0,
     keywordCoverage: blogBiz.blog_keyword_coverage ?? 0,
     analyzedAt: blogBiz.blog_analyzed_at,
     blogUrl: blogBiz.blog_url,
-    aiCitedChannels: blogAiCitedChannels,
   } : undefined;
 
   const dimensions = (gapRes as { dimensions?: Array<{ dimension_key: string; dimension_label: string; current_score: number; max_score: number; gap_to_top: number; gap_reason: string; priority: number }>; is_competitor_estimated?: boolean } | null)?.dimensions;
