@@ -2816,3 +2816,96 @@ ALTER TABLE businesses
 
 COMMENT ON COLUMN businesses.awards_certifications IS '실제 수상·인증·자격증 (사장님 직접 입력, 선택) — 소개글 생성 시 권위(Authority) 신호로 사용, AI가 지어내지 않음';
 COMMENT ON COLUMN businesses.signature_points IS '실제 시그니처 메뉴·서비스·강점 (사장님 직접 입력, 선택) — 소개글 생성 시 차별점(Originality) 신호로 사용, AI가 지어내지 않음';
+
+-- ===========================================================
+-- 2026-09-22: 대시보드 로딩 지연 조사 중 Supabase Performance Advisor 실행 →
+-- RLS 정책 중복·비효율 206건(auth_rls_initplan 58 + multiple_permissive_policies 145 +
+-- duplicate_index 3) 발견. 8개 핵심 테이블(대시보드가 매번 조회)은 "FOR ALL USING(조건)"
+-- 정책 하나가 INSERT/UPDATE까지 이미 커버하는데(Postgres: WITH CHECK 없는 정책은 USING을
+-- WITH CHECK로도 재사용), 그와 완전히 같은 조건의 _insert/_update/_delete 정책이 중복으로
+-- 더 걸려 있었음 — 쿼리 1회당 auth.uid()가 최대 4번 행(row)마다 재평가됨.
+-- 수정: 중복 정책 제거 + 남긴 정책의 auth.uid() → (select auth.uid())로 교체(1회만 계산,
+-- Postgres InitPlan 캐싱). 의미 동일, 성능만 개선. live 실행 후 접근권한 재검증 완료
+-- (본인 데이터 정상 조회 + 신규 QA 계정 2개로 교차 테넌트 유출 없음 확인, 계정 삭제함).
+-- ⚠️ 효과 스코프: 이 8개 테이블 직접조회(프론트 SSR page.tsx의 supabase-js 호출, anon key
+-- + 사용자 JWT)에만 적용됨 — 격리 벤치마크에서 5-병렬 요청 최댓값 6.3초→0.8초로 개선 확인.
+-- 백엔드 FastAPI(gap/action-log/channel-trend 등)는 SUPABASE_SERVICE_ROLE_KEY를 써서
+-- RLS 자체가 우회되므로 이 수정과 무관 — 대시보드 전체 지연(gap 17초대 스파이크 등)의
+-- 주 원인은 아직 남아있음, 별도 조사 계속.
+-- ===========================================================
+BEGIN;
+
+DROP POLICY IF EXISTS "own_scan_insert" ON scan_results;
+DROP POLICY IF EXISTS "own_scan" ON scan_results;
+CREATE POLICY "own_scan" ON scan_results
+  FOR ALL
+  USING (EXISTS (
+    SELECT 1 FROM businesses b
+    WHERE b.id = scan_results.business_id AND b.user_id = (select auth.uid())
+  ));
+
+DROP POLICY IF EXISTS "own_business_insert" ON businesses;
+DROP POLICY IF EXISTS "own_business_update" ON businesses;
+DROP POLICY IF EXISTS "own_business" ON businesses;
+CREATE POLICY "own_business" ON businesses
+  FOR ALL
+  USING ((select auth.uid()) = user_id);
+
+DROP POLICY IF EXISTS "own_competitor_delete" ON competitors;
+DROP POLICY IF EXISTS "own_competitor_insert" ON competitors;
+DROP POLICY IF EXISTS "own_competitor_update" ON competitors;
+DROP POLICY IF EXISTS "own_competitor" ON competitors;
+CREATE POLICY "own_competitor" ON competitors
+  FOR ALL
+  USING (EXISTS (
+    SELECT 1 FROM businesses b
+    WHERE b.id = competitors.business_id AND b.user_id = (select auth.uid())
+  ));
+
+DROP POLICY IF EXISTS "own_guide_insert" ON guides;
+DROP POLICY IF EXISTS "own_guide" ON guides;
+CREATE POLICY "own_guide" ON guides
+  FOR ALL
+  USING (EXISTS (
+    SELECT 1 FROM businesses b
+    WHERE b.id = guides.business_id AND b.user_id = (select auth.uid())
+  ));
+
+DROP POLICY IF EXISTS "own_profile_insert" ON profiles;
+DROP POLICY IF EXISTS "own_profile_update" ON profiles;
+DROP POLICY IF EXISTS "own_profile" ON profiles;
+CREATE POLICY "own_profile" ON profiles
+  FOR ALL
+  USING ((select auth.uid()) = user_id);
+
+DROP POLICY IF EXISTS "own_score_history_insert" ON score_history;
+DROP POLICY IF EXISTS "own_score_history" ON score_history;
+CREATE POLICY "own_score_history" ON score_history
+  FOR ALL
+  USING (EXISTS (
+    SELECT 1 FROM businesses b
+    WHERE b.id = score_history.business_id AND b.user_id = (select auth.uid())
+  ));
+
+DROP POLICY IF EXISTS "own_subscription_insert" ON subscriptions;
+DROP POLICY IF EXISTS "own_subscription_update" ON subscriptions;
+DROP POLICY IF EXISTS "own_subscription" ON subscriptions;
+CREATE POLICY "own_subscription" ON subscriptions
+  FOR ALL
+  USING ((select auth.uid()) = user_id);
+
+DROP POLICY IF EXISTS "own_api_keys_insert" ON api_keys;
+DROP POLICY IF EXISTS "own_api_keys_update" ON api_keys;
+DROP POLICY IF EXISTS "own_api_keys" ON api_keys;
+CREATE POLICY "own_api_keys" ON api_keys
+  FOR ALL
+  USING ((select auth.uid()) = user_id);
+
+COMMIT;
+
+-- 잔여(미착수, 2026-09-22 기준): team_members·before_after·ai_citations·notifications·
+-- review_replies·support_tickets/replies·inquiries·keyword_volumes·industry_trends·
+-- action_completions·competitor_faqs·review_snapshots·business_action_log·blog_analysis·
+-- blog_score_history·keyword_serp_cache·assistant_logs 등 나머지 테이블도 같은 패턴의
+-- auth_rls_initplan/multiple_permissive_policies 경고가 남아있음(대시보드 직결 아니라 보류).
+-- 조치 전 pg_policies로 실제 운영 정책 원문 재확인 필수(이 스키마 파일은 스냅샷).

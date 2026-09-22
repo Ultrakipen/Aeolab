@@ -1592,6 +1592,16 @@ async def get_gap_analysis(biz_id: str, user=Depends(get_current_user)):
             detail={"code": "PLAN_REQUIRED", "message": "Basic 이상 플랜에서 이용할 수 있습니다", "upgrade_url": "/pricing"},
         )
 
+    # 5분 캐시 (2026-09-22) — 대시보드 로딩 지연 조사에서 이 엔드포인트 단독으로 17초대
+    # 스파이크 실측(Supabase 간헐적 응답 지연, service_role 키라 RLS 최적화와 무관하게
+    # 겪는 구간). 소유권·플랜 검증은 캐시 히트 여부와 무관하게 항상 먼저 통과해야 함
+    # (위에서 이미 실행됨) — 캐시 키가 biz_id만이라 검증을 건너뛰면 안 됨.
+    # 스캔은 일/주 단위 주기라 5분 지연은 체감에 영향 없음.
+    _cache_key = f"gap:{biz_id}"
+    cached = _cache.get(_cache_key)
+    if cached is not None:
+        return cached
+
     from services.gap_analyzer import analyze_gap_from_db, analyze_review_keyword_distribution
     from db.supabase_client import execute
     result = await analyze_gap_from_db(biz_id, supabase)
@@ -1631,6 +1641,7 @@ async def get_gap_analysis(biz_id: str, user=Depends(get_current_user)):
         _log.getLogger("aeolab").warning(f"review_keyword_distribution failed (biz={biz_id}): {e}")
         gap_dict["review_keyword_distribution"] = {"data_unavailable": True, "reason": "query_error"}
 
+    _cache.set(_cache_key, gap_dict, 300)
     return gap_dict
 
 
