@@ -188,6 +188,7 @@ const SidebarContent = memo(function SidebarContent({
                   <Link
                     key={item.href}
                     href={locked ? "/pricing" : item.href}
+                    prefetch={false}
                     onClick={onClose}
                     className={[
                       "flex items-center gap-2.5 px-3 py-3 rounded-lg text-[15px] transition-colors min-h-[44px]",
@@ -232,6 +233,7 @@ const SidebarContent = memo(function SidebarContent({
                   <Link
                     key={item.href}
                     href={item.href}
+                    prefetch={false}
                     onClick={onClose}
                     className={[
                       "flex items-center gap-2.5 px-3 py-3 rounded-lg text-[15px] transition-colors min-h-[44px]",
@@ -276,6 +278,7 @@ const SidebarContent = memo(function SidebarContent({
       <div className="px-4 py-4 border-t border-gray-100 space-y-2">
         <Link
           href="/settings"
+          prefetch={false}
           className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors px-1 py-2 rounded-lg hover:bg-gray-50 min-h-[44px]"
           onClick={onClose}
         >

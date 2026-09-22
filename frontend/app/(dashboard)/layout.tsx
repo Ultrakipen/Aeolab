@@ -10,7 +10,9 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const _t0 = Date.now();
   const user = await getCachedUser();
+  const _tUser = Date.now() - _t0;
 
   if (!user) {
     redirect("/login");
@@ -31,6 +33,9 @@ export default async function DashboardLayout({
       .eq("user_id", userId)
       .eq("is_active", true),
   ]);
+
+  const _tTotal = Date.now() - _t0;
+  if (_tTotal > 1000) console.warn("[layout-slow]", JSON.stringify({ total: _tTotal, user: _tUser }));
 
   // 관리자 이메일 → 개발 기간 biz 플랜 부여
   const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "hoozdev@gmail.com")

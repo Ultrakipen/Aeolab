@@ -34,15 +34,23 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // getUser()는 항상 서버에서 JWT 검증 — getSession()의 "insecure" 경고 없음
-  // Invalid Refresh Token 등 에러는 catch로 비로그인 처리
-  let user = null;
+  // getClaims(): JWKS 공개키(ES256)로 서명·만료를 로컬 검증 — Auth 서버 왕복이 없다(2026-09-22).
+  // getUser()는 매 요청·프리페치마다 Supabase Auth 왕복이라 Supabase가 1~2초 늦어지면 첫 관문에서
+  // 그대로 페이지 지연이 됐다(계측 [mw-slow] 1956ms). 이 미들웨어는 리다이렉트 게이트일 뿐이고,
+  // 실제 데이터 접근은 layout/page의 getCachedUser()(=getUser, 서버 검증)와 백엔드가 다시 검증한다.
+  // getSession()과 달리 서명 검증을 하므로 위조 쿠키는 통과하지 못한다. 만료 토큰은 내부에서 갱신.
+  // 트레이드오프: 서버측 폐기된 세션이 만료 전까지 이 게이트만 통과 — layout의 getUser가 걸러냄.
+  let user: { id: string } | null = null;
+  const _mt = Date.now();
   try {
-    const { data, error } = await supabase.auth.getUser();
-    if (!error) user = data.user;
+    const { data, error } = await supabase.auth.getClaims();
+    const sub = data?.claims?.sub;
+    if (!error && sub) user = { id: sub };
   } catch {
     user = null;
   }
+  const _md = Date.now() - _mt;
+  if (_md > 800) console.warn("[mw-slow] auth", request.nextUrl.pathname, _md);
 
   // 공개 가이드 경로 (비로그인 SEO 페이지) — protected 보다 우선
   const publicGuidePaths = ["/guide/chatgpt-search", "/guide/channels"];

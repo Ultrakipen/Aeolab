@@ -49,18 +49,28 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{ rescan?: string; biz_id?: string; onboarding?: string }>;
 }) {
+  // 느린 렌더 원인 분리용 계측(2026-09-22) — 총 1초 초과 시에만 [dash-slow] 경고 로그 1줄
+  const _t0 = Date.now();
+  const _m: Record<string, number> = {};
+  const tm = <T,>(label: string, p: PromiseLike<T>): Promise<T> => {
+    const s = Date.now();
+    return Promise.resolve(p).finally(() => { _m[label] = Date.now() - s; });
+  };
+  const tf = (label: string, url: string, init?: RequestInit) => tm(label, fetch(url, init));
+
   // ── 인증 ─────────────────────────────────────────────────────
   const params = await searchParams;
   const showRescanNotice = params.rescan === "1";
   const isFromOnboarding = params.onboarding === "1";
   const selectedBizId = params.biz_id ?? null;
 
-  const user = await getCachedUser();
+  const user = await tm("user", getCachedUser());
   if (!user) redirect("/login");
   const supabase = await createClient();
 
   // 서로 의존관계 없는 조회 5개(세션·활성사업장ID·사업장목록·플랜·프로필)를
   // 순차 실행하던 것을 하나로 병합 — 페이지 이동마다 쌓이던 Supabase 왕복 축소
+  const _s1 = Date.now();
   const [
     { data: { session } },
     resolvedActiveBizId,
@@ -81,6 +91,7 @@ export default async function DashboardPage({
     supabase
       .from("profiles").select("onboarding_done, basic_trial_used, free_scan_month, free_scan_monthly_count").eq("user_id", user.id).maybeSingle(),
   ]);
+  _m.stage1 = Date.now() - _s1;
   const accessToken = session?.access_token ?? "";
   const activeBizId = resolvedActiveBizId;
 
@@ -108,6 +119,7 @@ export default async function DashboardPage({
   );
 
   // ── 병렬 페칭 ────────────────────────────────────────────────
+  const _s2 = Date.now();
   const [
     { data: scanResults }, { data: competitors }, { data: history },
     benchmarkRes, { data: latestGuide }, { count: scanUsedToday },
@@ -122,7 +134,7 @@ export default async function DashboardPage({
           .select("id, business_id, score_date, total_score, exposure_freq, unified_score, track1_score, track2_score, context, created_at")
           .eq("business_id", business.id).order("score_date", { ascending: false }).limit(30),
         business.category && business.region
-          ? fetch(`${BACKEND}/api/report/benchmark/${business.category}/${encodeURIComponent(business.region)}`).then((r) => r.ok ? r.json() : null).catch(() => null)
+          ? tf("benchmark", `${BACKEND}/api/report/benchmark/${business.category}/${encodeURIComponent(business.region)}`).then((r) => r.ok ? r.json() : null).catch(() => null)
           : Promise.resolve(null),
         // context 필터 필수(2026-09-02) — 없으면 ad_defense 등 다른 기능의 콘텐츠 없는
         // 카운터 행이 최신일 때 대시보드 "다음 할 일" 카드가 빈 값으로 표시됨
@@ -133,20 +145,20 @@ export default async function DashboardPage({
         supabase.from("scan_results").select("id", { count: "exact", head: true })
           .eq("business_id", business.id).gte("scanned_at", todayISO + "T00:00:00"),
         accessToken
-          ? fetch(`${BACKEND}/api/report/action-log/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : null).catch(() => null)
+          ? tf("action-log", `${BACKEND}/api/report/action-log/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : null).catch(() => null)
           : Promise.resolve(null),
         accessToken
-          ? fetch(`${BACKEND}/api/report/gap/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : null).catch(() => null)
+          ? tf("gap", `${BACKEND}/api/report/gap/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : null).catch(() => null)
           : Promise.resolve(null),
         business.category && PHOTO_SUPPORTED_CATEGORIES.includes(business.category)
-          ? fetch(`${BACKEND}/api/report/photo-guide/${business.category}`).then((r) => r.ok ? r.json() : null).catch(() => null)
+          ? tf("photo-guide", `${BACKEND}/api/report/photo-guide/${business.category}`).then((r) => r.ok ? r.json() : null).catch(() => null)
           : Promise.resolve(null),
         business.blog_url && accessToken
-          ? fetch(`${BACKEND}/api/blog/result/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : null).catch(() => null)
+          ? tf("blog-result", `${BACKEND}/api/blog/result/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : null).catch(() => null)
           : Promise.resolve(null),
         // 채널별 AI 노출률 추이 — Basic+ 유료 플랜만 조회 (Free는 백엔드가 [] 반환)
         accessToken
-          ? fetch(`${BACKEND}/api/report/channel-trend/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : []).catch(() => [])
+          ? tf("channel-trend", `${BACKEND}/api/report/channel-trend/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : []).catch(() => [])
           : Promise.resolve([]),
       ])
     : [
@@ -154,6 +166,7 @@ export default async function DashboardPage({
         { count: 0 }, null, null, null, null, [],
       ];
 
+  _m.stage2 = Date.now() - _s2;
   // ── 데이터 조합 ──────────────────────────────────────────────
   const photoGuides = (photoGuideRes as { guides?: Record<string, { description: string; examples: string[]; tips: string[] }> } | null)?.guides ?? null;
   const benchmark = (benchmarkRes ?? null) as { avg_score?: number; fallback?: string } | null;
@@ -273,7 +286,9 @@ export default async function DashboardPage({
   const myRankInList = [...rankingItems].sort((a, b) => b.score - a.score).findIndex((r) => (r as { isMe?: boolean }).isMe) + 1;
   const topCompetitor = rankingItems.filter((r) => !(r as { isMe?: boolean }).isMe).sort((a, b) => b.score - a.score)[0] ?? null;
 
-  const briefingCats = await fetchBriefingCategories();
+  const briefingCats = await tm("briefing", fetchBriefingCategories());
+  const _total = Date.now() - _t0;
+  if (_total > 1000) console.warn("[dash-slow]", JSON.stringify({ total: _total, ..._m }));
   const briefingEligibility = getBriefingEligibility(
     business?.category ?? "",
     !!business?.is_franchise,
