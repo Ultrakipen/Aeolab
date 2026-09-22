@@ -3601,6 +3601,17 @@ async def get_action_log(
     if not (biz and biz.data):
         raise HTTPException(status_code=403, detail="권한 없음")
 
+    # 5분 캐시 (2026-09-22) — gap과 같은 배경: 대시보드 재로드마다 매번 재조회되며
+    # Supabase 간헐적 응답지연을 그대로 노출(dash-slow 로그 실측 상위권). 단순 읽기 전용
+    # 이력 조회라 신선도 요구가 낮음(action_log는 스캔/사용자행동 시점에만 갱신).
+    # gap과 달리 소유권 검증(위)이 이미 캐시 앞에서 실행됨 — days별로 다른 페이지가
+    # 30/60을 각각 쓰므로 캐시 키에 days 포함 필수(안 하면 성장리포트·변화기록이 대시보드의
+    # 30일치 캐시를 그대로 돌려받는 사고).
+    _cache_key = _cache._make_key("action_log", biz_id, days)
+    cached = _cache.get(_cache_key)
+    if cached is not None:
+        return cached
+
     from datetime import date as _date, timedelta as _td
     since = (_date.today() - _td(days=days)).isoformat()
 
@@ -3616,9 +3627,11 @@ async def get_action_log(
         )
     except Exception as e:
         _logger.warning("[action_log] 조회 실패: %s", e)
-        return {"logs": []}
+        return {"logs": []}  # 조회 실패는 캐싱하지 않음 — 다음 요청에서 재시도 가능해야 함
 
-    return {"logs": (logs.data if logs and hasattr(logs, "data") else logs) or []}
+    result = {"logs": (logs.data if logs and hasattr(logs, "data") else logs) or []}
+    _cache.set(_cache_key, result, 300)
+    return result
 
 
 # 키워드 → 소개글 Q&A 질문 변환 매핑 (competitor_faqs 미수집 시 폴백용)
