@@ -164,6 +164,14 @@ gap/action-log 캐시 후 재측정에서 `blog-result`가 매번 최상위 기�
 
 이로써 §6의 두 후보 중 Suspense 스트리밍 경로는 해소됨. 남은 것은 Supabase 유료 플랜 판단뿐(§6 표 참조, 여전히 사용자 결정 필요).
 
+## 5.7 같은 날 후속 — trial_scans PII 유출 P0 발견·즉시 차단 (성능 무관, 별도 보안 사안)
+
+§4/§5.5 RLS 정리 작업 중 `trial_scans`의 두 정책(`service_role_all` FOR ALL, `trial_scans_insert` FOR INSERT)이 이름과 달리 `roles={public}`·조건 `true`인 걸 발견 — curl로 직접 재현해 **로그인 없이 anon 키만으로 231행 전체(이메일 51건·ip_hash·사업장명·경쟁사데이터 포함) 조회 성공 + 무인증 INSERT 성공**까지 확정(가정이 아닌 실측). 프론트 코드 전체에 이 테이블 직접 write가 0건(전부 backend `get_client()`=서비스 롤 경유)이라 막아도 기능 영향 없음을 먼저 확인 후 두 정책을 즉시 DROP(SQL은 `scripts/supabase_schema.sql` 최하단).
+
+검증: anon SELECT → 200 빈 배열(유출 0), anon INSERT → 401 RLS 위반 명시, 실제 라이브 API(`/api/scan/trial-count`, 서비스 롤 경유) → 200 정상(기능 회귀 없음).
+
+**발견 경위**: 성능 최적화(`auth.uid()` 감싸기) 작업 중 우연히 눈에 띔 — `qual`이 `true`이거나 `roles`가 정책 이름과 안 맞는 행은 다음에 `pg_policies`를 볼 때 의식적으로 훑어볼 가치가 있다.
+
 ---
 
 ## 6. 다음 후보 (미착수 — 사용자 결정 필요)

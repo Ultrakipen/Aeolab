@@ -3081,6 +3081,23 @@ CREATE POLICY "own_team_members" ON team_members
 
 COMMIT;
 
--- 잔여: trial_scans(auth함수 없어 대상 아님, 위 보안 발견 참조)·keyword_serp_cache의
--- service_role 정책(service_role은 BYPASSRLS라 실제로는 평가 안 될 가능성 높음, 제거는
--- 별도 검증 후) 정도. Performance Advisor 206건 중 duplicate_index 3건은 미착수.
+-- 잔여: keyword_serp_cache의 service_role 정책(service_role은 BYPASSRLS라 실제로는
+-- 평가 안 될 가능성 높음, 제거는 별도 검증 후) 정도. Performance Advisor 206건 중
+-- duplicate_index 3건은 미착수.
+
+-- ===========================================================
+-- 2026-09-22 (같은 날 후속, 성능 아닌 보안 사안): trial_scans의 두 정책
+-- (service_role_all FOR ALL USING(true), trial_scans_insert FOR INSERT WITH CHECK(true))
+-- 모두 roles={public}이라 이름과 달리 실제로는 역할 제한이 없었음 — anon 키만으로
+-- (로그인 불필요) 전체 231행(이메일 51건·ip_hash·사업장명·경쟁사데이터 포함) 조회 및
+-- 임의 행 쓰기가 가능한 상태였음을 curl로 직접 재현해 확정(가정이 아닌 실측 확인 —
+-- anon SELECT 200으로 email 포함 전체 반환, anon INSERT도 무인증 성공 재현).
+-- 프론트 코드 전체에 이 테이블 직접 write가 0건(전부 backend get_client()=서비스롤
+-- 경유, routers/scan.py 확인)이라 막아도 기능 영향 없음 확인 후 즉시 조치.
+-- ===========================================================
+DROP POLICY IF EXISTS "service_role_all" ON trial_scans;
+DROP POLICY IF EXISTS "trial_scans_insert" ON trial_scans;
+-- RLS는 켜진 채 유지, 허용 정책이 하나도 없어 anon/authenticated는 기본 전면 차단.
+-- service_role은 BYPASSRLS 역할 속성이라 정책과 무관하게 계속 정상 접근(백엔드 영향 없음).
+-- 검증 완료: anon SELECT → 200 빈 배열(유출 0), anon INSERT → 401 RLS 위반 명시,
+-- /api/scan/trial-count(서비스롤 경유 실제 라이브 API) → 200 정상(기능 회귀 없음).
