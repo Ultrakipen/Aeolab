@@ -1,7 +1,12 @@
 import { Metadata } from "next";
 import Link from "next/link";
 
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+// 서버 컴포넌트 자체 fetch: 공개 도메인(Cloudflare 경유) 대신 로컬 백엔드 직접 호출
+const BACKEND = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+// og:image·다운로드 링크처럼 브라우저/외부 크롤러가 직접 접근하는 URL은 반드시 공개 도메인이어야 함
+// (2026-09-22: 위 BACKEND를 그대로 쓰면 og:image가 http://localhost:8000/... 로 렌더돼 카카오톡·
+// 페이스북 크롤러가 접근 불가한 회귀가 생길 뻔함 — 발견 즉시 분리)
+const PUBLIC_BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 interface ShareData {
   business_name: string;
@@ -63,7 +68,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title: `${d.business_name} AI 검색 — ${stage.label} — AEOlab`,
         description: `${d.region} ${d.business_name}의 AI 검색 노출 현황: ${stage.label}. ${stage.message}`,
         openGraph: {
-          images: [`${BACKEND}/api/report/share-card/${bizId}`],
+          images: [`${PUBLIC_BACKEND}/api/report/share-card/${bizId}`],
         },
       };
     }
@@ -178,7 +183,7 @@ export default async function SharePage({ params }: Props) {
           {/* 사업주 본인용 버튼 */}
           <div className="px-5 pt-3 pb-2 space-y-2">
             <a
-              href={`${BACKEND}/api/report/share-card/${bizId}`}
+              href={`${PUBLIC_BACKEND}/api/report/share-card/${bizId}`}
               download={`${data.business_name}_AI점수.png`}
               className="flex items-center justify-center w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl font-medium text-sm transition-colors"
             >

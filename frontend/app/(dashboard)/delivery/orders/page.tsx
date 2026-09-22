@@ -5,7 +5,9 @@ import { ChevronRight, Plus } from "lucide-react";
 
 export const metadata = { title: "내 의뢰 목록 | AEOlab" };
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+// 서버 컴포넌트: 공개 도메인(Cloudflare 경유) 대신 로컬 백엔드 직접 호출 (BACKEND_URL은 서버 전용 env)
+
+const BACKEND_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 interface DeliveryOrder {
   id: string;

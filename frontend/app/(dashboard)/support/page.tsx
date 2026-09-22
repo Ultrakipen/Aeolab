@@ -6,7 +6,8 @@ import FAQClient from "./FAQClient";
 export const metadata = { title: "고객 지원 | AEOlab" };
 
 async function fetchFAQs(): Promise<{ items: FAQ[]; failed: boolean }> {
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  // 서버 컴포넌트: 공개 도메인(Cloudflare 경유) 대신 로컬 백엔드 직접 호출 (BACKEND_URL은 서버 전용 env)
+  const BACKEND_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
   try {
     const res = await fetch(BACKEND_URL + "/api/faq", { cache: "no-store" });
     if (!res.ok) return { items: [], failed: true };

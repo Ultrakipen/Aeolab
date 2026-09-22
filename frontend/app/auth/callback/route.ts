@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
+// 서버 라우트: 공개 도메인(Cloudflare 경유) 대신 로컬 백엔드 직접 호출 (BACKEND_URL은 서버 전용 env)
 const BACKEND =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 /**
  * Supabase Auth 콜백 핸들러
