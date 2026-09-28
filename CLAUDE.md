@@ -191,6 +191,7 @@
 | **`docs/dashboard_load_test_and_capacity_v1.0.md`** ⭐ | **대시보드 페이지 부하테스트 실측 — QA임시계정+`@supabase/ssr` 쿠키 리버스엔지니어링으로 실제 로그인 세션 확보해 라이브 `/dashboard` 동시성 5~80 램프. 동시 30명은 3~9초, 50명 부근에서 34초로 급붕괴하나 그 순간 서버 CPU/RAM은 완전 유휴 — **병목이 vCPU2 서버가 아니라 대시보드 1회 로드당 약10개 Supabase 병렬쿼리의 Supabase Cloud 큐잉**임을 확인. vCPU/RAM 업그레이드로 해결 안 되는 별도 축(기존 Playwright 세마포어/워커=1 이슈와 무관). 페이지 동시접속 실질 안전선 약 30명 (2026-08-23)** |
 | **`docs/guide_sibling_pages_inspection_v1.0.md`** ⭐ | **`/guide/chatgpt-search` 점검(사실정확성·논리모순·PC/모바일 디자인, git `dd58c2b`·`09ff1ac`) 완료 후 형제 페이지 `/guide/channels/[category]` 점검용 트리거 문서 — 동일 방법론 재사용 절차 + "오픈 전 트래픽 낮은 건 문제 아님" 주의사항 포함 (2026-09-02)** |
 | **`docs/dashboard_load_delay_investigation_v1.0.md`** ⭐ | **대시보드 로딩 지연 조사 — 5가지 원인 순차 발견·수정(SSR공개도메인경유·Cloudflare해외우회·서버DNS정체·RLS정책중복·gap무캐시), 최댓값 106s→10.7s. **미완료**: 격리테스트로 남은 지연이 Supabase측 확률적 정체임을 확정, 다음 후보(Suspense 스트리밍 / Supabase 유료플랜) 미착수. §0에 재현용 벤치마크 스크립트 포함 (git `4211000`~`4ff0b4d`, 2026-09-22)** |
+| **`docs/trial_improvement_2026_09_28_v1.0.md`** ⭐ | **무료 체험 개선 작업 기록 — P0(체험 결과 DB 저장 실패: INTEGER 컬럼에 실수, 7/15~ 0건·즉시이메일 미발송)·Gemini 무료티어 한도(하루20회)·ChatGPT 유도형 프롬프트 오탐(표본 50회에서 가짜 가게 노출 판정)→비유도형 `sample_recommend` 교체·미측정→미노출 오표기 정정·탭 구조 재구성(5탭)·경쟁 5곳 블로그 막대·키워드 월검색량·AI 추천 가게+네이버 실존 대조. 잔여: Gemini 결제 연결(사용자 작업)·유료 스캔 ChatGPT 유도형 프로브·Google AI Overview 실체 재검토 (2026-09-28)** |
 | `docs/full_site_user_perspective_ux_audit_v1.0.md` | 전체 66페이지(관리자 제외) 사용자 관점 UX 점검(편의성·구조·스크롤흐름·가독성) — 오판검증 2회 사이클(최초6건중5건 오판→기각), P1 2건(score-model-v3-1 biz_id무시·keywords 헤더푸터단절)+P2 7건 수정·배포 완료(git `fa8cdb1`). 잔여 테스트데이터 2건은 사용자 지시로 미삭제·문서화만 (2026-09-03). 재작업 불필요 |
 
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
@@ -313,7 +314,7 @@
 - fallback: `DEFAULT_DUAL_TRACK_RATIO = {naver: 0.60, global: 0.40}` — 미등록 업종 중립 기본값 (restaurant 자체는 70/30)
 - GrowthStage 기준: **`track1_score`** (unified 아님 — 업종 비율 차이로 오판 방지)
 - keyword_gap cold start: 리뷰 → 블로그 자동 추출 → fallback 30.0
-- trial: **ChatGPT 5회** (`multi_scanner.scan_trial()` → `chatgpt.sample_5()`, Gemini 미사용)
+- trial: **ChatGPT 50회 비유도형** (`multi_scanner.scan_trial()` → `chatgpt.sample_recommend(n=50)` — 가게명을 프롬프트에 넣지 않고 추천 가게를 나열시켜 내 가게가 자발적으로 나오는지 대조, 2026-09-28. Gemini 미사용)
 
 모델 엔진 관련 작업 시 `docs/model_engine_v3.0.md`를 먼저 읽고 개선 사항을 알릴 것.
 
@@ -339,14 +340,14 @@
 | 스캐너 | 파일 | 방식 | 용도 |
 |--------|------|------|------|
 | Gemini 2.5 Flash | `gemini_scanner.py` | API | sample_n(n=50/100) — scan_basic()은 50회, scan_all()은 100회 |
-| ChatGPT gpt-4.1-mini | `chatgpt_scanner.py` | API | sample_n(n=50/100) — scan_basic()은 50회, scan_all()은 100회, **Trial 5회** |
+| ChatGPT gpt-4.1-mini | `chatgpt_scanner.py` | API | sample_n(n=50/100) — scan_basic()은 50회, scan_all()은 100회, **Trial은 sample_recommend 50회(비유도)** |
 | 네이버 AI 브리핑 | `naver_scanner.py` | Playwright | 네이버 AI 브리핑 DOM 파싱 |
 | Google AI Overview | `google_scanner.py` | Serper.dev API | 구글 SGE + AI Overview 노출 확인 ($0.001/건, CAPTCHA 없음) |
 
 **제거됨:** Perplexity(미사용), Grok, Claude 스캐너, 뤼튼/Zeta (비용·ROI 이유)
 
 **스캔 모드 (2026-07-27 `jobs.py:467-482` 재확인 — "Basic=scan_basic()" 서술이 stale이었음을 발견·정정):**
-- Trial(ChatGPT 5회 — sample_5 구현, 비로그인 1회성)
+- Trial(ChatGPT 50회 비유도 sample_recommend + 네이버·카카오 API, 비로그인 1회성, Gemini 미사용 — 무료 티어 한도로 제거)
 - Quick(ChatGPT 5회 + Naver)
 - **`scan_basic()`(Gemini 50회 + ChatGPT 50회 + Naver + Google)** — `multi_scanner.py:185`. ⚠️ 실제 호출처는 전체 백엔드에 `jobs.py:480` 단 1곳뿐이며 **Pro 플랜의 경량 스캔일(화·수·목·토·일 — 월·수·금만 풀스캔)에만 쓰임**. 이름과 달리 Basic 플랜에는 쓰이지 않음
 - **`scan_all()`(Gemini 100회 + ChatGPT 100회 + Naver AI브리핑 + Google + AI탭)** — Basic(월·목, 주2회)·창업패키지(월, 주1회)·Pro(월·수·금, 주3회)·Biz(매일) **전부** 이 풀스캔 사용(`jobs.py:467-482`). Basic 무료체험(`run_basic_trial`)도 동일하게 `scan_all()` 재사용. "Basic 자동 50회"로 기재됐던 과거 서술은 오류 — Basic도 스캔할 때는 실제로 100회씩 측정함
@@ -446,7 +447,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 
 | Method | Endpoint | 역할 |
 |--------|----------|------|
-| POST | /api/scan/trial | 무료 원샷 (비로그인, ChatGPT 5회 + 네이버) |
+| POST | /api/scan/trial | 무료 원샷 (비로그인, ChatGPT 50회 비유도 + 네이버, IP당 3회/일) |
 | GET | /api/scan/trial-search | 네이버 지역검색 후보 (IP당 분당 10회) |
 | GET | /api/scan/trial-count | 공개 누적 체험 카운터 |
 | POST | /api/scan/full | 전체 4개 AI 병렬 (구독자) |
@@ -721,6 +722,8 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 ---
 
 ## 최근 업데이트 (2026-08-23~08-27 상세 내역은 `docs/changelog_archive.md`로 이관)
+
+- **2026-09-28 무료 체험 개선 — 저장 P0·Gemini 제거·비유도 ChatGPT 50회·탭 구조 재구성**: 무료 체험 정보가 실측·사실인지 점검 → ①`trial_scans` insert가 `smart_place_completeness`(INTEGER)에 9.0을 넣어 22P02로 실패, 7/15 이후 저장 0건·즉시 결과 이메일 미발송(정수 변환으로 수정) ②Gemini API 키가 무료 티어(하루 20회·분당 5회)라 체험·스캔 대부분 실패(체험에서 Gemini 호출 제거, 결제 연결은 사용자 작업) ③ChatGPT 판정이 가게명을 넣는 유도형이라 표본 50회에서 가짜 가게가 1~4회 "노출" 판정 → 가게명을 넣지 않는 `sample_recommend`로 교체(가짜 0/50, 부산물로 AI가 추천한 가게 top_places·평균 순서) ④체험 화면을 5탭(한눈에/경쟁 비교/네이버 현황/AI 검색/할 일·로드맵)으로 재구성 — 먼저 고칠 것 3가지·직접 확인(질문 복사)·확인 완료 접기·경쟁 5곳 블로그 막대·키워드 월 검색량(SearchAd, 0→"10회 미만")·AI 추천 가게(네이버 지역검색 대조 exact/similar/none)·Gemini 예시 카드(예시 라벨)·미측정은 "가입 후 실측" 표기. 이름 매칭은 부분 문자열 대신 지점 표기만 허용(`names_match`). 라이브 실측 17~21초·모바일 문서 10,000→5,400px. 상세·잔여 과제 `docs/trial_improvement_2026_09_28_v1.0.md`.
 
 - **2026-09-22 대시보드 로딩 지연 조사 — 5가지 원인 순차 발견·수정, 최댓값 106s→10.7s(완전 해결 아님)**: "접속 로딩 시간이 김" 신고 → ①SSR이 `NEXT_PUBLIC_BACKEND_URL`(공개도메인) 경유로 자기 서버 재호출(4개 페이지 수정, git `4211000`) ②Cloudflare가 한국 트래픽을 PDX/HKG 등 해외 POP로 우회(origin 직접 0.05s vs 공개경로 최대 106s 실측 → DNS 프록시 OFF, nginx h2+gzip 사전 보강) ③서버 DNS가 KT DHCP라 TTL 만료 때 콜드조회 0.9~4.5s 정체(netplan으로 1.1.1.1/8.8.8.8 영구고정, `/tmp/dns_ok` 플래그+2분 자동롤백 안전장치 사용) ④Supabase Performance Advisor로 RLS 정책 중복 206건 발견 — 대시보드 8개 핵심 테이블이 같은 조건의 정책을 최대 4개씩 중복평가 중이던 것 확인·통합(`(select auth.uid())` 패턴, git `4ff0b4d`에 SQL 기록, 교차테넌트 격리 재검증 완료) — 단 service_role 키를 쓰는 백엔드 API는 RLS 자체가 우회돼 효과가 프론트 직접조회에 한정됨을 뒤늦게 확인(격리벤치 개선이 end-to-end 개선을 보장 안 함) ⑤`gap`(`analyze_gap_from_db`) 무캐시로 단독 17.6s 스파이크 실측 → 5분 캐시 추가(git `4ff0b4d`, 22.8s→10.68s). **최종 결론**: gap캐시 후에도 남은 800~2500ms대는 GoTrue/REST/FastAPI 각각 25회 격리재측정 결과 셋 다 정상이라 Supabase측 확률적 간헐정체로 확정 — 코드 최적화로는 "정체에 걸리는 쿼리 수"만 줄일 뿐 근본 제거 불가. 중간에 측정 없이 배포했다 되돌린 가설 4개(토큰캐시 등)도 있음. 상세·재현스크립트·다음 후보(Suspense 스트리밍/Supabase 유료플랜)는 `docs/dashboard_load_delay_investigation_v1.0.md` 참조.
 - **2026-08-31 창업 시장 분석 종합 개편 — SBIZ 실측 도입부터 AI 전략 3단 고도화까지**: 카카오 밀도 지표 신설 → 국세청 SBIZ 실연동(Sentry의 aiohttp 헤더 자동주입이 400오류 원인이었음 규명·해결, `trace_propagation_targets=[]`) → 반경 행정구역별 자동조정(동/구/군)+밀도·신뢰도 등급 신설 → 경쟁사 스마트플레이스 준비도 체크(1단계 기존 테이블 무료조회+2단계 격리상한 캐시조회 하이브리드, 캐시버그 2건 실측발견·수정) → 페이지 목적 재정의(AEOlab 자체 데이터 화면·Claude 프롬프트 양쪽에서 제거, 순수 실측 상권분석으로 재편) → AI 전략 프롬프트 3단 개선(일반론 제거 → 필드별 근거다양화·통찰강화 → 모바일 가독성용 문장길이 제약). 전 과정 라이브 QA 계정 실측 검증, AI 지어내기 재발 2건(노출기간·임대료 수치)도 발견 즉시 차단. 잔여: 경쟁사 준비도 2단계(네이버 place_id 탐색)는 오픈API `link` 필드가 "홈페이지 URL"이지 플레이스 링크가 아니라는 구조적 한계로 실효성 낮음 — 더 신뢰도 높은 Playwright 지도검색은 차단위험 미검증이라 보류. git `375e731`~`7672be8`(9개 커밋, 전체 흐름은 changelog_archive.md 참조).

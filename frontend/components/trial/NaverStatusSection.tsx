@@ -41,6 +41,11 @@ export interface NaverStatusSectionProps {
   topCompetitorBlogCount?: number;
   keywordRanks?: KeywordRank[];
   keywordBlogComparison?: KeywordBlogComparison[];
+  /**
+   * 표시 구역 (2026-09-28 탭 구조 반영): compete = 경쟁 가게 목록(A) + 블로그 격차(D),
+   * place = 스마트플레이스 체크리스트(B) + AI 브리핑(C), all = 전부(기본값, 기존 동작)
+   */
+  part?: "all" | "compete" | "place";
 }
 
 function CheckRow({
@@ -103,7 +108,10 @@ export default function NaverStatusSection({
   topCompetitorBlogCount,
   keywordRanks,
   keywordBlogComparison,
+  part = "all",
 }: NaverStatusSectionProps) {
+  const showCompete = part !== "place";
+  const showPlace = part !== "compete";
   // 지역명이 searchQuery 앞에 중복되면 제거 (form.region이 이미 상단에 표시됨)
   function stripRegion(query: string): string {
     if (!region) return query;
@@ -141,6 +149,7 @@ export default function NaverStatusSection({
     <div className="space-y-3 mb-4">
 
       {/* ── 블록 A: 네이버 검색 위치 ─────────────────────────── */}
+      <div className={showCompete ? "" : "hidden"}>
       <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
         <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
           <p className="text-sm font-bold text-slate-500 tracking-wide uppercase">
@@ -298,7 +307,10 @@ export default function NaverStatusSection({
         </div>
       </div>
 
+      </div>
+
       {/* ── 블록 B: 스마트플레이스 현황 체크리스트 ──────────── */}
+      <div className={showPlace ? "space-y-3" : "hidden"}>
       <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
         <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
           <p className="text-sm font-bold text-slate-500 tracking-wide uppercase">
@@ -372,7 +384,7 @@ export default function NaverStatusSection({
                 <div>
                   <p className="text-sm font-semibold text-blue-800">체험 스캔에서는 AI 브리핑 실측 미포함</p>
                   <p className="text-sm text-blue-700 mt-0.5 leading-snug break-keep">
-                    구독 후 정식 스캔에서 네이버 AI 브리핑 실측 결과(노출 여부·인용 문장)를 확인하세요
+                    가입 후 1회 체험과 구독에서 네이버 AI 브리핑 실측 결과(노출 여부·인용 문장)를 확인하세요
                   </p>
                 </div>
               </div>
@@ -445,7 +457,10 @@ export default function NaverStatusSection({
         </div>
       )}
 
+      </div>
+
       {/* ── 블록 D: 경쟁사 블로그 격차 ──────────────────────── */}
+      <div className={showCompete ? "" : "hidden"}>
       {topCompetitorName && (
         <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
           <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
@@ -575,6 +590,7 @@ export default function NaverStatusSection({
           </div>
         </div>
       )}
+      </div>
 
     </div>
   );

@@ -10,6 +10,26 @@ from services.ai_usage_logger import log_ai_usage
 _logger = logging.getLogger(__name__)
 
 
+# 지점 표기(본점·OO점·OO역·OO동…)만 다른 경우를 같은 가게로 인정하기 위한 접미사 패턴
+_BRANCH_SUFFIX_RE = re.compile(r"^(?:본점|\d*호점|[가-힣0-9a-z]{1,8}(?:지점|점|역|동|구))?$")
+
+
+def names_match(a: str, b: str) -> bool:
+    """정규화된 두 가게명이 같은 가게를 가리키는지 — 짧은 쪽이 긴 쪽의 앞부분이고 나머지가 지점 표기일 때만 True.
+
+    단순 부분 문자열 포함은 쓰지 않는다: "카페모모"가 전혀 다른 가게 "카페모모카"에 걸려
+    "추천됨"으로 집계되던 오탐(2026-09-28 라이브 실측)을 막기 위함.
+    """
+    if not a or not b:
+        return False
+    if a == b:
+        return True
+    shorter, longer = (a, b) if len(a) <= len(b) else (b, a)
+    if len(shorter) < 2:
+        return False
+    return longer.startswith(shorter) and bool(_BRANCH_SUFFIX_RE.match(longer[len(shorter):]))
+
+
 _CHATGPT_SEM = asyncio.Semaphore(max(1, int(os.getenv("CHATGPT_MAX_CONCURRENCY", "5"))))  # OpenAI rate limit 대응: 동시 호출 상한 (env로 조정 가능, 0 입력 시 영구 블로킹 방지로 최소 1)
 
 
@@ -176,12 +196,7 @@ class ChatGPTScanner:
         return re.sub(r"[\s\-·.,()\[\]'\"“”‘’]+", "", (name or "")).lower()
 
     def _name_matches(self, target_norm: str, place_norm: str) -> bool:
-        if not target_norm or not place_norm:
-            return False
-        if len(target_norm) >= 2 and target_norm in place_norm:
-            return True
-        # 답변이 지점명 없이 짧게 적은 경우("카페 모모" ← "모모")는 3자 이상일 때만 역포함 인정
-        return len(place_norm) >= 3 and place_norm in target_norm
+        return names_match(target_norm, place_norm)
 
     async def _recommend_once(self, query: str) -> dict:
         prompt = (

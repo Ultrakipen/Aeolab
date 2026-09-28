@@ -483,6 +483,115 @@ def _to_int_or_none(value) -> Optional[int]:
         return None
 
 
+async def _verify_places_on_naver(places: list, region: str) -> None:
+    """ChatGPT가 추천한 가게(top_places)가 네이버 지역검색에 실제로 있는지 대조해 on_naver를 채운다.
+
+    AI는 없는 가게 이름을 지어내기도 하고, 실제 브랜드의 지점명을 다르게 말하기도 한다
+    ("리안헤어 장유점" ↔ 실제 "리안헤어 김해장유율하점"). 그래서 3단계로 구분한다:
+      "exact"   = 이름이 같은 가게(지점 표기 차이만 허용)가 해당 지역에 있음
+      "similar" = 같은 브랜드(이름의 핵심 단어)의 다른 지점이 해당 지역에 있음
+      "none"    = 지역검색에서 확인되지 않음 (지어낸 이름이라고 단정하지는 않는다)
+      None      = 검증 불가(API 오류 등) — 있다/없다 단정 금지
+    places의 각 dict를 제자리에서 수정한다 (실패해도 체험 본 응답에는 영향 없음).
+    """
+    import re as _re
+    from services.naver_visibility import _get as _naver_get
+    from services.ai_scanner.chatgpt_scanner import names_match
+
+    def _norm(s: str) -> str:
+        return _re.sub(r"[\s\-·.,()\[\]'\"“”‘’]+", "", _re.sub(r"<[^>]+>", "", s or "")).lower()
+
+    first = (region or "").split()[0] if (region or "").split() else ""
+    city = _re.sub(r"(특별시|광역시|특별자치시|특별자치도|시|군|도)$", "", first).strip()
+
+    def _brand(name: str) -> str:
+        toks = [t for t in _re.split(r"\s+", (name or "").strip()) if len(_norm(t)) >= 3]
+        return _norm(toks[0]) if toks else _norm(name)
+
+    async def _one(p: dict) -> None:
+        name = (p.get("name") or "").strip()
+        pn = _norm(name)
+        if not pn:
+            p["on_naver"] = None
+            return
+        brand = _brand(name)
+        saw_items = False
+        result = "none"
+        for q in (f"{region} {name}".strip(), name):
+            data = await _naver_get("local", {"query": q, "display": 5})
+            items = data.get("items") if isinstance(data, dict) else None
+            if items is None:
+                continue  # 이 질의는 API 실패 — 다른 질의로 계속
+            saw_items = True
+            in_region = [
+                it for it in items
+                if not city or city in (it.get("roadAddress") or it.get("address") or "")
+            ]
+            if any(names_match(pn, _norm(it.get("title", ""))) for it in in_region):
+                result = "exact"
+                break
+            if result != "similar" and brand and any(brand in _norm(it.get("title", "")) for it in in_region):
+                result = "similar"
+        p["on_naver"] = result if saw_items else None
+
+    await asyncio.gather(*[_one(p) for p in places if isinstance(p, dict)], return_exceptions=True)
+
+
+# 체험 경쟁사 블로그 비교용 이종 업종 제외 규칙 — naver_visibility.get_naver_visibility()의 1위 경쟁사
+# 선정 규칙과 동일(그 함수의 지역 상수라 재사용 불가하여 복제). 바꿀 때는 양쪽을 함께 수정할 것.
+_TRIAL_COMP_SKIP_CATEGORIES = {
+    "의원", "병원", "클리닉", "건강검진", "한의원", "치과", "약국", "헌혈", "혈액원", "요양", "노인",
+    "정신건강", "상담센터", "심리상담", "복지관", "사회복지", "학원", "교습", "유치원", "어린이집",
+    "협회", "재단", "공공기관", "관공서", "주민센터", "부동산", "법무", "세무", "교회", "성당", "사찰", "종교",
+}
+_TRIAL_COMP_SKIP_NAME_FRAGMENTS = {
+    "건강관리협회", "헌혈의집", "마음건강", "청년마음", "사회복지", "주민센터", "동사무소", "보건소", "정신건강", "심리지원",
+}
+
+
+async def _competitor_blog_counts(competitors: list, business_name: str, region: str, limit: int = 5) -> list:
+    """경쟁 가게별 네이버 블로그 언급 건수(지역+"가게명" 검색 total) — 체험 '경쟁 비교' 막대 차트용.
+
+    내 가게와 동일한 방식(지역 + 따옴표 exact match)으로 집계해 공정 비교한다. 조회 실패한 가게는 결과에서
+    뺀다(0으로 오판 금지). 이종 업종·다른 구 가게는 naver_visibility의 1위 경쟁사 선정과 같은 규칙으로 제외.
+    """
+    import re as _re
+    from services.naver_visibility import _get as _naver_get, _build_region_prefix
+    from services.ai_scanner.chatgpt_scanner import names_match
+
+    def _norm(s: str) -> str:
+        return _re.sub(r"[\s\-·.,()]+", "", s or "").lower()
+
+    prefix = _build_region_prefix(region or "")
+    gu = next((p for p in prefix.split() if p.endswith("구")), "")
+    my = _norm(business_name)
+    picked = []
+    for c in competitors or []:
+        name = (c.get("name") or "").strip()
+        if not name or names_match(my, _norm(name)):
+            continue
+        cat = c.get("category") or ""
+        if any(k in cat for k in _TRIAL_COMP_SKIP_CATEGORIES) or any(f in name for f in _TRIAL_COMP_SKIP_NAME_FRAGMENTS):
+            continue
+        addr = c.get("address") or ""
+        if gu and addr and gu not in addr:
+            continue
+        picked.append(c)
+        if len(picked) >= limit:
+            break
+
+    async def _one(c: dict):
+        q = f'{prefix} "{c["name"]}"'.strip() if prefix else f'"{c["name"]}"'
+        d = await _naver_get("blog", {"query": q, "display": 1})
+        total = d.get("total") if isinstance(d, dict) else None
+        if total is None:
+            return None
+        return {"rank": c.get("rank"), "name": c["name"], "count": int(total)}
+
+    res = await asyncio.gather(*[_one(c) for c in picked], return_exceptions=True)
+    return [r for r in res if isinstance(r, dict)]
+
+
 async def _run_trial_gemini(query: str, business_name: str) -> Optional[dict]:
     """trial 신뢰도 강화 2라운드 — Gemini 10회 샘플링 + AI 응답 원문 evidence 보존.
 
@@ -694,6 +803,23 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         )
         ai_result, naver_data, kakao_data = _gather_results
         gemini_evidence_data = None  # 체험에서 Gemini 미측정 (non_location 분기 주석 참조)
+        # AI가 추천한 가게가 네이버 지역검색에 실제 있는지 대조 (지어낸 이름 걸러내기)
+        try:
+            _tp = ((ai_result.get("chatgpt") or {}).get("top_places")) if isinstance(ai_result, dict) else None
+            if _tp:
+                await _verify_places_on_naver(_tp, req.region or "")
+        except Exception as _vpe:
+            _logger.warning(f"[scan/trial] top_places naver verify failed: {_vpe}")
+        # 경쟁 가게별 블로그 건수 (막대 차트용) — 실패해도 체험 본 응답에는 영향 없음
+        try:
+            if isinstance(naver_data, dict) and naver_data.get("naver_competitors"):
+                _ccounts = await asyncio.wait_for(
+                    _competitor_blog_counts(naver_data["naver_competitors"], req.business_name, req.region or ""),
+                    timeout=8.0,
+                )
+                naver_data = {**naver_data, "competitor_blog_counts": _ccounts}
+        except Exception as _cbe:
+            _logger.warning(f"[scan/trial] competitor blog counts failed: {_cbe}")
         _ai_exc_loc = ai_result if isinstance(ai_result, Exception) else None
         if isinstance(ai_result, Exception):
             _logger.warning("[scan/trial] location_based AI scan exception: %s", ai_result)
@@ -1144,6 +1270,27 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         _intro_analyzed = False  # 예외 시 False 확정
 
 
+    # 추천 키워드의 월간 검색량(네이버 검색광고 키워드도구, 7일 DB 캐시) — "왜 이 키워드인가"의 실측 근거.
+    # 키 미설정·API 오류·타임아웃이면 빈 dict(그레이스풀 — 있는 값만 표시, 없는 값은 만들지 않는다).
+    keyword_volumes: dict = {}
+    if top_missing_keywords:
+        try:
+            from services.naver_searchad import get_searchad_client
+            _vols = await asyncio.wait_for(
+                get_searchad_client().get_volumes_with_cache(
+                    list(top_missing_keywords[:8]), req.category or "", get_client()
+                ),
+                timeout=8.0,
+            )
+            # 검색광고 키워드도구는 요청 키워드 외 연관 키워드 수백 개도 함께 반환한다 — 요청한 것만 담는다.
+            # 값 0은 "월 10회 미만"(API가 '< 10' 문자열을 주면 0으로 파싱) 또는 측정 불가를 뜻한다.
+            for _kw in list(top_missing_keywords[:8]):
+                _mt = ((_vols or {}).get(_kw) or {}).get("monthly_total")
+                if isinstance(_mt, (int, float)) and not isinstance(_mt, bool):
+                    keyword_volumes[_kw] = int(_mt)
+        except Exception as _kve:
+            _logger.warning(f"[scan/trial] keyword volumes failed: {_kve}")
+
     # FAQ 복사 텍스트 -- 업종 1순위 키워드 기반 기본 템플릿
     # kw1은 top_missing_keywords(갭분석상 "미보유 추정" 키워드) — "전문으로 합니다"/"강점으로 하고 있습니다"처럼
     # 단정 서술하면 사실 지어내기가 된다(2026-07-08 guide_generator intro 사고와 동일 계열, 2026-08-22 발견·수정).
@@ -1188,6 +1335,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         "growth_stage_label": (_growth_stage_full or {}).get("stage_label") or score.get("growth_stage_label"),
         "top_missing_keywords": top_missing_keywords,
         "keyword_meta": keyword_meta,
+        "keyword_volumes": keyword_volumes,
         "pioneer_keywords": pioneer_keywords,
         "intro_analyzed": _intro_analyzed,
         "faq_copy_text": faq_copy_text,

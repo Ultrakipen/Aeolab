@@ -19,6 +19,8 @@ interface Props {
   userGroup?: string;
   introAnalyzed?: boolean;
   isPaidUser?: boolean;
+  /** 키워드별 월간 검색량(네이버 검색광고 키워드도구 실측, 있는 것만) */
+  volumes?: Record<string, number>;
 }
 
 // 백엔드 keyword_taxonomy 서브카테고리 키 → 사용자 노출 한글 라벨
@@ -52,7 +54,12 @@ const SUBCAT_LABEL: Record<string, string> = {
   공간분위기: "공간·분위기",
 };
 
-export default function TrialKeywordRecommendCard({ missingKws, faqText, categoryLabel, dismissed, onDismiss, keywordMeta, userGroup, introAnalyzed = false, isPaidUser = false }: Props) {
+// 검색광고 API는 월 검색량이 10 미만이면 숫자를 주지 않아 백엔드가 0으로 넘긴다 — "0회"가 아니라 "10회 미만"
+function fmtVolume(n: number): string {
+  return n <= 0 ? "10회 미만" : `${n.toLocaleString()}회`;
+}
+
+export default function TrialKeywordRecommendCard({ missingKws, faqText, categoryLabel, dismissed, onDismiss, keywordMeta, userGroup, introAnalyzed = false, isPaidUser = false, volumes }: Props) {
   const [copied, setCopied] = useState<string | null>(null);
 
   const visible = missingKws.filter(k => !dismissed.includes(k));
@@ -154,7 +161,7 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
         {visible.slice(0, 3).map((kw, idx) => {
           const meta = keywordMeta?.[kw];
           const subLabel = meta ? (SUBCAT_LABEL[meta.subcategory] ?? meta.subcategory) : null;
-          const weightPct = meta ? Math.round((meta.weight ?? 0) * 100) : null;
+          const vol = volumes?.[kw];
           return (
             <div key={kw} className="bg-blue-50 rounded-xl px-3 py-2 border border-blue-100">
               <div className="flex items-center gap-2">
@@ -166,11 +173,16 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
                   {copied === kw ? <><Check className="w-4 h-4" aria-hidden="true" /> 복사됨</> : copied === kw + "__fail" ? "직접 복사하세요" : "문구 복사"}
                 </button>
               </div>
-              {/* 추천 근거: 어느 서브카테고리에서 왔는지 + 가중치 표시 */}
-              {subLabel && (
-                <p className="text-sm text-blue-600 mt-1">
-                  {categoryLabel} 소비자가 자주 검색하는 &lsquo;{subLabel}&rsquo; 키워드
-                  {weightPct && weightPct > 0 ? ` — 노출 영향도 ${weightPct}%` : ""}
+              {/* 추천 근거: 어느 서브카테고리에서 왔는지 + 월간 검색량(실측, 있을 때만).
+                  업종 표준 가중치("노출 영향도 N%")는 측정값이 아니라 표기하지 않는다(2026-09-28). */}
+              {(subLabel || vol != null) && (
+                <p className="text-sm text-blue-700 mt-1">
+                  {subLabel ? <>{categoryLabel} 소비자가 자주 검색하는 &lsquo;{subLabel}&rsquo; 키워드</> : null}
+                  {vol != null && (
+                    <span className="font-semibold">
+                      {subLabel ? " · " : ""}월 검색량 {fmtVolume(vol)} (네이버 검색광고 기준)
+                    </span>
+                  )}
                 </p>
               )}
               {idx === 0 && (
@@ -184,6 +196,38 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
           );
         })}
       </div>
+
+      {/* 전체 키워드 그룹별 보기 (2026-09-28 목업 반영) — 그룹은 업종 표준 서브카테고리, 검색량은 실측이 있는 것만 */}
+      {visible.length > 3 && (() => {
+        const groups: Record<string, string[]> = {};
+        visible.forEach((kw) => {
+          const m = keywordMeta?.[kw];
+          const label = m ? (SUBCAT_LABEL[m.subcategory] ?? m.subcategory) : "기타";
+          (groups[label] ??= []).push(kw);
+        });
+        return (
+          <div className="mt-4">
+            <p className="text-sm font-bold text-gray-800 mb-2">키워드 {visible.length}개 · 그룹별</p>
+            <div className="grid gap-2 md:grid-cols-2">
+              {Object.entries(groups).map(([label, kws]) => (
+                <div key={label} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+                  <p className="text-sm font-bold text-blue-800 mb-1.5">{label}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {kws.map((kw) => (
+                      <span key={kw} className="inline-flex items-center gap-1 rounded-lg bg-white border border-slate-300 px-2.5 py-1 text-sm font-semibold text-slate-800">
+                        {kw}
+                        {volumes?.[kw] != null && (
+                          <span className="text-sm font-normal text-slate-600">· 월 {fmtVolume(volumes[kw])}</span>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {isPaidUser ? (
         <p className="text-sm text-gray-600 mt-2.5 leading-relaxed">
