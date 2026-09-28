@@ -584,7 +584,7 @@ export function CompetitorBlogBars({
     <div className="rounded-xl border border-slate-200 bg-white px-4 py-4 mb-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <p className="text-base md:text-lg font-extrabold text-slate-900">
-          내 가게 vs 경쟁 {competitors.length}곳 · 블로그 언급 건수
+          내 가게 vs 경쟁 {competitors.length}곳 · 이름이 나온 블로그 글 수
         </p>
         <span className="rounded-full border border-green-200 bg-green-50 px-2.5 py-0.5 text-sm font-bold text-green-900">
           실측
@@ -607,8 +607,7 @@ export function CompetitorBlogBars({
         ))}
       </div>
       <p className="mt-3 text-sm text-slate-700 leading-snug break-keep">
-        네이버 블로그 검색에서 &lsquo;지역 + 가게명&rsquo;으로 찾은 게시물 수입니다. 가게명이 일반 명사와 비슷하면 관련 없는
-        게시물이 섞일 수 있고, 이종 업종 가게는 제외했습니다.
+        네이버 블로그 검색 상위 100건 중 제목·요약에 가게 이름이 실제로 나온 글 수입니다(본문에만 나오는 글은 빠져 실제보다 적게 잡힐 수 있고, 모든 가게에 같은 방식을 적용했습니다). 가게 이름이 흔한 단어로 이뤄지면 이 수치가 작게 나옵니다. 이종 업종 가게는 제외했습니다.
       </p>
     </div>
   );

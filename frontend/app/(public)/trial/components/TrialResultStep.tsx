@@ -174,7 +174,7 @@ function ScanConclusionCard({
     strengthItems.push({ icon: "✅", text: `카카오 검색 ${kakaoRank}위 확인` });
   }
   if (blogCount !== undefined && blogCount > 0) {
-    strengthItems.push({ icon: "✅", text: `블로그 언급 ${blogCount.toLocaleString()}건 확인 (네이버 블로그 검색 기준)` });
+    strengthItems.push({ icon: "✅", text: `가게 이름이 나온 블로그 글 ${blogCount.toLocaleString()}건 확인 (제목·요약 기준)` });
   }
   if (
     smartPlaceCheck &&
@@ -700,7 +700,7 @@ export default function TrialResultStep(props: TrialResultProps) {
   if (blogCount > 0) {
     passedItems.push({
       title: "블로그에 가게가 언급된 글이 있습니다",
-      desc: `${blogCount.toLocaleString()}건 · 가게명이 일반 명사면 관련 없는 글이 섞일 수 있습니다.`,
+      desc: `네이버 블로그 검색 상위 100건 중 제목·요약에 가게 이름이 나온 글 ${blogCount.toLocaleString()}건입니다(본문에만 나오는 글은 빠집니다).`,
     });
   }
   if (isSmartPlace) {
@@ -779,13 +779,13 @@ export default function TrialResultStep(props: TrialResultProps) {
       if (_topName && typeof _topCnt === "number" && _topCnt > 0) {
         verdictBullets.push({
           label: "블로그",
-          text: `내 가게 ${blogCount.toLocaleString()}건 · 1위 경쟁사(${_topName}) ${_topCnt.toLocaleString()}건 — ${
+          text: `이름이 나온 글 — 내 가게 ${blogCount.toLocaleString()}건 · 경쟁 가게 중 가장 많은 곳(${_topName}) ${_topCnt.toLocaleString()}건 — ${
             _topCnt > blogCount ? `${(_topCnt - blogCount).toLocaleString()}건 적습니다.` : "내 가게가 더 많습니다."
           }`,
           tone: _topCnt > blogCount ? "warn" : "ok",
         });
       } else {
-        verdictBullets.push({ label: "블로그", text: `네이버 블로그 언급 ${blogCount.toLocaleString()}건입니다.`, tone: "neutral" });
+        verdictBullets.push({ label: "블로그", text: `가게 이름이 나온 글 ${blogCount.toLocaleString()}건입니다(블로그 검색 상위 100건 기준).`, tone: "neutral" });
       }
     }
   }
@@ -1022,7 +1022,7 @@ export default function TrialResultStep(props: TrialResultProps) {
                 <div className="flex gap-2">
                   <span className="shrink-0">·</span>
                   <p className="break-keep">
-                    블로그 {blogCount.toLocaleString()}건 = 네이버 블로그 검색에서 &lsquo;지역 + 가게명&rsquo;으로 찾은 게시물 수
+                    블로그 {blogCount.toLocaleString()}건 = 네이버 블로그 검색 상위 100건 중 제목·요약에 가게 이름이 나온 글 수
                   </p>
                 </div>
               )}

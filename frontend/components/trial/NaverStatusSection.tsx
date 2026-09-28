@@ -468,7 +468,7 @@ export default function NaverStatusSection({
               블로그 언급 격차
             </p>
             <p className="text-sm text-slate-600 mt-0.5">
-              네이버 블로그 검색 API로 <strong className="text-slate-700">가게명+지역</strong> 조합 검색 시 나오는 포스팅 전체 건수입니다. 많을수록 AI 인용 가능성 높음.
+              네이버 블로그 검색 상위 100건 중 <strong className="text-slate-700">제목·요약에 가게 이름이 실제로 나온 글</strong> 수입니다. 본문에만 이름이 나오는 글은 빠지므로 실제보다 적게 잡힐 수 있고, 내 가게와 경쟁 가게에 같은 방식을 적용했습니다.
               <span className="block text-xs text-slate-500 mt-1">
                 ※ 스마트플레이스 &#39;블로그 리뷰&#39; 탭(방문자가 직접 등록한 리뷰)과 측정 방식이 달라 숫자가 다를 수 있습니다.
               </span>
@@ -499,7 +499,7 @@ export default function NaverStatusSection({
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-semibold text-slate-600 truncate max-w-[60%]">
-                  1위 경쟁사 ({topCompetitorName})
+                  경쟁 가게 중 가장 많은 곳 ({topCompetitorName})
                 </span>
                 <span className="text-sm font-bold text-slate-700">
                   {compBlogCount.toLocaleString()}건
@@ -518,7 +518,7 @@ export default function NaverStatusSection({
                   <BookOpen className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm text-amber-700 leading-snug break-keep">
-                      경쟁사보다 {(compBlogCount - blogCount).toLocaleString()}건 적습니다
+                      이 경쟁 가게보다 {(compBlogCount - blogCount).toLocaleString()}건 적습니다
                     </p>
                     <p className="text-sm text-amber-700 leading-snug break-keep mt-0.5">
                       → 방문 손님께 블로그 후기 요청 + 이벤트 진행으로 포스팅을 늘리면 AI 노출 가능성이 높아집니다

@@ -549,14 +549,53 @@ _TRIAL_COMP_SKIP_NAME_FRAGMENTS = {
 }
 
 
-async def _competitor_blog_counts(competitors: list, business_name: str, region: str, limit: int = 5) -> list:
-    """경쟁 가게별 네이버 블로그 언급 건수(지역+"가게명" 검색 total) — 체험 '경쟁 비교' 막대 차트용.
+async def _verified_blog_count(name: str, prefix: str) -> Optional[dict]:
+    """가게 이름이 제목·요약에 실제로 나온 블로그 글 수 (네이버 블로그 검색 상위 100건 기준).
 
-    내 가게와 동일한 방식(지역 + 따옴표 exact match)으로 집계해 공정 비교한다. 조회 실패한 가게는 결과에서
-    뺀다(0으로 오판 금지). 이종 업종·다른 구 가게는 naver_visibility의 1위 경쟁사 선정과 같은 규칙으로 제외.
+    네이버 블로그 검색 API의 total은 따옴표를 무시하고 단어를 따로 매칭해, 이름이 "안민 중동"·"하라식당"처럼
+    흔한 단어로 이뤄지면 가게와 무관한 글(민원발급기·병원 목록 등)까지 합산된다(실측: "안민 중동" total 2,336건이지만
+    상위 100건 중 이름이 나온 글은 1건, "하라식당 본점" total 37건 중 3건). 그래서 상위 100건을 받아
+    (지점 접미사를 뗀 이름 포함) 정규화한 이름이 제목·요약에 실제 포함된 글만 센다.
+    본문에만 이름이 나오는 글은 빠지므로 **하한값**이며, 내 가게·경쟁 가게에 같은 방식을 적용해 공정 비교한다.
+    조회 실패는 None(0으로 오판 금지).
     """
     import re as _re
-    from services.naver_visibility import _get as _naver_get, _build_region_prefix
+    from services.naver_visibility import _get as _naver_get
+
+    def _norm(t: str) -> str:
+        return _re.sub(r"[\s\-_·.,()\[\]\"']+", "", t or "").lower()
+
+    def _strip(t: str) -> str:
+        return _re.sub(r"<[^>]+>", "", t or "")
+
+    name = (name or "").strip()
+    if not name:
+        return None
+    core = _re.sub(r"\s*(본점|직영점|[가-힣0-9]{1,6}점)$", "", name).strip()
+    variants = {v for v in (_norm(name), _norm(core)) if len(v) >= 2}
+    if not variants:
+        return None
+    q = f"{prefix} {name}".strip() if prefix else name
+    d = await _naver_get("blog", {"query": q, "display": 100, "sort": "sim"})
+    if not isinstance(d, dict) or d.get("total") is None:
+        return None
+    items = d.get("items") or []
+    hits = 0
+    for it in items:
+        txt = _norm(_strip(it.get("title", "")) + _strip(it.get("description", "")))
+        if any(v in txt for v in variants):
+            hits += 1
+    return {"count": hits, "sampled": len(items), "api_total": int(d.get("total") or 0)}
+
+
+async def _competitor_blog_counts(competitors: list, business_name: str, region: str, limit: int = 5) -> list:
+    """경쟁 가게별 블로그 언급 글 수(가게 이름이 제목·요약에 실제 나온 글, `_verified_blog_count`) — 체험 '경쟁 비교' 막대 차트용.
+
+    내 가게와 동일한 방식으로 집계해 공정 비교한다. 조회 실패한 가게는 결과에서 뺀다(0으로 오판 금지).
+    이종 업종·다른 구 가게는 naver_visibility의 1위 경쟁사 선정과 같은 규칙으로 제외.
+    """
+    import re as _re
+    from services.naver_visibility import _build_region_prefix
     from services.ai_scanner.chatgpt_scanner import names_match
 
     def _norm(s: str) -> str:
@@ -581,12 +620,10 @@ async def _competitor_blog_counts(competitors: list, business_name: str, region:
             break
 
     async def _one(c: dict):
-        q = f'{prefix} "{c["name"]}"'.strip() if prefix else f'"{c["name"]}"'
-        d = await _naver_get("blog", {"query": q, "display": 1})
-        total = d.get("total") if isinstance(d, dict) else None
-        if total is None:
+        v = await _verified_blog_count(c["name"], prefix)
+        if v is None:
             return None
-        return {"rank": c.get("rank"), "name": c["name"], "count": int(total)}
+        return {"rank": c.get("rank"), "name": c["name"], "count": v["count"], "sampled": v["sampled"], "api_total": v["api_total"]}
 
     res = await asyncio.gather(*[_one(c) for c in picked], return_exceptions=True)
     return [r for r in res if isinstance(r, dict)]
@@ -813,11 +850,17 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         # 경쟁 가게별 블로그 건수 (막대 차트용) — 실패해도 체험 본 응답에는 영향 없음
         try:
             if isinstance(naver_data, dict) and naver_data.get("naver_competitors"):
-                _ccounts = await asyncio.wait_for(
-                    _competitor_blog_counts(naver_data["naver_competitors"], req.business_name, req.region or ""),
-                    timeout=8.0,
+                from services.naver_visibility import _build_region_prefix as _brp
+                _ccounts, _my_blog_v = await asyncio.wait_for(
+                    asyncio.gather(
+                        _competitor_blog_counts(naver_data["naver_competitors"], req.business_name, req.region or ""),
+                        _verified_blog_count(req.business_name, _brp(req.region or "")),
+                    ),
+                    timeout=12.0,
                 )
                 naver_data = {**naver_data, "competitor_blog_counts": _ccounts}
+                if _my_blog_v is not None:
+                    naver_data["blog_verified_my"] = _my_blog_v
         except Exception as _cbe:
             _logger.warning(f"[scan/trial] competitor blog counts failed: {_cbe}")
         _ai_exc_loc = ai_result if isinstance(ai_result, Exception) else None
@@ -1322,6 +1365,28 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
     # 측정 쿼리 리스트 — trial: 실제 사용 1개 + 구독 변형 미리보기 포함
     _trial_scan_queries = _build_ai_scan_queries(req.region or "", keyword_ko)
 
+    # 응답용 블로그 수치 — 가게 이름이 제목·요약에 실제 나온 글 수(`_verified_blog_count`)로 표시한다.
+    # 네이버 블로그 검색 total은 흔한 단어 이름에서 무관한 글이 섞여 과대집계된다(실측 "안민 중동" 2,336건 → 실제 1건).
+    # 점수 계산·DB 저장은 기존 API total 그대로 두고(유료 스캔과 기준 통일), 화면 표시값만 바꾼다.
+    _naver_resp = naver_data
+    try:
+        if isinstance(naver_data, dict) and isinstance(naver_data.get("blog_verified_my"), dict):
+            _bv = naver_data["blog_verified_my"]
+            _cc = [c for c in (naver_data.get("competitor_blog_counts") or []) if isinstance(c, dict)]
+            _top_v = max(_cc, key=lambda c: c.get("count", 0)) if _cc else None
+            _naver_resp = {
+                **naver_data,
+                "blog_mentions": _bv["count"],
+                "blog_mentions_api_total": naver_data.get("blog_mentions"),
+                "top_competitor_name": _top_v["name"] if _top_v else None,
+                "top_competitor_blog_count": _top_v["count"] if _top_v else 0,
+                "top_competitor_by_local_rank": naver_data.get("top_competitor_name"),
+                "blog_count_method": "name_in_title_or_snippet_top100",
+            }
+    except Exception as _nre:
+        _logger.warning(f"[scan/trial] verified blog display override failed: {_nre}")
+        _naver_resp = naver_data
+
     return {
         # v3.6: trial_id (claim 깔때기에서 사용)
         "trial_id": trial_id,
@@ -1348,9 +1413,14 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         "result": ai_result,
         "query": query,
         "competitors": competitors,
-        "naver": naver_data,
+        "naver": _naver_resp,
         "keyword_ranks": (naver_data or {}).get("keyword_ranks", []),
-        "keyword_blog_comparison": (naver_data or {}).get("keyword_blog_comparison", []),
+        # 키워드별 블로그 비교는 API total(따옴표 무시로 과대집계, 위 _verified_blog_count 주석 참조) 기반이라
+        # 이름이 검증된 수치로 바뀐 체험 화면에서는 내보내지 않는다(검증 안 된 수치를 "실측"으로 보여주지 않음).
+        "keyword_blog_comparison": (
+            [] if (_naver_resp is not naver_data)
+            else (naver_data or {}).get("keyword_blog_comparison", [])
+        ),
         "kakao": kakao_data,
         "website_health": website_data,
         "context": req.business_type or "location_based",
