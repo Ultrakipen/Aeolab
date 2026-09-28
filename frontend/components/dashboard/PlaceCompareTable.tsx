@@ -326,9 +326,9 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
             {data.rows.some((r) => r.field === "blog_mention_count") && (
               <div className="px-4 md:px-6 py-2.5 border-t border-gray-100 bg-gray-50">
                 <p className="text-sm text-gray-600 leading-relaxed flex items-start gap-1.5">
-                  <Lightbulb className="w-4 h-4 shrink-0 mt-0.5 text-gray-500" aria-hidden="true" /><span><strong className="text-gray-600">블로그 언급 수</strong>는 네이버 블로그 API에
-                  업체명을 검색한 총 결과 건수입니다. 동명 업체가 있거나 일반 명사와 겹치면 실제보다
-                  높게 나올 수 있으며, 경쟁사 간 상대 비교 용도로 활용하세요.</span>
+                  <Lightbulb className="w-4 h-4 shrink-0 mt-0.5 text-gray-500" aria-hidden="true" /><span><strong className="text-gray-600">블로그 언급 수</strong>는 네이버 블로그 검색 상위 100건 중
+                  제목·요약에 업체명이 나오고 같은 지역 글로 확인된 글 수입니다. 같은 이름의 다른 지역 글은 뺐고,
+                  본문에만 이름이 나오는 글은 빠져 실제보다 적게 잡힐 수 있으니 경쟁사 간 상대 비교 용도로 활용하세요.</span>
                 </p>
               </div>
             )}

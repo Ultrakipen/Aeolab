@@ -616,7 +616,7 @@ export function CompetitorPlaceCard({
           <span className="text-sm text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">자동 수집</span>
         </div>
         <p className="text-sm text-gray-600 mb-2 leading-relaxed">
-          경쟁사 이름으로 네이버 블로그를 자동 검색한 결과 건수입니다(실제 포스팅 수와 다를 수 있음 — 동명 업체가 있거나 일반 명사와 겹치면 실제보다 높게 나올 수 있습니다). 블로그 포스팅이 많을수록 AI 검색에서 더 자주 인용됩니다.
+          경쟁사 이름으로 네이버 블로그를 검색한 상위 100건 중 제목·요약에 이름이 나오고 같은 지역 글로 확인된 글 수입니다(같은 이름의 다른 지역 글은 제외, 본문에만 나오는 글은 빠져 실제보다 적게 잡힐 수 있음). 블로그 포스팅이 많을수록 AI 검색에서 더 자주 인용됩니다.
         </p>
         {competitor.blog_mention_count == null ? (
           <p className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200">

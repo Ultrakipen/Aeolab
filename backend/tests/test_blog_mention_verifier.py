@@ -101,3 +101,35 @@ def test_fetch_verified_blog_uses_region_query_and_flags_failure():
         return {}
 
     assert asyncio.run(fetch_verified_blog("안민 중동", "창원시", fail_get)) is None  # 실패는 0이 아니라 None
+
+
+def test_fetch_caches_and_computes_keyword_counts_without_extra_calls():
+    from services import blog_mention_verifier as v
+    v._CACHE.clear()
+    calls = []
+
+    async def fake_get(kind, params):
+        calls.append(params["query"])
+        return {"total": 50, "items": _items(("창원 하라식당 한식 후기", ""), ("창원 하라식당 중식", ""), ("서울 하라식당 한식", ""))}
+
+    r1 = asyncio.run(fetch_verified_blog("하라식당", "창원시", fake_get, also_keywords=["한식", "중식"]))
+    r2 = asyncio.run(fetch_verified_blog("하라식당", "창원시", fake_get, also_keywords=["한식"]))
+    assert len(calls) == 1                                  # 같은 이름·지역은 캐시 — 키워드마다 재조회하지 않음
+    assert r1["count"] == 2 and r1["name_hits"] == 3 and r1["region_excluded"] == 1
+    assert r1["kw_counts"] == {"한식": 1, "중식": 1} and r2["kw_counts"] == {"한식": 1}
+
+
+def test_filter_items_and_search_prefix():
+    from services.blog_mention_verifier import filter_items, search_region_prefix
+    items = _items(("창원 의창구 하라식당", "맛집"), ("서울 하라식당", "마포"), ("무관한 글", "민원발급기"))
+    assert [i["title"] for i in filter_items(items, "하라식당", "창원시 의창구")] == ["창원 의창구 하라식당"]
+    assert search_region_prefix("경상남도 창원시 성산구 상남동") == "창원 성산구 상남동"
+    assert search_region_prefix("전국") == ""
+
+
+def test_descriptor_suffix_stripped_only_when_safe():
+    assert "홍뮤직스튜디오" in name_variants("홍뮤직스튜디오작곡교습소")       # 정식 상호 → 블로그에서 부르는 이름
+    assert "한마음" in name_variants("한마음학원")                             # 남는 이름 3글자 이상
+    assert "하라식당" in name_variants("하라식당") and len(name_variants("하라식당")) == 1
+    assert name_variants("다학원") == {"다학원"}                                # 남는 이름 1글자 → 줄이지 않음
+    assert "함양흑돼지" not in name_variants("함양흑돼지 식육식당")             # 요리·지명 구절은 줄이지 않음(무관한 글 혼입)

@@ -202,13 +202,14 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
         if (region_prefix and _kw_first) else blog_query_region
     )
 
-    # ── 병렬 호출: 지역 검색(20개) + 블로그 3종 + 최신 포스트 ─────
-    local_data, blog_name_data, blog_region_data, blog_kw_data, blog_posts_data = await asyncio.gather(
+    # ── 병렬 호출: 지역 검색(20개) + 블로그 검증 집계 + 최신 포스트 ─────
+    # 블로그 언급 수는 API total 대신 "이름이 실제로 나오고 지역이 확인되는 글 수"(상위 100건)로 센다 —
+    # 네이버 블로그 API는 따옴표를 무시해 무관한 글·같은 이름의 다른 지역 글이 섞인다(services/blog_mention_verifier.py).
+    from services.blog_mention_verifier import fetch_verified_blog
+    local_data, blog_posts_data, blog_v = await asyncio.gather(
         _get("local", {"query": search_query,         "display": 20, "sort": "sim"}),
-        _get("blog",  {"query": blog_query_name,      "display": 1}),
-        _get("blog",  {"query": blog_query_region,    "display": 1}),
-        _get("blog",  {"query": blog_query_keyword,   "display": 1}),
         _get("blog",  {"query": blog_query_region,    "display": 5, "sort": "date"}),
+        fetch_verified_blog(business_name, region, _get, also_keywords=[_kw_first] if _kw_first else None),
         return_exceptions=True,
     )
 
@@ -314,37 +315,26 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
     top_competitor_blog_count = 0
     competitor_kw_blog_count  = 0
     if top_competitor_name:
-        # 경쟁사도 내 가게와 동일하게 업체명 따옴표 exact match — 미적용 시 프랜차이즈 브랜드명이
-        # 전국 포스트까지 끌어올려 수천~수만 건 과대 집계 (내 가게 쿼리와 불공정 비교 방지)
         _quoted_comp_name = f'"{top_competitor_name}"'
         comp_region_name = f"{region_prefix} {_quoted_comp_name}".strip() if region_prefix else _quoted_comp_name
-        if _kw_first:
-            comp_base, comp_kw = await asyncio.gather(
-                _get("blog", {"query": comp_region_name,                  "display": 1}),
-                _get("blog", {"query": f"{comp_region_name} {_kw_first}", "display": 1}),
-            )
-            if isinstance(comp_base, dict):
-                top_competitor_blog_count = int(comp_base.get("total", 0))
-            if isinstance(comp_kw, dict):
-                competitor_kw_blog_count  = int(comp_kw.get("total", 0))
-        else:
-            comp_blog_data = await _get("blog", {"query": comp_region_name, "display": 1})
-            if isinstance(comp_blog_data, dict):
-                top_competitor_blog_count = int(comp_blog_data.get("total", 0))
+        # 내 가게와 같은 검증 방식(이름 실제 등장 + 지역 확인)으로 세어 공정 비교
+        comp_v = await fetch_verified_blog(
+            top_competitor_name, region, _get, also_keywords=[_kw_first] if _kw_first else None,
+        )
+        if isinstance(comp_v, dict):
+            top_competitor_blog_count = comp_v["count"]
+            competitor_kw_blog_count = comp_v["kw_counts"].get(_kw_first, 0) if _kw_first else 0
 
     # ── 내 가게 블로그 언급 수: 정확도 우선 선택 ────────────────────────
     # 우선순위: 지역+업체명 > 업체명 단독 > 지역+업체명+키워드(보조)
     # ※ max() 방식 제거 — 키워드 전체 카테고리 포스트까지 잡아 수백만 건 오반환 위험
-    blog_name_count    = int(blog_name_data.get("total",   0)) if isinstance(blog_name_data,   dict) else 0
-    blog_region_count  = int(blog_region_data.get("total", 0)) if isinstance(blog_region_data, dict) else 0
-    blog_kw_count      = int(blog_kw_data.get("total",    0))  if isinstance(blog_kw_data,     dict) else 0
-
-    # 지역+업체명 결과 우선 (가장 정확), 없으면 업체명 단독
-    # 지역+업체명+키워드는 참고값만 (보조)
-    if region_prefix and blog_region_count > 0:
-        blog_mentions = blog_region_count
-    else:
-        blog_mentions = blog_name_count
+    # 검증 집계 결과(이름 실제 등장 + 지역 확인 글 수, 상위 100건 기준 하한값). 조회 실패는 기존과 같이 0.
+    blog_v = blog_v if isinstance(blog_v, dict) else None
+    blog_region_count  = blog_v["api_total"] if blog_v else 0     # 참고용 API 총건수(과대집계 가능)
+    blog_name_count    = blog_region_count
+    blog_mentions      = blog_v["count"] if blog_v else 0
+    blog_kw_count      = (blog_v["kw_counts"].get(_kw_first, 0) if _kw_first else blog_v["count"]) if blog_v else 0
+    blog_mentions_capped = bool(blog_v and blog_v.get("capped"))
 
     # ── 최신 블로그 포스트 5건 ────────────────────────────────────
     top_blogs = []
@@ -384,6 +374,8 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
         "naver_place_rank":          my_rank,       # 명확한 필드명 추가
         "is_smart_place":            is_smart_place,
         "blog_mentions":             blog_mentions,
+        "blog_mentions_capped":      blog_mentions_capped,   # 상위 100건이 거의 다 확인된 글 — 실제로는 100건 이상일 수 있음
+        "blog_count_method":         "name_in_title_or_snippet_region_confirmed_top100",
         "blog_name_count":           blog_name_count,
         "blog_region_count":         blog_region_count,
         "blog_kw_count":             blog_kw_count,
@@ -446,6 +438,7 @@ async def get_naver_visibility_multi(business_name: str, keywords: list[str], re
     nonzero_blogs = [r.get("blog_mentions", 0) for r in valid if r.get("blog_mentions", 0) > 0]
     best = dict(best)
     best["blog_mentions"] = min(nonzero_blogs) if nonzero_blogs else 0
+    best["blog_mentions_capped"] = any(r.get("blog_mentions_capped") for r in valid)
     best["multi_query_count"] = len(valid)
     best["all_queries"] = [r.get("search_query", "") for r in valid]
 

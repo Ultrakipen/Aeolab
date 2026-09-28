@@ -1686,7 +1686,7 @@ function BlogMentionBenchmarkCard({
         <span className="inline-flex items-center border text-sm px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 border-gray-200 ml-auto">(추정)</span>
       </div>
       <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-        네이버 블로그 검색 기준 언급 수입니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
+        네이버 블로그 검색 상위 100건 중 제목·요약에 가게 이름이 나오고 같은 지역 글로 확인된 글 수입니다(하한값). 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
       </p>
 
       <ResponsiveContainer width="100%" height={chartHeight}>

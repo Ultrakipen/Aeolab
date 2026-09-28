@@ -856,6 +856,9 @@ def calc_online_mentions(naver_data: dict) -> float:
     """
     blog_count = naver_data.get("blog_mentions")
     if blog_count is not None:
+        # 검증 집계는 상위 100건까지만 보므로 capped(100건 이상일 수 있음)는 "100건 초과" 구간으로 취급
+        if naver_data.get("blog_mentions_capped"):
+            blog_count = max(int(blog_count), 101)
         # 실측값 사용 (0건 포함) — blog_mention_score(0)=5.0, 1~5건=20.0, ...
         return blog_mention_score(blog_count)
     # None = 측정 불가 fallback (스캔 미실행 또는 API 오류)

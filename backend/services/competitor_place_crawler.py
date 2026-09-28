@@ -550,57 +550,25 @@ def _extract_city_prefix(region: str) -> str:
 
 
 async def fetch_competitor_blog_mentions(competitor_name: str, region: str) -> int:
-    """네이버 블로그 API로 경쟁사(또는 내 가게) 블로그 언급 수 조회.
+    """네이버 블로그 검색으로 경쟁사(또는 내 가게) 블로그 언급 글 수 조회 — **검증 집계**.
 
-    전략: 지역+이름 쿼리 우선 → 0이면 이름 단독 쿼리 재시도.
-    지역 접두어는 _extract_city_prefix()로 시·군 단위 추출 ("경상남도 창원시" → "창원").
-    2026-07-14 실측 발견: 업체명에 따옴표 exact match가 빠져 있어 네이버 블로그 검색이
-    형태소 단위로 매칭돼(예: "라움뮤직스튜디오"→라움/뮤직/스튜디오 개별 매칭) 동명 업체(타 지역)나
-    일반 명사 조합(예: "OO레슨")이 섞여 수천 건까지 과대 집계되던 버그 — naver_visibility.py가
-    이미 쓰고 있던 검증된 exact-match 패턴(`f'"{{name}}"'`)을 동일하게 적용해 통일.
-    실패 시 0 반환.
+    이름이 제목·요약에 실제로 나오고 지역이 확인되는 글만 센다(상위 100건 기준 하한값,
+    `services/blog_mention_verifier.py`). 네이버 블로그 API total은 따옴표를 무시해 무관한 글·같은 이름의
+    다른 지역 글이 섞인다(2026-07-14에 따옴표 exact match를 넣었다고 적었으나 효과 없었음 —
+    "안민 중동" 2,336건이 실제로는 1건). 실패 시 0 반환(기존 동작 유지).
     """
-    naver_id     = os.getenv("NAVER_CLIENT_ID", "")
-    naver_secret = os.getenv("NAVER_CLIENT_SECRET", "")
-    if not naver_id or not naver_secret:
+    if not os.getenv("NAVER_CLIENT_ID", "") or not os.getenv("NAVER_CLIENT_SECRET", ""):
         return 0
-
-    _quoted_name  = f'"{competitor_name}"'
-    region_prefix = _extract_city_prefix(region) if region else ""
-    query_region  = f"{region_prefix} {_quoted_name}".strip() if region_prefix else _quoted_name
-    query_name    = _quoted_name
-
-    from services.naver_api_hub import search_request
-    url, headers = search_request("blog")
-    timeout = aiohttp.ClientTimeout(total=6)
-    best = 0
     try:
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            # 1차: 지역+이름 쿼리 (가장 정확)
-            async with session.get(
-                url,
-                headers=headers,
-                params={"query": query_region, "display": 1},
-            ) as resp:
-                if resp.status == 200:
-                    data = await resp.json(content_type=None)
-                    best = int(data.get("total", 0))
-                else:
-                    _logger.warning(f"naver blog API HTTP {resp.status} for {competitor_name}")
-
-            # 2차: 이름 단독 쿼리 (1차가 0이거나 지역 없는 경우)
-            if best == 0 and query_name != query_region:
-                async with session.get(
-                    url,
-                    headers=headers,
-                    params={"query": query_name, "display": 1},
-                ) as resp2:
-                    if resp2.status == 200:
-                        data2 = await resp2.json(content_type=None)
-                        best = int(data2.get("total", 0))
+        from services.naver_visibility import _get as _nv_get
+        from services.blog_mention_verifier import fetch_verified_blog
+        v = await fetch_verified_blog(competitor_name, region or "", _nv_get)
+        if isinstance(v, dict):
+            return int(v["count"])
+        _logger.warning(f"fetch_competitor_blog_mentions verified fetch failed [{competitor_name}]")
     except Exception as e:
         _logger.warning(f"fetch_competitor_blog_mentions error [{competitor_name}]: {e}")
-    return best
+    return 0
 
 
 # competitor_scores 컬럼(TEXT[] 아닌 JSONB) breakdown 산정 — Gemini "미언급" 판정 시 모든

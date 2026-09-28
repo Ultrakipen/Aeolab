@@ -1262,7 +1262,9 @@ async def _fetch_blog_snippets(name: str, region: str) -> tuple[list[str], list[
 
     from services.naver_api_hub import search_request
     url, headers = search_request("blog")
-    region_prefix = region.split()[0] if region else ""
+    # 지역 접두어는 시(+구·동) 단위 — 이전엔 첫 토큰(경상남도 등 광역 단위)이라 다른 시의 같은 이름 글이 섞였다.
+    from services.blog_mention_verifier import filter_items, search_region_prefix
+    region_prefix = search_region_prefix(region or "") or (region.split()[0] if region else "")
     query = f"{region_prefix} {name}".strip() if region_prefix else name
 
     try:
@@ -1278,7 +1280,8 @@ async def _fetch_blog_snippets(name: str, region: str) -> tuple[list[str], list[
                 data = await res.json(content_type=None)
                 snippets: list[str] = []
                 posts: list[dict] = []
-                for item in data.get("items", []):
+                # 경쟁사 이름이 실제로 나오고 지역이 확인되는 글만 약점 분석에 쓴다(무관한 글·다른 지역 동명 가게 글 제외)
+                for item in filter_items(data.get("items", []), name, region or ""):
                     text = re.sub(r"<[^>]+>", "", item.get("description", ""))
                     if text:
                         snippets.append(text)

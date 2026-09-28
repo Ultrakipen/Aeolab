@@ -143,11 +143,26 @@ def region_ok(text_norm: str, key: RegionKey) -> bool:
     return True
 
 
+# 정식 상호 끝에 붙는 "업종 서술어" — 블로그에서는 보통 떼고 부른다("홍뮤직스튜디오작곡교습소"→"홍뮤직스튜디오",
+# 실측: 정식 상호로만 세면 0건, 줄인 이름으로 세면 4건). 요리·지명 구절(예: "함양흑돼지")은 일반 구절과 겹쳐
+# 오히려 무관한 글이 섞이므로 줄이지 않는다 — 명백한 업종 서술어만 뗀다. 남는 이름이 3글자 미만이면 적용하지 않는다.
+_DESCRIPTOR_SUFFIXES = (
+    "작곡교습소", "음악교습소", "미술교습소", "피아노교습소", "교습소",
+    "작곡학원", "음악학원", "미술학원", "피아노학원", "학원",
+)
+
+
 def name_variants(name: str) -> set[str]:
-    """이름 + 지점 접미사('본점'·'OO점') 뗀 이름. 길이 2 미만은 제외."""
+    """이름 + 지점 접미사('본점'·'OO점') 뗀 이름 + 업종 서술어 뗀 이름. 길이 2 미만은 제외."""
     name = (name or "").strip()
     core = re.sub(r"\s*(본점|직영점|[가-힣0-9]{1,6}점)$", "", name).strip()
-    return {v for v in (_norm(name), _norm(core)) if len(v) >= 2}
+    out = {v for v in (_norm(name), _norm(core)) if len(v) >= 2}
+    for base in list(out):
+        for suf in _DESCRIPTOR_SUFFIXES:
+            if base.endswith(suf) and len(base) - len(suf) >= 3:
+                out.add(base[: -len(suf)])
+                break
+    return out
 
 
 def verify_items(items: list[dict], name: str, region: str, must_contain: Optional[list[str]] = None) -> dict:
@@ -177,28 +192,69 @@ def verify_items(items: list[dict], name: str, region: str, must_contain: Option
     }
 
 
+def filter_items(items: list[dict], name: str, region: str) -> list[dict]:
+    """이름이 실제로 나오고 지역이 확인되는 글만 남긴다(경쟁사 약점 분석 등 본문 요약을 쓰는 곳용)."""
+    variants = name_variants(name)
+    key = RegionKey(region)
+    out = []
+    for it in items or []:
+        txt = _norm(_strip_tags(it.get("title", "")) + _strip_tags(it.get("description", "")))
+        if variants and any(v in txt for v in variants) and region_ok(txt, key):
+            out.append(it)
+    return out
+
+
+def search_region_prefix(region: str) -> str:
+    """블로그 검색 질의용 지역 접두어 — 시(+구·동). 검색 결과를 좁히는 보조용이며 정확한 판정은 region_ok가 한다."""
+    key = RegionKey(region)
+    return " ".join(p for p in (key.city, key.gu_key and f"{key.gu_key}구", key.dong and f"{key.dong}동") if p)
+
+
+_CACHE: dict[tuple[str, str], tuple[float, int, list]] = {}
+_CACHE_TTL = 600.0  # 초 — get_naver_visibility_multi가 키워드마다 같은 이름을 반복 조회하므로 짧게 캐시
+_CACHE_MAX = 500
+
+
 async def fetch_verified_blog(
     name: str,
     region: str,
     get: Callable[[str, dict], Awaitable[dict]],
     must_contain: Optional[list[str]] = None,
+    also_keywords: Optional[list[str]] = None,
 ) -> Optional[dict]:
     """상위 100건을 받아 `verify_items`로 센다. 조회 실패는 None(0으로 오판 금지).
 
-    반환: count·name_hits·region_excluded·sampled·api_total·capped·(위 verify_items 필드)
+    also_keywords: 같은 100건에서 키워드(요약·제목에 포함)별 확인 글 수를 추가로 계산 → `kw_counts`
+    (추가 API 호출 없음 — 이전엔 키워드마다 별도 조회하던 "키워드별 블로그 비교"용).
+    반환: count·name_hits·region_excluded·sampled·api_total·capped·kw_counts
     """
+    import time
+
     name = (name or "").strip()
     if not name or not name_variants(name):
         return None
     key = RegionKey(region)
     prefix_parts = [p for p in (key.city, key.gu_key and f"{key.gu_key}구", key.dong and f"{key.dong}동") if p]
     q = f"{' '.join(prefix_parts)} {name}".strip()
-    d = await get("blog", {"query": q, "display": 100, "sort": "sim"})
-    if not isinstance(d, dict) or d.get("total") is None:
-        return None
-    items = d.get("items") or []
+    ck = (q, region or "")
+    now = time.monotonic()
+    hit = _CACHE.get(ck)
+    if hit and now - hit[0] < _CACHE_TTL:
+        _, api_total, items = hit
+    else:
+        d = await get("blog", {"query": q, "display": 100, "sort": "sim"})
+        if not isinstance(d, dict) or d.get("total") is None:
+            return None
+        items = d.get("items") or []
+        api_total = int(d.get("total") or 0)
+        if len(_CACHE) >= _CACHE_MAX:
+            _CACHE.clear()
+        _CACHE[ck] = (now, api_total, items)
     res = verify_items(items, name, region, must_contain)
-    res["api_total"] = int(d.get("total") or 0)
+    res["api_total"] = api_total
     # 상위 100건이 거의 다 확인된 글이면 실제로는 100건 이상일 수 있다
     res["capped"] = bool(len(items) >= 100 and res["count"] >= 90)
+    res["kw_counts"] = {
+        kw: verify_items(items, name, region, [kw])["count"] for kw in (also_keywords or []) if kw
+    }
     return res
