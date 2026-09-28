@@ -89,3 +89,23 @@
 - 라이브 UI(PC): 주소 붙여넣기 4상태(ok/short/invalid/empty), 스캔 → 결과 → 이메일 카드 동의 게이트 → 제출 → "결과 요약을 이메일로 보냈습니다". 모바일 390px 가로 넘침 없음
 - 테스트로 만든 `trial_scans` 3행(하라식당 본점, 수신 `delivered@resend.dev`) 삭제 완료 — 통계 오염 방지
 - **미검증**: 실제 사용자 수신함 도달(스팸함 여부) — Resend 샌드박스 주소로만 확인. GA4 이벤트가 실제 수집되는지는 GA4 실시간 화면에서 확인 필요(CSP·환경변수는 정상)
+
+---
+
+## 8. 후속 개선 3 — Google AI Overview 표기 정정 + 유료 스캔 ChatGPT 비유도형 전환 (git `4fb52e8` + 후속 커밋)
+
+사용자 "오판 없으면 순차적으로 진행" → 진행 전 근거 재검증에서 **내 지적 일부가 오판이었음**을 확인하고 범위를 조정했다.
+
+### 8-1. Google AI Overview 표기 정정 (git `4fb52e8`)
+- **반증으로 정정한 것**: "결과 화면이 일반 검색 노출을 AI Overview로 보여준다"는 지적은 `AIDiagnosisCard`에는 해당 없음(이미 `in_ai_overview`와 `mentioned`를 구분·주석까지 있음). 해당한 곳은 `PlatformDistributionChart`(일반 검색 언급을 "Google AI Overview 노출됨"으로 표시)와 `DashboardDetailZone`이었다.
+- **확정 근거**: Serper에 12개 질의(한/영, 정보성·지역성 — "how to lose weight" 포함)를 직접 보냈으나 `aiOverview`·`answerBox`·`knowledgeGraph` 모두 0건(응답 키는 credits·organic·searchParameters뿐). 저장된 스캔 301건도 `in_ai_overview` TRUE 0건. "구글이 안 보여준 것인지 Serper가 못 잡는 것인지"는 분리 불가하지만, 어느 쪽이든 **현재 파이프라인으로는 AI Overview 노출을 확인할 수 없다**. PDF 리포트는 이미 "서버 환경상 직접 측정이 어려운 상태"라 적고 있어 FAQ("안정적으로 측정")와 모순이었다.
+- **잠복 버그**: `DashboardDetailZone`이 `!!(g.in_ai_overview ?? g.mentioned)`를 넘겼는데 `in_ai_overview`가 항상 `false`(null 아님)라 `??`가 검색 노출을 무시 → "Google AI Overview 노출: 현재 미노출"이 항상 고정. `!!g.mentioned`로 수정.
+- **수정 범위(측정 주장·오표시만)**: 결과 표시 라벨 "Google AI Overview"→"Google 검색"(차트·결과표·진행바·블로그 인용·듀얼트랙 라벨·PDF·백엔드 플랫폼 라벨), FAQ/점수 가이드/데모/체험/메타데이터의 "실측·직접 확인" 문구를 "Google 검색 결과에 내 가게가 나오는지 확인, 검색 상단 AI 요약 영역은 현재 측정 API가 결과를 제공하지 않아 확인하지 못함"으로 교체. `report.py`의 `"구글 AI Overview"` 문자열은 라벨 목록과 조건문이 결합돼 있어 3곳 동시 치환(2060 조건 포함).
+- **의도적으로 남긴 것**: AI Overview를 *개념*으로 설명하는 how-it-works·가이드 프롬프트·개선 안내(구글 비즈니스 프로필 등록 등), 점수 산식 `calc_google_presence`(mentioned OR in_ai_overview — Track2 "구글 존재감" 20%는 검색 노출 기반으로 유지, 산식 변경은 점수 이력에 영향이라 보류). 점수 가중치 표기의 "Google AI Overview" 주석은 라벨과 어긋나지만 산식 변경 없이 주석만 바꾸면 오해 소지가 있어 그대로 둠.
+
+### 8-2. 유료 스캔 ChatGPT 비유도형 전환
+- **근거(실측)**: 최근 스캔의 ChatGPT 노출이 실사업장 3곳에서 **43/100·20/100·95/100**(95/100은 소규모 작곡 교습소), 인용문은 "전문 강사진과 체계적인 커리큘럼" 같은 지어낸 홍보 문구 — 가게명을 프롬프트에 넣는 유도형의 환각. 같은 가게를 비유도형 `sample_recommend`(질의 5개 분배, 30회)로 재측정하면 **0/30**, 가짜 가게도 0/30(일관).
+- **변경**: `sample_recommend`가 질의 list 수용(균등 분배, sample_n과 동일)·질의 없으면 측정 안 함(`no_query`, 0회 노출로 오집계 금지)·인용 문자열 "AI 추천 목록 — 1. … · 2. …". `scan_all`·`scan_basic`이 `sample_recommend` 사용, `sample_5`/`sample_50`/`sample_100`도 위임(수동 Quick 스캔·SSE 스캔 포함 — 이걸 안 바꾸면 수동 스캔만 5/5로 부풀어 자동 스캔과 어긋남). 유도형 `sample_n`은 남아 있으나 호출처 없음. 결과 키(`mentioned`·`exposure_freq`·`sample_size`·`confidence`·`citations`)는 호환 — 소비처 13파일 45곳은 이 키만 읽음(저장 로직 `jobs.py` ai_citations 삽입부 직접 확인).
+- **영향**: 기존 사업장의 다음 스캔부터 ChatGPT 노출이 0 근처로 내려가고 `ai_citations` 인용문이 추천 목록으로 바뀜. 서비스 오픈 전(실사용자 0)이라 이력 단절 부담 없어 "측정 방식 변경" 안내 UI는 추가하지 않음 — **실사용자가 생긴 뒤 방식을 또 바꾼다면 안내 필요**. Track2 `multi_ai_exposure`(30%) 값이 내려가 통합 점수가 함께 내려갈 수 있고, 점수 하락 알림(SCORE_01, 3점 이상 변화)이 테스트 계정에서 발송될 수 있음(전화번호 미설정 계정은 발송 안 됨).
+- **회귀 테스트**: `backend/tests/test_chatgpt_recommend_probe.py` 7개(질의 분배·질의에 가게명 미포함·언급 집계·질의 없음·실패 분모 제외·위임 확인·이름 매칭).
+- **남은 것**: Gemini는 여전히 유도형 `sample_n` + 무료 티어 한도 — 결제 연결(사용자 작업) 후 비유도형 전환을 함께 진행할 것.

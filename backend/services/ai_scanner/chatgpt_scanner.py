@@ -240,13 +240,31 @@ class ChatGPTScanner:
                     return {"places": [], "_measured": False, "_error": str(e)[:80]}
         return {"places": [], "_measured": False, "_error": "unknown"}
 
-    async def sample_recommend(self, query: str, target: str, n: int = 50) -> dict:
+    async def sample_recommend(self, queries: "str | list[str]", target: str, n: int = 50) -> dict:
         """비유도형 n회 추천 샘플링 — 내 가게 자발적 언급 빈도 + AI가 추천한 가게 상위 목록.
+
+        queries가 list이면 sample_n()과 같이 n회를 질의별로 균등 분배한다(유료 스캔은 질의 변형 여러 개 사용).
 
         반환은 sample_n()과 키 호환(exposure_freq·sample_size·confidence·citations·queries_used)에
         avg_rank(언급됐을 때 평균 추천 순서), top_places(추천 빈도 상위 가게)를 더한다.
         실패 샘플은 분모에서 제외한다(_measured=False → 측정 안 됨, "언급 안 됨"으로 오집계 금지).
         """
+        query_list = [queries] if isinstance(queries, str) else [q for q in (queries or []) if q]
+        query_list = [q for q in query_list if q and q.strip()]
+        if not query_list:
+            # 질의가 없으면 측정하지 않는다 — 빈 질의로 물어 "0회 노출"로 오집계하지 않음
+            return {
+                "platform": "chatgpt", "probe": "recommend_v1", "mentioned": False, "exposure_freq": 0,
+                "exposure_rate": 0.0, "citations": [], "confidence": self._wilson_ci(0, 0),
+                "sample_size": 0, "requested_size": n, "failed_count": n, "queries_used": [],
+                "avg_rank": None, "top_places": [], "error": "no_query",
+            }
+        q_count = len(query_list)
+        base, rem = divmod(n, q_count)
+        task_queries: list[str] = []
+        for i, q in enumerate(query_list):
+            task_queries.extend([q] * (base + (1 if i < rem else 0)))
+
         target_norm = self._norm_name(target)
         mention_count = 0
         success_count = 0
@@ -256,9 +274,9 @@ class ChatGPTScanner:
         display: dict[str, dict[str, int]] = {}
 
         for batch_start in range(0, n, 10):
-            batch = min(10, n - batch_start)
+            batch_queries = task_queries[batch_start:batch_start + 10]
             results = await asyncio.gather(
-                *[self._recommend_once(query) for _ in range(batch)], return_exceptions=True
+                *[self._recommend_once(q) for q in batch_queries], return_exceptions=True
             )
             for r in results:
                 if isinstance(r, Exception) or not r.get("_measured", True):
@@ -279,7 +297,7 @@ class ChatGPTScanner:
                     mention_count += 1
                     ranks.append(hit_idx + 1)
                     if len(citations) < 3:
-                        citations.append(" · ".join(places))
+                        citations.append("AI 추천 목록 — " + " · ".join(f"{i + 1}. {p}" for i, p in enumerate(places)))
             await asyncio.sleep(1.0)
 
         top_places = []
@@ -298,26 +316,27 @@ class ChatGPTScanner:
             "sample_size": success_count,
             "requested_size": n,
             "failed_count": n - success_count,
-            "queries_used": [query],
+            "queries_used": query_list,
             "avg_rank": round(sum(ranks) / len(ranks), 1) if ranks else None,
             "top_places": top_places,
         }
 
     async def sample_100(self, queries: "str | list[str]", target: str) -> dict:
-        """100회 샘플링 — Full 스캔 하위 호환 wrapper."""
-        return await self.sample_n(queries, target, n=100)
+        """100회 샘플링 — Full 스캔 하위 호환 wrapper. 비유도형 추천 프로브로 위임(2026-09-28)."""
+        return await self.sample_recommend(queries, target, n=100)
 
     async def sample_50(self, queries: "str | list[str]", target: str) -> dict:
-        """50회 샘플링 — Basic 자동 스캔 A안 50/50 분할 전용."""
-        return await self.sample_n(queries, target, n=50)
+        """50회 샘플링 — Basic 자동 스캔 A안 50/50 분할 전용. 비유도형 추천 프로브로 위임(2026-09-28)."""
+        return await self.sample_recommend(queries, target, n=50)
 
     async def sample_5(self, query: str, target: str) -> dict:
         """5회 샘플링 — Quick 수동 스캔 전용 (1회 → 5회 격상으로 변동성 1/√5 감소).
 
         비용: gpt-4.1-mini 5회 ≈ 2.5원/회 (1회 ~0.5원 대비 +2원)
         응답 시간: 5회 병렬 호출이라 1회와 거의 동일 (~2~3초).
+        2026-09-28: 유도형 sample_n → 비유도형 sample_recommend로 위임(유료 자동 스캔과 측정 방식 통일).
         """
-        return await self.sample_n(query, target, n=5)
+        return await self.sample_recommend(query, target, n=5)
 
     async def sample_10(self, query: str, target: str) -> dict:
         """10회 샘플링 — Trial/Quick scan 전용 (비용 ~5원/회)"""
