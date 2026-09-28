@@ -549,43 +549,15 @@ _TRIAL_COMP_SKIP_NAME_FRAGMENTS = {
 }
 
 
-async def _verified_blog_count(name: str, prefix: str) -> Optional[dict]:
-    """가게 이름이 제목·요약에 실제로 나온 블로그 글 수 (네이버 블로그 검색 상위 100건 기준).
+async def _verified_blog_count(name: str, region: str) -> Optional[dict]:
+    """가게 이름이 제목·요약에 실제로 나오고 **지역이 확인되는** 블로그 글 수 (상위 100건 기준).
 
-    네이버 블로그 검색 API의 total은 따옴표를 무시하고 단어를 따로 매칭해, 이름이 "안민 중동"·"하라식당"처럼
-    흔한 단어로 이뤄지면 가게와 무관한 글(민원발급기·병원 목록 등)까지 합산된다(실측: "안민 중동" total 2,336건이지만
-    상위 100건 중 이름이 나온 글은 1건, "하라식당 본점" total 37건 중 3건). 그래서 상위 100건을 받아
-    (지점 접미사를 뗀 이름 포함) 정규화한 이름이 제목·요약에 실제 포함된 글만 센다.
-    본문에만 이름이 나오는 글은 빠지므로 **하한값**이며, 내 가게·경쟁 가게에 같은 방식을 적용해 공정 비교한다.
-    조회 실패는 None(0으로 오판 금지).
+    검증 방식·근거·한계는 `services/blog_mention_verifier.py` 참조(네이버 블로그 API total은 따옴표를 무시해 무관한 글이
+    섞이고, 같은 이름·같은 동네 이름의 다른 지역 글도 섞인다). 조회 실패는 None(0으로 오판 금지).
     """
-    import re as _re
     from services.naver_visibility import _get as _naver_get
-
-    def _norm(t: str) -> str:
-        return _re.sub(r"[\s\-_·.,()\[\]\"']+", "", t or "").lower()
-
-    def _strip(t: str) -> str:
-        return _re.sub(r"<[^>]+>", "", t or "")
-
-    name = (name or "").strip()
-    if not name:
-        return None
-    core = _re.sub(r"\s*(본점|직영점|[가-힣0-9]{1,6}점)$", "", name).strip()
-    variants = {v for v in (_norm(name), _norm(core)) if len(v) >= 2}
-    if not variants:
-        return None
-    q = f"{prefix} {name}".strip() if prefix else name
-    d = await _naver_get("blog", {"query": q, "display": 100, "sort": "sim"})
-    if not isinstance(d, dict) or d.get("total") is None:
-        return None
-    items = d.get("items") or []
-    hits = 0
-    for it in items:
-        txt = _norm(_strip(it.get("title", "")) + _strip(it.get("description", "")))
-        if any(v in txt for v in variants):
-            hits += 1
-    return {"count": hits, "sampled": len(items), "api_total": int(d.get("total") or 0)}
+    from services.blog_mention_verifier import fetch_verified_blog
+    return await fetch_verified_blog(name, region or "", _naver_get)
 
 
 async def _competitor_blog_counts(competitors: list, business_name: str, region: str, limit: int = 5) -> list:
@@ -620,10 +592,11 @@ async def _competitor_blog_counts(competitors: list, business_name: str, region:
             break
 
     async def _one(c: dict):
-        v = await _verified_blog_count(c["name"], prefix)
+        v = await _verified_blog_count(c["name"], region)
         if v is None:
             return None
-        return {"rank": c.get("rank"), "name": c["name"], "count": v["count"], "sampled": v["sampled"], "api_total": v["api_total"]}
+        return {"rank": c.get("rank"), "name": c["name"], "count": v["count"], "sampled": v["sampled"],
+                "api_total": v["api_total"], "region_excluded": v.get("region_excluded"), "capped": v.get("capped")}
 
     res = await asyncio.gather(*[_one(c) for c in picked], return_exceptions=True)
     return [r for r in res if isinstance(r, dict)]
@@ -850,11 +823,10 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         # 경쟁 가게별 블로그 건수 (막대 차트용) — 실패해도 체험 본 응답에는 영향 없음
         try:
             if isinstance(naver_data, dict) and naver_data.get("naver_competitors"):
-                from services.naver_visibility import _build_region_prefix as _brp
                 _ccounts, _my_blog_v = await asyncio.wait_for(
                     asyncio.gather(
                         _competitor_blog_counts(naver_data["naver_competitors"], req.business_name, req.region or ""),
-                        _verified_blog_count(req.business_name, _brp(req.region or "")),
+                        _verified_blog_count(req.business_name, req.region or ""),
                     ),
                     timeout=12.0,
                 )

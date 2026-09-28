@@ -700,7 +700,7 @@ export default function TrialResultStep(props: TrialResultProps) {
   if (blogCount > 0) {
     passedItems.push({
       title: "블로그에 가게가 언급된 글이 있습니다",
-      desc: `네이버 블로그 검색 상위 100건 중 제목·요약에 가게 이름이 나온 글 ${blogCount.toLocaleString()}건입니다(본문에만 나오는 글은 빠집니다).`,
+      desc: `네이버 블로그 검색 상위 100건 중 제목·요약에 가게 이름이 나오고 우리 동네 글로 확인된 글 ${blogCount.toLocaleString()}건입니다(본문에만 나오는 글은 빠집니다).`,
     });
   }
   if (isSmartPlace) {
@@ -1022,7 +1022,7 @@ export default function TrialResultStep(props: TrialResultProps) {
                 <div className="flex gap-2">
                   <span className="shrink-0">·</span>
                   <p className="break-keep">
-                    블로그 {blogCount.toLocaleString()}건 = 네이버 블로그 검색 상위 100건 중 제목·요약에 가게 이름이 나온 글 수
+                    블로그 {blogCount.toLocaleString()}건 = 네이버 블로그 검색 상위 100건 중 제목·요약에 가게 이름이 나오고 우리 동네 글로 확인된 글 수
                   </p>
                 </div>
               )}

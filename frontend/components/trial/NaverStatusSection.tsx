@@ -468,7 +468,7 @@ export default function NaverStatusSection({
               블로그 언급 격차
             </p>
             <p className="text-sm text-slate-600 mt-0.5">
-              네이버 블로그 검색 상위 100건 중 <strong className="text-slate-700">제목·요약에 가게 이름이 실제로 나온 글</strong> 수입니다. 본문에만 이름이 나오는 글은 빠지므로 실제보다 적게 잡힐 수 있고, 내 가게와 경쟁 가게에 같은 방식을 적용했습니다.
+              네이버 블로그 검색 상위 100건 중 <strong className="text-slate-700">제목·요약에 가게 이름이 실제로 나온 글</strong> 수입니다. 같은 이름의 다른 지역 글은 뺐고, 본문에만 이름이 나오는 글은 빠져 실제보다 적게 잡힐 수 있습니다. 내 가게와 경쟁 가게에 같은 방식을 적용했습니다.
               <span className="block text-xs text-slate-500 mt-1">
                 ※ 스마트플레이스 &#39;블로그 리뷰&#39; 탭(방문자가 직접 등록한 리뷰)과 측정 방식이 달라 숫자가 다를 수 있습니다.
               </span>
