@@ -18,6 +18,9 @@ import KakaoShareButton from "@/components/common/KakaoShareButton";
 import TextShareButton from "@/components/trial/TextShareButton";
 import {
   ResultTabs,
+  TrialVerdictCard,
+  CollapsibleSection,
+  type VerdictBullet,
   PriorityFixCard,
   DirectCheckCard,
   NextWeekBand,
@@ -432,8 +435,13 @@ export default function TrialResultStep(props: TrialResultProps) {
   const [dismissedKws, setDismissedKws] = useState<string[]>([]);
   const [tab, setTab] = useState<TrialTabKey>("glance");
   // "오늘 할 일 보기 ↓" 등 #today-action 링크·버튼 → 할 일 탭으로 전환 후 해당 위치로 스크롤
+  // 탭 전환 계측 — 어떤 구역까지 보는지 알아야 다음 개선의 근거가 생긴다(2026-09-28)
+  const changeTab = (k: TrialTabKey) => {
+    setTab(k);
+    trackEvent("trial_tab_view", { tab: k, trial_id: (result as { trial_id?: string }).trial_id });
+  };
   const goPlan = () => {
-    setTab("plan");
+    changeTab("plan");
     window.setTimeout(() => {
       document.getElementById("today-action")?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 60);
@@ -714,6 +722,73 @@ export default function TrialResultStep(props: TrialResultProps) {
   const chatgptConfidence =
     (chatgptResult as { confidence?: { lower: number; upper: number } } | undefined)?.confidence;
 
+  // ── 첫 화면 한 줄 진단 (2026-09-28) — 실측·입력에서 계산한 문장만, 더미 없음 ──
+  const _freq = chatgptResult?.exposure_freq;
+  const verifiedPlaces = aiPlaces.filter((p) => p.on_naver === "exact" || p.on_naver === "similar").slice(0, 3);
+  const aiWeak =
+    chatgptMentioned !== undefined &&
+    (!chatgptMentioned || (_freq !== undefined && chatgptSampleSize > 0 && _freq / chatgptSampleSize < 0.3));
+  const _kr =
+    (result as { keyword_ranks?: Array<{ query: string; rank: number | null; exposed: boolean }> }).keyword_ranks ?? [];
+  const bestNaverRank: number | null =
+    naver?.my_rank ??
+    (_kr.map((k) => k.rank).filter((r): r is number => typeof r === "number").sort((a, b) => a - b)[0] ?? null);
+  const naverMeasured = !!naver && (result as { business_type?: string }).business_type !== "non_location";
+  const naverWeak = naverMeasured && bestNaverRank === null;
+  const verdictHeadline =
+    chatgptMentioned === undefined && !naverMeasured
+      ? "지금 확인된 실측 결과가 부족합니다"
+      : aiWeak && naverWeak
+        ? "지금은 손님이 검색해도 내 가게가 잘 보이지 않습니다"
+        : aiWeak && naverMeasured
+          ? "네이버 검색에서는 보이지만 AI(ChatGPT)에서는 아직 잘 보이지 않습니다"
+          : naverWeak && chatgptMentioned !== undefined
+            ? "ChatGPT에는 나오지만 네이버 검색에서는 아직 보이지 않습니다"
+            : aiWeak
+              ? "AI(ChatGPT)에서는 아직 잘 보이지 않습니다"
+              : naverWeak
+                ? "네이버 검색에서는 아직 보이지 않습니다"
+                : "검색에서 내 가게가 보이고 있습니다 — 유지·강화할 점을 확인하세요";
+  const verdictBullets: VerdictBullet[] = [];
+  const _vq = chatgptDisplayQueries[0] ?? "";
+  const _vname = form.business_name || "내 가게";
+  if (chatgptMentioned !== undefined) {
+    const base =
+      chatgptMentioned && _freq
+        ? `ChatGPT에 “${_vq}”라고 ${chatgptSampleSize}회 물었을 때, 내 가게(“${_vname}”)는 추천 목록에 ${_freq}회 나왔습니다.`
+        : `ChatGPT에 “${_vq}”라고 ${chatgptSampleSize}회 물었을 때, 내 가게(“${_vname}”)는 추천 목록에 나오지 않았습니다.`;
+    // "자주"라고 단정하지 않는다 — 추천 횟수는 작을 수 있어, 네이버에서 실제 확인된 곳만 이름으로 안내
+    const more =
+      verifiedPlaces.length > 0
+        ? ` 추천된 가게 중 네이버에서 확인된 곳: ${verifiedPlaces.map((p) => p.name).join(" · ")}.`
+        : "";
+    verdictBullets.push({ label: "AI 검색", text: base + more, tone: aiWeak ? "warn" : "ok" });
+  }
+  if (naverMeasured) {
+    verdictBullets.push({
+      label: "네이버 검색",
+      text: bestNaverRank
+        ? `내 가게는 네이버 지역검색 ${bestNaverRank}위입니다.`
+        : `${_kr.length > 1 ? `${_kr.length}개 검색어` : "검색"}에서 내 가게가 네이버 지역검색 상위 결과에 나오지 않았습니다.`,
+      tone: naverWeak ? "warn" : "ok",
+    });
+    const _topName = (naver as { top_competitor_name?: string | null } | null)?.top_competitor_name;
+    const _topCnt = (naver as { top_competitor_blog_count?: number } | null)?.top_competitor_blog_count;
+    if (blogCount > 0) {
+      if (_topName && typeof _topCnt === "number" && _topCnt > 0) {
+        verdictBullets.push({
+          label: "블로그",
+          text: `내 가게 ${blogCount.toLocaleString()}건 · 1위 경쟁사(${_topName}) ${_topCnt.toLocaleString()}건 — ${
+            _topCnt > blogCount ? `${(_topCnt - blogCount).toLocaleString()}건 적습니다.` : "내 가게가 더 많습니다."
+          }`,
+          tone: _topCnt > blogCount ? "warn" : "ok",
+        });
+      } else {
+        verdictBullets.push({ label: "블로그", text: `네이버 블로그 언급 ${blogCount.toLocaleString()}건입니다.`, tone: "neutral" });
+      }
+    }
+  }
+
   // 결과 화면 마운트 시 최상단으로 스크롤 (스캔 진행 중 아래로 스크롤된 상태 초기화)
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -876,6 +951,16 @@ export default function TrialResultStep(props: TrialResultProps) {
           <BriefingCategoryBadge category={briefingCategory} />
         )}
 
+        {/* ── 첫 화면: 한 줄 진단 + 먼저 고칠 것 3가지 (5초 안에 "그래서 지금 어떤가/무엇부터"에 답한다) ── */}
+        <TrialVerdictCard headline={verdictHeadline} bullets={verdictBullets} />
+        <PriorityFixCard
+          items={priorityItems}
+          onMore={() => {
+            trackEvent("trial_priority_more_click", { trial_id: (result as { trial_id?: string }).trial_id });
+            goPlan();
+          }}
+        />
+
         {/* ── 채널별 즉시 현황 바 ── */}
         <ScanStatusBar
           chatgptMentioned={chatgptMentioned}
@@ -888,30 +973,9 @@ export default function TrialResultStep(props: TrialResultProps) {
           isSmartPlace={isSmartPlace}
         />
 
-        {/* ── 1. 종합 결론 — 대시보드 HeroCard 구조 복제 (성장단계+네이버 3채널 그리드+실측근거+오늘할일) ── */}
-        <div className="mb-4">
-          <ResultSummaryHero
-            stageScore={track1}
-            inactive={briefingCategory === "inactive"}
-            isFranchise={isFranchise}
-            evidenceText={heroEvidence}
-            tiles={heroTiles}
-            todayAction={
-            effectiveMissingKws.length > 0
-              ? `소개글에 '${effectiveMissingKws[0]}' 관련 내 가게의 실제 특징 추가 (↓ 아래 확인)`
-              : !isSmartPlace
-              ? "스마트플레이스 등록하기 — 네이버 검색 노출 시작"
-              : gs?.this_week_action
-          }
-            todayActionLink="#today-action"
-          />
-        </div>
-
-        {/* ── 먼저 고칠 것 3가지 ── */}
-        <PriorityFixCard items={priorityItems} onMore={goPlan} />
 
         {/* ── 결과 구역 탭 (한눈에 / 경쟁 비교 / 네이버 현황 / AI 검색 / 할 일·로드맵) ── */}
-        <ResultTabs active={tab} onChange={setTab} />
+        <ResultTabs active={tab} onChange={changeTab} />
 
         {/* ── 한눈에 ── */}
         <div role="tabpanel" id="trial-panel-glance" aria-labelledby="trial-tab-glance" className={tab === "glance" ? "" : "hidden"}>
@@ -980,9 +1044,20 @@ export default function TrialResultStep(props: TrialResultProps) {
             chatgptQuery={directChatgptQuery}
             naverQuery={directNaverQuery}
             googleQuery={directGoogleQuery}
+            onAction={(channel, action) =>
+              trackEvent("trial_direct_check", { channel, action, trial_id: (result as { trial_id?: string }).trial_id })
+            }
           />
 
-          {!isLoggedIn && <NextWeekBand nextScanDate={nextScanDate} onSave={onSaveTrialData} />}
+          {!isLoggedIn && (
+            <NextWeekBand
+              nextScanDate={nextScanDate}
+              onSave={() => {
+                onSaveTrialData();
+                trackEvent("trial_signup_cta_click", { location: "next_week_band" });
+              }}
+            />
+          )}
         </div>
 
         {/* ── 경쟁 비교 ── */}
@@ -1033,6 +1108,24 @@ export default function TrialResultStep(props: TrialResultProps) {
 
         {/* ── 네이버 현황 ── */}
         <div role="tabpanel" id="trial-panel-naver" aria-labelledby="trial-tab-naver" className={tab === "naver" ? "" : "hidden"}>
+          {/* ── 네이버 현황 요약(성장단계+네이버 3채널 그리드+오늘할일) — 첫 화면 한 줄 진단과 겹쳐 이 탭으로 이동(2026-09-28) ── */}
+          <div className="mb-4">
+            <ResultSummaryHero
+              stageScore={track1}
+              inactive={briefingCategory === "inactive"}
+              isFranchise={isFranchise}
+              evidenceText={heroEvidence}
+              tiles={heroTiles}
+              todayAction={
+              effectiveMissingKws.length > 0
+                ? `소개글에 '${effectiveMissingKws[0]}' 관련 내 가게의 실제 특징 추가 (↓ 아래 확인)`
+                : !isSmartPlace
+                ? "스마트플레이스 등록하기 — 네이버 검색 노출 시작"
+                : gs?.this_week_action
+            }
+              todayActionLink="#today-action"
+            />
+          </div>
           {/* ── 네이버 현황 ── */}
           {(result as { business_type?: string }).business_type !== "non_location" && (
             <NaverStatusSection
@@ -1175,12 +1268,9 @@ export default function TrialResultStep(props: TrialResultProps) {
             trialId={result.trial_id as string | undefined}
           />
           <RoadmapCard />
+          {/* 구독 행동 기능(잠금)은 "할 일" 맥락의 탭에만 둔다 — 모든 탭 하단에 반복돼 길이만 늘리던 것을 이동 */}
+          {!isLoggedIn && <ActionFeaturesLock onSave={onSaveTrialData} />}
         </div>
-
-        {/* ── 구독 행동 기능 (잠금) ── */}
-        {!isLoggedIn && (
-          <ActionFeaturesLock onSave={onSaveTrialData} />
-        )}
 
         {/* ── 15. 공유 버튼 ──────────────────────────────────────── */}
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 md:p-5 mb-4">
@@ -1207,9 +1297,16 @@ export default function TrialResultStep(props: TrialResultProps) {
           </div>
         </div>
 
-        {/* ── 16. 다음 측정일 + 구독 가치 비교 ──────────────────── */}
-        <NextScanDateNote nextScanDate={nextScanDate} isLoggedIn={isLoggedIn} />
-        <SubscriptionValueCompare isLoggedIn={isLoggedIn} onSave={onSaveTrialData} />
+        {/* ── 16. 구독 가치 비교 (접이식 — 다음 측정일은 '한눈에' 탭의 전환 블록이 이미 보여 줌) ── */}
+        <CollapsibleSection
+          title="체험과 구독, 무엇이 다른가요"
+          summary="체험은 오늘의 사진 1장, 구독은 매주 변화를 추적합니다"
+          onToggle={(open) =>
+            trackEvent("trial_sub_compare_toggle", { open, trial_id: (result as { trial_id?: string }).trial_id })
+          }
+        >
+          <SubscriptionValueCompare isLoggedIn={isLoggedIn} onSave={onSaveTrialData} />
+        </CollapsibleSection>
 
         {/* ── 17. 재진단 버튼 ────────────────────────────────────── */}
         <div className="mt-2">

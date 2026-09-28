@@ -9,8 +9,93 @@
  *  - 추정은 "(추정)" 라벨, 사용자 응답은 측정값이 아님을 구분
  */
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import Link from "next/link";
 import { Lock, Copy, ExternalLink, ChevronDown, ChevronUp, Check } from "lucide-react";
+
+// ── 첫 화면 한 줄 진단 (2026-09-28) ─────────────────────────────────────
+// 5초 안에 "그래서 내 가게는 지금 어떤가"를 답한다 — 전부 실측·입력에서 계산한 문장만 (더미 없음)
+export interface VerdictBullet {
+  label: string;
+  text: string;
+  tone: "warn" | "ok" | "neutral";
+}
+
+export function TrialVerdictCard({
+  headline,
+  bullets,
+}: {
+  headline: string;
+  bullets: VerdictBullet[];
+}) {
+  const toneCls: Record<VerdictBullet["tone"], string> = {
+    warn: "bg-amber-50 border-amber-200",
+    ok: "bg-green-50 border-green-200",
+    neutral: "bg-slate-50 border-slate-200",
+  };
+  const dotCls: Record<VerdictBullet["tone"], string> = {
+    warn: "bg-amber-500",
+    ok: "bg-green-600",
+    neutral: "bg-slate-400",
+  };
+  return (
+    <div className="rounded-xl border-2 border-slate-800 bg-white px-4 py-4 md:px-6 md:py-5 mb-4 shadow-sm">
+      <p className="text-sm font-bold text-slate-600 mb-1">한 줄 진단</p>
+      <p className="text-xl md:text-2xl font-extrabold text-slate-900 leading-snug break-keep mb-3">{headline}</p>
+      <ul className="space-y-2">
+        {bullets.map((b) => (
+          <li key={b.label} className={`flex items-start gap-2.5 rounded-lg border px-3 py-2.5 ${toneCls[b.tone]}`}>
+            <span className={`mt-1.5 w-2.5 h-2.5 shrink-0 rounded-full ${dotCls[b.tone]}`} aria-hidden="true" />
+            <p className="text-sm md:text-base text-slate-800 leading-snug break-keep">
+              <span className="font-bold">{b.label}</span> {b.text}
+            </p>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-sm text-slate-600 leading-snug">
+        측정 시점·기기·로그인 상태에 따라 결과가 달라질 수 있습니다.
+      </p>
+    </div>
+  );
+}
+
+// ── 접이식 구역 (하단 공통 블록 길이 축소용) ─────────────────────────────
+export function CollapsibleSection({
+  title,
+  summary,
+  children,
+  onToggle,
+}: {
+  title: string;
+  summary?: string;
+  children: ReactNode;
+  onToggle?: (open: boolean) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden mb-4 shadow-sm">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => {
+          setOpen((v) => !v);
+          onToggle?.(!open);
+        }}
+        className="w-full min-h-[56px] flex items-center justify-between gap-3 px-4 py-3 bg-slate-50 text-left"
+      >
+        <span className="min-w-0">
+          <span className="block text-base font-extrabold text-slate-900">{title}</span>
+          {summary && <span className="block text-sm text-slate-700 leading-snug break-keep">{summary}</span>}
+        </span>
+        <span className="inline-flex items-center gap-1 shrink-0 text-sm font-bold text-slate-700">
+          {open ? "접기" : "펼치기"}
+          {open ? <ChevronUp className="w-4 h-4" aria-hidden="true" /> : <ChevronDown className="w-4 h-4" aria-hidden="true" />}
+        </span>
+      </button>
+      {open && <div className="px-2 md:px-4 pt-3">{children}</div>}
+    </div>
+  );
+}
 
 // ── 탭 ─────────────────────────────────────────────────────────────────
 export type TrialTabKey = "glance" | "compete" | "naver" | "ai" | "plan";
@@ -146,10 +231,13 @@ export function DirectCheckCard({
   chatgptQuery,
   naverQuery,
   googleQuery,
+  onAction,
 }: {
   chatgptQuery: string;
   naverQuery: string;
   googleQuery: string;
+  /** 계측용 — channel: chatgpt|naver|google, action: copy|open */
+  onAction?: (channel: string, action: "copy" | "open") => void;
 }) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const rows = [
@@ -182,6 +270,7 @@ export function DirectCheckCard({
   if (rows.length === 0) return null;
 
   const onCopy = async (key: string, q: string) => {
+    onAction?.(key, "copy");
     const ok = await copyText(q);
     if (ok) {
       setCopiedKey(key);
@@ -223,6 +312,7 @@ export function DirectCheckCard({
                 href={r.href}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => onAction?.(r.key, "open")}
                 className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-700 text-white text-sm font-bold hover:bg-blue-800 transition-colors"
               >
                 {r.btn} <ExternalLink className="w-4 h-4" aria-hidden="true" />
@@ -266,13 +356,14 @@ export function NextWeekBand({
         </div>
       </div>
       <div className="flex flex-col gap-2">
-        <button
-          type="button"
+        {/* 가입 페이지로 실제 이동해야 한다(기존 CTA와 동일하게 Link) — onSave만 호출하던 버튼은 이동하지 않는 결함이었음 */}
+        <Link
+          href="/signup"
           onClick={onSave}
-          className="min-h-[52px] rounded-xl bg-blue-700 text-white text-base font-extrabold hover:bg-blue-800 transition-colors"
+          className="min-h-[52px] inline-flex items-center justify-center rounded-xl bg-blue-700 text-white text-base font-extrabold hover:bg-blue-800 transition-colors"
         >
           무료 가입하고 다음 결과 받기
-        </button>
+        </Link>
         <p className="text-sm text-slate-700 text-center">카드 등록 없이 시작할 수 있어요</p>
       </div>
     </div>

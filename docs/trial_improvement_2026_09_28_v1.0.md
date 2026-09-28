@@ -53,3 +53,16 @@
 - 서버 직접 호출: 저장(DB 행 확인), 표본 50/50, Gemini None, top_places·on_naver·competitor_blog_counts·keyword_volumes 반환
 - 라이브 브라우저(PC 1280 / 모바일 390): 탭 5개 전환·aria-selected·hidden 상태, 가로 넘침 0, 새 카드 렌더링, 캐시 주입 복원
 - 목업: https://claude.ai/artifact/89XTRvXcEafy382M7cw9Ck (PC·모바일·3단계 사다리)
+
+---
+
+## 6. 후속 개선 (같은 날 저녁) — 첫 화면 진단·길이 축소·계측
+
+솔직한 평가(첫 5초 설득력 5/10, 길이, 계측 부재)에 따른 3건. 서버 반영·라이브 검증 완료.
+
+1. **첫 화면 "한 줄 진단"** (`TrialVerdictCard`): 실측·입력에서 계산한 문장만 사용 — 헤드라인(AI/네이버 약함 여부 조합) + 불릿 3개(AI 검색: ChatGPT N회 중 M회·네이버에서 확인된 추천 가게 / 네이버 검색: 상위 결과 여부 / 블로그: 1위 경쟁사와 건수 차). 바로 아래에 "먼저 고칠 것 3가지". 추천 가게는 **네이버에서 확인된(exact/similar) 곳만** 이름으로 안내하고 "자주"라고 단정하지 않음
+2. **길이 축소**: 성장단계 히어로를 네이버 전용인 "네이버 현황" 탭으로 이동(한 줄 진단과 중복), 구독 기능 잠금은 "할 일" 탭에만, 다음 측정일 중복 제거, 체험 vs 구독 비교표 접이식. 모바일 탭별 약 13~25%↓ (한눈에 5,373→4,052px, PC 3,751→2,730px). 진단 카드가 추가된 뒤의 순감소
+3. **계측(GA4)**: `trial_tab_view`{tab}, `trial_priority_more_click`, `trial_direct_check`{channel, action=copy|open}, `trial_signup_cta_click`{location=next_week_band}, `trial_sub_compare_toggle`{open}. 기존 `trial_complete`·`trial_signup_cta_click`(sticky_banner/action_features_lock)과 함께 볼 것
+4. **결함 수정**: `NextWeekBand`의 "무료 가입하고 다음 결과 받기"가 `onSaveTrialData`만 호출하고 가입 페이지로 이동하지 않던 것을 `Link href="/signup"`으로 수정 (기존 CTA와 동일 패턴)
+
+남은 한계: 길이는 여전히 모바일 4,000~5,400px — 하단 공유·구독 비교 외에 탭 본문(키워드 그룹·항목별 분석 등)이 김. 사용자 반응(이탈·전환)은 계측 데이터가 쌓여야 판단 가능
