@@ -1067,6 +1067,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
                         track2_score=score.get("track2_score"),
                         growth_stage=score.get("growth_stage"),
                         smart_place_completeness=score.get("breakdown", {}).get("smart_place_completeness"),
+                        place_measured=bool(smart_place_check_data and not smart_place_check_data.get("error")),
                     )
                 except Exception as _e:
                     _logger.warning(f"trial 즉시 이메일 발송 실패: {_e}")
@@ -1377,13 +1378,52 @@ async def trial_save_email(trial_id: str, req: _TrialEmailRequest, request: Requ
         raise HTTPException(status_code=400, detail="이메일 형식이 올바르지 않습니다")
     try:
         supabase = get_client()
-        res = await execute(supabase.table("trial_scans").select("id").eq("id", trial_id).limit(1))
+        res = await execute(
+            supabase.table("trial_scans")
+            .select(
+                "id, email, business_name, category, region, total_score, unified_score, naver_rank, "
+                "blog_mentions, top_competitor_name, ai_mentioned, top_missing_keywords, has_recent_post, "
+                "has_intro, track1_score, track2_score, growth_stage, smart_place_completeness, smart_place_check"
+            )
+            .eq("id", trial_id)
+            .limit(1)
+        )
         if not (res and res.data):
             raise HTTPException(status_code=404, detail="체험 결과를 찾을 수 없습니다")
+        row = res.data[0]
+        first_email = not row.get("email")
         await execute(
             supabase.table("trial_scans").update({"email": req.email}).eq("id", trial_id)
         )
-        return {"ok": True}
+        # 결과 요약 메일은 체험당 최초 이메일 등록 때만 1회 발송 (엔드포인트 반복 호출로 임의 주소에 메일을 보내는 남용 차단)
+        sent = False
+        if first_email:
+            try:
+                from services.email_sender import send_trial_followup as _send_result_email
+                _spc = row.get("smart_place_check")
+                sent = await _send_result_email(
+                    email=req.email,
+                    business_name=row.get("business_name") or "",
+                    category=row.get("category") or "",
+                    region=row.get("region") or "",
+                    score=float(row.get("unified_score") or row.get("total_score") or 0),
+                    day=1,
+                    naver_rank=row.get("naver_rank"),
+                    blog_mentions=row.get("blog_mentions"),
+                    top_competitor_name=row.get("top_competitor_name"),
+                    ai_mentioned=row.get("ai_mentioned"),
+                    top_missing_keywords=row.get("top_missing_keywords") or [],
+                    has_recent_post=row.get("has_recent_post"),
+                    has_intro=row.get("has_intro"),
+                    track1_score=row.get("track1_score"),
+                    track2_score=row.get("track2_score"),
+                    growth_stage=row.get("growth_stage"),
+                    smart_place_completeness=row.get("smart_place_completeness"),
+                    place_measured=bool(isinstance(_spc, dict) and _spc and not _spc.get("error")),
+                )
+            except Exception as _e:
+                _logger.warning("trial_save_email 결과 메일 발송 실패 trial_id=%s: %s", trial_id, _e)
+        return {"ok": True, "sent": bool(sent)}
     except HTTPException:
         raise
     except Exception as e:

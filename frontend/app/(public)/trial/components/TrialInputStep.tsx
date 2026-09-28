@@ -1343,6 +1343,8 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                     ? "내 가게 찾는 중..."
                     : inlineSelectedCandidate
                       ? `${inlineSelectedCandidate.title} 진단 시작 →`
+                      : businessType === "location_based" && parseNaverPlaceUrl(placeUrl).status === "ok"
+                        ? "붙여넣은 주소의 가게로 진단 시작 →"
                       : businessType === "location_based" &&
                           !isStartupMode &&
                           !forceManualEntry &&

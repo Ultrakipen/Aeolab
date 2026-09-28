@@ -82,11 +82,17 @@ def _day1_html(
     growth_stage: str | None = None,
     blog_mentions: int | None = None,
     top_competitor_name: str | None = None,
+    place_measured: bool = False,
 ) -> tuple[str, str]:
     cat_ko = _CATEGORY_KO.get(category or "", "사업장")
     kw0 = (top_missing_keywords or [""])[0]
 
     # 우선순위 기반 1가지 행동 결정
+    # 소개글·소식 "없음" 단정은 스마트플레이스를 실제로 진단한 경우(place_measured)에만 한다.
+    # 체험 입력 화면은 미응답을 "없어요"로 처리하므로 미측정 값을 근거로 "AI가 설명하지 못합니다" 등을 단정하면 허위가 된다.
+    if not place_measured:
+        has_intro = None
+        has_recent_post = None
     if has_intro is False:
         action_title = "소개글 작성 (200자 이상)"
         action_desc = f"소개글이 없으면 AI가 '{business_name}'을 설명할 수 없습니다. 업종명·지역·대표 서비스를 포함해 작성하세요."
@@ -99,13 +105,13 @@ def _day1_html(
         btn_text = "스마트플레이스 소식 작성하기 →"
     elif kw0:
         action_title = f"소개글에 '{kw0}' 추가"
-        action_desc = f"경쟁 가게는 '{kw0}' 키워드를 쓰는데 내 가게 소개글에 없습니다. 자연스럽게 한 문장에 포함하세요."
-        subject = f"[{business_name}] 경쟁 가게가 쓰는 키워드 — 내 가게엔 없습니다"
+        action_desc = f"경쟁 가게가 쓰는 '{kw0}' 키워드를 소개글에 자연스럽게 한 문장으로 넣어 보세요. 실제로 제공하는 내용일 때만 쓰세요."
+        subject = f"[{business_name}] 경쟁 가게가 쓰는 키워드 — 소개글에 넣어 보세요"
         btn_text = "소개글에 키워드 추가하기 →"
     else:
         action_title = "최근 리뷰에 답글 달기"
         action_desc = "가게 특징이 담긴 답글은 AI가 내 가게를 인식하는 데 도움이 됩니다."
-        subject = f"[{business_name}] 스캔 다음 날 — 오늘 5분으로 할 수 있는 것"
+        subject = f"[{business_name}] 진단 결과 — 오늘 5분으로 할 수 있는 것"
         btn_text = "스마트플레이스 리뷰 관리하기 →"
 
     # 경쟁사 블로그 비교 (데이터 있을 때만)
@@ -123,7 +129,7 @@ def _day1_html(
 <div style="font-family: 'Apple SD Gothic Neo', Malgun Gothic, sans-serif; max-width:520px; margin:0 auto; padding:28px 20px; color:#1e293b;">
   <p style="font-size:12px; color:#94a3b8; margin:0 0 16px;">AEOlab · {business_name} · {cat_ko}</p>
 
-  <h1 style="font-size:18px; color:#1e293b; margin:0 0 20px; line-height:1.4; font-weight:700;">어제 스캔에서 발견한 것 — 오늘 5분이면 됩니다</h1>
+  <h1 style="font-size:18px; color:#1e293b; margin:0 0 20px; line-height:1.4; font-weight:700;">방금 진단에서 확인한 것 — 오늘 5분이면 됩니다</h1>
 
   <div style="background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:18px 20px; margin:0 0 20px;">
     <p style="font-size:12px; color:#166534; font-weight:700; margin:0 0 8px;">지금 가장 임팩트 큰 1가지</p>
@@ -330,6 +336,7 @@ async def send_trial_followup(
     track2_score: float | None = None,
     growth_stage: str | None = None,
     smart_place_completeness: float | None = None,
+    place_measured: bool = False,
 ) -> bool:
     """무료 체험 팔로업 이메일 발송 (aiohttp 기반 — resend SDK blocking 호출 대체).
 
@@ -361,6 +368,7 @@ async def send_trial_followup(
                 growth_stage=growth_stage,
                 blog_mentions=blog_mentions,
                 top_competitor_name=top_competitor_name,
+                place_measured=place_measured,
             )
         elif day == 3:
             subject, html = _day3_html(

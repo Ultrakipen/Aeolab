@@ -666,3 +666,116 @@ export function RoadmapCard() {
     </div>
   );
 }
+
+// ── 결과 요약 이메일 받기 (2026-09-28) ─────────────────────────────────────
+// 입력 화면에서 이메일을 안 적은 사용자가 결과를 보고 나서 "나중에 다시 보고 싶다"고 느낄 때의 유일한 보관 경로.
+// 개인정보 동의 필수. 서버가 저장에 성공했을 때만 완료로 표시한다(실패를 성공으로 보이지 않음).
+export function TrialEmailCard({
+  trialId,
+  onTrack,
+}: {
+  trialId: string;
+  onTrack?: (event: string, params?: Record<string, unknown>) => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [agree, setAgree] = useState(false);
+  const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [msg, setMsg] = useState("");
+  const [sent, setSent] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const v = email.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) {
+      setState("error");
+      setMsg("이메일 형식을 확인해 주세요.");
+      return;
+    }
+    if (!agree) {
+      setState("error");
+      setMsg("개인정보 수집·이용에 동의해 주세요.");
+      return;
+    }
+    setState("loading");
+    setMsg("");
+    try {
+      const res = await fetch(`/api/scan/trial/${trialId}/save-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: v }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      const data = (await res.json().catch(() => ({}))) as { sent?: boolean };
+      setSent(!!data.sent);
+      setState("done");
+      onTrack?.("trial_email_save", { sent: !!data.sent });
+    } catch {
+      setState("error");
+      setMsg("저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    }
+  };
+
+  if (state === "done") {
+    return (
+      <div className="rounded-xl border border-green-300 bg-green-50 px-4 md:px-6 py-4 mb-4" role="status">
+        <p className="text-base font-bold text-green-900">
+          {sent ? "결과 요약을 이메일로 보냈습니다" : "이메일을 저장했습니다"}
+        </p>
+        <p className="text-sm text-green-900 mt-1 break-keep">
+          {sent
+            ? "메일이 보이지 않으면 스팸함을 확인해 주세요."
+            : "결과 요약 메일 발송은 실패했을 수 있습니다. 이 화면의 결과는 24시간 동안 이 기기에 저장됩니다."}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="rounded-xl border border-slate-300 bg-white px-4 md:px-6 py-4 mb-4" noValidate>
+      <label htmlFor="trial-email-after" className="block text-base font-bold text-slate-900">
+        이 결과를 이메일로 받아 두기 <span className="text-sm font-normal text-slate-600">(선택)</span>
+      </label>
+      <p className="text-sm text-slate-700 mt-1 mb-3 break-keep">
+        오늘 할 수 있는 1가지를 정리해 한 번 보내 드립니다. 광고성 반복 발송은 하지 않습니다.
+      </p>
+      <div className="flex flex-col sm:flex-row gap-2">
+        <input
+          id="trial-email-after"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          placeholder="example@email.com"
+          value={email}
+          onChange={(ev) => setEmail(ev.target.value)}
+          className="flex-1 min-w-0 border border-slate-300 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+        <button
+          type="submit"
+          disabled={state === "loading"}
+          className="min-h-[48px] px-5 rounded-xl bg-slate-900 text-white text-base font-bold hover:bg-slate-800 disabled:opacity-60 transition-colors"
+        >
+          {state === "loading" ? "보내는 중..." : "메일 받기"}
+        </button>
+      </div>
+      <label className="flex items-start gap-2 cursor-pointer mt-3">
+        <input
+          type="checkbox"
+          checked={agree}
+          onChange={(ev) => setAgree(ev.target.checked)}
+          className="w-4 h-4 accent-blue-600 shrink-0 mt-0.5"
+        />
+        <span className="text-sm text-slate-700">
+          <span className="text-blue-700 font-semibold">[필수]</span> 이메일 주소를 결과 발송 목적으로 수집하는 데 동의합니다.{" "}
+          <Link href="/privacy" target="_blank" className="underline">
+            개인정보처리방침
+          </Link>
+        </span>
+      </label>
+      {state === "error" && msg && (
+        <p className="text-sm font-semibold text-red-700 mt-2" role="alert">
+          {msg}
+        </p>
+      )}
+    </form>
+  );
+}

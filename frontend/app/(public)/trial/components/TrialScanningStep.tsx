@@ -43,7 +43,7 @@ export default function TrialScanningStep({
           &ldquo;{[region, selectedTag].filter(Boolean).join(" ") || "이 업종"} 추천&rdquo;
         </span>
         을<br />
-        네이버·ChatGPT·Gemini AI에게 직접 물어보고 있습니다
+        네이버에서 검색하고 ChatGPT에게 50번 물어보고 있습니다
       </p>
       <p className="text-sm text-slate-400 mb-8">보통 20~40초 소요됩니다</p>
 

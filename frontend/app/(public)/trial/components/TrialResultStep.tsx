@@ -24,6 +24,7 @@ import {
   PriorityFixCard,
   DirectCheckCard,
   NextWeekBand,
+  TrialEmailCard,
   GeminiExampleCard,
   PassedItemsAccordion,
   AIRecommendedPlacesCard,
@@ -1056,6 +1057,13 @@ export default function TrialResultStep(props: TrialResultProps) {
                 onSaveTrialData();
                 trackEvent("trial_signup_cta_click", { location: "next_week_band" });
               }}
+            />
+          )}
+
+          {!isLoggedIn && !form.email && (result as { trial_id?: string }).trial_id && (
+            <TrialEmailCard
+              trialId={(result as { trial_id?: string }).trial_id as string}
+              onTrack={(ev, params) => trackEvent(ev, { ...params, trial_id: (result as { trial_id?: string }).trial_id })}
             />
           )}
         </div>
