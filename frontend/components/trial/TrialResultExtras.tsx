@@ -495,6 +495,24 @@ export interface AiPlace {
   on_naver?: "exact" | "similar" | "none" | null;
 }
 
+function PlaceRow({ p, i, sampleSize }: { p: AiPlace; i: number; sampleSize: number }) {
+  return (
+    <li className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2.5">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <span className="w-7 h-7 shrink-0 rounded-full bg-slate-200 text-slate-800 text-sm font-extrabold flex items-center justify-center">
+          {i + 1}
+        </span>
+        <span className="text-sm md:text-base font-bold text-slate-900 break-keep">{p.name}</span>
+      </div>
+      <div className="flex flex-col items-end shrink-0">
+        <span className="text-sm font-bold text-slate-800">{sampleSize}회 중 {p.count}회</span>
+        {p.on_naver === "exact" && <span className="text-sm text-green-800">네이버에서 확인됨</span>}
+        {p.on_naver === "similar" && <span className="text-sm text-slate-700">비슷한 이름의 가게가 네이버에 있음</span>}
+      </div>
+    </li>
+  );
+}
+
 export function AIRecommendedPlacesCard({
   businessName,
   sampleSize,
@@ -510,6 +528,9 @@ export function AIRecommendedPlacesCard({
 }) {
   if (!places || places.length === 0) return null;
   const mentioned = exposureFreq > 0;
+  // 네이버 지역검색에서 확인된(정확/유사) 가게만 순위로 보여준다. 확인 안 된 이름은 AI가 지어냈을 수 있어 접어 둔다.
+  const confirmed = places.filter((p) => p.on_naver === "exact" || p.on_naver === "similar");
+  const unconfirmed = places.filter((p) => p.on_naver !== "exact" && p.on_naver !== "similar");
   return (
     <div className="rounded-xl border border-slate-200 bg-white px-4 py-4 mb-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
@@ -521,28 +542,37 @@ export function AIRecommendedPlacesCard({
       <p className="text-sm text-slate-700 leading-relaxed mb-3 break-keep">
         내 가게 이름을 알려 주지 않고 “추천해 주세요”라고 물었을 때 ChatGPT가 자주 꺼낸 가게입니다.
       </p>
-      <ol className="space-y-2 mb-3">
-        {places.map((p, i) => (
-          <li key={p.name} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2.5">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="w-7 h-7 shrink-0 rounded-full bg-slate-200 text-slate-800 text-sm font-extrabold flex items-center justify-center">
-                {i + 1}
-              </span>
-              <span className="text-sm md:text-base font-bold text-slate-900 break-keep">{p.name}</span>
-            </div>
-            <div className="flex flex-col items-end shrink-0">
-              <span className="text-sm font-bold text-slate-800">{sampleSize}회 중 {p.count}회</span>
-              {p.on_naver === "exact" && <span className="text-sm text-green-800">네이버에서 확인됨</span>}
-              {p.on_naver === "similar" && (
-                <span className="text-sm text-slate-700">비슷한 이름의 가게가 네이버에 있음</span>
-              )}
-              {p.on_naver === "none" && (
-                <span className="text-sm text-amber-800">네이버 지역검색에서 확인되지 않음</span>
-              )}
-            </div>
-          </li>
-        ))}
-      </ol>
+      {confirmed.length > 0 ? (
+        <ol className="space-y-2 mb-3">
+          {confirmed.map((p, i) => (
+            <PlaceRow key={p.name} p={p} i={i} sampleSize={sampleSize} />
+          ))}
+        </ol>
+      ) : (
+        <p className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2.5 mb-3 text-sm text-slate-800 leading-snug break-keep">
+          ChatGPT가 꺼낸 가게 중 네이버 지역검색에서 확인된 곳이 없습니다. AI가 이 지역의 실제 가게와 다른 이름을 말했을 수 있습니다.
+        </p>
+      )}
+      {unconfirmed.length > 0 && (
+        <details className="mb-3 rounded-lg border border-slate-200 bg-white">
+          <summary className="cursor-pointer px-3 py-2.5 text-sm font-semibold text-slate-800 min-h-[44px] flex items-center">
+            네이버에서 확인되지 않은 이름 {unconfirmed.length}곳 보기
+          </summary>
+          <div className="px-3 pb-3">
+            <p className="text-sm text-slate-700 leading-snug break-keep mb-2">
+              실제로 없는 가게이거나 네이버 지역검색에 잡히지 않은 곳일 수 있어 순위에서 뺐습니다.
+            </p>
+            <ul className="space-y-1.5">
+              {unconfirmed.map((p) => (
+                <li key={p.name} className="flex items-center justify-between gap-3 text-sm text-slate-700">
+                  <span className="break-keep">{p.name}</span>
+                  <span className="shrink-0">{sampleSize}회 중 {p.count}회</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </details>
+      )}
       <div className="rounded-lg border border-dashed border-slate-900 bg-white px-3 py-2.5 mb-3">
         <p className="text-sm md:text-base font-extrabold text-slate-900">내 가게 순서</p>
         <p className="text-sm md:text-base text-slate-800 leading-snug break-keep">
@@ -552,7 +582,7 @@ export function AIRecommendedPlacesCard({
         </p>
       </div>
       <p className="rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-900 leading-snug break-keep">
-        AI 답변이며 사실과 다를 수 있습니다. 가게명이 실제로 존재하는지 네이버 지역검색과 대조한 결과를 함께 표시합니다.
+        AI 답변이며 사실과 다를 수 있습니다. 네이버 지역검색에서 실제로 확인된 가게만 순위로 보여줍니다.
       </p>
     </div>
   );

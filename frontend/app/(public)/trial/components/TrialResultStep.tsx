@@ -1825,71 +1825,42 @@ function ChatGPTResultCard({
           </div>
         )}
 
-        {/* 미포함: 원인 (실측 데이터 기반 분기) */}
-        {!mentioned && (() => {
-          const diagnosedReasons: string[] = [];
-          const isSpConfirmed = isSmartPlace !== undefined;
-          const isIntroConfirmed = hasIntro !== undefined;
-          const isFaqConfirmed = hasFaq !== undefined;
+        {/* 미포함: ChatGPT에 맞는 안내 — 네이버 소개글·Q&A를 ChatGPT 미노출의 "원인"으로 단정하지 않는다
+            (ChatGPT는 학습 데이터 기반이라 스마트플레이스 소개글을 직접 읽지 않음. 네이버용 조치는 "할 일" 탭에 있음) */}
+        {!mentioned && (
+          <div>
+            <p className="text-sm font-semibold text-gray-700 mb-1.5">왜 안 나오나요</p>
+            <ul className="space-y-1.5">
+              <li className="flex items-start gap-2 text-sm text-gray-700 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                <span className="text-gray-600 shrink-0 mt-px">•</span>
+                <span className="break-keep">ChatGPT는 학습된 자료를 바탕으로 답합니다. 웹에서 가게 이름이 충분히 언급되지 않은 가게는 추천 목록에 오르기 어렵습니다.</span>
+              </li>
+              <li className="flex items-start gap-2 text-sm text-gray-700 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                <span className="text-gray-600 shrink-0 mt-px">•</span>
+                <span className="break-keep">이번 측정만으로 정확한 원인을 특정할 수는 없습니다. 아래는 일반적으로 도움이 되는 방법입니다.</span>
+              </li>
+            </ul>
+          </div>
+        )}
 
-          if (isSpConfirmed && !isSmartPlace) diagnosedReasons.push("스마트플레이스 미확인 — 미등록이거나 스캔에서 찾지 못했습니다. 플레이스 등록 및 소개글 완성도를 점검하세요");
-          if (isIntroConfirmed && !hasIntro) diagnosedReasons.push("소개글 미작성 — AI가 인용할 텍스트가 없습니다");
-          else if (isFaqConfirmed && !hasFaq) diagnosedReasons.push("소개글에 Q&A 섹션 없음 — 구조화된 정보 부족");
-          if (missingKws && missingKws.length > 0) diagnosedReasons.push(`업종 기준 키워드 '${missingKws.slice(0, 2).join("', '")}' 등 ${missingKws.length}개를 소개글에서 확인하지 못했습니다 (추정)`);
-
-          const hasConfirmed = diagnosedReasons.length > 0;
-
-          return (
-            <div>
-              <p className="text-sm font-semibold text-gray-700 mb-1.5">원인</p>
-              <ul className="space-y-1.5">
-                {diagnosedReasons.map((reason, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-gray-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-                    <span className="text-gray-600 shrink-0 mt-px">•</span>
-                    {reason}
-                  </li>
-                ))}
-                {!hasConfirmed && (
-                  <>
-                    <li className="flex items-start gap-2 text-sm text-gray-600">
-                      <span className="text-gray-600 shrink-0 mt-px">•</span>
-                      소개글·리뷰 키워드 데이터가 아직 AI 학습에 충분히 반영되지 않았을 수 있습니다
-                    </li>
-                    <li className="flex items-start gap-2 text-sm text-gray-600">
-                      <span className="text-gray-600 shrink-0 mt-px">•</span>
-                      정확한 원인은 구독 후 상세 분석에서 확인 가능합니다
-                    </li>
-                  </>
-                )}
-              </ul>
-            </div>
-          );
-        })()}
-
-        {/* 미포함: 지금 할 일 (실측 데이터 기반 분기) */}
-        {!mentioned && (() => {
-          const actions: string[] = [];
-          if (isSmartPlace !== undefined && !isSmartPlace) actions.push("스마트플레이스 등록 확인 — 미등록이면 등록, 이미 등록됐다면 소개글·사진 완성도 점검");
-          if ((hasIntro !== undefined && !hasIntro) || (hasFaq !== undefined && !hasFaq)) actions.push("소개글 끝에 Q&A 3개 추가 — \"가격은?\" \"예약은?\" \"주차는?\"");
-          if (missingKws && missingKws.length > 0) actions.push(`'${missingKws[0]}' 키워드를 소개글·리뷰에 추가하기`);
-          if (actions.length === 0) {
-            actions.push("소개글 끝에 Q&A 3개 추가 — \"가격은?\" \"예약은?\" \"주차는?\"");
-            actions.push("아래 개선 가이드에서 키워드별 대응 방법 확인");
-          }
-          return (
-            <div>
-              <p className="text-sm font-semibold text-gray-700 mb-1.5">지금 할 일</p>
-              <ol className="space-y-1.5">
-                {actions.map((action, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-gray-600 shrink-0 font-semibold mt-px">{i + 1}.</span>
-                    {action}
-                  </li>
-                ))}
-              </ol>
-            </div>
-          );
-        })()}
+        {!mentioned && (
+          <div>
+            <p className="text-sm font-semibold text-gray-700 mb-1.5">ChatGPT 노출을 위해 할 수 있는 일</p>
+            <ol className="space-y-1.5">
+              {[
+                "구글 비즈니스 프로필 등록·정보 완성 (주소·영업시간·사진·설명)",
+                "가게 이름·지역·대표 메뉴(서비스)를 정확히 적은 글을 블로그나 홈페이지에 게시",
+                "방문 손님께 블로그 후기를 부탁해 웹에서 가게 이름이 언급되는 글 늘리기",
+              ].map((action, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                  <span className="text-gray-600 shrink-0 font-semibold mt-px">{i + 1}.</span>
+                  <span className="break-keep">{action}</span>
+                </li>
+              ))}
+            </ol>
+            <p className="text-sm text-gray-700 mt-2 break-keep">반영에는 수개월~1년이 걸릴 수 있습니다(학습 데이터 기반, 추정). 네이버 개선 방법은 &lsquo;할 일·로드맵&rsquo; 탭에서 확인하세요.</p>
+          </div>
+        )}
       </div>
 
       {/* 면책 */}
