@@ -58,7 +58,7 @@ const BLOG_CHANNEL_LABELS: Record<string, string> = {
   naver: "네이버 AI 브리핑",
   chatgpt: "ChatGPT",
   gemini: "Gemini",
-  google: "Google AI Overview",
+  google: "Google 검색",
 };
 
 // 업종별 맞춤 메시지 (§7.1 기준)

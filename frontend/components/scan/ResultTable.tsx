@@ -148,7 +148,7 @@ function GlobalRow({ platformKey, result }: { platformKey: string; result: AIRes
   const LABELS: Record<string, string> = {
     gemini:  'Gemini AI',
     chatgpt: 'ChatGPT',
-    google:  'Google AI Overview',
+    google:  'Google 검색',
   }
 
   const statusCell = () => {

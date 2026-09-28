@@ -982,7 +982,7 @@ async def daily_scan_all():
                             _ph_uni = prev_history[0].get("unified_score")
                             _ph_score = _ph_uni if _ph_uni is not None else (prev_history[0].get("total_score") or 0)
                             _prev_grade = _kn_grade(_ph_score)
-                        _platform_labels = {"gemini": "Gemini", "chatgpt": "ChatGPT", "naver": "네이버 AI 브리핑", "google": "Google AI Overview"}
+                        _platform_labels = {"gemini": "Gemini", "chatgpt": "ChatGPT", "naver": "네이버 AI 브리핑", "google": "Google 검색"}
                         def _platform_signal(_k: str) -> float:
                             _r = result.get(_k) or {}
                             if _k == "naver":

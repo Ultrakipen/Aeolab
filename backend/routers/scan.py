@@ -106,7 +106,7 @@ _CATEGORY_QUERY_SUFFIX: dict[str, str] = {
 
 _PLATFORM_LABELS = {
     "gemini": "Gemini", "chatgpt": "ChatGPT",
-    "naver": "Naver AI 브리핑", "google": "Google AI Overview",
+    "naver": "Naver AI 브리핑", "google": "Google 검색",
 }
 
 router = APIRouter()

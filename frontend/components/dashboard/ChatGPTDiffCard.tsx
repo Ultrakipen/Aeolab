@@ -81,15 +81,15 @@ export default function ChatGPTDiffCard({
       inactive: true,
     },
     ...(googleAIOverview !== undefined ? [{
-      label: "Google AI Overview 노출",
+      label: "Google 검색 노출",
       value: googleAIOverview === null
         ? "측정 오류"
         : googleAIOverview
         ? "현재 노출 중"
         : "현재 미노출",
       detail: googleAIOverview === null
-        ? "Google AI Overview 측정 중 오류가 발생했습니다. 다음 스캔에서 재측정됩니다"
-        : "Serper.dev API로 Google AI Overview 노출 여부를 직접 측정합니다. ChatGPT는 Google 검색 결과를 실시간으로 알 수 없습니다",
+        ? "Google 검색 노출 측정 중 오류가 발생했습니다. 다음 스캔에서 재측정됩니다"
+        : "Serper.dev API로 Google 검색 결과에 내 가게가 나오는지 확인합니다. 검색 상단 AI 요약 영역은 현재 측정 API가 결과를 제공하지 않아 확인하지 못합니다. ChatGPT는 Google 검색 결과를 실시간으로 알 수 없습니다",
       highlight: googleAIOverview === true,
       inactive: googleAIOverview === null,
     }] : []),

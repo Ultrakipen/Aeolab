@@ -209,7 +209,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
                 )
               ) : c.platform === 'google' ? (
                 <p className="text-sm text-gray-600 italic">
-                  이번 스캔에서 Google AI Overview에 노출되지 않았습니다.
+                  이번 스캔에서 Google 검색 결과에 내 가게가 나오지 않았습니다. (검색 상단 AI 요약 영역은 현재 측정 API가 결과를 제공하지 않아 확인하지 못합니다.)
                   구글 비즈니스 프로필 등록 시 2~4주 내 인식이 개선될 수 있습니다.
                 </p>
               ) : c.platform === 'chatgpt' ? (

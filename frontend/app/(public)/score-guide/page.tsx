@@ -305,9 +305,9 @@ export default function ScoreGuidePage() {
                   desc: "네이버 블로그·뉴스·미디어 언급 수",
                 },
                 {
-                  item: "Google AI Overview",
+                  item: "Google 검색 노출",
                   weight: "20%",
-                  desc: "구글 AI 검색 결과 노출 여부 (Serper.dev API로 측정, 2026-05-30 활성화)",
+                  desc: "구글 검색 결과에 내 가게가 나오는지 (Serper.dev API로 측정). 검색 상단 AI 요약 영역은 현재 측정 API가 결과를 제공하지 않아 별도로 확인하지 못합니다",
                 },
               ].map((row, i) => (
                 <tr

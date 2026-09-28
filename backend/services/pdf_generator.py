@@ -914,10 +914,10 @@ def generate_pdf_report(
     # Google AI
     goo_ok  = goo["mentioned"]
     goo_exc = f'  발췌: "{goo["excerpt"]}"' if goo.get("excerpt") else ""
-    _add_row("Google AI Overview",
+    _add_row("Google 검색",
              "노출됨" if goo_ok else "미노출",
              goo_ok,
-             ("Google AI 검색에 노출 중입니다." + goo_exc) if goo_ok
+             ("Google 검색에 노출 중입니다." + goo_exc) if goo_ok
              else "미노출 — 구글 비즈니스 프로필 + JSON-LD 등록 권장 (Gemini·Google AI Overview 2~4주 반영 시작, 안정화 3~6개월)",
              4)
 

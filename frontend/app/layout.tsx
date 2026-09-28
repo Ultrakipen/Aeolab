@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://aeolab.co.kr"),
   title: "AEOlab — AI 검색 시대, 내 가게는 보이고 있을까요?",
   description:
-    "네이버 AI 브리핑·ChatGPT·Gemini·Google AI Overview 4채널에서 내 사업장 노출 여부를 자동 진단합니다. 음식점·카페·미용·교육 등 59개 업종 지원. 경쟁사 비교·키워드 갭 분석·AI 개선 가이드 제공. 한국 소상공인 AI 검색 노출 관리 서비스.",
+    "네이버 AI 브리핑·ChatGPT·Gemini·Google 검색 4채널에서 내 사업장 노출 여부를 자동 진단합니다. 음식점·카페·미용·교육 등 59개 업종 지원. 경쟁사 비교·키워드 갭 분석·AI 개선 가이드 제공. 한국 소상공인 AI 검색 노출 관리 서비스.",
   keywords: [
     "AI 검색 노출", "네이버 AI 브리핑", "ChatGPT 노출", "AEO", "AI Engine Optimization",
     "소상공인 AI", "스마트플레이스", "지역 검색 최적화", "AI 검색 마케팅",
@@ -113,7 +113,7 @@ export default function RootLayout({
                   serviceType: "AI 검색 노출 관리 (AI Engine Optimization)",
                   provider: { "@id": "https://aeolab.co.kr/#organization" },
                   areaServed: { "@type": "Country", name: "South Korea" },
-                  description: "네이버 AI 브리핑·ChatGPT·Gemini·Google AI Overview 4종 채널에서 사업장 노출을 자동 진단하고 개선 가이드를 제공",
+                  description: "네이버 AI 브리핑·ChatGPT·Gemini·Google 검색 4종 채널에서 사업장 노출을 자동 진단하고 개선 가이드를 제공",
                   offers: {
                     "@type": "AggregateOffer",
                     priceCurrency: "KRW",

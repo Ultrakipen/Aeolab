@@ -387,7 +387,7 @@ export default function AIDiagnosisCard({
                     {label}
                   </span>
                   <span className={`ml-auto text-sm font-semibold ${inAiOverview ? "text-green-700" : googleMentioned ? "text-amber-700" : scanned ? "text-red-700" : "text-gray-600"}`}>
-                    {inAiOverview ? "AI 노출" : googleMentioned ? "검색만 노출" : scanned ? "미노출" : "미측정"}
+                    {inAiOverview ? "AI 노출" : googleMentioned ? "검색만 노출" : scanned ? "검색 미노출" : "미측정"}
                   </span>
                 </div>
               );

@@ -18,7 +18,7 @@ const PLATFORM_LABEL: Record<string, string> = {
   naver:   '네이버 AI 브리핑',
   gemini:  'Google Gemini',
   chatgpt: 'ChatGPT',
-  google:  'Google AI Overview',
+  google:  'Google 검색',
 }
 
 const MENTION_TYPE_LABEL: Record<string, string> = {

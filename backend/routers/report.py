@@ -1445,7 +1445,7 @@ async def get_mention_context(biz_id: str, user=Depends(get_current_user)):
 
     _PLABEL = {
         "naver": "네이버 AI 브리핑", "gemini": "Google Gemini",
-        "chatgpt": "ChatGPT", "google": "Google AI Overview",
+        "chatgpt": "ChatGPT", "google": "Google 검색",
     }
     raw = []
     if scan_ids:
@@ -1901,7 +1901,7 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
         logging.getLogger("aeolab").warning(f"ai_citations query failed: {e}")
 
     missing_platforms_ko = []
-    _platform_ko = {"chatgpt": "ChatGPT", "gemini": "Gemini", "naver": "네이버 AI 브리핑", "google": "구글 AI Overview"}
+    _platform_ko = {"chatgpt": "ChatGPT", "gemini": "Gemini", "naver": "네이버 AI 브리핑", "google": "구글 검색"}
     for p, mentioned in platform_mentioned.items():
         if mentioned is False:
             missing_platforms_ko.append(_platform_ko[p])
@@ -2057,9 +2057,9 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
         })
 
     # Tip 4: 글로벌 AI 노출 (ChatGPT/Google 미노출 시)
-    if "ChatGPT" in missing_platforms_ko or "구글 AI Overview" in missing_platforms_ko:
+    if "ChatGPT" in missing_platforms_ko or "구글 검색" in missing_platforms_ko:
         post_path = paths_by_id.get("post")
-        missed = [p for p in missing_platforms_ko if p in ("ChatGPT", "구글 AI Overview")]
+        missed = [p for p in missing_platforms_ko if p in ("ChatGPT", "구글 검색")]
         kw_clean = _clean_keyword(missing_keywords[0]) if missing_keywords else ""
         reason = (
             f"{', '.join(missed)} 스캔에서 내 가게가 검출되지 않았습니다. "
@@ -3435,7 +3435,7 @@ async def get_ai_citations(
         "grok": "Grok",
         "naver": "네이버 AI 브리핑",
         "claude": "Claude",
-        "google": "Google AI Overview",
+        "google": "Google 검색",
     }
 
     enriched_real = []

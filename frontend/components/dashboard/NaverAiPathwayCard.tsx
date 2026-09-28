@@ -234,7 +234,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
               </div>
               <ul className="space-y-0.5 text-sm text-slate-600 leading-snug">
                 <li>• Google AI Overviews (한국 확대 중)</li>
-                <li>• 스캔 시 AI Overview 포함 여부 실측</li>
+                <li>• 스캔 시 Google 검색 노출 여부 확인</li>
                 <li>• 구조화 데이터(Schema.org) 핵심</li>
               </ul>
             </div>

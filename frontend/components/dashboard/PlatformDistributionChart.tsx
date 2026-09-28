@@ -23,7 +23,7 @@ const NAVER_PLATFORMS: { key: string; label: string; color: string }[] = [
 const GLOBAL_PLATFORMS: { key: string; label: string; color: string }[] = [
   { key: 'gemini',  label: 'Gemini AI',        color: '#4f46e5' },
   { key: 'chatgpt', label: 'ChatGPT',           color: '#10a37f' },
-  { key: 'google',  label: 'Google AI Overview', color: '#ea4335' },
+  { key: 'google',  label: 'Google 검색', color: '#ea4335' },
 ]
 
 function PlatformRow({
@@ -305,7 +305,7 @@ export function PlatformDistributionChart({
                   3개 채널 모두 미노출은 한국 소상공인의 일반적인 현재 상태입니다.<br />
                   Gemini는 구글 비즈니스 프로필 등록 후 수주 내 개선 가능합니다.<br />
                   ChatGPT는 학습 데이터 기반으로 단기 개선이 어렵습니다.<br />
-                  Google AI Overview는 실시간 검색 기반이라 웹사이트 SEO 개선이 반영되면 비교적 빠르게 변화합니다.
+                  Google 검색 노출은 실시간 검색 기반이라 웹사이트 SEO 개선이 반영되면 비교적 빠르게 변화합니다.
                 </p>
               </div>
             )

@@ -404,7 +404,7 @@ export default function DashboardDetailZone({
               const g = allPlatformResults.google;
               if (!g) return undefined;
               if (g.error) return null;
-              return !!(g.in_ai_overview ?? g.mentioned);
+              return !!g.mentioned; // mentioned는 AI 요약 포함 여부까지 포함한 Google 검색 노출 (in_ai_overview ?? 는 false가 항상 우선해 검색 노출을 무시했음)
             })()}
             briefingEligibility={briefingEligibility}
           />

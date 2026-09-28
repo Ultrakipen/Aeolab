@@ -1446,7 +1446,7 @@ const CHANNEL_LABELS: Record<string, string> = {
   gemini: "Gemini",
   chatgpt: "ChatGPT",
   naver: "네이버 AI 브리핑",
-  google: "Google AI Overview",
+  google: "Google 검색",
 };
 const CHANNEL_ORDER = ["naver", "chatgpt", "gemini", "google"];
 

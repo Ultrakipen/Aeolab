@@ -1185,8 +1185,8 @@ export default function DemoPage() {
                         <span>2026-06-25 정식 출시, 업종 제한 없음</span>
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
-                        <span className="shrink-0 font-medium text-gray-700 mt-px">Google AI Overview</span>
-                        <span>Google 검색 결과 상단 AI 요약 — 실시간 측정 (Serper.dev), 구독 시 자동 스캔에 포함</span>
+                        <span className="shrink-0 font-medium text-gray-700 mt-px">Google 검색</span>
+                        <span>Google 검색 결과에 내 가게가 나오는지 확인 (Serper.dev), 구독 시 자동 스캔에 포함</span>
                       </li>
                     </ul>
                   </div>
