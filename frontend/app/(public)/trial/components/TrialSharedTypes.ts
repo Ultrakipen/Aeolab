@@ -98,4 +98,7 @@ export interface TrialInputStepProps {
   inlineSelectedCandidate: TrialBusinessCandidate | null;
   onInlinePlaceSelect: (c: TrialBusinessCandidate) => void;
   onInlinePlaceClear: () => void;
+  /** 내 가게 네이버 지도 주소(선택) — 붙여넣으면 place_id를 추출해 스마트플레이스 자동 진단에 사용 */
+  placeUrl: string;
+  setPlaceUrl: (v: string) => void;
 }

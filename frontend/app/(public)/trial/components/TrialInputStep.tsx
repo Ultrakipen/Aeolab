@@ -15,6 +15,7 @@ import { getUserGroup } from "@/lib/userGroup";
 import { useBriefingCategories } from "@/lib/useBriefingCategories";
 import type { TrialBusinessCandidate } from "@/types";
 import type { TrialInputStepProps } from "./TrialSharedTypes";
+import { parseNaverPlaceUrl } from "@/lib/naverPlaceUrl";
 
 // 업종 선택 화면 상단 바로가기 — 전체 59개 목록은 그대로 두고 자주 찾는 업종만 추가 노출
 // (59개 카드 스크롤 없이 1탭으로 선택 가능하게, 2026-09-07 외부 진단 반영)
@@ -75,6 +76,8 @@ export default function TrialInputStep(props: TrialInputStepProps) {
     inlineSelectedCandidate,
     onInlinePlaceSelect,
     onInlinePlaceClear,
+    placeUrl,
+    setPlaceUrl,
   } = props;
 
   const [keywordError, setKeywordError] = useState(false);
@@ -1100,6 +1103,55 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                           )}
                         </>
                       )}
+                    </div>
+                  )}
+
+                  {/* 내 가게 네이버 지도 주소(선택) — place_id 확보 시 소개글·소식·사진·예약을 직접 진단 */}
+                  {!(inlineSelectedCandidate && (inlineSelectedCandidate.naver_place_id || "").trim()) && (
+                    <div className="mt-3 border border-slate-200 rounded-xl p-3 bg-white">
+                      <label htmlFor="trial-place-url" className="block text-sm font-semibold text-slate-700">
+                        내 가게 네이버 지도 주소 <span className="font-normal text-slate-500">(선택)</span>
+                      </label>
+                      <p className="text-sm text-slate-500 mt-0.5 mb-2 break-keep">
+                        붙여넣으면 소개글·최근 소식·사진·예약 설정을 직접 확인해 진단합니다. 위 체크 대신 확인한 결과가 적용됩니다.
+                      </p>
+                      <input
+                        id="trial-place-url"
+                        type="url"
+                        inputMode="url"
+                        autoComplete="off"
+                        placeholder="https://map.naver.com/p/entry/place/…"
+                        value={placeUrl}
+                        onChange={(e) => setPlaceUrl(e.target.value)}
+                        className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      {(() => {
+                        const r = parseNaverPlaceUrl(placeUrl);
+                        if (r.status === "ok")
+                          return (
+                            <p className="text-sm font-semibold text-green-700 mt-1.5 flex items-center gap-1.5">
+                              <CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden="true" />
+                              주소를 확인했습니다 — 이 가게 기준으로 진단합니다
+                            </p>
+                          );
+                        if (r.status === "short")
+                          return (
+                            <p className="text-sm text-amber-700 mt-1.5 break-keep" role="alert">
+                              naver.me 짧은 주소는 확인할 수 없습니다. 네이버 지도에서 내 가게를 열고 주소창의 주소를 붙여넣어 주세요.
+                            </p>
+                          );
+                        if (r.status === "invalid")
+                          return (
+                            <p className="text-sm text-amber-700 mt-1.5 break-keep" role="alert">
+                              네이버 지도의 가게 주소가 아닙니다 (예: map.naver.com/p/entry/place/숫자). 비워 두면 이름·지역으로 진단합니다.
+                            </p>
+                          );
+                        return (
+                          <p className="text-sm text-slate-500 mt-1.5 break-keep">
+                            네이버 지도에서 내 가게를 열고 주소창의 주소를 복사하세요. 몰라도 진단할 수 있습니다.
+                          </p>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>

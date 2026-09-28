@@ -62,6 +62,16 @@ class TrialScanRequest(BaseModel):
     # 네이버 지역검색에서 사용자가 선택한 가게의 place_id.
     # 들어오면 smart_place_auto_check로 4개 체크박스 자동 진단
     naver_place_id: Optional[str] = Field(None, max_length=50)
+
+    @field_validator("naver_place_id", mode="before")
+    @classmethod
+    def _sanitize_naver_place_id(cls, v):
+        # 클라이언트가 직접 입력(지도 주소 붙여넣기)할 수 있는 값 — 숫자 ID만 허용, 그 외는 없는 값으로 취급(422 대신 무시)
+        if v is None:
+            return None
+        s = str(v).strip()
+        return s if s.isdigit() and 5 <= len(s) <= 15 else None
+
     # v3.3-fix (2026-04-23) — place_match 신뢰도 강화 (임의 매칭 금지)
     # 사용자가 검색 후보를 명시적으로 클릭한 경우에만 채워진다.
     # 있으면 응답 place_match로 그대로 사용 (재검색·자동 매칭 금지)

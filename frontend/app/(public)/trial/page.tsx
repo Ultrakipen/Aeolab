@@ -9,6 +9,7 @@ import { trialScan, searchTrialBusiness, ApiError } from "@/lib/api";
 import { mapNaverCategory, FLAT_CATEGORY_MAP } from "@/lib/categories";
 import { getBriefingEligibility } from "@/lib/userGroup";
 import { useBriefingCategories } from "@/lib/useBriefingCategories";
+import { parseNaverPlaceUrl } from "@/lib/naverPlaceUrl";
 import { getSafeSession } from "@/lib/supabase/client";
 import type {
   TrialScanResult,
@@ -182,6 +183,12 @@ export default function TrialPage() {
   const [inlineSearchLoading, setInlineSearchLoading] = useState(false);
   const [inlineSelectedCandidate, setInlineSelectedCandidate] = useState<TrialBusinessCandidate | null>(null);
   const [forceManualEntry, setForceManualEntry] = useState(false);
+  // 내 가게 네이버 지도 주소(선택) — 붙여넣기로 place_id 확보 → 스마트플레이스 자동 진단
+  const [placeUrl, setPlaceUrl] = useState("");
+  const pastedPlaceId = (() => {
+    const r = parseNaverPlaceUrl(placeUrl);
+    return r.status === "ok" ? r.placeId : "";
+  })();
 
   const [apiBenchmark, setApiBenchmark] = useState<{
     count: number;
@@ -419,14 +426,15 @@ export default function TrialPage() {
       businessType !== "location_based" ||
       forceManualEntry ||
       !form.business_name.trim() ||
-      !!inlineSelectedCandidate;
+      !!inlineSelectedCandidate ||
+      !!pastedPlaceId;
 
     if (skipSearch) {
       if (inlineSelectedCandidate) {
         const realId = (inlineSelectedCandidate.naver_place_id || "").trim();
-        await runScan(realId || null, inlineSelectedCandidate.title, inlineSelectedCandidate);
+        await runScan(realId || pastedPlaceId || null, inlineSelectedCandidate.title, inlineSelectedCandidate);
       } else {
-        await runScan(null);
+        await runScan(pastedPlaceId || null);
       }
       return;
     }
@@ -460,7 +468,7 @@ export default function TrialPage() {
   };
 
   const handleSkipPlaceMatch = async () => {
-    await runScan(null);
+    await runScan(pastedPlaceId || null);
   };
 
   const runScan = async (
@@ -479,7 +487,7 @@ export default function TrialPage() {
         clearInterval(stepInterval);
         return prev;
       });
-    }, 2000);
+    }, 4000);
 
     try {
       const keyword = buildKeyword();
@@ -687,6 +695,8 @@ export default function TrialPage() {
           inlineSelectedCandidate={inlineSelectedCandidate}
           onInlinePlaceSelect={handleInlinePlaceSelect}
           onInlinePlaceClear={handleInlinePlaceClear}
+          placeUrl={placeUrl}
+          setPlaceUrl={setPlaceUrl}
         />
       )}
 
