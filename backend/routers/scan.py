@@ -473,6 +473,16 @@ async def trial_search(request: Request, query: str, region: str = ""):
     }
 
 
+def _to_int_or_none(value) -> Optional[int]:
+    """INTEGER 컬럼 저장용 — 실수(9.0)·None·비정상 값을 안전하게 정수/None으로 변환."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    try:
+        return int(round(value))
+    except (ValueError, OverflowError):
+        return None
+
+
 async def _run_trial_gemini(query: str, business_name: str) -> Optional[dict]:
     """trial 신뢰도 강화 2라운드 — Gemini 10회 샘플링 + AI 응답 원문 evidence 보존.
 
@@ -617,10 +627,11 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
 
     # ── context별 병렬 실행 ──────────────────────────────────────────
     if is_non_location:
-        # non_location: ChatGPT 5회 + Gemini(10회 evidence) + 웹사이트 체크 (naver/kakao 생략)
+        # non_location: ChatGPT 50회 + 웹사이트 체크 (naver/kakao 생략)
+        # 2026-09-28: 체험에서 Gemini 호출 제거 — 무료 티어 한도(일 20회·분당 5회) 초과로 대부분 실패했고
+        # 그 실패가 화면에 "미노출"로 표시됐다. Gemini 실측은 가입 후 1회 체험(scan_all)에서 제공한다.
         coros = [
             scanner.scan_trial(query, req.business_name),
-            _run_trial_gemini(query, req.business_name),
         ]
         if req.website_url:
             from services.website_checker import check_website_seo
@@ -631,8 +642,8 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         results = await asyncio.gather(*coros, return_exceptions=True)
         _ai_exc = results[0] if isinstance(results[0], Exception) else None
         ai_result = results[0] if not isinstance(results[0], Exception) else {}
-        gemini_evidence_data = results[1] if not isinstance(results[1], Exception) else None
-        website_data = results[2] if (req.website_url and not isinstance(results[2], Exception)) else None
+        gemini_evidence_data = None  # 체험에서 Gemini 미측정 (위 주석 참조)
+        website_data = results[1] if (req.website_url and not isinstance(results[1], Exception)) else None
         naver_data = None
         kakao_data = None
 
@@ -677,12 +688,12 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         )
         _gather_results = await asyncio.gather(
             scanner.scan_trial(query, req.business_name),
-            _run_trial_gemini(query, req.business_name),
             _naver_multi(req.business_name, _trial_multi_kws, req.region or "", category_ko=_comp_category_ko),
             get_kakao_visibility(req.business_name, keyword_ko, req.region or ""),
             return_exceptions=True,
         )
-        ai_result, gemini_evidence_data, naver_data, kakao_data = _gather_results
+        ai_result, naver_data, kakao_data = _gather_results
+        gemini_evidence_data = None  # 체험에서 Gemini 미측정 (non_location 분기 주석 참조)
         _ai_exc_loc = ai_result if isinstance(ai_result, Exception) else None
         if isinstance(ai_result, Exception):
             _logger.warning("[scan/trial] location_based AI scan exception: %s", ai_result)
@@ -894,7 +905,10 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
                 "naver_result": naver if isinstance(naver, dict) and naver else None,
                 "kakao_result": kakao if isinstance(kakao, dict) and kakao else None,
                 "website_check_result": website_data if isinstance(website_data, dict) else None,
-                "smart_place_completeness": score.get("breakdown", {}).get("smart_place_completeness"),
+                # trial_scans.smart_place_completeness는 INTEGER 컬럼(supabase_schema.sql) — 점수 엔진이
+                # 9.0 같은 실수를 주면 PostgREST가 22P02(invalid input syntax for type integer: "9.0")로
+                # insert 전체를 거부해 체험 결과가 저장되지 않고 즉시 이메일도 발송되지 않았다(2026-09-28 발견).
+                "smart_place_completeness": _to_int_or_none(score.get("breakdown", {}).get("smart_place_completeness")),
                 # smart_place_auto_check 실측값 우선 (req는 자동진단 결과로 이미 업데이트됨)
                 "has_faq": getattr(req, "has_faq", None),
                 "has_recent_post": getattr(req, "has_recent_post", None),

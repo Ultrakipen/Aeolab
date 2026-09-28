@@ -64,17 +64,19 @@ class MultiAIScanner:
         return {"chatgpt": result}
 
     async def scan_trial(self, query: str, target: str) -> dict:
-        """Trial 체험: ChatGPT(GPT-4o-mini) 5회 샘플링 — 1회 boolean 대비 신뢰도 향상.
+        """Trial 체험: ChatGPT(gpt-4.1-mini) 50회 샘플링.
 
-        비용: gpt-4o-mini 5회 ≈ 2.5원/회 (1회 ~0.5원 대비 +2원)
-        응답 시간: 5회 병렬 실행이라 1회와 거의 동일 (~2~3초).
-        2026-05-09 Trial 1회 → 5회 격상 (변동성 1/√5 감소, "5회 중 N회 언급" 표시 가능)
+        2026-09-28 5회 → 50회 상향(사용자 결정): "50회 중 N회 언급" 표시, 신뢰구간이 5회 대비
+        크게 좁아진다(0회 노출 시 상한 43% → 7%).
+        비용: gpt-4.1-mini 50회 ≈ 25원 / 체험 1건. 응답 시간: 10개씩 배치(배치 사이 1초)라
+        약 20~30초 예상 — 프론트 진행 화면("보통 30~60초")·nginx read timeout(120s) 이내.
+        (5회 샘플러 sample_5는 Quick 수동 스캔 등 다른 경로가 계속 사용한다.)
 
         반환값에 `mentioned` 필드를 보정하여 기존 scan_single() 하위 호환 보장:
         - mentioned = exposure_freq > 0
         - excerpt = citations[0] (첫 번째 발췌문, 없으면 None)
         """
-        result = await self.chatgpt.sample_5(query, target)
+        result = await self.chatgpt.sample_n(query, target, n=50)
         # 하위 호환: mentioned 필드 보정 (exposure_freq 기반)
         result["mentioned"] = result.get("exposure_freq", 0) > 0
         result["excerpt"] = (result.get("citations") or [None])[0]
