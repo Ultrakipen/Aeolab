@@ -76,7 +76,9 @@ class MultiAIScanner:
         - mentioned = exposure_freq > 0
         - excerpt = citations[0] (첫 번째 발췌문, 없으면 None)
         """
-        result = await self.chatgpt.sample_n(query, target, n=50)
+        # 비유도형 추천 프로브 — 가게명을 프롬프트에 넣지 않는다(유도형 sample_n은 존재하지 않는 가게도
+        # 환각으로 "추천됨"이라 답해 50회 표본에서 가짜 노출 판정이 나왔음, 2026-09-28)
+        result = await self.chatgpt.sample_recommend(query, target, n=50)
         # 하위 호환: mentioned 필드 보정 (exposure_freq 기반)
         result["mentioned"] = result.get("exposure_freq", 0) > 0
         result["excerpt"] = (result.get("citations") or [None])[0]

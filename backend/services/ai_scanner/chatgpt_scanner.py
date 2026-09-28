@@ -164,6 +164,130 @@ class ChatGPTScanner:
             "queries_used": query_list,
         }
 
+    # ── 비유도형 추천 프로브 (무료 체험 전용, 2026-09-28) ─────────────────────────────
+    # 기존 _check()는 프롬프트에 사업장명을 직접 넣어 "이 가게가 추천되나요?"라고 묻는 유도형이라,
+    # 존재하지 않는 가게도 환각으로 "추천된다"고 답한다(가짜 가게 3곳 중 2곳이 50회 표본에서 1~4회 노출
+    # 판정 — 표본을 5→50회로 늘리자 단 1회 환각이 "노출 확인"으로 표시됨). 이 프로브는 가게명을
+    # 프롬프트에 넣지 않고 "추천 가게를 나열"하게 한 뒤, 답에 내 가게가 자발적으로 나오는지 대조한다.
+    # 부산물로 "AI가 실제로 추천한 가게 목록·순서"가 남는다(체험 결과의 "AI 답변 속 추천 가게" 카드).
+
+    @staticmethod
+    def _norm_name(name: str) -> str:
+        return re.sub(r"[\s\-·.,()\[\]'\"“”‘’]+", "", (name or "")).lower()
+
+    def _name_matches(self, target_norm: str, place_norm: str) -> bool:
+        if not target_norm or not place_norm:
+            return False
+        if len(target_norm) >= 2 and target_norm in place_norm:
+            return True
+        # 답변이 지점명 없이 짧게 적은 경우("카페 모모" ← "모모")는 3자 이상일 때만 역포함 인정
+        return len(place_norm) >= 3 and place_norm in target_norm
+
+    async def _recommend_once(self, query: str) -> dict:
+        prompt = (
+            f"손님이 \"{query}\" 라고 검색했을 때 추천할 만한 가게를 최대 5곳, 추천 순서대로 알려주세요. "
+            "실제로 존재한다고 알고 있는 가게만 넣고, 모르면 빈 배열로 답하세요. "
+            "JSON으로만 답하세요.\n"
+            '{"places": ["가게명1", "가게명2"]}'
+        )
+        async with _CHATGPT_SEM:
+            for attempt in range(2):
+                try:
+                    resp = await asyncio.wait_for(
+                        self.client.chat.completions.create(
+                            model="gpt-4.1-mini",
+                            messages=[{"role": "user", "content": prompt}],
+                            temperature=1.0,
+                            max_tokens=160,
+                        ),
+                        timeout=20.0,
+                    )
+                    self._log_usage(resp, "trial_recommend")
+                    text = resp.choices[0].message.content or ""
+                    m = re.search(r"\{.*\}", text, re.DOTALL)
+                    if not m:
+                        return {"places": [], "_measured": False, "_error": "unparseable"}
+                    data = json.loads(m.group())
+                    raw = data.get("places") if isinstance(data, dict) else None
+                    if not isinstance(raw, list):
+                        return {"places": [], "_measured": False, "_error": "bad_shape"}
+                    places = [str(p).strip() for p in raw if isinstance(p, (str, int)) and str(p).strip()]
+                    return {"places": [p for p in places if len(p) <= 40][:5], "_measured": True}
+                except asyncio.TimeoutError as e:
+                    self._log_failure("trial_recommend", e)
+                    return {"places": [], "_measured": False, "_error": "timeout"}
+                except Exception as e:
+                    is_rate_limit = type(e).__name__ == "RateLimitError" or "429" in str(e)
+                    if is_rate_limit and attempt == 0:
+                        await asyncio.sleep(1.5)
+                        continue
+                    self._log_failure("trial_recommend", e)
+                    return {"places": [], "_measured": False, "_error": str(e)[:80]}
+        return {"places": [], "_measured": False, "_error": "unknown"}
+
+    async def sample_recommend(self, query: str, target: str, n: int = 50) -> dict:
+        """비유도형 n회 추천 샘플링 — 내 가게 자발적 언급 빈도 + AI가 추천한 가게 상위 목록.
+
+        반환은 sample_n()과 키 호환(exposure_freq·sample_size·confidence·citations·queries_used)에
+        avg_rank(언급됐을 때 평균 추천 순서), top_places(추천 빈도 상위 가게)를 더한다.
+        실패 샘플은 분모에서 제외한다(_measured=False → 측정 안 됨, "언급 안 됨"으로 오집계 금지).
+        """
+        target_norm = self._norm_name(target)
+        mention_count = 0
+        success_count = 0
+        ranks: list[int] = []
+        citations: list[str] = []
+        counter: dict[str, int] = {}
+        display: dict[str, dict[str, int]] = {}
+
+        for batch_start in range(0, n, 10):
+            batch = min(10, n - batch_start)
+            results = await asyncio.gather(
+                *[self._recommend_once(query) for _ in range(batch)], return_exceptions=True
+            )
+            for r in results:
+                if isinstance(r, Exception) or not r.get("_measured", True):
+                    continue
+                success_count += 1
+                places = r.get("places") or []
+                hit_idx = None
+                for idx, p in enumerate(places):
+                    pn = self._norm_name(p)
+                    if self._name_matches(target_norm, pn):
+                        hit_idx = idx
+                        continue  # 내 가게는 경쟁 후보 집계에서 제외
+                    if pn:
+                        counter[pn] = counter.get(pn, 0) + 1
+                        display.setdefault(pn, {})
+                        display[pn][p] = display[pn].get(p, 0) + 1
+                if hit_idx is not None:
+                    mention_count += 1
+                    ranks.append(hit_idx + 1)
+                    if len(citations) < 3:
+                        citations.append(" · ".join(places))
+            await asyncio.sleep(1.0)
+
+        top_places = []
+        for pn, cnt in sorted(counter.items(), key=lambda kv: -kv[1])[:5]:
+            names = display.get(pn) or {pn: cnt}
+            top_places.append({"name": max(names.items(), key=lambda kv: kv[1])[0], "count": cnt})
+
+        return {
+            "platform": "chatgpt",
+            "probe": "recommend_v1",
+            "mentioned": mention_count > 0,
+            "exposure_freq": mention_count,
+            "exposure_rate": (mention_count / success_count) if success_count > 0 else 0.0,
+            "citations": citations,
+            "confidence": self._wilson_ci(mention_count, success_count),
+            "sample_size": success_count,
+            "requested_size": n,
+            "failed_count": n - success_count,
+            "queries_used": [query],
+            "avg_rank": round(sum(ranks) / len(ranks), 1) if ranks else None,
+            "top_places": top_places,
+        }
+
     async def sample_100(self, queries: "str | list[str]", target: str) -> dict:
         """100회 샘플링 — Full 스캔 하위 호환 wrapper."""
         return await self.sample_n(queries, target, n=100)

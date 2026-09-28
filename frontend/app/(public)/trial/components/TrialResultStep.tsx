@@ -193,10 +193,10 @@ function ScanConclusionCard({
             <span className="text-base shrink-0 mt-0.5">⚠️</span>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-amber-800 break-keep">
-                소개글에 경쟁사 핵심 키워드 {missingKws.length}개 없음 — 지금 경쟁 가게보다 덜 노출됩니다
+                소개글에 넣으면 좋은 키워드 {missingKws.length}개 — 업종 기준 추정입니다
               </p>
               <p className="text-sm text-amber-700 mt-0.5 break-keep">
-                &lsquo;{topMissingKw}&rsquo; 등을 소개글에 추가하면 AI가 이 키워드로 검색하는 손님에게 내 가게를 추천합니다. 2~4주 내 네이버 순위 변화가 시작됩니다.
+                &lsquo;{topMissingKw}&rsquo; 등 내 가게에 실제로 해당하는 키워드를 소개글에 추가하면 네이버 검색과 AI가 내 가게를 이해하는 데 도움이 됩니다. 네이버 순위 변화는 2~4주 안에 시작될 수 있습니다(추정).
               </p>
             </div>
           </div>
@@ -465,7 +465,7 @@ export default function TrialResultStep(props: TrialResultProps) {
     (chatgptResult?.exposure_freq !== undefined
       ? chatgptResult.exposure_freq > 0
       : undefined);
-  const chatgptSampleSize = chatgptResult?.sample_size ?? 5;
+  const chatgptSampleSize = chatgptResult?.sample_size ?? 50;
 
   const websiteCheckResult = (
     result as {
@@ -540,7 +540,11 @@ export default function TrialResultStep(props: TrialResultProps) {
   const heroTiles: ChannelTile[] = [
     naverSeoTile({ missingKeywordCount: effectiveMissingKws.length }),
     rankOrKakaoTile,
-    briefingTile({ eligibility: briefingCategory, isFranchise, inBriefing }),
+    // 체험은 네이버 AI 브리핑을 측정하지 않는다(응답에 in_briefing 없음) — briefingTile은 null을
+    // "아직 미노출"로 표시해 미측정을 미노출로 오표기하므로 체험에서는 별도 타일로 대체한다.
+    inBriefing === null && briefingCategory === "active" && !isFranchise
+      ? makeTile("naver-briefing", "AI 브리핑", "unknown", "가입 후 실측", "체험에서는 측정하지 않습니다")
+      : briefingTile({ eligibility: briefingCategory, isFranchise, inBriefing }),
   ];
 
   const heroEvidenceParts: string[] = [];
@@ -1175,10 +1179,10 @@ function ScoreBreakdownBox({
       </div>
 
       <p className="text-sm font-bold text-gray-800 mb-0.5">
-        네이버 트랙 내 항목 비중
+        네이버 검색 준비도 — 항목별 상태
       </p>
-      <p className="text-sm text-slate-400 mb-3">
-        네이버 검색 준비도 점수 내 기여 비중 (업종별 네이버/글로벌 비율 적용 전)
+      <p className="text-sm text-slate-500 mb-3">
+        항목별로 지금 어느 정도 갖춰졌는지 보여 줍니다
       </p>
       <div className="space-y-3">
         {breakdownItems.map((item) => {
@@ -1191,7 +1195,6 @@ function ScoreBreakdownBox({
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm text-gray-700 font-medium">
                   {item.label}
-                  <span className="ml-1.5 text-slate-400 font-normal">({item.weight}%)</span>
                 </span>
                 <span
                   className={`text-sm font-bold ${
@@ -1353,8 +1356,8 @@ function NaverBriefingResultCard({
           const isFaqConfirmed = hasFaq !== undefined;
 
           if (isSpConfirmed && !isSmartPlace) confirmedReasons.push("스마트플레이스 미확인 — 미등록이거나 스캔에서 찾지 못했습니다. 플레이스 등록 및 소개글 완성도를 점검하세요");
-          if (isIntroConfirmed && !hasIntro) confirmedReasons.push("소개글 미작성 — AI가 인용할 텍스트가 없습니다 (이번 스캔에서 확인됨)");
-          else if (isFaqConfirmed && !hasFaq) confirmedReasons.push("소개글에 Q&A 섹션 없음 — 구조화된 정보 부족 (이번 스캔에서 확인됨)");
+          if (isIntroConfirmed && !hasIntro) confirmedReasons.push("소개글 미작성 — AI가 인용할 텍스트가 없습니다");
+          else if (isFaqConfirmed && !hasFaq) confirmedReasons.push("소개글에 Q&A 섹션 없음 — 구조화된 정보 부족");
 
           const hasConfirmed = confirmedReasons.length > 0;
 
@@ -1464,7 +1467,7 @@ function ChatGPTResultCard({
         <div>
           <p className="text-sm text-gray-600 mb-1.5 leading-snug">
             실제 손님이 AI에게 묻는 방식으로 {sampleSize}회 테스트했습니다
-            <span className="ml-1 text-slate-400">(가입 후 1회 무료체험은 50회, 구독 시엔 100회 — 표본이 많을수록 정확도 높아짐)</span>
+            <span className="ml-1 text-slate-500">(구독 시엔 100회 — 표본이 많을수록 결과가 안정적입니다)</span>
           </p>
           <ul className="space-y-0.5 mb-2">
             {queries.map((q, i) => (
@@ -1506,9 +1509,9 @@ function ChatGPTResultCard({
           const isFaqConfirmed = hasFaq !== undefined;
 
           if (isSpConfirmed && !isSmartPlace) diagnosedReasons.push("스마트플레이스 미확인 — 미등록이거나 스캔에서 찾지 못했습니다. 플레이스 등록 및 소개글 완성도를 점검하세요");
-          if (isIntroConfirmed && !hasIntro) diagnosedReasons.push("소개글 미작성 — AI가 인용할 텍스트가 없습니다 (이번 스캔에서 확인됨)");
-          else if (isFaqConfirmed && !hasFaq) diagnosedReasons.push("소개글에 Q&A 섹션 없음 — 구조화된 정보 부족 (이번 스캔에서 확인됨)");
-          if (missingKws && missingKws.length > 0) diagnosedReasons.push(`경쟁 가게가 쓰는 키워드 '${missingKws.slice(0, 2).join("', '")}' 등 ${missingKws.length}개가 소개글에 없습니다`);
+          if (isIntroConfirmed && !hasIntro) diagnosedReasons.push("소개글 미작성 — AI가 인용할 텍스트가 없습니다");
+          else if (isFaqConfirmed && !hasFaq) diagnosedReasons.push("소개글에 Q&A 섹션 없음 — 구조화된 정보 부족");
+          if (missingKws && missingKws.length > 0) diagnosedReasons.push(`업종 기준 키워드 '${missingKws.slice(0, 2).join("', '")}' 등 ${missingKws.length}개를 소개글에서 확인하지 못했습니다 (추정)`);
 
           const hasConfirmed = diagnosedReasons.length > 0;
 
@@ -1606,7 +1609,7 @@ function BriefingBadgeChip({
     return (
       <span className="inline-flex items-center gap-1.5 text-sm font-bold text-green-700 bg-white rounded-full px-3 py-1 shadow-sm whitespace-nowrap">
         <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-        AI 브리핑·AI탭 5채널 대상
+        네이버 AI 브리핑 대상 업종
       </span>
     );
   }
@@ -1614,14 +1617,14 @@ function BriefingBadgeChip({
     return (
       <span className="inline-flex items-center gap-1.5 text-sm font-bold text-amber-700 bg-amber-50 border border-amber-300 rounded-full px-3 py-1 whitespace-nowrap">
         <Clock className="w-3.5 h-3.5 shrink-0" />
-        네이버 AI탭·ChatGPT·Gemini 4채널
+        AI 브리핑 확대 예정 업종
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-600 bg-slate-100 border border-slate-300 rounded-full px-3 py-1 whitespace-nowrap">
       <Globe className="w-3.5 h-3.5 shrink-0" />
-      AI탭·ChatGPT·Gemini 4채널
+      글로벌 AI(ChatGPT·Gemini) 중심 업종
     </span>
   );
 }
@@ -1664,12 +1667,13 @@ function ScanStatusBar({
     {
       label: "Gemini",
       status: geminiExposureFreq === undefined ? "unknown" : geminiOk ? "ok" : "warn",
-      detail: geminiExposureFreq === undefined ? "미측정" : geminiOk ? `${geminiExposureFreq}/${10}회 노출` : "미노출",
+      detail: geminiExposureFreq === undefined ? "가입 후 실측" : geminiOk ? `${geminiExposureFreq}/${10}회 노출` : "미노출",
     },
     {
       label: "네이버 AI브리핑",
-      status: briefingOk === null ? "na" : briefingOk ? "ok" : "warn",
-      detail: briefingOk === null ? "비대상 업종" : briefingOk ? "노출 중" : "미노출",
+      // 체험은 브리핑을 측정하지 않는다(inBriefing null) — 대상 업종이라도 "미노출"이 아니라 "가입 후 실측"
+      status: briefingCategory !== "active" ? "na" : inBriefing === null ? "unknown" : briefingOk ? "ok" : "warn",
+      detail: briefingCategory !== "active" ? "비대상 업종" : inBriefing === null ? "가입 후 실측" : briefingOk ? "노출 중" : "미노출",
     },
     {
       label: "스마트플레이스",

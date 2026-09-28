@@ -251,7 +251,7 @@ export default function TodayOneAction({
         desc: `ChatGPT·Gemini는 소개글·홈페이지의 글을 참고합니다. '${missingKws[0]}' 관련 Q&A를 추가하면 AI가 내 가게를 검색 답변에 포함할 가능성이 높아집니다.`,
         copy:
           faqText ??
-          `Q. ${missingKws[0]}에 대해 궁금한 점이 있어요.\nA. 저희 가게의 ${missingKws[0]} ${bw}에 대해 안내드립니다. 자세한 내용은 네이버 지도 채팅이나 전화로 문의해 주시면 친절하게 안내해 드리겠습니다.`,
+          `Q. ${missingKws[0]}에 대해 궁금한 점이 있어요.\nA. 저희 가게는 [${missingKws[0]} 관련 실제 특징을 입력하세요]. 자세한 내용은 네이버 지도 채팅이나 전화로 문의해 주세요.`,
         copyLabel: "Q&A 문구 복사",
         time: "5분",
         primary: !actions.length,
@@ -304,7 +304,7 @@ export default function TodayOneAction({
       actions.push({
         title: `리뷰 답변에 '${missingKws[0]}' 언급하기 → 네이버 키워드 랭킹 ↑`,
         desc: `최근 받은 리뷰에 답변할 때 '${missingKws[0]}'를 자연스럽게 포함하세요. 리뷰 답변 텍스트는 네이버가 가게 키워드를 인식하는 중요한 신호입니다.`,
-        copy: `소중한 리뷰 감사합니다. 앞으로도 ${missingKws[0]} 면에서 더 좋은 경험을 드리겠습니다. 또 방문해 주세요.`,
+        copy: `소중한 리뷰 감사합니다. [실제로 제공하는 ${missingKws[0]} 관련 특징]에 대해 궁금하신 점은 언제든 말씀해 주세요. 또 방문해 주세요.`,
         copyLabel: "답변 문구 복사",
         time: "2분",
         primary: !actions.length,
@@ -326,7 +326,7 @@ export default function TodayOneAction({
         : "네이버는 최신 소식이 있는 가게를 '운영 활발'로 판단해 검색 상위에 올립니다. 스마트플레이스 → 소식 → 새 소식 작성으로 주 1회 업데이트하면 2~4주 내 효과가 나타납니다.",
       copy: safeTag
         ? `저희 ${categoryLabel}의 새 소식입니다.\n${safeTag} 관련 업데이트를 전해드립니다. 궁금하신 점은 네이버 채팅으로 문의해 주세요.`
-        : `저희 ${categoryLabel}의 새 소식입니다.\n최근 업데이트된 내용을 안내드립니다. 방문해 주시는 모든 분께 감사드립니다.`,
+        : `저희 ${categoryLabel}의 새 소식입니다.\n[이번 주 신메뉴 또는 변경 사항]을 전해드립니다. 궁금하신 점은 네이버 채팅으로 문의해 주세요.`,
       copyLabel: "소식 문구 복사",
       time: "5분",
       primary: !actions.length,
@@ -358,7 +358,7 @@ export default function TodayOneAction({
       {missingKws.length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-3">
           <p className="text-sm text-amber-800 leading-relaxed">
-            아래 키워드는 <strong>경쟁 가게 소개글 분석</strong>으로 자동 추출됐습니다. 내 가게에 안 맞는 키워드라면 건너뛰세요.
+            아래 키워드는 <strong>업종 기준으로 추린 목록(추정)</strong>이며 내 소개글을 직접 분석한 결과가 아닙니다. 내 가게에 실제로 해당하는 것만 사용하고, 아니라면 건너뛰세요.
           </p>
         </div>
       )}

@@ -1153,7 +1153,9 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         kw1 = top_missing_keywords[0]
         biz_nm = req.business_name
         q_line = "Q: " + kw1 + "에 대해 궁금한 점이 있어요."
-        a_line = "A: 저희 " + biz_nm + _josa(biz_nm, ("은", "는")) + " " + kw1 + "에 대해 안내드립니다. 자세한 내용은 방문하시거나 문의 주시면 안내해 드리겠습니다."
+        # 2026-09-28: 내용 없는 "안내드립니다" 문구 대신 [ ] 빈칸으로 사장님이 실제 특징을 채우게 함
+        # (미보유 추정 키워드를 단정 서술하지 않으면서 붙여넣기 즉시 쓸 수 있는 형태)
+        a_line = "A: 저희 " + biz_nm + _josa(biz_nm, ("은", "는")) + " [" + kw1 + " 관련 실제 특징을 입력하세요]. 자세한 내용은 방문하시거나 문의해 주세요."
         faq_copy_text = q_line + "\n" + a_line
 
     # 리뷰 요청 메시지 생성 (briefing_engine 모듈 함수 직접 사용)
