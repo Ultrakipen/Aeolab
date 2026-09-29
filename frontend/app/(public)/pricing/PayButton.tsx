@@ -23,6 +23,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState("");
+  const [agreed, setAgreed] = useState(false); // 결제 진행 동의 (카드사 심사 결제경로 요건)
 
   // 이미 로그인한 사용자에게는 "회원가입" 문구 대신 결제 지향 문구를 보여줌
   useEffect(() => {
@@ -58,6 +59,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
   useEffect(() => {
     if (!showConfirm) return;
     setPhoneError("");
+    setAgreed(false);
     (async () => {
       const session = await getSafeSession();
       const user = session?.user ?? null;
@@ -77,6 +79,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
   const chargeAmount = firstMonthAmount && isFirstTime ? firstMonthAmount : amount;
 
   const handleConfirm = async () => {
+    if (!agreed) return;
     setPhoneError("");
     setLoading(true);
     // 전화번호 검증 실패 시에는 모달을 닫지 않고 그대로 두어 사용자가 바로 고칠 수 있게 함
@@ -217,10 +220,24 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
               )}
             </div>
 
-            <p className="text-sm text-gray-600 mb-5">
-              구독 시작일로부터 7일 이내 청약철회 신청 가능 (단, 서비스 이용 시 제한됩니다) ·{" "}
-              <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">이용약관</a>
+            <p className="text-sm text-gray-600 mb-3">
+              구독 시작일로부터 7일 이내 청약철회 신청 가능 (단, 서비스 이용 시 제한됩니다)
             </p>
+
+            <label className="flex items-start gap-2 mb-5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="mt-0.5 h-5 w-5 shrink-0 accent-blue-600"
+              />
+              <span className="text-sm text-gray-700 leading-relaxed">
+                <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline text-blue-600">이용약관</a>
+                {" · "}
+                <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline text-blue-600">개인정보처리방침</a>
+                {" "}및 구매조건(월 자동결제·청약철회 기준)을 확인하였으며 결제 진행에 동의합니다.
+              </span>
+            </label>
 
             <div className="flex gap-2">
               <button
@@ -232,8 +249,8 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
               </button>
               <button
                 onClick={handleConfirm}
-                disabled={loading}
-                className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                disabled={loading || !agreed}
+                className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "처리 중..." : "카드 등록 및 결제"}
               </button>
