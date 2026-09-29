@@ -671,22 +671,40 @@ export default function TrialResultStep(props: TrialResultProps) {
   const introKnown = spMeasured ? (spCheck?.has_intro ?? hasIntro) : hasIntro;
   const postKnown = spMeasured ? (spCheck?.has_recent_post ?? hasRecentPost) : hasRecentPost;
   // 우선순위는 AEOlab 판단 기준(추정) — 화면에도 그렇게 표기
+  // effect 문구는 TodayOneAction.tsx의 같은 항목과 동일한 반영 기간 근거를 재사용한다(새 주장 추가 금지)
   const priorityItems: PriorityItem[] = (() => {
     const items: PriorityItem[] = [];
     if (!isSmartPlace) {
-      items.push({ title: "스마트플레이스 등록 여부 확인하고, 없으면 등록하기", level: "높음", time: "10분" });
+      items.push({
+        title: "스마트플레이스 등록 여부 확인하고, 없으면 등록하기",
+        level: "높음", time: "10분",
+        effect: "등록하면 네이버 지역 검색에 나타나기 시작합니다",
+      });
     } else if (!introKnown) {
-      items.push({ title: "소개글에 가게 특징·키워드를 200자 이상 작성하기", level: "높음", time: "5분" });
+      items.push({
+        title: "소개글에 가게 특징·키워드를 200자 이상 작성하기",
+        level: "높음", time: "5분",
+        effect: "2~4주 내 네이버 검색·AI 브리핑 노출이 올라오기 시작합니다",
+      });
     }
     if (effectiveMissingKws.length > 0) {
       items.push({
         title: `소개글에 내 가게의 실제 특징 추가하기 ('${effectiveMissingKws[0]}' 등 해당되는 것만)`,
         level: "높음",
         time: "5분",
+        effect: "2~4주 내 네이버 검색 순위 변화가 시작되고, 이후 수개월~1년 내 ChatGPT·Gemini에도 반영됩니다",
       });
     }
-    if (!postKnown) items.push({ title: "스마트플레이스 소식 1개 등록하기", level: "보통", time: "5분" });
-    items.push({ title: "리뷰 답변에 실제로 제공하는 특징을 한 문장 넣기", level: "보통", time: "2분" });
+    if (!postKnown) items.push({
+      title: "스마트플레이스 소식 1개 등록하기",
+      level: "보통", time: "5분",
+      effect: "네이버가 '운영 활발'로 인식해 2~4주 내 검색 순위에 도움이 됩니다",
+    });
+    items.push({
+      title: "리뷰 답변에 실제로 제공하는 특징을 한 문장 넣기",
+      level: "보통", time: "2분",
+      effect: "네이버가 가게 키워드를 인식하는 신호가 됩니다",
+    });
     return items.slice(0, 3);
   })();
   // 문제가 없는 항목(확인된 것만)
@@ -764,6 +782,19 @@ export default function TrialResultStep(props: TrialResultProps) {
         ? ` 추천된 가게 중 네이버에서 확인된 곳: ${verifiedPlaces.map((p) => p.name).join(" · ")}.`
         : "";
     verdictBullets.push({ label: "AI 검색", text: base + more, tone: aiWeak ? "warn" : "ok" });
+    // 나쁜 소식만 나열하지 않는다 — 실측한 1위 경쟁 가게의 노출률 자체가 낮을 때만(사실일 때만) 안심 신호를 더한다
+    // (2026-09-29 "결과가 전부 부정적이면 신뢰도가 떨어진다"는 지적에 따른 개선. 지어낸 위로가 아니라 같은 measurement 재사용)
+    if (aiWeak && aiPlaces.length > 0 && chatgptSampleSize > 0) {
+      const topPlace = aiPlaces[0];
+      const topRate = topPlace.count / chatgptSampleSize;
+      if (topRate < 0.3) {
+        verdictBullets.push({
+          label: "참고",
+          text: `이 지역에서 ChatGPT가 가장 자주 언급하는 가게(${topPlace.name})도 ${chatgptSampleSize}회 중 ${topPlace.count}회(${Math.round(topRate * 100)}%)뿐입니다 — 이 채널은 아직 확실한 승자가 없어 지금 시작해도 늦지 않았습니다.`,
+          tone: "ok",
+        });
+      }
+    }
   }
   if (naverMeasured) {
     verdictBullets.push({

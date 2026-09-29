@@ -151,6 +151,8 @@ export interface PriorityItem {
   title: string;
   level: "높음" | "보통";
   time: string;
+  /** 이 항목을 하면 무엇이 달라지는지 — 기존 개선 가이드(TodayOneAction 등)와 동일한 반영 기간 근거 재사용 */
+  effect?: string;
 }
 
 export function PriorityFixCard({
@@ -190,6 +192,9 @@ export function PriorityFixCard({
                 </span>
                 <span className="text-sm text-slate-700">{it.time}</span>
               </div>
+              {it.effect && (
+                <p className="mt-1.5 text-sm text-blue-800 leading-snug break-keep">→ {it.effect}</p>
+              )}
             </div>
           </li>
         ))}
