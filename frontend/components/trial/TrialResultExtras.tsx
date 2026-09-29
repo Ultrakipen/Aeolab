@@ -28,6 +28,10 @@ export function TrialVerdictCard({
   headline: string;
   bullets: VerdictBullet[];
 }) {
+  // 헤드라인 하나만 남기고 근거는 기본 접는다 — "한 줄 진단"인데 근거 3~4개가 항상 펼쳐져 있어
+  // 핵심 메시지가 흐려진다는 지적(2026-09-29)에 따른 개선. 근거 문장(사업장명·검색어 인용 등)은
+  // 신뢰를 뒷받침하는 자료라 삭제하지 않고, 원할 때만 펼쳐 보게 한다.
+  const [open, setOpen] = useState(false);
   const toneCls: Record<VerdictBullet["tone"], string> = {
     warn: "bg-amber-50 border-amber-200",
     ok: "bg-green-50 border-green-200",
@@ -38,20 +42,39 @@ export function TrialVerdictCard({
     ok: "bg-green-600",
     neutral: "bg-slate-400",
   };
+  // 항상 보이는 근거는 headline이 "약하다"고 말하는 이유와 일치해야 한다 — 단순히 첫 번째 항목을 보여주면
+  // (예) headline="ChatGPT엔 나오지만 네이버에선 안 보인다"인데 첫 항목이 ChatGPT(ok 톤)라 엇갈리는 경우가 있었다.
+  // warn 톤이 있으면 그걸 우선 노출하고, 전부 ok/neutral이면(좋은 결과) 원래 순서의 첫 항목을 보여준다.
+  const warnIdx = bullets.findIndex((b) => b.tone === "warn");
+  const firstIdx = warnIdx >= 0 ? warnIdx : 0;
+  const first = bullets[firstIdx];
+  const rest = bullets.filter((_, i) => i !== firstIdx);
+  const renderBullet = (b: VerdictBullet) => (
+    <li key={b.label} className={`flex items-start gap-2.5 rounded-lg border px-3 py-2.5 ${toneCls[b.tone]}`}>
+      <span className={`mt-1.5 w-2.5 h-2.5 shrink-0 rounded-full ${dotCls[b.tone]}`} aria-hidden="true" />
+      <p className="text-sm md:text-base text-slate-800 leading-snug break-keep">
+        <span className="font-bold">{b.label}</span> {b.text}
+      </p>
+    </li>
+  );
   return (
     <div className="rounded-xl border-2 border-slate-800 bg-white px-4 py-4 md:px-6 md:py-5 mb-4 shadow-sm">
       <p className="text-sm font-bold text-slate-600 mb-1">한 줄 진단</p>
       <p className="text-xl md:text-2xl font-extrabold text-slate-900 leading-snug break-keep mb-3">{headline}</p>
-      <ul className="space-y-2">
-        {bullets.map((b) => (
-          <li key={b.label} className={`flex items-start gap-2.5 rounded-lg border px-3 py-2.5 ${toneCls[b.tone]}`}>
-            <span className={`mt-1.5 w-2.5 h-2.5 shrink-0 rounded-full ${dotCls[b.tone]}`} aria-hidden="true" />
-            <p className="text-sm md:text-base text-slate-800 leading-snug break-keep">
-              <span className="font-bold">{b.label}</span> {b.text}
-            </p>
-          </li>
-        ))}
-      </ul>
+      {first && <ul className="space-y-2">{renderBullet(first)}</ul>}
+      {rest.length > 0 && (
+        <>
+          {open && <ul className="space-y-2 mt-2">{rest.map(renderBullet)}</ul>}
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            className="mt-2 min-h-[40px] px-1 text-sm font-bold text-blue-700 hover:text-blue-800"
+          >
+            {open ? "근거 접기" : `근거 ${rest.length}개 더 보기`}
+          </button>
+        </>
+      )}
       <p className="mt-3 text-sm text-slate-600 leading-snug">
         측정 시점·기기·로그인 상태에 따라 결과가 달라질 수 있습니다.
       </p>
