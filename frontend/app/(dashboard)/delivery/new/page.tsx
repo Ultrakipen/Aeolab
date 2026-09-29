@@ -45,6 +45,7 @@ function DeliveryNewForm() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [consentAgreed, setConsentAgreed] = useState(false);
+  const [termsAgreed, setTermsAgreed] = useState(false); // 이용약관·환불 규정 확인 및 결제 진행 동의 (카드사 심사 결제경로 요건)
 
   const [loading, setLoading] = useState(false);
   const [loadingBiz, setLoadingBiz] = useState(true);
@@ -97,6 +98,10 @@ function DeliveryNewForm() {
     }
     if (!consentAgreed) {
       setError("위임 동의에 체크해 주세요.");
+      return;
+    }
+    if (!termsAgreed) {
+      setError("이용약관·환불 규정 확인 및 결제 진행 동의에 체크해 주세요.");
       return;
     }
 
@@ -360,9 +365,32 @@ function DeliveryNewForm() {
               </p>
             </div>
 
+            <div className="bg-white rounded-xl p-4 mb-4">
+              <p className="text-sm font-semibold text-gray-900 mb-1.5">환불 안내 (이용약관 제5조의2)</p>
+              <ul className="text-sm text-gray-700 space-y-1 list-disc pl-5 mb-3">
+                <li>결제 후 7일 이내 의뢰 내용(작업에 필요한 정보·자료)을 제출하지 않으면 전액 자동 환불됩니다.</li>
+                <li>작업 착수 전 취소 시 전액 환불됩니다. 착수 후에는 진행 상황에 따라 협의합니다.</li>
+                <li>작업이 완료되어 납품물이 제공된 건은 환불 대상에서 제외됩니다.</li>
+              </ul>
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={termsAgreed}
+                  onChange={(e) => setTermsAgreed(e.target.checked)}
+                  className="mt-0.5 h-5 w-5 shrink-0 accent-blue-600"
+                />
+                <span className="text-sm text-gray-800 leading-relaxed">
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline text-blue-600">이용약관</a>
+                  {" · "}
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline text-blue-600">개인정보처리방침</a>
+                  {" "}및 위 환불 규정을 확인하였으며 결제 진행에 동의합니다.
+                </span>
+              </label>
+            </div>
+
             <button
               onClick={handleSubmit}
-              disabled={loading || businesses.length === 0}
+              disabled={loading || businesses.length === 0 || !termsAgreed}
               className="w-full py-3.5 rounded-xl bg-white text-blue-600 text-base font-bold hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? (
