@@ -209,7 +209,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
                 value={phone}
                 onChange={(e) => { setPhone(e.target.value); setPhoneError(""); }}
                 placeholder="010-1234-5678"
-                className={`w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 ${
+                className={`w-full px-3 py-2.5 rounded-lg border bg-white text-gray-900 placeholder:text-gray-400 text-sm focus:outline-none focus:ring-2 ${
                   phoneError ? "border-red-300 focus:ring-red-200" : "border-gray-200 focus:ring-blue-200"
                 }`}
               />
