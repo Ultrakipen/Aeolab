@@ -672,8 +672,38 @@ export default function TrialResultStep(props: TrialResultProps) {
   const postKnown = spMeasured ? (spCheck?.has_recent_post ?? hasRecentPost) : hasRecentPost;
   // 우선순위는 AEOlab 판단 기준(추정) — 화면에도 그렇게 표기
   // effect 문구는 TodayOneAction.tsx의 같은 항목과 동일한 반영 기간 근거를 재사용한다(새 주장 추가 금지)
+  // 온라인·전문직(non_location) 업종은 naver_data 자체가 없어(scan.py non_location 분기, naver=null)
+  // isSmartPlace가 항상 false로 떨어진다 — 그대로 두면 "경쟁 비교" 탭은 "네이버 지역 비교를 제공하지 않습니다"라고
+  // 안내하면서 정작 최우선 조언은 "스마트플레이스 등록"이 되는 모순이 실제로 재현됨(2026-09-29 라이브 확인) →
+  // TodayOneAction.tsx의 isGlobalFocus 분기와 같은 방향(Google 비즈니스 프로필 중심)으로 갈라낸다.
+  const isNonLocationTrial = (result as { business_type?: string }).business_type === "non_location";
   const priorityItems: PriorityItem[] = (() => {
     const items: PriorityItem[] = [];
+    if (isNonLocationTrial) {
+      items.push({
+        title: "구글 비즈니스 프로필 등록 여부 확인하고, 없으면 등록하기",
+        level: "높음", time: "10분",
+        effect: "ChatGPT·Google AI는 구글 데이터를 참고하는 경향이 있습니다 — 등록하면 노출 가능성이 열립니다",
+      });
+      if (effectiveMissingKws.length > 0) {
+        items.push({
+          title: `웹사이트·소개 문구에 내 가게의 실제 특징 추가하기 ('${effectiveMissingKws[0]}' 등 해당되는 것만)`,
+          level: "높음", time: "5분",
+          effect: "수개월~1년 내 ChatGPT·Gemini 노출에 반영될 수 있습니다(학습 데이터 기반, 추정)",
+        });
+      }
+      items.push({
+        title: "구글 비즈니스 프로필 정보 완성하기(영업시간·설명·사진)",
+        level: "보통", time: "10분",
+        effect: "ChatGPT·Google AI가 인용할 정보가 늘어납니다",
+      });
+      items.push({
+        title: "리뷰 답변에 실제로 제공하는 특징을 한 문장 넣기",
+        level: "보통", time: "2분",
+        effect: "검색 엔진이 가게 특징을 인식하는 신호가 됩니다",
+      });
+      return items.slice(0, 3);
+    }
     if (!isSmartPlace) {
       items.push({
         title: "스마트플레이스 등록 여부 확인하고, 없으면 등록하기",
