@@ -160,3 +160,22 @@
 - 본문에만 이름이 나오는 글, 요약에 지역이 없는 글은 빠진다. 같은 지역 안의 동명 가게는 구분 불가. 상위 100건 상한.
 - 서울 밖 도(道) 단위·군 지역, 광주(광역시/경기 광주시) 같은 동명 시는 표지가 모호할 수 있음.
 - 검증: 회귀 테스트 `backend/tests/test_blog_mention_verifier.py` 12개 + 전체 86개 통과.
+
+---
+
+## 11. §10 사후 검증 — 코드 재검토 (유료 AI 호출 없이, git `3561787`)
+
+사용자 지시: "확인해줘 ... 유료 AI 도구 사용 금지". §10에서 배포한 검증 집계를 무료 수단(코드 읽기·로컬 테스트·SSH·네이버 무료 API)만으로 재검토.
+
+**확인한 것**
+- `blog_mention_verifier.py`의 지역 판정(`RegionKey`·`region_ok`)을 케이스별로 손으로 재추적 — 테스트 12개와 일치.
+- `naver_visibility.py`·`competitor_place_crawler.py`·`competitor.py`(`_fetch_blog_snippets`)·`score_engine.py`(capped 처리) 통합 지점 전체 재확인 — 로직 오류 없음.
+- `_fetch_blog_snippets`가 필터링 후 빈 결과를 반환해도 호출부(`competitor.py:1384`)가 "수집 실패"(`fetch_ok`)와 "약점 없음"(빈 snippets)을 올바르게 구분 — 회귀 없음.
+- 로컬 테스트 86개 전부 통과. 서버 배포 파일 7개가 git HEAD와 md5 일치. 서버 헬스체크·프론트 `/trial`·`/faq` 200 확인.
+
+**발견·수정 (사소함)**
+- `naver_visibility.py`의 `blog_query_keyword` 변수가 검증 모듈 도입 후 계산만 되고 어디서도 쓰이지 않는 죽은 코드로 남아 있었음 — 제거. 실제 동작 영향 없음(제거 후 하라식당 본점 16건·오빠라멘 3건, §10과 동일 값 재확인).
+
+**범위 밖으로 판단해 조사하지 않은 것**
+- 프론트 에러로그의 "Server Reference ID did not match" 300줄 중 41건 — 이번에 수정한 3개 UI 파일(`PlaceCompareTable.tsx`·`BlogClient.tsx`·`CompetitorPlaceCard.tsx`)엔 서버 액션(`"use server"`)이 없어 무관함만 확인. 봇 트래픽이 옛 캐시 페이지로 서버 액션을 호출할 때 나는 잡음으로 추정(미확정) — 이번 세션 범위 밖.
+- 로그인 계정으로 유료 화면(경쟁사 비교·블로그 분석) 라이브 확인은 아직 하지 않음.
