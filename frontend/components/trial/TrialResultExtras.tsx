@@ -556,7 +556,7 @@ export function AIRecommendedPlacesCard({
         </span>
       </div>
       <p className="text-sm text-slate-700 leading-relaxed mb-3 break-keep">
-        내 가게 이름을 알려 주지 않고 “추천해 주세요”라고 물었을 때 ChatGPT가 자주 꺼낸 가게입니다.
+        내 가게 이름을 알려 주지 않고 “추천해 주세요”라고 물었을 때 ChatGPT가 자주 꺼낸 가게입니다. 실제 경쟁 관계를 조사해 만든 목록이 아니라, 그 순간 ChatGPT가 자유롭게 떠올려 답한 이름입니다 — 사장님이 실제로 아는 경쟁사와 다를 수 있습니다.
       </p>
       {confirmed.length > 0 ? (
         <ol className="space-y-2 mb-3">
@@ -598,7 +598,7 @@ export function AIRecommendedPlacesCard({
         </p>
       </div>
       <p className="rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-900 leading-snug break-keep">
-        AI 답변이며 사실과 다를 수 있습니다. 네이버 지역검색에서 실제로 확인된 가게만 순위로 보여줍니다.
+        AI 답변이며 사실과 다를 수 있습니다. 네이버 지역검색에서 실제로 확인된 가게만 순위로 보여줍니다. 사장님이 실제로 아는 경쟁사와는 다를 수 있습니다 — 가입 후에는 내가 아는 경쟁사를 직접 등록해 AI 노출을 비교할 수 있습니다.
       </p>
     </div>
   );
