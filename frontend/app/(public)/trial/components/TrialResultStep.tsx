@@ -1070,11 +1070,16 @@ export default function TrialResultStep(props: TrialResultProps) {
 
         {/* ── 경쟁 비교 ── */}
         <div role="tabpanel" id="trial-panel-compete" aria-labelledby="trial-tab-compete" className={tab === "compete" ? "" : "hidden"}>
-          <CompetitorBlogBars
-            myName={form.business_name || "내 가게"}
-            myCount={blogCount}
-            competitors={competitorBlogCounts}
-          />
+          {/* 온라인·전문직 업종은 지역 경쟁사 개념이 없어 competitor_blog_counts가 항상 비어 있음(scan.py 비location_based
+              분기는 이 집계를 하지 않음) — location_based일 때만 렌더링, 아니면 새 "비교 대상 없음" 안내와
+              아래 구조적 안내 문구가 중복돼 혼란을 준다 (2026-09-29) */}
+          {(result as { business_type?: string }).business_type !== "non_location" && (
+            <CompetitorBlogBars
+              myName={form.business_name || "내 가게"}
+              myCount={blogCount}
+              competitors={competitorBlogCounts}
+            />
+          )}
           {/* ── 네이버 현황 ── */}
           {(result as { business_type?: string }).business_type !== "non_location" && (
             <NaverStatusSection

@@ -452,7 +452,18 @@ export interface PassedItem {
 
 export function PassedItemsAccordion({ items }: { items: PassedItem[] }) {
   const [open, setOpen] = useState(false);
-  if (items.length === 0) return null;
+  // 강점이 0~1개(대부분 "프랜차이즈 아님" 같은 형식적 항목뿐)면 접이식 대신 있는 그대로 밝힌다
+  // — 부정 신호만 가득한 화면에서 억지로 만든 "확인 완료"처럼 보이지 않도록 (2026-09-29 사용자 지적)
+  if (items.length <= 1) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 mb-4">
+        <p className="text-sm md:text-base font-bold text-slate-700">이번 체험에서 확인된 강점이 아직 없습니다</p>
+        <p className="text-sm text-slate-600 mt-1 break-keep">
+          지금은 개선할 부분이 더 많다는 뜻입니다 — 아래 &lsquo;먼저 고칠 것&rsquo;부터 하나씩 시작하면 다음 확인 때 강점이 늘어납니다.
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden mb-4 shadow-sm">
       <button
@@ -604,7 +615,23 @@ export function CompetitorBlogBars({
   myCount: number;
   competitors: CompBlog[];
 }) {
-  if (!competitors || competitors.length === 0) return null;
+  // 경쟁사를 못 찾았다고 카드가 조용히 사라지면 "측정 실패"가 아니라 "시스템 오류"로 보일 위험이 있다
+  // (2026-09-29 사용자 지적) — 무엇을 시도했고 왜 없는지 명시한다.
+  if (!competitors || competitors.length === 0) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-white px-4 py-4 mb-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <p className="text-base md:text-lg font-extrabold text-slate-900">내 가게 vs 경쟁 가게 · 블로그 언급 글 수</p>
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-sm font-bold text-slate-600">
+            비교 대상 없음
+          </span>
+        </div>
+        <p className="text-sm text-slate-700 leading-snug break-keep">
+          네이버 지역 검색에서 같은 업종의 경쟁 가게를 찾지 못해 비교하지 못했습니다. 업종이 드물거나 이 지역에 등록된 같은 업종 가게가 적을 때 나타날 수 있습니다 — 측정을 시도했지만 비교 대상이 없었다는 뜻이며, 내 가게에 문제가 있다는 뜻은 아닙니다.
+        </p>
+      </div>
+    );
+  }
   const rows = [
     { name: `내 가게 (${myName})`, count: myCount, mine: true },
     ...competitors.map((c) => ({ name: c.name, count: c.count, mine: false })),
