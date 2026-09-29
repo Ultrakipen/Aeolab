@@ -196,11 +196,8 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
     blog_query_name    = _quoted_name
     blog_query_region  = f"{region_prefix} {_quoted_name}".strip() if region_prefix else _quoted_name
     # 키워드 첫 단어만 사용 (복합 키워드가 전체 카테고리 포스트를 끌어올리는 문제 방지)
+    # → also_keywords로 blog_mention_verifier에 넘겨 같은 100건 안에서 세므로 별도 쿼리 문자열은 불필요
     _kw_first = clean_kw.split()[0] if clean_kw else ""
-    blog_query_keyword = (
-        f"{region_prefix} {_quoted_name} {_kw_first}".strip()
-        if (region_prefix and _kw_first) else blog_query_region
-    )
 
     # ── 병렬 호출: 지역 검색(20개) + 블로그 검증 집계 + 최신 포스트 ─────
     # 블로그 언급 수는 API total 대신 "이름이 실제로 나오고 지역이 확인되는 글 수"(상위 100건)로 센다 —
