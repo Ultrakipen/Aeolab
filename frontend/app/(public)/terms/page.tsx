@@ -83,10 +83,10 @@ export default function TermsPage() {
             <ol className="list-decimal pl-5 space-y-2">
               <li>서비스 구독 요금은 다음과 같습니다.
                 <ul className="list-disc pl-5 mt-2 space-y-1">
-                  <li>Basic: 월 11,900원 (신규 가입 첫 달 5,950원, 이후 정상가)</li>
-                  <li>창업패키지: 월 12,900원</li>
-                  <li>Pro: 월 23,900원</li>
-                  <li>Biz: 월 49,900원 (영업 문의 후 계약)</li>
+                  <li>Basic: 월 17,900원 (신규 가입 첫 달 8,950원, 이후 정상가)</li>
+                  <li>창업패키지: 월 23,900원</li>
+                  <li>Pro: 월 29,900원</li>
+                  <li>Biz: 월 79,500원 (영업 문의 후 계약)</li>
                 </ul>
               </li>
               <li>결제는 토스페이먼츠를 통한 신용카드·체크카드 자동결제(빌링키 방식)로 이루어집니다.</li>

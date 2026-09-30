@@ -117,7 +117,7 @@ export default function DashboardActionZone({
               >
                 Basic 구독으로 가이드 확인 →
               </Link>
-              <p className="text-sm text-gray-600 mt-1.5">첫 달 5,950원 · 이후 11,900원/월</p>
+              <p className="text-sm text-gray-600 mt-1.5">첫 달 8,950원 · 이후 17,900원/월</p>
             </div>
           </div>
         </div>

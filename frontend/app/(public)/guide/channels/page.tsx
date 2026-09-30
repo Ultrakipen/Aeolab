@@ -91,7 +91,7 @@ export default function ChannelGuideIndexPage() {
             무료 진단 시작 →
           </TrackedCTA>
           <p className="text-sm text-gray-600 mt-3 leading-relaxed break-keep">
-            회원가입·신용카드 입력 없이 1분 무료 체험. Basic 첫 달 50% 할인(5,950원).
+            회원가입·신용카드 입력 없이 1분 무료 체험. Basic 첫 달 50% 할인(8,950원).
           </p>
         </section>
       </div>

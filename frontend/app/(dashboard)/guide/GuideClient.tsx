@@ -4732,7 +4732,7 @@ export function GuideClient({
             AI 개선 가이드는 Basic 플랜부터 이용 가능합니다
           </p>
           <p className="text-sm text-amber-700 mb-4">
-            월 11,900원으로 AI 브리핑 개선 가이드, 리뷰 답변 초안, FAQ 자동 생성 기능을 이용하세요.
+            월 17,900원으로 AI 브리핑 개선 가이드, 리뷰 답변 초안, FAQ 자동 생성 기능을 이용하세요.
           </p>
           <a
             href="/pricing"
@@ -4785,7 +4785,7 @@ export function GuideClient({
             <span className="text-lg shrink-0">🎁</span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-blue-900">체험으로 생성된 가이드입니다</p>
-              <p className="text-sm text-blue-700 mt-0.5">새 가이드를 계속 받으려면 Basic 플랜(월 11,900원)에 가입하세요.</p>
+              <p className="text-sm text-blue-700 mt-0.5">새 가이드를 계속 받으려면 Basic 플랜(월 17,900원)에 가입하세요.</p>
             </div>
             <a href="/pricing" className="shrink-0 text-sm font-semibold text-blue-700 hover:underline whitespace-nowrap">
               플랜 보기 →

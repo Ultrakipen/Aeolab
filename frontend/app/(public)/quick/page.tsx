@@ -353,10 +353,11 @@ export default function QuickPage() {
 
               {/* 업종 — 선택(드롭다운) */}
               <div>
-                <label className="block text-base font-semibold text-gray-700 mb-1.5">
+                <label htmlFor="quick-category" className="block text-base font-semibold text-gray-700 mb-1.5">
                   업종 <span className="text-sm font-normal text-gray-600">(선택)</span>
                 </label>
                 <select
+                  id="quick-category"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   disabled={cooldownMs > 0}
@@ -565,7 +566,7 @@ export default function QuickPage() {
             >
               무료 회원가입으로 매주 자동 분석받기
             </Link>
-            <p className="text-center text-sm text-gray-600">Basic 월 11,900원 · 7일 이내 미사용 시 100% 환불</p>
+            <p className="text-center text-sm text-gray-600">Basic 월 17,900원 · 7일 이내 미사용 시 100% 환불</p>
 
             {/* 다시 진단 */}
             <button
