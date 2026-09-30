@@ -20,6 +20,8 @@ import DashboardGlobalAiZone from "./sections/DashboardGlobalAiZone";
 import DashboardContentZone from "./sections/DashboardContentZone";
 import CollapseSectionWrapper from "./sections/CollapseSectionWrapper";
 import DashboardFooter from "./sections/DashboardFooter";
+import Await from "./sections/Await";
+import { Suspense } from "react";
 import NaverAiPathwayCard from "@/components/dashboard/NaverAiPathwayCard";
 import ScanResultNavBar from "@/components/dashboard/ScanResultNavBar";
 import DashboardDeliverableSignal from "@/components/dashboard/DashboardDeliverableSignal";
@@ -119,11 +121,26 @@ export default async function DashboardPage({
   );
 
   // ── 병렬 페칭 ────────────────────────────────────────────────
+  // 느린 백엔드 조회 4종은 첫 화면 렌더를 막지 않도록 여기서 시작만 하고(await 안 함),
+  // 접힘 섹션을 <Suspense><Await>로 감싸 도착하는 대로 스트리밍한다(2026-09-30).
+  // 백엔드 호출 1건은 인증→플랜→소유권→데이터로 Supabase 왕복을 4~5번 순차로 타서
+  // Supabase 간헐 정체에 가장 많이 노출되는 경로였다(docs/dashboard_load_delay_investigation_v1.0.md §8).
+  const actionLogP: Promise<unknown> = business && accessToken
+    ? tf("action-log", `${BACKEND}/api/report/action-log/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : null).catch(() => null)
+    : Promise.resolve(null);
+  const gapP: Promise<unknown> = business && accessToken
+    ? tf("gap", `${BACKEND}/api/report/gap/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : null).catch(() => null)
+    : Promise.resolve(null);
+  const photoGuideP: Promise<unknown> = business && business.category && PHOTO_SUPPORTED_CATEGORIES.includes(business.category)
+    ? tf("photo-guide", `${BACKEND}/api/report/photo-guide/${business.category}`).then((r) => r.ok ? r.json() : null).catch(() => null)
+    : Promise.resolve(null);
+  const channelTrendP: Promise<unknown> = business && accessToken
+    ? tf("channel-trend", `${BACKEND}/api/report/channel-trend/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : []).catch(() => [])
+    : Promise.resolve([]);
   const _s2 = Date.now();
   const [
     { data: scanResults }, { data: competitors }, { data: history },
     benchmarkRes, { data: latestGuide }, { count: scanUsedToday },
-    actionLogRes, gapRes, photoGuideRes, channelTrendRes,
   ] = business
     ? await Promise.all([
         supabase.from("scan_results")
@@ -144,40 +161,24 @@ export default async function DashboardPage({
           .then((r) => ({ data: r.data?.[0] ?? null })),
         supabase.from("scan_results").select("id", { count: "exact", head: true })
           .eq("business_id", business.id).gte("scanned_at", todayISO + "T00:00:00"),
-        accessToken
-          ? tf("action-log", `${BACKEND}/api/report/action-log/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : null).catch(() => null)
-          : Promise.resolve(null),
-        accessToken
-          ? tf("gap", `${BACKEND}/api/report/gap/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : null).catch(() => null)
-          : Promise.resolve(null),
-        business.category && PHOTO_SUPPORTED_CATEGORIES.includes(business.category)
-          ? tf("photo-guide", `${BACKEND}/api/report/photo-guide/${business.category}`).then((r) => r.ok ? r.json() : null).catch(() => null)
-          : Promise.resolve(null),
-        // 블로그 인용 채널(blog-result)은 여기서 제외 — DualTrackCard가 클라이언트에서
-        // 직접 조회(2026-09-22). B/D(인용·언급수)는 스캔마다 최신이어야 해 캐시 불가한
-        // 데다(routers/blog.py 설계 의도), 이 페이지의 dash-slow 실측에서 매번 최상위
-        // 기여자였음 — SSR 블로킹 경로에서 빼서 화면 나머지는 즉시 렌더되게 함.
-        // 채널별 AI 노출률 추이 — Basic+ 유료 플랜만 조회 (Free는 백엔드가 [] 반환)
-        accessToken
-          ? tf("channel-trend", `${BACKEND}/api/report/channel-trend/${business.id}`, { headers: { Authorization: `Bearer ${accessToken}` } }).then((r) => r.ok ? r.json() : []).catch(() => [])
-          : Promise.resolve([]),
       ])
     : [
         { data: null }, { data: null }, { data: null }, null, { data: null },
-        { count: 0 }, null, null, null, [],
+        { count: 0 },
       ];
 
   _m.stage2 = Date.now() - _s2;
   // ── 데이터 조합 ──────────────────────────────────────────────
-  const photoGuides = (photoGuideRes as { guides?: Record<string, { description: string; examples: string[]; tips: string[] }> } | null)?.guides ?? null;
+  // photo-guide는 DB·인증 없는 정적 응답 — 첫 화면(section-naver, 기본 펼침)에 필요하므로 그대로 기다린다.
+  const photoGuides = (await photoGuideP as { guides?: Record<string, { description: string; examples: string[]; tips: string[] }> } | null)?.guides ?? null;
   const benchmark = (benchmarkRes ?? null) as { avg_score?: number; fallback?: string } | null;
-  const actionLogs = ((actionLogRes as { logs?: unknown[] } | null)?.logs ?? []) as Array<{
+  const actionLogsP = actionLogP.then((res) => ((res as { logs?: unknown[] } | null)?.logs ?? []) as Array<{
     action_type: string; action_label: string; action_date: string;
     score_before: number | null; score_after: number | null;
-  }>;
+  }>);
   const latestScan = scanResults?.[0] as Record<string, unknown> | undefined;
-  const competitorKeywordSources = ((gapRes as { keyword_gap?: { competitor_keyword_sources?: Record<string, string[]> } } | null)
-    ?.keyword_gap?.competitor_keyword_sources ?? {});
+  const competitorKeywordSourcesP = gapP.then((res) => ((res as { keyword_gap?: { competitor_keyword_sources?: Record<string, string[]> } } | null)
+    ?.keyword_gap?.competitor_keyword_sources ?? {}) as Record<string, string[]>);
 
   // ── 플랜 ─────────────────────────────────────────────────────
   const ADMIN_EMAILS_LIST = (process.env.ADMIN_EMAILS ?? "hoozdev@gmail.com").split(",").map((e) => e.trim().toLowerCase());
@@ -349,15 +350,9 @@ export default async function DashboardPage({
     blogUrl: blogBiz.blog_url,
   } : undefined;
 
-  const dimensions = (gapRes as { dimensions?: Array<{ dimension_key: string; dimension_label: string; current_score: number; max_score: number; gap_to_top: number; gap_reason: string; priority: number }>; is_competitor_estimated?: boolean } | null)?.dimensions;
-  const isCompetitorEstimated = !!(gapRes as { is_competitor_estimated?: boolean } | null)?.is_competitor_estimated;
-  const channelTrend = (channelTrendRes as import("@/lib/api").ChannelTrendPoint[] | null) ?? [];
+  const isCompetitorEstimatedP = gapP.then((res) => !!(res as { is_competitor_estimated?: boolean } | null)?.is_competitor_estimated);
+  const channelTrendP2 = channelTrendP.then((res) => (res as import("@/lib/api").ChannelTrendPoint[] | null) ?? []);
 
-  // ── 최근 행동 로그 파생 ───────────────────────────────────────
-  const recentActionType = actionLogs[0]?.action_label ?? null;
-  const recentScoreGain = (actionLogs[0]?.score_after != null && actionLogs[0]?.score_before != null)
-    ? Math.round(actionLogs[0].score_after - actionLogs[0].score_before)
-    : null;
 
   // ── 타입 단순화 헬퍼 ─────────────────────────────────────────
   const bizBase = business as {
@@ -629,7 +624,6 @@ export default async function DashboardPage({
               accessToken={accessToken}
               hasLatestScan={!!latestScan}
               userCreatedAt={user.created_at ?? null}
-              dimensions={dimensions}
               todayTasks={todayTasks}
               actionCopyText={actionCopyText}
               topMissingKeyword={topMissingKeywords[0] ?? null}
@@ -659,56 +653,62 @@ export default async function DashboardPage({
 
           {/* ⑤ 상세 분석 데이터 — 접힘 */}
           <CollapseSectionWrapper id="section-detail" title="상세 분석 데이터" description="채널별 분석 · 경쟁사 비교 · AI 인용" iconColor="text-indigo-600">
-            <DashboardDetailZone
-              business={{
-                id: bizBase.id, name: bizBase.name, category: bizBase.category, region: bizBase.region,
-                website_url: bizBase.website_url, keywords: bizBase.keywords,
-                review_count: bizBase.review_count, avg_rating: bizBase.avg_rating,
-                naver_place_id: bizBase.naver_place_id, naver_place_url: bizBase.naver_place_url,
-                google_place_id: bizBase.google_place_id,
-                blog_url: bizBase.blog_url, blog_analyzed_at: bizBase.blog_analyzed_at,
-                blog_post_count: bizBase.blog_post_count, blog_keyword_coverage: bizBase.blog_keyword_coverage,
-                is_franchise: isFranchise,
-              }}
-              latestScan={latestScan}
-              hasLatestScan={!!latestScan}
-              accessToken={accessToken}
-              plan={plan}
-              subscriptionPlan={subscriptionPlan}
-              briefingEligibility={briefingEligibility}
-              isFranchise={isFranchise}
-              track1Score={track1Score}
-              track2Score={track2Score}
-              naverWeight={naverWeight}
-              globalWeight={globalWeight}
-              unifiedScore={unifiedScore}
-              growthStage={growthStage}
-              growthStageLabel={growthStageLabel}
-              isKeywordEstimated={isKeywordEstimated}
-              topMissingKeywords={topMissingKeywords}
-              hiddenKeywordCount={trialHiddenKeywordCount}
-              benchmarkAvg={benchmark?.fallback ? undefined : benchmark?.avg_score}
-              smartPlaceStatus={smartPlaceStatus}
-              allPlatformResults={allPlatformResults}
-              naverChannelScore={naverChannelScore}
-              globalChannelScore={globalChannelScore}
-              kakaoResult={kakaoResult}
-              kakaoScore={kakaoScore}
-              kakaoChecklist={kakaoChecklist}
-              kakaoRegistered={kakaoRegistered}
-              websiteCheckResult={websiteCheckResult}
-              history={history ? history.map((h) => ({ ...h, exposure_freq: (h.exposure_freq as number | null) ?? 0 })) : null}
-              actionLogs={actionLogs}
-              rankingItems={rankingItems}
-              myRankInList={myRankInList}
-              topCompetitor={topCompetitor}
-              competitorKeywordSources={competitorKeywordSources}
-              missingItems={missingItems}
-              aiExposureData={aiExposureData}
-              blogContribution={blogContribution}
-              scoreChangeDiff={scoreChangeDiff}
-              channelTrend={channelTrend}
-            />
+            <Suspense fallback={<div className="h-40 rounded-xl bg-gray-100 animate-pulse" aria-busy="true" aria-label="상세 분석 데이터 불러오는 중" />}>
+              <Await promise={Promise.all([actionLogsP, competitorKeywordSourcesP, channelTrendP2])}>
+                {([actionLogs, competitorKeywordSources, channelTrend]) => (
+                  <DashboardDetailZone
+                    business={{
+                      id: bizBase.id, name: bizBase.name, category: bizBase.category, region: bizBase.region,
+                      website_url: bizBase.website_url, keywords: bizBase.keywords,
+                      review_count: bizBase.review_count, avg_rating: bizBase.avg_rating,
+                      naver_place_id: bizBase.naver_place_id, naver_place_url: bizBase.naver_place_url,
+                      google_place_id: bizBase.google_place_id,
+                      blog_url: bizBase.blog_url, blog_analyzed_at: bizBase.blog_analyzed_at,
+                      blog_post_count: bizBase.blog_post_count, blog_keyword_coverage: bizBase.blog_keyword_coverage,
+                      is_franchise: isFranchise,
+                    }}
+                    latestScan={latestScan}
+                    hasLatestScan={!!latestScan}
+                    accessToken={accessToken}
+                    plan={plan}
+                    subscriptionPlan={subscriptionPlan}
+                    briefingEligibility={briefingEligibility}
+                    isFranchise={isFranchise}
+                    track1Score={track1Score}
+                    track2Score={track2Score}
+                    naverWeight={naverWeight}
+                    globalWeight={globalWeight}
+                    unifiedScore={unifiedScore}
+                    growthStage={growthStage}
+                    growthStageLabel={growthStageLabel}
+                    isKeywordEstimated={isKeywordEstimated}
+                    topMissingKeywords={topMissingKeywords}
+                    hiddenKeywordCount={trialHiddenKeywordCount}
+                    benchmarkAvg={benchmark?.fallback ? undefined : benchmark?.avg_score}
+                    smartPlaceStatus={smartPlaceStatus}
+                    allPlatformResults={allPlatformResults}
+                    naverChannelScore={naverChannelScore}
+                    globalChannelScore={globalChannelScore}
+                    kakaoResult={kakaoResult}
+                    kakaoScore={kakaoScore}
+                    kakaoChecklist={kakaoChecklist}
+                    kakaoRegistered={kakaoRegistered}
+                    websiteCheckResult={websiteCheckResult}
+                    history={history ? history.map((h) => ({ ...h, exposure_freq: (h.exposure_freq as number | null) ?? 0 })) : null}
+                    actionLogs={actionLogs}
+                    rankingItems={rankingItems}
+                    myRankInList={myRankInList}
+                    topCompetitor={topCompetitor}
+                    competitorKeywordSources={competitorKeywordSources}
+                    missingItems={missingItems}
+                    aiExposureData={aiExposureData}
+                    blogContribution={blogContribution}
+                    scoreChangeDiff={scoreChangeDiff}
+                    channelTrend={channelTrend}
+                  />
+                )}
+              </Await>
+            </Suspense>
           </CollapseSectionWrapper>
 
           {/* ⑥ 글로벌 AI — INACTIVE/프랜차이즈는 핵심 대안 채널이나, 자동 펼침 시 ①③과 겹쳐 페이지 과다 길어짐(2026-07-07 실측) → 배지로 우선순위만 표시 */}
@@ -744,15 +744,31 @@ export default async function DashboardPage({
                 latestAdOnly={(latestScan?.naver_result as { ad_only?: boolean } | null | undefined)?.ad_only ?? false}
                 globalWeight={globalWeight}
               />
-              <DashboardGuidanceZone
+              <Suspense fallback={
+    <DashboardGuidanceZone
                 bizId={bizBase.id}
                 eligibility={briefingEligibility}
                 plan={plan}
                 hasLatestScan={!!latestScan}
-                isCompetitorEstimated={isCompetitorEstimated}
+                isCompetitorEstimated={false}
                 userCreatedAt={user.created_at ?? null}
                 category={bizBase.category}
               />
+                }>
+                <Await promise={isCompetitorEstimatedP}>
+                  {(isCompetitorEstimated) => (
+                  <DashboardGuidanceZone
+                    bizId={bizBase.id}
+                    eligibility={briefingEligibility}
+                    plan={plan}
+                    hasLatestScan={!!latestScan}
+                    isCompetitorEstimated={isCompetitorEstimated}
+                    userCreatedAt={user.created_at ?? null}
+                    category={bizBase.category}
+                  />
+                  )}
+                </Await>
+              </Suspense>
             </>
           </CollapseSectionWrapper>
 
