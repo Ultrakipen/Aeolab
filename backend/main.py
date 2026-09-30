@@ -245,8 +245,10 @@ async def health():
     # DB 연결 확인
     try:
         from db.supabase_client import get_client
+        import asyncio
         supabase = get_client()
-        supabase.table("businesses").select("id").limit(1).execute()
+        # 동기 execute()를 이벤트루프에서 직접 부르면 Supabase 응답 대기 동안 서버 전체가 멈춤(2026-09-30 실측)
+        await asyncio.to_thread(lambda: supabase.table("businesses").select("id").limit(1).execute())
         checks["database"] = "ok"
     except Exception as e:
         checks["database"] = f"error: {str(e)}"

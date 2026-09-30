@@ -1,5 +1,6 @@
 import asyncio
 import os
+import time
 import logging
 from fastapi import HTTPException, Depends, Header
 
@@ -186,6 +187,34 @@ def _end_at_in_future(end_at) -> bool:
         return False
 
 
+# user_id → (조회 시각, 소문자 이메일). 관리자 우회 판정용이라 이메일만 짧게 캐시한다.
+_EMAIL_CACHE_TTL = 300.0
+_EMAIL_CACHE_MAX = 2000
+_email_cache: dict[str, tuple[float, str]] = {}
+
+
+async def _lookup_user_email(user_id: str, supabase) -> str:
+    """관리자 우회 판정용 사용자 이메일 조회 (소문자, 없으면 "").
+
+    supabase.auth.admin.get_user_by_id()는 동기 HTTP 호출이다. async 함수에서 직접 부르면
+    Supabase Auth 응답을 기다리는 동안 이벤트루프 전체(다른 모든 요청)가 멈춘다 —
+    get_user_plan()은 인증 필요한 거의 모든 엔드포인트가 지나가는 곳이라, 대시보드 1회 로드의
+    백엔드 호출 3~5개가 서로를 직렬로 막으며 1~9초 정체를 만들었다(2026-09-30 py-spy 실측:
+    정체 순간 MainThread가 plan_gate.py get_user_plan의 소켓 read에서 대기).
+    스레드로 넘겨 루프를 비우고, 성공한 조회만 5분 캐시한다(실패는 캐시하지 않음).
+    """
+    now = time.monotonic()
+    hit = _email_cache.get(user_id)
+    if hit and now - hit[0] < _EMAIL_CACHE_TTL:
+        return hit[1]
+    admin_resp = await asyncio.to_thread(supabase.auth.admin.get_user_by_id, user_id)
+    email = (admin_resp.user.email or "").lower() if admin_resp and admin_resp.user else ""
+    if len(_email_cache) >= _EMAIL_CACHE_MAX:
+        _email_cache.clear()
+    _email_cache[user_id] = (now, email)
+    return email
+
+
 async def get_user_plan(user_id: str, supabase) -> str:
     """현재 사용자의 활성 구독 플랜 반환.
 
@@ -202,8 +231,7 @@ async def get_user_plan(user_id: str, supabase) -> str:
     # ── 관리자 우회: ADMIN_EMAILS 체크 (auth.admin API, 서비스 롤 키 필요) ──────
     if ADMIN_EMAILS:
         try:
-            admin_resp = supabase.auth.admin.get_user_by_id(user_id)
-            email = (admin_resp.user.email or "").lower() if admin_resp and admin_resp.user else ""
+            email = await _lookup_user_email(user_id, supabase)
             if email and email in ADMIN_EMAILS:
                 return "biz"
         except Exception as e:
