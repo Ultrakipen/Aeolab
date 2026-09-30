@@ -161,6 +161,14 @@ async def update_my_settings(body: ProfileUpdate, user: dict = Depends(get_curre
     return {"status": "updated"}
 
 
+def _toss_error_code(resp) -> str:
+    """토스 오류 응답 본문의 code 추출 (파싱 실패 시 빈 문자열)."""
+    try:
+        return str((resp.json() or {}).get("code") or "")
+    except Exception:
+        return ""
+
+
 async def _cancel_subscription_core(user_id: str) -> dict:
     """구독 해지 핵심 로직. 7일 청약철회 자격(구독 시작 7일 이내+미이용)이면 토스 결제취소로 즉시 전액환불,
     아니면 기존처럼 end_at까지 서비스 유지 + status→cancelled + 토스 빌링키 삭제.
@@ -243,10 +251,11 @@ async def _cancel_subscription_core(user_id: str) -> dict:
             if resp.status_code in (200, 204):
                 billing_key_gone = True
                 logger.info(f"토스 빌링키 삭제 완료 (user={user_id})")
-            elif resp.status_code == 404:
-                # 이미 토스에 없는 키 — 삭제된 것과 동일하게 취급(멱등)
+            elif resp.status_code == 404 or _toss_error_code(resp) in ("ALREADY_REMOVED_BILLING_KEY", "NOT_FOUND_BILLING_KEY"):
+                # 이미 토스에서 삭제됐거나 없는 키 — 삭제된 것과 동일하게 취급(멱등).
+                # 토스는 이미 삭제된 키를 404가 아니라 400 ALREADY_REMOVED_BILLING_KEY로 응답함(2026-09-30 실측).
                 billing_key_gone = True
-                logger.info(f"토스 빌링키 이미 없음(404) — 삭제 완료로 간주 (user={user_id})")
+                logger.info(f"토스 빌링키 이미 삭제됨/없음(status={resp.status_code}) — 삭제 완료로 간주 (user={user_id})")
             else:
                 logger.warning(
                     f"토스 빌링키 삭제 실패 (user={user_id}): status={resp.status_code} body={resp.text}"
