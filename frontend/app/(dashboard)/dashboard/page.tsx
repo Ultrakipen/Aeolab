@@ -131,7 +131,7 @@ export default async function DashboardPage({
           .eq("business_id", business.id).order("scanned_at", { ascending: false }).limit(1),
         supabase.from("competitors").select("id, name").eq("business_id", business.id).eq("is_active", true),
         supabase.from("score_history")
-          .select("id, business_id, score_date, total_score, exposure_freq, unified_score, track1_score, track2_score, context, created_at")
+          .select("id, business_id, score_date, total_score, exposure_freq, unified_score, track1_score, track2_score, context")
           .eq("business_id", business.id).order("score_date", { ascending: false }).limit(30),
         business.category && business.region
           ? tf("benchmark", `${BACKEND}/api/report/benchmark/${business.category}/${encodeURIComponent(business.region)}`).then((r) => r.ok ? r.json() : null).catch(() => null)
