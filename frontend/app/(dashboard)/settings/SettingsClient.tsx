@@ -302,7 +302,7 @@ export function SettingsClient({
               <p className="text-base font-semibold text-gray-800">{cardDisplay}</p>
             </div>
           ) : (
-            <p className="text-sm text-gray-600">등록된 카드 정보를 불러올 수 없습니다.</p>
+            <p className="text-sm text-gray-600">등록된 카드가 없습니다. 아래 &apos;카드 변경&apos; 버튼으로 카드를 등록해야 다음 결제가 진행됩니다.</p>
           )}
           {cardError && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
@@ -339,7 +339,7 @@ export function SettingsClient({
             </div>
             <div>
               <h3 className="text-base font-semibold text-gray-800">해지 취소</h3>
-              <p className="text-sm text-gray-600">아직 구독 기간이 남아 있습니다. 지금 재활성화하면 계속 이용할 수 있습니다.</p>
+              <p className="text-sm text-gray-600">아직 구독 기간이 남아 있습니다. 지금 재활성화하면 계속 이용할 수 있습니다. 해지 시 카드 정보는 삭제되므로, 재활성화 후 카드를 다시 등록해 주세요.</p>
             </div>
           </div>
           {reactivated ? (

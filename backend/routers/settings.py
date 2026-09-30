@@ -231,6 +231,7 @@ async def _cancel_subscription_core(user_id: str) -> dict:
 
     # 토스 빌링키 삭제 (실패해도 DB는 취소 처리 — 자동결제 재시도 방지 목적이므로 best-effort)
     billing_key = sub.get("billing_key")
+    billing_key_gone = not billing_key  # 애초에 없거나, 토스에서 삭제 확인된 경우 True
     if billing_key:
         secret_key = os.getenv("TOSS_SECRET_KEY", "")
         try:
@@ -239,16 +240,28 @@ async def _cancel_subscription_core(user_id: str) -> dict:
                     f"https://api.tosspayments.com/v1/billing/{billing_key}",
                     auth=(secret_key, ""),
                 )
-            if resp.status_code not in (200, 204):
+            if resp.status_code in (200, 204):
+                billing_key_gone = True
+                logger.info(f"토스 빌링키 삭제 완료 (user={user_id})")
+            elif resp.status_code == 404:
+                # 이미 토스에 없는 키 — 삭제된 것과 동일하게 취급(멱등)
+                billing_key_gone = True
+                logger.info(f"토스 빌링키 이미 없음(404) — 삭제 완료로 간주 (user={user_id})")
+            else:
                 logger.warning(
                     f"토스 빌링키 삭제 실패 (user={user_id}): status={resp.status_code} body={resp.text}"
                 )
-            else:
-                logger.info(f"토스 빌링키 삭제 완료 (user={user_id})")
         except Exception as e:
             logger.warning(f"토스 빌링키 삭제 요청 오류 (user={user_id}): {e}")
 
     update_payload = {"status": "cancelled"}
+    # 해지 후 카드 정보 잔존 방지 — 화면 표시용 카드(발급사·마스킹 번호)는 항상 지우고, 빌링키는
+    # 토스 삭제가 확인된 경우에만 지운다(삭제 실패 시 키를 남겨야 운영자가 재삭제할 수 있음).
+    # 해지 취소(재활성화) 후에는 카드를 다시 등록해야 다음 결제가 진행된다.
+    update_payload["card_number_masked"] = None
+    update_payload["card_issuer_code"] = None
+    if billing_key_gone:
+        update_payload["billing_key"] = None
     if refunded:
         update_payload["end_at"] = str(date.today())  # 환불 시 즉시 만료 — 기존처럼 잔여기간 유지 아님
     try:
