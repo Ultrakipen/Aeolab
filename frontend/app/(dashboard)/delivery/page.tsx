@@ -90,7 +90,7 @@ const FALLBACK_PACKAGES: DeliveryPackage[] = [
     id: "smartplace_register",
     type: "smartplace_register",
     name: "01 스마트플레이스 등록 대행",
-    price: 59000,
+    price: 69000,
     description: "스마트플레이스 신규 등록부터 기본정보, 메뉴, 키워드 최적화까지",
     work_hours: "5.2h 작업",
     features: [
@@ -103,7 +103,7 @@ const FALLBACK_PACKAGES: DeliveryPackage[] = [
     id: "ai_optimization",
     type: "ai_optimization",
     name: "02 AI 검색 최적화",
-    price: 79000,
+    price: 89000,
     description: "AI 검색 최적화, 소개글·톡톡메뉴·후기답글·키워드 보강",
     work_hours: "6.0h 작업",
     features: [
@@ -116,8 +116,8 @@ const FALLBACK_PACKAGES: DeliveryPackage[] = [
     id: "comprehensive",
     type: "comprehensive",
     name: "03 종합 풀패키지",
-    price: 119000,
-    description: "등록+최적화+코칭+30일 재진단 — 개별 구매 시 138,000원 → 119,000원",
+    price: 139000,
+    description: "등록+최적화+코칭+30일 재진단 — 개별 구매 시 158,000원 → 139,000원",
     work_hours: "11.2h 작업",
     features: [
       "01 등록 대행 전체 포함",
@@ -211,7 +211,7 @@ export default async function DeliveryPage() {
                     </span>
                     <span className="text-base text-gray-600">원</span>
                     {pkg.type === "comprehensive" && (
-                      <span className="ml-1 text-sm text-gray-600 line-through">138,000원</span>
+                      <span className="ml-1 text-sm text-gray-600 line-through">158,000원</span>
                     )}
                   </div>
                   <Link

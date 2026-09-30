@@ -17,20 +17,20 @@ const PACKAGES = [
   {
     type: "smartplace_register",
     name: "01 스마트플레이스 등록 대행",
-    price: 59000,
+    price: 69000,
     description: "스마트플레이스 신규 등록, 기본정보·메뉴·키워드 최적화",
   },
   {
     type: "ai_optimization",
     name: "02 AI 검색 최적화",
-    price: 79000,
+    price: 89000,
     description: "소개글·톡톡메뉴·후기답글·키워드 보강",
   },
   {
     type: "comprehensive",
     name: "03 종합 풀패키지",
-    price: 119000,
-    description: "등록+최적화+코칭+30일 재진단 (개별 구매 시 138,000원 → 119,000원)",
+    price: 139000,
+    description: "등록+최적화+코칭+30일 재진단 (개별 구매 시 158,000원 → 139,000원)",
   },
 ];
 
@@ -353,7 +353,7 @@ function DeliveryNewForm() {
               <div className="text-right">
                 <p className="text-2xl font-bold text-white">{pkg.price.toLocaleString()}원</p>
                 {pkg.type === "comprehensive" && (
-                  <p className="text-sm text-blue-300 line-through">138,000원</p>
+                  <p className="text-sm text-blue-300 line-through">158,000원</p>
                 )}
               </div>
             </div>

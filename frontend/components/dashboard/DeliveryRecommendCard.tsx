@@ -22,7 +22,7 @@ function getRecommendedPackage(score: number, isSmartPlace: boolean): PackageInf
     return {
       number: "01",
       name: "스마트플레이스 등록 대행",
-      price: 59000,
+      price: 69000,
       packageType: "smartplace_register",
       reason: score < 40
         ? "점수가 낮으면 기반 등록부터 시작해야 합니다"
@@ -36,7 +36,7 @@ function getRecommendedPackage(score: number, isSmartPlace: boolean): PackageInf
     return {
       number: "02",
       name: "AI 검색 최적화",
-      price: 79000,
+      price: 89000,
       packageType: "ai_optimization",
       reason: "기본은 있지만 콘텐츠 보강으로 점수 향상이 가능합니다",
       accent: "border-indigo-200",
@@ -47,7 +47,7 @@ function getRecommendedPackage(score: number, isSmartPlace: boolean): PackageInf
   return {
     number: "03",
     name: "종합 풀패키지",
-    price: 119000,
+    price: 139000,
     packageType: "comprehensive",
     reason: "한 번에 완성도 높여 경쟁사와 격차를 벌리세요",
     accent: "border-purple-200",
