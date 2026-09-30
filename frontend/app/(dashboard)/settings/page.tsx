@@ -331,7 +331,9 @@ export default async function SettingsPage({
                   currentPhone={profile?.phone ?? ""}
                   kakaoScanNotify={profile?.kakao_scan_notify ?? true}
                   kakaoCompetitorNotify={profile?.kakao_competitor_notify ?? true}
-                  subscriptionStatus={currentStatus}
+                  // 카드 변경·구독 해지·해지 취소는 실제 구독 행 상태 기준 — 관리자 이메일은 currentStatus가 항상 active로
+                  // 보정돼 실제로는 이미 해지된 구독에도 해지 버튼이 노출되고 400이 나던 문제(2026-09-30)
+                  subscriptionStatus={sub?.status ?? "inactive"}
                   subscriptionEndAt={sub?.end_at ?? null}
                   userId={user.id}
                   subscriptionDays={subscriptionDays}
