@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ChevronRight, AlertCircle, CheckCircle2, Download } from "lucide-react";
 import DeliveryOrderClient from "./DeliveryOrderClient";
 import DeliveryPaymentRetryButton from "./DeliveryPaymentRetryButton";
+import DeliveryOrderActions from "./DeliveryOrderActions";
 
 export const metadata = { title: "의뢰 상세 | AEOlab" };
 
@@ -228,6 +229,14 @@ export default async function DeliveryOrderDetailPage({
                   amount={order.amount}
                 />
               </div>
+            )}
+
+            {/* 취소·환불된 의뢰 — 내 목록에서 삭제 (기록은 서버에 보존) / 결제 대기 — 의뢰 취소 */}
+            {order.status === "received" && (
+              <DeliveryOrderActions orderId={order.id} status={order.status} token={token} />
+            )}
+            {(order.status === "cancelled" || order.status === "refunded") && (
+              <DeliveryOrderActions orderId={order.id} status={order.status} token={token} />
             )}
           </div>
 

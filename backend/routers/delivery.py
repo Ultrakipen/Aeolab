@@ -421,21 +421,81 @@ async def create_order(
 
 @router.get("/orders/me")
 async def list_my_orders(user: dict = Depends(get_current_user)):
-    """내 의뢰 목록 반환 (최신순 20건)."""
+    """내 의뢰 목록 반환 (최신순 20건). 사용자가 '목록에서 삭제'한 의뢰(hidden_by_user)는 제외."""
     supabase = get_client()
-    res = await execute(
-        supabase.table("delivery_orders")
-        .select("id, package_type, request_title, status, amount, created_at")
-        .eq("user_id", user["id"])
-        .order("created_at", desc=True)
-        .limit(20)
-    )
+    try:
+        res = await execute(
+            supabase.table("delivery_orders")
+            .select("id, package_type, request_title, status, amount, created_at")
+            .eq("user_id", user["id"])
+            .or_("hidden_by_user.is.null,hidden_by_user.eq.false")
+            .order("created_at", desc=True)
+            .limit(20)
+        )
+    except Exception as _e:
+        # hidden_by_user 컬럼 SQL 미실행 환경 폴백 — 목록 자체가 깨지지 않도록 필터 없이 재조회
+        _logger.warning(f"[delivery/orders/me] hidden_by_user 필터 실패, 폴백 조회: {_e}")
+        res = await execute(
+            supabase.table("delivery_orders")
+            .select("id, package_type, request_title, status, amount, created_at")
+            .eq("user_id", user["id"])
+            .order("created_at", desc=True)
+            .limit(20)
+        )
     orders = res.data or []
     # 패키지 이름 enrichment
     for o in orders:
         pkg_type = o.get("package_type", "")
         o["package_name"] = PACKAGES.get(pkg_type, {}).get("name", pkg_type)
     return {"orders": orders}
+
+
+@router.post("/orders/{order_id}/cancel")
+async def cancel_my_order(order_id: str, user: dict = Depends(get_current_user)):
+    """미결제(received) 의뢰를 사용자가 직접 취소. 결제 전이라 금전 이동 없음 — 결제가 끝난 의뢰는 불가(환불은 별도 절차)."""
+    order = await _get_order_owned_or_403(order_id, user["id"])
+    if order["status"] != "received":
+        raise HTTPException(
+            status_code=400,
+            detail="결제가 완료된 의뢰는 직접 취소할 수 없습니다. 환불은 고객센터로 문의해 주세요",
+        )
+    supabase = get_client()
+    # 조건부 UPDATE — 조회~UPDATE 사이 결제가 완료(paid)된 경우 덮어쓰지 않도록 status='received'를 함께 확인
+    res = await execute(
+        supabase.table("delivery_orders")
+        .update({"status": "cancelled"})
+        .eq("id", order_id)
+        .eq("status", "received")
+    )
+    if not (res and res.data):
+        raise HTTPException(status_code=409, detail="의뢰 상태가 방금 변경되어 취소할 수 없습니다. 새로고침 후 확인해 주세요")
+    _logger.info(f"[delivery] 사용자 의뢰 취소: order_id={order_id}, user_id={user['id']}")
+    return {"status": "cancelled"}
+
+
+@router.post("/orders/{order_id}/hide")
+async def hide_my_order(order_id: str, user: dict = Depends(get_current_user)):
+    """취소·환불된 의뢰를 내 목록에서 삭제(숨김). 동의·결제 기록은 분쟁 증빙용으로 DB에 보존한다 —
+    결제완료·진행중·완료 의뢰는 숨길 수 없다."""
+    order = await _get_order_owned_or_403(order_id, user["id"])
+    if order["status"] not in ("cancelled", "refunded"):
+        raise HTTPException(status_code=400, detail="취소·환불된 의뢰만 목록에서 삭제할 수 있습니다")
+    supabase = get_client()
+    res = None
+    try:
+        res = await execute(
+            supabase.table("delivery_orders")
+            .update({"hidden_by_user": True})
+            .eq("id", order_id)
+            .eq("user_id", user["id"])
+        )
+    except Exception as _e:
+        _logger.error(f"[delivery] 의뢰 숨김 실패: {_e}")
+    # 컬럼이 없으면 예외 없이 빈 결과가 돌아오므로(2026-09-30 실측) 반드시 갱신된 행이 있는지 확인
+    if not (res and res.data):
+        _logger.error(f"[delivery] 의뢰 숨김 반영 안 됨 — hidden_by_user 컬럼 SQL 미실행 가능 (order_id={order_id})")
+        raise HTTPException(status_code=503, detail="삭제 기능을 준비 중입니다. 잠시 후 다시 시도해 주세요")
+    return {"status": "hidden"}
 
 
 @router.get("/orders/{order_id}")

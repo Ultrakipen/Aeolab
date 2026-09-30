@@ -3101,3 +3101,6 @@ DROP POLICY IF EXISTS "trial_scans_insert" ON trial_scans;
 -- service_role은 BYPASSRLS 역할 속성이라 정책과 무관하게 계속 정상 접근(백엔드 영향 없음).
 -- 검증 완료: anon SELECT → 200 빈 배열(유출 0), anon INSERT → 401 RLS 위반 명시,
 -- /api/scan/trial-count(서비스롤 경유 실제 라이브 API) → 200 정상(기능 회귀 없음).
+
+-- 2026-09-30: 대행 서비스 '내 의뢰 현황 삭제' — 사용자 목록에서만 숨김(동의·결제 기록은 DB 보존). Supabase SQL Editor에서 수동 실행
+ALTER TABLE delivery_orders ADD COLUMN IF NOT EXISTS hidden_by_user BOOLEAN NOT NULL DEFAULT false;
