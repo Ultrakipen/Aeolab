@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { DELIVERY_FREQUENCY, DELIVERY_SCHEDULE } from "@/lib/deliverySchedule";
 
 interface Package {
   num: string;
+  type: string;
   name: string;
   price: string;
   desc: string;
@@ -14,6 +16,7 @@ interface Package {
 const PACKAGES: Package[] = [
   {
     num: "01",
+    type: "smartplace_register",
     name: "스마트플레이스 등록 대행",
     price: "69,000원",
     desc: "처음부터 네이버 스마트플레이스를 등록하고 싶은 사장님",
@@ -26,6 +29,7 @@ const PACKAGES: Package[] = [
   },
   {
     num: "02",
+    type: "ai_optimization",
     name: "AI 검색 최적화",
     price: "89,000원",
     desc: "이미 운영 중인 플레이스, AEOlab 진단 결과 그대로 최적화 대행",
@@ -38,6 +42,7 @@ const PACKAGES: Package[] = [
   },
   {
     num: "03",
+    type: "comprehensive",
     name: "종합 풀패키지",
     price: "139,000원",
     desc: "01+02 등록부터 최적화까지 + 1:1 코칭 + 30일 재진단",
@@ -144,6 +149,18 @@ export default function AgencyServiceSection() {
                 ))}
               </ul>
 
+              {/* 서비스 제공 주기 (토스페이먼츠 단건결제 심사 요건) */}
+              <div className="rounded-lg p-3" style={{ background: "#F8FAFC", border: "1px solid #E2E8F0" }}>
+                <p className="text-sm font-bold mb-1" style={{ color: "#0F172A" }}>제공 주기 · {DELIVERY_FREQUENCY}</p>
+                <ul className="flex flex-col gap-1 text-sm" style={{ color: "#45556C" }}>
+                  <li>· {DELIVERY_SCHEDULE[pkg.type].start}</li>
+                  <li>· {DELIVERY_SCHEDULE[pkg.type].complete}</li>
+                  {DELIVERY_SCHEDULE[pkg.type].extras.map((t) => (
+                    <li key={t}>· {t}</li>
+                  ))}
+                </ul>
+              </div>
+
               {/* 03 추가 할인 안내 */}
               {"extra" in pkg && pkg.extra && (
                 <p className="text-sm font-semibold" style={{ color: "#B45309" }}>
@@ -178,7 +195,7 @@ export default function AgencyServiceSection() {
           className="text-sm text-center mt-8"
           style={{ color: "#78716C" }}
         >
-          결제 후 담당자가 카카오톡으로 연락드립니다 · 7일 내 자료 미제출 시 자동 환불
+          1회 결제로 제공되는 서비스입니다 · 결제 후 담당자가 카카오톡으로 연락드립니다 · 7일 내 자료 미제출 시 자동 환불
         </p>
       </div>
     </section>

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { DELIVERY_FREQUENCY, DELIVERY_SCHEDULE } from "@/lib/deliverySchedule";
 
 export const metadata = { title: "대행 서비스 | AEOlab" };
 
@@ -191,6 +192,18 @@ export default async function DeliveryPage() {
                     <Clock className="w-3.5 h-3.5 text-gray-600" />
                     <span className="text-sm text-gray-600">{pkg.work_hours}</span>
                   </div>
+                  {DELIVERY_SCHEDULE[pkg.type] && (
+                    <div className="mt-3 rounded-lg bg-gray-50 border border-gray-100 p-3">
+                      <p className="text-sm font-semibold text-gray-900 mb-1">제공 주기 · {DELIVERY_FREQUENCY}</p>
+                      <ul className="space-y-1 text-sm text-gray-700">
+                        <li>· {DELIVERY_SCHEDULE[pkg.type].start}</li>
+                        <li>· {DELIVERY_SCHEDULE[pkg.type].complete}</li>
+                        {DELIVERY_SCHEDULE[pkg.type].extras.map((t) => (
+                          <li key={t}>· {t}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
 
                 {/* 기능 목록 */}

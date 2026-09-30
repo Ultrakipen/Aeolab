@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CheckCircle2, ChevronRight, AlertCircle, Loader2 } from "lucide-react";
+import { DELIVERY_FREQUENCY, DELIVERY_SCHEDULE } from "@/lib/deliverySchedule";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -348,7 +349,7 @@ function DeliveryNewForm() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-base font-semibold text-white">{pkg.name}</p>
-                <p className="text-sm text-blue-200 mt-0.5">결제 완료 후 작업 시작 (영업일 1~2일)</p>
+                <p className="text-sm text-blue-200 mt-0.5">{DELIVERY_FREQUENCY}</p>
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold text-white">{pkg.price.toLocaleString()}원</p>
@@ -363,6 +364,17 @@ function DeliveryNewForm() {
               <p className="text-sm text-blue-100">
                 결제 완료 후 영업일 1~2일 내 담당자가 연락드립니다.
               </p>
+            </div>
+
+            <div className="bg-blue-500/40 rounded-xl p-3 mb-4">
+              <p className="text-sm font-semibold text-white mb-1">제공 주기</p>
+              <ul className="text-sm text-blue-100 space-y-1">
+                <li>· {DELIVERY_SCHEDULE[pkg.type].start}</li>
+                <li>· {DELIVERY_SCHEDULE[pkg.type].complete}</li>
+                {DELIVERY_SCHEDULE[pkg.type].extras.map((t) => (
+                  <li key={t}>· {t}</li>
+                ))}
+              </ul>
             </div>
 
             <div className="bg-white rounded-xl p-4 mb-4">
