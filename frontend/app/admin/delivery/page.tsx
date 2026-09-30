@@ -31,6 +31,7 @@ const STATUS_FILTERS = [
   { value: "in_progress", label: "진행중" },
   { value: "completed", label: "완료" },
   { value: "cancelled", label: "취소" },
+  { value: "refund_requested", label: "환불 요청" },
 ];
 
 interface DeliveryOrder {
@@ -41,6 +42,7 @@ interface DeliveryOrder {
   amount: number;
   created_at: string;
   business_id: string;
+  refund_request_status?: string | null;
 }
 
 interface PageProps {
@@ -63,19 +65,31 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const statusFilter = params.status ?? "";
 
-  let query = supabase
-    .from("delivery_orders")
-    .select("id, status, package_type, request_title, amount, created_at, business_id")
-    .order("created_at", { ascending: false })
-    .limit(100);
+  const buildQuery = (cols: string, withRefundFilter: boolean) => {
+    let q = supabase
+      .from("delivery_orders")
+      .select(cols)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (statusFilter === "refund_requested") {
+      if (withRefundFilter) q = q.eq("refund_request_status", "pending");
+    } else if (statusFilter) {
+      q = q.eq("status", statusFilter);
+    }
+    return q;
+  };
 
-  if (statusFilter) {
-    query = query.eq("status", statusFilter);
+  // 환불 요청 컬럼(SQL 실행 전)이 없으면 오류가 나므로 기존 컬럼만으로 재조회
+  let { data: orders, error } = await buildQuery(
+    "id, status, package_type, request_title, amount, created_at, business_id, refund_request_status", true,
+  );
+  if (error) {
+    ({ data: orders, error } = await buildQuery(
+      "id, status, package_type, request_title, amount, created_at, business_id", false,
+    ));
   }
 
-  const { data: orders, error } = await query;
-
-  const rows: DeliveryOrder[] = orders ?? [];
+  const rows: DeliveryOrder[] = (orders ?? []) as unknown as DeliveryOrder[];
 
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString("ko-KR", {
@@ -141,6 +155,11 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
                         <span className={`inline-block text-sm font-semibold px-2.5 py-1 rounded-full ${sm.color}`}>
                           {sm.label}
                         </span>
+                        {order.refund_request_status === "pending" && (
+                          <span className="ml-1.5 inline-block text-sm font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">
+                            환불 요청
+                          </span>
+                        )}
                       </td>
                       <td className="px-5 py-4 text-sm text-gray-700">
                         {PACKAGE_DISPLAY[order.package_type] ?? order.package_type}
@@ -189,8 +208,15 @@ export default async function AdminDeliveryPage({ searchParams }: PageProps) {
                 className="block bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
-                  <span className={`shrink-0 text-sm font-semibold px-2.5 py-1 rounded-full ${sm.color}`}>
-                    {sm.label}
+                  <span className="flex flex-wrap items-center gap-1.5">
+                    <span className={`shrink-0 text-sm font-semibold px-2.5 py-1 rounded-full ${sm.color}`}>
+                      {sm.label}
+                    </span>
+                    {order.refund_request_status === "pending" && (
+                      <span className="shrink-0 text-sm font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">
+                        환불 요청
+                      </span>
+                    )}
                   </span>
                   <span className="text-sm text-gray-600">{formatDate(order.created_at)}</span>
                 </div>

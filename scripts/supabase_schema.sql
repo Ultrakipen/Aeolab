@@ -3104,3 +3104,10 @@ DROP POLICY IF EXISTS "trial_scans_insert" ON trial_scans;
 
 -- 2026-09-30: 대행 서비스 '내 의뢰 현황 삭제' — 사용자 목록에서만 숨김(동의·결제 기록은 DB 보존). Supabase SQL Editor에서 수동 실행
 ALTER TABLE delivery_orders ADD COLUMN IF NOT EXISTS hidden_by_user BOOLEAN NOT NULL DEFAULT false;
+
+-- 2026-09-30: 대행 서비스 환불 요청(사용자 접수 -> 운영자 승인/거절). Supabase SQL Editor에서 수동 실행
+ALTER TABLE delivery_orders
+  ADD COLUMN IF NOT EXISTS refund_request_status TEXT CHECK (refund_request_status IN ('pending','approved','rejected')),
+  ADD COLUMN IF NOT EXISTS refund_request_reason TEXT,
+  ADD COLUMN IF NOT EXISTS refund_requested_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS refund_reject_reason TEXT;

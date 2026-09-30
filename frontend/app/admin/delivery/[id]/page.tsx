@@ -80,6 +80,33 @@ async function fetchAdminMessages(id: string, adminKey: string): Promise<Message
   }
 }
 
+interface RefundRequestInfo {
+  status?: string | null;
+  reason?: string | null;
+  requested_at?: string | null;
+  reject_reason?: string | null;
+}
+
+async function fetchAdminRefundRequest(id: string, adminKey: string): Promise<RefundRequestInfo> {
+  try {
+    const res = await fetch(`${BACKEND_URL}/admin/delivery/${id}`, {
+      headers: { "X-Admin-Key": adminKey },
+      cache: "no-store",
+    });
+    if (!res.ok) return {};
+    const data = await res.json();
+    const o = data.order ?? data;
+    return {
+      status: o?.refund_request_status ?? null,
+      reason: o?.refund_request_reason ?? null,
+      requested_at: o?.refund_requested_at ?? null,
+      reject_reason: o?.refund_reject_reason ?? null,
+    };
+  } catch {
+    return {};
+  }
+}
+
 async function fetchAdminMaterials(id: string, adminKey: string): Promise<MaterialEntry[]> {
   try {
     const res = await fetch(`${BACKEND_URL}/admin/delivery/${id}`, {
@@ -144,9 +171,10 @@ export default async function AdminDeliveryDetailPage({
     );
   }
 
-  const [messages, materials] = await Promise.all([
+  const [messages, materials, refundRequest] = await Promise.all([
     fetchAdminMessages(id, adminKey),
     fetchAdminMaterials(id, adminKey),
+    fetchAdminRefundRequest(id, adminKey),
   ]);
   const statusMeta = STATUS_META[order.status] ?? { label: order.status, color: "bg-gray-100 text-gray-600" };
 
@@ -199,6 +227,7 @@ export default async function AdminDeliveryDetailPage({
         initialMessages={messages}
         initialMaterials={materials}
         currentStatus={order.status}
+        refundRequest={refundRequest}
       />
     </>
   );

@@ -29,6 +29,12 @@ interface Props {
   initialMessages: Message[];
   initialMaterials?: MaterialEntry[];
   currentStatus: string;
+  refundRequest?: {
+    status?: string | null;
+    reason?: string | null;
+    requested_at?: string | null;
+    reject_reason?: string | null;
+  };
   adminKey?: string; // 더 이상 클라이언트에서 사용하지 않음 — 프록시 경유
 }
 
@@ -44,7 +50,7 @@ const formatDate = (iso: string) =>
     month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
   });
 
-export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMaterials = [], currentStatus, adminKey }: Props) {
+export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMaterials = [], currentStatus, refundRequest, adminKey }: Props) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [msgInput, setMsgInput] = useState("");
   const [sendingMsg, setSendingMsg] = useState(false);
@@ -53,6 +59,37 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
   // 상태 변경
   const [changingStatus, setChangingStatus] = useState<string | null>(null);
   const [statusError, setStatusError] = useState("");
+
+  // 환불 요청 거절
+  const [rejectingRefund, setRejectingRefund] = useState(false);
+  const [refundRejectError, setRefundRejectError] = useState("");
+
+  const handleRejectRefund = async () => {
+    const reason = window.prompt("환불 요청 거절 사유를 입력하세요 (2~500자, 고객에게 메시지로 안내됩니다)");
+    if (reason === null) return;
+    if (reason.trim().length < 2) {
+      setRefundRejectError("거절 사유를 2자 이상 입력해 주세요.");
+      return;
+    }
+    setRejectingRefund(true);
+    setRefundRejectError("");
+    try {
+      const res = await fetch(`${ADMIN_PROXY}?path=admin/delivery/${orderId}/refund-request/reject`, {
+        method: "POST",
+        headers: proxyHeaders,
+        body: JSON.stringify({ reason: reason.trim() }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(typeof d.detail === "string" ? d.detail : "거절 처리 실패");
+      }
+      window.location.reload();
+    } catch (err: unknown) {
+      setRefundRejectError((err as Error).message);
+    } finally {
+      setRejectingRefund(false);
+    }
+  };
 
   // 완료 처리 모달
   const [showCompleteModal, setShowCompleteModal] = useState(false);
@@ -275,6 +312,44 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
 
       {/* 우측: 상태 변경 패널 */}
       <div className="w-full lg:w-72 shrink-0 space-y-4">
+        {/* 고객 환불 요청 — 승인 시 기존 토스 실환불 경로, 거절 시 사유 메시지 발송 */}
+        {refundRequest?.status === "pending" && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
+            <h2 className="text-base font-semibold text-amber-900 mb-1">환불 요청 접수됨</h2>
+            {refundRequest.requested_at && (
+              <p className="text-sm text-amber-800 mb-2">{formatDate(refundRequest.requested_at)}</p>
+            )}
+            <p className="text-sm text-gray-800 whitespace-pre-wrap break-words mb-3">
+              사유: {refundRequest.reason ?? "—"}
+            </p>
+            <p className="text-sm text-amber-800 mb-3">
+              약관: 작업 착수 전(결제완료) 전액 환불 / 착수 후는 협의. 현재 상태를 확인하고 처리하세요.
+            </p>
+            {refundRejectError && <p className="text-sm text-red-700 mb-2">{refundRejectError}</p>}
+            <div className="space-y-2">
+              <button
+                onClick={() => handleStatusChange("refunded")}
+                disabled={!!changingStatus || rejectingRefund}
+                className="w-full py-3 rounded-xl bg-red-700 text-white text-sm font-semibold hover:bg-red-800 transition-colors disabled:opacity-50"
+              >
+                환불 승인 (토스 실환불)
+              </button>
+              <button
+                onClick={handleRejectRefund}
+                disabled={!!changingStatus || rejectingRefund}
+                className="w-full py-3 rounded-xl bg-white text-gray-700 text-sm font-semibold border border-gray-300 hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                {rejectingRefund ? "처리 중..." : "요청 거절 (사유 안내)"}
+              </button>
+            </div>
+          </div>
+        )}
+        {refundRequest?.status === "rejected" && (
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <p className="text-sm font-semibold text-gray-800">환불 요청 거절됨</p>
+            <p className="text-sm text-gray-600 mt-0.5">사유: {refundRequest.reject_reason ?? "—"}</p>
+          </div>
+        )}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
           <h2 className="text-base font-semibold text-gray-800 mb-4">상태 변경</h2>
 

@@ -205,6 +205,47 @@ async def _get_order_owned_or_403(order_id: str, user_id: str) -> dict:
     return order
 
 
+# 환불 요청 관련 컬럼 — 기존 _get_order_or_404의 명시적 select에 넣으면 SQL(컬럼 추가) 미실행 환경에서
+# 모든 주문 조회가 깨지므로 별도 조회로 분리하고, 실패 시 빈 dict를 반환한다.
+_REFUND_REQ_COLS = "refund_request_status, refund_request_reason, refund_requested_at, refund_reject_reason"
+_REFUNDABLE_STATUSES = ("paid", "in_progress", "rework")
+
+
+async def _fetch_refund_request(order_id: str) -> dict:
+    try:
+        res = await execute(
+            get_client().table("delivery_orders").select(_REFUND_REQ_COLS).eq("id", order_id).single()
+        )
+        return (res.data if res and res.data else {}) or {}
+    except Exception as _e:
+        _logger.debug(f"[delivery] 환불 요청 컬럼 조회 실패(SQL 미실행 가능, 무시): {_e}")
+        return {}
+
+
+class RefundRequestBody(BaseModel):
+    reason: str
+
+    @field_validator("reason")
+    @classmethod
+    def validate_reason(cls, v: str) -> str:
+        v = (v or "").strip()
+        if not (2 <= len(v) <= 500):
+            raise ValueError("환불 사유는 2~500자로 입력해 주세요")
+        return v
+
+
+class RefundRejectBody(BaseModel):
+    reason: str
+
+    @field_validator("reason")
+    @classmethod
+    def validate_reason(cls, v: str) -> str:
+        v = (v or "").strip()
+        if not (2 <= len(v) <= 500):
+            raise ValueError("거절 사유는 2~500자로 입력해 주세요")
+        return v
+
+
 async def _get_latest_business_score(business_id: Optional[str]) -> Optional[float]:
     """사업장의 가장 최근 scan_results.unified_score(없으면 total_score) 조회.
 
@@ -450,6 +491,66 @@ async def list_my_orders(user: dict = Depends(get_current_user)):
     return {"orders": orders}
 
 
+@router.post("/orders/{order_id}/refund-request")
+async def request_refund(
+    order_id: str,
+    body: RefundRequestBody,
+    user: dict = Depends(get_current_user),
+):
+    """결제 완료 후 진행 중인 의뢰의 환불 요청 접수. 요청만 기록하고 실제 환불은 운영자가 승인(관리자 환불 경로)한다.
+
+    약관 제5조의2: 작업 착수 전(결제완료) 전액 환불 / 착수 후는 협의 / 완료·납품 건은 제외 — 요청은 접수하되
+    승인 여부는 운영자가 판단. 완료·취소·환불 상태와 미결제 의뢰는 접수하지 않는다.
+    """
+    order = await _get_order_owned_or_403(order_id, user["id"])
+    if order["status"] not in _REFUNDABLE_STATUSES:
+        raise HTTPException(
+            status_code=400,
+            detail="결제 완료 후 진행 중인 의뢰만 환불을 요청할 수 있습니다. 완료된 의뢰나 기타 문의는 고객센터로 문의해 주세요",
+        )
+    now = datetime.now(timezone.utc).isoformat()
+    res = None
+    try:
+        # 조건부 UPDATE — 이미 접수(pending)된 요청 중복 방지 + 조회~UPDATE 사이 상태 변동 보호
+        res = await execute(
+            get_client().table("delivery_orders")
+            .update({
+                "refund_request_status": "pending",
+                "refund_request_reason": body.reason,
+                "refund_requested_at": now,
+                "refund_reject_reason": None,
+            })
+            .eq("id", order_id)
+            .eq("user_id", user["id"])
+            .in_("status", list(_REFUNDABLE_STATUSES))
+            .or_("refund_request_status.is.null,refund_request_status.eq.rejected")
+        )
+    except Exception as _e:
+        _logger.error(f"[delivery] 환불 요청 저장 실패: {_e}")
+    # 컬럼 미존재 시 예외 없이 빈 결과가 오므로(2026-09-30 실측) 갱신된 행을 반드시 확인
+    if not (res and res.data):
+        cur = await _fetch_refund_request(order_id)
+        if cur.get("refund_request_status") == "pending":
+            raise HTTPException(status_code=409, detail="이미 환불 요청이 접수되어 처리 중입니다")
+        _logger.error(f"[delivery] 환불 요청 반영 안 됨 (order_id={order_id}) — 컬럼 SQL 미실행 가능")
+        raise HTTPException(status_code=503, detail="환불 요청 기능을 준비 중입니다. 고객센터로 문의해 주세요")
+
+    _logger.info(f"[delivery] 환불 요청 접수: order_id={order_id}, user_id={user['id']}, status={order['status']}")
+    try:
+        from services.email_sender import send_operator_alert
+        from utils.alert import send_slack_alert
+        title = f"대행 서비스 환불 요청 접수 ({order['status']})"
+        msg = (
+            f"order_id={order_id}\n패키지={order.get('package_type')} / 금액={order.get('amount')}원 / 현재상태={order['status']}\n"
+            f"사유: {body.reason}\n처리: https://aeolab.co.kr/admin/delivery/{order_id}"
+        )
+        await send_operator_alert(title, msg)
+        await send_slack_alert(title, msg[:300], level="warning")
+    except Exception as _ae:
+        _logger.warning(f"[delivery] 환불 요청 운영자 알림 실패 (요청은 접수됨): {_ae}")
+    return {"status": "pending", "refund_requested_at": now}
+
+
 @router.post("/orders/{order_id}/cancel")
 async def cancel_my_order(order_id: str, user: dict = Depends(get_current_user)):
     """미결제(received) 의뢰를 사용자가 직접 취소. 결제 전이라 금전 이동 없음 — 결제가 끝난 의뢰는 불가(환불은 별도 절차)."""
@@ -510,6 +611,7 @@ async def get_order(
     order.pop("payment_key", None)
     pkg_type = order.get("package_type", "")
     order["package_name"] = PACKAGES.get(pkg_type, {}).get("name", pkg_type)
+    order.update(await _fetch_refund_request(order_id))
 
     # 사업장명 enrichment
     biz_id = order.get("business_id")
@@ -821,7 +923,44 @@ async def admin_get_order(
     order = await _get_order_or_404(order_id)
     pkg_type = order.get("package_type", "")
     order["package_name"] = PACKAGES.get(pkg_type, {}).get("name", pkg_type)
+    order.update(await _fetch_refund_request(order_id))
     return {"order": order}
+
+
+@admin_router.post("/{order_id}/refund-request/reject")
+async def admin_reject_refund_request(
+    order_id: str,
+    body: RefundRejectBody,
+    _owner: str = Depends(require_owner),
+):
+    """환불 요청 거절(사유 필수) — 고객에게 시스템 메시지로 사유 안내. 금전 이동 없음(환불 승인은 status=refunded)."""
+    await _get_order_or_404(order_id)
+    supabase = get_client()
+    res = None
+    try:
+        res = await execute(
+            supabase.table("delivery_orders")
+            .update({"refund_request_status": "rejected", "refund_reject_reason": body.reason})
+            .eq("id", order_id)
+            .eq("refund_request_status", "pending")
+        )
+    except Exception as _e:
+        _logger.error(f"[admin/delivery] 환불 요청 거절 저장 실패: {_e}")
+    if not (res and res.data):
+        raise HTTPException(status_code=409, detail="접수 대기 중인 환불 요청이 없습니다")
+    try:
+        await execute(
+            supabase.table("delivery_messages").insert({
+                "order_id": order_id,
+                "sender_type": "admin",
+                "sender_id": _ADMIN_SENDER_ID,
+                "body": f"[환불 요청 안내] 요청하신 환불은 진행이 어렵습니다. 사유: {body.reason}\n자세한 내용은 고객센터로 문의해 주세요.",
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            })
+        )
+    except Exception as _me:
+        _logger.warning(f"[admin/delivery] 환불 거절 안내 메시지 실패 (거절은 처리됨): {_me}")
+    return {"order_id": order_id, "refund_request_status": "rejected"}
 
 
 @admin_router.get("/{order_id}/messages")
@@ -952,6 +1091,16 @@ async def admin_update_status(
             except Exception as _alert_e:
                 _logger.warning(f"[admin/delivery] 운영자 알림 실패 (무시): {_alert_e}")
         _logger.info(f"[admin/delivery] 수동 환불 완료: order_id={order_id}, amount={order.get('amount')}")
+        # 접수된 환불 요청이 있으면 승인 표시 — 컬럼 미존재 시 메인 UPDATE가 무효화되지 않도록 별도 best-effort
+        try:
+            await execute(
+                supabase.table("delivery_orders")
+                .update({"refund_request_status": "approved"})
+                .eq("id", order_id)
+                .eq("refund_request_status", "pending")
+            )
+        except Exception as _ae2:
+            _logger.debug(f"[admin/delivery] 환불 요청 approved 표시 실패(무시): {_ae2}")
 
     elif body.status == "rework":
         # rework_count 증가 (스키마 주석 기준 최대 2회 권장 — 강제 차단은 아니고 가시화만)

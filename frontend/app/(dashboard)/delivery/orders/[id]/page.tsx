@@ -4,6 +4,7 @@ import { ChevronRight, AlertCircle, CheckCircle2, Download } from "lucide-react"
 import DeliveryOrderClient from "./DeliveryOrderClient";
 import DeliveryPaymentRetryButton from "./DeliveryPaymentRetryButton";
 import DeliveryOrderActions from "./DeliveryOrderActions";
+import DeliveryRefundRequest from "./DeliveryRefundRequest";
 
 export const metadata = { title: "의뢰 상세 | AEOlab" };
 
@@ -29,6 +30,10 @@ interface OrderDetail {
   business_name?: string;
   consent_agreed: boolean;
   completion_report?: CompletionReport | null;
+  refund_request_status?: string | null;
+  refund_request_reason?: string | null;
+  refund_requested_at?: string | null;
+  refund_reject_reason?: string | null;
 }
 
 interface Message {
@@ -238,6 +243,16 @@ export default async function DeliveryOrderDetailPage({
             {(order.status === "cancelled" || order.status === "refunded") && (
               <DeliveryOrderActions orderId={order.id} status={order.status} token={token} />
             )}
+
+            {/* 결제 완료 후 진행 중 — 환불 요청(접수 후 운영자 승인) */}
+            <DeliveryRefundRequest
+              orderId={order.id}
+              status={order.status}
+              token={token}
+              refundStatus={order.refund_request_status}
+              refundRequestedAt={order.refund_requested_at}
+              rejectReason={order.refund_reject_reason}
+            />
           </div>
 
           {/* 완료 보고서 */}
