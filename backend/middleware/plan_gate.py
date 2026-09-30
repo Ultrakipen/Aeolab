@@ -316,6 +316,7 @@ async def check_support_ticket_limit(user_id: str, supabase) -> tuple[bool, int,
     ticket_res = await _exec(
         supabase.table("support_tickets").select("id", count="exact")
         .eq("user_id", user_id).gte("created_at", month_start)
+        .neq("category", "payment")  # 결제·환불 문의는 월 한도에서 제외(2026-09-30) — support.py 별도 상한 적용
     )
     inquiry_res = await _exec(
         supabase.table("inquiries").select("id", count="exact")

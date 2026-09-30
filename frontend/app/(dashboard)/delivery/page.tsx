@@ -244,6 +244,12 @@ export default async function DeliveryPage() {
         </div>
       </div>
 
+      <p className="text-sm text-gray-600 mb-6">
+        결제·환불·서비스 관련 문의는{" "}
+        <Link href="/support/tickets/new?category=payment" className="underline text-blue-700 font-medium">1:1 문의</Link>로 남겨 주세요
+        (결제·환불 문의는 월 문의 한도에 포함되지 않습니다).
+      </p>
+
       {/* 내 의뢰 현황 */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">

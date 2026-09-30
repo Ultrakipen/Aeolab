@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { AlertCircle, ChevronRight, Loader2 } from "lucide-react";
 
@@ -24,12 +24,14 @@ interface TicketQuota {
 
 function SupportNewForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryCategory = searchParams.get("category") ?? "";
 
   const [quota, setQuota] = useState<TicketQuota | null>(null);
   const [loadingMeta, setLoadingMeta] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
-  const [category, setCategory] = useState("feature");
+  const [category, setCategory] = useState(CATEGORIES.some((c) => c.value === queryCategory) ? queryCategory : "feature");
   const [isPublic, setIsPublic] = useState(false);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -123,7 +125,8 @@ function SupportNewForm() {
     }
   };
 
-  const isLimitExceeded = !!quota && !quota.unlimited && (quota.remaining ?? 0) <= 0;
+  // 결제·환불 문의는 월 문의 한도에서 제외(백엔드 별도 상한) — 한도가 소진돼도 작성 가능
+  const isLimitExceeded = category !== "payment" && !!quota && !quota.unlimited && (quota.remaining ?? 0) <= 0;
 
   if (loadingMeta) {
     return (
@@ -152,6 +155,12 @@ function SupportNewForm() {
           <div className="rounded-xl p-4 mb-5 text-sm bg-amber-50 border border-amber-200 text-amber-700">
             잔여 문의 건수를 불러오지 못했습니다. 아래 한도는 실제와 다를 수 있으니 새로고침 후 다시 확인해 주세요.
           </div>
+        )}
+
+        {category === "payment" && (
+          <p className="text-sm text-blue-800 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-4">
+            결제·환불 문의는 월 문의 한도에 포함되지 않습니다. 한도가 모두 소진된 상태에서도 접수할 수 있습니다.
+          </p>
         )}
 
         {/* 요금제 한도 안내 배너 */}

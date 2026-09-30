@@ -126,7 +126,8 @@ async def submit_inquiry(
 
         # 동시 제출 레이스 보정 — support.py create_ticket()과 동일 패턴(2026-07-15)
         allowed_after, used_after, limit_after = await check_support_ticket_limit(user_id, supabase)
-        if not allowed_after and inquiry_id is not None:
+        # INSERT 이후 재확인이라 used_after에 방금 넣은 행이 포함됨 — 한도를 정확히 채운 건은 정상(off-by-one 수정, 2026-09-30)
+        if used_after > limit_after and inquiry_id is not None:
             await execute(supabase.table("inquiries").delete().eq("id", inquiry_id))
             _logger.warning("동시 제출 레이스 감지 — 문의 롤백: id=%s user=%s", inquiry_id, user_id)
             raise _limit_exceeded_error(used_after, limit_after)

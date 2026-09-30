@@ -320,6 +320,12 @@ export default async function DeliveryOrderDetailPage({
             </div>
           )}
 
+          <p className="text-sm text-gray-600">
+            결제·환불·진행 관련 문의는{" "}
+            <a href="/support/tickets/new?category=payment" className="underline text-blue-700 font-medium">1:1 문의</a>로 남겨 주세요.
+            결제·환불 문의는 월 문의 한도에 포함되지 않습니다.
+          </p>
+
           {/* 메시지 스레드 */}
           <DeliveryOrderClient
             orderId={order.id}

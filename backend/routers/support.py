@@ -173,6 +173,31 @@ def _limit_exceeded_error(used: int, limit: int) -> HTTPException:
     )
 
 
+# 결제·환불 문의는 요금제 월 한도(무료 1/Basic 3)에서 제외하되, 남용 방지용 별도 상한을 둔다(2026-09-30).
+# 환불·결제 오류 문의가 한도 때문에 막히면 안 되므로(카드사 심사 취소·환불 경로 요건) 넉넉하게 설정.
+PAYMENT_TICKET_MONTHLY_CAP = 10
+
+
+async def _check_payment_cap(user_id: str) -> None:
+    supabase = get_client()
+    month_start = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
+    res = await execute(
+        supabase.table("support_tickets").select("id", count="exact")
+        .eq("user_id", user_id).eq("category", "payment").gte("created_at", month_start)
+    )
+    used = (res.count or 0) if res else 0
+    if used >= PAYMENT_TICKET_MONTHLY_CAP:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "code": "TICKET_PAYMENT_LIMIT",
+                "used": used,
+                "limit": PAYMENT_TICKET_MONTHLY_CAP,
+                "message": f"결제·환불 문의는 월 {PAYMENT_TICKET_MONTHLY_CAP}건까지 접수할 수 있습니다. 급한 경우 support@aeolab.co.kr 로 문의해 주세요.",
+            },
+        )
+
+
 async def _check_monthly_limit(user_id: str) -> None:
     """이번 달 문의 작성 건수가 요금제 한도를 초과하면 429."""
     supabase = get_client()
@@ -276,7 +301,12 @@ async def create_ticket(
     """문의 작성 — 요금제별 월 한도 검증 후 INSERT."""
     user_id = user["id"]
 
-    await _check_monthly_limit(user_id)
+    # 결제·환불 카테고리는 요금제 월 한도 대신 별도 상한만 적용
+    is_payment = body.category == "payment"
+    if is_payment:
+        await _check_payment_cap(user_id)
+    else:
+        await _check_monthly_limit(user_id)
 
     supabase = get_client()
     now = datetime.now(timezone.utc).isoformat()
@@ -305,7 +335,10 @@ async def create_ticket(
     # 방금 넣은 행을 되돌린다(2026-07-15, 월 1~3건 한도라 실사용자 재시도 부담은 낮음).
     supabase = get_client()
     allowed_after, used_after, limit_after = await check_support_ticket_limit(user_id, supabase)
-    if not allowed_after:
+    # 주의: INSERT 이후 재확인이므로 used_after에는 방금 넣은 행이 이미 포함된다 — 한도를 정확히 채우는 마지막 건은
+    # 정상이므로 "used_after > limit"일 때만 초과(이전엔 allowed_after=(used<limit)를 써서 무료 1건·Basic 3건째가
+    # 항상 롤백되던 off-by-one, 2026-09-30 실측 발견).
+    if not is_payment and used_after > limit_after:
         await execute(supabase.table("support_tickets").delete().eq("id", ticket["id"]))
         _logger.warning(f"[support] 동시 제출 레이스 감지 — 티켓 롤백: ticket_id={ticket['id']}, user_id={user_id}")
         raise _limit_exceeded_error(used_after, limit_after)
