@@ -28,7 +28,7 @@ const OPTIONS: Option[] = [
   },
   {
     value: "pro",
-    label: "경쟁사 변화를 매일 빠르게 알고 싶어요",
+    label: "옆 가게 소식을 더 자주 알고 싶어요",
     recommend: "Pro",
     planKey: "pro",
     amount: PLAN_PRICES.pro,
@@ -43,7 +43,7 @@ const OPTIONS: Option[] = [
   {
     value: "startup",
     label: "아직 창업 전이에요",
-    recommend: "창업 패키지",
+    recommend: "창업패키지",
     planKey: "startup",
     amount: PLAN_PRICES.startup,
   },
