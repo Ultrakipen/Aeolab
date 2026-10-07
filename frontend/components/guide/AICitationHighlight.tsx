@@ -167,7 +167,7 @@ export function AICitationHighlight({ businessId, authToken, currentPlan, isInac
   const plan = currentPlan ?? 'free'
   if (plan === 'free') {
     return (
-      <PlanGate feature="AI 인용 현황" requiredPlan="basic" currentPlan={currentPlan}>
+      <PlanGate feature="AI 언급 현황" requiredPlan="basic" currentPlan={currentPlan}>
         <AICitationContent businessId={businessId} authToken={authToken} isInactive={isInactive} />
       </PlanGate>
     )

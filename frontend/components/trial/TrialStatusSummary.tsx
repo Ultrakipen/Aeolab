@@ -69,7 +69,7 @@ function getContextSentence(score: number, userGroup: string): {
   if (userGroup === "INACTIVE" || userGroup === "franchise") {
     return {
       text: "플레이스형 네이버 AI 브리핑 대상이 아닌 업종입니다",
-      sub: "블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. ChatGPT·Gemini·Google AI 최적화도 핵심이며, AI탭(업종 제한 없음, 정식 출시)도 확인하세요.",
+      sub: "블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. ChatGPT·Gemini·Google AI 개선도 핵심이며, AI탭(업종 제한 없음, 정식 출시)도 확인하세요.",
       bg: "bg-amber-50 border-amber-200",
       textColor: "text-amber-800",
       subColor: "text-amber-700",
@@ -77,7 +77,7 @@ function getContextSentence(score: number, userGroup: string): {
   }
   if (userGroup === "LIKELY") {
     return {
-      text: "AI 탭 확장 예정 업종 — 지금은 ChatGPT·Gemini 최적화가 핵심",
+      text: "AI 탭 확장 예정 업종 — 지금은 ChatGPT·Gemini 개선이 핵심",
       sub: "'플레이스형' 네이버 AI 브리핑 공식 대상 업종이 아닙니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능하며, 스마트플레이스는 네이버 플레이스 노출에 도움이 됩니다.",
       bg: "bg-blue-50 border-blue-200",
       textColor: "text-blue-800",
@@ -123,7 +123,7 @@ function getConclusion(params: {
     return "현재 네이버 AI 브리핑에 노출 중입니다. 유지·강화하세요.";
   }
   if (userGroup === "INACTIVE" || userGroup === "franchise") {
-    return "ChatGPT·Gemini 최적화에 집중하세요. 네이버 AI탭(업종 제한 발표 없음, 2026-06-25 정식 출시)도 확인하세요.";
+    return "ChatGPT·Gemini 개선에 집중하세요. 네이버 AI탭(업종 제한 발표 없음, 2026-06-25 정식 출시)도 확인하세요.";
   }
   if (userGroup === "LIKELY") {
     return "스마트플레이스 등록·소개글 작성이 네이버 플레이스와 AI탭 노출 향상의 핵심입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.";
@@ -132,7 +132,7 @@ function getConclusion(params: {
     return "스마트플레이스 등록이 네이버 AI 브리핑 노출의 첫 단계입니다.";
   }
   if (isSmartPlace && !hasFaq) {
-    return "소개글 Q&A 추가만으로 AI 브리핑 인용 후보가 될 수 있습니다.";
+    return "소개글 Q&A 추가만으로 AI 브리핑 소개 후보가 될 수 있습니다.";
   }
   return "소개글 Q&A + 키워드 추가로 점수를 높일 수 있습니다.";
 }

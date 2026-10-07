@@ -1,5 +1,7 @@
 "use client";
 
+import { Trophy } from "lucide-react";
+
 interface NaverCompetitor {
   rank: number;
   name: string;
@@ -52,7 +54,7 @@ export default function TrialCompetitorGapCard({
     <div className="rounded-xl border border-gray-200 bg-white p-4 mb-4 shadow-sm">
       <div className="mb-3">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-lg">🏆</span>
+          <Trophy className="w-5 h-5 text-amber-500" aria-hidden="true" />
           <p className="text-sm font-bold text-gray-800">네이버 검색 노출 현황</p>
         </div>
       </div>
@@ -141,7 +143,7 @@ export default function TrialCompetitorGapCard({
           {/* 측정 방식 항상 안내 */}
           <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 mb-2">
             <p className="text-sm text-gray-600 leading-relaxed">
-              <strong className="text-gray-600">측정 방식</strong> — 네이버 블로그 API에서 &ldquo;지역 + 가게명&rdquo;을 검색한 총 결과 수입니다.
+              <strong className="text-gray-600">측정 방식</strong> — 네이버 블로그에서 &ldquo;지역 + 가게명&rdquo;을 검색한 총 결과 수입니다.
               검색어에 지역명이 포함되어 해당 지역 결과를 우선 수집하며, 가게 후기뿐 아니라 해당 키워드가 포함된 모든 포스트가 합산됩니다.
               경쟁사는 같은 업종(예: 음식점) 기준으로 선택되며 세부 업종은 다를 수 있습니다.
             </p>
@@ -151,7 +153,7 @@ export default function TrialCompetitorGapCard({
           {(topCompetitorBlogCount ?? 0) > 50000 ? (
             <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2">
               <p className="text-sm text-amber-800 leading-relaxed">
-                <strong>측정 불가</strong> — 경쟁사 상호명이 음식 카테고리명과 동일하여 특정 가게 기준으로 측정할 수 없습니다. 정식 스캔에서 더 정확한 비교를 제공합니다.
+                <strong>측정 불가</strong> — 경쟁사 상호명이 음식 카테고리명과 동일하여 특정 가게 기준으로 측정할 수 없습니다. 가입 후 더 정확한 비교를 제공합니다.
               </p>
             </div>
           ) : (topCompetitorBlogCount ?? 0) > 1500 ? (

@@ -205,7 +205,7 @@ export default function TrialDetailAccordion({
         <div>
           <TrackSectionHeader
             icon={<MapPin className="w-5 h-5 text-white" />}
-            title="네이버 트랙"
+            title="네이버 현황"
             subtitle={userGroup === "LIKELY" ? "스마트플레이스 · 경쟁 순위 · 블로그" : "스마트플레이스 · AI 브리핑 · 경쟁 순위 · 블로그"}
             bgColor="bg-blue-600"
             textColor="text-white"
@@ -246,7 +246,7 @@ export default function TrialDetailAccordion({
       <div>
         <TrackSectionHeader
           icon={<Bot className="w-5 h-5 text-white" />}
-          title="글로벌 AI 트랙"
+          title="글로벌 AI 현황"
           subtitle="ChatGPT · Gemini · Google AI 노출 현황 및 개선"
           bgColor="bg-blue-600"
           textColor="text-white"

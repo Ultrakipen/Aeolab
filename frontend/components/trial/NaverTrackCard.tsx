@@ -72,7 +72,7 @@ function getDeficiencyMessage(
     return null;
   }
   if (inBriefing === false && !hasIntro) {
-    return "소개글이 없습니다. AI 브리핑 인용 후보 경로 중 가장 먼저 채워야 할 항목입니다.";
+    return "소개글이 없습니다. AI 브리핑 소개 후보 경로 중 가장 먼저 채워야 할 항목입니다.";
   }
   if (inBriefing === false && blogCount < 3) {
     return "블로그 언급이 부족합니다. 리뷰 요청으로 외부 신뢰 신호를 쌓으세요.";
@@ -184,7 +184,7 @@ export default function NaverTrackCard({
       {inBriefing === null && userGroup === "ACTIVE" && isSmartPlace && (
         <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5 mb-3">
           <p className="text-sm text-blue-700 leading-relaxed break-keep">
-            정식 스캔에서는 네이버 AI 브리핑 노출 여부를 실시간으로 직접 확인합니다.
+            가입 후 정식 측정에서는 네이버 AI 브리핑 노출 여부를 실시간으로 직접 확인합니다.
           </p>
         </div>
       )}
@@ -211,7 +211,7 @@ export default function NaverTrackCard({
       {isGlobal && (
         <div className="bg-amber-100 border border-amber-200 rounded-xl px-3 py-2.5 mb-3">
           <p className="text-sm font-semibold text-amber-900 leading-relaxed break-keep">
-            이 업종의 주요 노출 채널은 네이버 AI탭(업종 제한 발표 없음, 2026-06-25 정식 출시) + ChatGPT·Gemini입니다. 아래 섹션에서 개선 방법을 확인하세요.
+            이 업종의 주요 AI 노출 경로는 네이버 AI탭(업종 제한 발표 없음, 2026-06-25 정식 출시) + ChatGPT·Gemini입니다. 아래 섹션에서 개선 방법을 확인하세요.
           </p>
         </div>
       )}
@@ -280,7 +280,7 @@ export default function NaverTrackCard({
 
       {/* 면책 문구 */}
       <p className="text-sm text-gray-600 mt-3 leading-relaxed">
-        업종별 가중치로 계산된 네이버 점수입니다.
+        업종별 중요도로 계산된 네이버 점수입니다.
       </p>
     </div>
   );

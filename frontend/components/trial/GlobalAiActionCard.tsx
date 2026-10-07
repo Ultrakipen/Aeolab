@@ -80,7 +80,7 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
       timeLabel: "10분",
       effectLabel: "즉시~1개월 (추정)",
       description:
-        "Google 비즈니스 프로필은 ChatGPT가 사용하는 Bing 검색과 Gemini 실시간 검색 연동 모두에서 참조됩니다. business.google.com 무료 등록이 글로벌 AI 노출의 첫 단계입니다.",
+        "Google 비즈니스 프로필은 ChatGPT가 참고하는 마이크로소프트 검색과 Gemini 실시간 검색 연동 모두에서 참조됩니다. business.google.com 무료 등록이 글로벌 AI 노출의 첫 단계입니다.",
       copyText: null,
       copyLabel: null,
       externalLink: "https://business.google.com",
@@ -96,15 +96,15 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
     candidates.push({
       action: {
         id: "bing_places",
-        title: "Bing Places 비즈니스 등록",
+        title: "마이크로소프트 지도 비즈니스 등록",
         timeLabel: "10분",
-        effectLabel: "수일~2주 (Bing 인덱싱 후)",
+        effectLabel: "수일~2주 (검색 반영 후)",
         description:
-          "ChatGPT는 로컬 검색 시 Bing을 실시간으로 검색합니다. Bing Places에 등록하면 ChatGPT가 가게 정보(이름·위치·업종·영업시간)를 직접 참조합니다.",
+          "ChatGPT는 로컬 검색 시 마이크로소프트 검색을 실시간으로 사용합니다. 여기에 등록하면 ChatGPT가 가게 정보(이름·위치·업종·영업시간)를 직접 참조합니다.",
         copyText: null,
         copyLabel: null,
         externalLink: "https://www.bing.com/places",
-        externalLinkLabel: "→ Bing Places 바로가기",
+        externalLinkLabel: "→ 마이크로소프트 지도 바로가기",
         isSubscriptionCta: false,
         subscriptionCtaLabel: null,
       },
@@ -119,10 +119,10 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
     candidates.push({
       action: {
         id: "structured_content",
-        title: `'${keyword}' 정보 구조화 작성`,
+        title: `'${keyword}' 소개글 Q&A 작성`,
         timeLabel: "5분",
         effectLabel: "1~3개월 (추정)",
-        description: `ChatGPT·Gemini는 '${keyword}'처럼 명확한 Q&A 형식 텍스트를 인용하는 경향이 있습니다. 홈페이지·소개글에 아래 문구를 추가해 보세요.`,
+        description: `ChatGPT·Gemini는 '${keyword}'처럼 명확한 Q&A 형식 텍스트를 소개하는 경향이 있습니다. 홈페이지·소개글에 아래 문구를 추가해 보세요.`,
         copyText,
         copyLabel: "Q&A 문구 복사하기",
         externalLink: null,
@@ -147,11 +147,11 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
     candidates.push({
       action: {
         id: "structured_content_fallback",
-        title: "업종 키워드 구조화 작성",
+        title: "업종 키워드 Q&A 작성",
         timeLabel: "5분",
         effectLabel: "1~3개월 (추정)",
         description:
-          "ChatGPT·Gemini는 명확한 Q&A 형식 텍스트를 인용하는 경향이 있습니다. 홈페이지·소개글에 아래 문구를 추가해 보세요.",
+          "ChatGPT·Gemini는 명확한 Q&A 형식 텍스트를 소개하는 경향이 있습니다. 홈페이지·소개글에 아래 문구를 추가해 보세요.",
         copyText,
         copyLabel: "Q&A 문구 복사하기",
         externalLink: null,
@@ -173,7 +173,7 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
         timeLabel: "2분 (리뷰 요청 문자 발송)",
         effectLabel: "2~4개월 (추정)",
         description:
-          "ChatGPT는 로컬 검색 시 Bing을 실시간으로 검색합니다. 구글 리뷰·외부 블로그 후기를 확보하면 Bing 인덱스에 포함되어 ChatGPT 노출 가능성이 높아집니다. 네이버 리뷰·블로그는 네이버 AI 브리핑·AI탭에 효과적입니다.",
+          "ChatGPT는 로컬 검색 시 마이크로소프트 검색을 실시간으로 사용합니다. 구글 리뷰·외부 블로그 후기를 확보하면 마이크로소프트 검색에 포함되어 ChatGPT 노출 가능성이 높아집니다. 네이버 리뷰·블로그는 네이버 AI 브리핑·AI탭에 효과적입니다.",
         copyText: reviewText,
         copyLabel: "리뷰 요청 문자 복사하기",
         externalLink: null,
@@ -190,12 +190,12 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
     candidates.push({
       action: {
         id: "meta_tag",
-        title: "홈페이지 메타태그 최적화",
+        title: "홈페이지 검색 정보 개선",
         timeLabel: "30분",
         effectLabel: "1~2개월 (추정)",
-        description: `홈페이지가 있다면 <title>, <meta description>에 '${businessName} ${regionStr} ${category}' 키워드를 포함하면 Google AI와 ChatGPT 인용 가능성이 높아집니다.`,
+        description: `홈페이지가 있다면 제목·설명 태그에 '${businessName} ${regionStr} ${category}' 키워드를 포함하면 Google AI와 ChatGPT 소개 가능성이 높아집니다.`,
         copyText,
-        copyLabel: "메타태그 코드 복사하기",
+        copyLabel: "검색 정보 태그 코드 복사하기",
         externalLink: null,
         externalLinkLabel: null,
         isSubscriptionCta: false,
@@ -210,11 +210,11 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
     candidates.push({
       action: {
         id: "json_ld",
-        title: "AI가 내 가게를 정확히 인식하도록 구조화 등록",
+        title: "AI가 내 가게 정보를 정확히 알 수 있도록 등록",
         timeLabel: "자동 생성",
         effectLabel: "1~2개월 (추정)",
         description:
-          "가게 이름·주소·업종·운영시간을 AI가 이해하는 형식으로 등록하면 ChatGPT·Google AI 인용 정확도가 높아집니다. AEOlab Basic 플랜에서 자동으로 생성해 드립니다.",
+          "가게 이름·주소·업종·운영시간을 AI가 이해하는 형식으로 등록하면 ChatGPT·Google AI 소개 정확도가 높아집니다. AEOlab Basic 플랜에서 자동으로 생성해 드립니다.",
         copyText: null,
         copyLabel: null,
         externalLink: "/pricing",
@@ -417,7 +417,7 @@ export default function GlobalAiActionCard({
       {isGlobal && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl px-3 py-2 mb-4">
           <p className="text-sm font-semibold text-blue-800 leading-relaxed break-keep">
-            이 업종의 주요 노출 채널입니다. 아래 방법으로 ChatGPT·Gemini·Google AI 노출을 높이세요.
+            이 업종에서 가장 중요한 AI 노출 경로입니다. 아래 방법으로 ChatGPT·Gemini·Google AI 노출을 높이세요.
           </p>
         </div>
       )}

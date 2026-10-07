@@ -449,7 +449,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                           <li className="flex items-start gap-1.5">
                             <span className="text-blue-600 shrink-0 mt-0.5">•</span>
                             <p className="text-sm text-blue-800">
-                              <strong>ChatGPT·Gemini·Google AI</strong> 검색에서 찾히도록 최적화
+                              <strong>ChatGPT·Gemini·Google AI</strong> 검색에서 찾히도록 개선
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
@@ -788,18 +788,18 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                   )}
                   {!keywordError && previewKeyword && form.region ? (
                     <div className="mt-2 bg-white border border-amber-200 rounded-lg px-3 py-2">
-                      <p className="text-sm text-amber-700 font-semibold mb-0.5">실제 측정 쿼리 미리보기</p>
+                      <p className="text-sm text-amber-700 font-semibold mb-0.5">실제 측정 검색어 미리보기</p>
                       <p className="text-sm text-slate-700">&ldquo;<strong>{form.region.split(" ")[0]} {previewKeyword} 추천</strong>&rdquo; 등 5가지 방식</p>
                     </div>
                   ) : !keywordError && previewKeyword && !isStartupMode ? (
                     <div className="mt-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-start gap-1.5">
                       <AlertTriangle className="w-4 h-4 text-red-700 shrink-0 mt-0.5" aria-hidden="true" />
                       <p className="text-sm text-red-700">
-                        <strong>지역을 아래에 입력</strong>해야 <strong className="text-slate-700">&ldquo;[지역] {previewKeyword} 추천&rdquo;</strong> 형태로 정확하게 질의합니다.
+                        <strong>지역을 아래에 입력</strong>해야 <strong className="text-slate-700">&ldquo;[지역] {previewKeyword} 추천&rdquo;</strong> 형태로 정확하게 검색됩니다.
                       </p>
                     </div>
                   ) : !keywordError && (
-                    <p className="text-sm text-amber-700 mt-1.5">지역을 입력하면 실제 측정 쿼리를 미리 볼 수 있습니다.</p>
+                    <p className="text-sm text-amber-700 mt-1.5">지역을 입력하면 실제 측정 검색어를 미리 볼 수 있습니다.</p>
                   )}
                 </div>
               );
@@ -1195,7 +1195,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                   className="w-full border border-slate-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
                 <p className="text-xs text-slate-500 mt-1.5">
-                  입력하시면 스캔 완료 후 결과 요약을 바로 이메일로 보내드립니다.
+                  입력하시면 측정 완료 후 결과 요약을 바로 이메일로 보내드립니다.
                 </p>
                 {form.email.trim() && (
                   <div className="mt-2.5">
@@ -1328,7 +1328,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 </p>
                 <p className="font-semibold text-slate-700 pt-0.5">가입 후 1회 체험·구독에서 추가 확인</p>
                 <p className="leading-relaxed break-keep">
-                  네이버 AI 브리핑 실제 인용 여부 · Gemini 노출 · 네이버 AI탭 · 구글 검색 노출 · 매주 자동 측정 + 변화 알림
+                  네이버 AI 브리핑 실제 노출 여부 · Gemini 노출 · 네이버 AI탭 · 구글 검색 노출 · 매주 자동 측정 + 변화 알림
                 </p>
               </div>
 

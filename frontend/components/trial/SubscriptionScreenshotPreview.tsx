@@ -24,7 +24,7 @@ const MOCK_SCREENSHOTS = [
     key: "chatgpt",
     label: "ChatGPT",
     headerBg: "bg-gray-800",
-    queryLabel: "업종 맛집·추천 질의 응답",
+    queryLabel: "업종 맛집·추천 결과",
     lines: [
       { w: "w-full", color: "bg-gray-300" },
       { w: "w-4/5", color: "bg-blue-200" },
@@ -82,7 +82,7 @@ export default function SubscriptionScreenshotPreview({
             <div className={`px-3 py-2 flex items-center gap-1.5 border-t ${s.captionColor}`}>
               <CheckCircle2 className="w-3.5 h-3.5 text-green-700 shrink-0" />
               <span className="text-sm text-gray-600 break-keep">
-                <span className="font-semibold">&ldquo;{businessName}&rdquo;</span> 언급 여부 + 인용 문장 캡처
+                <span className="font-semibold">&ldquo;{businessName}&rdquo;</span> 언급 여부 + 소개 문장 확인
               </span>
             </div>
           </div>

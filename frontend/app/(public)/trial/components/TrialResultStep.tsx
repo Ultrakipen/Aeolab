@@ -46,6 +46,7 @@ import type {
 } from "@/types";
 import type { TrialResultProps } from "./TrialSharedTypes";
 import { trackTrialComplete, trackEvent } from "@/lib/analytics";
+import type { LucideIcon } from "lucide-react";
 import {
   Info,
   Store,
@@ -58,24 +59,33 @@ import {
   X,
   XCircle,
   Lock,
+  Bell,
+  PenLine,
+  BarChart3,
+  TrendingUp,
 } from "lucide-react";
+import { MoreInfo } from "@/components/common/MoreInfo";
+import { IconTile } from "@/components/common/IconTile";
 
 
 // ── 구독 행동 기능 잠금 카드 ────────────────────────────────────────
 function ActionFeaturesLock({ onSave }: { onSave: () => void }) {
-  const actions = [
-    { icon: "✍️", label: "소개글 개선 초안 자동 생성", desc: "키워드 갭 기반 소개글 1분 완성" },
-    { icon: "📅", label: "7일 후 순위 변화 자동 측정", desc: "소개글 수정 후 결과를 직접 확인" },
-    { icon: "🔔", label: "경쟁 가게 AI 노출 변화 알림", desc: "경쟁사가 AI에서 뜨면 즉시 알림" },
-    { icon: "📊", label: "매주 자동 순위 추적 + 30일 추세", desc: "내가 한 행동이 효과 있었는지 확인" },
+  const actions: { icon: LucideIcon; label: string; desc: string }[] = [
+    { icon: PenLine, label: "소개글 개선 초안 자동 생성", desc: "빠진 검색어를 반영한 소개글 1분 완성" },
+    { icon: Calendar, label: "7일 후 순위 변화 자동 측정", desc: "소개글 수정 후 결과를 직접 확인" },
+    { icon: Bell, label: "경쟁 가게 AI 노출 변화 알림", desc: "경쟁사가 AI에서 뜨면 즉시 알림" },
+    { icon: BarChart3, label: "매주 자동 순위 추적 + 30일 추세", desc: "내가 한 행동이 효과 있었는지 확인" },
   ];
   return (
     <div className="rounded-xl border-2 border-blue-100 bg-white px-4 py-4 mb-4">
-      <p className="text-sm font-bold text-slate-600 mb-3">🔒 구독하면 바로 사용 가능한 기능</p>
+      <p className="text-sm font-bold text-slate-600 mb-3 flex items-center gap-1.5">
+        <Lock className="w-4 h-4 shrink-0" aria-hidden="true" />
+        구독하면 바로 사용 가능한 기능
+      </p>
       <div className="space-y-2 mb-4">
         {actions.map((item) => (
           <div key={item.label} className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5">
-            <span className="text-lg shrink-0">{item.icon}</span>
+            <IconTile icon={item.icon} size="sm" tone="blue" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-slate-800">{item.label}</p>
               <p className="text-sm text-slate-500 mt-0.5">{item.desc}</p>
@@ -166,15 +176,15 @@ function ScanConclusionCard({
   if (!hasAnyData) return null;
 
   // 강점 항목 목록 (실측 데이터 있는 것만)
-  const strengthItems: { icon: string; text: string }[] = [];
+  const strengthItems: { icon: LucideIcon; text: string }[] = [];
   if (isSmartPlaceConfirmed) {
-    strengthItems.push({ icon: "✅", text: "스마트플레이스 등록 확인 — 네이버 지역 검색 대상" });
+    strengthItems.push({ icon: CheckCircle2, text: "스마트플레이스 등록 확인 — 네이버 지역 검색 대상" });
   }
   if (kakaoRank !== null && kakaoRank !== undefined && kakaoRank <= 10) {
-    strengthItems.push({ icon: "✅", text: `카카오 검색 ${kakaoRank}위 확인` });
+    strengthItems.push({ icon: CheckCircle2, text: `카카오 검색 ${kakaoRank}위 확인` });
   }
   if (blogCount !== undefined && blogCount > 0) {
-    strengthItems.push({ icon: "✅", text: `가게 이름이 나온 블로그 글 ${blogCount.toLocaleString()}건 확인 (제목·요약 기준)` });
+    strengthItems.push({ icon: CheckCircle2, text: `가게 이름이 나온 블로그 글 ${blogCount.toLocaleString()}건 확인 (제목·요약 기준)` });
   }
   if (
     smartPlaceCheck &&
@@ -184,7 +194,7 @@ function ScanConclusionCard({
     const vrc = (smartPlaceCheck as { visitor_review_count?: number }).visitor_review_count ?? 0;
     // 블로그카운트와 중복 표시 방지: 방문자 리뷰는 별도 항목으로만
     if (!strengthItems.some((s) => s.text.includes("블로그"))) {
-      strengthItems.push({ icon: "✅", text: `방문자 리뷰 ${vrc.toLocaleString()}건 확인` });
+      strengthItems.push({ icon: CheckCircle2, text: `방문자 리뷰 ${vrc.toLocaleString()}건 확인` });
     }
   }
 
@@ -193,14 +203,14 @@ function ScanConclusionCard({
 
   return (
     <div className="rounded-xl border-2 border-slate-200 bg-white px-4 py-4 mb-4 shadow-sm">
-      <p className="text-sm font-bold text-slate-500 mb-3 tracking-wide uppercase">이번 스캔 발견</p>
+      <p className="text-sm font-bold text-slate-500 mb-3 tracking-wide uppercase">이번 측정 결과</p>
 
       {/* 강점 먼저 — 실측 데이터 있는 것만 */}
       {strengthItems.length > 0 && (
         <div className="space-y-1.5 mb-3">
           {strengthItems.map((item, i) => (
             <div key={i} className="flex items-center gap-2.5 rounded-lg bg-green-50 border border-green-100 px-3 py-2">
-              <span className="text-base shrink-0">{item.icon}</span>
+              <item.icon className="w-4 h-4 text-green-700 shrink-0" aria-hidden="true" />
               <p className="text-sm font-semibold text-green-800 break-keep">{item.text}</p>
             </div>
           ))}
@@ -211,7 +221,7 @@ function ScanConclusionCard({
       {topMissingKw && (
         <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5 mb-3">
           <div className="flex items-start gap-2">
-            <span className="text-base shrink-0 mt-0.5">⚠️</span>
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
             <div className="min-w-0">
               <p className="text-sm font-semibold text-amber-800 break-keep">
                 소개글에 넣으면 좋은 키워드 {missingKws.length}개 — 업종 기준 추정입니다
@@ -234,7 +244,7 @@ function ScanConclusionCard({
           ? chatgptExposureFreq !== undefined
             ? `"${businessName}" ${chatgptSampleSize}회 중 ${chatgptExposureFreq}회 추천 목록에 등장`
             : `"${businessName}" 노출됨`
-          : "아직 미노출 (네이버 최적화 후 수개월 내 반영 예상)"}
+          : "아직 미노출 (네이버 개선 후 수개월 내 반영 예상)"}
       </p>
 
       <div className="space-y-2 mt-3">
@@ -242,7 +252,7 @@ function ScanConclusionCard({
         {/* 사진 강점 (photo_count 많을 때만 — 상단 strengthItems에 없는 추가 강점) */}
         {smartPlaceCheck && !smartPlaceCheck.error && (smartPlaceCheck as { photo_count?: number }).photo_count != null && ((smartPlaceCheck as { photo_count?: number }).photo_count ?? 0) >= 30 && (
           <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 bg-green-50 border border-green-200">
-            <span className="text-lg shrink-0 mt-0.5">✅</span>
+            <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0 mt-0.5" aria-hidden="true" />
             <p className="text-sm font-semibold text-slate-800 break-keep">
               사진 {(smartPlaceCheck as { photo_count?: number }).photo_count}장 등록 — 풍부한 시각 콘텐츠가 확인됐습니다
             </p>
@@ -256,7 +266,7 @@ function ScanConclusionCard({
             <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
             <p className="text-sm text-slate-600 break-keep leading-snug">
               <strong className="text-slate-800">네이버 {naverMyRank}위인데 ChatGPT에 없는 건 정상입니다.</strong>{" "}
-              ChatGPT는 수개월~1년 주기로 학습 데이터를 갱신하며, 네이버 검색 상위권인 가게도 대부분 아직 미인식 상태입니다. 네이버 최적화를 유지하면 점차 반영됩니다.
+              ChatGPT는 수개월~1년 주기로 AI 자료를 갱신하며, 네이버 검색 상위권인 가게도 대부분 아직 미인식 상태입니다. 네이버 상태를 유지하면 점차 반영됩니다.
             </p>
           </div>
         )}
@@ -264,7 +274,9 @@ function ScanConclusionCard({
         {/* 네이버 AI 브리핑 실측 결과 (active 업종, 체험 스캔에서 측정된 경우만) */}
         {briefingCategory === "active" && inBriefing !== null && (
           <div className={`flex items-start gap-3 rounded-lg px-3 py-2.5 ${inBriefing ? "bg-green-50 border border-green-200" : "bg-amber-50 border border-amber-200"}`}>
-            <span className="text-lg shrink-0 mt-0.5">{inBriefing ? "✅" : "⚠️"}</span>
+            {inBriefing
+              ? <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0 mt-0.5" aria-hidden="true" />
+              : <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />}
             <p className="text-sm font-semibold text-slate-800 break-keep">
               네이버 AI 브리핑 —{" "}
               {inBriefing
@@ -284,7 +296,7 @@ function ScanConclusionCard({
           if (missing.length === 0) return null;
           return (
             <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 bg-amber-50 border border-amber-200">
-              <span className="text-lg shrink-0 mt-0.5">⚠️</span>
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800 break-keep">
                   스마트플레이스 {missing.join(" · ")} 미완성
@@ -300,7 +312,7 @@ function ScanConclusionCard({
         {/* 키워드가 이미 모두 갖춰진 경우에만 긍정 메시지 */}
         {missingKws.length === 0 && (
           <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 bg-green-50 border border-green-200">
-            <span className="text-lg shrink-0 mt-0.5">✅</span>
+            <CheckCircle2 className="w-4 h-4 text-green-700 shrink-0 mt-0.5" aria-hidden="true" />
             <p className="text-sm font-semibold text-slate-800 break-keep">
               경쟁 가게 핵심 키워드가 이미 갖춰져 있습니다
             </p>
@@ -310,7 +322,7 @@ function ScanConclusionCard({
       </div>
       <div className="flex items-center justify-between mt-3">
         <p className="text-sm text-slate-500 leading-relaxed">
-          측정 시점·기기·질의 구성에 따라 결과가 달라질 수 있습니다
+          측정 시점·기기·검색어 구성에 따라 결과가 달라질 수 있습니다
         </p>
         <a href="#today-action" className="shrink-0 text-sm font-bold text-blue-600 hover:text-blue-700 whitespace-nowrap ml-3">
           오늘 할 일 보기 ↓
@@ -359,7 +371,7 @@ function ScoreSummaryCard({
           {!isEstimatedBenchmark && benchmarkAvg > 0 && (
             <span className="text-sm text-slate-400">{categoryLabel} 업종 평균</span>
           )}
-          <span className="text-sm text-slate-400">최적화</span>
+          <span className="text-sm text-slate-400">완성</span>
         </div>
       </div>
 
@@ -609,7 +621,7 @@ export default function TrialResultStep(props: TrialResultProps) {
       weight: 25,
       value: breakdown?.review_quality,
       trialLimited: !breakdown?.review_quality,
-      trialNote: "체험 스캔에서는 미수집 — 정식 스캔에서 자동으로 측정합니다",
+      trialNote: "체험에서는 미수집 — 정식 측정에서 자동으로 확인합니다",
       why: "AI는 리뷰 수·평점·최신성으로 가게 신뢰도를 판단합니다. 리뷰가 많고 최신일수록 AI 검색에 추천될 확률이 높아집니다.",
     },
     {
@@ -627,7 +639,7 @@ export default function TrialResultStep(props: TrialResultProps) {
       weight: 15,
       value: breakdown?.naver_exposure_confirmed,
       trialLimited: !breakdown?.naver_exposure_confirmed,
-      trialNote: "체험 스캔에서는 미측정 — 정식 스캔에서 확인합니다",
+      trialNote: "체험에서는 미측정 — 정식 측정에서 확인합니다",
       why: isFranchise || userGroupValue === "INACTIVE"
         ? "네이버 지역 검색·블로그에 노출되면 스마트폰으로 검색하는 손님에게 직접 보이게 됩니다."
         : "네이버 AI 브리핑에 노출되면 검색 첫 화면에 가게가 추천되어 새 손님 유입이 늘어납니다.",
@@ -695,7 +707,7 @@ export default function TrialResultStep(props: TrialResultProps) {
       items.push({
         title: "구글 비즈니스 프로필 정보 완성하기(영업시간·설명·사진)",
         level: "보통", time: "10분",
-        effect: "ChatGPT·Google AI가 인용할 정보가 늘어납니다",
+        effect: "ChatGPT·Google AI가 참고할 정보가 늘어납니다",
       });
       items.push({
         title: "리뷰 답변에 실제로 제공하는 특징을 한 문장 넣기",
@@ -820,7 +832,7 @@ export default function TrialResultStep(props: TrialResultProps) {
       if (topRate < 0.3) {
         verdictBullets.push({
           label: "참고",
-          text: `이 지역에서 ChatGPT가 가장 자주 언급하는 가게(${topPlace.name})도 ${chatgptSampleSize}회 중 ${topPlace.count}회(${Math.round(topRate * 100)}%)뿐입니다 — 이 채널은 아직 확실한 승자가 없어 지금 시작해도 늦지 않았습니다.`,
+          text: `이 지역에서 ChatGPT가 가장 자주 언급하는 가게(${topPlace.name})도 ${chatgptSampleSize}회 중 ${topPlace.count}회(${Math.round(topRate * 100)}%)뿐입니다 — 이 AI 서비스는 아직 확실한 승자가 없어 지금 시작해도 늦지 않았습니다.`,
           tone: "ok",
         });
       }
@@ -893,14 +905,14 @@ export default function TrialResultStep(props: TrialResultProps) {
           <p className="text-sm text-amber-800 leading-relaxed mb-2 break-keep">
             {group === "franchise"
               ? "네이버 공식 정책에 따라 프랜차이즈 가맹점은 '플레이스형' AI 브리핑 노출이 제한됩니다. 단, 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 AI탭·ChatGPT·Gemini·Google AI에서는 노출 가능합니다."
-              : "블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. ChatGPT·Gemini·Google AI 노출 최적화에 집중하고, 네이버 AI탭(업종 제한 없음, 정식 출시)도 확인하세요."}
+              : "블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. ChatGPT·Gemini·Google AI 노출 개선에 집중하고, 네이버 AI탭(업종 제한 없음, 정식 출시)도 확인하세요."}
           </p>
           <div className="flex flex-wrap gap-2">
             {[
               { label: "네이버 AI탭", desc: "업종 제한 발표 없음 · 정식 출시" },
-              { label: "ChatGPT", desc: "OpenAI 학습 데이터 + Bing 검색" },
+              { label: "ChatGPT", desc: "OpenAI가 미리 공부한 자료 + 마이크로소프트 검색" },
               { label: "Gemini", desc: "Google 검색 혼합" },
-              { label: "Google AI", desc: "구글 SGE 인용" },
+              { label: "Google AI", desc: "구글 SGE 참고" },
             ].map((ch) => (
               <span
                 key={ch.label}
@@ -950,13 +962,13 @@ export default function TrialResultStep(props: TrialResultProps) {
         <div className="bg-blue-50 border-b border-blue-200 px-4 py-2">
           <div className="max-w-5xl mx-auto flex items-center justify-between gap-2">
             <p className="text-sm text-blue-800">
-              이전 스캔 결과입니다. 이메일로 저장하지 않으면 탭을 닫을 때 사라집니다.
+              이전 측정 결과입니다. 이메일로 저장하지 않으면 탭을 닫을 때 사라집니다.
             </p>
             <button
               onClick={onRescan ?? onReset}
               className="text-sm font-semibold text-blue-700 hover:text-blue-900 underline underline-offset-2 transition-colors shrink-0"
             >
-              새로 스캔하기
+              새로 측정하기
             </button>
           </div>
         </div>
@@ -1279,8 +1291,11 @@ export default function TrialResultStep(props: TrialResultProps) {
                 <div>
                   <p className="text-sm font-semibold text-purple-800 break-keep">ChatGPT·Gemini는 네이버 밖 정보가 필요합니다</p>
                   <p className="text-sm text-slate-500 mt-0.5 break-keep">
-                    네이버 블로그·카페·지도는 robots.txt로 ChatGPT 등 AI 수집 봇을 차단하고 있어, 네이버에만 있는 정보는 잘 반영되지 않습니다. 구글 비즈니스 프로필·자체 사이트·외부 언급을 따로 준비하세요 (반영 기간 보장 아님)
+                    네이버 블로그·카페·지도는 AI 수집 프로그램 접근을 차단하고 있어, 네이버에만 있는 정보는 잘 반영되지 않습니다. 구글 비즈니스 프로필·자체 사이트·외부 언급을 따로 준비하세요 (반영 기간 보장 아님)
                   </p>
+                  <MoreInfo summary="왜 네이버 정보가 ChatGPT에 잘 안 나오나요?" tone="soft" className="mt-2 text-sm">
+                    네이버는 ChatGPT·Gemini 같은 AI가 블로그·지도·카페 글을 가져가지 못하게 막아 두었습니다(2026-10-07 확인). 그래서 네이버에만 등록한 정보는 ChatGPT·Gemini에 바로 반영되지 않습니다. 구글 비즈니스 프로필이나 자체 홈페이지처럼 네이버 밖에서 정보를 갖추는 게 도움이 됩니다.
+                  </MoreInfo>
                 </div>
               </div>
             </div>
@@ -1414,10 +1429,10 @@ function MergedScanInfoBox({ chatgptSampleSize }: { chatgptSampleSize: number })
         <Info className="w-5 h-5 text-slate-300 shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
           <p className="text-base text-white font-bold leading-snug mb-1.5">
-            이번 체험 스캔 기준
+            이번 체험 측정 기준
           </p>
           <p className="text-sm text-slate-300 leading-relaxed">
-            네이버 스마트플레이스 자동 점검 + ChatGPT <strong className="text-white font-semibold">{chatgptSampleSize}회 질의</strong>로 측정한 결과입니다.
+            네이버 스마트플레이스 자동 점검 + ChatGPT <strong className="text-white font-semibold">{chatgptSampleSize}회 질문</strong>으로 측정한 결과입니다.
           </p>
         </div>
       </div>
@@ -1433,13 +1448,13 @@ function MergedScanInfoBox({ chatgptSampleSize }: { chatgptSampleSize: number })
         <div className="bg-slate-600 rounded-lg px-3 py-2">
           <p className="text-sm text-emerald-300 font-semibold mb-0.5">② 가입하면 (결제 없이 1회 무료)</p>
           <p className="text-sm text-slate-300 leading-relaxed">
-            Gemini·ChatGPT 각 <span className="text-white font-semibold">50회씩(총 100회)</span> + 네이버 AI 브리핑 + Google 검색 노출까지 4채널 전체 분석
+            Gemini·ChatGPT 각 <span className="text-white font-semibold">50회씩(총 100회)</span> + 네이버 AI 브리핑 + Google 검색 노출까지 4개 AI 서비스 전체 분석
           </p>
         </div>
         <div className="bg-slate-600 rounded-lg px-3 py-2">
           <p className="text-sm text-blue-300 font-semibold mb-0.5">③ Basic 구독하면</p>
           <p className="text-sm text-slate-300 leading-relaxed">
-            같은 4채널을 각 <span className="text-white font-semibold">100회씩(총 200회)</span>로 정확도를 높여 매주(월·목) 자동 반복 + 점수 변화 추적 + 경쟁사 비교
+            같은 4개 AI 서비스를 각 <span className="text-white font-semibold">100회씩(총 200회)</span>로 정확도를 높여 매주(월·목) 자동 반복 + 점수 변화 추적 + 경쟁사 비교
           </p>
         </div>
       </div>
@@ -1464,7 +1479,7 @@ function BriefingCategoryBadge({
       <div className="bg-green-50 border border-green-300 rounded-xl px-4 py-2.5 mb-3 flex items-center gap-2">
         <CheckCircle2 className="w-5 h-5 text-green-700 shrink-0" />
         <p className="text-sm font-semibold text-green-800">
-          네이버 AI 브리핑 + AI탭 + ChatGPT·Gemini·Google AI — 5채널 모두 노출 가능 업종입니다
+          네이버 AI 브리핑 + AI탭 + ChatGPT·Gemini·Google AI — 5개 AI 서비스 모두 노출 가능 업종입니다
         </p>
       </div>
     );
@@ -1475,7 +1490,7 @@ function BriefingCategoryBadge({
         <Clock className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-bold text-amber-800">
-            AI탭 + ChatGPT·Gemini·Google AI — 4채널 노출이 가능합니다
+            AI탭 + ChatGPT·Gemini·Google AI — 4개 AI 서비스 노출이 가능합니다
           </p>
           <p className="text-sm text-amber-700 mt-0.5">
             '플레이스형' 네이버 AI 브리핑은 현재 공식 대상이 아닙니다(확대 검토 중) — 정보형 AI 브리핑은 블로그·콘텐츠로 노출 가능
@@ -1489,7 +1504,7 @@ function BriefingCategoryBadge({
       <Globe className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
       <div>
         <p className="text-sm font-bold text-blue-800">
-          AI탭 + ChatGPT·Gemini·Google AI — 4채널 노출이 가능합니다
+          AI탭 + ChatGPT·Gemini·Google AI — 4개 AI 서비스 노출이 가능합니다
         </p>
         <p className="text-sm text-blue-700 mt-0.5">
           '플레이스형' AI 브리핑 대상 업종이 아닙니다 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출 가능
@@ -1607,7 +1622,7 @@ function ScoreBreakdownBox({
       <div className="flex items-start gap-1.5 mt-3">
         <AlertTriangle className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
         <p className="text-sm text-slate-500 leading-relaxed">
-          AEOlab 자체 측정값 · 네이버 공식 노출 지표 아님 · 측정 시점·질의 구성에 따라 결과가 달라질 수 있습니다
+          AEOlab 자체 측정값 · 네이버 공식 노출 지표 아님 · 측정 시점·검색어 구성에 따라 결과가 달라질 수 있습니다
         </p>
       </div>
     </div>
@@ -1654,7 +1669,7 @@ function NaverBriefingResultCard({
             <div className="space-y-3">
               <p className="text-sm text-slate-700 leading-relaxed">
                 음식점·카페는 <strong className="text-slate-900">네이버 AI 브리핑 자동 노출 확인 대상</strong>입니다.
-                체험 스캔은 ChatGPT 측정 중심으로 진행되며, 네이버 AI 브리핑 실측 확인은 정식 스캔에서 제공합니다.
+                체험은 ChatGPT 측정 중심으로 진행되며, 네이버 AI 브리핑 실측 확인은 정식 측정에서 제공합니다.
               </p>
               {/* 잠금된 결과 미리보기 */}
               <div className="relative rounded-xl border border-slate-200 overflow-hidden">
@@ -1667,7 +1682,7 @@ function NaverBriefingResultCard({
                 <div className="absolute inset-0 flex items-center justify-center bg-white/70">
                   <div className="flex items-center gap-2 text-slate-600">
                     <Lock className="w-4 h-4" />
-                    <span className="text-sm font-semibold">정식 스캔에서 확인 가능</span>
+                    <span className="text-sm font-semibold">정식 측정에서 확인 가능</span>
                   </div>
                 </div>
               </div>
@@ -1685,7 +1700,7 @@ function NaverBriefingResultCard({
               <p className="text-sm font-semibold text-amber-800 mb-1">'플레이스형' AI 브리핑 업종 확대 검토 중</p>
               <p className="text-sm text-amber-700 leading-relaxed">
                 '플레이스형' 네이버 AI 브리핑 공식 대상은 아니지만(확대 검토 중), 블로그·콘텐츠가 갖춰지면 '정보형 AI 브리핑'에 노출될 수 있습니다.
-                AI탭(정식 출시)은 지금도 가능하며, 정식 스캔에서 노출 여부를 모니터링합니다.
+                AI탭(정식 출시)은 지금도 가능하며, 정식 측정에서 노출 여부를 확인합니다.
               </p>
             </div>
           )
@@ -1704,7 +1719,7 @@ function NaverBriefingResultCard({
         {inBriefing === true && (
           <div className="border-l-2 border-green-400 pl-3">
             <p className="text-sm text-gray-600 leading-relaxed">
-              이미 네이버 AI 브리핑에 가게가 인용되고 있습니다. 경쟁 가게보다 더 자주 노출되려면
+              이미 네이버 AI 브리핑에 가게가 소개되고 있습니다. 경쟁 가게보다 더 자주 노출되려면
               리뷰 키워드 다양성을 높이고 소식을 주기적으로 업로드하세요.
             </p>
           </div>
@@ -1717,9 +1732,9 @@ function NaverBriefingResultCard({
           const isIntroConfirmed = hasIntro !== undefined;
           const isFaqConfirmed = hasFaq !== undefined;
 
-          if (isSpConfirmed && !isSmartPlace) confirmedReasons.push("스마트플레이스 미확인 — 미등록이거나 스캔에서 찾지 못했습니다. 플레이스 등록 및 소개글 완성도를 점검하세요");
-          if (isIntroConfirmed && !hasIntro) confirmedReasons.push("소개글 미작성 — AI가 인용할 텍스트가 없습니다");
-          else if (isFaqConfirmed && !hasFaq) confirmedReasons.push("소개글에 Q&A 섹션 없음 — 구조화된 정보 부족");
+          if (isSpConfirmed && !isSmartPlace) confirmedReasons.push("스마트플레이스 미확인 — 미등록이거나 자동 점검에서 찾지 못했습니다. 플레이스 등록 및 소개글 완성도를 점검하세요");
+          if (isIntroConfirmed && !hasIntro) confirmedReasons.push("소개글 미작성 — AI가 참고할 텍스트가 없습니다");
+          else if (isFaqConfirmed && !hasFaq) confirmedReasons.push("소개글에 Q&A 섹션 없음 — 체계적인 정보 부족");
 
           const hasConfirmed = confirmedReasons.length > 0;
 
@@ -1823,7 +1838,7 @@ function ChatGPTResultCard({
           <span className="text-sm font-semibold text-gray-700">ChatGPT 검색 결과</span>
         </div>
         <span className="text-sm text-gray-600 bg-gray-100 rounded-full px-2 py-0.5">
-          {sampleSize}회 질의 기준
+          {sampleSize}회 질문 기준
         </span>
       </div>
 
@@ -1844,7 +1859,7 @@ function ChatGPTResultCard({
           </ul>
           <p className="text-sm text-gray-600 leading-snug">
             손님은 가게 이름을 모른 채 업종·지역 키워드로 AI에 묻습니다.
-            위 질의에 &ldquo;{businessName}&rdquo;이 추천됐는지 확인한 결과입니다.
+            위 질문에 &ldquo;{businessName}&rdquo;이 추천됐는지 확인한 결과입니다.
           </p>
         </div>
 
@@ -1924,7 +1939,7 @@ function ChatGPTResultCard({
                 </li>
               ))}
             </ol>
-            <p className="text-sm text-gray-700 mt-2 break-keep">반영에는 수개월~1년이 걸릴 수 있습니다(학습 데이터 기반, 추정). 네이버 개선 방법은 &lsquo;할 일·로드맵&rsquo; 탭에서 확인하세요.</p>
+            <p className="text-sm text-gray-700 mt-2 break-keep">반영에는 수개월~1년이 걸릴 수 있습니다(AI 자료 기반, 추정). 네이버 개선 방법은 &lsquo;할 일·로드맵&rsquo; 탭에서 확인하세요.</p>
           </div>
         )}
       </div>
@@ -1932,7 +1947,7 @@ function ChatGPTResultCard({
       {/* 면책 */}
       <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100">
         <p className="text-sm text-gray-600 leading-relaxed">
-          ChatGPT 측정은 AI 학습 데이터 기반입니다. 실제 ChatGPT 앱의 검색 결과와 다를 수 있으며, 단기 콘텐츠 변경으로 점수가 즉시 변동되지 않습니다.
+          ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다. 단기 콘텐츠 변경으로 점수가 즉시 변동되지 않습니다.
         </p>
       </div>
     </div>
@@ -2178,7 +2193,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
         <p className="text-sm text-slate-600 leading-relaxed">
           <strong className="text-slate-700">스마트플레이스 자동 점검</strong> —
           네이버 서버 응답 지연으로 이번 체험에서는 점검하지 못했습니다.
-          정식 스캔에서는 리뷰 수·평점·사진 수·소식 여부를 자동으로 확인합니다.
+          정식 측정에서는 리뷰 수·평점·사진 수·소식 여부를 자동으로 확인합니다.
         </p>
       </div>
     );
@@ -2291,7 +2306,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
           <p className="text-sm text-emerald-700 mt-1 leading-relaxed">
             {isActive
               ? "네이버 AI 브리핑 노출에 필요한 기본 조건은 갖추셨습니다. 이제 키워드와 리뷰로 점수를 더 올려보세요."
-              : "네이버 플레이스 기본 조건은 갖추셨습니다. ChatGPT·Gemini 최적화는 구글 비즈니스 프로필과 자체 웹사이트가 핵심 경로입니다."}
+              : "네이버 플레이스 기본 조건은 갖추셨습니다. ChatGPT·Gemini 개선은 구글 비즈니스 프로필과 자체 웹사이트가 핵심 경로입니다."}
           </p>
         </div>
       ) : (
@@ -2302,7 +2317,7 @@ function SmartPlaceCheckCard({ check, userGroup }: { check: TrialSmartPlaceCheck
           <p className="text-sm text-amber-700 mt-1 leading-relaxed">
             {isActive
               ? "노란색 항목을 등록하면 네이버 AI 브리핑 노출 점수가 올라갑니다."
-              : "노란색 항목을 등록하면 네이버 플레이스 노출이 향상됩니다. ChatGPT·Gemini는 구글 비즈니스 프로필·자체 웹사이트 최적화로 별도 개선하세요."}
+              : "노란색 항목을 등록하면 네이버 플레이스 노출이 향상됩니다. ChatGPT·Gemini는 구글 비즈니스 프로필·자체 웹사이트로 별도 개선하세요."}
           </p>
         </div>
       )}

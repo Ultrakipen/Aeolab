@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { MessageCircle } from "lucide-react";
+import { ArrowRight, MessageCircle } from "lucide-react";
 import { getSafeSession } from "@/lib/supabase/client";
 
 export function HelpContactCTA({ variant }: { variant: "banner" | "footer" | "button" }) {
@@ -39,7 +39,7 @@ export function HelpContactCTA({ variant }: { variant: "banner" | "footer" | "bu
           href={href}
           className="shrink-0 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors text-center"
         >
-          {loggedIn ? "1:1 문의 작성하기 →" : "로그인 후 문의하기 →"}
+          <span className="inline-flex items-center gap-1">{loggedIn ? "1:1 문의 작성하기" : "로그인 후 문의하기"} <ArrowRight className="w-4 h-4" aria-hidden="true" /></span>
         </Link>
       </div>
     );

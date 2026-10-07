@@ -27,7 +27,7 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
     { label: "이번 주 해야 할 1가지 개선 가이드" },
     { label: "30일 추세로 개선 효과 직접 확인" },
     { label: "우리 가게 데이터 기반 소개글 Q&A 5개 자동 생성" },
-    { label: "AI 질의 100회 표본으로 결과 신뢰도 향상" },
+    { label: "AI 질문 100회 표본으로 결과 신뢰도 향상" },
   ];
 
   return (
@@ -38,7 +38,7 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
         <p className="text-base md:text-lg font-bold text-gray-800">이번 결과를 다음 주에도 받고 싶다면</p>
       </div>
       <p className="text-sm text-slate-500 mb-4 leading-relaxed break-keep">
-        지금 스캔 결과는 오늘의 사진입니다. 개선했을 때 순위가 실제로 올랐는지, 경쟁 가게가 앞서가고 있는지 — 매주 확인하지 않으면 알 수 없습니다.
+        지금 측정 결과는 오늘의 사진입니다. 개선했을 때 순위가 실제로 올랐는지, 경쟁 가게가 앞서가고 있는지 — 매주 확인하지 않으면 알 수 없습니다.
       </p>
 
       {/* 좌우 비교 */}
@@ -112,7 +112,7 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
       ) : null}
       {!isLoggedIn && (
         <p className="text-center text-sm text-slate-500 mt-2 leading-relaxed break-keep">
-          가입 자체는 무료입니다 · 사업장을 등록하면 결제 없이 <strong className="text-slate-700">전체 AI 분석(4채널) 1회</strong>를 먼저 체험할 수 있어요
+          가입 자체는 무료입니다 · 사업장을 등록하면 결제 없이 <strong className="text-slate-700">전체 AI 분석(4가지) 1회</strong>를 먼저 체험할 수 있어요
         </p>
       )}
       {isLoggedIn && (

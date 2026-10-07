@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { BLOG_POSTS } from "@/lib/blog-posts";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
@@ -7,7 +8,7 @@ import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 export const metadata: Metadata = {
   title: "소상공인 AI 검색 노출 가이드 | AEOlab 블로그",
   description:
-    "네이버 AI 브리핑·ChatGPT에 내 가게가 노출되는 방법을 실제 사례와 함께 알아봅니다. 소상공인을 위한 AI 검색 최적화 가이드.",
+    "네이버 AI 브리핑·ChatGPT에 내 가게가 노출되는 방법을 실제 사례와 함께 알아봅니다. 소상공인을 위한 AI 검색 개선 안내.",
   alternates: { canonical: "/blog" },
   openGraph: {
     title: "소상공인 AI 검색 노출 가이드 | AEOlab 블로그",
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
 const categoryColors: Record<string, string> = {
   "네이버 AI": "bg-green-100 text-green-700",
   "ChatGPT 노출": "bg-blue-100 text-blue-700",
-  "AI 최적화 전략": "bg-purple-100 text-purple-700",
+  "AI 노출 전략": "bg-purple-100 text-purple-700",
   "종합 가이드": "bg-orange-100 text-orange-700",
   "키워드 전략": "bg-indigo-100 text-indigo-700",
 };
@@ -99,7 +100,7 @@ export default function BlogIndexPage() {
             {featured.description}
           </p>
           <span className="text-sm font-semibold text-blue-600 group-hover:underline">
-            자세히 읽기 &rarr;
+            자세히 읽기 <ArrowRight className="w-4 h-4 inline" aria-hidden="true" />
           </span>
         </Link>
 
@@ -134,7 +135,7 @@ export default function BlogIndexPage() {
                   {formatDate(post.publishedAt)}
                 </span>
                 <span className="text-sm font-semibold text-blue-600 group-hover:underline">
-                  읽기 &rarr;
+                  읽기 <ArrowRight className="w-4 h-4 inline" aria-hidden="true" />
                 </span>
               </div>
             </Link>

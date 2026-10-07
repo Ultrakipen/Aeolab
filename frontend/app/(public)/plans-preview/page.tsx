@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { ArrowRight, Lock, Check, X, Utensils, Coffee, Scissors, BookOpen } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
+import { IconTile } from "@/components/common/IconTile";
 
 // ────────────────────────────────────────────────────────────
 // 점수 → 텍스트 레이블 (실제 대시보드와 동일 정책: 숫자 비노출)
@@ -69,11 +72,11 @@ const MOCK_DATA: Record<CategoryKey, MockData> = {
     competition_level: "중간",
     competition_color: "text-amber-700 bg-amber-50",
     top10_score: 72,
-    top_biz_strengths: ["리뷰 312개 + FAQ 8개 등록 → AI 브리핑 자주 인용됨", "스마트플레이스 소개글 최적화 완료"],
+    top_biz_strengths: ["리뷰 312개 + FAQ 8개 등록 → AI 브리핑에 자주 소개됨", "스마트플레이스 소개글 잘 정리됨"],
     top_biz_weaknesses: ["블로그 콘텐츠가 전혀 없음 → 공략 가능", "ChatGPT·구글 AI에 정보 없음"],
     entry_strategy: [
       "오픈 초기 리뷰 50개 집중 수집 → AI는 리뷰 수가 많은 가게를 신뢰도 높은 정보로 처리합니다",
-      "스마트플레이스 소개글 안 Q&A 8개 이상 추가 (오픈일부터) → 경쟁 가게 1위가 소개글 Q&A로 AI 브리핑 인용 후보가 자주 됩니다",
+      "스마트플레이스 소개글 안 Q&A 8개 이상 추가 (오픈일부터) → 경쟁 가게 1위가 소개글 Q&A로 AI 브리핑 추천 후보가 자주 됩니다",
       "'혼밥', '주차', '포장' 키워드를 소개글에 포함 → 이 지역에서 가장 많이 검색되는 조건입니다",
     ],
     condition_queries: [
@@ -144,8 +147,8 @@ const MOCK_DATA: Record<CategoryKey, MockData> = {
     top_biz_strengths: ["당일 예약 가능 소개글 Q&A + 카카오톡 예약 연동", "남성 전용 커트 메뉴 명시"],
     top_biz_weaknesses: ["리뷰 답변이 전혀 없음 → AI 신호 약함", "블로그 게시물 2년째 없음"],
     entry_strategy: [
-      "카카오톡 채널 연동 예약 + '당일 예약 가능' 소개글 Q&A 추가 → 즉흥 방문 손님의 조건 검색 우선 노출",
-      "리뷰에 키워드 답변 달기 → AI가 사장님 답변도 인용합니다. 답변에 '남성 커트', '주차 가능' 포함",
+      "카카오톡 예약 연결 + '당일 예약 가능' 소개글 Q&A 추가 → 즉흥 방문 손님의 조건 검색 우선 노출",
+      "리뷰에 키워드 답변 달기 → AI가 사장님 답변도 참고합니다. 답변에 '남성 커트', '주차 가능' 포함",
       "시술 전후 사진 리뷰 유도 → 헤어는 시각적 신뢰도가 예약 전환율에 직결됩니다",
     ],
     condition_queries: [
@@ -177,7 +180,7 @@ const MOCK_DATA: Record<CategoryKey, MockData> = {
     competition_level: "낮음",
     competition_color: "text-emerald-700 bg-emerald-50",
     top10_score: 65,
-    top_biz_strengths: ["무료 체험 수업 소개글 Q&A → AI에 자주 인용됨", "수업 후기 블로그 월 2편 운영"],
+    top_biz_strengths: ["무료 체험 수업 소개글 Q&A → AI에 자주 소개됨", "수업 후기 블로그 월 2편 운영"],
     top_biz_weaknesses: ["성인반 정보가 전혀 없음", "가격 정보가 없어 문의 전환율 낮음"],
     entry_strategy: [
       "'무료 체험 가능', '1대1 수업', '성인반 운영' 키워드를 소개글 Q&A에 추가 → 전화 문의 전 AI가 먼저 답합니다",
@@ -224,10 +227,10 @@ function LockedCard({ title, planLabel, children }: {
           {children}
         </div>
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/75 rounded-xl">
-          <span className="text-2xl">🔒</span>
+          <IconTile icon={Lock} tone="slate" size="md" />
           <span className="text-sm font-bold text-gray-700">{planLabel}</span>
           <Link href="/pricing" className="text-sm text-indigo-600 font-semibold hover:underline">
-            구독하면 바로 확인 →
+            구독하면 바로 확인 <ArrowRight className="w-4 h-4 inline" aria-hidden="true" />
           </Link>
         </div>
       </div>
@@ -315,25 +318,25 @@ function CompetitorBar({ name, score, max, isMine }: { name: string; score: numb
 // ────────────────────────────────────────────────────────────
 function ComparisonTable() {
   const rows = [
-    { feature: "AI 5개 채널 노출 분석", basic: true, pro: true, startup: true },
+    { feature: "AI 5곳 노출 분석", basic: true, pro: true, startup: true },
     { feature: "없는 키워드 3개 제시", basic: true, pro: true, startup: true },
     { feature: "이번 주 행동 1가지 안내", basic: true, pro: true, startup: true },
-    { feature: "자동 스캔 빈도", basic: "주 2회", pro: "주 3회", startup: "주 1회" },
+    { feature: "자동 측정 빈도", basic: "주 2회", pro: "주 3회", startup: "주 1회" },
     { feature: "점수 추이 히스토리", basic: "60일", pro: "90일", startup: "90일" },
     { feature: "경쟁 가게 등록", basic: "3곳", pro: "5곳", startup: "5곳" },
     { feature: "가이드 생성/월", basic: "3회", pro: "10회", startup: "5회" },
     { feature: "조건 검색 분석", basic: false, pro: true, startup: false },
-    { feature: "CSV 내보내기", basic: true, pro: true, startup: true },
+    { feature: "엑셀 파일 내보내기", basic: true, pro: true, startup: true },
     { feature: "PDF 리포트", basic: false, pro: true, startup: false },
-    { feature: "창업 타이밍 지수", basic: false, pro: false, startup: true },
+    { feature: "창업 타이밍 점검", basic: false, pro: false, startup: true },
     { feature: "경쟁 가게 분석 리포트", basic: false, pro: false, startup: true },
     { feature: "AI 진입 전략", basic: false, pro: false, startup: true },
     { feature: "월 가격", basic: "17,900원", pro: "29,900원", startup: "23,900원" },
   ];
 
   const renderCell = (val: boolean | string) => {
-    if (val === true) return <span className="text-emerald-700 font-bold text-base">✅</span>;
-    if (val === false) return <span className="text-gray-600 text-base">❌</span>;
+    if (val === true) return <Check className="w-5 h-5 text-emerald-700 mx-auto" aria-hidden="true" />;
+    if (val === false) return <X className="w-5 h-5 text-gray-400 mx-auto" aria-hidden="true" />;
     return <span className="text-sm font-semibold text-gray-700">{val}</span>;
   };
 
@@ -390,14 +393,14 @@ function BasicContent({ d }: { d: MockData }) {
         {/* 채널 점수 */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="bg-blue-50 rounded-xl p-3">
-            <div className="text-sm text-blue-600 font-semibold mb-1">네이버 AI 채널</div>
+            <div className="text-sm text-blue-600 font-semibold mb-1">네이버 AI</div>
             <div className="text-2xl font-black text-blue-700">{scoreLabel(d.track1)}</div>
             <div className="text-sm text-blue-600 mt-0.5">스마트플레이스 기반</div>
           </div>
           <div className="bg-purple-50 rounded-xl p-3">
             <div className="text-sm text-purple-600 font-semibold mb-1">ChatGPT·구글 AI</div>
             <div className="text-2xl font-black text-purple-700">{scoreLabel(d.track2)}</div>
-            <div className="text-sm text-purple-500 mt-0.5">글로벌 AI 채널</div>
+            <div className="text-sm text-purple-500 mt-0.5">ChatGPT·Gemini·구글 AI</div>
           </div>
         </div>
 
@@ -414,7 +417,7 @@ function BasicContent({ d }: { d: MockData }) {
           {Object.entries(d.platform_counts).map(([platform, count]) => (
             <div key={platform} className="flex items-center gap-3">
               <span className={`text-base ${count > 0 ? "text-emerald-700" : "text-red-400"}`}>
-                {count > 0 ? "✅" : "❌"}
+                {count > 0 ? <Check className="w-4 h-4" aria-hidden="true" /> : <X className="w-4 h-4" aria-hidden="true" />}
               </span>
               <span className="text-sm text-gray-700 w-36 shrink-0">{PLATFORM_LABELS[platform]}</span>
               <span className={`text-sm font-bold ${count > 0 ? "text-emerald-700" : "text-red-700"}`}>
@@ -453,7 +456,7 @@ function BasicContent({ d }: { d: MockData }) {
         </div>
 
         <Link href="/pricing#plan-Basic" className="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors">
-          가이드에서 해결 방법 보기 →
+          가이드에서 해결 방법 보기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
         </Link>
       </div>
 
@@ -465,7 +468,7 @@ function BasicContent({ d }: { d: MockData }) {
             소개글에 &apos;<strong>{d.missing_keywords[0]}</strong>&apos; 키워드를 포함한 Q&A 섹션을 추가하세요.
           </p>
           <p className="text-sm text-blue-700">
-            소개글 안 Q&A는 AI 브리핑 인용 후보 경로 중 하나입니다.
+            소개글 안 Q&A는 AI 브리핑 추천 후보가 되는 방법 중 하나입니다.
             5분이면 됩니다. 가이드에서 복사해서 붙여넣기만 하면 됩니다.
           </p>
         </div>
@@ -511,7 +514,7 @@ function BasicContent({ d }: { d: MockData }) {
             { q: `${d.missing_keywords[1]} 근처 가게`, found: false },
           ].map((item, i) => (
             <div key={i} className="flex items-center gap-2">
-              <span className={item.found ? "text-emerald-700" : "text-red-400"}>{item.found ? "✅" : "❌"}</span>
+              <span className={item.found ? "text-emerald-700" : "text-red-400"}>{item.found ? <Check className="w-4 h-4" aria-hidden="true" /> : <X className="w-4 h-4" aria-hidden="true" />}</span>
               <span className="text-sm text-gray-700">&quot;{item.q}&quot;</span>
             </div>
           ))}
@@ -553,8 +556,8 @@ function BasicContent({ d }: { d: MockData }) {
       <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-5 md:p-8 text-center">
         <p className="text-lg md:text-xl font-black text-indigo-900 mb-1">Basic으로 시작하기 — 17,900원/월</p>
         <p className="text-sm text-indigo-600 mb-4">&quot;AI 분석 한 번에 커피값입니다&quot;</p>
-        <Link href="/pricing#plan-Basic" className="inline-block bg-indigo-600 text-white font-bold text-base px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors">
-          지금 구독하기 →
+        <Link href="/pricing#plan-Basic" className="inline-flex items-center gap-1 bg-indigo-600 text-white font-bold text-base px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors">
+          지금 구독하기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
         </Link>
         <p className="text-sm text-gray-600 mt-3">30일 무료 체험 없이 바로 시작 · 7일 이내 미사용 시 100% 환불</p>
       </div>
@@ -587,7 +590,7 @@ function ProContent({ d }: { d: MockData }) {
           {d.condition_queries.map((item, i) => (
             <div key={i} className="flex items-center gap-3 py-1">
               <span className={`text-base shrink-0 ${item.found ? "text-emerald-700" : "text-red-400"}`}>
-                {item.found ? "✅" : "❌"}
+                {item.found ? <Check className="w-4 h-4" aria-hidden="true" /> : <X className="w-4 h-4" aria-hidden="true" />}
               </span>
               <span className="text-sm text-gray-700 flex-1">&quot;{item.query}&quot;</span>
               <span className={`text-sm font-semibold shrink-0 ${item.found ? "text-emerald-700" : "text-red-700"}`}>
@@ -637,17 +640,17 @@ function ProContent({ d }: { d: MockData }) {
       <div className="bg-white border-2 border-indigo-200 rounded-xl shadow-sm p-4 md:p-6">
         <div className="flex items-center gap-2 mb-3">
           <span className="bg-indigo-100 text-indigo-700 text-sm font-bold px-2 py-0.5 rounded-full">Pro 전용</span>
-          <h3 className="text-base md:text-lg font-bold text-gray-900">PDF·CSV 내보내기</h3>
+          <h3 className="text-base md:text-lg font-bold text-gray-900">PDF·엑셀 파일 내보내기</h3>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
           <button className="flex-1 border border-indigo-200 text-indigo-700 font-semibold text-sm px-4 py-3 rounded-xl hover:bg-indigo-50 transition-colors">
-            📄 PDF 분석 보고서 받기
+            PDF 분석 보고서 받기
           </button>
           <button className="flex-1 border border-indigo-200 text-indigo-700 font-semibold text-sm px-4 py-3 rounded-xl hover:bg-indigo-50 transition-colors">
-            📊 엑셀로 데이터 내보내기
+            엑셀로 데이터 내보내기
           </button>
         </div>
-        <p className="text-sm text-gray-600 mt-2">핵심은 매일 보는 대시보드이며, PDF·CSV는 필요할 때 내려받는 보조 자료입니다</p>
+        <p className="text-sm text-gray-600 mt-2">핵심은 매일 보는 대시보드이며, PDF·엑셀 파일은 필요할 때 내려받는 보조 자료입니다</p>
       </div>
 
       {/* 잠금: 창업패키지 전용 */}
@@ -662,8 +665,8 @@ function ProContent({ d }: { d: MockData }) {
       <div className="bg-indigo-600 rounded-xl p-5 md:p-8 text-center text-white">
         <p className="text-lg md:text-xl font-black mb-1">Pro로 업그레이드 — 29,900원/월</p>
         <p className="text-sm text-indigo-200 mb-4">Basic보다 월 12,000원 더. 조건 검색 분석 1개로 새 손님 1명 더 오면 본전입니다</p>
-        <Link href="/pricing#plan-Pro" className="inline-block bg-white text-indigo-700 font-bold text-base px-6 py-3 rounded-xl hover:bg-indigo-50 transition-colors">
-          지금 구독하기 →
+        <Link href="/pricing#plan-Pro" className="inline-flex items-center gap-1 bg-white text-indigo-700 font-bold text-base px-6 py-3 rounded-xl hover:bg-indigo-50 transition-colors">
+          지금 구독하기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
         </Link>
       </div>
     </div>
@@ -795,7 +798,7 @@ function StartupContent({ d, category }: { d: MockData; category: CategoryKey })
         <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3">
           <p className="text-sm text-emerald-800">
             아직 <strong>{100 - d.briefing_ratio}%의 가게</strong>가 AI 브리핑에 안 나옵니다.
-            먼저 최적화하면 유리합니다.
+            먼저 정보를 잘 채워두면 유리합니다.
           </p>
         </div>
       </div>
@@ -805,7 +808,7 @@ function StartupContent({ d, category }: { d: MockData; category: CategoryKey })
         <div className="space-y-2 p-2">
           {d.condition_queries.slice(0, 3).map((item, i) => (
             <div key={i} className="flex items-center gap-2">
-              <span className={item.found ? "text-emerald-700" : "text-red-400"}>{item.found ? "✅" : "❌"}</span>
+              <span className={item.found ? "text-emerald-700" : "text-red-400"}>{item.found ? <Check className="w-4 h-4" aria-hidden="true" /> : <X className="w-4 h-4" aria-hidden="true" />}</span>
               <span className="text-sm text-gray-700">&quot;{item.query}&quot;</span>
             </div>
           ))}
@@ -816,8 +819,8 @@ function StartupContent({ d, category }: { d: MockData; category: CategoryKey })
       <div className="bg-emerald-700 rounded-xl p-5 md:p-8 text-center text-white">
         <p className="text-lg md:text-xl font-black mb-1">창업 준비 중이라면 창업패키지 — 23,900원/월</p>
         <p className="text-sm text-emerald-200 mb-4">창업 컨설팅 한 번 비용으로 6개월 AI 데이터 확보</p>
-        <Link href="/pricing#plan-창업패키지" className="inline-block bg-white text-emerald-700 font-bold text-base px-6 py-3 rounded-xl hover:bg-emerald-50 transition-colors">
-          지금 구독하기 →
+        <Link href="/pricing#plan-창업패키지" className="inline-flex items-center gap-1 bg-white text-emerald-700 font-bold text-base px-6 py-3 rounded-xl hover:bg-emerald-50 transition-colors">
+          지금 구독하기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
         </Link>
       </div>
     </div>
@@ -833,11 +836,11 @@ export default function PlansPreviewPage() {
 
   const d = MOCK_DATA[selectedCategory];
 
-  const categoryButtons: { key: CategoryKey; label: string; emoji: string }[] = [
-    { key: "restaurant", label: "음식점", emoji: "🍚" },
-    { key: "cafe", label: "카페", emoji: "☕" },
-    { key: "beauty", label: "미용실", emoji: "✂️" },
-    { key: "academy", label: "학원", emoji: "📚" },
+  const categoryButtons: { key: CategoryKey; label: string; icon: LucideIcon }[] = [
+    { key: "restaurant", label: "음식점", icon: Utensils },
+    { key: "cafe", label: "카페", icon: Coffee },
+    { key: "beauty", label: "미용실", icon: Scissors },
+    { key: "academy", label: "학원", icon: BookOpen },
   ];
 
   const planButtons: { key: PlanKey; label: string; price: string }[] = [
@@ -874,7 +877,7 @@ export default function PlansPreviewPage() {
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-4">
           <p className="text-sm font-bold text-gray-700 mb-3">업종 선택</p>
           <div className="grid grid-cols-4 gap-2">
-            {categoryButtons.map(({ key, label, emoji }) => (
+            {categoryButtons.map(({ key, label, icon }) => (
               <button
                 key={key}
                 onClick={() => setSelectedCategory(key)}
@@ -884,7 +887,7 @@ export default function PlansPreviewPage() {
                     : "bg-gray-50 text-gray-600 border-transparent hover:bg-gray-100"
                 }`}
               >
-                <span className="text-xl">{emoji}</span>
+                <IconTile icon={icon} tone="blue" size="sm" />
                 {label}
               </button>
             ))}
@@ -938,17 +941,17 @@ export default function PlansPreviewPage() {
           <Link href="/pricing#plan-Basic" className="block bg-white border-2 border-indigo-200 text-indigo-700 font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-indigo-50 transition-colors">
             <div className="text-base font-black">Basic</div>
             <div className="text-indigo-600 font-black">17,900원/월</div>
-            <div className="text-sm text-gray-600 mt-1">지금 시작하기 →</div>
+            <div className="text-sm text-gray-600 mt-1 inline-flex items-center gap-1">지금 시작하기 <ArrowRight className="w-3 h-3" aria-hidden="true" /></div>
           </Link>
           <Link href="/pricing#plan-Pro" className="block bg-indigo-600 text-white font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-indigo-700 transition-colors shadow-md">
             <div className="text-base font-black">Pro</div>
             <div className="font-black">29,900원/월</div>
-            <div className="text-sm text-indigo-200 mt-1">지금 시작하기 →</div>
+            <div className="text-sm text-indigo-200 mt-1 inline-flex items-center gap-1">지금 시작하기 <ArrowRight className="w-3 h-3" aria-hidden="true" /></div>
           </Link>
           <Link href="/pricing#plan-창업패키지" className="block bg-white border-2 border-emerald-200 text-emerald-700 font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-emerald-50 transition-colors">
             <div className="text-base font-black">창업패키지</div>
             <div className="text-emerald-700 font-black">23,900원/월</div>
-            <div className="text-sm text-gray-600 mt-1">지금 시작하기 →</div>
+            <div className="text-sm text-gray-600 mt-1 inline-flex items-center gap-1">지금 시작하기 <ArrowRight className="w-3 h-3" aria-hidden="true" /></div>
           </Link>
         </div>
 

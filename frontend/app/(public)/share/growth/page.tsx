@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import GrowthShareClient from "./GrowthShareClient";
 
 // 임계값은 lib/scoreLabels.ts의 getScoreTextLabel과 동일(75/55/30) — 드리프트 시 함께 갱신할 것
@@ -28,8 +29,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     : `${bizName} AI 검색 성장 기록 — AEOlab`;
 
   const description = stageLabel
-    ? `AI 검색 최적화로 노출이 늘어났습니다! ${bizName} 현재 단계: ${stageLabel} · AEOlab`
-    : `AI 검색 최적화로 사업장 노출이 늘어납니다 · AEOlab`;
+    ? `AI 검색 개선으로 노출이 늘어났습니다! ${bizName} 현재 단계: ${stageLabel} · AEOlab`
+    : `AI 검색 개선으로 사업장 노출이 늘어납니다 · AEOlab`;
 
   return {
     title,
@@ -98,7 +99,7 @@ export default async function GrowthSharePage({ searchParams }: Props) {
           {/* 메시지 */}
           <div className="px-5 pt-2 pb-4 text-center">
             <p className="text-base font-semibold text-gray-800">
-              {stageLabel ? `AI 검색 노출 — ${stageLabel}` : "AI 검색 최적화로 노출이 늘어났습니다!"}
+              {stageLabel ? `AI 검색 노출 — ${stageLabel}` : "AI 검색 개선으로 노출이 늘어났습니다!"}
             </p>
             <p className="text-sm text-gray-600 mt-1">
               네이버·Gemini·ChatGPT 노출 기록을 한 곳에서 확인
@@ -111,7 +112,7 @@ export default async function GrowthSharePage({ searchParams }: Props) {
               href="/trial?ref=growth_share_landing"
               className="flex items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-base transition-colors shadow-sm"
             >
-              내 가게도 무료로 진단받기 →
+              내 가게도 무료로 진단받기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </Link>
             <p className="text-center text-sm text-gray-600">
               회원가입 불필요 · 1분 완성
@@ -129,7 +130,7 @@ export default async function GrowthSharePage({ searchParams }: Props) {
           <Link href="/" className="underline hover:text-white">
             AEOlab
           </Link>
-          {" "}— AI 검색 사업장 성장 플랫폼
+          {" "}— AI 검색 사업장 성장 서비스
         </p>
       </div>
     </div>

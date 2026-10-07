@@ -84,7 +84,7 @@ const SCAN_STEPS_LOCATION = [
 ];
 
 const SCAN_STEPS_NON_LOCATION = [
-  "웹사이트 SEO 분석 중...",
+  "웹사이트 검색 노출 분석 중...",
   "ChatGPT에 손님처럼 50번 질문 중...",
   "업종 키워드 분석 중...",
   "경쟁 가게 비교 중...",
@@ -555,7 +555,7 @@ export default function TrialPage() {
         recordTrialUse();
         setCooldownMs(TRIAL_DAY_MS);
       } else {
-        setError("스캔 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+        setError("측정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
       }
       setStep("info");
     }
@@ -625,7 +625,7 @@ export default function TrialPage() {
         <div className="bg-amber-50 border-b border-amber-200 px-4 py-3">
           <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <p className="text-sm text-amber-900 font-medium">
-              이전 스캔 결과가 저장되어 있습니다. 이어서 보시겠어요?
+              이전 측정 결과가 저장되어 있습니다. 이어서 보시겠어요?
             </p>
             <div className="flex items-center gap-2 shrink-0">
               <button
@@ -641,7 +641,7 @@ export default function TrialPage() {
                 }}
                 className="text-sm text-amber-700 hover:text-amber-900 px-2 py-1.5 transition-colors"
               >
-                새로 스캔
+                새로 측정
               </button>
             </div>
           </div>

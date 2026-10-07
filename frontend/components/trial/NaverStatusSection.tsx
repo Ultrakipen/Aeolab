@@ -327,8 +327,8 @@ export default function NaverStatusSection({
           <CheckRow
             label="소개글"
             ok={hasIntro}
-            okNote="AI가 인용할 텍스트가 있습니다"
-            failNote="AI 브리핑이 인용할 텍스트가 없습니다 — 가게 특징·키워드를 200자 이상 작성하세요"
+            okNote="AI가 참고할 내용이 있습니다"
+            failNote="AI 브리핑이 참고할 내용이 없습니다 — 가게 특징·키워드를 200자 이상 작성하세요"
           />
           <CheckRow
             label="최근 소식"
@@ -382,9 +382,9 @@ export default function NaverStatusSection({
               <div className="flex items-start gap-3 bg-blue-50 rounded-lg px-3 py-3 border border-blue-200">
                 <span className="text-lg shrink-0">🔒</span>
                 <div>
-                  <p className="text-sm font-semibold text-blue-800">체험 스캔에서는 AI 브리핑 실측 미포함</p>
+                  <p className="text-sm font-semibold text-blue-800">무료 체험에서는 AI 브리핑 실측 미포함</p>
                   <p className="text-sm text-blue-700 mt-0.5 leading-snug break-keep">
-                    가입 후 1회 체험과 구독에서 네이버 AI 브리핑 실측 결과(노출 여부·인용 문장)를 확인하세요
+                    가입 후 1회 체험과 구독에서 네이버 AI 브리핑 실측 결과(노출 여부·소개 문장)를 확인하세요
                   </p>
                 </div>
               </div>
@@ -410,13 +410,13 @@ export default function NaverStatusSection({
                   <p className="text-sm font-semibold text-amber-800 mb-1">가장 빠른 개선 방법</p>
                   {!hasIntro ? (
                     <p className="text-sm text-amber-700 leading-snug break-keep">
-                      소개글을 작성하세요 — AI가 인용할 텍스트가 필요합니다.
+                      소개글을 작성하세요 — AI가 참고할 내용이 필요합니다.
                       가게 특징·메뉴·키워드를 200자 이상 작성하면 2~4주 내 변화가 나타납니다.
                     </p>
                   ) : blogCount < 10 ? (
                     <p className="text-sm text-amber-700 leading-snug break-keep">
                       블로그 언급을 늘리세요 — 리뷰 요청·이벤트로 블로그 포스팅을 유도하면
-                      AI 브리핑 인용 확률이 높아집니다.
+                      AI 브리핑 소개 가능성이 높아집니다.
                     </p>
                   ) : (
                     <p className="text-sm text-amber-700 leading-snug break-keep">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bookmark, Check } from "lucide-react";
+import { Bookmark, Check, Lightbulb } from "lucide-react";
 
 interface KeywordMetaEntry {
   subcategory: string;
@@ -149,7 +149,7 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
               내 가게 특성과 다른 항목은 무시하세요.
               {!isPaidUser && (
                 <span className="block mt-1 text-blue-700 font-medium">
-                  💡 소개글 직접 분석은 Basic 플랜부터 지원됩니다.
+                  <Lightbulb className="inline w-3.5 h-3.5 mr-0.5 align-text-bottom" aria-hidden="true" /> 소개글 직접 분석은 Basic 플랜부터 지원됩니다.
                 </span>
               )}
             </p>
@@ -188,7 +188,7 @@ export default function TrialKeywordRecommendCard({ missingKws, faqText, categor
               {idx === 0 && (
                 <p className="text-sm text-gray-600 mt-1.5 leading-relaxed break-keep">
                   {userGroup === "ACTIVE"
-                    ? "소개글 Q&A 형식으로 추가하면 AI 브리핑 인용 후보 가능성이 높아집니다. 복사 후 실제 가게 특징에 맞게 수정하세요."
+                    ? "소개글 Q&A 형식으로 추가하면 AI 브리핑 소개 후보 가능성이 높아집니다. 복사 후 실제 가게 특징에 맞게 수정하세요."
                     : "소개글에 키워드를 자연스럽게 포함하면 네이버 AI탭 노출에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 더 직접적입니다. 복사 후 실제 가게 특징에 맞게 수정하세요."}
                 </p>
               )}

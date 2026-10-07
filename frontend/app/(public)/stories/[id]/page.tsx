@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { getScoreTextLabel } from "@/lib/scoreLabels";
@@ -172,7 +172,7 @@ export default async function StoryDetailPage({
             href="/delivery"
             className="inline-block px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition-colors sm:ml-auto"
           >
-            나도 신청하기 →
+            나도 신청하기 <ArrowRight className="w-4 h-4 inline" aria-hidden="true" />
           </Link>
         </div>
       </div>

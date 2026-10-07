@@ -65,7 +65,7 @@ export default function CompetitorGapHighlightCard({
 
       {/* 하단 문구 */}
       <p className="text-sm md:text-base text-slate-600 leading-relaxed text-center break-keep">
-        상위 10% 업체들은 키워드·리뷰·콘텐츠 최적화로 이 격차를 만들었습니다
+        상위 10% 업체들은 키워드·리뷰·콘텐츠 개선으로 이 격차를 만들었습니다
       </p>
     </div>
   );

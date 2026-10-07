@@ -55,11 +55,11 @@ export default function OneLineConclusion({
       <div className="flex flex-wrap gap-2 mb-3">
         <span className="inline-flex items-center gap-1 text-sm md:text-sm font-semibold text-blue-800 bg-blue-100 border border-blue-200 rounded-full px-3 py-1">
           <span className="text-blue-600">●</span>
-          네이버 트랙 {Math.round(track1)}점
+          네이버 현황 {Math.round(track1)}점
         </span>
         <span className="inline-flex items-center gap-1 text-sm md:text-sm font-semibold text-slate-700 bg-slate-100 border border-slate-200 rounded-full px-3 py-1">
           <span className="text-slate-500">●</span>
-          글로벌 트랙 {Math.round(track2)}점
+          글로벌 AI 현황 {Math.round(track2)}점
         </span>
         <span className="inline-flex items-center gap-1 text-sm md:text-sm font-bold text-gray-900 bg-white border-2 border-gray-300 rounded-full px-3 py-1">
           통합 {Math.round(unified)}점

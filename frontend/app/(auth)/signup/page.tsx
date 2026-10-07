@@ -5,7 +5,7 @@ import { SiteFooter } from "@/components/common/SiteFooter";
 import { createClient } from "@/lib/supabase/client";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Mail } from "lucide-react";
+import { ArrowRight, Mail, Sparkles } from "lucide-react";
 import { trackSignupComplete } from "@/lib/analytics";
 import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 
@@ -136,7 +136,7 @@ function SignupForm() {
                   <p className="font-semibold mb-1">가입 축하 혜택</p>
                   <p className="text-sm leading-relaxed">
                     사업장을 등록하시면 <strong>전체 AI 분석을 1회 무료</strong>로 체험할 수 있습니다.
-                    ChatGPT · 네이버 AI 브리핑 · 구글 AI · Gemini 4개 채널 모두 확인해 보세요.
+                    ChatGPT · 네이버 AI 브리핑 · 구글 AI · Gemini 4곳 모두 확인해 보세요.
                   </p>
                 </div>
                 <ol className="text-sm text-gray-600 space-y-2 mt-4 mb-5 text-left">
@@ -182,7 +182,7 @@ function SignupForm() {
               </div>
               {planParam === "basic" && (
                 <p className="text-sm text-emerald-700 font-semibold mt-2">
-                  🎉 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 (50% 할인) · 이후 월 {PLAN_PRICES.basic.toLocaleString()}원
+                  <Sparkles className="w-4 h-4 inline-block mr-1" aria-hidden="true" />첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 (50% 할인) · 이후 월 {PLAN_PRICES.basic.toLocaleString()}원
                 </p>
               )}
             </div>
@@ -322,7 +322,7 @@ function SignupForm() {
                 <p className="text-base text-red-700">
                   이미 가입된 이메일입니다.{" "}
                   <Link href="/login" className="underline font-semibold hover:text-red-800">
-                    로그인 →
+                    로그인 <ArrowRight className="w-3 h-3 inline" aria-hidden="true" />
                   </Link>
                 </p>
               ) : (

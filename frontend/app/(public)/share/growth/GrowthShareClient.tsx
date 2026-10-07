@@ -23,7 +23,7 @@ export default function GrowthShareClient({ shareUrl }: Props) {
       if (typeof navigator !== "undefined" && navigator.share) {
         await navigator.share({
           title: "내 가게 AI 노출 성장 기록",
-          text: "AI 검색 최적화로 점수가 올랐습니다! · AEOlab",
+          text: "AI 검색 개선으로 점수가 올랐습니다! · AEOlab",
           url: shareUrl,
         });
         return;

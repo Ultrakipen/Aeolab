@@ -149,7 +149,7 @@ export default function HelpSearchInput({
   const CATEGORY_LABELS: Record<string, string> = {
     general: "서비스 이용",
     pricing: "요금제",
-    scan: "스캔",
+    scan: "측정",
     guide: "개선 가이드",
   };
 

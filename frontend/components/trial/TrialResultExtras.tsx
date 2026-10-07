@@ -368,7 +368,7 @@ export function NextWeekBand({
           이 결과, 다음 주엔 어떻게 바뀔까요
         </p>
         <p className="text-sm md:text-base text-slate-700 leading-relaxed mb-3 break-keep">
-          고친 뒤 실제로 나아졌는지는 다시 측정해야 알 수 있습니다. 가입하면 결제 없이 4채널 분석 1회를 받고,
+          고친 뒤 실제로 나아졌는지는 다시 측정해야 알 수 있습니다. 가입하면 결제 없이 4가지 AI 서비스 분석 1회를 받고,
           구독하면 매주 자동으로 다시 측정해 변화를 알려 드립니다.
         </p>
         <div className="flex items-center max-w-md mb-4 md:mb-0" aria-label={`오늘 측정, 다음 측정 ${nextScanDate}`}>
@@ -460,7 +460,7 @@ export function GeminiExampleCard({ query }: { query: string }) {
             </div>
           ))}
           <p className="rounded-lg bg-blue-50 px-3 py-2.5 text-sm text-blue-900 leading-snug break-keep">
-            <b>반영 시간</b> 등록 후 2~4주 안에 반영이 시작되고, 안정적으로 인용되기까지는 수개월이 걸릴 수 있습니다.
+            <b>반영 시간</b> 등록 후 2~4주 안에 반영이 시작되고, 안정적으로 소개되기까지는 수개월이 걸릴 수 있습니다.
           </p>
           <p className="rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-900 leading-snug break-keep">
             <b>알아 두세요</b> 가입 후 실측은 검색 연동 없이 AI 모델의 지식을 기준으로 합니다. 실제 Gemini 앱의 답변과
@@ -702,12 +702,12 @@ export function CompetitorBlogBars({
 export function ChannelPeriodsCard() {
   const rows = [
     { ch: "네이버 AI 브리핑 · 검색", w: "w-1/5", term: "약 2~4주 (네이버 미공개 · 추정)" },
-    { ch: "Gemini", w: "w-[55%]", term: "등록 후 2~4주 안에 반영 시작, 안정적으로 인용되기까지 수개월" },
-    { ch: "ChatGPT", w: "w-full", term: "수개월~1년 (학습 데이터 기반)" },
+    { ch: "Gemini", w: "w-[55%]", term: "등록 후 2~4주 안에 반영 시작, 안정적으로 소개되기까지 수개월" },
+    { ch: "ChatGPT", w: "w-full", term: "수개월~1년 (ChatGPT는 미리 공부한 자료 기반)" },
   ];
   return (
     <div className="rounded-xl border border-slate-200 bg-white px-4 py-4 mb-4 shadow-sm">
-      <p className="text-base md:text-lg font-extrabold text-slate-900 mb-3">채널별로 반영되는 데 걸리는 시간</p>
+      <p className="text-base md:text-lg font-extrabold text-slate-900 mb-3">서비스별로 반영되는 데 걸리는 시간</p>
       <div className="space-y-3">
         {rows.map((r) => (
           <div key={r.ch} className="md:grid md:grid-cols-[200px_minmax(0,1fr)_320px] md:items-center md:gap-4">

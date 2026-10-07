@@ -150,7 +150,7 @@ export default function AdCostCalculatorPage() {
         {/* 면책 문구 */}
         <p className="text-sm text-gray-600 text-center leading-relaxed">
           절감 효과는 업종·지역·경쟁 강도에 따라 다릅니다.
-          실제 효과는 AEOlab 스캔 후 확인하세요.
+          실제 효과는 AEOlab 측정 후 확인하세요.
         </p>
 
         {/* CTA */}

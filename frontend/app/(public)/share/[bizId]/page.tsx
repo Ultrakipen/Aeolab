@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 // 서버 컴포넌트 자체 fetch: 공개 도메인(Cloudflare 경유) 대신 로컬 백엔드 직접 호출
 const BACKEND = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
@@ -53,7 +54,7 @@ function getStage(score: number): { label: string; tagBg: string; bar: string; b
     bar: "bg-slate-400",
     bg: "bg-slate-50",
     borderColor: "border-slate-200",
-    message: "AI 검색 최적화를 지금 시작하면 경쟁 가게보다 먼저 자리 잡을 수 있습니다.",
+    message: "AI 검색 개선을 지금 시작하면 경쟁 가게보다 먼저 자리 잡을 수 있습니다.",
   };
 }
 
@@ -162,7 +163,7 @@ export default async function SharePage({ params }: Props) {
                   { label: "안정 궤도",    range: "최상위 구간", desc: "경쟁 가게 대비 AI 노출 우위", bg: "bg-blue-50 border-blue-200" },
                   { label: "성장 진행 중", range: "상위 구간",   desc: "기반 갖춤, 보완으로 노출 확대 가능", bg: "bg-blue-50 border-blue-100" },
                   { label: "성장 준비 중", range: "중위 구간",   desc: "핵심 항목 보완 시 빠른 개선 가능", bg: "bg-amber-50 border-amber-200" },
-                  { label: "시작 단계",    range: "하위 구간",    desc: "AI 최적화 시작이 필요합니다", bg: "bg-slate-50 border-slate-200" },
+                  { label: "시작 단계",    range: "하위 구간",    desc: "AI 검색 개선을 시작할 때입니다", bg: "bg-slate-50 border-slate-200" },
                 ]).map((item) => (
                   <div
                     key={item.label}
@@ -208,14 +209,14 @@ export default async function SharePage({ params }: Props) {
               href="/trial"
               className="flex items-center justify-center w-full border border-blue-200 text-blue-600 hover:bg-blue-50 py-2.5 rounded-xl font-medium text-sm transition-colors"
             >
-              우리 가게 AI 검색 점수 무료로 받아보기 →
+              우리 가게 AI 검색 점수 무료로 받아보기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </Link>
           </div>
         </div>
 
         <p className="text-center text-blue-300/60 text-sm mt-4">
           <Link href="/" className="underline hover:text-white">AEOlab</Link>
-          {" "}— AI 검색 사업장 성장 플랫폼
+          {" "}— AI 검색 사업장 성장 서비스
         </p>
       </div>
     </div>

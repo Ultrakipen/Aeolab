@@ -268,7 +268,7 @@ export default function StoriesClient() {
             href="/delivery"
             className="inline-block px-6 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition-colors"
           >
-            대행 서비스 신청하기 →
+            대행 서비스 신청하기 <ArrowRight className="w-4 h-4 inline" aria-hidden="true" />
           </Link>
         </div>
       </div>

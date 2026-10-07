@@ -31,7 +31,7 @@ export async function generateMetadata({
 const categoryColors: Record<string, string> = {
   "네이버 AI": "bg-green-100 text-green-700",
   "ChatGPT 노출": "bg-blue-100 text-blue-700",
-  "AI 최적화 전략": "bg-purple-100 text-purple-700",
+  "AI 노출 전략": "bg-purple-100 text-purple-700",
   "종합 가이드": "bg-orange-100 text-orange-700",
   "키워드 전략": "bg-indigo-100 text-indigo-700",
 };

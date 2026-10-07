@@ -81,7 +81,7 @@ export default async function PublicIndexPage() {
             업종별 AI 검색 노출 현황
           </h1>
           <p className="text-base md:text-lg text-gray-600">
-            AEOlab에 등록된 실제 사업장 데이터를 분석한 업종별 AI 검색 노출 지수입니다.
+            AEOlab에 등록된 실제 사업장 데이터를 분석한 업종별 AI 검색 노출 현황입니다.
             <span className="inline-flex items-center gap-1 ml-1 text-sm bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium">
               <TrendingUp className="w-3.5 h-3.5" />
               분기별 업데이트

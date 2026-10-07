@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Check } from "lucide-react";
+import { Search, Check, Lightbulb } from "lucide-react";
 import type { TrialScanningStepProps } from "./TrialSharedTypes";
 
 /**
@@ -87,8 +87,8 @@ export default function TrialScanningStep({
       {/* 체험 스캔 범위 안내 (ACTIVE 업종) */}
       {briefingCategory === "active" && (
         <p className="text-sm text-slate-400 mt-6 leading-relaxed bg-slate-50 rounded-xl px-4 py-3 text-left">
-          💡 <span className="font-semibold text-slate-600">체험 스캔 범위:</span> 네이버 스마트플레이스 자동 점검·ChatGPT 질의를 진행합니다.
-          네이버 AI 브리핑 실측 확인은 구독 후 정식 스캔에서 제공됩니다.
+          <Lightbulb className="inline w-4 h-4 text-amber-400 mr-1 align-text-bottom" aria-hidden="true" /> <span className="font-semibold text-slate-600">체험 측정 범위:</span> 네이버 스마트플레이스 자동 점검·ChatGPT 검색을 진행합니다.
+          네이버 AI 브리핑 실측 확인은 가입 후 정식 측정에서 제공됩니다.
         </p>
       )}
 
@@ -96,7 +96,7 @@ export default function TrialScanningStep({
       <p className="text-sm text-slate-400 mt-4 leading-relaxed">
         실제로 AI에게 질문을 보내고 응답을 분석합니다.
         <br />
-        스캔 중에는 이 탭을 유지해 주세요.
+        측정 중에는 이 탭을 유지해 주세요.
       </p>
     </div>
   );

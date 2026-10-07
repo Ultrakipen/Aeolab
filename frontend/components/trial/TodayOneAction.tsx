@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Zap, Clock, AlertTriangle, Mail, CheckCircle } from "lucide-react";
+import { Zap, Clock, AlertTriangle, Mail, CheckCircle, MapPin, CalendarDays } from "lucide-react";
 import { FIRST_MONTH_DISCOUNT_PRICES, PLAN_PRICES } from "@/lib/plans";
 
 interface TodayOneActionProps {
@@ -32,10 +32,10 @@ interface Action {
   urgency: Urgency;
 }
 
-const URGENCY_BADGE: Record<Urgency, { label: string; cls: string }> = {
-  today: { label: "📌 오늘 바로", cls: "bg-red-100 text-red-700" },
-  soon: { label: "📅 3일 이내", cls: "bg-orange-100 text-orange-700" },
-  week: { label: "📅 7일 이내", cls: "bg-slate-100 text-slate-600" },
+const URGENCY_BADGE: Record<Urgency, { label: string; cls: string; Icon: typeof MapPin }> = {
+  today: { label: "오늘 바로", cls: "bg-red-100 text-red-700", Icon: MapPin },
+  soon: { label: "3일 이내", cls: "bg-orange-100 text-orange-700", Icon: CalendarDays },
+  week: { label: "7일 이내", cls: "bg-slate-100 text-slate-600", Icon: CalendarDays },
 };
 
 const URGENCY_BY_INDEX: Urgency[] = ["today", "soon", "week", "week", "week"];
@@ -117,7 +117,8 @@ function ActionCard({
         >
           {index + 1}
         </span>
-        <span className={`text-xs font-bold rounded-full px-2.5 py-0.5 ${badge.cls}`}>
+        <span className={`inline-flex items-center gap-1 text-xs font-bold rounded-full px-2.5 py-0.5 ${badge.cls}`}>
+          <badge.Icon className="w-3 h-3" aria-hidden="true" />
           {badge.label}
         </span>
         <span className="text-xs text-slate-400 flex items-center gap-1 ml-auto shrink-0">
@@ -260,7 +261,7 @@ export default function TodayOneAction({
     }
     actions.push({
       title: "Google 비즈니스 프로필 정보 완성하기",
-      desc: "영업시간·카테고리·사진·설명을 완성하면 ChatGPT·Google AI에 인용될 가능성이 높아집니다. business.google.com에서 직접 수정하세요.",
+      desc: "영업시간·카테고리·사진·설명을 완성하면 ChatGPT·Google AI에 소개될 가능성이 높아집니다. business.google.com에서 직접 수정하세요.",
       time: "10분",
       primary: !actions.length,
       urgency: URGENCY_BY_INDEX[actions.length] ?? "week",

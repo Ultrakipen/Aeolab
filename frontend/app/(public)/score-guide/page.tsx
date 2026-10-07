@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { ArrowRight, Zap } from "lucide-react";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 
@@ -26,7 +27,7 @@ export default function ScoreGuidePage() {
             href="/how-it-works"
             className="inline-flex items-center gap-1 text-sm md:text-base text-blue-600 hover:underline font-medium"
           >
-            전체 동작 원리 매뉴얼 →
+            전체 동작 원리 매뉴얼 <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Link>
           <div className="flex items-center gap-3 ml-auto">
             <AuthNavControlClient />
@@ -34,7 +35,7 @@ export default function ScoreGuidePage() {
               href="/trial"
               className="bg-blue-600 text-white text-sm px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
             >
-              무료 진단 시작 →
+              무료 진단 시작 <ArrowRight className="w-4 h-4 inline" aria-hidden="true" />
             </Link>
           </div>
         </div>
@@ -45,19 +46,19 @@ export default function ScoreGuidePage() {
 
       {/* 2. 30초 핵심 요약 — 이탈 전 반드시 읽히는 카드 */}
       <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 rounded-xl p-5 mb-4">
-        <p className="text-sm font-bold text-indigo-700 uppercase tracking-wide mb-3">⚡ 30초 핵심 요약</p>
+        <p className="text-sm font-bold text-indigo-700 uppercase tracking-wide mb-3 flex items-center gap-1"><Zap className="w-4 h-4" aria-hidden="true" /> 30초 핵심 요약</p>
         <div className="space-y-3">
           <div className="flex items-start gap-3">
             <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">1</span>
             <p className="text-sm md:text-base text-gray-800 leading-relaxed">
-              <strong>점수 = 네이버 채널 × 업종 비율 + 글로벌 AI × 업종 비율</strong><br />
+              <strong>점수 = 네이버 점수 × 업종 비율 + 글로벌 AI × 업종 비율</strong><br />
               <span className="text-gray-600">음식점은 네이버 80%, 카페는 75%, 법률·교육·온라인몰은 글로벌 AI 60~90%</span>
             </p>
           </div>
           <div className="flex items-start gap-3">
             <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">2</span>
             <p className="text-sm md:text-base text-gray-800 leading-relaxed">
-              <strong>성장 단계(시작/성장 중/빠른 성장/지역 1등)는 네이버 채널 점수만으로 결정</strong><br />
+              <strong>성장 단계(시작/성장 중/빠른 성장/지역 1등)는 네이버 점수만으로 결정</strong><br />
               <span className="text-gray-600">통합 점수와 다를 수 있음 — 업종별 비율 차이를 보정하기 위해</span>
             </p>
           </div>
@@ -87,7 +88,7 @@ export default function ScoreGuidePage() {
           업종과 무관하게 — 점수를 올리면 네이버 검색 상위노출이 개선됩니다
         </h2>
         <p className="text-sm md:text-base text-emerald-900 leading-relaxed">
-          소개글·리뷰·소식·키워드 최적화는 <strong>모든 업종 공통</strong>으로 네이버 플레이스·검색 순위를 끌어올립니다.
+          소개글·리뷰·소식·키워드 개선은 <strong>모든 업종 공통</strong>으로 네이버 플레이스·검색 순위를 끌어올립니다.
           '플레이스형' AI 브리핑 비대상 업종(병원·법무·학원·쇼핑몰 등)도 동일하게 수혜를 받으며,
           블로그·콘텐츠를 통해 <strong>'정보형 AI 브리핑'</strong> 노출도 가능합니다.
           ChatGPT·Gemini·Google AI 노출 개선까지 함께 진행됩니다. 즉, AI 브리핑 대상 여부와 상관없이
@@ -105,9 +106,9 @@ export default function ScoreGuidePage() {
             <span className="shrink-0 text-slate-600 font-bold mt-0.5" aria-hidden="true">→</span>
             <p className="text-sm md:text-base text-slate-700 leading-relaxed">
               <strong>지표 개선</strong>은 AI 검색 노출 가능성을 높이는 방향입니다.
-              채널별 반영 속도가 다릅니다 — 네이버 AI 브리핑·AI탭은 콘텐츠 개선 후
+              AI 서비스별 반영 속도가 다릅니다 — 네이버 AI 브리핑·AI탭은 콘텐츠 개선 후
               <strong>2~4주</strong> 내 반영되며, Gemini·ChatGPT는
-              AI 재학습 주기 특성상 <strong>수개월~1년</strong> 후 스캐너 점수에 반영됩니다.
+              AI 재학습 주기 특성상 <strong>수개월~1년</strong> 후 측정 점수에 반영됩니다.
               그 결과 새 손님이 가게를 발견할 접점이 늘어납니다.
             </p>
           </div>
@@ -140,15 +141,15 @@ export default function ScoreGuidePage() {
         <div className="bg-white rounded-xl border border-blue-100 p-4 mb-3">
           <p className="text-sm md:text-base font-mono text-blue-800 text-center leading-relaxed">
             통합 점수 ={" "}
-            <span className="font-bold">네이버 AI 채널 점수</span> × 업종 비율%
-            <br />+ <span className="font-bold">글로벌 AI 채널 점수</span> ×
+            <span className="font-bold">네이버 점수</span> × 업종 비율%
+            <br />+ <span className="font-bold">글로벌 AI 점수</span> ×
             업종 비율%
           </p>
         </div>
         <p className="text-sm md:text-base text-blue-700 leading-relaxed">
-          업종에 따라 네이버와 글로벌 AI 채널의 비중이 다릅니다. 즉시 방문이
-          많은 음식점·카페는 네이버 비중이 높고, 교육·법률·온라인몰은 글로벌 AI
-          비중이 높습니다.
+          업종에 따라 네이버와 글로벌 AI의 비율이 다릅니다. 즉시 방문이
+          많은 음식점·카페는 네이버 비율이 높고, 교육·법률·온라인몰은 글로벌 AI
+          비율이 높습니다.
         </p>
       </div>
 
@@ -156,14 +157,14 @@ export default function ScoreGuidePage() {
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
         <div className="flex items-center gap-2 flex-wrap mb-1">
           <h2 className="text-base md:text-lg font-bold text-gray-900">
-            네이버 채널 점수 — 네이버 AI 채널
+            네이버 점수 — 네이버 AI 항목
           </h2>
           <span className="text-sm px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
             현재 적용 중
           </span>
         </div>
         <p className="text-sm text-gray-600 mb-3">
-          네이버 생태계 내 AI 검색 최적화 지표 (6개 항목) — 업종 그룹에 따라 아래 비중이 자동 적용됩니다
+          네이버 AI 검색 6개 항목 — 업종 그룹에 따라 아래 비율이 자동 적용됩니다
         </p>
         <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full text-sm border-collapse min-w-[480px]">
@@ -192,8 +193,8 @@ export default function ScoreGuidePage() {
                   desc: "등록정보·소개글·소식 + 키워드 매칭도",
                 },
                 {
-                  item: "블로그 생태계",
-                  desc: "블로그 발행 빈도·외부 인용·업체명 매칭으로 C-rank 추정",
+                  item: "블로그 노출",
+                  desc: "블로그 발행 빈도·외부 언급·업체명 매칭으로 블로그 노출 수준 추정",
                 },
                 {
                   item: "지도·카카오맵",
@@ -201,7 +202,7 @@ export default function ScoreGuidePage() {
                 },
                 {
                   item: "네이버 AI 브리핑 노출",
-                  desc: "실제 네이버 AI 브리핑(플레이스형)에 가게가 인용됐는지 (비대상 업종 0% — 음식점·카페 등 일부 업종만 해당)",
+                  desc: "실제 네이버 AI 브리핑(가게 요약형)에 가게가 소개됐는지 (비대상 업종 0% — 음식점·카페 등 일부 업종만 해당)",
                 },
               ].map((row, i) => (
                 <tr
@@ -223,14 +224,14 @@ export default function ScoreGuidePage() {
       <div className="bg-white border border-gray-200 rounded-xl p-5 mb-4">
         <div className="flex items-center gap-2 flex-wrap mb-1">
           <h2 className="text-base md:text-lg font-bold text-gray-900">
-            네이버 채널 점수 — 업종 그룹별 비중
+            네이버 점수 — 업종 그룹별 비율
           </h2>
           <span className="text-sm px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
             현재 적용 중
           </span>
         </div>
         <p className="text-sm text-gray-600 mb-3">
-          업종 그룹에 따라 아래 비중이 자동 적용됩니다.
+          업종 그룹에 따라 아래 비율이 자동 적용됩니다.
         </p>
         <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full text-sm border-collapse min-w-[520px]">
@@ -248,7 +249,7 @@ export default function ScoreGuidePage() {
                 { item: "리뷰 품질",        active: "15%", likely: "17%", inactive: "20%" },
                 { item: "스마트플레이스 완성도", active: "15%", likely: "18%", inactive: "20%" },
                 { item: "지도·카카오맵",    active: "10%", likely: "10%", inactive: "15%" },
-                { item: "블로그 생태계",    active: "10%", likely: "10%", inactive: "10%" },
+                { item: "블로그 노출",      active: "10%", likely: "10%", inactive: "10%" },
                 { item: "AI 브리핑 노출",   active: "25%", likely: "15%", inactive: "0%" },
               ].map((row, i) => (
                 <tr key={i} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
@@ -267,10 +268,10 @@ export default function ScoreGuidePage() {
       {/* 5. Track 2 — 글로벌 AI 채널 */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
         <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">
-          글로벌 AI 점수 — 글로벌 AI 채널
+          글로벌 AI 점수 — ChatGPT·Gemini·Google AI 항목
         </h2>
         <p className="text-sm text-gray-600 mb-3">
-          ChatGPT·Gemini·Google AI 등 글로벌 AI 검색 최적화 지표 (4개 항목)
+          ChatGPT·Gemini·Google AI 노출 4개 항목
         </p>
         <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full text-sm border-collapse min-w-[480px]">
@@ -295,9 +296,9 @@ export default function ScoreGuidePage() {
                   desc: "Gemini·ChatGPT 각 50회 (총 100회, Basic 기준)",
                 },
                 {
-                  item: "웹사이트 SEO",
+                  item: "웹사이트 정보 등록",
                   weight: "30%",
-                  desc: "AI 인식 정보 코드 + SNS 공유 태그 + 웹사이트 최적화",
+                  desc: "AI가 읽기 쉬운 가게 정보 코드 + SNS 공유 태그 + 홈페이지 검색 노출 관리",
                 },
                 {
                   item: "온라인 언급",
@@ -307,7 +308,7 @@ export default function ScoreGuidePage() {
                 {
                   item: "Google 검색 노출",
                   weight: "20%",
-                  desc: "구글 검색 결과에 내 가게가 나오는지 (Serper.dev API로 측정). 검색 상단 AI 요약 영역은 현재 측정 API가 결과를 제공하지 않아 별도로 확인하지 못합니다",
+                  desc: "구글 검색 결과에 내 가게가 나오는지 (자동 측정). 검색 상단 AI 요약 영역은 현재 별도로 확인하지 못합니다",
                 },
               ].map((row, i) => (
                 <tr
@@ -334,7 +335,7 @@ export default function ScoreGuidePage() {
           업종별 네이버 / 글로벌 비율
         </h2>
         <p className="text-sm text-gray-600 mb-3">
-          업종 특성에 따라 두 채널의 가중치가 다르게 적용됩니다.
+          업종 특성에 따라 두 경로의 비율이 다르게 적용됩니다.
         </p>
         <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full text-sm border-collapse min-w-[480px]">
@@ -518,7 +519,7 @@ export default function ScoreGuidePage() {
           등급 기준
         </h2>
         <p className="text-sm text-slate-500 mb-3">
-          상위/하위 백분위는 초기 서비스 추정값입니다. 사용자 데이터가 쌓이면 실측 기반으로 자동 갱신됩니다.
+          상위/하위 순위는 초기 서비스 추정값입니다. 사용자 데이터가 쌓이면 실측 기반으로 자동 갱신됩니다.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
           {[
@@ -583,7 +584,7 @@ export default function ScoreGuidePage() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 mb-4">
           <p className="text-sm text-amber-800">
             <strong>주의:</strong> 성장 단계는 통합 점수가 아닌{" "}
-            <strong>네이버 채널 점수 기준</strong>으로 결정됩니다.
+            <strong>네이버 점수 기준</strong>으로 결정됩니다.
             업종별 비율 차이로 인한 오판을 방지하기 위해서입니다.
           </p>
         </div>
@@ -592,7 +593,7 @@ export default function ScoreGuidePage() {
             {
               stage: "시작 단계",
               range: "30점 미만",
-              desc: "네이버 AI 채널 최적화 기초 작업이 필요합니다",
+              desc: "네이버 AI 검색 노출을 위한 기본 정보 등록이 필요합니다",
               color: "bg-red-100",
               textColor: "text-red-700",
               pct: 25,
@@ -601,7 +602,7 @@ export default function ScoreGuidePage() {
             {
               stage: "성장 중",
               range: "30~54점",
-              desc: "기본 최적화가 시작됐습니다. 키워드와 리뷰를 강화하세요",
+              desc: "기본 정보 등록이 시작됐습니다. 키워드와 리뷰를 강화하세요",
               color: "bg-amber-100",
               textColor: "text-amber-700",
               pct: 50,
@@ -610,7 +611,7 @@ export default function ScoreGuidePage() {
             {
               stage: "빠른 성장",
               range: "55~74점",
-              desc: "AI 검색 최적화가 효과를 내기 시작하는 구간입니다. 음식점·카페 등 AI 브리핑 대상 업종은 이 구간부터 노출 기회가 높아집니다.",
+              desc: "AI 검색 노출이 효과를 내기 시작하는 구간입니다. 음식점·카페 등 AI 브리핑 대상 업종은 이 구간부터 노출 기회가 높아집니다.",
               color: "bg-blue-100",
               textColor: "text-blue-700",
               pct: 75,
@@ -656,7 +657,7 @@ export default function ScoreGuidePage() {
           href="/dashboard"
           className="inline-flex items-center gap-2 bg-white text-blue-600 font-bold px-6 py-3 rounded-xl hover:bg-blue-50 transition-colors text-sm md:text-base"
         >
-          지금 내 가게 점수 확인하기 →
+          지금 내 가게 점수 확인하기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
         </Link>
       </div>
     </div>
