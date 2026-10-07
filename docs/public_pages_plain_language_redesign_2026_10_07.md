@@ -57,3 +57,11 @@
 - 구조화 데이터(JSON-LD) 내부에 "채널·플랫폼" 잔존(화면 미노출).
 - 범위 밖: `DashboardHeroCard.tsx` "소상공인 핵심 채널", 대시보드의 AI탭 "업종 제한 없이" 표현, `lib/userGroup.ts` "(확대 예상 업종)", 죽은 파일(`pricing/FeatureList.tsx`, `FaqAccordion.tsx`, `demo/page.tsx.bak.20260514`).
 - 무관한 미커밋 파일 5개(AdDefenseClient, SchemaClient, settings/team, StartupClient, tools/keyword)는 커밋 제외.
+
+---
+
+## Phase 6 (2026-10-08, git 94bf475) — 무료 체험·나머지 공개 페이지 용어 정리
+- 4개 전문 에이전트 병렬(체험 결과 화면 / 체험 컴포넌트 19개 / 기타 공개 페이지 / 공용 컴포넌트) + 메인 세션 검증(검사기 TOTAL 0, tsc 통과, 서버 md5 일치, 라이브 16개 URL×2폭 DOM 스캔).
+- 대상: /trial 전 흐름, score-guide, plans-preview, quick, share, stories, help, blog 목록, tools, 가입, PlanGate 등. 컬러 이모지→lucide, `→`→ArrowRight, 체험 결과에 "왜 네이버 정보가 ChatGPT에 잘 안 나오나요?" 접이식 추가.
+- **미배포/미커밋(사용자 기존 미커밋 변경과 섞임)**: `SchemaClient.tsx`, `AdDefenseClient.tsx`(에이전트가 용어 수정함, 서버와 md5 다름), `settings/team`, `StartupClient`, `tools/keyword/page.tsx` — 기존 변경 내용 확인 후 함께 배포 결정 필요.
+- **남음**: `lib/blog-posts.ts` 블로그 글 본문(검사기 21건, "최적화·세 채널" 등), terms/privacy(법적 문서라 제외), 대시보드(약 500건)·그 공용 컴포넌트.
