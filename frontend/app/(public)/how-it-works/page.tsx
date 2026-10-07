@@ -484,6 +484,15 @@ export default function HowItWorksPage() {
             소개글·소식·리뷰는 네이버 AI 쪽에 효과적입니다. ChatGPT·Gemini는 구글·마이크로소프트 검색 정보를 바탕으로 해서 별도 경로가 필요합니다.
           </p>
 
+          <MoreInfo summary="네이버가 외부 AI를 막았는데, 네이버 AI에는 어떻게 나오나요?" tone="soft" className="mb-5">
+            <div className="space-y-2 text-sm md:text-base text-gray-700 leading-relaxed break-keep">
+              <p>네이버는 ChatGPT 같은 <strong>외부 AI</strong>가 블로그·지도·카페 글을 가져가지 못하게 막아 두었어요(2026-10-07 확인).</p>
+              <p>네이버 AI 브리핑과 AI탭은 <strong>네이버가 직접 운영</strong>하는 서비스라서, 이 제한과는 별개로 동작하는 것으로 보입니다. 다만 어떤 정보를 어떻게 읽는지는 네이버가 공개하지 않았어요.</p>
+              <p>그래서 AEOlab은 구조를 짐작해 점수를 내지 않고, 네이버 검색 결과에 AI 브리핑이 <strong>실제로 뜨는지 직접 확인</strong>해 보여 드려요. 결과는 시점·기기·로그인 상태에 따라 달라질 수 있어요.</p>
+              <p>반대로 네이버에만 정보가 있는 가게는 ChatGPT·Gemini에 잘 나오지 않는 편이에요. 구글 비즈니스 프로필이나 자체 홈페이지 같은 네이버 밖 정보를 함께 챙기면 좋아요.</p>
+            </div>
+          </MoreInfo>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* 1위 */}
             <div className="rounded-2xl border-2 border-green-300 bg-green-50 p-4">

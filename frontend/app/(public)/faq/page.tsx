@@ -52,6 +52,13 @@ const AI_FAQS: FAQData[] = [
       "소개글에 우리 가게가 무엇을 잘하는지 구체적으로 설명하면 AI가 해당 내용을 소개할 가능성이 생깁니다. AEOlab은 이 요소들을 자동으로 점검해 보여 줍니다.",
   },
   {
+    q: "네이버가 ChatGPT 같은 AI를 막았다는데, 네이버 AI에는 어떻게 나오나요?",
+    short:
+      "네이버가 막아 둔 것은 ChatGPT 같은 외부 AI입니다(2026-10-07 확인). 네이버 AI 브리핑과 AI탭은 네이버가 직접 운영하는 서비스라 이 제한과는 별개로 동작하는 것으로 보입니다. 다만 네이버가 어떤 정보를 읽는지는 공개하지 않았습니다.",
+    detail:
+      "그래서 AEOlab은 구조를 짐작해 점수를 내지 않고, 네이버 검색 결과에 AI 브리핑이 실제로 뜨는지 직접 확인해 보여 드립니다. 반대로 네이버에만 정보가 있는 가게는 ChatGPT·Gemini에 잘 나오지 않는 편이라, 구글 비즈니스 프로필이나 자체 홈페이지처럼 네이버 밖 정보도 함께 챙기는 것이 좋습니다. 측정 결과는 시점·기기·로그인 상태에 따라 달라질 수 있습니다.",
+  },
+  {
     q: "리뷰가 100개인데 AI에 노출이 안 되는 이유는?",
     short:
       "리뷰 수보다 최신성·답변 여부, 소개글의 키워드, 블로그 언급 여부 등이 복합적으로 영향을 줄 수 있습니다. AEOlab 진단에서 어떤 항목이 부족한지 확인할 수 있습니다.",
@@ -296,9 +303,9 @@ export default function FAQPage() {
                 AI 검색 원리
               </h2>
             </div>
-            {/* 네이버 관련 9개 */}
+            {/* 네이버 관련 10개 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {AI_FAQS.slice(0, 9).map((item, i) => (
+              {AI_FAQS.slice(0, 10).map((item, i) => (
                 <FAQItem key={i} q={item.q} short={item.short} detail={item.detail} index={i} />
               ))}
             </div>
@@ -309,13 +316,13 @@ export default function FAQPage() {
               <span className="text-sm font-semibold text-blue-700">ChatGPT·Gemini·Google 관련</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {AI_FAQS.slice(9).map((item, i) => (
+              {AI_FAQS.slice(10).map((item, i) => (
                 <FAQItem
-                  key={i + 9}
+                  key={i + 10}
                   q={item.q}
                   short={item.short}
                   detail={item.detail}
-                  index={i + 9}
+                  index={i + 10}
                 />
               ))}
             </div>
