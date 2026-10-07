@@ -31,3 +31,29 @@
 - `lib/userGroup.ts GROUP_MESSAGES`의 "(확대 예상 업종)" — 대시보드 공용이라 미수정.
 - 죽은 파일: `pricing/FeatureList.tsx`, `pricing/FaqAccordion.tsx`(import 0건), `demo/page.tsx.bak.20260514`.
 - chatgpt-search 부제에 "OAI-SearchBot·인덱스" 용어가 한 줄 남음(상세는 접이식으로 이동됨).
+
+---
+
+## Phase 5 (2026-10-08, git ba2feae) — 상호·주소 가림 / 이모지 / 어려운 용어 금지
+
+사용자 지시: "상호와 주소는 가릴것. 이모지를 개선할것. 어려운 용어 사용금지". 대상: 랜딩 + 공개 8페이지.
+
+### 상호·주소 가림 (위 "미결" 첫 항목 해소)
+- showcase 스크린샷 16장 처리. Windows.Media.Ocr(PowerShell)로 여러 배율 타일 OCR → 상호·주소 정규식 + 수동 박스 + 가우시안 블러 → 재OCR로 잔존 확인. 원본은 작업 폴더에 백업(저장소 밖).
+- demo 페이지의 실제 상호·주소는 "경쟁 가게 A"·`○○` 표기로 익명화. 이미지 URL에 `?v=20261008` 추가(캐시 갱신).
+- **미결**: 원본 이미지는 git 기록에 남아 있음. 완전 제거는 기록 재작성(되돌리기 어려움)이라 사용자 결정 필요.
+
+### 어려운 용어 금지
+- 금지어 목록(채널·스캔·스캐너·인덱싱·크롤·robots·JSON-LD·스키마·UGC·쿼리·인용·그라운딩·학습 데이터·가중치·트랙·알고리즘·샘플링·백분위·Bing·C-rank·SEO·최적화·키워드 갭·GBP·API·트래픽 등)을 자동 검사기(`lint_terms.py`, 주석 제외)로 검사 → 화면 문구 `TOTAL 0`.
+- 예외: 법적 면책 원문 "ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다"는 페이지당 1회 원문 유지 + 바로 옆 쉬운 설명.
+- 플레이스형/정보형 → 본문은 "가게 요약형"/"글 모음형", 파일당 1회만 "(플레이스형)"/"(정보형)" 병기(점검 grep 호환).
+- 이모지 → lucide 아이콘(업종 칩 포함), 버튼 `→` → `ArrowRight`.
+- 마지막 점검에서 라이브 DOM 전수 스캔으로 잔여 3건(how-it-works "스캐너·Bing", demo 공용 `ResultSummaryHero` "핵심 채널") 추가 발견·수정.
+
+### 검증
+라이브 10페이지 × 390/1440px: 가로 넘침 0, 금지어(화면) 0, 컬러 이모지 0. 서버 md5 일치, 빌드·pm2 재시작 후 오류 0.
+
+### 남은 것
+- 구조화 데이터(JSON-LD) 내부에 "채널·플랫폼" 잔존(화면 미노출).
+- 범위 밖: `DashboardHeroCard.tsx` "소상공인 핵심 채널", 대시보드의 AI탭 "업종 제한 없이" 표현, `lib/userGroup.ts` "(확대 예상 업종)", 죽은 파일(`pricing/FeatureList.tsx`, `FaqAccordion.tsx`, `demo/page.tsx.bak.20260514`).
+- 무관한 미커밋 파일 5개(AdDefenseClient, SchemaClient, settings/team, StartupClient, tools/keyword)는 커밋 제외.
