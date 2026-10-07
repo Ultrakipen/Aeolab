@@ -1,9 +1,9 @@
-import { Check as CheckIcon } from "lucide-react";
+import { Check as CheckIcon, Lightbulb, Target } from "lucide-react";
 
 const FEATURES = [
-  { label: "AI 추천 최적화", seo: false, naver: false, aeo: true },
-  { label: "네이버 AI 브리핑 키워드 갭", seo: false, naver: false, aeo: true },
-  { label: "네이버 AI탭 최적화", seo: false, naver: false, aeo: true },
+  { label: "AI가 추천하기 좋게 개선", seo: false, naver: false, aeo: true },
+  { label: "AI 브리핑에 필요한 검색어 분석", seo: false, naver: false, aeo: true },
+  { label: "네이버 AI탭 노출 개선", seo: false, naver: false, aeo: true },
   { label: "경쟁사 AI 노출 비교", seo: false, naver: false, aeo: true },
   { label: "주간 자동 추적", seo: false, naver: false, aeo: true },
   { label: "ChatGPT·Gemini 관리", seo: false, naver: false, aeo: true },
@@ -116,7 +116,7 @@ export default function AEOCompareSection() {
         {/* 네이버 검색 SEO 연결 안내 */}
         <div className="hidden md:block mt-4 rounded-xl border border-green-200 bg-green-50 px-5 py-3 fade-up">
           <p className="text-sm font-semibold text-green-800 text-center break-keep">
-            💡 스마트플레이스·블로그를 개선하면 <strong>네이버 플레이스 탭 검색 순위</strong>와 <strong>AI 브리핑·AI탭 노출</strong> 가능성이 함께 높아집니다
+            <Lightbulb className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden="true" />스마트플레이스·블로그를 개선하면 <strong>네이버 플레이스 탭 검색 순위</strong>와 <strong>AI 브리핑·AI탭 노출</strong> 가능성이 함께 높아집니다
           </p>
           <p className="text-sm text-green-700 text-center mt-1 break-keep">
             기존 SEO 서비스(웹사이트 최적화)와 달리 AEOlab은 네이버 로컬 검색 순위·AI 노출을 동시에 다룹니다
@@ -126,10 +126,10 @@ export default function AEOCompareSection() {
         {/* 경쟁 서비스 대비 차별화 안내 */}
         <div className="hidden md:block mt-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-3 fade-up">
           <p className="text-sm font-semibold text-blue-800 text-center break-keep">
-            🎯 ChatGPT·Gemini만 측정하는 서비스와 다릅니다 — AEOlab은 <strong>네이버 AI와 글로벌 AI를 함께</strong> 측정합니다
+            <Target className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden="true" />ChatGPT·Gemini만 측정하는 서비스와 다릅니다 — AEOlab은 <strong>네이버 AI와 글로벌 AI를 함께</strong> 측정합니다
           </p>
           <p className="text-sm text-blue-700 text-center mt-1 break-keep">
-            네이버 AI 브리핑·AI탭은 글로벌 AI 전문 서비스가 측정하지 않는 채널입니다
+            네이버 AI 브리핑·AI탭은 글로벌 AI 전문 서비스가 측정하지 않는 부분입니다
           </p>
         </div>
 

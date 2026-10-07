@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Lightbulb, AlertCircle } from "lucide-react";
+import { Lightbulb, AlertCircle, XCircle, Zap, MessageCircle, BarChart3, Target, AlertTriangle, Sparkles } from "lucide-react";
 
 interface AICoverage {
   naver: boolean;
@@ -296,7 +296,7 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
             {" "}이(가) &lsquo;{sample.region.split(" ").slice(-1)[0]} {sample.category} 추천&rsquo; 쿼리에 AI 브리핑으로 노출됨
           </p>
           <div className="mt-2 inline-flex items-center gap-1.5 bg-red-50 text-red-700 text-sm font-bold px-2.5 py-1 rounded-full border border-red-100">
-            <span>❌</span>
+            <XCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span>{myComp.name}는 AI 브리핑에 미노출</span>
           </div>
         </div>
@@ -306,7 +306,7 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
       {!sample.naverActiveCategory && sample.likelyCategory && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3">
           <p className="text-sm font-bold text-amber-800">
-            ⚡ 네이버 AI탭 2026년 확장 예정 업종
+            <Zap className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden="true" />네이버 AI탭 2026년 확장 예정 업종
           </p>
           <p className="text-sm text-amber-700 mt-0.5">
             현재는 ChatGPT·Gemini·Google AI 노출이 핵심 채널입니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능하며, 네이버 AI탭(2026-06-25 정식 출시) 노출도 추적합니다.
@@ -330,7 +330,7 @@ function AIResponsePanel({ sample }: { sample: SampleData }) {
           {renderHighlighted(sample.chatgptTemplate, nonMe.map((c) => c.name))}
         </p>
         <div className="mt-2 inline-flex items-center gap-1.5 bg-red-50 text-red-700 text-sm font-bold px-2.5 py-1 rounded-full border border-red-100">
-          <span>❌</span>
+          <XCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
           <span>{myComp.name}는 AI 응답에 포함되지 않음</span>
         </div>
         <p className="text-sm text-gray-600 mt-1.5">
@@ -551,9 +551,9 @@ export default function HeroSampleCard({ variant }: Props) {
           <div className="flex border-b border-gray-100 mt-2">
             {(
               [
-                { icon: "💬", label: "AI 추천 응답", sub: "실제 답변 확인" },
-                { icon: "📊", label: "경쟁사 비교", sub: "노출 현황" },
-                { icon: "🎯", label: "노출 기준", sub: "4가지 요소" },
+                { Icon: MessageCircle, label: "AI 추천 응답", sub: "실제 답변 확인" },
+                { Icon: BarChart3, label: "경쟁사 비교", sub: "노출 현황" },
+                { Icon: Target, label: "노출 기준", sub: "4가지 요소" },
               ] as const
             ).map((t, i) => (
               <button
@@ -566,7 +566,7 @@ export default function HeroSampleCard({ variant }: Props) {
                     : "border-transparent text-gray-600 hover:text-gray-700 hover:bg-gray-50"
                 }`}
               >
-                <span className="text-base">{t.icon}</span>
+                <t.Icon className="w-5 h-5" aria-hidden="true" />
                 <span>{t.label}</span>
                 <span className={`text-sm font-normal ${tab === i ? "text-blue-700" : "text-gray-600"}`}>{t.sub}</span>
               </button>
@@ -651,12 +651,12 @@ export default function HeroSampleCard({ variant }: Props) {
         <div className="space-y-1.5 mb-4 mt-2">
           {compactGap > 0 && (
             <div className="flex items-center gap-2 text-sm text-red-700 bg-red-50 rounded-lg px-3 py-2">
-              <span className="shrink-0">⚠</span>
+              <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden="true" />
               <span>경쟁사 1위 대비 <strong>{compactGap > 30 ? "큰 격차" : "일정 격차"}</strong> 있음</span>
             </div>
           )}
           <div className="flex items-center gap-2 text-sm text-amber-800 bg-amber-50 rounded-lg px-3 py-2">
-            <span className="shrink-0">✦</span>
+            <Sparkles className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span>{sample.myWeakness.split(" · ")[0]}</span>
           </div>
         </div>
@@ -803,9 +803,9 @@ export default function HeroSampleCard({ variant }: Props) {
         <div className="flex border-b border-gray-100 mt-2">
           {(
             [
-              { icon: "💬", label: "AI 추천 응답", sub: "실제 답변 확인" },
-              { icon: "📊", label: "경쟁사 비교", sub: "노출 현황" },
-              { icon: "🎯", label: "노출 기준", sub: "4가지 요소" },
+              { Icon: MessageCircle, label: "AI 추천 응답", sub: "실제 답변 확인" },
+              { Icon: BarChart3, label: "경쟁사 비교", sub: "노출 현황" },
+              { Icon: Target, label: "노출 기준", sub: "4가지 요소" },
             ] as const
           ).map((t, i) => (
             <button
@@ -818,7 +818,7 @@ export default function HeroSampleCard({ variant }: Props) {
                   : "border-transparent text-gray-600 hover:text-gray-700 hover:bg-gray-50"
               }`}
             >
-              <span className="text-base">{t.icon}</span>
+              <t.Icon className="w-5 h-5" aria-hidden="true" />
               <span>{t.label}</span>
               <span className={`text-sm font-normal ${tab === i ? "text-blue-700" : "text-gray-600"}`}>{t.sub}</span>
             </button>

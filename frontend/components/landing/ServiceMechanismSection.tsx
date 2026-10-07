@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { CheckCircle2, XCircle } from "lucide-react";
 import { trackDetailsToggle } from "@/lib/analytics";
 
 const FLOAT_SHADOW = "var(--aeo-shadow-float)";
@@ -123,13 +124,13 @@ export default function ServiceMechanismSection() {
                   style={{ background: "#ECFDF5", borderColor: "#6EE7B7" }}
                 >
                   <p className="text-sm font-black mb-3 break-keep" style={{ color: "#065F46" }}>
-                    ✅ 가능
+                    <CheckCircle2 className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden="true" />가능
                   </p>
                   <ul className="space-y-2 text-sm leading-relaxed" style={{ color: "#0F172A" }}>
                     <li>• 노출 조건 분석 + 자동 콘텐츠 생성</li>
                     <li>• 비대상 업종도 글로벌 AI 노출 개선</li>
-                    <li>• 매주 4개 AI 스캔 + 결과 검증</li>
-                    <li>• 경쟁사 비교 + 키워드 갭 분석</li>
+                    <li>• 매주 4곳의 AI에서 내 가게 노출 측정 + 결과 검증</li>
+                    <li>• 경쟁사 비교 + 내 가게에 없는 검색어 분석</li>
                   </ul>
                 </div>
                 {/* 불가능 */}
@@ -138,7 +139,7 @@ export default function ServiceMechanismSection() {
                   style={{ background: "#FEF2F2", borderColor: "#FECACA" }}
                 >
                   <p className="text-sm font-black mb-3 break-keep" style={{ color: "#9F1239" }}>
-                    ❌ 불가능
+                    <XCircle className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden="true" />불가능
                   </p>
                   <ul className="space-y-2 text-sm leading-relaxed" style={{ color: "#0F172A" }}>
                     <li>• 노출 자체를 100% 보장 (네이버 알고리즘 비공개)</li>

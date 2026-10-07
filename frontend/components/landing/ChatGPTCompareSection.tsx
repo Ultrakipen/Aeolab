@@ -1,3 +1,4 @@
+import { Check, X } from "lucide-react";
 const COMPARE_ROWS = [
   {
     label: "측정 채널",
@@ -96,14 +97,14 @@ export default function ChatGPTCompareSection() {
                 className="px-5 py-3.5 flex items-center gap-2 border-r"
                 style={{ borderColor: "#E2E8F0", background: "#FEF2F2" }}
               >
-                <span className="font-bold shrink-0" style={{ color: "#DC2626" }}>✕</span>
+                <X className="w-4 h-4 shrink-0" strokeWidth={3} style={{ color: "#DC2626" }} aria-hidden="true" />
                 <span style={{ color: "#475569" }}>{row.manual}</span>
               </div>
               <div
                 className="px-5 py-3.5 flex items-center gap-2"
                 style={{ background: "#EFF6FF" }}
               >
-                <span className="font-bold shrink-0" style={{ color: "#007a55" }}>✓</span>
+                <Check className="w-4 h-4 shrink-0" strokeWidth={3} style={{ color: "#007a55" }} aria-hidden="true" />
                 <span className="font-medium" style={{ color: "#0F172A" }}>{row.auto}</span>
               </div>
             </div>
@@ -138,7 +139,7 @@ export default function ChatGPTCompareSection() {
                     무료 AI 직접
                   </p>
                   <div className="flex items-start gap-1.5">
-                    <span className="text-sm font-bold shrink-0" style={{ color: "#DC2626" }}>✕</span>
+                    <X className="w-4 h-4 mt-0.5 shrink-0" strokeWidth={3} style={{ color: "#DC2626" }} aria-hidden="true" />
                     <p className="text-sm" style={{ color: "#475569" }}>{row.manual}</p>
                   </div>
                 </div>
@@ -147,7 +148,7 @@ export default function ChatGPTCompareSection() {
                     AEOlab 자동
                   </p>
                   <div className="flex items-start gap-1.5">
-                    <span className="text-sm font-bold shrink-0" style={{ color: "#007a55" }}>✓</span>
+                    <Check className="w-4 h-4 mt-0.5 shrink-0" strokeWidth={3} style={{ color: "#007a55" }} aria-hidden="true" />
                     <p className="text-sm font-medium" style={{ color: "#0F172A" }}>{row.auto}</p>
                   </div>
                 </div>

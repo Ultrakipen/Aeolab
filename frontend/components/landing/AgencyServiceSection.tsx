@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Check } from "lucide-react";
 import { DELIVERY_FREQUENCY, DELIVERY_SCHEDULE } from "@/lib/deliverySchedule";
 
 interface Package {
@@ -143,7 +144,7 @@ export default function AgencyServiceSection() {
               <ul className="flex flex-col gap-1.5">
                 {pkg.items.map((item) => (
                   <li key={item} className="flex items-start gap-1.5 text-sm" style={{ color: "#007a55" }}>
-                    <span className="mt-px font-bold shrink-0">✓</span>
+                    <Check className="w-4 h-4 mt-0.5 shrink-0" strokeWidth={3} aria-hidden="true" />
                     <span>{item}</span>
                   </li>
                 ))}

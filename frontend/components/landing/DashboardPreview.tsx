@@ -1,3 +1,4 @@
+import { Check, X, Pin, Sprout } from "lucide-react";
 
 export default function DashboardPreview() {
   return (
@@ -82,7 +83,7 @@ export default function DashboardPreview() {
               양호
             </span>
             <p className="text-sm mb-1 break-keep" style={{ color: "#1D4ED8", fontWeight: 600 }}>
-              ✓ 업종 평균보다 높은 노출
+              <Check className="inline w-4 h-4 -mt-0.5 mr-1" strokeWidth={3} aria-hidden="true" />업종 평균보다 높은 노출
             </p>
             <p className="text-sm break-keep" style={{ color: "#475569" }}>AI 브리핑 노출 현황 · 예시</p>
             <div className="mt-2 flex items-center gap-1 mb-2">
@@ -143,7 +144,7 @@ export default function DashboardPreview() {
             </div>
             {/* 채널별 현실 안내 */}
             <div className="mt-auto rounded-lg px-2.5 py-2 space-y-1" style={{ background: "#F1F5F9" }}>
-              <p className="text-sm font-semibold break-keep" style={{ color: "#475569" }}>📌 현실적인 기대치</p>
+              <p className="text-sm font-semibold break-keep" style={{ color: "#475569" }}><Pin className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden="true" />현실적인 기대치</p>
               <p className="text-sm break-keep" style={{ color: "#475569" }}>
                 <span className="font-semibold" style={{ color: "#4F46E5" }}>Gemini</span>
                 {" — "}Google 실시간 검색 연동: <strong>수 주</strong> / 학습 데이터: <strong>수개월~1년</strong>
@@ -153,7 +154,7 @@ export default function DashboardPreview() {
                 {" — "}학습 데이터 기반 · 노출까지 <strong>수개월~1년</strong> 소요
               </p>
               <p className="text-sm break-keep" style={{ color: "#45556C" }}>
-                🌱 대부분의 가게가 아직 준비 중 — 지금 시작하면 선점 유리
+                <Sprout className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden="true" />대부분의 가게가 아직 준비 중 — 지금 시작하면 선점 유리
               </p>
             </div>
           </div>
@@ -255,7 +256,7 @@ export default function DashboardPreview() {
                       : { background: "#ECFDF5", color: "#065F46" }
                   }
                 >
-                  {type === "missing" ? "✗" : "✓"} {kw}
+                  {type === "missing" ? <X className="inline w-3.5 h-3.5 -mt-0.5" strokeWidth={3} aria-hidden="true" /> : <Check className="inline w-3.5 h-3.5 -mt-0.5" strokeWidth={3} aria-hidden="true" />} {kw}
                 </span>
               ))}
             </div>

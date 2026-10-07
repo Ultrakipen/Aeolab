@@ -1,4 +1,6 @@
 "use client";
+
+import { Check, X } from "lucide-react";
 import { useState } from "react";
 import TrackedCTA from "@/components/analytics/TrackedCTA";
 
@@ -179,7 +181,7 @@ export function HowAeolabIntegrated() {
                 : { background: "#ECFDF5", color: "#065F46" }
             }
           >
-            {type === "missing" ? "✗" : "✓"} {kw}
+            {type === "missing" ? <X className="inline w-3.5 h-3.5 -mt-0.5" strokeWidth={3} aria-hidden="true" /> : <Check className="inline w-3.5 h-3.5 -mt-0.5" strokeWidth={3} aria-hidden="true" />} {kw}
           </span>
         ))}
       </div>

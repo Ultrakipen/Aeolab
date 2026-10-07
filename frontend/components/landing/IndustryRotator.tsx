@@ -1,5 +1,7 @@
 "use client";
 
+import { AlertTriangle } from "lucide-react";
+
 import { useState, useEffect } from "react";
 
 interface Industry {
@@ -169,7 +171,7 @@ export default function IndustryRotator() {
               {industry.query}
             </div>
             <div className="flex items-start gap-1.5 text-sm text-amber-700">
-              <span className="shrink-0 mt-0.5">⚠️</span>
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
               <span className="leading-relaxed">{industry.result}</span>
             </div>
           </div>
