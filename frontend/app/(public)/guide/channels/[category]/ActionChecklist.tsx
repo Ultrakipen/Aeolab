@@ -107,9 +107,12 @@ export function ActionChecklist({ storageKey, items, category }: Props) {
       ))}
 
       {doneCount === items.length && (
-        <div className="mt-3 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-center">
-          <p className="text-sm md:text-base font-semibold text-green-800">
-            5가지 모두 완료! AI 노출 준비가 되었습니다.
+        <div className="mt-3 rounded-xl bg-green-50 border border-green-200 px-4 py-3">
+          <p className="text-sm md:text-base font-semibold text-green-800 mb-1">
+            네이버 쪽 기본 준비를 마쳤습니다.
+          </p>
+          <p className="text-sm text-green-700 leading-relaxed break-keep">
+            노출은 보장되지 않으며, ChatGPT·Gemini 등 글로벌 AI는 네이버 밖 정보(구글 비즈니스 프로필·자체 사이트)를 따로 준비해야 합니다.
           </p>
         </div>
       )}

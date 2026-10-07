@@ -45,7 +45,7 @@ export function ContactModal({ open, onClose }: Props) {
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
             <h2 className="text-base font-bold text-gray-900">Biz 플랜 문의하기</h2>
-            <p className="text-sm text-gray-600 mt-0.5">다점포·대행사 전용 — 맞춤 견적 안내드립니다</p>
+            <p className="text-sm text-gray-600 mt-0.5">가게가 여러 곳인 사장님·대행사 전용</p>
           </div>
           <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 transition-colors">
             <X className="w-5 h-5 text-gray-600" />

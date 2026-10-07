@@ -8,7 +8,18 @@ import { getBriefingEligibility } from "@/lib/userGroup";
 import { useBriefingCategories } from "@/lib/useBriefingCategories";
 import ResultSummaryHero from "@/components/common/ResultSummaryHero";
 import { aiTabTile, briefingTile, rankTile, makeTile, type ChannelTile } from "@/lib/scoreLabels";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import {
+  ChevronDown, ChevronUp,
+  Search, Star, ClipboardList, Megaphone, MapPin, CalendarClock,
+  Sparkles, Bot, Globe,
+  Info, CheckCircle2, Radio,
+  AlertTriangle, Check, X, HelpCircle,
+  FileText, Timer,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { MoreInfo } from "@/components/common/MoreInfo";
+import { IconTile } from "@/components/common/IconTile";
+import { PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 
 // ── 업종 / 지역 선택지 ────────────────────────────────────────────────
 const CATEGORIES = [
@@ -66,11 +77,11 @@ const josa = (word: string, withBatchim: string, withoutBatchim: string) => {
 };
 
 const GENERIC_WEAK_REASON: Record<string, (ctx: BorrowCtx) => string> = {
-  "AI 검색 노출": ({ categoryLabel, bizName }) =>
+  "AI가 내 가게를 말해주는 정도": ({ categoryLabel, bizName }) =>
     `소개글에 가격·이용방법 등 구조화된 정보가 부족해 AI가 "${categoryLabel} 추천"을 물어볼 때 ${bizName}${josa(bizName, "을", "를")} 인용 후보로 선택할 가능성이 낮아집니다. 소개글에 Q&A 섹션을 추가하면 AI 브리핑·AI탭 노출에 유리해질 수 있습니다.`,
   "리뷰 평판": ({ bizName }) =>
     `리뷰 수가 경쟁 업체 대비 적고 영수증 리뷰(방문 인증)가 없어 AI 신뢰도 점수가 낮습니다. ${bizName}의 실제 방문 후기가 더 필요합니다.`,
-  "온라인 정보 정리": () =>
+  "소개글·블로그 정리 상태": () =>
     "스마트플레이스 소개글에 키워드가 부족하고 블로그 포스트가 없어 AI가 인용할 정보가 충분하지 않습니다.",
   "온라인 언급 수": ({ bizName }) =>
     `블로그·카페에서 ${bizName} 언급이 부족해 AI가 신뢰도를 낮게 평가합니다. 후기가 쌓일수록 AI 추천 빈도가 높아집니다.`,
@@ -78,9 +89,9 @@ const GENERIC_WEAK_REASON: Record<string, (ctx: BorrowCtx) => string> = {
     "최근 3개월간 새 리뷰나 게시물이 없어 AI가 현재 운영 중인지 불확실하게 인식합니다.",
 };
 const GENERIC_WEAK_IMPACT: Record<string, (ctx: BorrowCtx) => string> = {
-  "AI 검색 노출": ({ categoryLabel }) => `소개글에 Q&A 3~5개를 추가하면 AI 인용 후보 진입 가능성이 높아집니다 — 경쟁 ${categoryLabel} 중 선점 기회`,
+  "AI가 내 가게를 말해주는 정도": ({ categoryLabel }) => `소개글에 Q&A 3~5개를 추가하면 AI 인용 후보 진입 가능성이 높아집니다 — 경쟁 ${categoryLabel} 중 선점 기회`,
   "리뷰 평판": () => "영수증 리뷰(방문 인증)가 쌓이면 AI가 실제 방문 경험이 있는 가게로 인식해 신뢰도 점수가 개선됩니다",
-  "온라인 정보 정리": () => "스마트플레이스 소개글 최적화 + 블로그 포스트 1건으로 이 항목 개선 시작 가능",
+  "소개글·블로그 정리 상태": () => "스마트플레이스 소개글 최적화 + 블로그 포스트 1건으로 이 항목 개선 시작 가능",
   "온라인 언급 수": () => "후기가 쌓일수록 AI가 신뢰할 수 있는 정보로 인식해 추천 빈도가 높아집니다",
   "최근 활동": () => "스마트플레이스 '소식' 탭 업데이트만으로 이 항목 즉시 개선 시작 가능",
 };
@@ -147,14 +158,7 @@ function getMock(category: string, region: string) {
     aiExcerptFail: false,
     geminiRate: 15,
     benchmark: benchmarks[category] ?? benchmarks.restaurant,
-    lockedTips: [
-      { icon: "🔍", label: "AI 검색 노출 개선 방법",   tip: "Gemini·ChatGPT 각 50회 (총 100회) 반복 측정으로 정확한 노출 확률(%)을 산출하고 플랜에 따라 주 1회(월요일)~매일 자동 추적합니다." },
-      { icon: "📊", label: "경쟁사 6개 차원 갭 분석",  tip: "1위 경쟁사 대비 어느 항목이 얼마나 뒤처지는지 정확히 보여줍니다." },
-      { icon: "🗺️", label: "업종 시장 순위 확인",      tip: "내 가게가 지역 업종 내 몇 위인지, 상위 몇 %인지 수치로 확인합니다." },
-      { icon: "📋", label: "스마트플레이스 소개글 + 블로그 자동 생성", tip: "AI 최적화 소개글과 블로그 포스트 초안을 자동 생성 — 복사 후 스마트플레이스에 붙여넣기만 하면 됩니다. 홈페이지 없어도 OK." },
-      { icon: "📢", label: "온라인 언급 늘리기",        tip: "어느 플랫폼에서 언급이 많고 적은지, 경쟁사와 비교해 구체적 행동 가이드를 제공합니다." },
-      { icon: "✅", label: "실행 체크리스트 + 재스캔",  tip: "개선 항목을 체크리스트로 진행하고, 완료 후 재스캔으로 효과를 바로 확인합니다." },
-    ],
+    // lockedTips 제거 — 렌더되는 곳 없는 죽은 코드
     smartPlaceChecklist: [
       { item: "대표 사진 5장 이상",        impact: "high",   checked: null as null | boolean, reason: "첫인상 결정 — 사진 없으면 클릭 즉시 이탈" },
       { item: "영업시간 (오늘 운영 여부)",  impact: "high",   checked: null as null | boolean, reason: "\"지금 문 열었나?\" — 미등록 시 경쟁 가게로 이동" },
@@ -207,9 +211,9 @@ function getMock(category: string, region: string) {
       ],
       totalScore: 38, grade: "D", naverChannelScore: 32,
       weakItem: {
-        label: "AI 검색 노출", score: 22, icon: "🔍",
-        reason: "소개글에 가격·예약·프로세스 정보가 구조화되지 않아 네이버 AI가 \"창원 웨딩스냅 추천\"을 물어볼 때 홍스튜디오를 인용 후보로 선택할 가능성이 낮아집니다. 소개글에 Q&A 섹션을 추가하면 AI탭 노출에 유리해질 수 있습니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 중요한 기반이 됩니다.",
-        impact: "소개글에 Q&A 3~5개를 추가하면 AI 인용 후보 진입 가능성이 높아집니다 — 경쟁 스튜디오 중 선점 기회",
+        label: "AI가 내 가게를 말해주는 정도", score: 22, icon: "search",
+        reason: "소개글에 가격·예약·프로세스 정보가 정리되지 않아 네이버 AI가 \"창원 웨딩스냅 추천\"을 물어볼 때 홍스튜디오를 안내할 가능성이 낮아집니다. 소개글에 Q&A 섹션을 추가하면 AI탭 노출에 유리해질 수 있습니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 중요한 기반이 됩니다.",
+        impact: "소개글에 Q&A 3~5개를 추가하면 AI 안내 후보 진입 가능성이 높아집니다 — 경쟁 스튜디오 중 선점 기회",
       },
       smartPlaceChecklist: [
         { item: "대표 사진 5장 이상",        impact: "high",   checked: true,  reason: "사진 100장 이상 등록 — 강점" },
@@ -222,12 +226,12 @@ function getMock(category: string, region: string) {
         { item: "최근 리뷰 답글",            impact: "low",    checked: true,  reason: "최근 리뷰 답글 있음 — AI가 운영 중으로 인식" },
       ],
       breakdown: {
-        exposure_freq:     { label: "AI 검색 노출",    icon: "🔍", score: 22, what: "손님이 AI에 \"창원 웨딩스냅 추천해줘\"라고 물었을 때 홍스튜디오가 답변에 나오는 빈도입니다.", stateMsg: "소개글 Q&A 섹션 없음 — AI가 가게 정보를 인용할 구조화 텍스트가 부족합니다.", isLow: true },
-        review_quality:    { label: "리뷰 평판",       icon: "⭐", score: 72, what: "네이버·카카오맵 리뷰 수와 평점입니다.", stateMsg: "리뷰 16건·평점 4.8 — 품질은 좋지만 AI 추천에는 소개글 Q&A 섹션 보강이 더 효과적입니다.", isLow: false },
-        schema_score:      { label: "온라인 정보 정리", icon: "📋", score: 45, what: "스마트플레이스 소개글·블로그에 촬영 종류·가격·프로세스가 얼마나 정리돼 있는지입니다.", stateMsg: "소개글은 있지만 Q&A 섹션 없고 블로그 연결이 부족합니다.", isLow: true },
-        online_mentions:   { label: "온라인 언급 수",  icon: "📢", score: 28, what: "블로그·SNS에서 홍스튜디오가 언급된 횟수입니다.", stateMsg: "블로그 8건 — 경쟁 1위보다 37건 적습니다.", isLow: true },
-        info_completeness: { label: "기본 정보 완성도", icon: "📍", score: 85, what: "영업시간·주소·메뉴·사진 등 기본 정보 등록 여부입니다.", stateMsg: "영업시간·사진 100장·서비스 등록 완료 — 기본 정보는 충실합니다.", isLow: false },
-        content_freshness: { label: "최근 활동",       icon: "🗓️", score: 62, what: "가장 최근 리뷰가 얼마나 최근인지입니다.", stateMsg: "최근 리뷰가 있어 현재 운영 중임을 AI가 인식합니다.", isLow: false },
+        exposure_freq:     { label: "AI가 내 가게를 말해주는 정도", icon: "search",    score: 22, what: "손님이 AI에 \"창원 웨딩스냅 추천해줘\"라고 물었을 때 홍스튜디오가 답변에 나오는 빈도입니다.", stateMsg: "소개글 Q&A 섹션 없음 — AI가 가게 정보를 가져다 쓸 텍스트가 부족합니다.", isLow: true },
+        review_quality:    { label: "리뷰 평판",                   icon: "star",      score: 72, what: "네이버·카카오맵 리뷰 수와 평점입니다.", stateMsg: "리뷰 16건·평점 4.8 — 품질은 좋지만 AI 안내에는 소개글 Q&A 섹션 보강이 더 효과적입니다.", isLow: false },
+        schema_score:      { label: "소개글·블로그 정리 상태",      icon: "clipboard", score: 45, what: "스마트플레이스 소개글·블로그에 촬영 종류·가격·프로세스가 얼마나 정리돼 있는지입니다.", stateMsg: "소개글은 있지만 Q&A 섹션 없고 블로그 연결이 부족합니다.", isLow: true },
+        online_mentions:   { label: "온라인 언급 수",               icon: "megaphone", score: 28, what: "블로그·SNS에서 홍스튜디오가 언급된 횟수입니다.", stateMsg: "블로그 8건 — 경쟁 1위보다 37건 적습니다.", isLow: true },
+        info_completeness: { label: "기본 정보 완성도",             icon: "mappin",    score: 85, what: "영업시간·주소·메뉴·사진 등 기본 정보 등록 여부입니다.", stateMsg: "영업시간·사진 100장·서비스 등록 완료 — 기본 정보는 충실합니다.", isLow: false },
+        content_freshness: { label: "최근 활동",                   icon: "calendar",  score: 62, what: "가장 최근 리뷰가 얼마나 최근인지입니다.", stateMsg: "최근 리뷰가 있어 현재 운영 중임을 AI가 인식합니다.", isLow: false },
       },
       growthStage: {
         stage: "stability",
@@ -269,9 +273,9 @@ function getMock(category: string, region: string) {
       ],
       totalScore: 45, grade: "D", naverChannelScore: 40,
       weakItem: {
-        label: "AI 검색 노출", score: 25, icon: "🔍",
-        reason: "소개글에 커리큘럼·비용·대상 정보가 구조화되지 않아 AI가 \"창원 작곡학원 추천\"을 물어볼 때 홍뮤직스튜디오를 인용 후보로 선택할 가능성이 낮아집니다. 리뷰 48건·평점 4.8이 있어도 소개글에 Q&A 섹션을 추가하면 AI 브리핑 노출에 더 유리해질 수 있습니다.",
-        impact: "소개글에 \"수강 커리큘럼·녹음 비용·초보 가능 여부\" Q&A 5개를 추가하면 AI 조건 검색 후보 진입 가능성이 높아집니다",
+        label: "AI가 내 가게를 말해주는 정도", score: 25, icon: "search",
+        reason: "소개글에 커리큘럼·비용·대상 정보가 정리되지 않아 AI가 \"창원 작곡학원 추천\"을 물어볼 때 홍뮤직스튜디오를 안내할 가능성이 낮아집니다. 리뷰 48건·평점 4.8이 있어도 소개글에 Q&A 섹션을 추가하면 AI 브리핑 노출에 더 유리해질 수 있습니다.",
+        impact: "소개글에 \"수강 커리큘럼·녹음 비용·초보 가능 여부\" Q&A 5개를 추가하면 AI 안내 후보 진입 가능성이 높아집니다",
       },
       smartPlaceChecklist: [
         { item: "대표 사진 5장 이상",        impact: "high",   checked: true,  reason: "사진 100장 이상 등록 — 강점" },
@@ -284,12 +288,12 @@ function getMock(category: string, region: string) {
         { item: "최근 리뷰 답글",            impact: "low",    checked: true,  reason: "리뷰 48건 답글 있음 — AI가 운영 중으로 인식" },
       ],
       breakdown: {
-        exposure_freq:     { label: "AI 검색 노출",    icon: "🔍", score: 25, what: "손님이 AI에 \"창원 작곡학원 추천해줘\"라고 물었을 때 나오는 빈도입니다.", stateMsg: "소개글 Q&A 섹션 없음 — 리뷰 48건이 있어도 AI가 인용할 구조화 텍스트가 부족합니다.", isLow: true },
-        review_quality:    { label: "리뷰 평판",       icon: "⭐", score: 78, what: "네이버·카카오맵 리뷰 수와 평점입니다.", stateMsg: "리뷰 48건·평점 4.8 — 경쟁사 대비 가장 강한 항목입니다.", isLow: false },
-        schema_score:      { label: "온라인 정보 정리", icon: "📋", score: 48, what: "스마트플레이스 소개글·블로그에 커리큘럼·비용·대상이 얼마나 정리돼 있는지입니다.", stateMsg: "소개글은 있지만 Q&A 섹션이 없어 AI가 커리큘럼·가격 정보를 찾기 어렵습니다.", isLow: true },
-        online_mentions:   { label: "온라인 언급 수",  icon: "📢", score: 40, what: "블로그·카페에서 홍뮤직스튜디오가 언급된 횟수입니다.", stateMsg: "블로그 15건 — 경쟁 1위보다 23건 적습니다.", isLow: false },
-        info_completeness: { label: "기본 정보 완성도", icon: "📍", score: 88, what: "영업시간·주소·메뉴·사진 등 기본 정보 등록 여부입니다.", stateMsg: "영업시간·사진 100장·서비스 등록 완료 — 기본 정보 최고 수준입니다.", isLow: false },
-        content_freshness: { label: "최근 활동",       icon: "🗓️", score: 65, what: "가장 최근 리뷰가 얼마나 최근인지입니다.", stateMsg: "최근 리뷰가 있어 현재 운영 중임을 AI가 인식합니다.", isLow: false },
+        exposure_freq:     { label: "AI가 내 가게를 말해주는 정도", icon: "search",    score: 25, what: "손님이 AI에 \"창원 작곡학원 추천해줘\"라고 물었을 때 나오는 빈도입니다.", stateMsg: "소개글 Q&A 섹션 없음 — 리뷰 48건이 있어도 AI가 가져다 쓸 텍스트가 부족합니다.", isLow: true },
+        review_quality:    { label: "리뷰 평판",                   icon: "star",      score: 78, what: "네이버·카카오맵 리뷰 수와 평점입니다.", stateMsg: "리뷰 48건·평점 4.8 — 경쟁사 대비 가장 강한 항목입니다.", isLow: false },
+        schema_score:      { label: "소개글·블로그 정리 상태",      icon: "clipboard", score: 48, what: "스마트플레이스 소개글·블로그에 커리큘럼·비용·대상이 얼마나 정리돼 있는지입니다.", stateMsg: "소개글은 있지만 Q&A 섹션이 없어 AI가 커리큘럼·가격 정보를 찾기 어렵습니다.", isLow: true },
+        online_mentions:   { label: "온라인 언급 수",               icon: "megaphone", score: 40, what: "블로그·카페에서 홍뮤직스튜디오가 언급된 횟수입니다.", stateMsg: "블로그 15건 — 경쟁 1위보다 23건 적습니다.", isLow: false },
+        info_completeness: { label: "기본 정보 완성도",             icon: "mappin",    score: 88, what: "영업시간·주소·메뉴·사진 등 기본 정보 등록 여부입니다.", stateMsg: "영업시간·사진 100장·서비스 등록 완료 — 기본 정보 최고 수준입니다.", isLow: false },
+        content_freshness: { label: "최근 활동",                   icon: "calendar",  score: 65, what: "가장 최근 리뷰가 얼마나 최근인지입니다.", stateMsg: "최근 리뷰가 있어 현재 운영 중임을 AI가 인식합니다.", isLow: false },
       },
       growthStage: {
         stage: "stability",
@@ -329,16 +333,16 @@ function getMock(category: string, region: string) {
         { rank: 3, name: `${region} 갈비골목`,        isMe: false },
       ],
       totalScore: 62, grade: "C", naverChannelScore: 48,
-      weakItem: { label: "온라인 정보 정리", score: 45, icon: "📋",
-        reason: "스마트플레이스 소개글에 키워드가 부족하고 블로그 포스트가 없어 네이버 AI탭 인용 가능성이 낮습니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 중요한 기반이 됩니다.",
-        impact: "스마트플레이스 소개글 최적화 + 블로그 포스트 1건으로 이 항목 개선 시작 가능" },
+      weakItem: { label: "소개글·블로그 정리 상태", score: 45, icon: "clipboard",
+        reason: "스마트플레이스 소개글에 키워드가 부족하고 블로그 포스트가 없어 네이버 AI탭 안내 가능성이 낮습니다. ChatGPT·Gemini는 구글 비즈니스 프로필 등록이 중요한 기반이 됩니다.",
+        impact: "스마트플레이스 소개글 보완 + 블로그 포스트 1건으로 이 항목 개선 시작 가능" },
       breakdown: {
-        exposure_freq:     { label: "AI 검색 노출",     icon: "🔍", score: 58, what: "손님이 AI에 '맛집 추천해줘' 라고 물어봤을 때 내 가게가 답변에 나오는 빈도입니다.", stateMsg: "이번 1회 검색에서 AI가 내 가게를 언급했습니다.", isLow: false },
-        review_quality:    { label: "리뷰 평판",        icon: "⭐", score: 72, what: "네이버·카카오맵에 등록된 리뷰 수와 평점입니다.", stateMsg: "리뷰와 평점이 충분해 AI가 신뢰할 수 있는 가게로 인식합니다.", isLow: false },
-        schema_score:      { label: "온라인 정보 정리", icon: "📋", score: 45, what: "스마트플레이스 소개글과 블로그 포스트에 영업시간·메뉴·특징 등이 얼마나 잘 정리돼 있는지입니다.", stateMsg: "스마트플레이스 소개글이 짧고 블로그 연결이 없어 글로벌 AI가 가게 정보를 충분히 학습하지 못했습니다.", isLow: true },
-        online_mentions:   { label: "온라인 언급 수",   icon: "📢", score: 61, what: "블로그·SNS·카페 등에서 내 가게가 언급된 횟수입니다.", stateMsg: "블로그 언급 24건 — 경쟁 1위보다 63건 적습니다.", isLow: false },
-        info_completeness: { label: "기본 정보 완성도", icon: "📍", score: 80, what: "전화번호·주소·영업시간·메뉴판 등 기본 정보가 얼마나 등록되어 있는지입니다.", stateMsg: "기본 정보가 모두 잘 등록되어 있습니다.", isLow: false },
-        content_freshness: { label: "최근 활동",        icon: "🗓️", score: 55, what: "가장 최근 리뷰나 게시글이 얼마나 최근인지입니다.", stateMsg: "최근 30일 내 새 리뷰가 있어 AI가 현재 운영 중임을 인식합니다.", isLow: false },
+        exposure_freq:     { label: "AI가 내 가게를 말해주는 정도", icon: "search",    score: 58, what: "손님이 AI에 '맛집 추천해줘' 라고 물어봤을 때 내 가게가 답변에 나오는 빈도입니다.", stateMsg: "이번 측정에서 AI가 내 가게를 언급했습니다.", isLow: false },
+        review_quality:    { label: "리뷰 평판",                   icon: "star",      score: 72, what: "네이버·카카오맵에 등록된 리뷰 수와 평점입니다.", stateMsg: "리뷰와 평점이 충분해 AI가 신뢰할 수 있는 가게로 인식합니다.", isLow: false },
+        schema_score:      { label: "소개글·블로그 정리 상태",      icon: "clipboard", score: 45, what: "스마트플레이스 소개글과 블로그 포스트에 영업시간·메뉴·특징 등이 얼마나 잘 정리돼 있는지입니다.", stateMsg: "스마트플레이스 소개글이 짧고 블로그 연결이 없어 네이버 밖 AI가 가게 정보를 충분히 학습하지 못했습니다.", isLow: true },
+        online_mentions:   { label: "온라인 언급 수",               icon: "megaphone", score: 61, what: "블로그·SNS·카페 등에서 내 가게가 언급된 횟수입니다.", stateMsg: "블로그 언급 24건 — 경쟁 1위보다 63건 적습니다.", isLow: false },
+        info_completeness: { label: "기본 정보 완성도", icon: "mappin",   score: 80, what: "전화번호·주소·영업시간·메뉴판 등 기본 정보가 얼마나 등록되어 있는지입니다.", stateMsg: "기본 정보가 모두 잘 등록되어 있습니다.", isLow: false },
+        content_freshness: { label: "최근 활동",        icon: "calendar", score: 55, what: "가장 최근 리뷰나 게시글이 얼마나 최근인지입니다.", stateMsg: "최근 30일 내 새 리뷰가 있어 AI가 현재 운영 중임을 인식합니다.", isLow: false },
       },
     },
     cafe: {
@@ -367,16 +371,16 @@ function getMock(category: string, region: string) {
         { rank: 3, name: `${region} 감성카페 온`, isMe: true },
       ],
       totalScore: 55, grade: "C", naverChannelScore: 42,
-      weakItem: { label: "최근 활동", score: 38, icon: "🗓️",
+      weakItem: { label: "최근 활동", score: 38, icon: "calendar",
         reason: "최근 3개월간 새 리뷰나 게시물이 없어 AI가 현재 운영 중인지 불확실하게 인식합니다.",
         impact: "스마트플레이스 '소식' 탭 업데이트만으로 이 항목 즉시 개선 시작 가능" },
       breakdown: {
-        exposure_freq:     { label: "AI 검색 노출",     icon: "🔍", score: 51, what: "손님이 AI에 '카페 추천해줘' 라고 물어봤을 때 내 가게가 답변에 나오는 빈도입니다.", stateMsg: "이번 1회 검색에서 AI가 내 카페를 언급했습니다.", isLow: false },
-        review_quality:    { label: "리뷰 평판",        icon: "⭐", score: 65, what: "카카오맵·네이버에 등록된 리뷰 수와 평점입니다.", stateMsg: "평점은 양호하지만 경쟁 카페보다 건수가 부족합니다.", isLow: false },
-        schema_score:      { label: "온라인 정보 정리", icon: "📋", score: 50, what: "스마트플레이스 소개글과 블로그에 메뉴·분위기·위치 정보가 얼마나 잘 정리돼 있는지입니다.", stateMsg: "스마트플레이스 소개글이 있지만 메뉴 정보와 키워드가 부족합니다.", isLow: true },
-        online_mentions:   { label: "온라인 언급 수",   icon: "📢", score: 55, what: "블로그·SNS에서 내 카페가 언급된 횟수입니다.", stateMsg: "블로그 18건 — 경쟁 1위 카페보다 94건 적습니다.", isLow: false },
-        info_completeness: { label: "기본 정보 완성도", icon: "📍", score: 75, what: "전화번호·주소·영업시간·메뉴판 등 기본 정보 등록 여부입니다.", stateMsg: "대부분의 기본 정보가 등록되어 있습니다.", isLow: false },
-        content_freshness: { label: "최근 활동",        icon: "🗓️", score: 38, what: "가장 최근 리뷰나 게시글이 얼마나 최근인지입니다.", stateMsg: "3개월 이상 새 리뷰·게시물이 없어 AI가 폐업 가능성으로 인식합니다.", isLow: true },
+        exposure_freq:     { label: "AI가 내 가게를 말해주는 정도", icon: "search",    score: 51, what: "손님이 AI에 '카페 추천해줘' 라고 물어봤을 때 내 가게가 답변에 나오는 빈도입니다.", stateMsg: "이번 측정에서 AI가 내 카페를 언급했습니다.", isLow: false },
+        review_quality:    { label: "리뷰 평판",                   icon: "star",      score: 65, what: "카카오맵·네이버에 등록된 리뷰 수와 평점입니다.", stateMsg: "평점은 양호하지만 경쟁 카페보다 건수가 부족합니다.", isLow: false },
+        schema_score:      { label: "소개글·블로그 정리 상태",      icon: "clipboard", score: 50, what: "스마트플레이스 소개글과 블로그에 메뉴·분위기·위치 정보가 얼마나 잘 정리돼 있는지입니다.", stateMsg: "스마트플레이스 소개글이 있지만 메뉴 정보와 키워드가 부족합니다.", isLow: true },
+        online_mentions:   { label: "온라인 언급 수",               icon: "megaphone", score: 55, what: "블로그·SNS에서 내 카페가 언급된 횟수입니다.", stateMsg: "블로그 18건 — 경쟁 1위 카페보다 94건 적습니다.", isLow: false },
+        info_completeness: { label: "기본 정보 완성도",             icon: "mappin",    score: 75, what: "전화번호·주소·영업시간·메뉴판 등 기본 정보 등록 여부입니다.", stateMsg: "대부분의 기본 정보가 등록되어 있습니다.", isLow: false },
+        content_freshness: { label: "최근 활동",                   icon: "calendar",  score: 38, what: "가장 최근 리뷰나 게시글이 얼마나 최근인지입니다.", stateMsg: "3개월 이상 새 리뷰·게시물이 없어 AI가 폐업 가능성으로 인식합니다.", isLow: true },
       },
     },
     beauty: {
@@ -406,16 +410,16 @@ function getMock(category: string, region: string) {
         { rank: 4, name: `${region} 헤어샵 블랑`, isMe: true },
       ],
       totalScore: 51, grade: "D", naverChannelScore: 40,
-      weakItem: { label: "AI 검색 노출", score: 35, icon: "🔍",
+      weakItem: { label: "AI가 내 가게를 말해주는 정도", score: 35, icon: "search",
         reason: "미용실 업종은 AI 검색 추천이 빠르게 확산 중입니다. 지금 선점하면 경쟁 우위를 가져갈 수 있습니다.",
-        impact: "블로그 후기에 시술 키워드를 추가하면 AI 조건 검색 노출 시작 가능 — 현재 선점 기회" },
+        impact: "블로그 후기에 시술 키워드를 추가하면 AI 안내 노출 시작 가능 — 현재 선점 기회" },
       breakdown: {
-        exposure_freq:     { label: "AI 검색 노출",     icon: "🔍", score: 35, what: "손님이 AI에 '미용실 추천해줘' 라고 물어봤을 때 내 가게가 답변에 나오는 빈도입니다.", stateMsg: "이번 1회 검색에서 AI가 내 미용실을 언급하지 않았습니다.", isLow: true },
-        review_quality:    { label: "리뷰 평판",        icon: "⭐", score: 68, what: "네이버·카카오맵에 등록된 리뷰 수와 평점입니다.", stateMsg: "평점은 좋지만 리뷰 수가 경쟁사 대비 적습니다.", isLow: false },
-        schema_score:      { label: "온라인 정보 정리", icon: "📋", score: 48, what: "스마트플레이스 소개글과 블로그에 시술 메뉴·가격·특징이 얼마나 잘 정리돼 있는지입니다.", stateMsg: "스마트플레이스에 시술 메뉴와 가격이 없어 AI가 추천하기 어렵습니다.", isLow: true },
-        online_mentions:   { label: "온라인 언급 수",   icon: "📢", score: 52, what: "블로그·인스타그램에서 내 가게가 언급된 횟수입니다.", stateMsg: "블로그 12건 — 경쟁 1위보다 56건 적습니다.", isLow: false },
-        info_completeness: { label: "기본 정보 완성도", icon: "📍", score: 72, what: "전화번호·주소·영업시간·메뉴판 등 기본 정보 등록 여부입니다.", stateMsg: "기본 정보는 잘 등록되어 있습니다.", isLow: false },
-        content_freshness: { label: "최근 활동",        icon: "🗓️", score: 58, what: "가장 최근 리뷰나 게시글이 얼마나 최근인지입니다.", stateMsg: "최근 2개월 내 새 리뷰가 있어 운영 중으로 인식됩니다.", isLow: false },
+        exposure_freq:     { label: "AI가 내 가게를 말해주는 정도", icon: "search",    score: 35, what: "손님이 AI에 '미용실 추천해줘' 라고 물어봤을 때 내 가게가 답변에 나오는 빈도입니다.", stateMsg: "이번 측정에서 AI가 내 미용실을 언급하지 않았습니다.", isLow: true },
+        review_quality:    { label: "리뷰 평판",                   icon: "star",      score: 68, what: "네이버·카카오맵에 등록된 리뷰 수와 평점입니다.", stateMsg: "평점은 좋지만 리뷰 수가 경쟁사 대비 적습니다.", isLow: false },
+        schema_score:      { label: "소개글·블로그 정리 상태",      icon: "clipboard", score: 48, what: "스마트플레이스 소개글과 블로그에 시술 메뉴·가격·특징이 얼마나 잘 정리돼 있는지입니다.", stateMsg: "스마트플레이스에 시술 메뉴와 가격이 없어 AI가 안내하기 어렵습니다.", isLow: true },
+        online_mentions:   { label: "온라인 언급 수",               icon: "megaphone", score: 52, what: "블로그·인스타그램에서 내 가게가 언급된 횟수입니다.", stateMsg: "블로그 12건 — 경쟁 1위보다 56건 적습니다.", isLow: false },
+        info_completeness: { label: "기본 정보 완성도",             icon: "mappin",    score: 72, what: "전화번호·주소·영업시간·메뉴판 등 기본 정보 등록 여부입니다.", stateMsg: "기본 정보는 잘 등록되어 있습니다.", isLow: false },
+        content_freshness: { label: "최근 활동",                   icon: "calendar",  score: 58, what: "가장 최근 리뷰나 게시글이 얼마나 최근인지입니다.", stateMsg: "최근 2개월 내 새 리뷰가 있어 운영 중으로 인식됩니다.", isLow: false },
       },
     },
     education: {
@@ -444,16 +448,16 @@ function getMock(category: string, region: string) {
         { rank: 3, name: `${region} 영어학원 제일`, isMe: true },
       ],
       totalScore: 58, grade: "C", naverChannelScore: 44,
-      weakItem: { label: "온라인 언급 수", score: 38, icon: "📢",
+      weakItem: { label: "온라인 언급 수", score: 38, icon: "megaphone",
         reason: "블로그·카페에서 학원 후기가 부족해 AI가 신뢰도를 낮게 평가합니다. 학부모 후기가 핵심입니다.",
-        impact: "학부모 후기가 쌓일수록 AI가 학원 정보를 신뢰할 수 있는 정보로 인식해 추천 빈도가 높아집니다" },
+        impact: "학부모 후기가 쌓일수록 AI가 학원 정보를 신뢰할 수 있는 정보로 인식해 안내 빈도가 높아집니다" },
       breakdown: {
-        exposure_freq:     { label: "AI 검색 노출",     icon: "🔍", score: 55, what: "학부모가 AI에 '영어학원 추천해줘' 라고 물어봤을 때 내 학원이 답변에 나오는 빈도입니다.", stateMsg: "이번 1회 검색에서 AI가 내 학원을 언급했습니다.", isLow: false },
-        review_quality:    { label: "리뷰 평판",        icon: "⭐", score: 63, what: "네이버·카카오맵에 등록된 학부모 리뷰 수와 평점입니다.", stateMsg: "평점이 양호하지만 후기 수가 더 필요합니다.", isLow: false },
-        schema_score:      { label: "온라인 정보 정리", icon: "📋", score: 52, what: "스마트플레이스 소개글과 블로그에 커리큘럼·수업료·특징이 얼마나 잘 정리돼 있는지입니다.", stateMsg: "기본 정보는 있으나 수업 커리큘럼과 특장점 설명이 부족합니다.", isLow: true },
-        online_mentions:   { label: "온라인 언급 수",   icon: "📢", score: 38, what: "네이버 카페·블로그에서 내 학원이 언급된 횟수입니다.", stateMsg: "블로그 9건 — 경쟁 1위 학원보다 36건 적습니다.", isLow: true },
-        info_completeness: { label: "기본 정보 완성도", icon: "📍", score: 78, what: "전화번호·주소·영업시간·커리큘럼 등 기본 정보 등록 여부입니다.", stateMsg: "기본 정보가 잘 등록되어 있습니다.", isLow: false },
-        content_freshness: { label: "최근 활동",        icon: "🗓️", score: 60, what: "가장 최근 리뷰나 게시글이 얼마나 최근인지입니다.", stateMsg: "최근 2개월 내 후기가 있어 운영 중으로 인식됩니다.", isLow: false },
+        exposure_freq:     { label: "AI가 내 가게를 말해주는 정도", icon: "search",    score: 55, what: "학부모가 AI에 '영어학원 추천해줘' 라고 물어봤을 때 내 학원이 답변에 나오는 빈도입니다.", stateMsg: "이번 측정에서 AI가 내 학원을 언급했습니다.", isLow: false },
+        review_quality:    { label: "리뷰 평판",                   icon: "star",      score: 63, what: "네이버·카카오맵에 등록된 학부모 리뷰 수와 평점입니다.", stateMsg: "평점이 양호하지만 후기 수가 더 필요합니다.", isLow: false },
+        schema_score:      { label: "소개글·블로그 정리 상태",      icon: "clipboard", score: 52, what: "스마트플레이스 소개글과 블로그에 커리큘럼·수업료·특징이 얼마나 잘 정리돼 있는지입니다.", stateMsg: "기본 정보는 있으나 수업 커리큘럼과 특장점 설명이 부족합니다.", isLow: true },
+        online_mentions:   { label: "온라인 언급 수",               icon: "megaphone", score: 38, what: "네이버 카페·블로그에서 내 학원이 언급된 횟수입니다.", stateMsg: "블로그 9건 — 경쟁 1위 학원보다 36건 적습니다.", isLow: true },
+        info_completeness: { label: "기본 정보 완성도",             icon: "mappin",    score: 78, what: "전화번호·주소·영업시간·커리큘럼 등 기본 정보 등록 여부입니다.", stateMsg: "기본 정보가 잘 등록되어 있습니다.", isLow: false },
+        content_freshness: { label: "최근 활동",                   icon: "calendar",  score: 60, what: "가장 최근 리뷰나 게시글이 얼마나 최근인지입니다.", stateMsg: "최근 2개월 내 후기가 있어 운영 중으로 인식됩니다.", isLow: false },
       },
     },
     medical: {
@@ -482,16 +486,16 @@ function getMock(category: string, region: string) {
         { rank: 3, name: `${region} 통증클리닉`,  isMe: false },
       ],
       totalScore: 64, grade: "C", naverChannelScore: 52,
-      weakItem: { label: "리뷰 평판", score: 42, icon: "⭐",
+      weakItem: { label: "리뷰 평판", score: 42, icon: "star",
         reason: "리뷰 수가 경쟁 한의원 대비 적고 영수증 리뷰(방문 인증)가 없어 AI 신뢰도 점수가 낮습니다.",
         impact: "영수증 리뷰(방문 인증)가 쌓이면 AI가 실제 방문 경험이 있는 가게로 인식해 신뢰도 점수가 개선됩니다" },
       breakdown: {
-        exposure_freq:     { label: "AI 검색 노출",     icon: "🔍", score: 62, what: "환자가 AI에 '한의원 추천해줘' 라고 물어봤을 때 내 병원이 답변에 나오는 빈도입니다.", stateMsg: "이번 1회 검색에서 AI가 내 한의원을 언급했습니다.", isLow: false },
-        review_quality:    { label: "리뷰 평판",        icon: "⭐", score: 42, what: "네이버·카카오맵에 등록된 리뷰 수와 영수증 리뷰 비율입니다.", stateMsg: "리뷰 수가 적고 영수증 리뷰(방문 인증)가 없어 AI 신뢰도가 낮습니다.", isLow: true },
-        schema_score:      { label: "온라인 정보 정리", icon: "📋", score: 58, what: "스마트플레이스 소개글과 블로그에 진료 항목·예약방법·전문 분야가 얼마나 잘 정리돼 있는지입니다.", stateMsg: "기본 정보는 있으나 진료 항목 상세 설명이 부족합니다.", isLow: false },
-        online_mentions:   { label: "온라인 언급 수",   icon: "📢", score: 65, what: "블로그·건강 카페에서 내 병원이 언급된 횟수입니다.", stateMsg: "블로그 15건 — 평균 수준입니다.", isLow: false },
-        info_completeness: { label: "기본 정보 완성도", icon: "📍", score: 82, what: "전화번호·주소·진료시간·예약 방법 등 기본 정보 등록 여부입니다.", stateMsg: "기본 정보가 모두 잘 등록되어 있습니다.", isLow: false },
-        content_freshness: { label: "최근 활동",        icon: "🗓️", score: 60, what: "가장 최근 리뷰나 게시글이 얼마나 최근인지입니다.", stateMsg: "최근 1개월 내 새 리뷰가 있어 운영 중으로 인식됩니다.", isLow: false },
+        exposure_freq:     { label: "AI가 내 가게를 말해주는 정도", icon: "search",    score: 62, what: "환자가 AI에 '한의원 추천해줘' 라고 물어봤을 때 내 병원이 답변에 나오는 빈도입니다.", stateMsg: "이번 측정에서 AI가 내 한의원을 언급했습니다.", isLow: false },
+        review_quality:    { label: "리뷰 평판",                   icon: "star",      score: 42, what: "네이버·카카오맵에 등록된 리뷰 수와 영수증 리뷰 비율입니다.", stateMsg: "리뷰 수가 적고 영수증 리뷰(방문 인증)가 없어 AI 신뢰도가 낮습니다.", isLow: true },
+        schema_score:      { label: "소개글·블로그 정리 상태",      icon: "clipboard", score: 58, what: "스마트플레이스 소개글과 블로그에 진료 항목·예약방법·전문 분야가 얼마나 잘 정리돼 있는지입니다.", stateMsg: "기본 정보는 있으나 진료 항목 상세 설명이 부족합니다.", isLow: false },
+        online_mentions:   { label: "온라인 언급 수",               icon: "megaphone", score: 65, what: "블로그·건강 카페에서 내 병원이 언급된 횟수입니다.", stateMsg: "블로그 15건 — 평균 수준입니다.", isLow: false },
+        info_completeness: { label: "기본 정보 완성도",             icon: "mappin",    score: 82, what: "전화번호·주소·진료시간·예약 방법 등 기본 정보 등록 여부입니다.", stateMsg: "기본 정보가 모두 잘 등록되어 있습니다.", isLow: false },
+        content_freshness: { label: "최근 활동",                   icon: "calendar",  score: 60, what: "가장 최근 리뷰나 게시글이 얼마나 최근인지입니다.", stateMsg: "최근 1개월 내 새 리뷰가 있어 운영 중으로 인식됩니다.", isLow: false },
       },
     },
   };
@@ -573,6 +577,16 @@ function getMock(category: string, region: string) {
 type BreakdownItem = { label: string; icon: string; score: number; what: string; stateMsg: string; isLow: boolean };
 type Mock = ReturnType<typeof getMock>;
 
+// 항목 아이콘 키 → lucide 아이콘 매핑 (이모지 대체)
+const BREAKDOWN_ICON_MAP: Record<string, LucideIcon> = {
+  search:    Search,
+  star:      Star,
+  clipboard: ClipboardList,
+  megaphone: Megaphone,
+  mappin:    MapPin,
+  calendar:  CalendarClock,
+};
+
 export default function DemoPage() {
   const [category, setCategory] = useState("photo");
   const [region, setRegion]     = useState("창원시");
@@ -630,17 +644,17 @@ export default function DemoPage() {
   const globalItems = pickItems(GLOBAL_KEYS);
   const briefingNote =
     briefingStatus === "active"
-      ? "네이버 AI 브리핑 대상 업종 — 소개글 Q&A·소식·리뷰를 보강하면 브리핑 인용 후보에 진입합니다 (업데이트 후 2~4주, 추정)."
+      ? "네이버 AI 브리핑 대상 업종 — 소개글 Q&A·소식·리뷰를 보강하면 브리핑 인용 후보에 진입할 수 있습니다 (업데이트 후 2~4주, 추정)."
       : briefingStatus === "likely"
       ? "네이버 '플레이스형' AI 브리핑 확대 예정 업종 — 지금 준비해두면 확대 시 바로 유리합니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 지금 가능합니다."
       : "이 업종은 '플레이스형' 네이버 AI 브리핑 비대상입니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출 가능. 네이버 일반검색·AI탭 노출에 집중하세요.";
 
-  type ChannelDef = { icon: string; label: string; border: string; items?: [string, BreakdownItem][]; note?: string };
+  type ChannelDef = { iconComp: LucideIcon; label: string; border: string; items?: [string, BreakdownItem][]; note?: string };
   const channelDefs: Record<string, ChannelDef> = {
-    briefing:    { icon: "✨", label: "네이버 AI 브리핑", border: "border-purple-400", note: briefingNote },
-    naverSearch: { icon: "🔍", label: "네이버 일반검색", border: "border-green-400", items: naverSearchItems },
-    aitab:       { icon: "🤖", label: "네이버 AI탭", border: "border-blue-400", note: "모든 업종 대상 — 소개글·리뷰 키워드를 보강하면 AI탭 답변 후보에 들어갑니다." },
-    global:      { icon: "🌐", label: "글로벌 AI (ChatGPT·Gemini)", border: "border-slate-400", items: globalItems },
+    briefing:    { iconComp: Sparkles, label: "네이버 AI 브리핑", border: "border-purple-400", note: briefingNote },
+    naverSearch: { iconComp: Search,   label: "네이버 일반검색",   border: "border-green-400",  items: naverSearchItems },
+    aitab:       { iconComp: Bot,      label: "네이버 AI탭",       border: "border-blue-400",   note: "업종 제한 발표 없음(2026-06-25 정식 출시) — 소개글·리뷰 키워드를 보강하면 AI탭 답변 후보에 들어갈 수 있습니다." },
+    global:      { iconComp: Globe,    label: "글로벌 AI (ChatGPT·Gemini)", border: "border-slate-400", items: globalItems },
   };
   // 업종그룹 순서분기 — 대시보드 InsightZone과 동일
   const channelOrder: string[] = briefingStatus === "inactive"
@@ -648,39 +662,44 @@ export default function DemoPage() {
     : ["briefing", "naverSearch", "aitab", "global"];
 
   // 항목 1개 렌더 (기존 6차원 행 마크업 재사용)
-  const renderBreakdownRow = ([key, item]: [string, BreakdownItem]) => (
-    <div key={key} className="py-3 first:pt-0 last:pb-0 border-b border-gray-50 last:border-0">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.isLow ? "bg-amber-400" : "bg-green-500"}`} />
-          <span className="text-sm md:text-base font-semibold text-gray-800">{item.icon} {item.label}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className={`text-sm font-bold px-2.5 py-1 rounded-full ${item.isLow ? "bg-amber-50 text-amber-700" : "bg-green-50 text-green-700"}`}>
-            {item.isLow ? "⚠ 개선 필요" : "✓ 양호"}
-          </span>
-          {key === "exposure_freq" && (
-            <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${m.geminiRate === 0 ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>
-              {m.geminiRate === 0 ? "AI 미노출" : `AI노출 ${m.geminiRate}%`}
+  const renderBreakdownRow = ([key, item]: [string, BreakdownItem]) => {
+    const RowIcon = BREAKDOWN_ICON_MAP[item.icon] ?? Search;
+    const geminiLabel = m.geminiRate === 0 ? "AI 미노출" : m.geminiRate < 10 ? "AI 가끔 노출" : m.geminiRate < 30 ? "AI 일부 노출" : "AI 자주 노출";
+    return (
+      <div key={key} className="py-3 first:pt-0 last:pb-0 border-b border-gray-50 last:border-0">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <IconTile icon={RowIcon} tone={item.isLow ? "amber" : "green"} size="sm" />
+            <span className="text-sm md:text-base font-semibold text-gray-800">{item.label}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1 text-sm font-bold px-2.5 py-1 rounded-full ${item.isLow ? "bg-amber-50 text-amber-700" : "bg-green-50 text-green-700"}`}>
+              {item.isLow ? <AlertTriangle className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
+              {item.isLow ? "개선 필요" : "양호"}
             </span>
-          )}
+            {key === "exposure_freq" && (
+              <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${m.geminiRate === 0 ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>
+                {geminiLabel}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
-      {/* 바 그래프 (숫자 미표시) */}
-      <div className="flex items-center gap-3 mb-2">
-        <div className="flex-1 bg-gray-100 rounded-full h-2">
-          <div
-            className={`h-2 rounded-full ${item.isLow ? "bg-amber-400" : "bg-green-500"}`}
-            style={{ width: `${item.score}%` }}
-          />
+        {/* 바 그래프 (숫자 미표시) */}
+        <div className="flex items-center gap-3 mb-2">
+          <div className="flex-1 bg-gray-100 rounded-full h-2">
+            <div
+              className={`h-2 rounded-full ${item.isLow ? "bg-amber-400" : "bg-green-500"}`}
+              style={{ width: `${item.score}%` }}
+            />
+          </div>
         </div>
+        <p className="text-sm md:text-base text-gray-600 leading-relaxed">{item.what}</p>
+        <p className={`text-sm md:text-base mt-1 font-medium leading-relaxed ${item.isLow ? "text-amber-700" : "text-green-700"}`}>
+          {item.stateMsg}
+        </p>
       </div>
-      <p className="text-sm md:text-base text-gray-600 leading-relaxed">{item.what}</p>
-      <p className={`text-sm md:text-base mt-1 font-medium leading-relaxed ${item.isLow ? "text-amber-700" : "text-green-700"}`}>
-        {item.stateMsg}
-      </p>
-    </div>
-  );
+    );
+  };
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -729,7 +748,7 @@ export default function DemoPage() {
             내 가게 네이버 플레이스 순위, 경쟁사와 비교해 정확히 확인하세요
           </p>
           <p className="text-sm md:text-base text-gray-600 mt-1.5 leading-relaxed">
-            스마트플레이스 개선이 네이버 검색 상위 노출로 이어집니다. 어느 채널을, 얼마나 빠르게 올릴 수 있는지 채널별로 안내합니다.
+            스마트플레이스 개선이 네이버 검색 상위 노출로 이어질 수 있습니다. 어디를 고치면 얼마나 빠르게 오를 수 있는지 안내합니다.
           </p>
         </div>
 
@@ -793,35 +812,47 @@ export default function DemoPage() {
           </p>
         </div>
 
+        {/* ── 예시 화면 안내 배너 ── */}
+        {!isRealBiz && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3">
+            <IconTile icon={FileText} tone="amber" size="sm" className="shrink-0" />
+            <p className="text-sm md:text-base font-semibold text-amber-800">
+              아래는 예시 화면입니다 — 실제 내 가게 결과는
+              <Link href="/trial" className="ml-1 underline hover:text-amber-900">무료 진단</Link>
+              에서 확인하세요.
+            </p>
+          </div>
+        )}
+
         {/* ── 네이버 AI 브리핑 비대상 업종 상단 안내 배너 ── */}
         {briefingStatus === "inactive" && (
           <div className="rounded-xl border border-slate-200 bg-white px-4 md:px-5 py-4 space-y-3">
             {/* 상단: 비대상 안내 */}
             <div className="flex items-start gap-3">
-              <span className="text-xl shrink-0 mt-0.5">ℹ️</span>
+              <IconTile icon={Info} tone="slate" size="md" className="mt-0.5 shrink-0" />
               <div>
                 <p className="text-base font-bold text-slate-800 mb-1">
-                  {CATEGORIES.find(c => c.value === category)?.label} 업종은 현재 '플레이스형' 네이버 AI 브리핑 비대상입니다
+                  {CATEGORIES.find(c => c.value === category)?.label} 업종은 현재 &apos;플레이스형&apos; 네이버 AI 브리핑 비대상입니다
                 </p>
                 <p className="text-sm md:text-base text-slate-600 leading-relaxed">
-                  네이버 '플레이스형' AI 브리핑은 음식점·카페 등 일부 업종만 대상입니다.
-                  단, 블로그·콘텐츠로 <strong className="text-slate-800">'정보형 AI 브리핑'</strong> 노출도 가능합니다.
+                  네이버 &apos;플레이스형&apos;(가게 정보를 요약해 보여주는 방식) AI 브리핑은 음식점·카페 등 일부 업종만 대상입니다.
+                  단, 블로그·콘텐츠로 <strong className="text-slate-800">&apos;정보형 AI 브리핑&apos;</strong>(블로그·글을 모아 추천하는 방식) 노출도 가능합니다.{" "}
                   <strong className="text-slate-800">ChatGPT·Google AI</strong> 노출 개선도 효과적이며,
-                  <strong className="text-slate-800"> 네이버 AI탭</strong>(모든 업종, 정식 출시)도 확인하세요.
+                  <strong className="text-slate-800"> 네이버 AI탭</strong>(업종 제한 발표 없음, 2026-06-25 정식 출시)도 확인하세요.
                 </p>
               </div>
             </div>
             {/* 하단: 네이버 검색 상위 노출 가능 안내 */}
             <div className="flex items-start gap-3 bg-green-50 border border-green-200 rounded-xl px-3 py-3">
-              <span className="text-xl shrink-0 mt-0.5">✅</span>
+              <IconTile icon={CheckCircle2} tone="green" size="md" className="mt-0.5 shrink-0" />
               <div>
                 <p className="text-sm font-bold text-green-800 mb-1">
                   단, 스마트플레이스 정보 개선으로 네이버 지도·플레이스 검색 순위가 유리해질 수 있습니다
                 </p>
                 <p className="text-sm text-green-700 leading-relaxed">
-                  '플레이스형' AI 브리핑 비대상이어도 <strong>리뷰 수·평점·소개글·사진</strong>을 개선하면
-                  네이버 지도·플레이스 키워드 검색에서 순위가 올라갈 가능성이 높아집니다.
-                  이 개선은 네이버 AI탭·ChatGPT·Gemini 노출에도 긍정적으로 작용합니다.
+                  &apos;플레이스형&apos; AI 브리핑 비대상이어도 <strong>리뷰 수·평점·소개글·사진</strong>을 개선하면
+                  네이버 지도·플레이스 키워드 검색에서 순위가 올라갈 수 있습니다.
+                  네이버 일반검색과 AI탭 노출에도 긍정적입니다.
                 </p>
               </div>
             </div>
@@ -830,14 +861,14 @@ export default function DemoPage() {
         {briefingStatus === "likely" && (
           <div className="rounded-xl border-2 border-blue-200 bg-blue-50 px-4 md:px-5 py-4">
             <div className="flex items-start gap-3">
-              <span className="text-2xl shrink-0 mt-0.5">📡</span>
+              <IconTile icon={Radio} tone="blue" size="md" className="mt-0.5 shrink-0" />
               <div>
                 <p className="text-base font-bold text-blue-900 mb-1">
-                  {CATEGORIES.find(c => c.value === category)?.label} 업종 — 네이버 AI 브리핑 확대 예정
+                  {CATEGORIES.find(c => c.value === category)?.label} 업종 — 네이버 &apos;플레이스형&apos; AI 브리핑은 아직 대상이 아닙니다
                 </p>
                 <p className="text-sm md:text-base text-blue-800 leading-relaxed">
-                  네이버 AI탭은 2026-06-25 전체 사용자 대상 정식 출시됐습니다(업종 제한 없음).
-                  지금 준비해두면 &apos;플레이스형&apos; AI 브리핑 확대 시 바로 유리해집니다. 블로그·콘텐츠로 &apos;정보형 AI 브리핑&apos; 노출도 지금 가능합니다.
+                  네이버 AI탭은 2026-06-25 전체 사용자 대상 정식 출시됐습니다(업종 제한 발표 없음).
+                  &apos;플레이스형&apos; AI 브리핑의 확대 여부는 네이버가 발표하지 않았습니다. 지금 소개글·사진·리뷰를 준비해두면 도움이 될 수 있습니다. 블로그·콘텐츠로 &apos;정보형 AI 브리핑&apos; 노출도 지금 가능합니다.
                 </p>
               </div>
             </div>
@@ -849,8 +880,8 @@ export default function DemoPage() {
           {/* 헤더 */}
           <div className="flex items-center justify-between px-4 py-2.5 bg-green-50 border-b border-green-100">
             <div className="flex items-center gap-2">
-              <span className="text-base">🔍</span>
-              <span className="text-sm font-semibold text-green-800">네이버 검색 현황 — 소상공인 핵심 채널</span>
+              <IconTile icon={Search} tone="green" size="sm" />
+              <span className="text-sm font-semibold text-green-800">네이버 검색 현황 — 소상공인에게 가장 중요한 곳</span>
             </div>
             <span className="text-sm text-green-700 bg-green-100 rounded-full px-2.5 py-0.5 shrink-0 font-medium hidden sm:inline">
               {m.query} 기준
@@ -862,9 +893,12 @@ export default function DemoPage() {
 
             {/* ✅ 네이버 SEO 개선 가치 제안 — 최상단 강조 */}
             <div className="bg-green-50 border-2 border-green-300 rounded-xl px-4 py-3.5">
-              <p className="text-base font-bold text-green-800 mb-1.5">✅ 이 서비스로 네이버 검색 순위를 올릴 수 있습니다</p>
+              <div className="flex items-center gap-2 mb-1.5">
+                <IconTile icon={CheckCircle2} tone="green" size="sm" />
+                <p className="text-base font-bold text-green-800">이 서비스로 네이버 검색 순위를 올릴 수 있습니다</p>
+              </div>
               <p className="text-sm md:text-base text-green-700 leading-relaxed">
-                스마트플레이스 <strong>소개글·리뷰·사진·소식</strong>을 개선하면 네이버 지도·플레이스 키워드 검색 순위가 올라갑니다.
+                스마트플레이스 <strong>소개글·리뷰·사진·소식</strong>을 개선하면 네이버 지도·플레이스 키워드 검색 순위가 올라갈 수 있습니다.
                 {briefingStatus !== "inactive"
                   ? " AI 브리핑 인용 후보 진입도 같은 방법으로 가능합니다."
                   : " 블로그·콘텐츠를 꾸준히 발행하면 '정보형 AI 브리핑' 인용 후보가 됩니다."}
@@ -880,20 +914,20 @@ export default function DemoPage() {
                   <span className="text-sm font-normal text-gray-600 ml-1">/ {m.naverCompetitors.length}개 업체</span>
                 </p>
                 <p className={`text-sm font-medium mt-1 ${m.naverRank <= 3 ? "text-green-700" : "text-amber-700"}`}>
-                  {m.naverRank === 1 ? "✓ 지역 1위" : m.naverRank <= 3 ? "✓ 상위 노출" : "⚠ 순위 개선 가능"}
+                  {m.naverRank === 1 ? "지역 1위" : m.naverRank <= 3 ? "상위 노출" : "순위 개선 가능"}
                 </p>
               </div>
               <div className="bg-gray-50 rounded-xl px-4 py-3">
                 <p className="text-sm text-gray-600 mb-1">네이버 AI 브리핑</p>
                 {briefingStatus === "active" ? (
                   <>
-                    <p className="text-base font-bold text-purple-700">대상 업종 ✓</p>
+                    <p className="text-base font-bold text-purple-700">대상 업종</p>
                     <p className="text-sm text-purple-600 mt-1">소개글 개선 후 2~4주(추정)</p>
                   </>
                 ) : briefingStatus === "likely" ? (
                   <>
                     <p className="text-base font-bold text-yellow-700">확대 예정</p>
-                    <p className="text-sm text-yellow-600 mt-1">지금 준비하면 유리</p>
+                    <p className="text-sm text-amber-700 mt-1">지금 준비하면 유리</p>
                   </>
                 ) : (
                   <>
@@ -905,14 +939,13 @@ export default function DemoPage() {
             </div>
 
             {/* AI 채널별 개선 반영 기간 */}
-            <div>
-              <p className="text-sm font-semibold text-gray-600 mb-2">개선 후 손님에게 노출되는 기간 (채널별 추정 · ChatGPT는 공식 확인)</p>
+            <MoreInfo summary="개선하면 언제쯤 노출될까요? (AI별 소요 기간)" tone="soft">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {[
-                  { ch: "네이버 AI 브리핑", period: "2~4주(추정)",      border: "border-purple-200", bg: "bg-purple-50", text: "text-purple-700", tip: "소개글 Q&A 추가 후 네이버 재수집 · 네이버 비공개로 추정치" },
-                  { ch: "네이버 AI탭",       period: "2~4주(추정)",      border: "border-blue-200",   bg: "bg-blue-50",   text: "text-blue-700",   tip: "소개글·리뷰 키워드 보강 · 네이버 비공개로 추정치" },
-                  { ch: "Gemini",            period: "수개월~1년",  border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", tip: "AEOlab 스캐너는 학습 데이터 기반. 실사용 Gemini 앱은 구글 검색 그라운딩 기반이라 구글 비즈니스 프로필 등록 후 더 빠르게(수 주~수개월) 반영될 수 있음" },
-                  { ch: "ChatGPT",           period: "수개월~1년",  border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-700", tip: "학습 데이터 기반(공식 확인) — 웹 콘텐츠가 학습에 반영되기까지 수개월~1년 소요" },
+                  { ch: "네이버 AI 브리핑", period: "2~4주(추정)",               border: "border-purple-200", bg: "bg-purple-50", text: "text-purple-700", tip: "소개글 Q&A 추가 후 네이버 재수집 · 네이버 비공개로 추정치" },
+                  { ch: "네이버 AI탭",       period: "2~4주(추정)",               border: "border-blue-200",   bg: "bg-blue-50",   text: "text-blue-700",   tip: "소개글·리뷰 키워드 보강 · 네이버 비공개로 추정치" },
+                  { ch: "Gemini",            period: "수주~수개월(GBP 등록 후)", border: "border-indigo-200", bg: "bg-indigo-50", text: "text-indigo-700", tip: "구글 비즈니스 프로필(GBP) 등록 후 2~4주 내 반영 시작(추정), 안정적 인용까지 수개월 소요. 보장 아님" },
+                  { ch: "ChatGPT",           period: "수개월~1년 이상",           border: "border-orange-200", bg: "bg-orange-50", text: "text-orange-700", tip: "학습 데이터 기반(공식 확인) — 웹 콘텐츠가 학습에 반영되기까지 수개월~1년 이상 소요. 보장 아님" },
                 ].map((item) => (
                   <div key={item.ch} className={`rounded-xl border ${item.border} ${item.bg} px-3 py-2.5`}>
                     <div className={`flex items-center justify-between mb-0.5 ${item.text}`}>
@@ -923,7 +956,7 @@ export default function DemoPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </MoreInfo>
 
           </div>
 
@@ -966,14 +999,14 @@ export default function DemoPage() {
 
             {/* 측정 근거 요약 */}
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <p className="mb-2 text-sm font-medium text-slate-600">🔍 {isRealBiz ? "이렇게 측정했습니다" : "실제 스캔에서는 이렇게 측정합니다"}</p>
+              <p className="mb-2 text-sm font-medium text-slate-600">{isRealBiz ? "이렇게 측정했습니다" : "실제 스캔에서는 이렇게 측정합니다"}</p>
               <div className="flex flex-wrap gap-x-4 gap-y-1 mb-2">
-                <span className="text-sm text-slate-700">🤖 ChatGPT·Gemini 각 50회(총 100회) 질의</span>
-                <span className="text-sm text-slate-700">📍 네이버 AI 브리핑 직접 확인</span>
-                <span className="text-sm text-slate-700">📝 블로그 후기 {m.blogMentions}건 발견</span>
-                <span className="text-sm text-slate-700">✅ 스마트플레이스 자동 점검</span>
+                <span className="text-sm text-slate-700">ChatGPT·Gemini 각 100회(총 200회) 질의</span>
+                <span className="text-sm text-slate-700">네이버 AI 브리핑 직접 확인</span>
+                <span className="text-sm text-slate-700">블로그 후기 {m.blogMentions}건 발견</span>
+                <span className="text-sm text-slate-700">스마트플레이스 자동 점검</span>
               </div>
-              <p className="text-sm text-slate-500">⏱ 스마트플레이스 개선 후 네이버 검색 순위 변화까지 보통 2~4주(추정) 소요됩니다.</p>
+              <p className="text-sm text-slate-600">스마트플레이스 개선 후 네이버 검색 순위 변화까지 보통 2~4주(추정) 소요됩니다.</p>
             </div>
 
             {/* 업종 평균 대비 내 위치 (교육용 보조 — 성장단계·채널·오늘할일은 위 종합결론 히어로에 표시) */}
@@ -1007,7 +1040,7 @@ export default function DemoPage() {
             <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
               <p className="text-sm font-semibold text-gray-700 mb-1">ChatGPT·Google AI에도 노출되려면?</p>
               <p className="text-sm text-gray-600 leading-relaxed">
-                네이버가 AI 수집 봇을 robots.txt로 차단하고 있어, 네이버 스마트플레이스 정보는 해외 AI가 직접 읽기 어렵습니다.
+                네이버는 robots.txt에서 주요 AI 수집 봇을 차단하고 있어(2026-10-07 확인), 네이버 스마트플레이스 정보는 해외 AI가 직접 읽기 어렵습니다.
                 <a href="https://business.google.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 font-medium hover:underline ml-1">
                   Google 비즈니스 프로필 무료 등록 →
                 </a>
@@ -1049,7 +1082,7 @@ export default function DemoPage() {
                 <span className="text-sm font-semibold text-gray-700">
                   {showJourney ? "접기" : "네이버·블로그·AI 검색 과정 자세히 보기"}
                 </span>
-                {showJourney ? <ChevronUp className="w-4 h-4 text-gray-600 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-600 shrink-0" />}
+                {showJourney ? <ChevronUp className="w-5 h-5 text-gray-600 shrink-0" /> : <ChevronDown className="w-5 h-5 text-gray-600 shrink-0" />}
               </button>
 
               {showJourney && (
@@ -1111,7 +1144,7 @@ export default function DemoPage() {
                 </div>
                 <div className="ml-8">
                   <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 mb-3">
-                    <p className="text-sm md:text-base font-bold text-red-700 mb-3">후기가 더 많은 경쟁 가게를 선택할 가능성이 높습니다</p>
+                    <p className="text-sm md:text-base font-bold text-red-700 mb-3">후기가 많은 가게가 먼저 눈에 띕니다</p>
                     <div className="mb-2.5">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-sm font-semibold text-blue-700 flex items-center gap-1.5">
@@ -1147,7 +1180,7 @@ export default function DemoPage() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm md:text-base font-medium text-gray-800 line-clamp-1">{blog.title}</p>
                           <p className="text-sm text-gray-600 line-clamp-1 mt-0.5">{blog.desc}</p>
-                          <p className={`text-sm mt-0.5 font-medium ${blog.isOld ? "text-orange-600" : "text-gray-600"}`}>
+                          <p className={`text-sm mt-0.5 font-medium ${blog.isOld ? "text-orange-700" : "text-gray-600"}`}>
                             {blog.dateLabel}{blog.isOld && " · 오래된 후기"}
                           </p>
                         </div>
@@ -1165,31 +1198,30 @@ export default function DemoPage() {
                 </div>
                 <div className="ml-8">
                   {/* AI 도구 특성 설명 */}
-                  <div className="bg-gray-50 rounded-xl px-4 py-3 mb-3 border border-gray-100">
-                    <p className="text-sm font-semibold text-gray-600 mb-2">각 AI 도구 특성</p>
+                  <MoreInfo summary="각 AI가 왜 반영에 시간이 다를까요?" tone="soft" className="mb-3">
                     <ul className="space-y-1.5">
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="shrink-0 font-medium text-gray-700 mt-px">ChatGPT</span>
-                        <span>학습 데이터 기반(공식 확인, cutoff 2024-06-01) — 웹 콘텐츠가 반영되기까지 수개월~1년 소요</span>
+                        <span>학습 데이터 기반(AI가 공부한 자료는 2024년 6월까지) — 반영되기까지 수개월~1년 이상 걸릴 수 있습니다(보장 아님)</span>
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="shrink-0 font-medium text-gray-700 mt-px">Gemini</span>
-                        <span>학습 데이터 기반(AEOlab 스캐너 기준) — 반영까지 수개월~1년 소요. 실사용 Gemini 앱은 구글 검색 그라운딩 기반이라 구글 비즈니스 프로필 등록 후 더 빠르게(수 주~수개월) 반영될 수 있음</span>
+                        <span>구글 비즈니스 프로필(GBP) 등록 후 수주~수개월 반영 시작(추정). 보장 아님</span>
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="shrink-0 font-medium text-gray-700 mt-px">네이버 AI 브리핑</span>
-                        <span>스마트플레이스·리뷰·소식 기반 실시간 (업데이트 후 2~4주)</span>
+                        <span>스마트플레이스·리뷰·소식 기반 실시간 (업데이트 후 2~4주, 추정)</span>
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="shrink-0 font-medium text-gray-700 mt-px">네이버 AI탭</span>
-                        <span>2026-06-25 정식 출시, 업종 제한 없음</span>
+                        <span>업종 제한 발표 없음(2026-06-25 정식 출시)</span>
                       </li>
                       <li className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="shrink-0 font-medium text-gray-700 mt-px">Google 검색</span>
-                        <span>Google 검색 결과에 내 가게가 나오는지 확인 (Serper.dev), 구독 시 자동 스캔에 포함</span>
+                        <span>Google 검색 결과에 내 가게가 나오는지 확인합니다. 구독하면 자동 점검에 포함됩니다</span>
                       </li>
                     </ul>
-                  </div>
+                  </MoreInfo>
 
                   {m.aiExcerptFail ? (
                     <>
@@ -1198,8 +1230,8 @@ export default function DemoPage() {
                           AI가 {m.businessName}를 추천하지 않았습니다
                         </p>
                         <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                          "{m.query}"으로 ChatGPT·Gemini에 각 50회 질의한 결과,
-                          <strong className="text-red-700"> ChatGPT·Gemini 합산 AI 노출 확률 {m.geminiRate === 0 ? "이번 측정에서 AI에 미노출" : `${m.geminiRate}%`}</strong>입니다.
+                          &ldquo;{m.query}&rdquo;으로 ChatGPT·Gemini에 각 100회 질의한 결과,
+                          <strong className="text-red-700"> {m.geminiRate === 0 ? "이번 측정에서 AI에 미노출" : m.geminiRate < 10 ? "AI에 가끔 노출" : "AI에 일부 노출"}</strong>입니다.
                           소개글·소식에 구조화된 정보가 없어 AI가 인용할 후보 텍스트를 찾기 어렵습니다.
                         </p>
                       </div>
@@ -1211,20 +1243,20 @@ export default function DemoPage() {
                         </p>
                       </div>
                       <p className="text-sm text-gray-600 mt-2 leading-relaxed">
-                        이 데모는 <span className="font-medium">Basic 구독 기준 (Gemini·ChatGPT 각 50회)</span>으로 측정한 샘플입니다.
-                        무료 체험은 ChatGPT 5회 질의이며, 구독 후 정밀 측정이 진행됩니다.
+                        이 데모는 <span className="font-medium">자동 스캔 기준 (Gemini·ChatGPT 각 100회)</span>으로 측정한 샘플입니다.
+                        무료 체험은 ChatGPT 50회(비유도 방식) 질의이며, 구독 후 정밀 측정이 진행됩니다.
                       </p>
                     </>
                   ) : (
                     <>
                       <div className="bg-green-50 rounded-xl px-4 py-3 border-l-4 border-green-400 mb-2">
                         <p className="text-sm md:text-base font-semibold text-green-700 mb-1">AI가 "{m.businessName}" 을(를) 추천했습니다</p>
-                        <p className="text-sm text-gray-600 leading-relaxed">"{m.aiExcerpt.slice(0, 100)}..."</p>
+                        <p className="text-sm text-gray-600 leading-relaxed">&ldquo;{m.aiExcerpt.slice(0, 100)}...&rdquo; <span className="text-amber-600 font-medium">(예시 답변)</span></p>
                         <p className="text-sm font-semibold text-green-700 mt-1.5">
-                          ChatGPT·Gemini 합산 AI 노출 확률: <span className="text-green-800">{m.geminiRate}%</span>
+                          ChatGPT·Gemini 합산 — {m.geminiRate < 10 ? "AI에 가끔 노출" : m.geminiRate < 30 ? "AI에 일부 노출" : "AI에 자주 노출"}
                         </p>
                       </div>
-                      <p className="text-sm text-gray-600 leading-relaxed">무료 체험은 ChatGPT 5회 질의입니다. Basic 구독: 주 2회(월·목) Gemini·ChatGPT 각 50회 자동 측정.</p>
+                      <p className="text-sm text-gray-600 leading-relaxed">무료 체험은 ChatGPT 50회(비유도 방식) 질의입니다. 자동 스캔: Gemini·ChatGPT 각 100회 측정.</p>
                     </>
                   )}
                   <p className="mt-2 text-sm text-gray-600 leading-relaxed">
@@ -1241,8 +1273,8 @@ export default function DemoPage() {
             {/* 항목별 분석 — 채널 구조로 재배치 (대시보드 채널 taxonomy와 일치) */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-100">
-                <p className="text-base md:text-lg font-bold text-gray-800">채널별로 어디를 개선할지 확인하기</p>
-                <p className="text-sm text-gray-600 mt-0.5">네이버·글로벌 AI 채널별로 약한 항목부터 개선하면 됩니다</p>
+                <p className="text-base md:text-lg font-bold text-gray-800">어디를 고칠지 확인하기</p>
+                <p className="text-sm text-gray-600 mt-0.5">네이버와 ChatGPT·Gemini 등에서 약한 항목부터 고치면 됩니다</p>
               </div>
               <div className="divide-y divide-gray-100">
                 {channelOrder.map((cid) => {
@@ -1250,7 +1282,7 @@ export default function DemoPage() {
                   return (
                     <div key={cid} className="px-4 md:px-6 py-4">
                       <div className={`flex items-center gap-2 pb-2 mb-3 border-b-2 ${ch.border}`}>
-                        <span className="text-base" aria-hidden="true">{ch.icon}</span>
+                        <IconTile icon={ch.iconComp} tone="slate" size="sm" />
                         <span className="text-sm font-bold text-gray-700">{ch.label}</span>
                       </div>
                       {ch.items && ch.items.length > 0 ? (
@@ -1273,12 +1305,14 @@ export default function DemoPage() {
               <div className="divide-y divide-gray-50">
                 {m.smartPlaceChecklist.map((item, i) => (
                   <div key={i} className="px-4 md:px-6 py-3 flex items-start gap-3">
-                    <span className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center text-sm shrink-0 font-bold ${
+                    <span className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
                       item.checked === true  ? "bg-green-100 text-green-700" :
                       item.checked === false ? "bg-red-100 text-red-700" :
                       "bg-gray-100 text-gray-600"
                     }`}>
-                      {item.checked === true ? "✓" : item.checked === false ? "✗" : "?"}
+                      {item.checked === true  ? <Check className="w-3 h-3" /> :
+                       item.checked === false ? <X className="w-3 h-3" /> :
+                       <HelpCircle className="w-3 h-3" />}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -1310,7 +1344,7 @@ export default function DemoPage() {
                   <div className="bg-gray-50 rounded-xl p-4">
                     <p className="text-sm font-bold text-gray-600 mb-2">지금 (무료 체험)</p>
                     <ul className="space-y-1.5 text-sm text-gray-600">
-                      <li>· ChatGPT 5회 AI 노출 확률(%) 측정</li>
+                      <li>· ChatGPT에게 50번 물어 내 가게가 저절로 추천되는지 확인</li>
                       <li>· 종합 점수 + 네이버/글로벌 분리 진단</li>
                       <li>· 스마트플레이스 항목별 점검</li>
                       <li>· 업종 평균 대비 내 위치 확인</li>
@@ -1321,7 +1355,7 @@ export default function DemoPage() {
                   <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                     <p className="text-sm font-bold text-blue-700 mb-2">구독 시작 후 (Basic 기준)</p>
                     <ul className="space-y-1.5 text-sm text-blue-700">
-                      <li>· 주 2회(월·목) 자동 스캔 — Gemini·ChatGPT 각 50회 + 네이버 AI 브리핑</li>
+                      <li>· 주 2회(월·목) 자동 스캔 — Gemini·ChatGPT 각 100회 + 네이버 AI 브리핑</li>
                       <li>· 수동 스캔 하루 2회 (원할 때 직접 실행)</li>
                       <li>· 경쟁사 3곳 추적 + 6개 차원 갭 분석</li>
                       <li>· 업종 시장 순위·분포 확인</li>
@@ -1345,12 +1379,12 @@ export default function DemoPage() {
           <div className="px-5 md:px-8 pt-6 pb-5">
             <p className="font-bold text-white text-xl md:text-2xl leading-snug mb-1.5">내 가게의 AI 노출은 어떤 상태일까요?</p>
             {isRealBiz ? (
-              <p className="text-sm md:text-base text-white/85 mb-5 leading-relaxed">
+              <p className="text-sm md:text-base text-white/90 mb-5 leading-relaxed">
                 지금 {m.businessName}의 AI 노출 상태를 확인할 수 있습니다.<br />
                 소개글에 Q&A 5개 추가 후 7일 뒤 노출이 얼마나 개선됐는지 자동으로 확인하고 싶다면?
               </p>
             ) : (
-              <p className="text-sm md:text-base text-white/75 mb-5">
+              <p className="text-sm md:text-base text-white/90 mb-5">
                 업종과 지역만 입력하면 1분 안에 무료로 확인됩니다. 회원가입 없이 바로 시작하세요.
               </p>
             )}
@@ -1368,24 +1402,24 @@ export default function DemoPage() {
                 1분 무료 회원가입
               </Link>
             </div>
-            <p className="text-sm text-white/50 text-center">Basic 첫 달 8,950원(이후 월 17,900원) · 7일 이내 미사용 시 100% 환불</p>
+            <p className="text-sm text-white/90 text-center">Basic 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원(이후 월 {PLAN_PRICES.basic.toLocaleString()}원) · 7일 이내 미사용 시 100% 환불</p>
           </div>
           <div className="bg-black/20 px-5 md:px-8 py-5">
-            <p className="text-sm md:text-base font-bold text-white/60 mb-3 uppercase tracking-wide">시작하면 이렇게 됩니다</p>
+            <p className="text-sm md:text-base font-bold text-white/90 mb-3">시작하면 이렇게 됩니다</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {[
                 { step: "1", label: "1분 회원가입",               desc: "이메일 인증만으로 즉시 시작" },
                 { step: "2", label: "가게 등록",                   desc: "방금 입력한 정보 그대로 사용" },
-                { step: "3", label: "Basic 구독 시작",              desc: "네이버·Google AI + Gemini·ChatGPT 각 50회 (총 100회) 자동 샘플링" },
-                { step: "4", label: "경쟁사 데이터 자동 수집",     desc: "매주 월요일 05:00 경쟁사 키워드·소개글 텍스트 수집" },
-                { step: "5", label: "Claude AI 맞춤 가이드",       desc: "경쟁사 격차 기반 우선순위 실행 가이드" },
-                { step: "6", label: "7일 후 점수 자동 비교",        desc: "행동한 날짜 기준 -2일/+7일 변화 자동 기록" },
+                { step: "3", label: "Basic 구독 시작",              desc: "네이버·Google AI + Gemini·ChatGPT 각 100회 (총 200회) 자동 샘플링" },
+                { step: "4", label: "경쟁사 데이터 자동 수집",     desc: "경쟁사 정보를 매주 자동으로 모읍니다" },
+                { step: "5", label: "AI 맞춤 가이드",       desc: "경쟁사 격차 기반 우선순위 실행 가이드" },
+                { step: "6", label: "7일 뒤 자동 재측정",         desc: "행동한 날짜로부터 7일 뒤 다시 측정해 비교합니다" },
               ].map((s) => (
                 <div key={s.step} className="flex items-start gap-3">
                   <span className="w-7 h-7 rounded-full bg-white/20 text-white text-sm font-bold flex items-center justify-center shrink-0 mt-0.5">{s.step}</span>
                   <div>
                     <p className="text-sm md:text-base font-semibold text-white/90 leading-snug">{s.label}</p>
-                    <p className="text-sm text-white/60 mt-0.5 leading-relaxed">{s.desc}</p>
+                    <p className="text-sm text-white/90 mt-0.5 leading-relaxed">{s.desc}</p>
                   </div>
                 </div>
               ))}

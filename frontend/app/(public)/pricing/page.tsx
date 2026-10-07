@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { type LucideIcon, BarChart3, Radar, Search, PenLine, Bell, CheckCircle2, Trophy, MessageSquare, MapPin, Lightbulb } from "lucide-react";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import { PayButton } from "./PayButton";
 import { BizContactButton } from "./BizContactButton";
 import PlanRecommender from "./PlanRecommender";
 import GroupHeadlineBanner from "./GroupHeadlineBanner";
-import { PLANS, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
+import { PLANS, PLAN_PRICES, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
 import ChannelDifferentiationCard from "@/components/common/ChannelDifferentiationCard";
+import { IconTile } from "@/components/common/IconTile";
+import { MoreInfo } from "@/components/common/MoreInfo";
 
 export const metadata: Metadata = {
   title: "요금제 | AEOlab — AI 검색 노출 진단 서비스",
@@ -110,7 +113,7 @@ export default function PricingPage() {
             href="/showcase"
             className="inline-flex items-center gap-1.5 text-sm md:text-base text-blue-600 font-semibold hover:underline"
           >
-            💡 실제 구독 사업장 화면 8개를 그대로 확인해보세요 →
+            <Lightbulb className="inline w-4 h-4 mr-1 text-amber-500" aria-hidden="true" /> 실제 구독 사업장 화면 8개를 그대로 확인해보세요 →
           </Link>
         </div>
 
@@ -275,7 +278,7 @@ export default function PricingPage() {
           {/* 모든 업종 공통 — 네이버 일반 검색·지도(플레이스) SEO */}
           <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 md:px-6 py-4">
             <div className="flex items-start gap-3">
-              <span className="text-2xl shrink-0" aria-hidden="true">📍</span>
+              <IconTile icon={MapPin} tone="green" size="sm" className="mt-0.5 shrink-0" />
               <div>
                 <p className="text-sm md:text-base font-bold text-green-900 mb-1 break-keep">
                   모든 업종 공통 — 네이버 일반 검색·지도(플레이스) 상위 노출도 함께 개선
@@ -306,35 +309,35 @@ export default function PricingPage() {
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="text-left py-3 px-3 text-gray-600 font-medium w-36">기능</th>
-                <th className="text-center py-3 px-2 text-gray-700 font-semibold">창업패키지<br/><span className="font-normal text-gray-600 text-sm">23,900원</span></th>
                 <th className="text-center py-3 px-2 text-blue-600 font-semibold">Basic<br/><span className="font-normal text-blue-600 text-sm">17,900원</span></th>
                 <th className="text-center py-3 px-2 text-gray-700 font-semibold">Pro<br/><span className="font-normal text-gray-600 text-sm">29,900원</span></th>
+                <th className="text-center py-3 px-2 text-gray-700 font-semibold">창업패키지<br/><span className="font-normal text-gray-600 text-sm">23,900원</span></th>
                 <th className="text-center py-3 px-2 text-gray-700 font-semibold">Biz<br/><span className="font-normal text-gray-600 text-sm">79,500원</span></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {[
-                ["자동 스캔", "주 1회", "주 2회", "주 3회", "매일"],
-                ["수동 스캔", "하루 3회", "하루 2회", "하루 5회", "하루 10회"],
-                ["키워드 순위 측정 주기", "주 1회", "주 1회", "주 3회", "매일"],
-                ["키워드 자동 추천 (월)", "10회", "5회", "20회", "무제한"],
-                ["AI 콘텐츠 자동 생성 (소개글·채팅방메뉴, 월합산)", "월 20건", "10건", "월 30건", "월 60건"],
-                ["경쟁사 비교", "5개", "3개", "5개", "무제한"],
-                ["AI 개선 가이드", "월 5회", "월 3회", "월 10회", "월 20회"],
-                ["블로그 AI 진단 (월)", "5회", "5회", "10회", "무제한"],
-                ["리뷰 답변 초안", "무제한", "월 50회", "무제한", "무제한"],
-                ["위기관리 가이드 (월)", "무제한", "20회", "무제한", "무제한"],
-                ["히스토리 보관", "90일", "60일", "90일", "무제한"],
+                ["자동 스캔", "주 2회", "주 3회", "주 1회", "매일"],
+                ["수동 스캔", "하루 2회", "하루 5회", "하루 3회", "하루 10회"],
+                ["내 검색어가 몇 등인지 확인", "주 1회", "매일", "매일", "매일"],
+                ["키워드 자동 추천 (월)", "5회", "20회", "10회", "무제한"],
+                ["소개글·톡톡 메뉴 초안 만들기 (월)", "10건", "월 30건", "월 20건", "월 60건"],
+                ["경쟁사 비교", "3개", "5개", "5개", "무제한"],
+                ["AI 개선 가이드", "월 3회", "월 10회", "월 5회", "월 20회"],
+                ["블로그 AI 진단 (월)", "5회", "10회", "5회", "무제한"],
+                ["리뷰 답변 초안", "월 50회", "무제한", "무제한", "무제한"],
+                ["위기관리 가이드 (월)", "20회", "무제한", "무제한", "무제한"],
+                ["히스토리 보관", "60일", "90일", "90일", "무제한"],
                 ["엑셀(CSV) 내보내기", "✓", "✓", "✓", "✓"],
-                ["PDF 리포트", "—", "—", "✓", "✓"],
-                ["광고 대응 가이드", "—", "—", "✓", "✓"],
-                ["창업 시장 분석", "✓", "—", "—", "✓"],
-                ["사업장 수", "1개", "1개", "2개", "5개"],
+                ["PDF 리포트", "—", "✓", "—", "✓"],
+                ["광고 대응 가이드", "—", "✓", "—", "✓"],
+                ["창업 시장 분석", "—", "—", "✓", "✓"],
+                ["사업장 수", "1개", "2개", "1개", "5개"],
               ].map(([feature, ...vals]) => (
                 <tr key={feature as string} className="hover:bg-gray-50">
                   <td className="py-2.5 px-3 text-gray-600">{feature}</td>
                   {vals.map((v, i) => (
-                    <td key={i} className={`py-2.5 px-2 text-center ${i === 1 ? "text-blue-600 font-medium" : "text-gray-600"} ${v === "—" ? "text-gray-600" : ""}`}>
+                    <td key={i} className={`py-2.5 px-2 text-center ${i === 0 ? "text-blue-600 font-medium" : "text-gray-600"} ${v === "—" ? "text-gray-600" : ""}`}>
                       {v}
                     </td>
                   ))}
@@ -363,7 +366,7 @@ export default function PricingPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="bg-white rounded-xl border border-gray-200 p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl" aria-hidden="true">📝</span>
+                  <IconTile icon={PenLine} tone="indigo" size="sm" />
                   <p className="font-semibold text-gray-900 text-sm">블로그 AI 진단</p>
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed break-keep">
@@ -372,7 +375,7 @@ export default function PricingPage() {
               </div>
               <div className="bg-white rounded-xl border border-gray-200 p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl" aria-hidden="true">🏪</span>
+                  <IconTile icon={Search} tone="blue" size="sm" />
                   <p className="font-semibold text-gray-900 text-sm">스마트플레이스 자동 점검</p>
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed break-keep">
@@ -406,11 +409,11 @@ export default function PricingPage() {
 
             <div className="rounded-xl bg-white border border-blue-200 px-4 py-3">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">확대 예상</span>
+                <span className="text-sm font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">아직 대상 아님</span>
                 <span className="text-sm font-semibold text-gray-900">뷰티 · 네일 · 피트니스 · 요가 · 약국 · 반려동물 등</span>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed break-keep">
-                현재 AI탭(정식 출시, 업종 제한 없음) + 글로벌 AI 노출 가능. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. '플레이스형' AI 브리핑 확대에 대비해 소개글·사진을 미리 준비할 수 있습니다.
+                현재 AI탭(정식 출시, 업종 제한 발표 없음) + 글로벌 AI 노출 가능. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. '플레이스형(가게 정보를 요약해 보여주는 방식)' AI 브리핑은 아직 대상이 아니며, 확대 여부는 네이버가 발표하지 않았습니다. 소개글·사진을 미리 갖춰두면 도움이 될 수 있습니다.
               </p>
             </div>
 
@@ -420,20 +423,12 @@ export default function PricingPage() {
                 <span className="text-sm font-semibold text-gray-900">병원 · 법무 · 교육 · 쇼핑몰 등</span>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed break-keep">
-                '플레이스형' AI 브리핑 대상은 아니지만, 블로그·콘텐츠로 '정보형 AI 브리핑'에 노출될 수 있고 AI탭 + ChatGPT · Gemini · Google AI · 카카오맵 등 글로벌 AI 가시성도 집중 개선합니다.
+                '플레이스형' AI 브리핑 대상은 아니지만, 블로그·콘텐츠로 '정보형 AI 브리핑'에 노출될 수 있고 AI탭 + ChatGPT · Gemini · Google AI 등 글로벌 AI 가시성도 집중 개선합니다.
               </p>
             </div>
           </div>
 
-          {/* 공통 안내 — 네이버 일반 검색 SEO */}
-          <div className="rounded-xl bg-green-100/60 border border-green-200 px-4 py-3 mb-4">
-            <p className="text-sm md:text-base text-green-900 leading-relaxed break-keep">
-              <strong>📍 어느 단계든 공통:</strong> 위 어느 경우에 해당하든, 스마트플레이스·블로그·키워드를 개선하면
-              <strong> 네이버 일반 검색과 지도(플레이스) 상위 노출</strong>은 함께 향상될 수 있습니다. '플레이스형' AI 브리핑 대상이 아니어도 블로그·콘텐츠로 '정보형 AI 브리핑'과 네이버 검색에서 더 잘 찾히게 만들 수 있습니다.
-            </p>
-          </div>
-
-          <p className="text-sm md:text-base text-gray-600 leading-relaxed break-keep">
+          <p className="mt-4 text-sm md:text-base text-gray-600 leading-relaxed break-keep">
             구독 전 내 업종이 어디에 해당하는지{" "}
             <Link href="/trial" className="text-blue-600 hover:underline font-medium">
               무료 진단
@@ -472,14 +467,14 @@ export default function PricingPage() {
             {/* 가치 비교 배너 */}
             <div className="bg-white rounded-xl border border-slate-100 p-4 md:p-5 mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-2xl font-bold text-red-700 mb-1">300,000원</div>
-                <div className="text-sm text-gray-600">키워드 광고 월 1일치</div>
-                <div className="text-sm text-gray-600 mt-1">광고 끄면 즉시 노출 0</div>
+                <div className="text-lg font-bold text-red-700 mb-1">네이버 키워드 광고</div>
+                <div className="text-sm text-gray-600">광고를 끄면 노출이 사라집니다</div>
+                <div className="text-sm text-gray-600 mt-1">비용이 계속 들어야 유지</div>
               </div>
               <div className="flex items-center justify-center text-gray-600 text-3xl font-thin hidden sm:flex">vs</div>
               <div className="sm:hidden border-t border-gray-200 pt-3" />
               <div>
-                <div className="text-2xl font-bold text-blue-600 mb-1">17,900원</div>
+                <div className="text-2xl font-bold text-blue-600 mb-1">{PLAN_PRICES.basic.toLocaleString()}원</div>
                 <div className="text-sm text-gray-600">AEOlab Basic 한 달</div>
                 <div className="text-sm text-gray-600 mt-1">AI 노출 구조 자체를 개선</div>
               </div>
@@ -490,67 +485,67 @@ export default function PricingPage() {
               ChatGPT에게 물어봐도 알 수 없는 것들을 AEOlab은 매주 자동으로 측정·수집·비교합니다
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {[
-                {
-                  icon: "📊",
-                  title: "내 가게가 AI에 몇 % 확률로 나오는지",
-                  why: "Gemini·ChatGPT 각 100회 (총 200회) 질의 → ± 오차 범위 표시 (ChatGPT 단발 질의는 오차 범위 표시 불가)",
-                },
-                {
-                  icon: "📡",
-                  title: "지금 당장 내 가게가 네이버 AI에 나오는지",
-                  why: "네이버 블로그는 robots.txt에서 ChatGPT(GPTBot·OAI-SearchBot) 등 주요 AI 수집 봇을 차단하고 있습니다(2026-10-07 확인) — ChatGPT로는 네이버 AI 노출을 확인할 수 없습니다",
-                },
-                {
-                  icon: "🔍",
-                  title: "경쟁사 스마트플레이스 소개글·채팅방 메뉴에 뭐 있는지",
-                  why: "매주 월요일 05:00 경쟁사 소개글·채팅방 메뉴 자동 수집 → 내 가게에 없는 항목 목록 제공 (ChatGPT로는 네이버 스마트플레이스 정보를 직접 확인하기 어렵습니다)",
-                },
-                {
-                  icon: "📝",
-                  title: "내 블로그 글이 AI 브리핑에 인용될 가능성",
-                  why: "네이버 블로그 정보는 ChatGPT가 직접 접근하기 어렵습니다. 홍보형·정보형 비율을 분석해 AI에 인용되기 쉬운 글 제목을 자동 제안합니다. (Basic 이상 포함)",
-                },
-                {
-                  icon: "🔔",
-                  title: "근처 경쟁 가게 AI 노출이 이번 주 올랐는지",
-                  why: "매주 월요일 03:00 자동 감지 → 변화 시 카카오톡 알림 (ChatGPT는 지속 추적 불가)",
-                },
-                {
-                  icon: "✅",
-                  title: "FAQ·소개글 수정 후 7일간 점수가 얼마나 올랐는지",
-                  why: "행동 날짜 기록 → 7일 후 자동 재스캔 → 점수 변화 타임라인 (ChatGPT는 전·후 비교 불가)",
-                },
-                {
-                  icon: "🏆",
-                  title: "우리 동네에서 AI 검색 순위가 몇 위인지",
-                  why: "ChatGPT는 우리 동네 실시간 순위를 알 수 없습니다",
-                },
-                {
-                  icon: "💬",
-                  title: "리뷰 답변·소개글 Q&A 초안 글쓰기",
-                  why: "ChatGPT도 잘합니다. AEOlab에는 내 가게·경쟁사 모니터링 데이터 기반으로 포함됩니다.",
-                  isAmber: true,
-                },
-              ].map((item) => (
+              {(
+                [
+                  {
+                    Icon: BarChart3,
+                    title: "내 가게가 AI에 몇 % 확률로 나오는지",
+                    why: "같은 질문을 100번씩 물어 몇 번 나오는지 측정합니다(Gemini·ChatGPT 각 100회, 총 200회, ± 오차 범위 표시). ChatGPT 단발 질의는 오차 범위 표시 불가.",
+                  },
+                  {
+                    Icon: Radar,
+                    title: "지금 당장 내 가게가 네이버 AI에 나오는지",
+                    why: "네이버 블로그는 robots.txt에서 ChatGPT(GPTBot·OAI-SearchBot) 등 주요 AI 수집 봇을 차단하고 있습니다(2026-10-07 확인) — ChatGPT로는 네이버 AI 노출을 확인할 수 없습니다",
+                  },
+                  {
+                    Icon: Search,
+                    title: "경쟁사 스마트플레이스 소개글·채팅방 메뉴에 뭐 있는지",
+                    why: "경쟁사 소개글·톡톡 메뉴를 자동으로 모읍니다 → 내 가게에 없는 항목 목록 제공 (ChatGPT로는 네이버 스마트플레이스 정보를 직접 확인하기 어렵습니다)",
+                  },
+                  {
+                    Icon: PenLine,
+                    title: "내 블로그 글이 AI 브리핑에 인용될 가능성",
+                    why: "네이버 블로그 정보는 ChatGPT가 직접 접근하기 어렵습니다. 광고 같은 글 vs 도움 되는 글 비율을 분석해 AI에 인용되기 쉬운 글 제목을 자동 제안합니다. (Basic 이상 포함)",
+                  },
+                  {
+                    Icon: Bell,
+                    title: "근처 경쟁 가게 AI 노출이 이번 주 올랐는지",
+                    why: "경쟁 가게의 변화를 자동으로 감지해 카카오톡으로 알려드립니다 (ChatGPT는 지속 추적 불가)",
+                  },
+                  {
+                    Icon: CheckCircle2,
+                    title: "소개글·FAQ 수정 후 7일 뒤 얼마나 달라졌는지",
+                    why: "고친 지 7일 뒤 다시 측정해 변화를 보여드립니다(점수 숫자 대신 단계 표시). ChatGPT는 전·후 비교 불가.",
+                  },
+                  {
+                    Icon: Trophy,
+                    title: "우리 동네에서 AI 검색 순위가 몇 위인지",
+                    why: "ChatGPT는 우리 동네 실시간 순위를 알 수 없습니다",
+                  },
+                  {
+                    Icon: MessageSquare,
+                    title: "리뷰 답변·소개글 Q&A 초안 글쓰기",
+                    why: "ChatGPT도 잘합니다. AEOlab에는 내 가게·경쟁사 모니터링 데이터 기반으로 포함됩니다.",
+                    isAmber: true,
+                  },
+                ] as { Icon: LucideIcon; title: string; why: string; isAmber?: boolean }[]
+              ).map((item) => (
                 <div
                   key={item.title}
                   className={`flex items-start gap-3 rounded-xl p-4 border ${
-                    (item as { isAmber?: boolean }).isAmber
+                    item.isAmber
                       ? "bg-amber-50 border-amber-100"
                       : "bg-white border-slate-100"
                   }`}
                 >
-                  <span className={`text-2xl shrink-0 w-10 h-10 flex items-center justify-center rounded-full ${
-                    (item as { isAmber?: boolean }).isAmber
-                      ? "bg-amber-100"
-                      : "bg-blue-50"
-                  }`}>
-                    {item.icon}
+                  <span className={`shrink-0 w-10 h-10 flex items-center justify-center rounded-full ${
+                    item.isAmber ? "bg-amber-100 text-amber-700" : "bg-blue-50 text-blue-600"
+                  }`} aria-hidden="true">
+                    <item.Icon className="w-5 h-5" />
                   </span>
                   <div>
                     <p className="text-sm md:text-base font-semibold text-slate-800">{item.title}</p>
-                    <p className={`text-sm mt-0.5 ${(item as { isAmber?: boolean }).isAmber ? "text-amber-700" : "text-slate-500"}`}>
+                    <p className={`text-sm mt-0.5 ${item.isAmber ? "text-amber-700" : "text-slate-500"}`}>
                       {item.why}
                     </p>
                   </div>
@@ -567,34 +562,27 @@ export default function PricingPage() {
         {/* ─── FAQ ─── */}
         <div className="mb-10">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 text-center">자주 묻는 질문</h2>
-          <div className="space-y-4 max-w-2xl mx-auto">
-            {[
-              {
-                q: "내 업종도 네이버 AI 브리핑에 노출되나요?",
-                a: "네이버 AI 브리핑은 크게 두 유형입니다. ① 가게 플레이스 카드를 요약하는 '플레이스형'은 음식점·카페·베이커리·바·숙박 5개 업종이 현재 대상(프랜차이즈 제외)입니다. ② 블로그·콘텐츠를 출처로 종합하는 '정보형(추천형)'은 업종 제한이 없어, 사진·학원·병원 등 전 업종도 콘텐츠가 잘 갖춰지면 노출될 수 있습니다. 뷰티·네일·반려동물·헬스·요가·약국 등은 AI탭(2026-06-25 정식 출시)도 대상입니다. 그 외 업종은 정보형 AI 브리핑 + ChatGPT·Gemini·Google AI 노출 개선 중심으로 가치를 제공합니다. 어느 업종이든 스마트플레이스·블로그·키워드를 개선하면 네이버 일반 검색·지도(플레이스) 상위 노출도 공통으로 향상될 수 있습니다.",
-              },
-              {
-                q: "구독은 언제든지 해지할 수 있나요?",
-                a: "네. 언제든지 해지 가능합니다. 결제일로부터 7일 이내 + 서비스 미이용 상태(스캔·가이드 생성 전)인 경우 전액 환불됩니다. 7일 경과 또는 서비스 이용 후에는 현재 결제 기간 만료일까지 계속 이용 가능하며, 잔여 기간 환불은 제공되지 않습니다. 자세한 내용은 이용약관 §5를 참고해 주세요.",
-              },
-              {
-                q: "환불 정책은 어떻게 되나요?",
-                a: "결제 후 7일 이내 서비스를 사용하지 않으셨다면 전액 환불해 드립니다. 7일 경과 또는 서비스 이용(스캔·가이드 생성) 후에는 현재 결제 기간 만료일까지 서비스를 이용하실 수 있으며, 잔여 기간 환불은 제공되지 않습니다(이용약관 §5 기준). 설정 페이지에서 구독을 해지하면 환불 자격 여부가 자동으로 확인되어 즉시 처리되며, 별도 문의 없이 진행됩니다. 문의사항은 네이버 톡톡(partner.talk.naver.com 검색 후 AEOlab 채널)으로 접수해 주세요.",
-              },
-              {
-                q: "첫 달 50% 할인은 어떻게 적용되나요?",
-                a: "Basic 플랜 신규 가입 시 첫 달은 8,950원으로 결제됩니다. 이후 매달 자동으로 정상가 17,900원이 청구됩니다. 이전에 한 번이라도 구독한 이력이 있는 경우 할인이 적용되지 않습니다.",
-              },
-              {
-                q: "플랜 업그레이드·다운그레이드는 가능한가요?",
-                a: "언제든지 설정 페이지에서 플랜을 변경할 수 있습니다. 업그레이드 시 즉시 새 플랜이 적용되며, 다운그레이드 시 현재 결제 기간 만료일 이후부터 적용됩니다.",
-              },
-            ].map(({ q, a }) => (
-              <div key={q} className="border border-gray-100 rounded-xl p-4">
-                <div className="font-semibold text-gray-900 text-base md:text-lg mb-2">{q}</div>
-                <div className="text-sm md:text-base text-gray-600 leading-relaxed">{a}</div>
-              </div>
-            ))}
+          <div className="space-y-3 max-w-2xl mx-auto">
+            <MoreInfo summary="내 업종도 네이버 AI 브리핑에 노출되나요?" tone="soft">
+              <p className="text-sm leading-relaxed break-keep">네이버 AI 브리핑은 크게 두 유형입니다.</p>
+              <ul className="mt-2 space-y-1.5 text-sm leading-relaxed">
+                <li><strong>① 플레이스형</strong> — 가게 플레이스 카드를 요약. 음식점·카페·베이커리·바·숙박 5개 업종이 현재 대상(프랜차이즈 제외).</li>
+                <li><strong>② 정보형(추천형)</strong> — 블로그·콘텐츠를 출처로 종합. 업종 제한이 없어 전 업종도 콘텐츠가 잘 갖춰지면 노출될 수 있습니다.</li>
+              </ul>
+              <p className="mt-2 text-sm leading-relaxed break-keep">뷰티·네일·반려동물·헬스·요가·약국 등은 AI탭(2026-06-25 정식 출시)도 대상입니다. 어느 업종이든 스마트플레이스·블로그·키워드를 개선하면 네이버 일반 검색·지도 상위 노출도 공통으로 향상될 수 있습니다.</p>
+            </MoreInfo>
+            <MoreInfo summary="구독은 언제든지 해지할 수 있나요?" tone="soft">
+              <p className="text-sm leading-relaxed break-keep">네. 언제든지 해지 가능합니다. 결제일로부터 7일 이내 + 서비스 미이용 상태(스캔·가이드 생성 전)인 경우 전액 환불됩니다. 7일 경과 또는 서비스 이용 후에는 현재 결제 기간 만료일까지 계속 이용 가능하며, 잔여 기간 환불은 제공되지 않습니다. 자세한 내용은 이용약관 §5를 참고해 주세요.</p>
+            </MoreInfo>
+            <MoreInfo summary="환불 정책은 어떻게 되나요?" tone="soft">
+              <p className="text-sm leading-relaxed break-keep">결제 후 7일 이내 서비스를 사용하지 않으셨다면 전액 환불해 드립니다. 7일 경과 또는 서비스 이용(스캔·가이드 생성) 후에는 현재 결제 기간 만료일까지 서비스를 이용하실 수 있으며, 잔여 기간 환불은 제공되지 않습니다(이용약관 §5 기준). 설정 페이지에서 구독을 해지하면 환불 자격 여부가 자동으로 확인되어 즉시 처리됩니다. 문의사항은 support@aeolab.co.kr(이메일)로 접수해 주세요.</p>
+            </MoreInfo>
+            <MoreInfo summary="첫 달 50% 할인은 어떻게 적용되나요?" tone="soft">
+              <p className="text-sm leading-relaxed break-keep">Basic 플랜 신규 가입 시 첫 달은 8,950원으로 결제됩니다. 이후 매달 자동으로 정상가 17,900원이 청구됩니다. 이전에 한 번이라도 구독한 이력이 있는 경우 할인이 적용되지 않습니다.</p>
+            </MoreInfo>
+            <MoreInfo summary="플랜 업그레이드·다운그레이드는 가능한가요?" tone="soft">
+              <p className="text-sm leading-relaxed break-keep">언제든지 설정 페이지에서 플랜을 변경할 수 있습니다. 업그레이드 시 즉시 새 플랜이 적용되며, 다운그레이드 시 현재 결제 기간 만료일 이후부터 적용됩니다.</p>
+            </MoreInfo>
           </div>
           <div className="text-center mt-6">
             <Link href="/faq" className="text-sm text-blue-600 hover:text-blue-700 font-medium">

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "업종·지역별 AI 노출 익명 랭킹 — AEOlab",
     description:
-      "업종·지역별로 AI 검색 노출 수준을 비교하세요. 네이버 AI 브리핑·ChatGPT·Gemini·Google AI 4채널 기준.",
+      "업종·지역별로 AI 검색 노출 수준을 비교하세요. 네이버 AI 브리핑·ChatGPT·Gemini·Google 4곳 기준.",
   },
 };
 
@@ -20,7 +20,7 @@ export default function RankingPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* 헤더 */}
-      <header className="bg-white border-b border-gray-100 px-4 md:px-6 py-4">
+      <header className="bg-white border-b border-gray-100 px-4 md:px-6 py-4 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Link href="/" className="text-xl md:text-2xl font-bold text-blue-600">
@@ -41,19 +41,23 @@ export default function RankingPage() {
         </div>
       </header>
 
-      {/* 페이지 타이틀 영역 */}
+      {/* 페이지 타이틀 */}
       <div className="bg-white border-b border-gray-100">
-        <div className="max-w-2xl mx-auto px-4 md:px-6 py-8 md:py-10">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 py-8 md:py-10">
           <div className="flex items-center gap-2 mb-3">
             <BarChart2 className="w-5 h-5 text-blue-600" />
             <span className="text-sm font-medium text-blue-600">익명 랭킹 공개</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 break-keep">
             업종·지역별 AI 검색 노출 랭킹
           </h1>
-          <p className="text-sm md:text-base text-gray-600 leading-relaxed break-keep">
-            네이버 AI 브리핑·ChatGPT·Gemini·Google AI 4채널 기준으로 집계한 익명 랭킹입니다.
-            사업장명·점수 원본은 공개되지 않으며, 순위와 백분위만 표시됩니다.
+          <p className="text-sm md:text-base text-gray-600 leading-relaxed break-keep max-w-2xl">
+            네이버 AI 브리핑·ChatGPT·Gemini·Google 4곳 AI 기준으로 집계한 익명 랭킹입니다.
+            가게 이름과 점수는 공개하지 않으며, 순위와{" "}
+            <strong className="font-semibold text-gray-700">
+              백분위(업종 안에서 상위 몇 %인지)
+            </strong>
+            만 표시합니다.
           </p>
         </div>
       </div>

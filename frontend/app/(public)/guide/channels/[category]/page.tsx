@@ -1,12 +1,14 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { Bot, Sparkles, Globe, type LucideIcon } from "lucide-react"
+import { Bot, Sparkles, Globe, ArrowRight, ChevronDown, type LucideIcon } from "lucide-react"
 import { SiteFooter } from "@/components/common/SiteFooter"
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient"
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd"
 import TrackedCTA from "@/components/analytics/TrackedCTA"
 import { ActionChecklist } from "./ActionChecklist"
+import { MoreInfo } from "@/components/common/MoreInfo"
+import { FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans"
 import {
   CHANNEL_GUIDE_MAP,
   CHANNEL_GUIDE,
@@ -64,10 +66,10 @@ function getChannelCards(entry: ChannelGuideEntry): {
       statusColor: BRIEFING_LABELS[entry.briefing].color,
       detail:
         entry.briefing === "active"
-          ? "검색 결과 상단 AI 브리핑에 플레이스 카드로 노출될 수 있는 대상 업종입니다."
+          ? "검색 결과 상단 AI 브리핑에 플레이스형(가게 정보를 요약해 보여주는 방식) 카드로 노출될 수 있는 대상 업종입니다."
           : entry.briefing === "likely"
-          ? "'플레이스형' AI 브리핑 확대 예정 업종입니다. 업종 확대 시 즉시 노출 대상이 됩니다. (네이버 AI탭은 이미 전체 업종 대상으로 정식 출시되었습니다 — 아래 AI탭 카드 참고)"
-          : "'플레이스형' AI 브리핑 대상 업종은 아니지만, 블로그·콘텐츠가 갖춰지면 업종 제한 없는 '정보형 AI 브리핑'에는 노출될 수 있습니다. AI탭과 글로벌 AI에도 집중하세요.",
+          ? "'플레이스형'(가게 정보를 요약해 보여주는 방식) AI 브리핑 확대 예정 업종입니다(AEOlab 분류, 네이버 공식 발표 아님). (네이버 AI탭은 이미 전체 업종 대상으로 정식 출시되었습니다 — 아래 AI탭 카드 참고)"
+          : "'플레이스형'(가게 정보 요약) AI 브리핑 대상 업종은 아니지만, 블로그·콘텐츠가 갖춰지면 업종 제한 없는 '정보형'(블로그·글을 모아 추천하는 방식) AI 브리핑에는 노출될 수 있습니다. AI탭과 글로벌 AI에도 집중하세요.",
       icon: Bot,
     },
     {
@@ -77,7 +79,7 @@ function getChannelCards(entry: ChannelGuideEntry): {
       status: "2026-06-25 정식 출시",
       statusColor: "bg-violet-100 text-violet-800",
       detail:
-        "2026-04-27 베타 출시 후 2026-06-25 전체 사용자 대상 정식 출시됐습니다. 업종 제한 발표가 없습니다. 콘텐츠 품질·예약 연동이 핵심 신호입니다.",
+        "2026-04-27 베타 출시 후 2026-06-25 전체 사용자 대상 정식 출시됐습니다. 업종 제한 발표가 없습니다.",
       icon: Sparkles,
     },
     {
@@ -155,7 +157,7 @@ export default async function ChannelGuidePage({
             <span
               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-semibold border ${groupColor}`}
             >
-              그룹 {entry.group} — {groupLabel}
+              {groupLabel}
             </span>
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-semibold ${BRIEFING_LABELS[entry.briefing].color}`}>
               {BRIEFING_LABELS[entry.briefing].label}
@@ -172,23 +174,38 @@ export default async function ChannelGuidePage({
           </p>
         </div>
 
-        {/* ── 트랙 비중 바 ── */}
-        <div className="mb-8 rounded-xl border border-gray-200 bg-gray-50 p-4 md:p-5">
-          <p className="text-sm font-semibold text-gray-700 mb-3">이 업종의 AI 노출 트랙 비중</p>
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-sm text-gray-600 w-20 shrink-0">네이버 {entry.naverRatio}%</span>
+        {/* ── 트랙 비중 벤토 카드 ── */}
+        <div className="mb-8 rounded-3xl border border-gray-200 bg-gray-50 p-5 md:p-6">
+          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">어디에 집중해야 할까요</p>
+          <p className="text-xl md:text-2xl font-bold text-gray-900 mb-3 break-keep">
+            {entry.naverRatio >= 50 ? "네이버 중심" : "글로벌 중심"} 업종
+          </p>
+          <div className="flex items-center gap-3 mb-3">
+            <span className={`text-sm font-semibold ${entry.naverRatio >= 50 ? "text-emerald-700" : "text-gray-500"}`}>
+              네이버
+            </span>
             <div className="flex-1 h-3 rounded-full bg-gray-200 overflow-hidden">
               <div
                 className="h-full rounded-full bg-emerald-500 transition-all"
                 style={{ width: `${entry.naverRatio}%` }}
               />
             </div>
-            <span className="text-sm text-gray-600 w-16 shrink-0 text-right">글로벌 {entry.globalRatio}%</span>
+            <span className={`text-sm font-semibold ${entry.globalRatio >= 50 ? "text-orange-600" : "text-gray-500"}`}>
+              글로벌 AI
+            </span>
           </div>
-          <p className="text-sm text-gray-600 leading-relaxed break-keep">
-            AEOlab 듀얼트랙 모델 기준. 점수 = 네이버 채널 점수 × {entry.naverRatio}% + 글로벌 AI 점수 × {entry.globalRatio}%.
-            측정 시점·기기·로그인 상태에 따라 달라질 수 있음.
+          <p className="text-sm text-gray-600 leading-relaxed break-keep mb-3">
+            {entry.naverRatio >= 50
+              ? `이 업종은 네이버 AI 브리핑·AI탭 최적화가 우선입니다. 글로벌 AI(ChatGPT·Gemini·Google)도 꾸준히 관리하세요.`
+              : `이 업종은 ChatGPT·Gemini 등 글로벌 AI 최적화가 중요합니다. 네이버 AI도 함께 관리하세요.`
+            }
           </p>
+          <MoreInfo summary="AEOlab 계산 방식 자세히 보기" tone="soft">
+            <p className="text-sm text-gray-700 leading-relaxed">
+              AEOlab 듀얼트랙 모델 기준. 점수 = 네이버 채널 점수 × {entry.naverRatio}% + 글로벌 AI 점수 × {entry.globalRatio}%.
+              측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다. 이 비율은 AEOlab 분석 기반이며 네이버 공식 발표가 아닙니다.
+            </p>
+          </MoreInfo>
         </div>
 
         {/* ── AI 노출 채널 3종 카드 ── */}
@@ -216,7 +233,9 @@ export default async function ChannelGuidePage({
                   <span className={`inline-block px-2 py-0.5 rounded-full text-sm font-semibold ${card.statusColor}`}>
                     {card.status}
                   </span>
-                  <p className="text-sm text-gray-600 leading-relaxed break-keep">{card.detail}</p>
+                  <MoreInfo summary="자세히 보기" tone="soft">
+                    <p className="text-sm text-gray-700 leading-relaxed break-keep">{card.detail}</p>
+                  </MoreInfo>
                 </div>
               )
             })}
@@ -226,7 +245,7 @@ export default async function ChannelGuidePage({
         {/* ── 핵심 행동 5요소 ── */}
         <section className="mb-8">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1 break-keep">
-            {entry.label} 핵심 행동 5요소
+            {entry.label} — 먼저 할 5가지
           </h2>
           <p className="text-sm text-gray-600 mb-1 leading-relaxed break-keep">
             {entry.label} 업종에 공통으로 적용되는 가이드입니다. 내 가게 맞춤 진단 결과는{" "}
@@ -244,8 +263,35 @@ export default async function ChannelGuidePage({
             category={entry.value}
           />
           <p className="text-sm text-gray-600 mt-3 leading-relaxed break-keep">
-            행동 5요소는 AEOlab 분석 기반 권장 사항이며, 노출 결과는 네이버·AI 플랫폼 정책에 따라 달라질 수 있습니다.
+            먼저 할 5가지는 AEOlab 분석 기반 권장 사항이며, 노출 결과는 네이버·AI 플랫폼 정책에 따라 달라질 수 있습니다.
           </p>
+
+          {/* 글로벌 AI 보충 카드 — globalRatio >= 50 업종 전용 */}
+          {entry.globalRatio >= 50 && (
+            <div className="mt-5 rounded-3xl border border-orange-200 bg-orange-50 p-5">
+              <p className="text-sm font-semibold text-orange-800 mb-2">글로벌 AI(ChatGPT·Gemini·Google)는 따로 준비해야 합니다</p>
+              <p className="text-sm text-gray-700 leading-relaxed break-keep mb-3">
+                이 업종은 글로벌 AI 비중이 높습니다. 위 5가지(주로 스마트플레이스 중심)만으로는 ChatGPT·Gemini 노출에 한계가 있습니다.
+              </p>
+              <ul className="space-y-1.5 text-sm text-gray-700">
+                <li className="flex items-start gap-2">
+                  <span className="shrink-0 text-orange-500 mt-0.5 font-bold">1</span>
+                  <span>구글 비즈니스 프로필 등록 (business.google.com) — Gemini 노출에 특히 중요, 등록 후 수주~수개월 소요</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="shrink-0 text-orange-500 mt-0.5 font-bold">2</span>
+                  <span>자체 웹사이트·홈페이지에 소개글·Q&amp;A 콘텐츠 작성 — ChatGPT가 읽을 수 있는 외부 URL 필요</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="shrink-0 text-orange-500 mt-0.5 font-bold">3</span>
+                  <span>트립어드바이저·전문 플랫폼 등 외부 언급 확대</span>
+                </li>
+              </ul>
+              <p className="text-sm text-gray-500 mt-3 leading-relaxed break-keep">
+                ChatGPT 반영 기간: 수개월~1년 이상(학습 데이터 기반, 보장 아님). Gemini: 구글 비즈니스 프로필 등록 후 2~4주 내 반영 시작, 안정적 인용은 수개월 소요.
+              </p>
+            </div>
+          )}
         </section>
 
         {/* ── 업종 전환 링크 ── */}
@@ -253,25 +299,32 @@ export default async function ChannelGuidePage({
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 break-keep">
             다른 업종 채널 가이드
           </h2>
-          <div className="flex flex-wrap gap-2">
-            {CHANNEL_GUIDE.filter((e) => e.value !== entry.value).slice(0, 16).map((e) => (
-              <Link
-                key={e.value}
-                href={`/guide/channels/${e.value}`}
-                className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-              >
-                {e.label}
-              </Link>
-            ))}
-            {CHANNEL_GUIDE.length > 17 && (
-              <Link
-                href="/guide/channels"
-                className="px-3 py-1.5 rounded-lg border border-blue-200 text-sm text-blue-600 font-medium hover:border-blue-300 hover:bg-blue-50 transition-colors"
-              >
-                전체 {CHANNEL_GUIDE.length}개 업종 보기 →
-              </Link>
-            )}
-          </div>
+          {/* 모바일: 접이식 / 데스크톱: 항상 표시 */}
+          <details open className="group">
+            <summary className="md:hidden list-none flex items-center justify-between cursor-pointer min-h-12 py-2 mb-1 text-sm font-medium text-gray-700 border-b border-gray-200">
+              <span>업종 목록 보기/접기</span>
+              <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" aria-hidden="true" />
+            </summary>
+            <div className="flex flex-wrap gap-2 mt-2 md:mt-0">
+              {CHANNEL_GUIDE.filter((e) => e.value !== entry.value).slice(0, 16).map((e) => (
+                <Link
+                  key={e.value}
+                  href={`/guide/channels/${e.value}`}
+                  className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                >
+                  {e.label}
+                </Link>
+              ))}
+              {CHANNEL_GUIDE.length > 17 && (
+                <Link
+                  href="/guide/channels"
+                  className="px-3 py-1.5 rounded-lg border border-blue-200 text-sm text-blue-600 font-medium hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                >
+                  전체 {CHANNEL_GUIDE.length}개 업종 보기 <ArrowRight className="inline w-3.5 h-3.5 ml-0.5 -mt-0.5" aria-hidden="true" />
+                </Link>
+              )}
+            </div>
+          </details>
         </section>
 
         {/* ── CTA ── */}
@@ -287,9 +340,9 @@ export default async function ChannelGuidePage({
               href="/trial"
               location="guide_channel_detail"
               label="trial_start"
-              className="flex-1 text-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex-1 text-center inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
             >
-              무료 진단 시작 →
+              무료 진단 시작 <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </TrackedCTA>
             <Link
               href="/how-it-works"
@@ -299,7 +352,7 @@ export default async function ChannelGuidePage({
             </Link>
           </div>
           <p className="text-sm text-gray-600 mt-3 leading-relaxed break-keep">
-            회원가입·신용카드 입력 없이 1분 무료 체험. Basic 첫 달 50% 할인(8,950원).
+            회원가입·신용카드 입력 없이 1분 무료 체험. Basic 첫 달 50% 할인({FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원).
           </p>
         </section>
       </div>

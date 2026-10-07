@@ -28,7 +28,7 @@ export const CHANNEL_GUIDE: ChannelGuideEntry[] = [
     value: "restaurant", label: "음식점", group: "A",
     briefing: "active", naverRatio: 80, globalRatio: 20,
     keyActions: ["스마트플레이스 소개글 200자 이상 + 대표 메뉴 3개 이상(가격 포함) 등록", "메뉴·내부·외관 사진 10장 이상 등록", "네이버 예약 연동 + 톡톡 채팅방 메뉴 설정(예약·문의 버튼)", "영업시간(브레이크타임 포함)·정기 휴무일 정확히 입력", "리뷰 답글 3건 이상 작성 + 소식 2주 이내 1건 등록"],
-    note: "예약 연동 시 AI탭에 예약 버튼 즉시 노출 → 전환 효과 최상",
+    note: "예약 연동 시 AI탭에 예약 정보가 표시될 수 있습니다(네이버가 기준을 공개하지 않았습니다).",
   },
   {
     value: "cafe", label: "카페", group: "A",
@@ -118,13 +118,13 @@ export const CHANNEL_GUIDE: ChannelGuideEntry[] = [
     value: "medical", label: "병원·의원", group: "C",
     briefing: "inactive", naverRatio: 55, globalRatio: 45,
     keyActions: ["스마트플레이스 소개글 200자 이상 (진료 과목 포함) 작성", "병원 내부·장비 사진 5장 이상 업로드", "의료진 경력·학력 상세 공개", "진료시간(야간·주말 진료 여부) 정확히 입력", "예약 방법 안내 + 리뷰 답글 3건 이상 작성"],
-    note: "금융·헬스케어 특화 AI 브리핑 도입 시 LIKELY 즉시 승급 후보",
+    note: "AEOlab 분류이며 네이버 공식 발표가 아닙니다. 네이버가 기준을 공개하지 않았습니다.",
   },
   {
     value: "dental", label: "치과", group: "C",
     briefing: "inactive", naverRatio: 60, globalRatio: 40,
     keyActions: ["스마트플레이스 소개글 200자 이상 (주력 진료 분야 포함) 작성", "치료 사례·시설 사진 5장 이상 업로드", "임플란트·교정 등 시술별 가격대 공개", "진료시간(야간 진료 여부) 정확히 입력", "예약 연동 + 리뷰 답글 3건 이상 작성"],
-    note: "금융·헬스케어 특화 AI 브리핑 도입 시 LIKELY 즉시 승급 후보",
+    note: "AEOlab 분류이며 네이버 공식 발표가 아닙니다. 네이버가 기준을 공개하지 않았습니다.",
   },
   {
     value: "oriental_medicine", label: "한의원", group: "C",

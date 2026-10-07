@@ -187,7 +187,7 @@ export default function ChannelDifferentiationCard({
           title="네이버 AI 탭"
           badge="참여 가능"
           badgeVariant="all"
-          description="검색 'AI' 탭. 업종 제한 없이 모두 노출 가능 (2026-06-25 정식 출시)"
+          description="검색 'AI' 탭. 네이버가 업종 제한을 발표하지 않았습니다 (2026-06-25 정식 출시)"
           disclaimer="정식 출시 · 콘텐츠 품질에 따라 다름"
           highlight={group !== "ACTIVE"}
           compact={isCompact}

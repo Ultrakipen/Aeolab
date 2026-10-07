@@ -1,8 +1,10 @@
 import Link from "next/link"
 import type { Metadata } from "next"
+import { ArrowRight } from "lucide-react"
 import { SiteFooter } from "@/components/common/SiteFooter"
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient"
 import { CHANNEL_GUIDE, GROUP_LABELS, GROUP_COLORS, type ChannelGroup } from "@/lib/channelGuideData"
+import { FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans"
 import { ChannelGuideList } from "./ChannelGuideList"
 import TrackedCTA from "@/components/analytics/TrackedCTA"
 
@@ -56,8 +58,8 @@ export default function ChannelGuideIndexPage() {
             업종별 AI 검색 노출 채널 가이드
           </h1>
           <p className="text-base md:text-lg text-gray-600 max-w-2xl leading-relaxed break-keep mb-2">
-            네이버 AI 브리핑·AI탭·글로벌 AI(ChatGPT·Gemini·Google)에서 우리 가게가 노출되려면 어떤 채널에 집중해야 할까요?
-            업종마다 채널 비중이 다릅니다. 59개 업종별로 확인하세요.
+            네이버 AI와 ChatGPT에서 우리 가게가 보이려면 어디부터 준비해야 할까요?
+            업종마다 중요한 채널이 다릅니다. 59개 업종별로 확인하세요.
           </p>
           <p className="text-sm text-gray-600">
             59개 업종 · 채널별 노출 비중 + 핵심 행동 5요소 체크리스트 · 로그인 불필요
@@ -86,12 +88,12 @@ export default function ChannelGuideIndexPage() {
             href="/trial"
             location="guide_channel_index"
             label="trial_start"
-            className="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
           >
-            무료 진단 시작 →
+            무료 진단 시작 <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </TrackedCTA>
           <p className="text-sm text-gray-600 mt-3 leading-relaxed break-keep">
-            회원가입·신용카드 입력 없이 1분 무료 체험. Basic 첫 달 50% 할인(8,950원).
+            회원가입·신용카드 입력 없이 1분 무료 체험. Basic 첫 달 50% 할인({FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원).
           </p>
         </section>
       </div>
