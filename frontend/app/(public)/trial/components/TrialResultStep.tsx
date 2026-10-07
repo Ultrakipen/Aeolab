@@ -1246,7 +1246,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           {/* ── 네이버 개선 → AI 노출 인과관계 인사이트 (모바일 숨김 — 스크롤 단축) ── */}
           <div className="hidden md:block rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 px-4 py-4 mb-4">
             <p className="text-sm font-bold text-blue-800 mb-3 break-keep">
-              💡 네이버 정보를 개선하면 글로벌 AI 검색까지 연결됩니다
+              네이버 개선과 글로벌 AI(ChatGPT·Gemini)는 경로가 다릅니다
             </p>
             <div className="flex flex-col gap-2">
               <div className="flex items-start gap-2.5">
@@ -1272,14 +1272,14 @@ export default function TrialResultStep(props: TrialResultProps) {
                 </div>
               </div>
               <div className="ml-2.5 pl-4 border-l-2 border-green-200">
-                <p className="text-xs text-green-700 font-medium">▼ 수개월~1년</p>
+                <p className="text-xs text-green-700 font-medium">▼ 따로 준비</p>
               </div>
               <div className="flex items-start gap-2.5">
                 <span className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-purple-600 text-white text-xs font-black flex items-center justify-center">3</span>
                 <div>
-                  <p className="text-sm font-semibold text-purple-800 break-keep">ChatGPT·Gemini에도 자동 반영</p>
+                  <p className="text-sm font-semibold text-purple-800 break-keep">ChatGPT·Gemini는 네이버 밖 정보가 필요합니다</p>
                   <p className="text-sm text-slate-500 mt-0.5 break-keep">
-                    두 AI는 네이버 콘텐츠를 학습 데이터로 사용 — 네이버 상위 가게가 AI 검색에서도 추천됩니다
+                    네이버 블로그·카페·지도는 robots.txt로 ChatGPT 등 AI 수집 봇을 차단하고 있어, 네이버에만 있는 정보는 잘 반영되지 않습니다. 구글 비즈니스 프로필·자체 사이트·외부 언급을 따로 준비하세요 (반영 기간 보장 아님)
                   </p>
                 </div>
               </div>

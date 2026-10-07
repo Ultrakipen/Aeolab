@@ -61,7 +61,10 @@ AEOlab은 이 때문에 **듀얼트랙**으로 설계됐다.
 |------|------|
 | `blog.naver.com/robots.txt` (HTTP 200) | **`Disallow: /`** — Yeti, GPTBot, OAI-SearchBot, PerplexityBot, Google-Extended, ClaudeBot, Claude-SearchBot, meta-externalagent, Applebot-Extended, CCBot. 파일 안에 "AI 학습 및 RAG 목적의 봇 접근을 엄격히 금지한다"는 주석이 있음. 위에 나열되지 않은 봇(**ChatGPT-User, Googlebot, Bingbot 등**)은 `User-agent: *`에 걸려 일부 경로(PostList·PostPrint·BlogInfo 등)만 제한 |
 | `www.naver.com/robots.txt` (HTTP 200) | `User-agent: *` → `Disallow: /`, `Allow: /$`(메인 페이지)만 허용 — 모든 봇에 사실상 전면 제한 |
-| `place.map.naver.com/robots.txt` | **조회 불가** — 도메인이 DNS에서 확인되지 않음(호스트 자체가 없는 것으로 보임). 플레이스 쪽 robots는 다른 호스트(예: `map.naver.com`, `pcmap.place.naver.com`)를 별도 조사해야 함(미조사). `cafe.naver.com`도 미조사 |
+| `place.map.naver.com/robots.txt` | **조회 불가** — 도메인이 DNS에서 확인되지 않음(호스트 자체가 없는 것으로 보임). 다른 호스트 결과는 아래 `map`·`cafe`·`place` 행 참조 |
+| `map.naver.com/robots.txt` (HTTP 200, 2026-10-07 22:42) | 블로그와 동일하게 GPTBot·OAI-SearchBot·PerplexityBot·Google-Extended·ClaudeBot·Claude-SearchBot·meta-externalagent·Applebot-Extended·CCBot `Disallow: /` + `User-agent: *`도 `Disallow: /`(`Allow: /$`, `/p/$`만 허용). 스마트플레이스 상세(`map.naver.com/p/...`)가 이 호스트 아래 → **모든 봇에 사실상 전면 제한** |
+| `cafe.naver.com/robots.txt` (HTTP 200) | `*`, **Googlebot, Bingbot**, Baiduspider, Yandex, GPTBot, Google-Extended, ClaudeBot, Claude-SearchBot, PerplexityBot, CCBot, Amazonbot 등 전부 `Disallow: /` — 카페는 검색엔진 포함 전면 차단 |
+| `pcmap.place.naver.com` · `m.place.naver.com` | robots.txt 대신 **HTTP 429**(네이버 플레이스 HTML 에러 페이지) 응답 — 조회 못 함. 재요청하지 않음(차단 회피 시도로 보일 수 있음) |
 | `WebFetch` 도구 | naver 도메인 조회 자체가 막혀 사용 불가 → 로컬 `curl`로 대체 |
 
 **해석 시 주의**
@@ -74,6 +77,9 @@ AEOlab은 이 때문에 **듀얼트랙**으로 설계됐다.
 - `/pricing` ChatGPT 비교 아코디언: "robots.txt로 전면 차단" → "네이버 블로그는 robots.txt에서 ChatGPT(GPTBot·OAI-SearchBot) 등 주요 AI 수집 봇을 차단(2026-10-07 확인)". "스마트플레이스 접근 불가" → "직접 확인하기 어렵습니다".
 - 랜딩 "스마트플레이스 설정부터 시작하면 AI 채널이 자동으로 커버" → 네이버 AI는 스마트플레이스, ChatGPT·Gemini는 네이버 밖 정보 필요로 분리. "AI 추천 4가지 기준"에 "네이버 AI" 명시.
 - 랜딩 FAQ·체험 결과·AI탭 가이드: ChatGPT·Gemini 반영 기간을 **묶지 않고 분리**(Gemini 수주~수개월 / ChatGPT 수개월~1년 이상), "네이버 개선이 ChatGPT·Gemini에도 반영된다"는 문구 제거, "작은 가게에 더 유리" 단정 제거.
+
+- (추가 전수 점검) 체험 결과 타임라인 "ChatGPT·Gemini에도 자동 반영 — 네이버 콘텐츠를 학습 데이터로 사용" → "네이버 밖 정보가 필요, 따로 준비"로 정정(`TrialResultStep.tsx`). `TodayOneAction.tsx`·`AiInfoTabGuide.tsx`·`ScoreEvidenceCard.tsx`·`demo/page.tsx`의 같은 계열 단정도 정정. 랜딩 "7일 추적"은 "7일 뒤 재측정"으로(출처: `routers/actions.py` 행동 완료 +7일 `rescan_at` → `jobs.py:3515` 재스캔, Gemini 단일 재측정).
+- 경쟁 서비스 배타 주장("다른 서비스는 글로벌 AI만 측정") 정정 → `docs/competitor_naver_ai_support_recheck_2026_10_07.md`.
 
 ## 6. 관련 문서
 

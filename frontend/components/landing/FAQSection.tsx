@@ -85,10 +85,10 @@ const FAQS: FaqItem[] = [
   },
   {
     q: "다른 AI 노출 관리 서비스와 어떻게 다른가요?",
-    a: "국내 다른 AI 노출 서비스들은 ChatGPT·Gemini 등 글로벌 AI만 측정합니다. AEOlab은 한국 소상공인의 핵심 채널인 네이버 AI 브리핑·AI탭을 함께 측정하는 서비스입니다. 또한 월 17,900원 셀프서비스로 직접 관리할 수 있어, 수십만 원대 대행 서비스 없이 운영할 수 있습니다.",
+    a: "ChatGPT·Gemini 등 글로벌 AI 중심으로 측정하는 서비스가 많고, 네이버 AI 브리핑까지 보는 서비스는 확인한 범위에서 기업·에이전시 대상이며 월 19만 원대부터 시작합니다(2026-10-07 확인). AEOlab은 한국 소상공인의 핵심 채널인 네이버 AI 브리핑·AI탭을 함께 측정하는 소상공인용 서비스입니다. 또한 월 17,900원 셀프서비스로 직접 관리할 수 있어, 수십만 원대 대행 서비스 없이 운영할 수 있습니다.",
     aNode: (
       <div className="space-y-2.5">
-        <p>국내 다른 AI 노출 서비스들은 ChatGPT·Gemini 등 <strong>글로벌 AI만 측정</strong>합니다.</p>
+        <p>다른 AI 노출 서비스는 ChatGPT·Gemini 등 <strong>글로벌 AI 중심</strong>이 많고, 네이버 AI 브리핑까지 보는 서비스는 확인한 범위에서 <strong>기업·에이전시 대상(월 19만 원대부터)</strong>입니다 (2026-10-07 확인).</p>
         <p>AEOlab은 두 가지 핵심 차이가 있습니다.</p>
         <ul className="space-y-2">
           <li className="flex gap-2.5">

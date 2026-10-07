@@ -339,13 +339,13 @@ export function HowAeolabIntegrated() {
                 backgroundClip: "text",
               }}
             >
-              7일 추적
+              7일 뒤 재측정
             </span>
           </h2>
           <p className="text-sm mt-2 break-keep" style={{ color: "#475569" }}>
             복잡한 설정 없이 3단계로 시작합니다 ·{" "}
             <span style={{ color: "#475569" }}>
-              7일 가이드 실행 기준, 지역·업종별 차이 있음
+              가이드를 실행한 날부터 7일 뒤 다시 측정합니다 · 효과는 2~4주 이상 걸릴 수 있고 지역·업종별로 다릅니다
             </span>
           </p>
         </div>

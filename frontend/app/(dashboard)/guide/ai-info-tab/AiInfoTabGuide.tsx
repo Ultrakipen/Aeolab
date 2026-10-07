@@ -302,7 +302,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               <div>
                 <p className="text-sm md:text-base text-gray-700 leading-relaxed mb-2">
                   AI 브리핑 토글 대신, 위 <strong>AI탭 준비 5항목</strong>과 아래 3·4·5단계(소개글·소식·리뷰)로
-                  <strong>AI탭 + ChatGPT·Gemini·Google AI</strong> 노출을 동시에 개선합니다.
+                  <strong>AI탭</strong> 노출을 준비합니다. ChatGPT·Gemini·Google AI는 네이버 밖 정보(구글 비즈니스 프로필·자체 사이트)가 함께 필요합니다.
                 </p>
                 <Link
                   href="/guide"

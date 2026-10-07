@@ -1147,7 +1147,7 @@ export default function ScoreEvidenceCard({
               <p className="text-sm text-purple-700">
                 <span className="font-medium">지금 할 수 있는 것:</span>{" "}
                 <a href="/schema" className="underline font-medium">AI 인식 코드(JSON-LD) 등록</a>으로
-                Google AI Overview 노출 가능성을 높이고, 블로그·뉴스 후기를 꾸준히 쌓으면 ChatGPT·Gemini에도 서서히 반영됩니다.
+                Google AI Overview 노출 가능성을 높이고, 네이버 밖의 외부 블로그·뉴스·후기를 꾸준히 쌓으면 ChatGPT·Gemini에 서서히 반영될 수 있습니다(보장 아님).
               </p>
             </div>
           )}

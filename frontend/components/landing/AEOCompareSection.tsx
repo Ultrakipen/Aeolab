@@ -126,16 +126,16 @@ export default function AEOCompareSection() {
         {/* 경쟁 서비스 대비 차별화 안내 */}
         <div className="hidden md:block mt-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-3 fade-up">
           <p className="text-sm font-semibold text-blue-800 text-center break-keep">
-            <Target className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden="true" />ChatGPT·Gemini만 측정하는 서비스와 다릅니다 — AEOlab은 <strong>네이버 AI와 글로벌 AI를 함께</strong> 측정합니다
+            <Target className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden="true" />ChatGPT·Gemini 중심 서비스와 달리 AEOlab은 <strong>네이버 AI와 글로벌 AI를 함께</strong> 측정합니다
           </p>
           <p className="text-sm text-blue-700 text-center mt-1 break-keep">
-            네이버 AI 브리핑·AI탭은 글로벌 AI 전문 서비스가 측정하지 않는 부분입니다
+            네이버 AI까지 보는 서비스도 있지만, 확인한 서비스는 기업·에이전시 대상이었습니다. AEOlab은 소상공인용(월 17,900원부터)입니다
           </p>
         </div>
 
         {/* 기준 날짜 — PC 테이블 하단 */}
         <p className="hidden md:block text-sm text-gray-600 text-center mt-2 fade-up">
-          2026년 7월 기준
+          2026년 10월 7일 확인 기준
         </p>
 
         {/* 모바일 — 간소화 카드 */}
@@ -179,7 +179,7 @@ export default function AEOCompareSection() {
             </a>
           </div>
           <p className="text-sm text-gray-600 text-center mt-2">
-            2026년 7월 기준
+            2026년 10월 7일 확인 기준
           </p>
         </div>
       </div>
