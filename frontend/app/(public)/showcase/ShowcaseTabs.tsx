@@ -25,7 +25,7 @@ const ITEMS: ShowcaseItem[] = [
     title: "대시보드",
     desc: "네이버·ChatGPT·Gemini·Google 노출 현황, 오늘 바로 할 일, 검색 순위를 한눈에 볼 수 있습니다.",
     howTo:
-      "가장 먼저 보이는 화면입니다. 상단에 오늘 가장 중요한 개선 항목이 하나 표시됩니다. 아래로 내리면 채널별 AI 노출 상황과 경쟁사 현황을 확인할 수 있습니다.",
+      "가장 먼저 보이는 화면입니다. 상단에 오늘 가장 중요한 개선 항목이 하나 표시됩니다. 아래로 내리면 AI별 노출 상황과 경쟁사 현황을 확인할 수 있습니다.",
   },
   {
     desktopFile: "02_competitors.png",
@@ -47,7 +47,7 @@ const ITEMS: ShowcaseItem[] = [
     mobileWidth: 390,
     mobileHeight: 8469,
     title: "변화 기록",
-    desc: "스캔할 때마다 AI 노출 상태가 어떻게 바뀌었는지 시점별로 기록합니다.",
+    desc: "측정할 때마다 AI 노출 상태가 어떻게 바뀌었는지 시점별로 기록합니다.",
     howTo:
       "스마트플레이스 소개글을 바꾸거나 리뷰가 쌓인 날짜를 기록에 남길 수 있습니다. 어떤 행동을 했을 때 AI 노출이 달라졌는지 확인할 수 있습니다.",
   },
@@ -85,7 +85,7 @@ const ITEMS: ShowcaseItem[] = [
     title: "블로그 진단",
     desc: "네이버 블로그에 내 가게가 얼마나 자주 언급되는지, 주요 검색어별 글 수를 확인합니다.",
     howTo:
-      "블로그 글이 AI 브리핑·AI탭에 인용될 수 있는 중요한 자료입니다. 어떤 검색어로 쓴 블로그 글이 많은지, 어떤 검색어가 부족한지 파악할 수 있습니다.",
+      "블로그 글이 AI 브리핑·AI탭에 소개될 수 있는 중요한 자료입니다. 어떤 검색어로 쓴 블로그 글이 많은지, 어떤 검색어가 부족한지 파악할 수 있습니다.",
   },
   {
     desktopFile: "07_schema.png",
@@ -95,9 +95,9 @@ const ITEMS: ShowcaseItem[] = [
     mobileWidth: 390,
     mobileHeight: 1786,
     title: "소개글·콘텐츠",
-    desc: "스마트플레이스 소개글 초안과, 홈페이지에 붙여넣을 AI 인식 코드(구조화 데이터)를 자동 생성합니다.",
+    desc: "스마트플레이스 소개글 초안과, 홈페이지에 붙여넣을 AI가 읽기 쉽게 정리한 코드를 자동 생성합니다.",
     howTo:
-      "소개글 초안은 사업장 정보를 입력하면 AI가 네이버 AI 브리핑에 인용되기 좋은 형태로 작성해 줍니다. 자체 홈페이지가 있으면 AI 인식 코드를 붙여넣어 ChatGPT·Gemini가 내 가게 정보를 더 정확히 읽도록 도울 수 있습니다.",
+      "소개글 초안은 사업장 정보를 입력하면 AI가 네이버 AI 브리핑에 소개되기 좋은 형태로 작성해 줍니다. 자체 홈페이지가 있으면 AI 인식 코드를 붙여넣어 ChatGPT·Gemini가 내 가게 정보를 더 정확히 읽도록 도울 수 있습니다.",
   },
   {
     desktopFile: "08_review_inbox.png",
@@ -203,7 +203,7 @@ export function ShowcaseTabs() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={`/showcase/${item.mobileFile}`}
+              src={`/showcase/${item.mobileFile}?v=20261008`}
               width={item.mobileWidth}
               height={item.mobileHeight}
               alt={`AEOlab ${item.title} 모바일 화면`}
@@ -224,7 +224,7 @@ export function ShowcaseTabs() {
                 {expanded ? "접기 ↑" : "전체 화면 보기 ↓"}
               </button>
               <a
-                href={`/showcase/${item.mobileFile}`}
+                href={`/showcase/${item.mobileFile}?v=20261008`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm font-semibold text-gray-500 hover:underline"
@@ -243,7 +243,7 @@ export function ShowcaseTabs() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={`/showcase/${item.desktopFile}`}
+              src={`/showcase/${item.desktopFile}?v=20261008`}
               width={item.desktopWidth}
               height={item.desktopHeight}
               alt={`AEOlab ${item.title} 화면`}
@@ -263,7 +263,7 @@ export function ShowcaseTabs() {
                 {expanded ? "접기 ↑" : "전체 화면 보기 ↓"}
               </button>
               <a
-                href={`/showcase/${item.desktopFile}`}
+                href={`/showcase/${item.desktopFile}?v=20261008`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm font-semibold text-gray-500 hover:underline"

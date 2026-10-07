@@ -177,7 +177,7 @@ export default function InlineKeywordWidget() {
 
         {/* 하단 안내 */}
         <p className="text-center text-sm mt-3 break-keep" style={{ color: "#45556C" }}>
-          AI 학습 데이터 기반 추천 · 실제 검색 순위와 다를 수 있음
+          AI가 미리 공부한 자료 기반 추천 · 실제 검색 순위와 다를 수 있음
         </p>
       </div>
     </section>

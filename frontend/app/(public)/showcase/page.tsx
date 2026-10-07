@@ -38,7 +38,7 @@ export default function ShowcasePage() {
 
         <div className="mt-10 md:mt-14 bg-blue-600 rounded-xl p-6 md:p-8 text-center text-white">
           <p className="text-lg md:text-xl font-black mb-1 break-keep">내 가게도 이렇게 관리해 보세요</p>
-          <p className="text-sm text-blue-200 mb-4">지금 시작하면 첫 스캔부터 바로 확인할 수 있습니다</p>
+          <p className="text-sm text-blue-200 mb-4">지금 시작하면 첫 측정부터 바로 확인할 수 있습니다</p>
           <Link
             href="/pricing"
             className="inline-block bg-white text-blue-700 font-bold text-base px-6 py-3 rounded-xl hover:bg-blue-50 transition-colors"

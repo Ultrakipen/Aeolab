@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { ArrowRight } from "lucide-react";
 import { mapNaverCategory } from "@/lib/categories";
 
 interface Candidate {
@@ -480,7 +481,7 @@ export default function HeroSection() {
                     cursor: searching || !bizName.trim() ? "not-allowed" : "pointer",
                   }}
                 >
-                  {searching ? "찾는 중…" : "내 가게 찾기 →"}
+                  {searching ? "찾는 중…" : <span className="inline-flex items-center gap-1">내 가게 찾기 <ArrowRight className="w-4 h-4" aria-hidden="true" /></span>}
                 </button>
 
                 {/* 신뢰 배지 */}
@@ -537,10 +538,10 @@ export default function HeroSection() {
                     <button
                       type="button"
                       onClick={handleDirectTrial}
-                      className="text-sm font-semibold underline"
+                      className="inline-flex items-center gap-1 text-sm font-semibold underline"
                       style={{ color: "#93C5FD" }}
                     >
-                      직접 진단 시작 →
+                      직접 진단 시작 <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   </div>
                 )}
@@ -623,7 +624,7 @@ export default function HeroSection() {
                             e.currentTarget.style.color = "rgba(255,255,255,0.65)";
                           }}
                         >
-                          내 가게가 없어요 → 직접 진단
+                          내 가게가 없어요 — 직접 진단
                         </button>
                       </div>
                     </div>

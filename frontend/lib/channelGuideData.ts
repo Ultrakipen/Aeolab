@@ -60,7 +60,7 @@ export const CHANNEL_GUIDE: ChannelGuideEntry[] = [
   {
     value: "nail", label: "네일샵", group: "B",
     briefing: "likely", naverRatio: 60, globalRatio: 40,
-    keyActions: ["스마트플레이스 소개글 200자 이상 + 디자인 포트폴리오 사진 10장 이상 등록", "시술별 가격표 입력 (젤·아트 등 유형별)", "네이버 예약 또는 카카오 채널 예약 연동", "시술 소요 시간 안내 작성", "신규 디자인 소식 2주 이내 1건 작성"],
+    keyActions: ["스마트플레이스 소개글 200자 이상 + 디자인 포트폴리오 사진 10장 이상 등록", "시술별 가격표 입력 (젤·아트 등 유형별)", "네이버 예약 또는 카카오 예약 연동", "시술 소요 시간 안내 작성", "신규 디자인 소식 2주 이내 1건 작성"],
   },
   {
     value: "skincare", label: "피부관리실", group: "B",
@@ -85,7 +85,7 @@ export const CHANNEL_GUIDE: ChannelGuideEntry[] = [
   {
     value: "fitness", label: "헬스장", group: "B",
     briefing: "likely", naverRatio: 65, globalRatio: 35,
-    keyActions: ["스마트플레이스 소개글 200자 이상 + 시설 내부 사진 10장 이상 등록 (기구·샤워·휴게 포함)", "트레이너 프로필·자격증 정보 작성", "회원권 가격표 + 체험 PT 프로그램 안내", "운영시간 정확히 입력 (휴일 포함)", "카카오 채널 또는 네이버 예약 상담 연동"],
+    keyActions: ["스마트플레이스 소개글 200자 이상 + 시설 내부 사진 10장 이상 등록 (기구·샤워·휴게 포함)", "트레이너 프로필·자격증 정보 작성", "회원권 가격표 + 체험 PT 프로그램 안내", "운영시간 정확히 입력 (휴일 포함)", "카카오 또는 네이버 예약 상담 연동"],
   },
   {
     value: "yoga", label: "요가·필라테스", group: "B",
@@ -135,7 +135,7 @@ export const CHANNEL_GUIDE: ChannelGuideEntry[] = [
     value: "legal", label: "법률", group: "C",
     briefing: "inactive", naverRatio: 20, globalRatio: 80,
     keyActions: ["스마트플레이스 소개글 200자 이상 (전문 분야 3개 이상 명시) 작성", "경력·수상 이력 구체적으로 공개 (승소 사례 포함)", "상담 방식(유선·방문·온라인)별 가능 시간 안내", "초기 무료 상담 여부·상담료 명시", "성공 사례(익명 처리) 3건 이상 등록"],
-    note: "글로벌 AI(ChatGPT·Gemini) 비중이 더 높음. ChatGPT 최적화 병행 권장",
+    note: "글로벌 AI(ChatGPT·Gemini) 비중이 더 높음. ChatGPT 노출 관리 병행 권장",
   },
   {
     value: "accounting", label: "세무·회계", group: "C",
@@ -197,8 +197,8 @@ export const CHANNEL_GUIDE: ChannelGuideEntry[] = [
   {
     value: "shopping", label: "쇼핑몰", group: "D",
     briefing: "inactive", naverRatio: 10, globalRatio: 90,
-    keyActions: ["스마트플레이스 소개글 200자 이상 (주요 상품군 포함) 작성", "대표 상품 사진 15장 이상 등록", "배송·적립 혜택 정책 명시", "AI 쇼핑 Schema.org 상품 구조화 데이터 적용", "리뷰 답글 3건 이상 작성 + 평점 관리"],
-    note: "글로벌 AI 비중이 압도적으로 높음. AI 쇼핑 구조화 데이터 작성 우선",
+    keyActions: ["스마트플레이스 소개글 200자 이상 (주요 상품군 포함) 작성", "대표 상품 사진 15장 이상 등록", "배송·적립 혜택 정책 명시", "홈페이지에 AI가 읽기 쉬운 상품 정보 코드 적용", "리뷰 답글 3건 이상 작성 + 평점 관리"],
+    note: "글로벌 AI 비중이 압도적으로 높음. 홈페이지 AI 상품 정보 코드 작성 우선",
   },
   {
     value: "optics", label: "안경원", group: "D",
@@ -335,8 +335,8 @@ export const CHANNEL_GUIDE: ChannelGuideEntry[] = [
   {
     value: "other", label: "기타", group: "E",
     briefing: "inactive", naverRatio: 60, globalRatio: 40,
-    keyActions: ["스마트플레이스 소개글 200자 이상 작성 + 이름·주소·전화·영업시간 정보 완성", "매장·상품·서비스 사진 10장 이상 등록", "구글 비즈니스 프로필 등록·최적화 (business.google.com)", "ChatGPT·Gemini가 인용할 수 있는 소개글 + Schema.org 구조화 데이터 적용", "외부 블로그·SNS 언급 확대 + 리뷰 답글 3건 이상 작성"],
-    note: "'플레이스형' 네이버 AI 브리핑 대상 외 업종. 59개 세부 업종 중 어디에도 해당하지 않아 네이버·글로벌 채널 비중은 중립 기본값(60%/40%)을 적용합니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다.",
+    keyActions: ["스마트플레이스 소개글 200자 이상 작성 + 이름·주소·전화·영업시간 정보 완성", "매장·상품·서비스 사진 10장 이상 등록", "구글 비즈니스 프로필 등록·관리 (business.google.com)", "ChatGPT·Gemini가 소개할 수 있는 소개글 + 홈페이지에 AI가 읽기 쉬운 정보 코드 적용", "외부 블로그·SNS 언급 확대 + 리뷰 답글 3건 이상 작성"],
+    note: "'가게 요약형(플레이스형)' 네이버 AI 브리핑 대상 외 업종. 59개 세부 업종 중 어디에도 해당하지 않아 네이버·글로벌 AI 비중은 중립 기본값(60%/40%)을 적용합니다. 블로그·콘텐츠로 '글 모음형(정보형) AI 브리핑' 노출도 가능합니다.",
   },
 ]
 

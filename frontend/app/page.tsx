@@ -3,6 +3,7 @@ import {
   Check, Lock, CreditCard, Clock, Search, Bot, MessageCircle, Camera, X, CheckCircle2, TrendingUp,
   Sparkles, MapPin, Ban, FileText, MousePointerClick, Globe, Building2, ClipboardList, BarChart3,
   Trophy, ListChecks, PenLine, Newspaper, MessageSquareText, KeyRound, Bell, ShieldCheck,
+  ArrowRight, Utensils, Coffee, Croissant, Beer, BedDouble,
 } from "lucide-react";
 import HeroSection from "@/components/landing/HeroSection";
 import ChatGPTCompareSection from "@/components/landing/ChatGPTCompareSection";
@@ -124,7 +125,7 @@ export default function LandingPage() {
           <span className="whitespace-nowrap inline-flex items-center gap-1.5"><MessageCircle className="w-4 h-4 text-green-700" aria-hidden="true" /><strong className="text-green-700">ChatGPT·Gemini·Google AI</strong> 노출 현황 측정·추적</span>
           <span className="hidden sm:block text-gray-600">·</span>
           <Link href="/showcase" className="whitespace-nowrap font-semibold text-blue-600 hover:underline inline-flex items-center gap-1.5">
-            <Camera className="w-4 h-4" aria-hidden="true" /> 실제 구독 사업장 화면 보기 →
+            <Camera className="w-4 h-4" aria-hidden="true" /> 실제 구독 사업장 화면 보기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Link>
         </div>
       </div>
@@ -241,7 +242,7 @@ export default function LandingPage() {
                 <ul className="mt-3 space-y-1 text-sm" style={{ color: "rgba(255,255,255,0.88)" }}>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={3} aria-hidden="true" />
-                    네이버 AI탭·AI 브리핑 최적화 <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.8em" }}>(업종별 자동 적용)</span>
+                    네이버 AI탭·AI 브리핑 노출 준비 <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.8em" }}>(업종별 자동 적용)</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={3} aria-hidden="true" />
@@ -308,15 +309,15 @@ export default function LandingPage() {
                   href="https://www.hankyung.com/article/202508212669g"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-white/75 underline hover:text-white mt-0.5 block"
+                  className="text-sm text-white/75 underline hover:text-white mt-0.5 inline-flex items-center gap-1"
                 >
-                  한국경제 보도 원문 →
+                  한국경제 보도 원문 <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                 </a>
                 <p className="text-sm mt-1.5 break-keep" style={{ color: "rgba(255,255,255,0.88)" }}>
                   측정 시점·지역·업종에 따라 달라질 수 있습니다
                 </p>
                 <p className="text-sm mt-1.5 break-keep" style={{ color: "rgba(255,255,255,0.72)" }}>
-                  ※ 플레이스형(가게 정보를 요약해 보여주는 방식) AI 브리핑 대상은 음식점·카페·베이커리·바·숙박 업종 — 그 외 업종도 블로그·콘텐츠가 채택되면 정보형(블로그·글을 모아 추천하는 방식) AI 브리핑 노출이 가능하며, 네이버 AI탭·ChatGPT·Gemini 채널로도 측정·개선합니다
+                  ※ 가게 요약형(플레이스형) AI 브리핑 대상은 음식점·카페·베이커리·바·숙박 업종 — 그 외 업종도 블로그·콘텐츠가 채택되면 글 모음형(정보형) AI 브리핑 노출이 가능하며, 네이버 AI탭·ChatGPT·Gemini로도 측정·개선합니다
                 </p>
               </div>
             </div>
@@ -326,7 +327,7 @@ export default function LandingPage() {
               {[
                 { num: "3,000만+", label: "네이버 AI 서비스 월 이용자 (전체)", sub: "뉴스·검색·플레이스 전체 합산 · 네이버 공식 발표 (2025.11)", delay: "delay-1", isAiTab: false },
                 { num: "2026.04", label: "네이버 AI탭 베타 출시", sub: "2026-04-27 베타 출시 · 2026-06-25 정식 출시 · 네이버 공식", delay: "delay-2", isAiTab: false },
-                { num: "59종+", label: "모든 업종 측정 가능", sub: "AI 탭·글로벌 AI 기준 · 업종별 채널 자동 분기", delay: "delay-3", isAiTab: true },
+                { num: "59종+", label: "모든 업종 측정 가능", sub: "AI탭·글로벌 AI 기준 · 업종별 노출 경로 자동 안내", delay: "delay-3", isAiTab: true },
               ].map((item) => (
                 <div
                   key={item.label}
@@ -350,7 +351,7 @@ export default function LandingPage() {
                     {item.num}
                   </p>
                   <p className="text-sm font-semibold" style={{ color: "#1E293B" }}>{item.label}</p>
-                  <p className="text-sm" style={{ color: "#45556C" }}>{item.isAiTab ? "AI 탭·글로벌 AI 기준 · 업종별 채널 자동 분기" : item.sub}</p>
+                  <p className="text-sm" style={{ color: "#45556C" }}>{item.isAiTab ? "AI탭·글로벌 AI 기준 · 업종별 노출 경로 자동 안내" : item.sub}</p>
                 </div>
               ))}
             </div>
@@ -370,19 +371,16 @@ export default function LandingPage() {
       {/* ── 1-A. AI 검색 노출 — 업종 분기 다이어그램 + 개선 방법 통합 ── */}
       <section className="px-4 py-3 md:py-16" style={{ background: "#F8FAFC", borderBottom: "1px solid #E2E8F0" }}>
         <div className="max-w-[1020px] mx-auto">
-          <MobileAccordion label="AI 검색 노출, 업종마다 채널이 다릅니다 — 업종별 채널 보기">
+          <MobileAccordion label="AI 검색 노출, 업종마다 경로가 다릅니다 — 업종별 노출 경로 보기">
 
           {/* PART 1 — 도입 */}
           <div className="text-center mb-10">
-            <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>업종별 AI 채널 안내</p>
+            <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#2563EB" }}>업종별 AI 노출 경로</p>
             <h2 className="text-2xl md:text-3xl font-black tracking-tight break-keep" style={{ color: "#0F172A", letterSpacing: "-0.6px" }}>
-              AI 검색 노출, 업종마다 채널이 다릅니다
+              AI 검색 노출, 업종마다 경로가 다릅니다
             </h2>
             <p className="mt-3 text-base md:text-lg break-keep max-w-xl mx-auto font-semibold" style={{ color: "#007a55" }}>
               하지만 개선 방법은 모든 업종이 동일합니다
-            </p>
-            <p className="mt-1.5 text-sm break-keep max-w-xl mx-auto" style={{ color: "#475569" }}>
-              여기서 &apos;채널&apos;은 손님이 AI로 가게를 찾는 경로(네이버 AI, ChatGPT 등)를 뜻합니다
             </p>
           </div>
 
@@ -395,7 +393,7 @@ export default function LandingPage() {
                 <div>
                   <p className="text-base font-black text-gray-800 break-keep">음식점·카페·베이커리·바·숙박</p>
                 </div>
-                <span className="flex-shrink-0 ml-3 px-3 py-1 rounded-full text-sm font-bold bg-emerald-700 text-white whitespace-nowrap">3채널 전부</span>
+                <span className="flex-shrink-0 ml-3 px-3 py-1 rounded-full text-sm font-bold bg-emerald-700 text-white whitespace-nowrap">3가지 모두</span>
               </div>
 
               <div className="space-y-3 mb-4">
@@ -431,16 +429,16 @@ export default function LandingPage() {
                 <div>
                   <p className="text-base font-black text-gray-800 break-keep">학원·병원·법무사·부동산·쇼핑 등</p>
                 </div>
-                <span className="flex-shrink-0 ml-3 px-3 py-1 rounded-full text-sm font-bold bg-blue-600 text-white whitespace-nowrap">3채널</span>
+                <span className="flex-shrink-0 ml-3 px-3 py-1 rounded-full text-sm font-bold bg-blue-600 text-white whitespace-nowrap">3가지</span>
               </div>
 
               <div className="space-y-3 mb-4">
                 <div className="flex items-start gap-3 rounded-xl bg-white border border-blue-100 px-4 py-3">
                   <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0 text-blue-600" aria-hidden="true" />
                   <div>
-                    <p className="text-sm font-bold text-gray-800">네이버 AI 브리핑 (정보형)</p>
+                    <p className="text-sm font-bold text-gray-800">네이버 AI 브리핑 (글 모음형)</p>
                     <p className="text-sm text-gray-600">블로그·콘텐츠가 출처로 채택되면 지금도 노출 가능</p>
-                    <p className="text-sm text-gray-600 mt-0.5">플레이스형(가게 카드 요약)은 연내 두 자릿수 업종 확대 예정 (네이버 공식)</p>
+                    <p className="text-sm text-gray-600 mt-0.5">가게 요약형은 연내 두 자릿수 업종 확대 예정 (네이버 공식)</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 rounded-xl bg-white border border-blue-100 px-4 py-3">
@@ -481,7 +479,7 @@ export default function LandingPage() {
               <p className="text-sm text-green-700 mt-1 break-keep">
                 스마트플레이스 → 네이버 플레이스 탭 순위 상승 / 블로그 → VIEW탭 상위 노출 → AI 브리핑·AI탭 노출 가능성도 함께 높아집니다
               </p>
-              <p className="text-sm text-green-700 mt-1.5">네이버 검색 순위는 네이버 알고리즘이 결정하며 보장되지 않습니다</p>
+              <p className="text-sm text-green-700 mt-1.5">네이버 검색 순위는 네이버가 정한 기준에 따라 결정되며 보장되지 않습니다</p>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl bg-white border border-blue-200 px-5 py-4">
@@ -490,10 +488,10 @@ export default function LandingPage() {
               </p>
               <Link
                 href="/trial"
-                className="flex-shrink-0 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors hover:bg-[#1D4ED8] whitespace-nowrap"
+                className="flex-shrink-0 inline-flex items-center text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-colors hover:bg-[#1D4ED8] whitespace-nowrap"
                 style={{ background: "#2563EB" }}
               >
-                무료 진단 시작 →
+                무료 진단 시작 <ArrowRight className="w-4 h-4 ml-1" aria-hidden="true" />
               </Link>
             </div>
           </div>
@@ -618,11 +616,11 @@ export default function LandingPage() {
           </div>
 
           <p className="text-center text-sm fade-up break-keep" style={{ color: "#45556C" }}>
-            음식점·카페·베이커리·바·숙박업 등 플레이스형 네이버 AI 브리핑 대상 업종 기준 ·{" "}
-            <strong style={{ color: "#6366F1" }}>그 외 업종도 블로그·콘텐츠 채택 시 정보형 AI 브리핑 노출 가능 + AI탭(업종 제한 발표 없음, 2026-06-25 정식 출시) + ChatGPT·Gemini·Google AI 가이드 자동 제공</strong>
+            음식점·카페·베이커리·바·숙박업 등 가게 요약형 네이버 AI 브리핑 대상 업종 기준 ·{" "}
+            <strong style={{ color: "#6366F1" }}>그 외 업종도 블로그·콘텐츠 채택 시 글 모음형 AI 브리핑 노출 가능 + AI탭(업종 제한 발표 없음, 2026-06-25 정식 출시) + ChatGPT·Gemini·Google AI 가이드 자동 제공</strong>
           </p>
           <p className="text-center text-sm mt-2 fade-up break-keep" style={{ color: "#45556C" }}>
-            AI 브리핑 노출은 네이버 알고리즘 기준으로 보장되지 않으며, 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
+            AI 브리핑 노출은 네이버가 정한 기준으로 보장되지 않으며, 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
           </p>
           </MobileAccordion>
         </div>
@@ -655,7 +653,7 @@ export default function LandingPage() {
             style={{ borderColor: "#A5B4FC", background: "#EEF2FF" }}
           >
             <p className="text-sm md:text-base font-bold break-keep text-center" style={{ color: "#3730A3" }}>
-              학원·병원·미용실·헬스장·법무사 등 — 플레이스형 AI 브리핑 비대상이어도 정보형 AI 브리핑과 <span style={{ color: "#6366F1" }}>AI탭</span> 노출을 준비할 수 있습니다
+              학원·병원·미용실·헬스장·법무사 등 — 가게 요약형 AI 브리핑 비대상이어도 글 모음형 AI 브리핑과 <span style={{ color: "#6366F1" }}>AI탭</span> 노출을 준비할 수 있습니다
             </p>
           </div>
 
@@ -681,14 +679,15 @@ export default function LandingPage() {
                   <p className="text-sm font-bold text-blue-700 mb-2 uppercase tracking-wide">노출 대상 업종</p>
                   <div className="flex flex-wrap gap-2">
                     {[
-                      { icon: "🍽️", label: "음식점" },
-                      { icon: "☕", label: "카페" },
-                      { icon: "🥐", label: "베이커리" },
-                      { icon: "🍺", label: "바·주점" },
-                      { icon: "🏨", label: "숙박" },
-                    ].map(({ icon, label }) => (
+                      { Icon: Utensils, label: "음식점" },
+                      { Icon: Coffee, label: "카페" },
+                      { Icon: Croissant, label: "베이커리" },
+                      { Icon: Beer, label: "바·주점" },
+                      { Icon: BedDouble, label: "숙박" },
+                    ].map(({ Icon, label }) => (
                       <span key={label} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-semibold" style={{ background: "#DBEAFE", color: "#1E40AF" }}>
-                        {icon} {label}
+                        <Icon className="w-3.5 h-3.5" aria-hidden="true" />
+                        {label}
                       </span>
                     ))}
                   </div>
@@ -700,7 +699,7 @@ export default function LandingPage() {
 
                 {/* 특징 */}
                 <div>
-                  <p className="text-sm font-bold text-blue-700 mb-2 uppercase tracking-wide">채널 특징</p>
+                  <p className="text-sm font-bold text-blue-700 mb-2 uppercase tracking-wide">노출 특징</p>
                   <div className="space-y-2">
                     {[
                       { Icon: MapPin, text: "검색 결과 최상단 — 광고 영역 위에 자동 표시" },
@@ -746,7 +745,7 @@ export default function LandingPage() {
 
                 {/* 특징 */}
                 <div>
-                  <p className="text-sm font-bold text-indigo-700 mb-2 uppercase tracking-wide">채널 특징</p>
+                  <p className="text-sm font-bold text-indigo-700 mb-2 uppercase tracking-wide">노출 특징</p>
                   <div className="space-y-2">
                     {[
                       { Icon: MousePointerClick, text: "검색 결과 탭에서 'AI' 클릭 시 답변에 내 가게 등장" },
@@ -770,7 +769,7 @@ export default function LandingPage() {
             style={{ borderColor: "#C7D2FE", background: "#EEF2FF" }}
           >
             <p className="text-sm md:text-base font-bold mb-2" style={{ color: "#3730A3" }}>
-              AEOlab은 내 업종에 맞는 채널을 자동으로 파악해 가이드합니다
+              AEOlab은 내 업종에 맞는 노출 경로를 자동으로 파악해 가이드합니다
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-sm">
               <span className="rounded-full px-3 py-1 font-semibold" style={{ background: "#BFDBFE", color: "#1E40AF" }}>
@@ -784,7 +783,7 @@ export default function LandingPage() {
           </div>
 
           <p className="text-center text-sm mt-4 fade-up break-keep" style={{ color: "#45556C" }}>
-            AI 브리핑·AI탭 노출은 네이버 알고리즘 기준이며 보장되지 않습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
+            AI 브리핑·AI탭 노출은 네이버가 정한 기준이며 보장되지 않습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
           </p>
           </MobileAccordion>
         </div>
@@ -898,7 +897,7 @@ export default function LandingPage() {
               href="/trial"
               className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-blue-700 bg-white hover:bg-blue-50 transition-colors"
             >
-              무료 진단 시작 →
+              무료 진단 시작 <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </a>
           </div>
           </MobileAccordion>
@@ -935,7 +934,7 @@ export default function LandingPage() {
             {[
               {
                 Icon: Search,
-                title: "AI 노출 자동 스캔",
+                title: "AI 노출 자동 점검",
                 desc: "네이버 AI·ChatGPT·Gemini·Google AI 4곳에서 내 가게가 실제로 몇 번 언급되는지 자동 측정",
                 badge: "핵심",
                 badgeColor: "#2563EB",
@@ -971,7 +970,7 @@ export default function LandingPage() {
               {
                 Icon: Newspaper,
                 title: "블로그 진단",
-                desc: "내 블로그 포스트가 네이버 AI 브리핑에 실제로 인용되고 있는지 포스트 단위로 확인. 네이버·ChatGPT 등 4곳에서 언급된 현황과 경쟁사 비교로 개선 방향 제시",
+                desc: "내 블로그 포스트가 네이버 AI 브리핑에 실제로 언급되고 있는지 포스트 단위로 확인. 네이버·ChatGPT 등 4곳에서 언급된 현황과 경쟁사 비교로 개선 방향 제시",
                 badge: null,
                 badgeColor: "",
               },
@@ -1031,7 +1030,7 @@ export default function LandingPage() {
               Basic 첫 달 8,950원부터 시작 · 7일 이내 미사용 시 100% 환불
             </p>
             <a href="/signup" className="flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold text-white transition-colors" style={{ background: "#2563EB" }}>
-              지금 시작 →
+              지금 시작 <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </a>
           </div>
           </MobileAccordion>
@@ -1057,10 +1056,10 @@ export default function LandingPage() {
             </p>
             <Link
               href="/showcase"
-              className="inline-block text-sm font-semibold mt-3 hover:underline"
+              className="inline-flex items-center gap-1 text-sm font-semibold mt-3 hover:underline"
               style={{ color: "#2563EB" }}
             >
-              예시 말고 실제 구독 사업장 화면이 궁금하다면 →
+              예시 말고 실제 구독 사업장 화면이 궁금하다면 <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </Link>
           </div>
           <DashboardPreview />
@@ -1121,7 +1120,7 @@ export default function LandingPage() {
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-colors"
                 style={{ background: "#2563EB" }}
               >
-                직접 계산해보기 →
+                직접 계산해보기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </Link>
               <p className="text-sm" style={{ color: "#45556C" }}>
                 내 광고비로 계산
@@ -1242,7 +1241,7 @@ export default function LandingPage() {
                       className="mt-5 inline-flex items-center justify-center min-h-12 rounded-xl text-base font-bold transition-colors hover:bg-blue-100"
                       style={{ background: "#EFF6FF", color: "#1D4ED8" }}
                     >
-                      자세히 보기 →
+                      자세히 보기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
                     </Link>
                   </div>
                 ))}
@@ -1259,13 +1258,13 @@ export default function LandingPage() {
           <div className="mt-6 text-center">
             <Link
               href="/pricing"
-              className="inline-block text-white text-base font-bold px-7 py-3 rounded-xl transition-all hover:scale-105"
+              className="inline-flex items-center gap-1 text-white text-base font-bold px-7 py-3 rounded-xl transition-all hover:scale-105"
               style={{
                 background: "linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)",
                 boxShadow: "0 4px 20px rgba(124,58,237,0.30)",
               }}
             >
-              요금제 자세히 보기 →
+              요금제 자세히 보기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </Link>
             <p className="text-sm mt-1.5" style={{ color: "#475569" }}>
               Basic 첫 달 8,950원 · 7일 이내 미사용 시 100% 환불

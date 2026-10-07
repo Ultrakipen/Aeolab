@@ -9,7 +9,7 @@ import { ChatGptChecklist } from "./ChatGptChecklist"
 export const metadata: Metadata = {
   title: "ChatGPT에서 내 가게가 언급되는 조건 | AEOlab",
   description:
-    "ChatGPT 웹검색은 OpenAI 자체 크롤러(OAI-SearchBot)와 구글 인덱스가 중심이며 Bing 비중은 제한적입니다. 자체 웹사이트·구글 비즈니스 프로필·영어권 플랫폼을 참조하는 구조와, 네이버 블로그·스마트플레이스가 직접 연결되지 않는 이유·실제 노출 조건을 정리합니다.",
+    "ChatGPT 웹검색은 ChatGPT의 검색 프로그램과 구글 검색이 중심이며 마이크로소프트 검색 비중은 제한적입니다. 자체 웹사이트·구글 비즈니스 프로필·영어권 사이트를 참조하는 구조와, 네이버 블로그·스마트플레이스가 직접 연결되지 않는 이유·실제 노출 조건을 정리합니다.",
 }
 
 const LEARN_SOURCES = [
@@ -17,7 +17,7 @@ const LEARN_SOURCES = [
     icon: Globe,
     tone: "default" as const,
     title: "자체 웹사이트 (기본이 되는 곳)",
-    desc: "ChatGPT의 검색 로봇이 직접 읽어가는 외부 URL입니다. 검색엔진이 읽기 쉬운 정보 표(JSON-LD)가 있으면 인용 가능성이 높아집니다. 티스토리·워드프레스도 포함됩니다. 구글·Bing 검색에도 함께 색인되면 발견 경로가 늘어납니다.",
+    desc: "ChatGPT의 검색 프로그램이 직접 읽어가는 외부 URL입니다. AI가 읽기 쉬운 정보 코드가 있으면 소개될 가능성이 높아집니다. 티스토리·워드프레스도 포함됩니다. 구글·마이크로소프트 검색에도 함께 잡히면 발견 경로가 늘어납니다.",
   },
   {
     icon: MapPin,
@@ -28,25 +28,25 @@ const LEARN_SOURCES = [
   {
     icon: Newspaper,
     tone: "default" as const,
-    title: "뉴스·언론 기사·영어권 플랫폼",
-    desc: "언론 보도, 트립어드바이저 등 영어권 글로벌 플랫폼은 ChatGPT의 검색 로봇과 구글 인덱싱이 활발하여 믿을 만한 곳에 소개된 글로 인식되고 인용 가능성이 높아집니다.",
+    title: "뉴스·언론 기사·영어권 사이트",
+    desc: "언론 보도, 트립어드바이저 등 영어권 글로벌 사이트는 ChatGPT의 검색 프로그램과 구글 등록이 활발해서 믿을 만한 곳에 소개된 글로 인식되고 소개될 가능성이 높아집니다.",
   },
   {
     icon: AlertTriangle,
     tone: "warning" as const,
     title: "네이버 블로그·스마트플레이스 — ChatGPT 효과 제한적",
-    desc: "네이버 생태계(블로그·스마트플레이스)는 ChatGPT가 참조하는 검색엔진 인덱스에서 영향력이 제한적이어서 ChatGPT 응답에 미치는 효과가 작습니다. 네이버 최적화는 네이버 AI 브리핑·AI탭에 효과적입니다.",
+    desc: "네이버 안의 활동(블로그·스마트플레이스)은 ChatGPT가 참조하는 검색에서 영향력이 제한적이어서 ChatGPT 응답에 미치는 효과가 작습니다. 네이버 개선은 네이버 AI 브리핑·AI탭에 효과적입니다.",
   },
 ]
 
 const CHECKLIST_ITEMS = [
-  { id: "json_ld", label: "자체 웹사이트·홈페이지에 검색엔진이 읽기 쉬운 정보 표(JSON-LD) 적용" },
+  { id: "json_ld", label: "자체 웹사이트·홈페이지에 AI가 읽기 쉬운 정보 코드 적용" },
   { id: "qa", label: "자체 웹사이트·홈페이지에 질문-답 형식 콘텐츠 포함 (가격·운영시간·예약 방법 등)" },
   { id: "specific", label: "가격·운영시간·위치 구체 수치 명시" },
   { id: "authority", label: "믿을 만한 곳에 소개된 글 확보 (경력·자격·수상·언론 보도)" },
   { id: "google_biz", label: "구글 비즈니스 프로필 등록 완료 (business.google.com)" },
   { id: "bing_webmaster", label: "(선택) 마이크로소프트 검색 등록 (bing.com/webmasters) — 보조적 도움" },
-  { id: "tripadvisor", label: "트립어드바이저 등 영어권 글로벌 플랫폼 등록" },
+  { id: "tripadvisor", label: "트립어드바이저 등 영어권 글로벌 사이트 등록" },
 ]
 
 export default function ChatGptSearchGuidePage() {
@@ -99,7 +99,7 @@ export default function ChatGptSearchGuidePage() {
               </div>
               <div className="flex items-start gap-3">
                 <span className="shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-bold flex items-center justify-center mt-0.5">3</span>
-                <p className="text-base md:text-lg font-semibold break-keep">AEOlab 점수는 학습 데이터 기반이라 실시간 ChatGPT 검색과 다르게 움직입니다.</p>
+                <p className="text-base md:text-lg font-semibold break-keep">AEOlab 점수는 AI가 미리 공부한 자료 기반이라 실시간 ChatGPT 검색과 다르게 움직입니다.</p>
               </div>
             </div>
           </div>
@@ -111,7 +111,7 @@ export default function ChatGptSearchGuidePage() {
             ChatGPT에서 내 가게를 노출시키는 방법
           </h1>
           <p className="text-base md:text-lg text-gray-600 mb-4 leading-relaxed break-keep">
-            ChatGPT 웹검색은 ChatGPT의 검색 로봇(OAI-SearchBot) + 구글 인덱스 중심 구조 — 자체 웹사이트와 구글 비즈니스 프로필이 중요한 기반이 됩니다
+            ChatGPT 웹검색은 ChatGPT의 검색 프로그램 + 구글 검색 중심 구조 — 자체 웹사이트와 구글 비즈니스 프로필이 중요한 기반이 됩니다
           </p>
           {/* 면책 문구 */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
@@ -129,11 +129,11 @@ export default function ChatGptSearchGuidePage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-              <p className="text-sm font-semibold text-blue-800 mb-2">실사용자 ChatGPT 웹검색 (검색엔진 인덱싱 참고)</p>
+              <p className="text-sm font-semibold text-blue-800 mb-2">실사용자 ChatGPT 웹검색 (검색 등록 기준 참고)</p>
               <ul className="space-y-1.5 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
                   <span className="shrink-0 text-blue-600 mt-0.5">•</span>
-                  <span>자체 웹사이트 신규 등록 → 검색엔진 인덱싱: <strong>약 1~2주</strong> (Bing 기준 참고치)</span>
+                  <span>자체 웹사이트 신규 등록 → 검색 등록: <strong>약 1~2주</strong> (마이크로소프트 검색 기준 참고치)</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="shrink-0 text-blue-600 mt-0.5">•</span>
@@ -141,12 +141,12 @@ export default function ChatGptSearchGuidePage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="shrink-0 text-blue-600 mt-0.5">•</span>
-                  <span>Bing 웹마스터 도구 등록은 보조적으로 도움이 될 수 있음 (OpenAI 자체 인덱스·구글 경로는 소요기간 미공개)</span>
+                  <span>마이크로소프트 검색 도구 등록은 보조적으로 도움이 될 수 있음 (ChatGPT 자체 경로·구글 경로는 소요기간 미공개)</span>
                 </li>
               </ul>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-800 mb-2">AEOlab 스캐너 점수 (ChatGPT 학습 데이터 기준)</p>
+              <p className="text-sm font-semibold text-slate-800 mb-2">AEOlab 측정 결과 (ChatGPT AI 공부 자료 기준)</p>
               <p className="text-sm text-gray-700 leading-relaxed">
                 ChatGPT 모델 재학습 주기에 의존<br />
                 <strong>수개월~1년</strong> 이상 소요
@@ -157,15 +157,15 @@ export default function ChatGptSearchGuidePage() {
             </div>
           </div>
           <p className="text-sm text-gray-600 leading-relaxed">
-            ※ AEOlab 점수는 학습 데이터 기반 측정이며, 실사용자 ChatGPT 웹검색 결과와 다를 수 있습니다.
-            이 페이지의 체크리스트는 이 중 &lsquo;실사용자 웹검색&rsquo; 트랙을 돕는 항목이며, AEOlab 대시보드 점수와는 별개로 움직입니다.
+            ※ AEOlab 점수는 AI가 미리 공부한 자료 기반 측정이며, 실사용자 ChatGPT 웹검색 결과와 다를 수 있습니다.
+            이 페이지의 체크리스트는 이 중 &lsquo;실사용자 웹검색&rsquo; 방식을 돕는 항목이며, AEOlab 대시보드 점수와는 별개로 움직입니다.
           </p>
         </section>
 
         {/* ── 2. ChatGPT가 참조하는 정보 ── */}
         <section>
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 break-keep">
-            ChatGPT가 실제로 참조하는 정보 — OpenAI 자체 크롤러 + 구글 인덱스 중심 구조
+            ChatGPT가 실제로 참조하는 정보 — ChatGPT의 검색 프로그램 + 구글 검색 중심 구조
           </h2>
 
           {/* 흐름도: 내 사업장 정보가 ChatGPT 응답에 도달하는 경로 */}
@@ -186,8 +186,8 @@ export default function ChatGptSearchGuidePage() {
                 <div className="w-11 h-11 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
                   <Bot className="w-5 h-5" aria-hidden="true" />
                 </div>
-                <p className="text-sm font-semibold text-gray-900">OpenAI 인덱싱</p>
-                <p className="text-sm text-gray-600">OAI-SearchBot · 구글 인덱스</p>
+                <p className="text-sm font-semibold text-gray-900">ChatGPT 검색 등록</p>
+                <p className="text-sm text-gray-600">ChatGPT 검색 프로그램 · 구글 검색</p>
               </div>
 
               <ArrowDown className="w-5 h-5 text-gray-600 shrink-0 md:hidden" aria-hidden="true" />
@@ -198,7 +198,7 @@ export default function ChatGptSearchGuidePage() {
                   <MessageSquareText className="w-5 h-5" aria-hidden="true" />
                 </div>
                 <p className="text-sm font-semibold text-gray-900">ChatGPT 응답</p>
-                <p className="text-sm text-gray-600">질문에 대한 답으로 인용</p>
+                <p className="text-sm text-gray-600">질문에 맞는 답으로 소개</p>
               </div>
             </div>
           </div>
@@ -232,9 +232,9 @@ export default function ChatGptSearchGuidePage() {
                     {item.desc}
                   </p>
                   {isWarning && (
-                    <MoreInfo summary="네이버 robots.txt 관련" tone="soft">
+                    <MoreInfo summary="네이버 AI 수집 제한 관련" tone="soft">
                       <p className="text-sm text-gray-700 leading-relaxed">
-                        네이버 블로그·지도·카페는 robots.txt에서 주요 AI 수집 봇을 차단하고 있습니다(2026-10-07 확인).
+                        네이버 블로그·지도·카페는 ChatGPT 같은 AI가 글을 읽어 가는 것을 제한하고 있습니다(2026-10-07 확인).
                         이로 인해 ChatGPT 등 글로벌 AI가 네이버 콘텐츠를 직접 읽어가기 어렵습니다.
                       </p>
                     </MoreInfo>
@@ -256,8 +256,8 @@ export default function ChatGptSearchGuidePage() {
                 1
               </span>
               <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                Q&amp;A 형식 텍스트는 AI가 <strong>질문-답변 쌍</strong>으로 인식하여
-                특정 질문에 대한 답으로 인용하기 쉽습니다.
+                Q&amp;A 형식 텍스트는 AI가 <strong>질문-답변 쌍</strong>으로 인식해
+                특정 질문의 답으로 소개하기 쉽습니다.
               </p>
             </div>
             <div className="flex items-start gap-3">
@@ -265,8 +265,8 @@ export default function ChatGptSearchGuidePage() {
                 2
               </span>
               <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                AI가 인용하기 좋은 <strong>명확한 문장 구조</strong>는 출처를 특정할 수 있어
-                인용 가능성이 높아집니다.
+                AI가 소개하기 좋은 <strong>명확한 문장 구조</strong>는 출처를 특정할 수 있어
+                소개될 가능성이 높아집니다.
               </p>
             </div>
           </div>
@@ -275,24 +275,24 @@ export default function ChatGptSearchGuidePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="rounded-xl border border-red-200 bg-red-50 p-4">
               <p className="flex items-center gap-1.5 text-sm font-semibold text-red-700 mb-2">
-                <XIcon className="w-4 h-4" aria-hidden="true" /> Before (인용 어려움)
+                <XIcon className="w-4 h-4" aria-hidden="true" /> Before (소개 어려움)
               </p>
               <p className="text-sm md:text-base text-gray-800 leading-relaxed italic">
                 &ldquo;맛있는 음식을 제공합니다.&rdquo;
               </p>
               <p className="text-sm text-gray-600 mt-2 leading-relaxed">
-                구체적 정보 없음 — ChatGPT가 인용할 근거가 부족합니다.
+                구체적 정보 없음 — ChatGPT가 참고할 정보가 부족합니다.
               </p>
             </div>
             <div className="rounded-xl border border-green-200 bg-green-50 p-4">
               <p className="flex items-center gap-1.5 text-sm font-semibold text-green-700 mb-2">
-                <Check className="w-4 h-4" aria-hidden="true" /> After (인용 가능)
+                <Check className="w-4 h-4" aria-hidden="true" /> After (소개 가능)
               </p>
               <p className="text-sm md:text-base text-gray-800 leading-relaxed italic">
                 &ldquo;Q. 대표 메뉴는? A. 시그니처 파스타(15,000원)와 트러플 리조또(18,000원)입니다.&rdquo;
               </p>
               <p className="text-sm text-gray-600 mt-2 leading-relaxed">
-                Q&amp;A 구조 + 구체 수치 → 질문에 바로 답하는 형태로 인용 가능합니다.
+                Q&amp;A 구조 + 구체 수치 → 질문에 바로 답하는 형태로 소개될 수 있습니다.
               </p>
             </div>
           </div>

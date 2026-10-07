@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ArrowRight } from "lucide-react";
 
 type FaqItem = {
   q: string;
@@ -13,10 +13,10 @@ type FaqItem = {
 const FAQS: FaqItem[] = [
   {
     q: "내 업종도 네이버 AI 브리핑에 노출되나요?",
-    a: "'플레이스형' AI 브리핑은 음식점·카페·베이커리·바·숙박 업종이 대상이며 프랜차이즈는 제외됩니다. 대상이 아닌 업종도 ① 블로그·콘텐츠 기반 '정보형 AI 브리핑'(업종 제한 없음), ② 네이버 AI탭(모든 업종, 정식 출시) 노출 준비도 진단, ③ 네이버 플레이스·VIEW 탭 일반 검색 상위 노출 최적화, ④ ChatGPT·Gemini·Google AI 채널 개선 — 네 방향으로 가치를 드립니다. 무료 진단으로 내 업종 채널별 현황을 확인하세요.",
+    a: "'가게 요약형(플레이스형)' AI 브리핑은 음식점·카페·베이커리·바·숙박 업종이 대상이며 프랜차이즈는 제외됩니다. 대상이 아닌 업종도 ① 블로그·콘텐츠 기반 '글 모음형(정보형) AI 브리핑'(업종 제한 없음), ② 네이버 AI탭(모든 업종, 정식 출시) 노출 준비도 진단, ③ 네이버 플레이스·VIEW 탭 일반 검색 상위 노출 개선, ④ ChatGPT·Gemini·Google AI 노출 개선 — 네 방향으로 가치를 드립니다. 무료 진단으로 내 업종별 현황을 확인하세요.",
     aNode: (
       <div className="space-y-2.5">
-        <p>'플레이스형' AI 브리핑은 음식점·카페·베이커리·바·숙박 업종이 대상이며 프랜차이즈는 제외됩니다.</p>
+        <p>'가게 요약형' AI 브리핑은 음식점·카페·베이커리·바·숙박 업종이 대상이며 프랜차이즈는 제외됩니다.</p>
         <p className="font-medium" style={{ color: "#334155" }}>
           대상이 아닌 업종도 네 가지 방향으로 가치를 드립니다.
         </p>
@@ -24,7 +24,7 @@ const FAQS: FaqItem[] = [
           <li className="flex gap-2.5">
             <span className="font-bold shrink-0 mt-px" style={{ color: "#2563EB" }}>①</span>
             <span>
-              <strong>정보형 AI 브리핑</strong> — 블로그·콘텐츠가 출처로 채택되면 업종 제한 없이 노출 가능
+              <strong>글 모음형 AI 브리핑</strong> — 블로그·콘텐츠가 출처로 채택되면 업종 제한 없이 노출 가능
             </span>
           </li>
           <li className="flex gap-2.5">
@@ -65,11 +65,11 @@ const FAQS: FaqItem[] = [
   },
   {
     q: "ChatGPT에 우리 가게를 노출하는 방법이 있나요?",
-    a: "ChatGPT는 두 가지 방식으로 가게를 인식합니다. ① 로컬 검색 시 Bing을 실시간으로 검색하므로 Bing Places 비즈니스 등록(무료)이 도움이 될 수 있는 경로입니다. ② 학습된 데이터도 참조하므로 구글 비즈니스·외부 블로그·웹사이트에 가게 정보가 충분할수록 인식률이 높아집니다. 네이버 블로그는 ChatGPT 등 AI 수집 봇을 차단하고 있어, 네이버에만 정보가 있는 가게는 ChatGPT에 잘 나오지 않는 편입니다. AEOlab은 학습 데이터 기반으로 50~100회 질의해 언급 여부를 측정합니다 (Bing 실시간 검색과는 별개의 측정값).",
+    a: "ChatGPT는 두 가지 방식으로 가게를 인식합니다. ① 로컬 검색 시 마이크로소프트 검색을 실시간으로 참고하므로 마이크로소프트 검색 비즈니스 등록(무료)이 도움이 될 수 있는 경로입니다. ② AI가 미리 공부한 자료도 참조하므로 구글 비즈니스·외부 블로그·웹사이트에 가게 정보가 충분할수록 인식률이 높아집니다. 네이버 블로그는 ChatGPT 등 AI 수집 봇을 차단하고 있어, 네이버에만 정보가 있는 가게는 ChatGPT에 잘 나오지 않는 편입니다. AEOlab은 AI가 미리 공부한 자료를 바탕으로 50~100회 같은 검색어로 물어보아 언급 여부를 측정합니다 (마이크로소프트 검색 실시간 결과와는 별개의 측정값).",
   },
   {
     q: "효과가 나타나는 데 얼마나 걸리나요?",
-    a: "네이버 관련 노출(스마트플레이스·AI 브리핑·AI탭)은 개선 조치 후 2~4주 안에 변화가 나타납니다. Gemini는 구글 비즈니스 프로필 등 구글 정보를 참고해 2~4주 안에 반영이 시작될 수 있지만 안정적으로 언급되기까지는 수개월이 걸릴 수 있습니다. ChatGPT는 학습 데이터 비중이 커서 수개월~1년 이상 걸릴 수 있습니다. 어느 쪽도 기간을 약속드릴 수는 없습니다. 블로그·SNS 글의 변화도 검색에 잡히기까지 시간이 걸립니다. AEOlab은 요금제에 따라 일주일에 1~3번(Biz는 매일) 자동으로 다시 측정해 변화를 추적하고 알려줍니다.",
+    a: "네이버 관련 노출(스마트플레이스·AI 브리핑·AI탭)은 개선 조치 후 2~4주 안에 변화가 나타납니다. Gemini는 구글 비즈니스 프로필 등 구글 정보를 참고해 2~4주 안에 반영이 시작될 수 있지만 안정적으로 언급되기까지는 수개월이 걸릴 수 있습니다. ChatGPT는 AI가 미리 공부한 자료의 비중이 커서 수개월~1년 이상 걸릴 수 있습니다. 어느 쪽도 기간을 약속드릴 수는 없습니다. 블로그·SNS 글의 변화도 검색에 잡히기까지 시간이 걸립니다. AEOlab은 요금제에 따라 일주일에 1~3번(Biz는 매일) 자동으로 다시 측정해 변화를 추적하고 알려줍니다.",
   },
   {
     q: "작은 동네 가게도 효과가 있나요?",
@@ -77,7 +77,7 @@ const FAQS: FaqItem[] = [
   },
   {
     q: "스마트플레이스랑 다른 서비스인가요?",
-    a: "네이버 스마트플레이스는 가게 정보를 등록하는 플랫폼이고, AEOlab은 그 정보가 AI에 얼마나 잘 노출되는지 측정하고 개선 방향을 제시하는 서비스입니다. 스마트플레이스가 '가게 간판'이라면, AEOlab은 'AI가 그 간판을 제대로 읽고 있는지 확인하는 도구'입니다.",
+    a: "네이버 스마트플레이스는 가게 정보를 등록하는 곳이고, AEOlab은 그 정보가 AI에 얼마나 잘 노출되는지 측정하고 개선 방향을 제시하는 서비스입니다. 스마트플레이스가 '가게 간판'이라면, AEOlab은 'AI가 그 간판을 제대로 읽고 있는지 확인하는 도구'입니다.",
   },
   {
     q: "무료 진단과 유료 구독의 차이가 뭔가요?",
@@ -85,7 +85,7 @@ const FAQS: FaqItem[] = [
   },
   {
     q: "다른 AI 노출 관리 서비스와 어떻게 다른가요?",
-    a: "ChatGPT·Gemini 등 글로벌 AI 중심으로 측정하는 서비스가 많고, 네이버 AI 브리핑까지 보는 서비스는 확인한 범위에서 기업·에이전시 대상이며 월 19만 원대부터 시작합니다(2026-10-07 확인). AEOlab은 한국 소상공인의 핵심 채널인 네이버 AI 브리핑·AI탭을 함께 측정하는 소상공인용 서비스입니다. 또한 월 17,900원 셀프서비스로 직접 관리할 수 있어, 수십만 원대 대행 서비스 없이 운영할 수 있습니다.",
+    a: "ChatGPT·Gemini 등 글로벌 AI 중심으로 측정하는 서비스가 많고, 네이버 AI 브리핑까지 보는 서비스는 확인한 범위에서 기업·에이전시 대상이며 월 19만 원대부터 시작합니다(2026-10-07 확인). AEOlab은 한국 소상공인에게 중요한 네이버 AI 브리핑·AI탭을 함께 측정하는 서비스입니다. 또한 월 17,900원 셀프서비스로 직접 관리할 수 있어, 수십만 원대 대행 서비스 없이 운영할 수 있습니다.",
     aNode: (
       <div className="space-y-2.5">
         <p>다른 AI 노출 서비스는 ChatGPT·Gemini 등 <strong>글로벌 AI 중심</strong>이 많고, 네이버 AI 브리핑까지 보는 서비스는 확인한 범위에서 <strong>기업·에이전시 대상(월 19만 원대부터)</strong>입니다 (2026-10-07 확인).</p>
@@ -94,7 +94,7 @@ const FAQS: FaqItem[] = [
           <li className="flex gap-2.5">
             <span className="font-bold shrink-0 mt-px" style={{ color: "#2563EB" }}>①</span>
             <span>
-              <strong>네이버 AI 브리핑·AI탭 포함</strong> — 한국 소상공인이 가장 많이 쓰는 채널을 글로벌 AI와 함께 측정합니다
+              <strong>네이버 AI 브리핑·AI탭 포함</strong> — 한국 소상공인이 가장 많이 쓰는 네이버 AI와 글로벌 AI를 함께 측정합니다
             </span>
           </li>
           <li className="flex gap-2.5">
@@ -104,7 +104,7 @@ const FAQS: FaqItem[] = [
             </span>
           </li>
         </ul>
-        <p className="text-sm" style={{ color: "#45556C" }}>※ 업종에 따라 '플레이스형' 네이버 AI 브리핑 대상 여부가 다르며, 대상이 아니어도 '정보형 AI 브리핑'은 노출될 수 있습니다. 무료 진단으로 먼저 확인하세요.</p>
+        <p className="text-sm" style={{ color: "#45556C" }}>※ 업종에 따라 '가게 요약형' 네이버 AI 브리핑 대상 여부가 다르며, 대상이 아니어도 '글 모음형 AI 브리핑'은 노출될 수 있습니다. 무료 진단으로 먼저 확인하세요.</p>
       </div>
     ),
   },
@@ -214,10 +214,10 @@ export default function FAQSection() {
         <p className="text-center mt-5 fade-up">
           <Link
             href="/faq"
-            className="text-sm hover:underline underline-offset-2 transition-colors hover:text-[#1D4ED8]"
+            className="inline-flex items-center gap-1 text-sm hover:underline underline-offset-2 transition-colors hover:text-[#1D4ED8]"
             style={{ color: "#2563EB" }}
           >
-            전체 FAQ 보기 →
+            전체 FAQ 보기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Link>
         </p>
       </div>

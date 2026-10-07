@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import { DELIVERY_FREQUENCY, DELIVERY_SCHEDULE } from "@/lib/deliverySchedule";
 
 interface Package {
@@ -23,7 +23,7 @@ const PACKAGES: Package[] = [
     desc: "처음부터 네이버 스마트플레이스를 등록하고 싶은 사장님",
     items: [
       "스마트플레이스 신규 등록",
-      "기본정보·메뉴·키워드 최적화",
+      "기본정보·메뉴·키워드 정리",
       "대표 사진 구성 안내",
     ],
     highlight: false,
@@ -31,11 +31,11 @@ const PACKAGES: Package[] = [
   {
     num: "02",
     type: "ai_optimization",
-    name: "AI 검색 최적화",
+    name: "AI 검색 개선",
     price: "89,000원",
-    desc: "이미 운영 중인 플레이스, AEOlab 진단 결과 그대로 최적화 대행",
+    desc: "이미 운영 중인 플레이스, AEOlab 진단 결과 그대로 개선 대행",
     items: [
-      "소개글·톡톡 채팅방 메뉴 최적화",
+      "소개글·톡톡 채팅방 메뉴 정리",
       "후기 답글 10건 작성",
       "핵심 키워드 보강",
     ],
@@ -46,7 +46,7 @@ const PACKAGES: Package[] = [
     type: "comprehensive",
     name: "종합 풀패키지",
     price: "139,000원",
-    desc: "01+02 등록부터 최적화까지 + 1:1 코칭 + 30일 재진단",
+    desc: "01+02 등록부터 개선까지 + 1:1 코칭 + 30일 재진단",
     items: [
       "01 + 02 전체 포함",
       "1:1 화상 코칭 60분",
@@ -173,7 +173,7 @@ export default function AgencyServiceSection() {
               <div className="mt-auto pt-2">
                 <Link
                   href="/login?returnTo=/delivery"
-                  className="block w-full text-center text-sm font-semibold py-2.5 px-4 rounded-lg transition-colors"
+                  className="inline-flex items-center justify-center gap-1 w-full text-center text-sm font-semibold py-2.5 px-4 rounded-lg transition-colors"
                   style={
                     pkg.highlight
                       ? { background: "#2563EB", color: "#FFFFFF" }
@@ -184,7 +184,7 @@ export default function AgencyServiceSection() {
                         }
                   }
                 >
-                  대행 신청하기 →
+                  대행 신청하기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
                 </Link>
               </div>
             </div>

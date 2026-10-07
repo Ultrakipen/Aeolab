@@ -393,7 +393,7 @@ export default function RankingClient() {
                 <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl p-3 md:p-4">
                   <Info className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
                   <p className="text-sm md:text-sm text-gray-700 leading-relaxed break-keep">
-                    <strong className="font-semibold">백분위</strong>는 같은 업종·지역에서 상위 몇 %인지를 나타냅니다.
+                    <strong className="font-semibold">상위 몇 %</strong>인지는 같은 업종·지역에서 내 위치를 나타냅니다.
                     예를 들어 &lsquo;상위 10%&rsquo;는 100명 중 10등 안에 들 만큼 AI 노출이 잘 되는 사업장입니다.
                     측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다. 사업장명·식별 정보는 포함되지 않습니다.
                   </p>
@@ -403,7 +403,7 @@ export default function RankingClient() {
               {/* 면책 */}
               {!result.insufficient_data && result.entries.length > 0 && (
                 <p className="text-sm text-gray-400 leading-relaxed break-keep">
-                  이 랭킹은 AEOlab 스캔 시점 익명 집계 데이터입니다.
+                  이 랭킹은 AEOlab 측정 시점 익명 집계 데이터입니다.
                 </p>
               )}
 
@@ -433,7 +433,7 @@ export default function RankingClient() {
               <BarChart2 className="w-10 h-10 text-gray-300 mx-auto mb-3" />
               <p className="text-base text-gray-700 font-semibold mb-1">업종·지역을 선택 후 조회하세요</p>
               <p className="text-sm text-gray-500 break-keep">
-                가게 이름과 점수는 공개되지 않으며, 순위와 백분위만 표시됩니다.
+                가게 이름과 점수는 공개되지 않으며, 순위와 상위 몇 %인지만 표시됩니다.
               </p>
             </div>
           )}

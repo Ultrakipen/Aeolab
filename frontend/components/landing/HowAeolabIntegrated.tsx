@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, X } from "lucide-react";
+import { Check, X, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import TrackedCTA from "@/components/analytics/TrackedCTA";
 
@@ -86,10 +86,10 @@ export function HowAeolabIntegrated() {
               <div className="mt-1.5 rounded-xl overflow-hidden" style={{ maxWidth: "220px" }}>
                 <button
                   type="button"
-                  className="w-full py-2 text-sm font-bold text-center border-t"
+                  className="w-full py-2 text-sm font-bold text-center border-t inline-flex items-center justify-center gap-1"
                   style={{ background: "#FAE100", color: "#3B2800", borderColor: "#E5CC00" }}
                 >
-                  대시보드 보기 →
+                  대시보드 보기 <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -186,7 +186,7 @@ export function HowAeolabIntegrated() {
         ))}
       </div>
       <p className="text-sm text-center py-2" style={{ color: "#475569" }}>
-        첫 스캔 후 추세가 표시됩니다
+        첫 측정 후 추세가 표시됩니다
       </p>
     </div>
   );
@@ -218,10 +218,10 @@ export function HowAeolabIntegrated() {
             </div>
           ))}
           <div
-            className="w-full text-white text-sm font-bold py-2.5 rounded-lg text-center"
+            className="w-full text-white text-sm font-bold py-2.5 rounded-lg text-center inline-flex items-center justify-center gap-1"
             style={{ background: "linear-gradient(135deg,#2563EB 0%,#7C3AED 100%)" }}
           >
-            진단 시작 →
+            진단 시작 <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </div>
           <p className="text-center text-sm" style={{ color: "#475569" }}>
             1분 소요 · 가입 불필요 · 예시
@@ -442,7 +442,7 @@ export function HowAeolabIntegrated() {
 
         {/* 면책 문구 */}
         <p className="text-center text-sm mt-6" style={{ color: "#475569" }}>
-          카카오 알림 카드·노출 상태 변화는 예시 데이터입니다 · 실제 수치는 내 가게 스캔 후 표시됩니다
+          카카오 알림 카드·노출 상태 변화는 예시 데이터입니다 · 실제 수치는 내 가게 측정 후 표시됩니다
         </p>
 
         {/* CTA */}

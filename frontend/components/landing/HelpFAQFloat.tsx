@@ -128,7 +128,7 @@ export default function HelpFAQFloat() {
             className="w-full"
           />
           <p className="mt-3 text-sm text-gray-600 text-center">
-            요금제, 스캔, 개선 가이드 등을 검색해보세요
+            요금제, 측정 결과, 개선 가이드 등을 검색해보세요
           </p>
         </div>
       </div>

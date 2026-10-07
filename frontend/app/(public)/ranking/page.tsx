@@ -8,7 +8,7 @@ import RankingClient from "./RankingClient";
 export const metadata: Metadata = {
   title: "업종·지역별 AI 노출 익명 랭킹 | AEOlab",
   description:
-    "음식점·카페·미용 등 업종과 지역을 선택해 AI 검색 노출 익명 랭킹을 확인하세요. 사업장명 없이 순위와 백분위만 공개됩니다.",
+    "음식점·카페·미용 등 업종과 지역을 선택해 AI 검색 노출 익명 랭킹을 확인하세요. 사업장명 없이 순위와 상위 몇 %인지만 공개됩니다.",
   openGraph: {
     title: "업종·지역별 AI 노출 익명 랭킹 — AEOlab",
     description:
@@ -55,7 +55,7 @@ export default function RankingPage() {
             네이버 AI 브리핑·ChatGPT·Gemini·Google 4곳 AI 기준으로 집계한 익명 랭킹입니다.
             가게 이름과 점수는 공개하지 않으며, 순위와{" "}
             <strong className="font-semibold text-gray-700">
-              백분위(업종 안에서 상위 몇 %인지)
+              상위 몇 %인지
             </strong>
             만 표시합니다.
           </p>

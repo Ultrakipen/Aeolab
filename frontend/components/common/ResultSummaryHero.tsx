@@ -62,7 +62,7 @@ export default function ResultSummaryHero({
         <div className="flex items-center gap-1.5 mb-3">
           <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" aria-hidden="true" />
           <p className="text-sm font-bold text-gray-700">{groupLabel ?? (isInactiveOrFranchise ? "네이버 노출 현황" : "네이버 AI 현황")}</p>
-          <span className="ml-1 text-sm text-gray-600 hidden sm:inline">소상공인 핵심 채널</span>
+          <span className="ml-1 text-sm text-gray-600 hidden sm:inline">소상공인에게 가장 중요한 곳</span>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {tiles.map((card) => (

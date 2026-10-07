@@ -31,18 +31,18 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { category } = await params
   const entry = CHANNEL_GUIDE_MAP[category]
-  if (!entry) return { title: "채널 가이드 | AEOlab" }
+  if (!entry) return { title: "노출 가이드 | AEOlab" }
 
   const briefingText =
     entry.briefing === "active"
       ? "네이버 AI 브리핑 노출 가능 업종"
       : entry.briefing === "likely"
       ? "네이버 AI 브리핑 확대 예정 업종"
-      : "AI탭 + 글로벌 AI 최적화 + 정보형 AI 브리핑 노출 가능 업종"
+      : "AI탭 + 글로벌 AI 개선 + 글 모음형(정보형) AI 브리핑 노출 가능 업종"
 
   return {
-    title: `${entry.label} AI 검색 노출 채널 가이드 | AEOlab`,
-    description: `${entry.label} 업종의 AI 노출 채널 분석. ${briefingText}. 핵심 행동 5요소와 최적화 방법을 확인하세요.`,
+    title: `${entry.label} AI 검색 노출 가이드 | AEOlab`,
+    description: `${entry.label} 업종의 AI 서비스별 노출 분석. ${briefingText}. 핵심 행동 5요소와 개선 방법을 확인하세요.`,
     alternates: { canonical: `/guide/channels/${entry.value}` },
   }
 }
@@ -66,10 +66,10 @@ function getChannelCards(entry: ChannelGuideEntry): {
       statusColor: BRIEFING_LABELS[entry.briefing].color,
       detail:
         entry.briefing === "active"
-          ? "검색 결과 상단 AI 브리핑에 플레이스형(가게 정보를 요약해 보여주는 방식) 카드로 노출될 수 있는 대상 업종입니다."
+          ? "검색 결과 상단 AI 브리핑에 가게 요약형(플레이스형: 가게 정보를 요약해 보여주는 방식) 카드로 노출될 수 있는 대상 업종입니다."
           : entry.briefing === "likely"
-          ? "'플레이스형'(가게 정보를 요약해 보여주는 방식) AI 브리핑 확대 예정 업종입니다(AEOlab 분류, 네이버 공식 발표 아님). (네이버 AI탭은 이미 전체 업종 대상으로 정식 출시되었습니다 — 아래 AI탭 카드 참고)"
-          : "'플레이스형'(가게 정보 요약) AI 브리핑 대상 업종은 아니지만, 블로그·콘텐츠가 갖춰지면 업종 제한 없는 '정보형'(블로그·글을 모아 추천하는 방식) AI 브리핑에는 노출될 수 있습니다. AI탭과 글로벌 AI에도 집중하세요.",
+          ? "'가게 요약형'(가게 정보를 요약해 보여주는 방식) AI 브리핑 확대 예정 업종입니다(AEOlab 분류, 네이버 공식 발표 아님). (네이버 AI탭은 이미 전체 업종 대상으로 정식 출시되었습니다 — 아래 AI탭 카드 참고)"
+          : "'가게 요약형'(가게 정보 요약) AI 브리핑 대상 업종은 아니지만, 블로그·콘텐츠가 갖춰지면 업종 제한 없는 '글 모음형'(블로그·글을 모아 추천하는 방식) AI 브리핑에는 노출될 수 있습니다. AI탭과 글로벌 AI에도 집중하세요.",
       icon: Bot,
     },
     {
@@ -90,8 +90,8 @@ function getChannelCards(entry: ChannelGuideEntry): {
       statusColor: "bg-orange-100 text-orange-800",
       detail:
         entry.globalRatio >= 70
-          ? "이 업종은 글로벌 AI 노출 비중이 높습니다. ChatGPT·Gemini 최적화를 우선 진행하세요."
-          : "글로벌 AI 노출도 꾸준히 관리하세요. 소개글 품질과 Schema.org 구조화 데이터가 핵심입니다.",
+          ? "이 업종은 글로벌 AI 노출 비중이 높습니다. ChatGPT·Gemini 개선을 우선 진행하세요."
+          : "글로벌 AI 노출도 꾸준히 관리하세요. 소개글 품질과 AI 인식 코드가 핵심입니다.",
       icon: Globe,
     },
   ]
@@ -117,7 +117,7 @@ export default async function ChannelGuidePage({
         items={[
           { name: "홈", url: "https://aeolab.co.kr/" },
           { name: "업종별 가이드", url: "https://aeolab.co.kr/guide/channels" },
-          { name: `${entry.label} 채널 가이드`, url: `https://aeolab.co.kr/guide/channels/${entry.value}` },
+          { name: `${entry.label} 노출 가이드`, url: `https://aeolab.co.kr/guide/channels/${entry.value}` },
         ]}
       />
       {/* ── 헤더 ── */}
@@ -148,7 +148,7 @@ export default async function ChannelGuidePage({
           <span>/</span>
           <Link href="/guide/channels" className="hover:text-blue-600">업종별 가이드</Link>
           <span>/</span>
-          <span className="text-gray-700 font-medium">{entry.label} 채널 가이드</span>
+          <span className="text-gray-700 font-medium">{entry.label} 노출 가이드</span>
         </nav>
 
         {/* ── 타이틀 ── */}
@@ -164,10 +164,10 @@ export default async function ChannelGuidePage({
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 break-keep">
-            {entry.label} — AI 검색 노출 채널 가이드
+            {entry.label} — AI 검색 노출 가이드
           </h1>
           <p className="text-base md:text-lg text-gray-600 leading-relaxed break-keep">
-            {entry.label} 업종의 AI 노출 채널별 현황과 핵심 최적화 행동 5가지를 안내합니다.
+            {entry.label} 업종의 AI별 노출 현황과 핵심 개선 행동 5가지를 안내합니다.
             {entry.note && (
               <span className="block mt-1 text-sm text-blue-700">{entry.note}</span>
             )}
@@ -196,13 +196,13 @@ export default async function ChannelGuidePage({
           </div>
           <p className="text-sm text-gray-600 leading-relaxed break-keep mb-3">
             {entry.naverRatio >= 50
-              ? `이 업종은 네이버 AI 브리핑·AI탭 최적화가 우선입니다. 글로벌 AI(ChatGPT·Gemini·Google)도 꾸준히 관리하세요.`
-              : `이 업종은 ChatGPT·Gemini 등 글로벌 AI 최적화가 중요합니다. 네이버 AI도 함께 관리하세요.`
+              ? `이 업종은 네이버 AI 브리핑·AI탭 개선이 우선입니다. 글로벌 AI(ChatGPT·Gemini·Google)도 꾸준히 관리하세요.`
+              : `이 업종은 ChatGPT·Gemini 등 글로벌 AI 개선이 중요합니다. 네이버 AI도 함께 관리하세요.`
             }
           </p>
           <MoreInfo summary="AEOlab 계산 방식 자세히 보기" tone="soft">
             <p className="text-sm text-gray-700 leading-relaxed">
-              AEOlab 듀얼트랙 모델 기준. 점수 = 네이버 채널 점수 × {entry.naverRatio}% + 글로벌 AI 점수 × {entry.globalRatio}%.
+              AEOlab 두 가지 방식 모델 기준. 점수 = 네이버 쪽 점수 × {entry.naverRatio}% + 글로벌 AI 점수 × {entry.globalRatio}%.
               측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다. 이 비율은 AEOlab 분석 기반이며 네이버 공식 발표가 아닙니다.
             </p>
           </MoreInfo>
@@ -211,7 +211,7 @@ export default async function ChannelGuidePage({
         {/* ── AI 노출 채널 3종 카드 ── */}
         <section className="mb-8">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 break-keep">
-            AI 노출 채널 분석
+            AI 서비스별 노출 분석
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {channelCards.map((card) => {
@@ -263,7 +263,7 @@ export default async function ChannelGuidePage({
             category={entry.value}
           />
           <p className="text-sm text-gray-600 mt-3 leading-relaxed break-keep">
-            먼저 할 5가지는 AEOlab 분석 기반 권장 사항이며, 노출 결과는 네이버·AI 플랫폼 정책에 따라 달라질 수 있습니다.
+            먼저 할 5가지는 AEOlab 분석 기반 권장 사항이며, 노출 결과는 네이버·AI 서비스의 정책에 따라 달라질 수 있습니다.
           </p>
 
           {/* 글로벌 AI 보충 카드 — globalRatio >= 50 업종 전용 */}
@@ -284,11 +284,11 @@ export default async function ChannelGuidePage({
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="shrink-0 text-orange-500 mt-0.5 font-bold">3</span>
-                  <span>트립어드바이저·전문 플랫폼 등 외부 언급 확대</span>
+                  <span>트립어드바이저·전문 사이트 등 외부 언급 늘리기</span>
                 </li>
               </ul>
               <p className="text-sm text-gray-500 mt-3 leading-relaxed break-keep">
-                ChatGPT 반영 기간: 수개월~1년 이상(학습 데이터 기반, 보장 아님). Gemini: 구글 비즈니스 프로필 등록 후 2~4주 내 반영 시작, 안정적 인용은 수개월 소요.
+                ChatGPT 반영 기간: 수개월~1년 이상(AI가 미리 공부한 자료 기반, 보장 아님). Gemini: 구글 비즈니스 프로필 등록 후 2~4주 내 반영 시작, 안정적 소개까지 수개월 소요.
               </p>
             </div>
           )}
@@ -297,7 +297,7 @@ export default async function ChannelGuidePage({
         {/* ── 업종 전환 링크 ── */}
         <section className="mb-8">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 break-keep">
-            다른 업종 채널 가이드
+            다른 업종 노출 가이드
           </h2>
           {/* 모바일: 접이식 / 데스크톱: 항상 표시 */}
           <details open className="group">

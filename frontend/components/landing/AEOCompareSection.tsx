@@ -1,4 +1,4 @@
-import { Check as CheckIcon, Lightbulb, Target } from "lucide-react";
+import { Check as CheckIcon, Lightbulb, Target, ArrowRight } from "lucide-react";
 
 const FEATURES = [
   { label: "AI가 추천하기 좋게 개선", seo: false, naver: false, aeo: true },
@@ -45,9 +45,9 @@ export default function AEOCompareSection() {
             style={{ borderColor: "#E2E8F0", background: "#F8FAFC" }}
           >
             <p className="text-sm font-bold tracking-wider mb-1" style={{ color: "#45556C" }}>
-              기존 SEO 서비스
+              기존 검색 노출 서비스
             </p>
-            <p className="text-base font-black mb-4" style={{ color: "#45556C" }}>웹 검색 최적화</p>
+            <p className="text-base font-black mb-4" style={{ color: "#45556C" }}>웹 검색 노출 관리</p>
             <div className="space-y-3">
               {FEATURES.map((f) => (
                 <div key={f.label} className="flex items-center justify-between">
@@ -66,7 +66,7 @@ export default function AEOCompareSection() {
             <p className="text-sm font-bold tracking-wider mb-1" style={{ color: "#45556C" }}>
               네이버 플레이스 관리
             </p>
-            <p className="text-base font-black mb-4" style={{ color: "#45556C" }}>플레이스 최적화</p>
+            <p className="text-base font-black mb-4" style={{ color: "#45556C" }}>플레이스 관리</p>
             <div className="space-y-3">
               {FEATURES.map((f) => (
                 <div key={f.label} className="flex items-center justify-between">
@@ -108,7 +108,7 @@ export default function AEOCompareSection() {
               className="block w-full mt-5 py-2.5 rounded-xl text-sm font-bold text-white text-center transition-all hover:scale-105 hover:opacity-90"
               style={{ background: "linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)", boxShadow: "0 4px 16px rgba(124,58,237,0.25)" }}
             >
-              무료로 시작하기 →
+              무료로 시작하기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </a>
           </div>
         </div>
@@ -119,7 +119,7 @@ export default function AEOCompareSection() {
             <Lightbulb className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden="true" />스마트플레이스·블로그를 개선하면 <strong>네이버 플레이스 탭 검색 순위</strong>와 <strong>AI 브리핑·AI탭 노출</strong> 가능성이 함께 높아집니다
           </p>
           <p className="text-sm text-green-700 text-center mt-1 break-keep">
-            기존 SEO 서비스(웹사이트 최적화)와 달리 AEOlab은 네이버 로컬 검색 순위·AI 노출을 동시에 다룹니다
+            기존 검색 노출 서비스(웹사이트 노출 관리)와 달리 AEOlab은 네이버 로컬 검색 순위·AI 노출을 동시에 다룹니다
           </p>
         </div>
 
@@ -129,7 +129,7 @@ export default function AEOCompareSection() {
             <Target className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden="true" />ChatGPT·Gemini 중심 서비스와 달리 AEOlab은 <strong>네이버 AI와 글로벌 AI를 함께</strong> 측정합니다
           </p>
           <p className="text-sm text-blue-700 text-center mt-1 break-keep">
-            네이버 AI까지 보는 서비스도 있지만, 확인한 서비스는 기업·에이전시 대상이었습니다. AEOlab은 소상공인용(월 17,900원부터)입니다
+            네이버 AI까지 보는 서비스도 있지만, 확인한 서비스는 기업·에이전시 대상이었습니다. AEOlab은 소상공인을 위한 서비스입니다(월 17,900원부터)
           </p>
         </div>
 
@@ -172,10 +172,10 @@ export default function AEOCompareSection() {
             </div>
             <a
               href="/trial"
-              className="block w-full mt-5 py-3 rounded-xl text-sm font-bold text-white text-center transition-all hover:scale-105 hover:opacity-90"
+              className="flex items-center justify-center gap-1 w-full mt-5 py-3 rounded-xl text-sm font-bold text-white text-center transition-all hover:scale-105 hover:opacity-90"
               style={{ background: "linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)", boxShadow: "0 4px 16px rgba(124,58,237,0.25)" }}
             >
-              무료로 시작하기 →
+              무료로 시작하기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </a>
           </div>
           <p className="text-sm text-gray-600 text-center mt-2">

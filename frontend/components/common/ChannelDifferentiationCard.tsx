@@ -16,28 +16,28 @@ interface Props {
 // 업종별 분기 메시지 (지시서 원문 그대로)
 function getSummaryMessage(group: UserGroup | "unknown"): string {
   if (group === "ACTIVE") {
-    return "음식점/카페/바/베이커리/숙박업은 3개 채널 모두에서 노출 가능합니다.";
+    return "음식점/카페/바/베이커리/숙박업은 네이버 AI 브리핑·AI탭·글로벌 AI 3곳 모두에서 노출 가능합니다.";
   }
   if (group === "franchise") {
-    return "프랜차이즈 가맹점은 '플레이스형' 네이버 AI 브리핑 대상에서 제외됩니다(네이버 공식 정책). 단, '정보형 AI 브리핑'과 AI탭·ChatGPT·Gemini·Google AI에서는 노출 가능합니다.";
+    return "프랜차이즈 가맹점은 '가게 요약형(플레이스형)' 네이버 AI 브리핑 대상에서 제외됩니다(네이버 공식 정책). 단, '글 모음형(정보형) AI 브리핑'과 AI탭·ChatGPT·Gemini·Google AI에서는 노출 가능합니다.";
   }
   if (group === "LIKELY") {
-    return "현재 AI 탭과 글로벌 AI 2개 채널에서 노출 가능하며, 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. '플레이스형' AI 브리핑은 곧 확대 예정입니다.";
+    return "현재 AI탭과 글로벌 AI 2곳에서 노출 가능하며, 블로그·콘텐츠로 '글 모음형 AI 브리핑' 노출도 가능합니다. '가게 요약형' AI 브리핑은 아직 대상이 아니며, 확대 여부는 네이버가 발표하지 않았습니다.";
   }
   if (group === "INACTIVE") {
-    return "AI탭과 글로벌 AI 2개 채널에서 노출 가능합니다. '플레이스형' AI 브리핑 비대상이나 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능하며, 핵심 채널 모두 측정합니다.";
+    return "AI탭과 글로벌 AI 2곳에서 노출 가능합니다. '가게 요약형' AI 브리핑 비대상이나 블로그·콘텐츠로 '글 모음형 AI 브리핑' 노출도 가능하며, 핵심 AI 서비스 모두 측정합니다.";
   }
   // category=null (비로그인 방문자 등)
-  return "당신의 업종에 따라 최적화된 채널을 자동으로 분기하여 측정합니다.";
+  return "당신의 업종에 따라 맞는 AI 서비스를 자동으로 분기하여 측정합니다.";
 }
 
 // variant="preview" 업종별 강조 문구
 function getPreviewChannelCount(group: UserGroup | "unknown"): string {
-  if (group === "ACTIVE") return "3개 채널";
-  if (group === "franchise") return "2개 채널";
-  if (group === "LIKELY") return "2개 채널 (AI 브리핑 확대 예정)";
-  if (group === "INACTIVE") return "2개 채널";
-  return "업종 맞춤 채널";
+  if (group === "ACTIVE") return "3곳";
+  if (group === "franchise") return "2곳";
+  if (group === "LIKELY") return "2곳 (AI 브리핑 확대 예정)";
+  if (group === "INACTIVE") return "2곳";
+  return "업종 맞춤 AI 서비스";
 }
 
 interface ChannelCardProps {
@@ -145,16 +145,16 @@ export default function ChannelDifferentiationCard({
       {isLanding && (
         <div className="mb-4">
           <p className="text-sm font-bold tracking-widest mb-1" style={{ color: "#2563EB" }}>
-            AI 채널 3종 측정
+            AI 서비스 3곳 측정
           </p>
           <h3
             className="text-xl md:text-2xl font-black break-keep"
             style={{ color: "#0F172A", letterSpacing: "-0.4px" }}
           >
-            어떤 업종이든 AI 채널에서 측정합니다
+            어떤 업종이든 AI 서비스에서 측정합니다
           </h3>
           <p className="text-sm md:text-base mt-1 break-keep" style={{ color: "#475569" }}>
-            단 1개 채널도 측정 못 하는 업종은 없습니다. 업종에 따라 강조 채널이 다를 뿐입니다.
+            측정 못 하는 업종은 없습니다. 업종에 따라 강조되는 AI 서비스가 다를 뿐입니다.
           </p>
         </div>
       )}
@@ -176,7 +176,7 @@ export default function ChannelDifferentiationCard({
           badge={briefingBadgeText}
           badgeVariant={briefingBadge}
           description="검색 결과 상단 AI 자동 추천. 음식점·카페·숙박 등 대상 (프랜차이즈 제외)"
-          disclaimer="노출 보장 없음 · 네이버 알고리즘 기준"
+          disclaimer="노출 보장 없음 · 네이버가 정한 기준"
           highlight={group === "ACTIVE"}
           compact={isCompact}
         />
@@ -199,7 +199,7 @@ export default function ChannelDifferentiationCard({
           title="ChatGPT·Gemini·Google AI"
           badge="측정 중"
           badgeVariant="all"
-          description="ChatGPT·Gemini에 가게가 언급되는지 자동 측정. 네이버 검색과 별개의 채널"
+          description="ChatGPT·Gemini에 가게가 소개되는지 자동 측정. 네이버 검색과 별도의 AI 서비스"
           disclaimer="ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다"
           highlight={true}
           compact={isCompact}

@@ -14,7 +14,7 @@ import { MoreInfo } from "@/components/common/MoreInfo";
 
 export const metadata: Metadata = {
   title: "요금제 | AEOlab — AI 검색 노출 진단 서비스",
-  description: "Basic 월 17,900원부터 Biz까지. 네이버 AI 브리핑·ChatGPT·Gemini·Google AI 4채널 노출 진단. 신규 가입 첫 달 50% 할인.",
+  description: "Basic 월 17,900원부터 Biz까지. 네이버 AI 브리핑·ChatGPT·Gemini·Google AI 4가지 AI 서비스 노출 진단. 신규 가입 첫 달 50% 할인.",
   alternates: { canonical: "/pricing" },
   openGraph: {
     title: "AEOlab 요금제 — 월 17,900원부터",
@@ -271,7 +271,7 @@ export default function PricingPage() {
         {/* ─── 채널 분기 안내 ─── */}
         <div className="mb-8">
           <p className="text-center text-sm font-semibold text-gray-600 mb-4">
-            어떤 요금제든 당신의 업종에 맞는 채널을 측정합니다.
+            어떤 요금제든 당신의 업종에 맞는 AI 서비스를 측정합니다.
           </p>
           <ChannelDifferentiationCard variant="compact" />
 
@@ -317,8 +317,8 @@ export default function PricingPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {[
-                ["자동 스캔", "주 2회", "주 3회", "주 1회", "매일"],
-                ["수동 스캔", "하루 2회", "하루 5회", "하루 3회", "하루 10회"],
+                ["자동 점검", "주 2회", "주 3회", "주 1회", "매일"],
+                ["직접 확인", "하루 2회", "하루 5회", "하루 3회", "하루 10회"],
                 ["내 검색어가 몇 등인지 확인", "주 1회", "매일", "매일", "매일"],
                 ["키워드 자동 추천 (월)", "5회", "20회", "10회", "무제한"],
                 ["소개글·톡톡 메뉴 초안 만들기 (월)", "10건", "월 30건", "월 20건", "월 60건"],
@@ -328,7 +328,7 @@ export default function PricingPage() {
                 ["리뷰 답변 초안", "월 50회", "무제한", "무제한", "무제한"],
                 ["위기관리 가이드 (월)", "20회", "무제한", "무제한", "무제한"],
                 ["히스토리 보관", "60일", "90일", "90일", "무제한"],
-                ["엑셀(CSV) 내보내기", "✓", "✓", "✓", "✓"],
+                ["엑셀 파일 내보내기", "✓", "✓", "✓", "✓"],
                 ["PDF 리포트", "—", "✓", "—", "✓"],
                 ["광고 대응 가이드", "—", "✓", "—", "✓"],
                 ["창업 시장 분석", "—", "—", "✓", "✓"],
@@ -370,7 +370,7 @@ export default function PricingPage() {
                   <p className="font-semibold text-gray-900 text-sm">블로그 AI 진단</p>
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed break-keep">
-                  내 블로그가 AI 브리핑에 인용되는지 분석 · 홍보형/정보형 비율 · 개선 제목 자동 제안
+                  내 블로그가 AI 브리핑에 소개되는지 분석 · 광고 같은 글과 도움 되는 글의 비율 · 개선 제목 자동 제안
                 </p>
               </div>
               <div className="bg-white rounded-xl border border-gray-200 p-4">
@@ -392,7 +392,7 @@ export default function PricingPage() {
             내 업종은 어디에 해당하나요? — 노출 범위 안내
           </h3>
           <p className="text-sm md:text-base text-gray-600 mb-4 leading-relaxed break-keep">
-            네이버 AI 브리핑은 업종에 따라 대상이 나뉩니다. 하지만 어느 단계든 AEOlab으로 개선 가능한 채널이 있습니다.
+            네이버 AI 브리핑은 업종에 따라 대상이 나뉩니다. 하지만 어느 단계든 AEOlab으로 개선 가능한 AI 서비스가 있습니다.
           </p>
 
           {/* 단계별 분류 */}
@@ -403,7 +403,7 @@ export default function PricingPage() {
                 <span className="text-sm font-semibold text-gray-900">음식점 · 카페 · 베이커리 · 바 · 숙박</span>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed break-keep">
-                네이버 AI 브리핑(플레이스형) + AI탭 + 글로벌 AI까지 3개 채널 모두 노출 가능 (단, 프랜차이즈 가맹점은 네이버 공식 정책상 '플레이스형' AI 브리핑 제외 — 정보형 AI 브리핑은 콘텐츠로 노출 가능)
+                네이버 AI 브리핑(가게 요약형) + AI탭 + 글로벌 AI까지 3가지 AI 서비스 모두 노출 가능 (단, 프랜차이즈 가맹점은 네이버 공식 정책상 '가게 요약형' AI 브리핑 제외 — 글 모음형(정보형) AI 브리핑은 콘텐츠로 노출 가능)
               </p>
             </div>
 
@@ -413,7 +413,7 @@ export default function PricingPage() {
                 <span className="text-sm font-semibold text-gray-900">뷰티 · 네일 · 피트니스 · 요가 · 약국 · 반려동물 등</span>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed break-keep">
-                현재 AI탭(정식 출시, 업종 제한 발표 없음) + 글로벌 AI 노출 가능. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. '플레이스형(가게 정보를 요약해 보여주는 방식)' AI 브리핑은 아직 대상이 아니며, 확대 여부는 네이버가 발표하지 않았습니다. 소개글·사진을 미리 갖춰두면 도움이 될 수 있습니다.
+                현재 AI탭(정식 출시, 업종 제한 발표 없음) + 글로벌 AI 노출 가능. 블로그·콘텐츠로 '글 모음형 AI 브리핑' 노출도 가능합니다. '가게 요약형(가게 정보를 요약해 보여주는 방식)' AI 브리핑은 아직 대상이 아니며, 확대 여부는 네이버가 발표하지 않았습니다. 소개글·사진을 미리 갖춰두면 도움이 될 수 있습니다.
               </p>
             </div>
 
@@ -423,7 +423,7 @@ export default function PricingPage() {
                 <span className="text-sm font-semibold text-gray-900">병원 · 법무 · 교육 · 쇼핑몰 등</span>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed break-keep">
-                '플레이스형' AI 브리핑 대상은 아니지만, 블로그·콘텐츠로 '정보형 AI 브리핑'에 노출될 수 있고 AI탭 + ChatGPT · Gemini · Google AI 등 글로벌 AI 가시성도 집중 개선합니다.
+                '가게 요약형' AI 브리핑 대상은 아니지만, 블로그·콘텐츠로 '글 모음형 AI 브리핑'에 노출될 수 있고 AI탭 + ChatGPT · Gemini · Google AI 등 글로벌 AI 가시성도 집중 개선합니다.
               </p>
             </div>
           </div>
@@ -490,12 +490,12 @@ export default function PricingPage() {
                   {
                     Icon: BarChart3,
                     title: "내 가게가 AI에 몇 % 확률로 나오는지",
-                    why: "같은 질문을 100번씩 물어 몇 번 나오는지 측정합니다(Gemini·ChatGPT 각 100회, 총 200회, ± 오차 범위 표시). ChatGPT 단발 질의는 오차 범위 표시 불가.",
+                    why: "같은 질문을 100번씩 물어 몇 번 나오는지 측정합니다(Gemini·ChatGPT 각 100회, 총 200회, ± 오차 범위 표시). ChatGPT에 한 번만 물어본 결과는 오차 범위를 보여줄 수 없습니다.",
                   },
                   {
                     Icon: Radar,
                     title: "지금 당장 내 가게가 네이버 AI에 나오는지",
-                    why: "네이버 블로그는 robots.txt에서 ChatGPT(GPTBot·OAI-SearchBot) 등 주요 AI 수집 봇을 차단하고 있습니다(2026-10-07 확인) — ChatGPT로는 네이버 AI 노출을 확인할 수 없습니다",
+                    why: "네이버는 블로그 글을 ChatGPT 같은 AI가 가져가지 못하게 막아 두었어요(2026-10-07 확인) — ChatGPT로는 네이버 AI 노출을 확인할 수 없습니다",
                   },
                   {
                     Icon: Search,
@@ -504,8 +504,8 @@ export default function PricingPage() {
                   },
                   {
                     Icon: PenLine,
-                    title: "내 블로그 글이 AI 브리핑에 인용될 가능성",
-                    why: "네이버 블로그 정보는 ChatGPT가 직접 접근하기 어렵습니다. 광고 같은 글 vs 도움 되는 글 비율을 분석해 AI에 인용되기 쉬운 글 제목을 자동 제안합니다. (Basic 이상 포함)",
+                    title: "내 블로그 글이 AI 브리핑에 소개될 가능성",
+                    why: "네이버 블로그 정보는 ChatGPT가 직접 접근하기 어렵습니다. 광고 같은 글 vs 도움 되는 글 비율을 분석해 AI에 소개되기 쉬운 글 제목을 자동 제안합니다. (Basic 이상 포함)",
                   },
                   {
                     Icon: Bell,
@@ -566,16 +566,16 @@ export default function PricingPage() {
             <MoreInfo summary="내 업종도 네이버 AI 브리핑에 노출되나요?" tone="soft">
               <p className="text-sm leading-relaxed break-keep">네이버 AI 브리핑은 크게 두 유형입니다.</p>
               <ul className="mt-2 space-y-1.5 text-sm leading-relaxed">
-                <li><strong>① 플레이스형</strong> — 가게 플레이스 카드를 요약. 음식점·카페·베이커리·바·숙박 5개 업종이 현재 대상(프랜차이즈 제외).</li>
-                <li><strong>② 정보형(추천형)</strong> — 블로그·콘텐츠를 출처로 종합. 업종 제한이 없어 전 업종도 콘텐츠가 잘 갖춰지면 노출될 수 있습니다.</li>
+                <li><strong>① 가게 요약형(플레이스형)</strong> — 가게 정보를 요약해 보여줍니다. 음식점·카페·베이커리·바·숙박 5개 업종이 현재 대상(프랜차이즈 제외).</li>
+                <li><strong>② 글 모음형(정보형)</strong> — 블로그·글을 모아서 추천합니다. 업종 제한이 없어 전 업종도 콘텐츠가 잘 갖춰지면 노출될 수 있습니다.</li>
               </ul>
               <p className="mt-2 text-sm leading-relaxed break-keep">뷰티·네일·반려동물·헬스·요가·약국 등은 AI탭(2026-06-25 정식 출시)도 대상입니다. 어느 업종이든 스마트플레이스·블로그·키워드를 개선하면 네이버 일반 검색·지도 상위 노출도 공통으로 향상될 수 있습니다.</p>
             </MoreInfo>
             <MoreInfo summary="구독은 언제든지 해지할 수 있나요?" tone="soft">
-              <p className="text-sm leading-relaxed break-keep">네. 언제든지 해지 가능합니다. 결제일로부터 7일 이내 + 서비스 미이용 상태(스캔·가이드 생성 전)인 경우 전액 환불됩니다. 7일 경과 또는 서비스 이용 후에는 현재 결제 기간 만료일까지 계속 이용 가능하며, 잔여 기간 환불은 제공되지 않습니다. 자세한 내용은 이용약관 §5를 참고해 주세요.</p>
+              <p className="text-sm leading-relaxed break-keep">네. 언제든지 해지 가능합니다. 결제일로부터 7일 이내 + 서비스 미이용 상태(점검·가이드 생성 전)인 경우 전액 환불됩니다. 7일 경과 또는 서비스 이용 후에는 현재 결제 기간 만료일까지 계속 이용 가능하며, 잔여 기간 환불은 제공되지 않습니다. 자세한 내용은 이용약관 §5를 참고해 주세요.</p>
             </MoreInfo>
             <MoreInfo summary="환불 정책은 어떻게 되나요?" tone="soft">
-              <p className="text-sm leading-relaxed break-keep">결제 후 7일 이내 서비스를 사용하지 않으셨다면 전액 환불해 드립니다. 7일 경과 또는 서비스 이용(스캔·가이드 생성) 후에는 현재 결제 기간 만료일까지 서비스를 이용하실 수 있으며, 잔여 기간 환불은 제공되지 않습니다(이용약관 §5 기준). 설정 페이지에서 구독을 해지하면 환불 자격 여부가 자동으로 확인되어 즉시 처리됩니다. 문의사항은 support@aeolab.co.kr(이메일)로 접수해 주세요.</p>
+              <p className="text-sm leading-relaxed break-keep">결제 후 7일 이내 서비스를 사용하지 않으셨다면 전액 환불해 드립니다. 7일 경과 또는 서비스 이용(점검·가이드 생성) 후에는 현재 결제 기간 만료일까지 서비스를 이용하실 수 있으며, 잔여 기간 환불은 제공되지 않습니다(이용약관 §5 기준). 설정 페이지에서 구독을 해지하면 환불 자격 여부가 자동으로 확인되어 즉시 처리됩니다. 문의사항은 support@aeolab.co.kr(이메일)로 접수해 주세요.</p>
             </MoreInfo>
             <MoreInfo summary="첫 달 50% 할인은 어떻게 적용되나요?" tone="soft">
               <p className="text-sm leading-relaxed break-keep">Basic 플랜 신규 가입 시 첫 달은 8,950원으로 결제됩니다. 이후 매달 자동으로 정상가 17,900원이 청구됩니다. 이전에 한 번이라도 구독한 이력이 있는 경우 할인이 적용되지 않습니다.</p>

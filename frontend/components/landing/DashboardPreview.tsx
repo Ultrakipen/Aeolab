@@ -1,4 +1,4 @@
-import { Check, X, Pin, Sprout, Timer } from "lucide-react";
+import { Check, X, Pin, Sprout, Timer, ArrowRight } from "lucide-react";
 
 export default function DashboardPreview() {
   return (
@@ -51,8 +51,8 @@ export default function DashboardPreview() {
                       <p style={{ color: "#475569" }}>경쟁사 대비: <span className="font-bold text-indigo-600">업종 3위 → 2위</span></p>
                     </div>
                     <div className="mt-1 rounded-xl overflow-hidden" style={{ maxWidth: "200px" }}>
-                      <div className="w-full py-1.5 text-sm font-bold text-center" style={{ background: "#FAE100", color: "#3B2800" }}>
-                        대시보드 보기 →
+                      <div className="w-full py-1.5 text-sm font-bold text-center inline-flex items-center justify-center gap-1" style={{ background: "#FAE100", color: "#3B2800" }}>
+                        대시보드 보기 <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                       </div>
                     </div>
                   </div>
@@ -147,11 +147,11 @@ export default function DashboardPreview() {
               <p className="text-sm font-semibold break-keep" style={{ color: "#475569" }}><Pin className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden="true" />현실적인 기대치</p>
               <p className="text-sm break-keep" style={{ color: "#475569" }}>
                 <span className="font-semibold" style={{ color: "#4F46E5" }}>Gemini</span>
-                {" — "}Google 실시간 검색 연동: <strong>수 주</strong> / 학습 데이터: <strong>수개월~1년</strong>
+                {" — "}Google 실시간 검색 연동: <strong>수 주</strong> / 미리 공부한 자료 기반: <strong>수개월~1년</strong>
               </p>
               <p className="text-sm break-keep" style={{ color: "#475569" }}>
                 <span className="font-semibold" style={{ color: "#10A37F" }}>ChatGPT</span>
-                {" — "}학습 데이터 기반 · 노출까지 <strong>수개월~1년</strong> 소요
+                {" — "}미리 공부한 자료 기반 · 노출까지 <strong>수개월~1년</strong> 소요
               </p>
               <p className="text-sm break-keep" style={{ color: "#45556C" }}>
                 <Sprout className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden="true" />대부분의 가게가 아직 준비 중 — 지금 시작하면 선점 유리
@@ -264,7 +264,7 @@ export default function DashboardPreview() {
         </div>
 
         <p className="text-center text-sm mt-4 fade-up" style={{ color: "#45556C" }}>
-          모든 수치는 예시입니다 · 실제 데이터는 내 가게 스캔 후 표시됩니다
+          모든 수치는 예시입니다 · 실제 데이터는 내 가게 측정 후 표시됩니다
         </p>
       </div>
     </div>

@@ -35,7 +35,7 @@ export default function Testimonials() {
               <p className="text-2xl md:text-3xl font-bold text-blue-600">100회</p>
               <p className="text-sm text-gray-700 mt-1 leading-snug break-keep">
                 자동 정밀 측정<br />
-                <span className="text-sm text-gray-600">Gemini·ChatGPT<br />각 100회 샘플링</span>
+                <span className="text-sm text-gray-600">Gemini·ChatGPT<br />각 100회 자동 측정</span>
               </p>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-3 md:p-4 shadow-sm">

@@ -9,9 +9,9 @@ import { ChannelGuideList } from "./ChannelGuideList"
 import TrackedCTA from "@/components/analytics/TrackedCTA"
 
 export const metadata: Metadata = {
-  title: "업종별 AI 검색 노출 채널 가이드 | AEOlab",
+  title: "업종별 AI 검색 노출 가이드 | AEOlab",
   description:
-    "59개 업종별 네이버 AI 브리핑·AI탭·글로벌 AI(ChatGPT·Gemini·Google) 노출 채널 비중과 핵심 행동 5요소를 확인하세요.",
+    "59개 업종별 네이버 AI 브리핑·AI탭·글로벌 AI(ChatGPT·Gemini·Google) AI별 노출 비중과 핵심 행동 5요소를 확인하세요.",
   alternates: { canonical: "/guide/channels" },
 }
 
@@ -46,7 +46,7 @@ export default function ChannelGuideIndexPage() {
         <nav className="flex items-center gap-1.5 text-sm text-gray-600 mb-6" aria-label="breadcrumb">
           <Link href="/" className="hover:text-blue-600">홈</Link>
           <span>/</span>
-          <span className="text-gray-700 font-medium">업종별 채널 가이드</span>
+          <span className="text-gray-700 font-medium">업종별 AI 노출 가이드</span>
         </nav>
 
         {/* ── 타이틀 ── */}
@@ -55,14 +55,14 @@ export default function ChannelGuideIndexPage() {
             무료 가이드
           </span>
           <h1 className="text-2xl md:text-4xl font-bold text-gray-900 leading-tight break-keep mb-3">
-            업종별 AI 검색 노출 채널 가이드
+            업종별 AI 검색 노출 가이드
           </h1>
           <p className="text-base md:text-lg text-gray-600 max-w-2xl leading-relaxed break-keep mb-2">
             네이버 AI와 ChatGPT에서 우리 가게가 보이려면 어디부터 준비해야 할까요?
-            업종마다 중요한 채널이 다릅니다. 59개 업종별로 확인하세요.
+            업종마다 중요한 AI 서비스가 다릅니다. 59개 업종별로 확인하세요.
           </p>
           <p className="text-sm text-gray-600">
-            59개 업종 · 채널별 노출 비중 + 핵심 행동 5요소 체크리스트 · 로그인 불필요
+            59개 업종 · AI별 노출 비중 + 핵심 행동 5요소 체크리스트 · 로그인 불필요
           </p>
         </div>
 
