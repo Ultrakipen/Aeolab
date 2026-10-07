@@ -114,7 +114,7 @@ export function HowAeolabIntegrated() {
           className="text-sm font-bold uppercase tracking-wider mb-2"
           style={{ color: "#2563EB" }}
         >
-          네이버 채널 진단
+          네이버 AI 진단
         </p>
         <p
           className="text-lg font-black mb-1"
@@ -137,7 +137,7 @@ export function HowAeolabIntegrated() {
           className="text-sm font-bold uppercase tracking-wider mb-2"
           style={{ color: "#7C3AED" }}
         >
-          글로벌 AI 진단
+          ChatGPT·Gemini 등 진단
         </p>
         <p
           className="text-lg font-black mb-1"
@@ -162,7 +162,7 @@ export function HowAeolabIntegrated() {
     >
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-bold" style={{ color: "#0F172A" }}>
-          키워드 갭 + 7주 추세
+          빠진 검색어 + 7주 변화
         </p>
         <span className="text-sm text-gray-600">(예시)</span>
       </div>

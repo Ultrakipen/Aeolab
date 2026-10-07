@@ -192,6 +192,7 @@ A. {30~60자 즉답형}. 추가 상세 정보.
 - **핵심 한계**: 소상공인 대부분 ChatGPT 학습 데이터에 없음 → `mentioned=False` 과다
 - **UI 면책 문구 필수**: "ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다"
 - 이 문구를 ChannelScoreCards.tsx `globalItems` 섹션 하단에 반드시 표시
+- **네이버↔글로벌 AI 구분 (2026-10-07)**: 네이버 개선(스마트플레이스·리뷰·블로그)이 ChatGPT·Gemini 노출로 "자동 반영된다"고 쓰지 말 것. 네이버 블로그 robots.txt는 GPTBot·OAI-SearchBot·Google-Extended 등을 명시 차단(조회 2026-10-07)하므로 글로벌 AI에는 네이버 밖 정보가 필요. ChatGPT·Gemini 반영 기간은 묶지 말고 분리 표기. 상세·조사 결과·표현 규칙: `docs/naver_block_vs_global_ai_exposure_qa_v1.0.md` §5
 
 ### 공통 면책 문구 (모든 변동 데이터)
 > "측정 시점·기기·로그인 상태에 따라 달라질 수 있음"

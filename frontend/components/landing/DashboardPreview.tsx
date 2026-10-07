@@ -1,4 +1,4 @@
-import { Check, X, Pin, Sprout } from "lucide-react";
+import { Check, X, Pin, Sprout, Timer } from "lucide-react";
 
 export default function DashboardPreview() {
   return (
@@ -68,7 +68,7 @@ export default function DashboardPreview() {
             style={{ background: "#EFF6FF", borderColor: "#BFDBFE", boxShadow: "var(--aeo-shadow)" }}
           >
             <p className="text-sm font-bold uppercase tracking-wider mb-2" style={{ color: "#2563EB" }}>
-              네이버 채널 진단
+              네이버 AI 진단
             </p>
             <p
               className="text-lg font-black mb-1"
@@ -102,7 +102,7 @@ export default function DashboardPreview() {
             </div>
             {/* 개선 소요 기간 안내 */}
             <div className="mt-auto rounded-lg px-2.5 py-2" style={{ background: "#DBEAFE" }}>
-              <p className="text-sm font-semibold mb-0.5 break-keep" style={{ color: "#1E40AF" }}>⏱ 개선 효과 확인까지</p>
+              <p className="text-sm font-semibold mb-0.5 break-keep" style={{ color: "#1E40AF" }}><Timer className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden="true" />개선 효과 확인까지</p>
               <p className="text-sm break-keep" style={{ color: "#1D4ED8" }}>소개글·소식 업데이트 후 <strong>2~4주</strong> 내 변화</p>
             </div>
           </div>
@@ -113,7 +113,7 @@ export default function DashboardPreview() {
             style={{ background: "#F8FAFC", borderColor: "#E2E8F0", boxShadow: "var(--aeo-shadow)" }}
           >
             <p className="text-sm font-bold uppercase tracking-wider mb-2" style={{ color: "#475569" }}>
-              글로벌 AI 인식 현황
+              ChatGPT·Gemini 등 노출 현황
             </p>
             <p
               className="text-lg font-black mb-1"
@@ -167,7 +167,7 @@ export default function DashboardPreview() {
             {/* 헤더 */}
             <div className="flex items-start justify-between mb-4">
               <div>
-                <p className="text-sm font-bold mb-2" style={{ color: "#0F172A" }}>7주 추세 · 노출 단계 변화</p>
+                <p className="text-sm font-bold mb-2" style={{ color: "#0F172A" }}>7주 변화 · 노출 단계 변화</p>
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-semibold px-2.5 py-1 rounded-full" style={{ background: "#FEF9C3", color: "#92400E" }}>보통</span>
                   <span className="text-sm font-medium" style={{ color: "#94A3B8" }}>→ 7주 후 →</span>
@@ -236,7 +236,7 @@ export default function DashboardPreview() {
             style={{ background: "#FFFFFF", borderColor: "#E2E8F0", boxShadow: "var(--aeo-shadow)" }}
           >
             <div className="flex items-center justify-between mb-2.5">
-              <p className="text-sm font-bold" style={{ color: "#0F172A" }}>키워드 갭</p>
+              <p className="text-sm font-bold" style={{ color: "#0F172A" }}>빠진 검색어</p>
               <span className="text-sm text-gray-600">AI 검색에서 누락된 키워드 · 예시</span>
             </div>
             <div className="flex flex-wrap gap-2">

@@ -18,7 +18,7 @@ export default function Testimonials() {
       <section className="bg-gray-50 border-y border-gray-100 py-8 md:py-10 px-4 md:px-6">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-base text-gray-600 mb-3 break-keep">
-            소상공인 사업장에서 AI 노출 개선을 시작했습니다
+            소상공인 사업장의 AI 노출 진단이 이어지고 있습니다
           </p>
           <DiagnosisCounter />
 
@@ -34,7 +34,7 @@ export default function Testimonials() {
             <div className="bg-white rounded-xl border border-gray-200 p-3 md:p-4 shadow-sm">
               <p className="text-2xl md:text-3xl font-bold text-blue-600">100회</p>
               <p className="text-sm text-gray-700 mt-1 leading-snug break-keep">
-                Full 스캔<br />
+                자동 정밀 측정<br />
                 <span className="text-sm text-gray-600">Gemini·ChatGPT<br />각 100회 샘플링</span>
               </p>
             </div>
@@ -46,10 +46,10 @@ export default function Testimonials() {
               </p>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-3 md:p-4 shadow-sm">
-              <p className="text-2xl md:text-3xl font-bold text-blue-600">7일</p>
+              <p className="text-2xl md:text-3xl font-bold text-blue-600">주 1~3회</p>
               <p className="text-sm text-gray-700 mt-1 leading-snug break-keep">
                 자동 재측정<br />
-                <span className="text-sm text-gray-600">변화 추적<br />카카오톡 알림</span>
+                <span className="text-sm text-gray-600">Biz는 매일 · 변화 추적<br />카카오톡 알림</span>
               </p>
             </div>
           </div>

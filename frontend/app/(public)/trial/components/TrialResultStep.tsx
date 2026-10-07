@@ -689,7 +689,7 @@ export default function TrialResultStep(props: TrialResultProps) {
         items.push({
           title: `웹사이트·소개 문구에 내 가게의 실제 특징 추가하기 ('${effectiveMissingKws[0]}' 등 해당되는 것만)`,
           level: "높음", time: "5분",
-          effect: "수개월~1년 내 ChatGPT·Gemini 노출에 반영될 수 있습니다(학습 데이터 기반, 추정)",
+          effect: "ChatGPT는 수개월~1년 이상, Gemini는 수주~수개월 걸려 반영될 수 있습니다(보장 아님, 추정)",
         });
       }
       items.push({
@@ -722,7 +722,7 @@ export default function TrialResultStep(props: TrialResultProps) {
         title: `소개글에 내 가게의 실제 특징 추가하기 ('${effectiveMissingKws[0]}' 등 해당되는 것만)`,
         level: "높음",
         time: "5분",
-        effect: "2~4주 내 네이버 검색 순위 변화가 시작되고, 이후 수개월~1년 내 ChatGPT·Gemini에도 반영됩니다",
+        effect: "2~4주 내 네이버 검색 순위 변화가 시작될 수 있습니다 (네이버 안의 개선입니다 — ChatGPT·Gemini는 네이버 밖 정보가 있어야 반영됩니다)",
       });
     }
     if (!postKnown) items.push({

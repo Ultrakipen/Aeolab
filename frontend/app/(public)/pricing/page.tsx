@@ -499,12 +499,12 @@ export default function PricingPage() {
                 {
                   icon: "📡",
                   title: "지금 당장 내 가게가 네이버 AI에 나오는지",
-                  why: "네이버는 ChatGPT·Gemini 봇 크롤링을 robots.txt로 전면 차단 — ChatGPT로는 네이버 AI 노출을 확인할 수 없습니다",
+                  why: "네이버 블로그는 robots.txt에서 ChatGPT(GPTBot·OAI-SearchBot) 등 주요 AI 수집 봇을 차단하고 있습니다(2026-10-07 확인) — ChatGPT로는 네이버 AI 노출을 확인할 수 없습니다",
                 },
                 {
                   icon: "🔍",
                   title: "경쟁사 스마트플레이스 소개글·채팅방 메뉴에 뭐 있는지",
-                  why: "매주 월요일 05:00 경쟁사 소개글·채팅방 메뉴 자동 수집 → 내 가게에 없는 항목 목록 제공 (ChatGPT는 네이버 스마트플레이스 접근 불가)",
+                  why: "매주 월요일 05:00 경쟁사 소개글·채팅방 메뉴 자동 수집 → 내 가게에 없는 항목 목록 제공 (ChatGPT로는 네이버 스마트플레이스 정보를 직접 확인하기 어렵습니다)",
                 },
                 {
                   icon: "📝",

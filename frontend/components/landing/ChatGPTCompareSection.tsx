@@ -1,7 +1,7 @@
 import { Check, X } from "lucide-react";
 const COMPARE_ROWS = [
   {
-    label: "측정 채널",
+    label: "측정 범위",
     manual: "ChatGPT·Gemini 등 글로벌 AI만",
     auto: "네이버 AI 브리핑·AI탭 + 글로벌 AI 통합",
   },
@@ -13,7 +13,7 @@ const COMPARE_ROWS = [
   {
     label: "신뢰도",
     manual: "같은 질문, 매번 다른 답",
-    auto: "Gemini·ChatGPT 각 50회 통계 (Basic 플랜 기준)",
+    auto: "Gemini·ChatGPT 각 50~100회 통계 (자동 100회·수동 50회, Basic 기준)",
   },
   {
     label: "객관성",
@@ -23,7 +23,7 @@ const COMPARE_ROWS = [
   {
     label: "원인 분석",
     manual: "AI가 이유를 설명 안 함",
-    auto: "경쟁사 갭 + 개선 가이드",
+    auto: "경쟁사와 다른 점 + 개선 가이드",
   },
 ];
 

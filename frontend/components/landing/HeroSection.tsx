@@ -141,7 +141,7 @@ export default function HeroSection() {
                 className="w-1.5 h-1.5 rounded-full animate-pulse"
                 style={{ background: "#2563EB" }}
               />
-              AI 검색 준비도 진단 서비스 — AI브리핑·AI탭·SEO·ChatGPT
+              AI 검색 노출 진단 서비스 — AI 브리핑·AI탭·네이버 검색·ChatGPT
             </div>
 
             {/* 메인 타이틀 */}

@@ -103,7 +103,7 @@ export default async function AiInfoTabGuidePage({
         </h1>
         <p className="text-base md:text-lg text-gray-700 leading-relaxed break-keep">
           {elig === 'inactive' || (business?.is_franchise)
-            ? '소개글·소식·리뷰 3가지를 갖추면 네이버 일반 검색 상위노출과 AI탭·ChatGPT·Gemini 노출이 동시에 개선됩니다. 평균 소요 10분.'
+            ? '소개글·소식·리뷰 3가지를 갖추면 네이버 일반 검색 상위노출과 AI탭 노출이 좋아질 수 있습니다. ChatGPT·Gemini는 네이버 밖 정보(구글 비즈니스 프로필·자체 사이트)도 함께 필요합니다. 평균 소요 10분.'
             : '내 사업장이 네이버 AI 브리핑에 노출되도록 단계별로 안내합니다. 평균 소요 15분.'}
         </p>
         <p className="mt-2 text-sm md:text-base text-gray-600">

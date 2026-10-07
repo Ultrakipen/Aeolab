@@ -471,7 +471,7 @@ export default function LandingPage() {
             <h3 className="text-lg md:text-xl font-black text-gray-900 text-center mb-2">
               개선 방법은 업종 관계없이 같습니다
             </h3>
-            <p className="text-sm text-gray-600 text-center mb-4">스마트플레이스 설정부터 시작하면, AI 채널이 자동으로 커버됩니다</p>
+            <p className="text-sm text-gray-600 text-center mb-4">스마트플레이스부터 시작하면 네이버 AI(AI 브리핑·AI탭)를 준비할 수 있습니다. ChatGPT·Gemini는 네이버 밖의 정보(구글 비즈니스 프로필·자체 사이트·외부 언급)도 함께 필요합니다</p>
 
             {/* SEO + AI 연결 메시지 */}
             <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 mb-4 text-center">
@@ -800,7 +800,7 @@ export default function LandingPage() {
               AI가 내 가게를 추천하는 기준은<br className="hidden md:block" /> 4가지입니다
             </h2>
             <p className="mt-3 text-sm md:text-base break-keep max-w-xl mx-auto" style={{ color: "#475569" }}>
-              스마트플레이스 완성도·리뷰·키워드·블로그 콘텐츠 — 이 4가지가 충실할수록 AI가 신뢰할 수 있는 가게로 인식하고 추천합니다.
+              스마트플레이스 완성도·리뷰·키워드·블로그 콘텐츠 — 이 4가지가 충실할수록 네이버 AI가 믿을 수 있는 가게로 보고 추천합니다. ChatGPT·Gemini는 네이버 밖의 정보(구글 비즈니스 프로필·자체 사이트·외부 언급)를 주로 참고합니다.
             </p>
           </div>
 
