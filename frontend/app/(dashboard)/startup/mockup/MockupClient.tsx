@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import { StartupReportView, type StartupReport } from "../StartupReportView";
 
 // 실제 API 호출 없이 결과 화면 레이아웃만 확인하기 위한 목업 시나리오 3종.
@@ -177,7 +178,7 @@ export function MockupClient() {
   return (
     <div className="p-4 md:p-8 max-w-3xl">
       <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 mb-6">
-        <p className="text-sm font-bold text-amber-800 mb-1">⚠ 목업 페이지 — 실제 데이터 아님</p>
+        <p className="text-sm font-bold text-amber-800 mb-1 inline-flex items-center gap-1"><AlertTriangle className="w-4 h-4 inline-block shrink-0" aria-hidden={true} /> 목업 페이지 — 실제 데이터 아님</p>
         <p className="text-sm text-amber-700 leading-relaxed">
           화면 레이아웃 확인 전용입니다. 아래 수치·문구는 모두 가상 예시이며, 실제 측정·Claude AI 호출 없이 하드코딩된 값입니다.
           관리자 계정에서만 접근 가능합니다.

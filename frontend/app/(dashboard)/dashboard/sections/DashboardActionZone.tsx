@@ -8,7 +8,7 @@ import ScoreAttributionCard from "@/components/dashboard/ScoreAttributionCard";
 import MonthlyChecklistCard from "@/components/dashboard/MonthlyChecklistCard";
 import DeliveryRecommendCard from "@/components/dashboard/DeliveryRecommendCard";
 import Link from "next/link";
-import { Calendar, Target, TrendingUp, ListChecks, Zap } from "lucide-react";
+import { Calendar, Target, TrendingUp, ListChecks, Zap, Lock, ArrowRight } from "lucide-react";
 
 interface Dimension {
   dimension_key: string;
@@ -103,7 +103,7 @@ export default function DashboardActionZone({
         <div className="rounded-xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 px-4 py-4 mb-2">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
-              <span className="text-lg">🔒</span>
+              <Lock className="w-5 h-5 inline-block shrink-0" aria-hidden="true" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-gray-900 leading-snug">맞춤 AI 개선 가이드가 준비됐습니다</p>
@@ -115,7 +115,7 @@ export default function DashboardActionZone({
                 href="/pricing"
                 className="inline-flex items-center gap-1.5 mt-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
               >
-                Basic 구독으로 가이드 확인 →
+                Basic 구독으로 가이드 확인 <ArrowRight className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
               </Link>
               <p className="text-sm text-gray-600 mt-1.5">첫 달 8,950원 · 이후 17,900원/월</p>
             </div>

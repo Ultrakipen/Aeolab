@@ -5,7 +5,7 @@ import { ExportButton } from './ExportButton'
 import BlogScreenshotSection from './BlogScreenshotSection'
 import ShareButton from '@/components/share/ShareButton'
 import { NoBusiness } from '@/components/dashboard/NoBusiness'
-import { History, ImageIcon, TrendingUp, Calendar, Download, Lock } from 'lucide-react'
+import { History, ImageIcon, TrendingUp, Calendar, Download, Lock, AlertTriangle, PartyPopper, Info } from 'lucide-react'
 import Link from 'next/link'
 import { getActiveBusinessId } from '@/lib/active-business'
 import { getScoreTextLabel } from '@/lib/scoreLabels'
@@ -357,7 +357,7 @@ export default async function HistoryPage() {
         {/* 점수 변화 행동 유도 메시지 */}
         {scores.length >= 2 && diff < -3 && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-            <span className="text-red-700 text-xl shrink-0">⚠️</span>
+            <AlertTriangle className="w-5 h-5 text-red-700 shrink-0" aria-hidden={true} />
             <div>
               <p className="font-semibold text-red-700">AI 노출 상태가 하락했습니다</p>
               <p className="text-sm text-red-700 mt-1">경쟁사가 강화되었거나 내 가게 정보 업데이트가 필요할 수 있습니다.</p>
@@ -369,7 +369,7 @@ export default async function HistoryPage() {
         )}
         {scores.length >= 2 && diff >= 3 && (
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
-            <span className="text-xl shrink-0">🎉</span>
+            <PartyPopper className="w-5 h-5 shrink-0 text-emerald-700" aria-hidden={true} />
             <div>
               <p className="font-semibold text-emerald-700">AI 노출 상태가 개선됐습니다!</p>
               <p className="text-sm text-emerald-700 mt-1">지속적으로 유지하려면 FAQ와 소식 업데이트를 주 1회 이어가세요.</p>
@@ -396,7 +396,7 @@ export default async function HistoryPage() {
 
         {/* 히스토리 안내 배너 */}
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3 items-start">
-          <div className="text-blue-400 mt-0.5 shrink-0 text-base">ℹ️</div>
+          <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" aria-hidden={true} />
           <div className="text-sm md:text-base text-blue-700">
             <span className="font-medium">스코어 기록</span>은 대시보드에서 측정할 때마다 쌓입니다.
             <span className="font-medium ml-2">키워드별 노출 변화</span>는 가입 시점과 현재를 비교해 개선 여부를 한눈에 확인할 수 있습니다.

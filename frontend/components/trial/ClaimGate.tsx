@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { trackClaimFunnel } from "@/lib/analytics";
+import { Users } from "lucide-react";
 
 interface ClaimGateProps {
   trialId?: string;
@@ -129,7 +130,7 @@ export default function ClaimGate({
       <form onSubmit={onSubmit} className="space-y-3 md:space-y-4" noValidate>
         {claimStats && claimStats.total_claims >= 5 && (
           <div className="flex items-center gap-2 mb-4 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-            <span className="text-lg">👥</span>
+            <Users className="w-5 h-5 inline-block shrink-0" aria-hidden="true" />
             <p className="text-sm text-slate-700 font-medium">
               지금까지 <strong>{claimStats.total_claims.toLocaleString()}명</strong>이 결과를 저장했습니다
             </p>

@@ -16,6 +16,7 @@ import {
 } from "recharts";
 import { getScoreTextLabel } from "@/lib/scoreLabels";
 import { CATEGORY_LABEL } from "@/lib/categories";
+import { TrendingUp, Trophy, BarChart3, PartyPopper, ImageIcon } from "lucide-react";
 
 // 행동 타입별 색상
 const ACTION_COLORS: Record<string, string> = {
@@ -361,7 +362,7 @@ export default function GrowthClient({
       {/* 헤더 */}
       <div>
         <h1 className="text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <span>📈</span>
+          <TrendingUp className="w-5 h-5 text-gray-900 shrink-0" aria-hidden={true} />
           <span>내 가게 성장 기록</span>
         </h1>
         <p className="text-sm md:text-base text-gray-600 mt-1">
@@ -375,7 +376,7 @@ export default function GrowthClient({
           <div className="mt-2">
             {latestTotal >= 3 ? (
               <span className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-sm font-semibold px-3 py-1 rounded-full">
-                🏆 {categoryLabel} 업종 중 {latestRank}위 / {latestTotal}곳
+                <Trophy className="w-4 h-4 shrink-0" aria-hidden={true} /> {categoryLabel} 업종 중 {latestRank}위 / {latestTotal}곳
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 bg-gray-50 border border-gray-200 text-gray-600 text-sm font-medium px-3 py-1 rounded-full">
@@ -683,7 +684,7 @@ export default function GrowthClient({
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
-            <span className="text-4xl">📊</span>
+            <BarChart3 className="w-10 h-10 text-gray-300" aria-hidden={true} />
             <p className="text-sm font-semibold text-gray-700">아직 측정 기록이 없습니다</p>
             <p className="text-sm text-gray-600">대시보드에서 측정을 시작해 보세요.</p>
             <Link
@@ -940,7 +941,7 @@ export default function GrowthClient({
             {monthDelta !== null && (
               monthDelta > 0 ? (
                 <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-3">
-                  <span className="text-2xl">🎉</span>
+                  <PartyPopper className="w-6 h-6 shrink-0 text-green-700" aria-hidden={true} />
                   <p className="text-sm font-semibold text-green-800">
                     지난달보다 개선됐습니다!
                   </p>
@@ -1022,7 +1023,7 @@ export default function GrowthClient({
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-10 gap-3 text-center border border-dashed border-gray-200 rounded-xl">
-            <span className="text-4xl">🖼</span>
+            <ImageIcon className="w-10 h-10 text-gray-300" aria-hidden={true} />
             <p className="text-sm font-semibold text-gray-600">아직 성장 카드가 없습니다</p>
             <p className="text-sm text-gray-600">
               이번 달 AI 노출 점수가 지난달보다 오르면 말일에 자동으로 생성됩니다.

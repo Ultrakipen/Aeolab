@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { XCircle } from "lucide-react";
 
 interface PostScanModalProps {
   isOpen: boolean;
@@ -97,7 +98,7 @@ export default function PostScanModal({
             {topMissingKeyword ? (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                 <p className="text-sm font-bold text-amber-800 mb-1">
-                  ❌ &ldquo;{topMissingKeyword}&rdquo; 키워드가 없습니다
+                  <XCircle className="w-4 h-4 inline-block shrink-0" aria-hidden="true" /> &ldquo;{topMissingKeyword}&rdquo; 키워드가 없습니다
                 </p>
                 <p className="text-sm text-amber-700 mb-3">
                   스마트플레이스 소개글 안 Q&A에 이 키워드를 포함하면 AI 브리핑 언급 후보 가능성이 높아집니다.

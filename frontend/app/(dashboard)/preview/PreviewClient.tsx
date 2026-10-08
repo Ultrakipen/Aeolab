@@ -32,7 +32,13 @@ import {
   Copy,
   FileSpreadsheet,
   ClipboardList,
+  Target,
+  Building2,
+  Clock,
+  Wrench,
+  Key,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { ScanResult } from "@/types";
 import ChannelDifferentiationCard from "@/components/common/ChannelDifferentiationCard";
 import { getUserGroup } from "@/lib/userGroup";
@@ -202,7 +208,7 @@ function ImpactCard({
   lines,
   color,
 }: {
-  lines: { icon: string; text: string }[];
+  lines: { Icon: LucideIcon; text: string }[];
   color: "blue" | "orange" | "indigo" | "emerald" | "red";
 }) {
   const colors = {
@@ -216,7 +222,7 @@ function ImpactCard({
     <div className={`rounded-xl p-4 space-y-2 ${colors[color]}`}>
       {lines.map((line, i) => (
         <div key={i} className="flex items-start gap-2.5">
-          <span className="text-lg leading-none shrink-0">{line.icon}</span>
+          <line.Icon className="w-4 h-4 inline-block shrink-0 mt-0.5" aria-hidden={true} />
           <p className="text-sm font-medium leading-snug">{line.text}</p>
         </div>
       ))}
@@ -464,11 +470,11 @@ function FreeTab({
         color="red"
         lines={[
           {
-            icon: "⚠️",
+            Icon: AlertTriangle,
             text: `지금 ${d.bizName}이 ChatGPT에서 어떻게 보이는지 모르고 있습니다`,
           },
           {
-            icon: "📍",
+            Icon: MapPin,
             text: "경쟁사는 이미 AI 브리핑에 노출되어 손님을 가져가고 있을 수 있습니다",
           },
         ]}
@@ -621,15 +627,15 @@ function BasicTab({
         color="blue"
         lines={[
           {
-            icon: "📊",
+            Icon: BarChart3,
             text: `매주 월요일 AI 4개 서비스가 ${d.bizName}을 얼마나 추천하는지 자동으로 추적합니다`,
           },
           {
-            icon: "🎯",
+            Icon: Target,
             text: `"${d.missingKeyword}" 키워드로 검색하는 손님이 지금 경쟁사 가게로 가고 있습니다`,
           },
           {
-            icon: "💬",
+            Icon: MessageSquare,
             text: "리뷰 답변 하나하나에 핵심 키워드를 자연스럽게 심어 AI 노출을 높입니다",
           },
         ]}
@@ -732,7 +738,7 @@ function BasicTab({
           subtitle="핵심 키워드 포함 — 스마트플레이스 바로 붙여넣기"
         />
         <div className="bg-gray-50 rounded-lg p-3 border border-gray-100 space-y-2">
-          <p className="text-sm font-semibold text-gray-600 mb-1">✅ 자동 생성된 Q&A 초안 (예시)</p>
+          <p className="text-sm font-semibold text-gray-600 mb-1 inline-flex items-center gap-1"><CheckCircle2 className="w-4 h-4 inline-block shrink-0" aria-hidden={true} /> 자동 생성된 Q&A 초안 (예시)</p>
           <div className="bg-white rounded-lg p-2.5 border border-gray-100">
             <p className="text-sm font-bold text-blue-700 mb-0.5">Q. {d.missingKeyword} 가능한가요?</p>
             <p className="text-sm text-gray-600 leading-relaxed">
@@ -878,7 +884,7 @@ function BasicTab({
           subtitle="월 3회 · AI가 이번 주 가장 중요한 개선 1가지를 알려줍니다"
         />
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 mt-2">
-          <p className="text-sm font-bold text-amber-800 mb-1.5">🎯 이번 주 핵심 개선 포인트</p>
+          <p className="text-sm font-bold text-amber-800 mb-1.5 inline-flex items-center gap-1"><Target className="w-4 h-4 inline-block shrink-0" aria-hidden={true} /> 이번 주 핵심 개선 포인트</p>
           <p className="text-sm text-amber-700 leading-relaxed break-keep">
             소개글에 <strong className="text-amber-900">&apos;{d.missingKeyword}&apos;</strong>를 추가하세요.
             인근 경쟁 가게 2곳이 이 키워드로 AI 검색에 노출되고 있습니다.
@@ -954,15 +960,15 @@ function StartupTab({
         color="orange"
         lines={[
           {
-            icon: "🏪",
+            Icon: Building2,
             text: `${d.region} ${d.label} 업종 경쟁자 ${d.competitorCount}개 중 AI에서 상위 노출되는 곳이 어디인지 알 수 있습니다`,
           },
           {
-            icon: "📍",
+            Icon: MapPin,
             text: "입지 선정 전에 AI가 어떤 위치를 먼저 추천하는지 확인하면 창업 실패 확률이 낮아집니다",
           },
           {
-            icon: "🔑",
+            Icon: Key,
             text: `아직 경쟁이 적은 틈새 키워드 "${d.keywords[0]}"로 오픈 첫 달부터 AI 노출 선점 가능합니다`,
           },
         ]}
@@ -1175,15 +1181,15 @@ function ProTab({
         color="indigo"
         lines={[
           {
-            icon: "⏱️",
+            Icon: Clock,
             text: "경쟁사가 AI 브리핑에서 앞서기 시작하면 3일 안에 알 수 있습니다 (주 3회 자동 측정)",
           },
           {
-            icon: "🛡️",
+            Icon: Shield,
             text: "ChatGPT 광고가 한국에 도입되면 유기 노출 자산이 있는 가게가 광고비 없이 버팁니다",
           },
           {
-            icon: "📄",
+            Icon: FileText,
             text: "PDF 리포트로 매달 우리 가게의 AI 노출 변화를 한눈에 확인·보관",
           },
         ]}
@@ -1480,15 +1486,15 @@ function BizTab({
         color="emerald"
         lines={[
           {
-            icon: "🏢",
+            Icon: Building2,
             text: "사업장 5개를 각각 Basic 플랜으로 관리하면 월 89,500원이지만, Biz 1개면 79,500원입니다",
           },
           {
-            icon: "📊",
+            Icon: BarChart3,
             text: "어느 지점이 AI에서 뒤처지는지 매일 아침 한눈에 파악해 즉시 조치할 수 있습니다",
           },
           {
-            icon: "🔧",
+            Icon: Wrench,
             text: "컨설턴트라면 고객사 AI 노출 성과를 수치로 보고서화해 계약 갱신 근거로 씁니다",
           },
         ]}

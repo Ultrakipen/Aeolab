@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RefreshCw, Star, CheckCircle, XCircle, Info, Lock, ExternalLink } from "lucide-react";
+import { RefreshCw, Star, CheckCircle, XCircle, Info, Lock, ExternalLink, Bot, Newspaper, Globe, HelpCircle, KeyRound, Target } from "lucide-react";
 import { updateCompetitor, syncCompetitorPlace } from "@/lib/api";
 
 // 플레이스 카드에 필요한 최소 Competitor 필드만 정의
@@ -593,7 +593,7 @@ export function CompetitorPlaceCard({
       {competitor.ai_excerpt && (
         <div>
           <div className="flex items-center gap-1.5 mb-2">
-            <span>🤖</span>
+            <Bot className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
             <span className="text-sm font-medium text-gray-600">AI가 이 가게를 소개한 문장</span>
           </div>
           <blockquote className="bg-blue-50 border-l-4 border-blue-400 rounded-r-xl px-4 py-3">
@@ -610,7 +610,7 @@ export function CompetitorPlaceCard({
       <div>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
-            <span>📰</span>
+            <Newspaper className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
             <span className="text-sm font-medium text-gray-600">네이버 블로그 언급 수</span>
           </div>
           <span className="text-sm text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">자동 수집</span>
@@ -637,7 +637,7 @@ export function CompetitorPlaceCard({
       {/* ── 웹사이트 보유 및 AI 검색 최적화 ── */}
       <div>
         <div className="text-sm font-medium text-gray-600 mb-2 flex items-center gap-1.5">
-          <span>🌐</span> 웹사이트 보유 및 AI 검색 노출 상태
+          <Globe className="w-4 h-4 inline-block shrink-0" aria-hidden="true" /> 웹사이트 보유 및 AI 검색 노출 상태
         </div>
         {competitor.website_url ? (
           <div className="space-y-2">
@@ -712,7 +712,7 @@ export function CompetitorPlaceCard({
       {competitor.place_has_faq && (
         <div>
           <div className="flex items-center gap-1.5 mb-2">
-            <span>❓</span>
+            <HelpCircle className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
             <span className="text-sm font-medium text-gray-600">경쟁사 소개글 Q&A</span>
             <span className="text-sm text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">내 소개글 Q&A 참고용</span>
           </div>
@@ -746,7 +746,7 @@ export function CompetitorPlaceCard({
       {/* ── 키워드 분석 (창업패키지+ 전용) ── */}
       <div>
         <div className="text-sm font-medium text-gray-600 mb-2 flex items-center gap-1.5">
-          <span>🔑</span> 경쟁사 보유 키워드
+          <KeyRound className="w-4 h-4 inline-block shrink-0" aria-hidden="true" /> 경쟁사 보유 키워드
         </div>
         {!canViewStartup ? (
           <LockedFeature
@@ -817,7 +817,7 @@ export function CompetitorPlaceCard({
       <div>
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
-            <span>🎯</span>
+            <Target className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
             <span className="text-sm font-medium text-gray-600">경쟁사 약점 — 내 가게 공략 포인트</span>
           </div>
           <span className="text-sm text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">블로그 분석</span>

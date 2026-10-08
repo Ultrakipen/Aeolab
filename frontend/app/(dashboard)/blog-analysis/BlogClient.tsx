@@ -22,6 +22,9 @@ import {
   Globe,
   BarChart2,
   Info,
+  Lightbulb,
+  Building2,
+  Sparkles,
 } from "lucide-react";
 import {
   BarChart,
@@ -535,7 +538,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
         <span className="text-sm text-gray-600 ml-auto">상위 {posts.length}개</span>
       </div>
       <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-4 text-sm text-slate-700 leading-relaxed">
-        <p className="font-semibold text-slate-800 mb-1">💡 두 가지 키워드를 구분해서 보여드립니다</p>
+        <p className="inline-flex items-center gap-1 font-semibold text-slate-800 mb-1"><Lightbulb className="w-4 h-4 inline-block shrink-0" aria-hidden="true" /> 두 가지 키워드를 구분해서 보여드립니다</p>
         <p>
           <span className="font-semibold text-green-700">업종 키워드</span>(웨딩스냅·돌잔치 스냅·프로필 촬영 등) —{" "}
           AI가 업종 인식하는 용도 · <span className="font-semibold text-red-700">검색 의도어</span>(추천·후기·비교·가격 등) —{" "}
@@ -1764,9 +1767,12 @@ function BriefingIneligibilityBanner({ business, isBlogLikely }: { business?: Bu
     <div className={`rounded-xl border px-4 md:px-5 py-4 flex items-start gap-3 ${
       isBlogLikely ? "bg-blue-50 border-blue-200" : "bg-amber-50 border-amber-200"
     }`}>
-      <span className="text-xl shrink-0 mt-0.5">
-        {business?.is_franchise ? "🏢" : isBlogLikely ? "🔮" : "ℹ️"}
-      </span>
+      {business?.is_franchise
+        ? <Building2 className="w-5 h-5 inline-block shrink-0 mt-0.5" aria-hidden="true" />
+        : isBlogLikely
+          ? <Sparkles className="w-5 h-5 inline-block shrink-0 mt-0.5" aria-hidden="true" />
+          : <Info className="w-5 h-5 inline-block shrink-0 mt-0.5" aria-hidden="true" />
+      }
       <div className="flex-1 min-w-0">
         {business?.is_franchise ? (
           <>

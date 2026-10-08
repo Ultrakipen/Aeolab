@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { MapPin, XCircle, Play } from "lucide-react";
 
 interface ActionHeroCardProps {
   businessName: string;
@@ -77,7 +78,7 @@ export default function ActionHeroCard({
       <div className="space-y-3">
         {/* 네이버 AI 브리핑 노출 횟수 */}
         <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xl">📍</span>
+          <MapPin className="w-5 h-5 inline-block shrink-0" aria-hidden="true" />
           <span className="text-sm md:text-base text-gray-800">
             네이버 AI 브리핑:{" "}
             <span className="font-bold text-blue-700">
@@ -95,7 +96,7 @@ export default function ActionHeroCard({
         {/* 없는 키워드 */}
         {topMissingKeywords.length > 0 && (
           <div className="flex items-start gap-3 flex-wrap">
-            <span className="text-xl shrink-0">❌</span>
+            <XCircle className="w-5 h-5 inline-block shrink-0" aria-hidden="true" />
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm text-gray-700 font-medium">
                 {hasRegisteredKeywords ? "이 키워드로도 확인해 보세요:" : "지금 없는 키워드:"}
@@ -116,7 +117,7 @@ export default function ActionHeroCard({
         {todayActionText && (
           <div className="bg-white border border-blue-200 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center gap-2">
             <div className="flex items-start gap-2 flex-1 min-w-0">
-              <span className="text-base shrink-0">▶</span>
+              <Play className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-blue-600 mb-0.5">오늘 할 일</p>
                 <p className="text-sm text-gray-800 font-medium">{todayActionText}</p>

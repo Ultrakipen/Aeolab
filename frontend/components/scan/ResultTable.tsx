@@ -1,3 +1,5 @@
+import { Bot } from "lucide-react";
+
 interface AIResult {
   platform?: string
   mentioned: boolean
@@ -90,7 +92,7 @@ function NaverSection({
               <span className="text-gray-600 text-sm">오류</span>
             ) : inBrief ? (
               <span className="inline-flex items-center gap-1 bg-green-700 text-white text-sm px-2.5 py-0.5 rounded-full font-medium w-fit">
-                🤖 브리핑 포함
+                <Bot className="w-3.5 h-3.5" aria-hidden="true" /> 브리핑 포함
               </span>
             ) : briefingEligibility === 'inactive' ? (
               <div className="space-y-1">

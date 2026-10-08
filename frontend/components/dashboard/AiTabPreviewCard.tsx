@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Lock, Sparkles, CheckCircle2, AlertCircle, Clock, Lightbulb, Bot, AlertTriangle } from "lucide-react";
+import { Lock, Sparkles, CheckCircle2, AlertCircle, Clock, Lightbulb, Bot, AlertTriangle, MapPin, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getSafeSession } from "@/lib/supabase/client";
 import { authFetch } from "@/lib/api";
@@ -316,7 +316,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
               href="/pricing"
               className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm md:text-base font-bold px-5 py-2.5 transition-colors"
             >
-              Basic 이상에서 이용 가능 →
+              Basic 이상에서 이용 가능 <ArrowRight className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
             </Link>
           </div>
         )}
@@ -544,7 +544,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                   </div>
                   {/* 어디에 입력하는지 3단계 안내 */}
                   <div className="rounded bg-white border border-orange-100 px-3 py-2 mb-3">
-                    <p className="text-sm font-semibold text-gray-700 mb-1">📍 입력 위치</p>
+                    <p className="inline-flex items-center gap-1 text-sm font-semibold text-gray-700 mb-1"><MapPin className="w-4 h-4 inline-block shrink-0" aria-hidden="true" /> 입력 위치</p>
                     <ol className="text-sm text-gray-600 space-y-0.5 leading-snug">
                       <li>① <a href="https://smartplace.naver.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline font-medium">smartplace.naver.com</a> 접속</li>
                       <li>② 업체정보 → <strong>소개글</strong> 수정 (200자 이상 작성 권장)</li>
@@ -555,7 +555,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                     href="/guide/ai-tab"
                     className="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors"
                   >
-                    소개글 작성 예시 보기 →
+                    소개글 작성 예시 보기 <ArrowRight className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
                   </Link>
                 </div>
               )}
@@ -587,7 +587,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                     href="/settings"
                     className="mt-2 inline-flex items-center text-sm font-semibold text-amber-700 hover:text-amber-900 transition-colors"
                   >
-                    키워드 등록하러 가기 →
+                    키워드 등록하러 가기 <ArrowRight className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
                   </Link>
                 </div>
               )}
@@ -811,7 +811,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                       rel="noopener noreferrer"
                       className="mt-2 inline-flex items-center text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
                     >
-                      네이버 예약 연동 설정하기 →
+                      네이버 예약 연동 설정하기 <ArrowRight className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
                     </a>
                   </div>
                 </div>

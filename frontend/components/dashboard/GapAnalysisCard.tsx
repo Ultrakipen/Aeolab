@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { GapAnalysis } from "@/types/gap";
-import { TrendingUp, AlertTriangle, CheckCircle, Info, ChevronDown, ChevronUp } from "lucide-react";
+import { TrendingUp, AlertTriangle, CheckCircle, Info, ChevronDown, ChevronUp, Zap, ArrowRight } from "lucide-react";
 import { getScoreTextLabel } from "@/lib/scoreLabels";
 
 interface Props {
@@ -260,12 +260,12 @@ export function GapAnalysisCard({ gap }: Props) {
           {opportunities.length > 0 && (
             <div className="mt-3 pt-3 border-t border-gray-100">
               <div className="text-sm font-semibold text-emerald-700 mb-2">
-                ⚡ 선점 기회 — 경쟁사도 아직 없는 항목
+                <Zap className="w-4 h-4 inline-block shrink-0" aria-hidden="true" /> 선점 기회 — 경쟁사도 아직 없는 항목
               </div>
               <div className="space-y-3">
                 {opportunities.map((d) => (
                   <div key={d.dimension_key} className="flex items-start gap-2">
-                    <span className="text-emerald-700 mt-0.5 text-sm shrink-0">→</span>
+                    <ArrowRight className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" aria-hidden="true" />
                     <div>
                       <span className="text-sm font-semibold text-gray-700">
                         {DIMENSION_LABELS[d.dimension_key] ?? d.dimension_key}

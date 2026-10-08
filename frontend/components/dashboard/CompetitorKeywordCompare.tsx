@@ -1,6 +1,6 @@
 'use client'
 
-import { Search } from "lucide-react";
+import { Search, MapPin, ArrowRight } from "lucide-react";
 
 interface Props {
   competitorKeywordSources: Record<string, string[]>
@@ -36,8 +36,8 @@ export default function CompetitorKeywordCompare({ competitorKeywordSources }: P
       <div className="space-y-3">
         {entries.map(([competitorName, keywords]) => (
           <div key={competitorName} className="p-3 md:p-4 bg-red-50 border border-red-100 rounded-xl">
-            <p className="text-sm font-semibold text-red-800 mb-2">
-              📍 {competitorName}
+            <p className="inline-flex items-center gap-1 text-sm font-semibold text-red-800 mb-2">
+              <MapPin className="w-4 h-4 inline-block shrink-0" aria-hidden="true" /> {competitorName}
             </p>
             <div className="flex flex-wrap gap-2">
               {keywords.map((kw: string) => (
@@ -49,8 +49,8 @@ export default function CompetitorKeywordCompare({ competitorKeywordSources }: P
                 </span>
               ))}
             </div>
-            <p className="text-sm text-red-700 mt-2">
-              → 소개글·Q&A 섹션에 위 키워드를 추가해 보세요
+            <p className="inline-flex items-center gap-1 text-sm text-red-700 mt-2">
+              <ArrowRight className="w-4 h-4 inline-block shrink-0" aria-hidden="true" /> 소개글·Q&A 섹션에 위 키워드를 추가해 보세요
             </p>
           </div>
         ))}

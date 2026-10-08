@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, XCircle, AlertTriangle, MapPin, Image as ImageIcon, Star, BookOpen } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, MapPin, Image as ImageIcon, Star, BookOpen, Lock, Lightbulb } from "lucide-react";
 
 export interface NaverCompetitor {
   rank: number;
@@ -380,7 +380,7 @@ export default function NaverStatusSection({
           <div className="px-4 py-3">
             {briefingCategory === "active" && inBriefing === null && (
               <div className="flex items-start gap-3 bg-blue-50 rounded-lg px-3 py-3 border border-blue-200">
-                <span className="text-lg shrink-0">🔒</span>
+                <Lock className="w-5 h-5 inline-block shrink-0" aria-hidden="true" />
                 <div>
                   <p className="text-sm font-semibold text-blue-800">무료 체험에서는 AI 브리핑 실측 미포함</p>
                   <p className="text-sm text-blue-700 mt-0.5 leading-snug break-keep">
@@ -526,7 +526,7 @@ export default function NaverStatusSection({
                   </div>
                 </div>
                 <div className="flex items-start gap-2 bg-blue-50 rounded-lg px-3 py-2.5 border border-blue-100">
-                  <span className="text-sm shrink-0 mt-0.5">💡</span>
+                  <Lightbulb className="w-4 h-4 inline-block shrink-0 mt-0.5" aria-hidden="true" />
                   <p className="text-sm text-blue-800 leading-snug break-keep">
                     <strong>블로그보다 빠른 방법:</strong> 소개글에 경쟁사 키워드를 추가하면
                     블로그 수 격차 없이도 네이버 순위가 올라갑니다.

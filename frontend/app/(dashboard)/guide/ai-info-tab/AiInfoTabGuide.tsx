@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { TrendingUp, Sparkles, Bot, MessageSquare, Bell } from 'lucide-react'
 
 // §3.4 필수 사진 5종 카드
 const PHOTO_ITEMS = [
@@ -145,8 +146,8 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
           <>
             {/* 네이버 SEO 일석이조 강조 배너 */}
             <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 md:p-5">
-              <p className="text-sm md:text-base font-bold text-emerald-900 mb-2">
-                📈 아래 단계는 네이버 검색 상위노출에도 직접 도움이 됩니다
+              <p className="text-sm md:text-base font-bold text-emerald-900 mb-2 inline-flex items-center gap-1">
+                <TrendingUp className="w-4 h-4 inline-block shrink-0" aria-hidden={true} /> 아래 단계는 네이버 검색 상위노출에도 직접 도움이 됩니다
               </p>
               <ul className="space-y-1.5 text-sm md:text-base text-emerald-800">
                 <li className="flex items-start gap-2">
@@ -172,7 +173,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             </div>
             <StepSkipped
               num={1}
-              title="🎯 네이버 스마트플레이스 AI 정보 탭 찾기 (AI 브리핑)"
+              title="네이버 스마트플레이스 AI 정보 탭 찾기 (AI 브리핑)"
               reason={
                 business?.is_franchise
                   ? "프랜차이즈 가맹점은 '플레이스형' 네이버 AI 브리핑 제공 대상에서 제외됩니다 (네이버 공식 정책)."
@@ -186,8 +187,8 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             />
             {/* AI탭 준비 안내 — INACTIVE/프랜차이즈도 AI탭은 모든 업종 가능 */}
             <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 md:p-5">
-              <p className="text-sm md:text-base font-semibold text-indigo-800 mb-2">
-                🆕 네이버 AI탭 준비 — 업종 제한 발표 없음 (정식 출시)
+              <p className="text-sm md:text-base font-semibold text-indigo-800 mb-2 inline-flex items-center gap-1">
+                <Sparkles className="w-4 h-4 inline-block shrink-0" aria-hidden={true} /> 네이버 AI탭 준비 — 업종 제한 발표 없음 (정식 출시)
               </p>
               <p className="text-sm md:text-base text-indigo-700 mb-3 leading-relaxed">
                 네이버 AI탭(2026-06-25 정식 출시)은 업종 제한 발표 없이 모든 사업장이 노출 가능합니다.
@@ -261,7 +262,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
         ) : (
           <Step
             num={1}
-            title="🔍 네이버 스마트플레이스에서 AI 정보 탭 찾기"
+            title="네이버 스마트플레이스에서 AI 정보 탭 찾기"
             time="2분"
             done={business?.ai_info_tab_status === "on" || business?.ai_info_tab_status === "off" || business?.ai_info_tab_status === "disabled"}
           >
@@ -292,7 +293,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
         {isInactive || business?.is_franchise ? (
           <StepSkipped
             num={2}
-            title="⚙️ AI 브리핑 노출 토글 활성화 (ON)"
+            title="AI 브리핑 노출 토글 활성화 (ON)"
             reason={
               business?.is_franchise
                 ? "프랜차이즈 가맹점은 토글 설정 대상이 아닙니다."
@@ -316,7 +317,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
         ) : (
           <Step
             num={2}
-            title="⚙️ AI 브리핑 노출 토글 활성화 (ON)"
+            title="AI 브리핑 노출 토글 활성화 (ON)"
             time="1분"
             done={business?.ai_info_tab_status === "on"}
           >
@@ -352,7 +353,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
         {/* 단계 3: 소개글 작성 (150~500자) */}
         <Step
           num={3}
-          title="🖊️ 소개글 작성 — 200자 이상 + 키워드 + 핵심 강점"
+          title="소개글 작성 — 200자 이상 + 키워드 + 핵심 강점"
           time="5분"
           done={!!business?.has_intro}
         >
@@ -451,7 +452,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
         {/* 단계 4: 소식 등록 (최신성) */}
         <Step
           num={4}
-          title="📡 소식 등록 — 30일 내 1건 이상 (최신성)"
+          title="소식 등록 — 30일 내 1건 이상 (최신성)"
           time="3분"
           done={!!business?.has_recent_post}
         >
@@ -487,7 +488,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
         {/* 단계 5: 리뷰 확보 */}
         <Step
           num={5}
-          title="🌟 리뷰 확보 — 영수증 리뷰 10건 이상 권장"
+          title="리뷰 확보 — 영수증 리뷰 10건 이상 권장"
           time="지속"
           done={typeof business?.review_count === "number" && business.review_count >= 10}
         >
@@ -521,13 +522,13 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
 
         {/* ── 스마트플레이스 AI 부가 기능 안내 ────────────────────── */}
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 md:p-5">
-          <p className="text-sm md:text-base font-semibold text-emerald-900 mb-3">
-            🤖 스마트플레이스 AI 부가 기능 — 추가로 활용하세요
+          <p className="text-sm md:text-base font-semibold text-emerald-900 mb-3 inline-flex items-center gap-1">
+            <Bot className="w-4 h-4 inline-block shrink-0" aria-hidden={true} /> 스마트플레이스 AI 부가 기능 — 추가로 활용하세요
           </p>
           <div className="space-y-4">
             {business?.category === "restaurant" && (
               <div className="flex items-start gap-3">
-                <span className="shrink-0 text-lg mt-0.5">💬</span>
+                <MessageSquare className="w-4 h-4 inline-block shrink-0 mt-0.5" aria-hidden={true} />
                 <div>
                   <p className="text-sm md:text-base font-medium text-gray-900">
                     플레이스 플러스(beta) AI 리뷰 답글 초안
@@ -556,7 +557,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               </div>
             )}
             <div className="flex items-start gap-3">
-              <span className="shrink-0 text-lg mt-0.5">🔔</span>
+              <Bell className="w-4 h-4 inline-block shrink-0 mt-0.5" aria-hidden={true} />
               <div>
                 <p className="text-sm md:text-base font-medium text-gray-900">
                   리뷰 민감 이슈 알림

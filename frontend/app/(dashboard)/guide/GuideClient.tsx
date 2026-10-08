@@ -7,6 +7,9 @@ import {
   Lightbulb, RefreshCw, Copy, Check, ChevronDown, ChevronUp,
   Zap, Star, TrendingUp, MessageSquare, FileText, Hash, HelpCircle,
   Download, CalendarDays, Target, Clock, ExternalLink, Share2,
+  MapPin, Globe, Printer, Gift, Sparkles, Building2, Info, AlertTriangle,
+  Lock, ClipboardList, Home, Search, Leaf, Trophy, Camera, Dumbbell, PawPrint, LayoutGrid,
+  type LucideIcon,
 } from 'lucide-react'
 import { ActionTimelineCard } from '@/components/guide/ActionTimelineCard'
 import { AICitationHighlight } from '@/components/guide/AICitationHighlight'
@@ -120,7 +123,7 @@ const CATEGORY_KO: Record<string, string> = {
 }
 
 const DIFFICULTY_LABEL: Record<string, string> = {
-  easy: '🟢 바로 가능', medium: '🟡 조금 준비', hard: '🔴 전문가 도움',
+  easy: '바로 가능', medium: '조금 준비', hard: '전문가 도움',
 }
 const DIMENSION_LABEL: Record<string, string> = {
   // 매핑된 값
@@ -171,11 +174,11 @@ const URGENCY_COLOR: Record<string, string> = {
 const STAGE_INDEX: Record<string, number> = {
   survival: 0, stability: 1, growth: 2, dominance: 3,
 }
-const STAGE_LABELS = [
-  { key: 'survival',  label: '생존기 (처음 시작)',     emoji: '🌿' },
-  { key: 'stability', label: '안정기 (기본 탄탄)',     emoji: '💫' },
-  { key: 'growth',    label: '성장기 (경쟁력 높음)',   emoji: '📈' },
-  { key: 'dominance', label: '지배기 (업계 최상위)',   emoji: '💎' },
+const STAGE_LABELS: { key: string; label: string; icon: LucideIcon }[] = [
+  { key: 'survival',  label: '생존기 (처음 시작)',     icon: Leaf },
+  { key: 'stability', label: '안정기 (기본 탄탄)',     icon: Sparkles },
+  { key: 'growth',    label: '성장기 (경쟁력 높음)',   icon: TrendingUp },
+  { key: 'dominance', label: '지배기 (업계 최상위)',   icon: Trophy },
 ]
 
 const PLAN_HIERARCHY: Record<string, number> = {
@@ -338,14 +341,14 @@ function NaverSearchBaseSection({
   const isActive = eligibility === "active"
   const isLikely = eligibility === "likely"
 
-  const checks: { icon: string; label: string; effect: string; priority: "high" | "mid" }[] = [
-    { icon: "✏️", label: "소개글 500자+ + Q&A 형식 3개 이상", effect: isActive ? "AI 브리핑 · AI탭" : "AI탭", priority: "high" },
-    { icon: "📸", label: "카테고리별 사진 10장 이상", effect: "플레이스탭 · AI탭", priority: "high" },
-    { icon: "💬", label: "리뷰 10개+ (영수증 리뷰 포함)", effect: isActive ? "플레이스탭 · AI 브리핑" : "플레이스탭", priority: "high" },
-    { icon: "📅", label: "14일 이내 소식 1개 이상 게시", effect: "플레이스탭 · AI탭", priority: "mid" },
-    { icon: "📆", label: "네이버 예약 연동", effect: "플레이스탭 · AI탭", priority: "mid" },
+  const checks: { icon: LucideIcon; label: string; effect: string; priority: "high" | "mid" }[] = [
+    { icon: FileText, label: "소개글 500자+ + Q&A 형식 3개 이상", effect: isActive ? "AI 브리핑 · AI탭" : "AI탭", priority: "high" },
+    { icon: Camera, label: "카테고리별 사진 10장 이상", effect: "플레이스탭 · AI탭", priority: "high" },
+    { icon: MessageSquare, label: "리뷰 10개+ (영수증 리뷰 포함)", effect: isActive ? "플레이스탭 · AI 브리핑" : "플레이스탭", priority: "high" },
+    { icon: CalendarDays, label: "14일 이내 소식 1개 이상 게시", effect: "플레이스탭 · AI탭", priority: "mid" },
+    { icon: CalendarDays, label: "네이버 예약 연동", effect: "플레이스탭 · AI탭", priority: "mid" },
     {
-      icon: "📝",
+      icon: FileText,
       label: "네이버 블로그 후기 5개 이상 확보",
       // 정보형 AI 브리핑은 업종 제한 없이 블로그·콘텐츠가 출처로 채택되면 노출됨(2026-06-29 실측 확인)
       // — ACTIVE만 "AI 브리핑"을 언급하고 LIKELY·INACTIVE는 누락하면 정보형 가능성을 숨기게 됨
@@ -357,8 +360,8 @@ function NaverSearchBaseSection({
   return (
     <section className="rounded-xl border border-green-200 bg-green-50 p-4 md:p-5">
       <div className="flex items-start gap-2.5 mb-4">
-        <div className="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center shrink-0 text-lg">
-          🔍
+        <div className="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
+          <Search className="w-5 h-5 text-green-700" aria-hidden="true" />
         </div>
         <div className="min-w-0">
           <h3 className="font-semibold text-gray-900">네이버 검색 기반 강화 체크리스트</h3>
@@ -383,7 +386,7 @@ function NaverSearchBaseSection({
               {c.priority === "high" && (
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
               )}
-              {c.icon} {c.label}
+              <c.icon className="w-4 h-4 shrink-0 text-gray-500" aria-hidden="true" /> {c.label}
             </span>
             <span className="text-sm text-green-700 bg-green-100 px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">
               {c.effect}
@@ -455,8 +458,8 @@ function NaverSearchOptimizationSection({
   return (
     <section className="bg-white rounded-xl border border-gray-200 p-4 md:p-6 shadow-sm space-y-5">
       <div className="flex items-start gap-2.5">
-        <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center shrink-0 text-lg">
-          🗺️
+        <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center shrink-0">
+          <MapPin className="w-5 h-5 text-teal-600" aria-hidden="true" />
         </div>
         <div className="min-w-0">
           <h3 className="font-bold text-gray-900 text-base">네이버 일반 검색 개선</h3>
@@ -1410,7 +1413,7 @@ function BlogTopicsSection({ bizId, token, plan }: { bizId: string; token: strin
       <div className="flex items-center gap-2 mb-2 flex-wrap">
         <FileText className="w-4 h-4 text-purple-500" />
         <div className="text-sm font-semibold text-gray-900">내 가게를 위한 블로그 주제 아이디어</div>
-        {!isBasicPlus && <span className="text-sm bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">🔒 Basic+</span>}
+        {!isBasicPlus && <span className="text-sm bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full inline-flex items-center gap-1"><Lock className="w-3 h-3" aria-hidden="true" /> Basic+</span>}
       </div>
       <p className="text-sm text-gray-600 mb-3 leading-relaxed">
         내 업종·지역·부족한 키워드 기반으로 AI가 블로그 제목 5개를 만들어 드립니다.
@@ -1464,8 +1467,8 @@ function BlogTopicsSection({ bizId, token, plan }: { bizId: string; token: strin
               </div>
             )
           })}
-          <p className="text-sm text-gray-600 mt-3">
-            💡 이 주제 중 1개를 골라 네이버 블로그에 작성해 보세요. AI 검색에 노출될 확률이 높습니다.
+          <p className="text-sm text-gray-600 mt-3 inline-flex items-start gap-1">
+            <Lightbulb className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" /> 이 주제 중 1개를 골라 네이버 블로그에 작성해 보세요. AI 검색에 노출될 확률이 높습니다.
           </p>
         </div>
       )}
@@ -1610,8 +1613,8 @@ function ListContentSection({ bizId, token, region, category, bizName }: {
           >
             {copied ? '✓ 전체 초안 복사됨' : '전체 초안 복사하기'}
           </button>
-          <p className="text-sm text-gray-600 mt-3 leading-relaxed">
-            💡 복사한 초안의 <strong>[대괄호]</strong> 부분을 채워 넣고 네이버 블로그에 업로드하세요.
+          <p className="text-sm text-gray-600 mt-3 leading-relaxed inline-flex items-start gap-1">
+            <Lightbulb className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" /> 복사한 초안의 <strong>[대괄호]</strong> 부분을 채워 넣고 네이버 블로그에 업로드하세요.
             실제 특징·후기를 직접 쓰면 AI가 더 잘 소개합니다.
           </p>
         </div>
@@ -1653,10 +1656,10 @@ function GrowthStageCard({ stage }: { stage: GrowthStage }) {
                       ? 'border-current opacity-70'
                       : 'border-current/30 opacity-40'
                 }`}>
-                  {isActive ? s.emoji : isPast ? <Check className="w-3.5 h-3.5" /> : (i + 1)}
+                  {isActive ? <s.icon className="w-4 h-4" aria-hidden="true" /> : isPast ? <Check className="w-3.5 h-3.5" /> : (i + 1)}
                 </div>
                 <span className={`text-sm sm:text-base mt-1.5 text-center leading-tight break-keep px-0.5 ${isActive ? 'font-bold' : 'opacity-50'}`}>
-                  {isActive ? `${s.emoji} ${simplify(s.label.split(' ')[0])}` : simplify(s.label.split(' ')[0])}
+                  {isActive ? <span className="inline-flex items-center justify-center gap-0.5"><s.icon className="w-3 h-3 shrink-0" aria-hidden="true" />{simplify(s.label.split(' ')[0])}</span> : simplify(s.label.split(' ')[0])}
                 </span>
               </div>
             )
@@ -2380,7 +2383,7 @@ function CommunityDraftsSection({ paths }: { paths: BriefingPath[] }) {
     <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
       {/* 헤더 */}
       <div className="flex items-center gap-3 mb-4">
-        <span className="text-2xl">💬</span>
+        <MessageSquare className="w-6 h-6 text-gray-700 shrink-0" aria-hidden="true" />
         <div className="flex-1 min-w-0">
           <h3 className="text-base font-bold text-gray-900">커뮤니티 언급 초안</h3>
           <p className="text-sm text-gray-600">맘카페·지식인·지역카페 언급이 ChatGPT 신뢰도를 높입니다</p>
@@ -2390,7 +2393,7 @@ function CommunityDraftsSection({ paths }: { paths: BriefingPath[] }) {
 
       {/* 투명성 안내 */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-start gap-2">
-        <span className="text-amber-700 text-lg shrink-0 mt-0.5">⚠️</span>
+        <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
         <div>
           <p className="text-sm font-semibold text-amber-800 mb-0.5">사업주 신분을 반드시 밝혀주세요</p>
           <p className="text-sm text-amber-700 leading-relaxed">
@@ -2469,7 +2472,7 @@ function MapLinkBox({
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-lg">📍</span>
+        <MapPin className="w-5 h-5 text-blue-600 shrink-0" aria-hidden="true" />
         <p className="text-sm font-bold text-blue-800">내 네이버 지도 링크</p>
       </div>
       <p className="text-sm text-gray-600 mb-3 break-keep leading-relaxed">
@@ -2493,8 +2496,8 @@ function MapLinkBox({
           {copied ? '✓ 복사됨' : '복사'}
         </button>
       </div>
-      <p className="text-sm text-gray-600 mt-2">
-        💡 카카오 홈·SNS 소개란에 꼭 넣어두세요
+      <p className="text-sm text-gray-600 mt-2 inline-flex items-center gap-1">
+        <Lightbulb className="w-4 h-4 shrink-0" aria-hidden="true" /> 카카오 홈·SNS 소개란에 꼭 넣어두세요
       </p>
     </div>
   )
@@ -2517,7 +2520,7 @@ function BrandNameCheckBox({ bizName, bizRegion }: { bizName?: string; bizRegion
 
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
-      <p className="text-sm font-bold text-amber-800 mb-1">⚠️ 상호명 통일 확인 필수</p>
+      <p className="text-sm font-bold text-amber-800 mb-1 inline-flex items-center gap-1"><AlertTriangle className="w-4 h-4 shrink-0" aria-hidden="true" /> 상호명 통일 확인 필수</p>
       <p className="text-sm text-gray-600 mb-2 break-keep leading-relaxed">
         아래 서비스에서{' '}
         <strong className="text-gray-800">{name || '내 가게 이름'}</strong>{' '}
@@ -2589,7 +2592,7 @@ function ExternalPlatformChecklist({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-base">🌐</span>
+            <Globe className="w-5 h-5 text-gray-600 shrink-0" aria-hidden="true" />
             <span className="text-base font-bold text-gray-900">외부 서비스 등록 현황</span>
           </div>
           <p className="text-sm text-gray-600">더 많은 곳에 등록할수록 ChatGPT·Google AI 노출 확률이 올라갑니다.</p>
@@ -2825,7 +2828,7 @@ img { max-width:148mm; max-height:210mm; object-fit:contain; }
                 }}
                 className="flex-1 flex items-center justify-center gap-1.5 text-sm border border-gray-300 text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors font-medium"
               >
-                <span>🖨️</span> 바로 인쇄
+                <Printer className="w-4 h-4 shrink-0" aria-hidden="true" /> 바로 인쇄
               </button>
             </div>
           )}
@@ -3196,8 +3199,8 @@ A. ${a}`).catch(() => {})
                   </div>
                 </div>
               ))}
-              <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800">
-                ⚠️ <strong>[ ] 괄호 안 내용은 실제 정보로 바꿔주세요</strong> — 그대로 복사하면 괄호가 노출됩니다
+              <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-800 flex items-start gap-1">
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" /> <span><strong>[ ] 괄호 안 내용은 실제 정보로 바꿔주세요</strong> — 그대로 복사하면 괄호가 노출됩니다</span>
               </div>
               <p className="text-sm text-gray-600 text-center mt-2">
                 네이버 스마트플레이스 → 업체정보 → 소개글 Q&A 섹션에 붙여넣기 하세요
@@ -3305,7 +3308,7 @@ function GuideItemCard({
             <span className="text-sm bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium shrink-0">완료됨</span>
           )}
           {!alreadyDone && item.is_quick_win && (
-            <span className="text-sm bg-yellow-100 text-yellow-800 border border-yellow-300 px-2 py-0.5 rounded-full font-bold shrink-0">⚡ 빠른 효과</span>
+            <span className="text-sm bg-yellow-100 text-yellow-800 border border-yellow-300 px-2 py-0.5 rounded-full font-bold shrink-0 inline-flex items-center gap-1"><Zap className="w-3 h-3" aria-hidden="true" /> 빠른 효과</span>
           )}
           <button
             onClick={onToggle}
@@ -3468,7 +3471,7 @@ function TodayKeywordHero({
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-5">
       <div className="flex items-start gap-3">
-        <span className="text-2xl shrink-0">🎯</span>
+        <Target className="w-6 h-6 text-amber-700 shrink-0" aria-hidden="true" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-amber-700 mb-1">지금 바로 할 것 1가지</p>
           <p className="text-base font-bold text-gray-900 mb-1">부족한 키워드를 선택해 소개글 안 Q&A에 추가하세요</p>
@@ -3544,13 +3547,12 @@ function TodayKeywordHero({
 
 
 // ── 탭 전환 뷰 (3탭: 오늘 활용 / 이번 주 / 전체 가이드) ──────────────────────
-const TAB_ITEMS = [
-  { key: 'now',     icon: '🎯', label: '오늘 활용',     shortLabel: '오늘' },
-  { key: 'week',    icon: '📋', label: '이번 주',        shortLabel: '이번 주' },
-  { key: 'library', icon: '🗂️', label: '전체 가이드',   shortLabel: '전체' },
-] as const
-
-type TabKey = (typeof TAB_ITEMS)[number]['key']
+type TabKey = 'now' | 'week' | 'library'
+const TAB_ITEMS: { key: TabKey; icon: LucideIcon; label: string; shortLabel: string }[] = [
+  { key: 'now',     icon: Target,       label: '오늘 활용',   shortLabel: '오늘' },
+  { key: 'week',    icon: ClipboardList, label: '이번 주',    shortLabel: '이번 주' },
+  { key: 'library', icon: LayoutGrid,   label: '전체 가이드', shortLabel: '전체' },
+]
 
 function GuideTabView({
   guide,
@@ -3674,8 +3676,8 @@ function GuideTabView({
     <>
       {/* 안내 배너 (통합) */}
       <div className="mb-4 p-3 md:p-4 bg-blue-50 border border-blue-200 rounded-xl">
-        <p className="text-sm font-semibold text-blue-800 mb-1">
-          💡 가이드는 AI 측정 결과 기반으로 자동 생성됩니다
+        <p className="text-sm font-semibold text-blue-800 mb-1 inline-flex items-center gap-1">
+          <Lightbulb className="w-4 h-4 shrink-0" aria-hidden="true" /> 가이드는 AI 측정 결과 기반으로 자동 생성됩니다
         </p>
         <p className="text-sm text-blue-700 leading-relaxed">
           복사 버튼을 눌러 스마트플레이스 → <strong>업체정보 → 소개글</strong>에 바로 붙여넣기 하세요.
@@ -3698,7 +3700,7 @@ function GuideTabView({
                 : 'text-gray-600 hover:text-gray-700'
             }`}
           >
-            <span>{tab.icon}</span>
+            <tab.icon className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span className="hidden sm:inline">{tab.label}</span>
             <span className="sm:hidden">{tab.shortLabel}</span>
           </button>
@@ -3719,7 +3721,7 @@ function GuideTabView({
           ) : todayHeroAction && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-6">
               <div className="flex items-start gap-3">
-                <span className="text-2xl shrink-0">🎯</span>
+                <Target className="w-6 h-6 text-amber-700 shrink-0" aria-hidden="true" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-amber-700 mb-1">지금 바로 할 것 1가지</p>
                   <p className="text-base md:text-lg font-bold text-gray-900">{todayHeroAction.label}</p>
@@ -3756,7 +3758,7 @@ function GuideTabView({
                 </div>
               )}
               <div className="flex items-center justify-between">
-                <span className="text-sm opacity-75">⏱ {thisWeekMission.time_required}</span>
+                <span className="text-sm opacity-75 inline-flex items-center gap-1"><Clock className="w-4 h-4 shrink-0" aria-hidden="true" /> {thisWeekMission.time_required}</span>
                 {thisWeekMission.deep_link && (
                   <a href={thisWeekMission.deep_link} target="_blank" rel="noopener noreferrer"
                      className="bg-white text-blue-700 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors">
@@ -3789,7 +3791,7 @@ function GuideTabView({
               className="w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
               aria-expanded={showBriefingPaths}
             >
-              <span className="font-semibold text-gray-800 text-sm md:text-base">📋 AI가 내 가게 얘기하게 만드는 방법 (4가지)</span>
+              <span className="font-semibold text-gray-800 text-sm md:text-base inline-flex items-center gap-1"><ClipboardList className="w-4 h-4 shrink-0" aria-hidden="true" /> AI가 내 가게 얘기하게 만드는 방법 (4가지)</span>
               <ChevronDown className={`w-5 h-5 text-gray-600 transition-transform ${showBriefingPaths ? 'rotate-180' : ''}`} />
             </button>
             {showBriefingPaths && (
@@ -3911,14 +3913,14 @@ function GuideTabView({
             const isFashion = ['shopping', 'fashion'].includes(cat)
             const isService = ['interior', 'auto', 'cleaning'].includes(cat)
 
-            type Channel = { key: string; icon: string; title: string; approach: string; hint: string; text: string }
+            type Channel = { key: string; icon: LucideIcon; title: string; approach: string; hint: string; text: string }
             let channels: Channel[]
 
             if (isMedical) {
               channels = [
                 {
                   key: 'knowledge',
-                  icon: '💬',
+                  icon: MessageSquare,
                   title: '네이버 지식인 — 건강 전문 답변',
                   approach: '의료·건강 관련 질문에 전문가 답변 — AI가 지식인 의료 답변을 높은 신뢰도로 학습',
                   hint: topKeyword ? `"${topKeyword} 증상·치료" 관련 질문 검색 후 전문 답변` : `"${bizRegion} ${bizCategory} 진료" 질문에 답변`,
@@ -3928,7 +3930,7 @@ function GuideTabView({
                 },
                 {
                   key: 'cafe',
-                  icon: '🏠',
+                  icon: Home,
                   title: '네이버 카페 — 지역 건강 커뮤니티',
                   approach: '지역 건강 정보 카페에서 건강 정보 공유 형식으로 자연스럽게 소개',
                   hint: `"${bizRegion} 건강 정보" 또는 "${bizCategory} 추천" 관련 카페 검색 후 참여`,
@@ -3936,7 +3938,7 @@ function GuideTabView({
                 },
                 {
                   key: 'blog',
-                  icon: '📝',
+                  icon: FileText,
                   title: '네이버 블로그 — 건강 정보 콘텐츠',
                   approach: `${topKeyword || bizCategory} 관련 정보성 블로그 포스팅 — 전문성이 AI 신뢰도를 높임`,
                   hint: topKeyword ? `"${topKeyword}이란?" "증상·예방법" 같은 정보성 주제로 작성` : `"${bizCategory} 선택 기준" 같은 정보성 주제`,
@@ -3947,7 +3949,7 @@ function GuideTabView({
               channels = [
                 {
                   key: 'community',
-                  icon: '💄',
+                  icon: Sparkles,
                   title: '네이버 카페 — 뷰티·헤어 커뮤니티',
                   approach: '뷰티·헤어 관심사 카페에서 시술 정보 공유 형식으로 참여',
                   hint: topKeyword ? `"${bizRegion} ${topKeyword}" 관련 카페 검색 후 시술 정보 공유` : `"${bizRegion} 미용·뷰티" 카페에서 활동`,
@@ -3955,7 +3957,7 @@ function GuideTabView({
                 },
                 {
                   key: 'knowledge',
-                  icon: '💬',
+                  icon: MessageSquare,
                   title: '네이버 지식인 — 뷰티 전문 답변',
                   approach: '"○○ 시술 어디서 받아야 하나요?" 질문에 전문가 답변으로 신뢰 구축',
                   hint: topKeyword ? `"${bizRegion} ${topKeyword} 추천" 질문 검색 후 전문 답변` : `"${bizRegion} ${bizCategory} 추천" 질문에 답변`,
@@ -3968,7 +3970,7 @@ function GuideTabView({
               channels = [
                 {
                   key: 'community',
-                  icon: '💪',
+                  icon: Dumbbell,
                   title: '네이버 카페 — 운동·다이어트 커뮤니티',
                   approach: '운동 관심사 카페에서 운동 팁 공유 형식으로 자연스럽게 참여',
                   hint: topKeyword ? `"${topKeyword} 운동법" 정보 공유 후 ${bizName} 소개` : `"${bizRegion} 운동" 관련 카페 참여`,
@@ -3976,7 +3978,7 @@ function GuideTabView({
                 },
                 {
                   key: 'knowledge',
-                  icon: '💬',
+                  icon: MessageSquare,
                   title: '네이버 지식인 — 운동 전문 답변',
                   approach: '"○○ 운동 어디서 배우나요?" 질문에 답변 — AI 검색 데이터 학습',
                   hint: topKeyword ? `"${bizRegion} ${topKeyword} 강습" 질문에 답변` : `"${bizRegion} ${bizCategory} 추천" 질문에 답변`,
@@ -3989,7 +3991,7 @@ function GuideTabView({
               channels = [
                 {
                   key: 'cafe',
-                  icon: '🏠',
+                  icon: Home,
                   title: '네이버 카페 — 학부모·교육 커뮤니티',
                   approach: '"우리 지역 학원 어디가 좋나요?" 형식의 글에 답변으로 참여',
                   hint: topKeyword ? `"${bizRegion} ${topKeyword} 학원" 관련 카페 검색 후 참여` : `"${bizRegion} 교육" 학부모 카페 참여`,
@@ -3997,7 +3999,7 @@ function GuideTabView({
                 },
                 {
                   key: 'knowledge',
-                  icon: '💬',
+                  icon: MessageSquare,
                   title: '네이버 지식인 — 학습법 전문 답변',
                   approach: '학습 관련 질문에 전문 답변 — 교육 전문성 자연스럽게 어필',
                   hint: topKeyword ? `"${topKeyword} 효과적인 학습법" 질문에 답변` : `"${bizRegion} ${bizCategory} 추천" 질문에 답변`,
@@ -4007,7 +4009,7 @@ function GuideTabView({
                 },
                 {
                   key: 'blog',
-                  icon: '📝',
+                  icon: FileText,
                   title: '네이버 블로그 — 교육 정보 콘텐츠',
                   approach: '학습법·교육 트렌드 정보성 포스팅 — 학부모 검색 유입·AI 소개',
                   hint: topKeyword ? `"${topKeyword} 효과적으로 배우는 법" 같은 정보성 주제` : `"${bizRegion} ${bizCategory} 선택 기준" 같은 학부모 관심 주제`,
@@ -4018,7 +4020,7 @@ function GuideTabView({
               channels = [
                 {
                   key: 'cafe',
-                  icon: '🐾',
+                  icon: PawPrint,
                   title: '네이버 카페 — 반려동물 커뮤니티',
                   approach: '지역 반려동물 카페에서 정보 공유 — 반려인 커뮤니티는 신뢰 기반이 강함',
                   hint: topKeyword ? `"${bizRegion} ${topKeyword}" 관련 반려동물 카페 검색 후 참여` : `"${bizRegion} 반려동물" 카페 참여`,
@@ -4026,7 +4028,7 @@ function GuideTabView({
                 },
                 {
                   key: 'knowledge',
-                  icon: '💬',
+                  icon: MessageSquare,
                   title: '네이버 지식인 — 반려동물 전문 답변',
                   approach: '반려동물 건강·관리 질문에 전문 답변으로 신뢰 구축',
                   hint: topKeyword ? `"${topKeyword}" 관련 반려동물 질문에 전문 답변` : `"${bizRegion} 반려동물 ${bizCategory}" 질문에 답변`,
@@ -4040,7 +4042,7 @@ function GuideTabView({
               channels = [
                 {
                   key: 'cafe',
-                  icon: '🏠',
+                  icon: Home,
                   title: isFoodDrink ? '네이버 카페 — 맘카페·지역 맛집 카페' : '네이버 지역 카페',
                   approach: isFoodDrink
                     ? '"이 동네 맛집 추천해주세요" 형식 글에 사업주로 답글'
@@ -4052,7 +4054,7 @@ function GuideTabView({
                 },
                 {
                   key: 'knowledge',
-                  icon: '💬',
+                  icon: MessageSquare,
                   title: '네이버 지식인',
                   approach: '이미 올라온 질문에 답변 — AI가 지식인 데이터를 학습합니다',
                   hint: topKeyword
@@ -4084,21 +4086,21 @@ function GuideTabView({
                   AI는 여러 곳에서 언급되는 가게를 신뢰합니다. 각 곳마다 접근법이 다릅니다 — 본인 상황에 맞는 곳 1~2개만 골라 시도해 보세요.
                 </p>
                 <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-3">
-                  <p className="text-sm text-amber-700 leading-relaxed">
-                    ⚠️ 반드시 <strong>사업주 신분을 밝히세요</strong>. 고객인 척 후기를 올리면 네이버 정책 위반·공정위 기만광고에 해당할 수 있습니다.
+                  <p className="text-sm text-amber-700 leading-relaxed inline-flex items-start gap-1">
+                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" /> 반드시 <strong>사업주 신분을 밝히세요</strong>. 고객인 척 후기를 올리면 네이버 정책 위반·공정위 기만광고에 해당할 수 있습니다.
                   </p>
                 </div>
                 <div className="space-y-3">
                   {channels.map((ch) => (
                     <div key={ch.key} className="border border-gray-100 rounded-xl p-3 bg-gray-50">
                       <div className="flex items-start gap-2 mb-2">
-                        <span className="text-lg shrink-0">{ch.icon}</span>
+                        <ch.icon className="w-5 h-5 shrink-0 text-gray-500" aria-hidden="true" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-gray-900">{ch.title}</p>
                           <p className="text-base text-gray-600 leading-relaxed mt-0.5">{ch.approach}</p>
                         </div>
                       </div>
-                      <p className="text-sm text-indigo-600 mb-2 pl-7">💡 {ch.hint}</p>
+                      <p className="text-sm text-indigo-600 mb-2 pl-7 inline-flex items-start gap-1"><Lightbulb className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" /> {ch.hint}</p>
                       <div className="bg-white rounded-lg p-3 pl-7">
                         <div className="flex items-start justify-between gap-2 mb-1">
                           <span className="text-sm font-medium text-gray-700">바로 붙여넣기 가능한 초안</span>
@@ -4782,7 +4784,7 @@ export function GuideClient({
 
         {isFree && guide && (
           <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <span className="text-lg shrink-0">🎁</span>
+            <Gift className="w-5 h-5 text-blue-600 shrink-0" aria-hidden="true" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-blue-900">체험으로 생성된 가이드입니다</p>
               <p className="text-sm text-blue-700 mt-0.5">새 가이드를 계속 받으려면 Basic 플랜(월 17,900원)에 가입하세요.</p>
@@ -4864,7 +4866,7 @@ export function GuideClient({
             <h3 className="text-lg md:text-xl font-bold mb-2 leading-snug">{heroTask}</h3>
             {guide?.generated_at && (
               <p className="text-sm text-blue-200 mb-3">
-                ✨ {new Date(guide.generated_at).toLocaleDateString('ko-KR')} 측정·경쟁사 데이터를 분석해 AI가 선정한 최우선 항목입니다
+                <span className="inline-flex items-center gap-1"><Sparkles className="w-4 h-4 shrink-0" aria-hidden="true" /> {new Date(guide.generated_at).toLocaleDateString('ko-KR')} 측정·경쟁사 데이터를 분석해 AI가 선정한 최우선 항목입니다</span>
               </p>
             )}
             {heroReadyText && (
@@ -4915,8 +4917,8 @@ export function GuideClient({
           <div className={`rounded-xl border px-4 md:px-5 py-4 flex items-start gap-3 ${
             isBriefingLikely ? "bg-blue-50 border-blue-200" : "bg-amber-50 border-amber-200"
           }`}>
-            <span className="text-xl shrink-0 mt-0.5">
-              {business.is_franchise ? "🏢" : isBriefingLikely ? "🔮" : "ℹ️"}
+            <span className="shrink-0 mt-0.5">
+              {business.is_franchise ? <Building2 className="w-5 h-5" aria-hidden="true" /> : isBriefingLikely ? <Sparkles className="w-5 h-5" aria-hidden="true" /> : <Info className="w-5 h-5" aria-hidden="true" />}
             </span>
             <div className="flex-1 min-w-0">
               {business.is_franchise ? (
@@ -4956,7 +4958,7 @@ export function GuideClient({
         )}
         {!isBriefingInactive && (
           <div className="bg-green-50 border border-green-200 rounded-xl px-4 md:px-5 py-3 flex items-start gap-3">
-            <span className="text-green-700 text-xl shrink-0 mt-0.5">🎯</span>
+            <Target className="w-5 h-5 text-green-700 shrink-0 mt-0.5" aria-hidden="true" />
             <p className="text-base font-semibold text-green-800">이 업종은 네이버 AI 브리핑 노출 대상입니다. 아래 가이드로 노출 확률을 높이세요.</p>
           </div>
         )}
@@ -4964,7 +4966,7 @@ export function GuideClient({
         {/* AI 브리핑 노출 상태 (스캔 결과 기반, ACTIVE 업종만) */}
         {!isBriefingInactive && guide && !loading && latestScanMentioned === false && (
           <div className="bg-orange-50 border border-orange-300 rounded-xl px-4 md:px-5 py-4 flex items-start gap-3">
-            <span className="text-orange-700 text-xl shrink-0 mt-0.5">⚠️</span>
+            <AlertTriangle className="w-5 h-5 text-orange-700 shrink-0 mt-0.5" aria-hidden="true" />
             <div>
               <p className="text-base font-bold text-orange-800 mb-1">현재 네이버 AI 브리핑에 노출되지 않고 있습니다</p>
               <p className="text-base text-orange-700 leading-relaxed">
@@ -4976,7 +4978,7 @@ export function GuideClient({
         )}
         {!isBriefingInactive && guide && !loading && latestScanMentioned === true && (
           <div className="bg-green-50 border border-green-200 rounded-xl px-4 md:px-5 py-3 flex items-start gap-3">
-            <span className="text-green-700 text-xl shrink-0 mt-0.5">🌟</span>
+            <Star className="w-5 h-5 text-green-700 shrink-0 mt-0.5" aria-hidden="true" />
             <p className="text-base font-semibold text-green-800">현재 네이버 AI 브리핑에 노출 중입니다! 아래 가이드로 빈도를 더 높이세요.</p>
           </div>
         )}
@@ -5059,7 +5061,7 @@ export function GuideClient({
         {checked.size > 0 && lastCheckedDate && (
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-4">
             <div className="flex items-start gap-3">
-              <span className="text-emerald-700 text-lg shrink-0">💫</span>
+              <Sparkles className="w-5 h-5 text-emerald-700 shrink-0" aria-hidden="true" />
               <div className="flex-1 min-w-0">
                 <p className="text-base font-bold text-emerald-800 mb-1">
                   실행 완료! {checked.size}개 항목을 완료했습니다

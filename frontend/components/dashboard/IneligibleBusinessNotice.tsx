@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Pin, CheckCircle2, Target } from "lucide-react";
+import { Pin, CheckCircle2, Target, Sparkles, ArrowRight } from "lucide-react";
 
 interface Props {
   category: string;
@@ -46,7 +46,7 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
           href="/guide"
           className="inline-block text-sm font-semibold text-white bg-green-700 hover:bg-green-800 px-4 py-2 rounded-lg transition-colors"
         >
-          개선 가이드 보기 →
+          개선 가이드 보기 <ArrowRight className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
         </Link>
       </div>
     );
@@ -61,14 +61,14 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
       <div className="space-y-1.5 text-sm text-gray-700">
         <p className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 shrink-0 text-indigo-600" aria-hidden="true" />네이버 AI탭 — 모든 업종 대상 대화형 검색 지원</p>
         <p className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 shrink-0 text-indigo-600" aria-hidden="true" />네이버 블로그·일반 검색 — 지금도 개선 가능</p>
-        <p>🔮 AI 브리핑(플레이스형) — 업종 확대 시 자동 활성화 · 블로그·콘텐츠로 &apos;정보형 AI 브리핑&apos; 노출은 지금도 가능</p>
+        <p className="inline-flex items-center gap-1.5"><Sparkles className="w-4 h-4 shrink-0 text-indigo-600" aria-hidden="true" /> AI 브리핑(플레이스형) — 업종 확대 시 자동 활성화 · 블로그·콘텐츠로 &apos;정보형 AI 브리핑&apos; 노출은 지금도 가능</p>
         <p className="inline-flex items-center gap-1.5"><Target className="w-4 h-4 shrink-0 text-indigo-600" aria-hidden="true" />ChatGPT·Gemini·Google AI — 글로벌 AI 서비스 데이터 축적 중</p>
       </div>
       <Link
         href={`/guide/ai-tab`}
         className="mt-3 inline-block text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-lg transition-colors"
       >
-        AI탭 가이드 열기 →
+        AI탭 가이드 열기 <ArrowRight className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
       </Link>
     </div>
   );

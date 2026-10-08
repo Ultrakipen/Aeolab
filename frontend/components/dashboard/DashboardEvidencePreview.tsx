@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Search, ArrowRight } from "lucide-react";
 
 interface Props {
   /** ChatGPT가 내 가게를 실제로 언급한 인용문 (실측, 없으면 미표시) */
@@ -30,7 +31,7 @@ export default function DashboardEvidencePreview({
   return (
     <div className="rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-slate-50 px-4 py-3.5">
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-base" aria-hidden="true">🔎</span>
+        <Search className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
         <p className="text-sm md:text-base font-bold text-gray-900 break-keep">
           AI가 실제로 내 가게를 이렇게 설명했어요
         </p>
@@ -51,7 +52,7 @@ export default function DashboardEvidencePreview({
           href="#section-global"
           className="text-sm font-semibold text-blue-600 hover:text-blue-800 whitespace-nowrap shrink-0"
         >
-          글로벌 AI 상세 →
+          글로벌 AI 상세 <ArrowRight className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
         </Link>
       </div>
     </div>

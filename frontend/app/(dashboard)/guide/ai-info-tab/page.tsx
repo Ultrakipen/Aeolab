@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, BookOpen, Info } from 'lucide-react'
 import { AiInfoTabGuide } from './AiInfoTabGuide'
 import { getBriefingEligibility } from '@/lib/userGroup'
 import { getActiveBusinessId } from '@/lib/active-business'
@@ -80,8 +80,8 @@ export default async function AiInfoTabGuidePage({
 
       {/* 두 경로 분기 안내 — 가이드 진입 직후 명확화 */}
       <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 md:p-5">
-        <p className="text-sm md:text-base font-bold text-blue-900 mb-1.5">
-          📘 네이버 AI 브리핑 — 검색결과 상단 AI 자동 추천 박스 (2025.03 정식)
+        <p className="text-sm md:text-base font-bold text-blue-900 mb-1.5 inline-flex items-center gap-1">
+          <BookOpen className="w-4 h-4 inline-block shrink-0" aria-hidden={true} /> 네이버 AI 브리핑 — 검색결과 상단 AI 자동 추천 박스 (2025.03 정식)
         </p>
         <p className="text-sm md:text-base text-blue-800 leading-relaxed break-keep">
           AI탭(검색결과 &quot;AI&quot; 탭 메뉴)과는 다른 노출 경로입니다.
@@ -90,7 +90,7 @@ export default async function AiInfoTabGuidePage({
           다른 업종·프랜차이즈도 블로그·콘텐츠가 출처로 채택되면 &apos;정보형 AI 브리핑&apos;에 노출될 수 있습니다.
         </p>
         <p className="mt-2 text-sm md:text-base text-blue-700 bg-white border border-blue-100 rounded px-2.5 py-1.5">
-          ℹ️ AI탭은 업종 제한 발표가 없습니다 (2026-06-25 정식 출시).{' '}
+          <Info className="w-4 h-4 inline-block shrink-0 mr-1" aria-hidden={true} /> AI탭은 업종 제한 발표가 없습니다 (2026-06-25 정식 출시).{' '}
           <Link href="/guide/ai-tab" className="underline font-semibold">AI탭 5항목 가이드 →</Link>
         </p>
       </div>

@@ -20,7 +20,7 @@ import {
   Droplet, Wrench, Tag, Footprints, Pencil, Mic, Circle, Lock, Compass, Radio,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { Search, ChevronLeft, Loader2, MapPin } from 'lucide-react'
+import { Search, ChevronLeft, Loader2, MapPin, Monitor, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react'
 import BusinessSearchDropdown, { mapKakaoCategory } from '@/components/dashboard/BusinessSearchDropdown'
 import type { BusinessSearchResult } from '@/types'
 import { useBriefingCategories } from '@/lib/useBriefingCategories'
@@ -361,7 +361,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                 : 'border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
-            🏪 오프라인 매장
+            <Store className="w-4 h-4 inline-block shrink-0" aria-hidden="true" /> 오프라인 매장
           </button>
           <button
             type="button"
@@ -372,7 +372,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                 : 'border-gray-200 text-gray-600 hover:border-gray-300'
             }`}
           >
-            💻 온라인·전문직
+            <Monitor className="w-4 h-4 inline-block shrink-0" aria-hidden="true" /> 온라인·전문직
           </button>
         </div>
 
@@ -527,7 +527,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
           {currentCategoryGroup && selectedTags.length === 0
             ? '서비스를 1개 이상 선택하세요'
             : selectedTags.length > 0
-              ? `${selectedTags.length}개 선택 완료 → 다음`
+              ? <>{selectedTags.length}개 선택 완료 <ArrowRight className="w-4 h-4 inline-block shrink-0" aria-hidden="true" /></>
               : '다음 단계로'}
         </button>
       </div>
@@ -694,7 +694,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
         {/* 스마트플레이스 현황 */}
         <div className="border border-green-200 rounded-xl p-4 bg-green-50/50 space-y-3">
           <div>
-            <p className="text-sm font-semibold text-green-800">🏪 스마트플레이스 현황 <span className="font-normal text-green-700">(선택 · AI 노출 점수에 직접 반영)</span></p>
+            <p className="inline-flex items-center gap-1 text-sm font-semibold text-green-800"><Store className="w-4 h-4 inline-block shrink-0" aria-hidden="true" /> 스마트플레이스 현황 <span className="font-normal text-green-700">(선택 · AI 노출 점수에 직접 반영)</span></p>
             <p className="text-sm text-green-700 mt-0.5">지금 알고 있는 항목만 체크하세요. 나중에 설정에서 언제든 수정할 수 있습니다.</p>
           </div>
           <label className="flex items-start gap-3 cursor-pointer group">
@@ -760,7 +760,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
             className="w-full flex items-center justify-between text-sm text-gray-600 hover:text-blue-600 transition-colors py-1"
           >
             <span className="flex items-center gap-1"><MapPin className="w-4 h-4 text-gray-600 shrink-0" aria-hidden="true" />Google / 카카오 Place ID 입력 <span className="text-gray-300">(선택 · 고급)</span></span>
-            <span>{showAdvanced ? '▲ 접기' : '▼ 펼치기'}</span>
+            <span>{showAdvanced ? <ChevronUp className="w-4 h-4 inline-block shrink-0" aria-hidden="true" /> : <ChevronDown className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />}</span>
           </button>
           {showAdvanced && (
             <div className="grid grid-cols-1 gap-3 border border-gray-100 rounded-xl p-3 bg-gray-50">

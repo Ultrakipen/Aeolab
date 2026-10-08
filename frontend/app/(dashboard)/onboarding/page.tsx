@@ -107,7 +107,7 @@ function CategoryDropdown({
                           <Icon className="w-4 h-4 text-white" strokeWidth={1.8} />
                         </div>
                       ) : (
-                        <span className="text-lg w-8 text-center">📌</span>
+                        <MapPin className="w-5 h-5 text-gray-400" aria-hidden={true} />
                       )}
                       <span className={`flex-1 text-left font-medium text-base ${isSelected ? "text-blue-700" : "text-gray-700"}`}>
                         {item.label}
@@ -716,7 +716,7 @@ export default function OnboardingPage() {
                 />
                 {/* 블로그 자동 분석 안내 */}
                 <p className="text-sm text-blue-600 mt-1 flex items-start gap-1.5">
-                  <span className="shrink-0 mt-0.5">💡</span>
+                  <Lightbulb className="w-4 h-4 inline-block shrink-0 mt-0.5" aria-hidden={true} />
                   <span>블로그 주소를 입력하면 등록 후 자동으로 분석됩니다. 포스트별 네이버 AI 브리핑 언급 여부·4곳 언급 현황·경쟁사 비교까지 확인할 수 있습니다.</span>
                 </p>
               </div>

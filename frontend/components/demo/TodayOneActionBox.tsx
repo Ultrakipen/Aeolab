@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowRight, ClipboardList, Lightbulb } from "lucide-react";
 
 const FAQ_BY_CATEGORY: Record<string, { q: string; a: string; tip: string }> = {
   restaurant: {
@@ -64,7 +65,7 @@ export default function TodayOneActionBox({ category }: Props) {
   return (
     <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-2xl">👉</span>
+        <ArrowRight className="w-6 h-6 inline-block shrink-0" aria-hidden="true" />
         <p className="text-base md:text-lg font-bold text-amber-900">오늘 딱 이거 하나만 하세요</p>
       </div>
       <p className="text-sm md:text-base text-gray-700 mb-3 break-keep">
@@ -88,14 +89,14 @@ export default function TodayOneActionBox({ category }: Props) {
               : "bg-amber-700 text-white hover:bg-amber-700"
           }`}
         >
-          {copied ? "✓ 복사 완료" : "📋 문구 복사하기"}
+          {copied ? "✓ 복사 완료" : <><ClipboardList className="w-4 h-4 inline-block shrink-0" aria-hidden="true" /> 문구 복사하기</>}
         </button>
         <p className="text-sm text-gray-600 break-keep">
           예상 소요: 2분 · 7일 후 효과 자동 측정
         </p>
       </div>
       <p className="text-sm text-amber-800 mt-3 break-keep">
-        💡 {faq.tip}
+        <Lightbulb className="w-4 h-4 inline-block shrink-0" aria-hidden="true" /> {faq.tip}
       </p>
     </div>
   );

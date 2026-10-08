@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft, ExternalLink, CheckCircle2 } from 'lucide-react'
+import { ChevronLeft, ExternalLink, CheckCircle2, TrendingUp, Info } from 'lucide-react'
 import { getBriefingEligibility } from '@/lib/userGroup'
 import { getActiveBusinessId } from '@/lib/active-business'
 import { fetchBriefingCategories } from '@/lib/briefingCategoriesServer'
@@ -118,8 +118,8 @@ export default async function AiTabGuidePage({
 
       {/* 두 경로 분기 안내 — 가이드 진입 직후 명확화 */}
       <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 md:p-5">
-        <p className="text-sm md:text-base font-bold text-indigo-900 mb-1.5">
-          ✅ 네이버 AI탭 — 검색결과 상단 &quot;AI&quot; 탭 (2026-06-25 정식 출시)
+        <p className="text-sm md:text-base font-bold text-indigo-900 mb-1.5 inline-flex items-center gap-1">
+          <CheckCircle2 className="w-4 h-4 inline-block shrink-0" aria-hidden={true} /> 네이버 AI탭 — 검색결과 상단 &quot;AI&quot; 탭 (2026-06-25 정식 출시)
         </p>
         <p className="text-sm md:text-base text-indigo-800 leading-relaxed break-keep">
           AI 브리핑(검색결과 상단 자동 추천 박스)과는 다른 노출 경로입니다.
@@ -128,7 +128,7 @@ export default async function AiTabGuidePage({
         </p>
         {briefingElig === 'active' && (
           <p className="mt-2 text-sm text-indigo-700 bg-white border border-indigo-100 rounded px-2.5 py-1.5">
-            ℹ️ 내 업종은 <strong>AI 브리핑 대상 업종</strong>입니다. AI 브리핑 가이드도 함께 진행하세요.{' '}
+            <Info className="w-4 h-4 inline-block shrink-0 mr-1" aria-hidden={true} /> 내 업종은 <strong>AI 브리핑 대상 업종</strong>입니다. AI 브리핑 가이드도 함께 진행하세요.{' '}
             <Link href="/guide/ai-info-tab" className="underline font-semibold">AI 브리핑 5단계 →</Link>
           </p>
         )}
@@ -148,8 +148,8 @@ export default async function AiTabGuidePage({
 
       {/* 네이버 SEO 일석이조 강조 배너 */}
       <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-4 md:p-5">
-        <p className="text-sm md:text-base font-bold text-emerald-900 mb-2">
-          📈 이 5가지는 네이버 검색 상위노출에도 직접 도움이 됩니다
+        <p className="text-sm md:text-base font-bold text-emerald-900 mb-2 inline-flex items-center gap-1">
+          <TrendingUp className="w-4 h-4 inline-block shrink-0" aria-hidden={true} /> 이 5가지는 네이버 검색 상위노출에도 직접 도움이 됩니다
         </p>
         <p className="text-sm md:text-base text-emerald-800 leading-relaxed break-keep">
           소개글·사진·리뷰·블로그는 AI탭 노출 조건인 동시에 네이버 플레이스 검색 순위를 결정하는 핵심 요소입니다.

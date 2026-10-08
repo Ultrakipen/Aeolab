@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import { Camera, Download, ExternalLink, Maximize2, RefreshCw, Search, X } from "lucide-react"
+import { Camera, Download, ExternalLink, Maximize2, RefreshCw, Search, X, AlertTriangle, Lightbulb } from "lucide-react"
 
 interface BlogPost {
   rank: number
@@ -584,13 +584,13 @@ export default function BlogScreenshotSection({
         {/* 최근 분석 시도 중 일부 키워드가 CAPTCHA/차단으로 측정 실패한 경우 — 이전 결과 유지 안내 */}
         {captchaKeywords.length > 0 && (
           <p className="mt-2 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            ⚠️ &quot;{captchaKeywords.join(", ")}&quot; 키워드는 일시적 차단 또는 측정 오류로 갱신하지 못해 이전 결과를 그대로 표시 중입니다. 잠시 후 &quot;지금 분석&quot;을 다시 시도해 주세요.
+            <AlertTriangle className="w-4 h-4 inline-block shrink-0 mr-1" aria-hidden={true} />&quot;{captchaKeywords.join(", ")}&quot; 키워드는 일시적 차단 또는 측정 오류로 갱신하지 못해 이전 결과를 그대로 표시 중입니다. 잠시 후 &quot;지금 분석&quot;을 다시 시도해 주세요.
           </p>
         )}
 
         {/* 키워드 변경 안내 */}
         <div className="mt-3 flex items-start gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-          <span className="shrink-0 mt-0.5">💡</span>
+          <Lightbulb className="w-4 h-4 inline-block shrink-0 mt-0.5" aria-hidden={true} />
           <span>
             분석에 사용되는 키워드는{" "}
             <a href="/onboarding" className="underline font-medium hover:text-blue-900">
@@ -710,7 +710,7 @@ export default function BlogScreenshotSection({
                             {/* 블로그 ID 미등록 경고 */}
                             {analysis.blog_id_registered === false && analysis.my_rank === null && (
                               <div className="flex items-start gap-2 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
-                                <span className="shrink-0 mt-0.5">⚠️</span>
+                                <AlertTriangle className="w-4 h-4 inline-block shrink-0 mt-0.5" aria-hidden={true} />
                                 <span>블로그 ID 미등록 시 자동 판별이 어렵습니다. 위 입력창에 네이버 블로그 ID를 등록하면 정확히 찾아드립니다.</span>
                               </div>
                             )}

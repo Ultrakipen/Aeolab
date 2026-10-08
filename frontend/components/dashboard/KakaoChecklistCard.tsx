@@ -8,6 +8,7 @@
  */
 
 import { useState, useCallback } from "react";
+import { Globe } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // 타입
@@ -335,7 +336,7 @@ export default function KakaoChecklistCard({
           rel="noopener noreferrer"
           className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors text-center"
         >
-          <span>🗺</span>
+          <Globe className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
           카카오맵에서 내 가게 관리하기
         </a>
       </div>

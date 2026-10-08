@@ -16,7 +16,7 @@ import { syncCompetitorPlace } from '@/lib/api'
 import { PLAN_PRICES } from '@/lib/plans'
 import CompetitorTimeline from '@/components/dashboard/CompetitorTimeline'
 import { KeywordManagerModal } from '@/components/dashboard/KeywordManagerModal'
-import { Settings as SettingsIcon } from 'lucide-react'
+import { Settings as SettingsIcon, AlertTriangle, Megaphone } from 'lucide-react'
 import { GapAnalysisCard } from '@/components/dashboard/GapAnalysisCard'
 import PioneerKeywordsCard from '@/app/(dashboard)/competitors/PioneerKeywordsCard'
 import CompetitorKeywordCompare from '@/components/dashboard/CompetitorKeywordCompare'
@@ -1091,7 +1091,7 @@ function CompetitorMap({
       {mapError && (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fef2f2', zIndex: 5 }}>
           <div style={{ textAlign: 'center', color: '#ef4444', fontSize: 13, padding: '0 16px' }}>
-            <div style={{ fontSize: 24, marginBottom: 6 }}>⚠️</div>
+            <AlertTriangle className="w-6 h-6 text-red-500 mx-auto" style={{ marginBottom: 6 }} aria-hidden="true" />
             {mapError}
           </div>
         </div>
@@ -2508,7 +2508,7 @@ export function CompetitorsClient({
                   {/* 확장: 변화 감지 상세 */}
                   {isExpanded && changedCompetitorIds.has(c.id) && changeDetails[c.id] && (
                     <div className="mx-4 mt-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
-                      <span className="text-base shrink-0">📢</span>
+                      <Megaphone className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
                       <div>
                         <p className="text-sm font-semibold text-amber-800">최근 변화 감지</p>
                         <p className="text-sm text-amber-700 leading-relaxed mt-0.5">{changeDetails[c.id]}</p>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import Image from "next/image"
-import { X, ZoomIn, Search } from "lucide-react"
+import { X, ZoomIn, Search, Image as ImageIcon } from "lucide-react"
 
 interface BeforeAfterItem {
   id: string
@@ -144,7 +144,7 @@ function ImageThumb({ item, label, isBefore, onClick }: ImageThumbProps) {
           <div
             className={`w-full rounded-lg border ${borderClass} bg-gray-50 aspect-video flex flex-col items-center justify-center gap-1`}
           >
-            <span className="text-gray-300 text-2xl">🖼</span>
+            <ImageIcon className="w-6 h-6 text-gray-300 inline-block shrink-0" aria-hidden="true" />
             <span className="text-sm text-gray-600 text-center px-2">이미지를 불러올 수 없습니다</span>
           </div>
         ) : (

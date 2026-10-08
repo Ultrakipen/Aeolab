@@ -10,7 +10,7 @@ import {
 import {
   MessageSquare, Send, Copy, Check, Trash2, ThumbsUp, ThumbsDown, Minus,
   Star, Clock, AlertTriangle, X, ChevronDown, ChevronUp, ShieldAlert,
-  CheckCircle2, XCircle,
+  CheckCircle2, XCircle, Sparkles, Lightbulb, Bell,
 } from 'lucide-react'
 
 type ReviewReply = ReviewReplyResult & { review_text?: string }
@@ -713,8 +713,8 @@ export default function ReviewInboxPage() {
 
           {!result.is_fallback && (
             <div className="rounded-lg bg-indigo-50 border border-indigo-100 px-3 py-2 mb-3">
-              <p className="text-sm text-indigo-800 font-medium">
-                ✨ 리뷰 원문을 분석하고 업종 키워드를 반영해 AI가 방금 작성했습니다
+              <p className="text-sm text-indigo-800 font-medium inline-flex items-center gap-1">
+                <Sparkles className="w-4 h-4 inline-block shrink-0" aria-hidden={true} /> 리뷰 원문을 분석하고 업종 키워드를 반영해 AI가 방금 작성했습니다
               </p>
               {result.keywords_used && result.keywords_used.length > 0 && (
                 <div className="flex flex-wrap items-center gap-1 mt-1.5">
@@ -845,13 +845,13 @@ export default function ReviewInboxPage() {
 
       {/* 스마트플레이스 리뷰 AI 기능 안내 */}
       <div className="mt-6 mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-        <p className="text-sm font-semibold text-slate-700 mb-3">
-          💡 스마트플레이스 리뷰 관련 AI 기능도 있어요
+        <p className="text-sm font-semibold text-slate-700 mb-3 inline-flex items-center gap-1">
+          <Lightbulb className="w-4 h-4 inline-block shrink-0" aria-hidden={true} /> 스마트플레이스 리뷰 관련 AI 기능도 있어요
         </p>
         <div className="space-y-3 pr-14 md:pr-0">
           {bizCategory === 'restaurant' && (
             <div className="flex items-start gap-2.5">
-              <span className="shrink-0 text-base mt-0.5">💬</span>
+              <MessageSquare className="w-4 h-4 inline-block shrink-0 mt-0.5" aria-hidden={true} />
               <div>
                 <p className="text-sm font-medium text-gray-800">
                   플레이스 플러스(beta) AI 리뷰 답글
@@ -869,7 +869,7 @@ export default function ReviewInboxPage() {
             </div>
           )}
           <div className="flex items-start gap-2.5">
-            <span className="shrink-0 text-base mt-0.5">🔔</span>
+            <Bell className="w-4 h-4 inline-block shrink-0 mt-0.5" aria-hidden={true} />
             <div>
               <p className="text-sm font-medium text-gray-800">
                 리뷰 민감 이슈 알림

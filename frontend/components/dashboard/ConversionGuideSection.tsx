@@ -20,6 +20,7 @@ import {
   ArrowRight,
   Pencil,
   RotateCcw,
+  Clock,
 } from "lucide-react";
 import { getConversionTips } from "@/lib/api";
 import { getSafeSession } from "@/lib/supabase/client";
@@ -137,7 +138,7 @@ function TipCard({ tip, bizId }: { tip: ConversionTip; bizId: string }) {
           {tip.evidence_badge}
         </span>
         <span className="inline-flex items-center text-sm text-gray-600 px-2 py-1">
-          ⏱ {tip.estimated_time}
+          <Clock className="w-3.5 h-3.5 inline-block shrink-0" aria-hidden="true" /> {tip.estimated_time}
         </span>
       </div>
 
@@ -265,7 +266,7 @@ function TipCard({ tip, bizId }: { tip: ConversionTip; bizId: string }) {
       {/* 기대 효과 */}
       {tip.impact && (
         <p className="text-sm text-green-700 mt-2 font-medium">
-          → {tip.impact}
+          <ArrowRight className="w-4 h-4 inline-block shrink-0" aria-hidden="true" /> {tip.impact}
         </p>
       )}
     </div>

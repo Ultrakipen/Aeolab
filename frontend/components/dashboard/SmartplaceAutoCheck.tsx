@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { CheckCircle, XCircle, Loader2, ExternalLink, AlertCircle, RefreshCw } from 'lucide-react'
+import { CheckCircle, XCircle, Loader2, ExternalLink, AlertCircle, RefreshCw, Store, ArrowRight, Zap } from 'lucide-react'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000 // 24시간
@@ -106,7 +106,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
 
   if (!naverPlaceUrl) return (
     <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-start gap-3">
-      <span className="text-2xl shrink-0">🏪</span>
+      <Store className="w-6 h-6 inline-block shrink-0" aria-hidden="true" />
       <div>
         <p className="text-sm font-semibold text-gray-700">스마트플레이스 자동 점검 사용 가능</p>
         <p className="text-sm text-gray-600 mt-0.5">
@@ -116,7 +116,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
           href="/onboarding"
           className="inline-block mt-2 text-sm font-semibold text-blue-600 hover:underline"
         >
-          URL 등록하러 가기 →
+          URL 등록하러 가기 <ArrowRight className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
         </a>
       </div>
     </div>
@@ -263,7 +263,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800">{item.label}</p>
                       <p className="text-sm text-red-700 mt-0.5">
-                        {item.score_impact >= 5 ? '⚡ 우선 개선 권장' : '개선 권장'}
+                        {item.score_impact >= 5 ? <><Zap className="w-3.5 h-3.5 inline-block shrink-0" aria-hidden="true" /> 우선 개선 권장</> : '개선 권장'}
                       </p>
                     </div>
                     {item.action_url && (
