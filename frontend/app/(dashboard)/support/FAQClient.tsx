@@ -17,7 +17,7 @@ const CATEGORY_TABS = [
   { key: "", label: "전체" },
   { key: "general", label: "서비스 이용" },
   { key: "pricing", label: "요금제" },
-  { key: "scan", label: "스캔" },
+  { key: "scan", label: "측정" },
   { key: "guide", label: "개선 가이드" },
 ];
 

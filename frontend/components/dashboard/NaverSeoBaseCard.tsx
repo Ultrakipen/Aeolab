@@ -1,6 +1,6 @@
 import PhotoConfirmButton from "./PhotoConfirmButton";
 import RecentPostConfirmButton from "./RecentPostConfirmButton";
-import { Search, Megaphone, FileEdit } from "lucide-react";
+import { Search, Megaphone, FileEdit, Camera, ArrowRight } from "lucide-react";
 
 interface NaverSeoBaseCardProps {
   reviewCount: number;
@@ -169,8 +169,8 @@ export default function NaverSeoBaseCard({
                   rel="noopener noreferrer"
                   className="flex items-center justify-between rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 gap-2 hover:bg-amber-100 transition-colors"
                 >
-                  <span className="text-sm text-amber-800">
-                    📸 사진 탭 직접 확인 →
+                  <span className="text-sm text-amber-800 inline-flex items-center gap-1.5">
+                    <Camera className="w-4 h-4" aria-hidden="true" /> 사진 탭 직접 확인 <ArrowRight className="w-4 h-4" aria-hidden="true" />
                   </span>
                   <span className="text-sm px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap bg-amber-100 text-amber-700">
                     {item.effect}

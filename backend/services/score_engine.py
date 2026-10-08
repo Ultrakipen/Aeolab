@@ -229,7 +229,7 @@ _AI_TAB_READINESS_LABELS: list[tuple[float, str, str]] = [
     (20.0, "기초 단계",  "기본 정보를 채울수록 AI탭 노출 가능성이 높아집니다"),
     (40.0, "준비 중",    "AI탭 노출 가능성이 점점 높아지고 있습니다"),
     (65.0, "거의 완료",  "AI탭에 자주 노출될 준비가 거의 됐습니다"),
-    (85.0, "최적화 완료","AI탭 노출에 최적화된 상태입니다"),
+    (85.0, "AI 검색 개선 완료","AI탭 노출에 잘 준비된 상태입니다"),
 ]
 
 
@@ -613,7 +613,7 @@ def _build_missing_items(biz: dict, naver_data: dict, category: str, eligibility
         missing.append({
             "item": "소개글",
             "gain": 20,
-            "desc": "300~500자 소개글에 Q&A 형식 5개 포함 (AI 인용 후보)",
+            "desc": "300~500자 소개글에 Q&A 형식 5개 포함 (AI 노출 후보)",
         })
 
     # 사진 카테고리 부족 항목 추가 (점수 변경 없음 — 가이드용 missing 힌트)

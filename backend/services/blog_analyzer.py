@@ -217,14 +217,14 @@ def _analyze_single_post(
             ikw = matched_industry_kws[0]
             suggestion = (
                 f"업종 키워드 '{ikw}'는 들어 있습니다. "
-                "제목 끝에 '추천·후기·비교' 같은 검색 의도어를 추가하면 AI 검색 인용률이 올라갑니다."
+                "제목 끝에 '추천·후기·비교' 같은 검색 의도어를 추가하면 AI 검색 언급 가능성이 높아집니다."
             )
         else:
             suggestion = "제목에 업종 키워드(예: 웨딩스냅)와 검색 의도어(추천/후기/비교)를 함께 넣으세요"
     elif "지역명 미포함" in issues:
         suggestion = f"제목이나 본문에 '{region.strip().split()[0]}'을 자연스럽게 포함하세요"
     elif "홍보성 제목" in " ".join(issues):
-        suggestion = "포트폴리오형 제목을 정보형('추천', '비교', '총정리')으로 바꾸면 AI 인용률이 올라갑니다"
+        suggestion = "포트폴리오형 제목을 정보형('추천', '비교', '총정리')으로 바꾸면 AI 언급 가능성이 높아집니다"
     elif "90일 이상" in " ".join(issues):
         suggestion = "이 글에 최신 정보를 추가하고 날짜를 업데이트하세요"
     elif "본문 300자 미만" in " ".join(issues):
@@ -480,7 +480,7 @@ def _build_weekly_actions(
                 "priority": 1,
                 "action": f"포스트 '{worst['title'][:20]}...' 제목을 '{improved[:25]}...'로 수정",
                 "impact": "high",
-                "reason": "AI가 인용하기 어려운 제목입니다",
+                "reason": "AI가 언급되기 어려운 제목입니다",
             })
 
     # 2순위: 누락 키워드로 신규 포스트 작성
@@ -520,7 +520,7 @@ def _build_weekly_actions(
             "priority": len(actions) + 1,
             "action": f"최근 포스트 {min(len(no_region), 3)}개에 지역명 추가",
             "impact": "medium",
-            "reason": "지역명이 없으면 로컬 AI 검색에서 인용되지 않습니다",
+            "reason": "지역명이 없으면 로컬 AI 검색에서 언급되지 않습니다",
         })
 
     # 최대 3개 반환
@@ -572,13 +572,13 @@ def _calc_posting_frequency(post_dates: list) -> dict:
 
     if monthly_avg >= 2 and is_bursty:
         consistency = "bursty"
-        consistency_message = "특정 시기에 몰아서 발행했습니다 — 네이버가 어뷰징(저품질)으로 오인할 수 있는 패턴입니다. 매월 2~3개씩 고르게 발행하면 AI 검색 신뢰도가 높아집니다."
+        consistency_message = "특정 시기에 몰아서 발행했습니다 — 네이버가 저품질로 오인할 수 있는 패턴입니다. 매월 2~3개씩 고르게 발행하면 AI 검색 신뢰도가 높아집니다."
     elif monthly_avg >= 2:
         consistency = "active"
         consistency_message = "꾸준히 발행하고 있습니다. 월 2회 이상 발행으로 AI 검색 노출을 유지하세요."
     elif monthly_avg >= 1:
         consistency = "regular"
-        consistency_message = "월 1회 발행 중. 월 2회로 늘리면 AI 인용률이 높아집니다."
+        consistency_message = "월 1회 발행 중. 월 2회로 늘리면 AI 언급 가능성이 높아집니다."
     elif active_months >= 2:
         consistency = "irregular"
         consistency_message = "발행이 불규칙합니다. AI는 꾸준한 블로그를 더 신뢰합니다."
@@ -639,7 +639,7 @@ def _pick_best_citation_candidate(posts_detail: list[dict], region: str) -> Opti
         "post_score": best.get("post_score", 0),
         "title_seo_score": best.get("title_seo_score", 0),
         "what_to_add": what_to_add,
-        "reason": "현재 블로그에서 AI 검색 인용 가능성이 가장 높은 포스트입니다",
+        "reason": "현재 블로그에서 AI 검색 언급 가능성이 가장 높은 포스트입니다",
     }
 
 
@@ -723,7 +723,7 @@ def _detect_duplicate_topics(posts_detail: list[dict]) -> list[dict]:
                 "keyword": keyword,
                 "count": len(unique_posts),
                 "titles": [p.get("title", "") for p in unique_posts[:3]],
-                "warning": f"'{keyword}' 관련 포스트 {len(unique_posts)}개가 있습니다. AI는 그 중 1개만 인용합니다.",
+                "warning": f"'{keyword}' 관련 포스트 {len(unique_posts)}개가 있습니다. AI는 그 중 1개만 언급합니다.",
                 "suggestion": f"각 포스트에 '{keyword} 추천', '{keyword} 가격', '{keyword} 후기'처럼 서로 다른 검색 의도어를 붙여 분산하세요.",
             })
 
@@ -1071,7 +1071,7 @@ def _calc_blog_ai_readiness(
     items.append({
         "label": "검색 의도 키워드 포함 (추천/리뷰/근처 등)",
         "passed": has_question,
-        "description": "포스트 제목에 '추천', '리뷰', '근처' 등의 검색 의도 키워드를 포함하면 AI 인용률이 높아집니다.",
+        "description": "포스트 제목에 '추천', '리뷰', '근처' 등의 검색 의도 키워드를 포함하면 AI 언급 가능성이 높아집니다.",
     })
 
     # 2. 지역 정보 포함 여부 — 시(市) 단위 정규화 후 검사 ("창원시" → "창원"도 매칭)
@@ -1080,7 +1080,7 @@ def _calc_blog_ai_readiness(
     items.append({
         "label": f"지역 키워드 포함 ({region_clean or region or '지역명'})",
         "passed": has_region,
-        "description": "블로그 본문에 지역명을 자연스럽게 포함하면 로컬 AI 검색에서 인용됩니다.",
+        "description": "블로그 본문에 지역명을 자연스럽게 포함하면 로컬 AI 검색에서 언급됩니다.",
     })
 
     # 3. 최신성 체크
@@ -1112,7 +1112,7 @@ def _calc_blog_ai_readiness(
         item4: dict = {
             "label": "충분한 본문 내용 (300자 이상 포스트 50% 이상)",
             "passed": has_content,
-            "description": "AI가 인용할 내용이 충분하려면 포스트당 최소 300자 이상 작성이 필요합니다.",
+            "description": "AI가 참고할 내용이 충분하려면 포스트당 최소 300자 이상 작성이 필요합니다.",
         }
     else:
         # 측정 가능한 포스트 없음 (API 전용) → unavailable 처리
@@ -1131,7 +1131,7 @@ def _calc_blog_ai_readiness(
     items.append({
         "label": "FAQ/Q&A 구조 포함",
         "passed": has_faq,
-        "description": "Q&A 형식 글은 AI 검색에서 가장 많이 인용합니다. FAQ 섹션을 추가하세요.",
+        "description": "Q&A 형식 글은 AI 검색에서 가장 많이 언급됩니다. FAQ 섹션을 추가하세요.",
     })
 
     # 6. 본문에 전화번호/주소 포함 여부
@@ -1156,7 +1156,7 @@ def _calc_blog_ai_readiness(
         item7: dict = {
             "label": "포스트 길이 500자 이상 비율 50% 초과",
             "passed": has_long_posts,
-            "description": "500자 이상의 충분한 내용이 있어야 AI가 인용할 근거를 찾을 수 있습니다.",
+            "description": "500자 이상의 충분한 내용이 있어야 AI가 참고할 근거를 찾을 수 있습니다.",
         }
     else:
         item7 = {
@@ -1178,7 +1178,7 @@ def _calc_blog_ai_readiness(
     items.append({
         "label": "제목·본문에 숫자/구체적 표현 포함 비율 30% 초과",
         "passed": has_specific_titles,
-        "description": "숫자가 포함된 제목이나 본문('3가지 방법', 'TOP5')은 AI 검색 인용률이 높습니다.",
+        "description": "숫자가 포함된 제목이나 본문('3가지 방법', 'TOP5')은 AI 검색 언급 가능성이 높습니다.",
     })
 
     # 9. 이미지 포함 비율 30% 초과 (img_count 측정 가능한 포스트 기준)
@@ -1190,7 +1190,7 @@ def _calc_blog_ai_readiness(
         item9: dict = {
             "label": "이미지 포함 포스트 비율 30% 초과",
             "passed": has_images,
-            "description": "이미지가 포함된 포스트는 AI 검색 인용률과 체류시간이 높습니다.",
+            "description": "이미지가 포함된 포스트는 AI 검색 언급 가능성과 체류시간이 높습니다.",
         }
     else:
         item9 = {
@@ -1210,7 +1210,7 @@ def _calc_blog_ai_readiness(
         item10: dict = {
             "label": "소제목(H2~H4) 포함 포스트 비율 30% 초과",
             "passed": has_headings,
-            "description": "소제목으로 문단을 나누면 AI가 핵심 정보를 더 쉽게 추출해 인용합니다.",
+            "description": "소제목으로 문단을 나누면 AI가 핵심 정보를 더 쉽게 추출해 언급합니다.",
         }
     else:
         item10 = {
@@ -1924,7 +1924,7 @@ def _classify_content_type(titles: list[str]) -> dict:
 
     if promo_ratio > 60:
         verdict = "홍보형"
-        issue = f"글의 {promo_ratio}%가 홍보형입니다 — 네이버 AI는 광고 느낌 글을 잘 인용하지 않고, 일반 네이버 검색 노출에도 불리하게 작용할 수 있습니다"
+        issue = f"글의 {promo_ratio}%가 홍보형입니다 — 네이버 AI는 광고 느낌 글을 잘 소개하지 않고, 일반 네이버 검색 노출에도 불리하게 작용할 수 있습니다"
     elif info_ratio > 60:
         verdict = "정보형"
         issue = None
@@ -2049,12 +2049,12 @@ def _build_top_recommendation(
     if freshness == "outdated":
         return "마지막 포스트가 90일 이상 지났습니다. 이번 주 안에 포스트 1개를 올려 최신성을 회복하세요."
     if freshness == "stale":
-        return "최근 포스트가 30~90일 전입니다. 이달 내 포스트 1개를 추가하면 AI 인용 가능성이 높아집니다."
+        return "최근 포스트가 30~90일 전입니다. 이달 내 포스트 1개를 추가하면 AI 언급 가능성이 높아집니다."
     if coverage < 30:
         top_kw = missing_keywords[0] if missing_keywords else "업종 핵심 키워드"
         return f"키워드 커버리지가 낮습니다. 다음 포스트 제목에 '{top_kw}'를 포함하세요."
     if readiness_score < 50:
-        return "포스트 제목에 '추천', '후기', '근처' 등 검색 의도 키워드를 포함하면 AI 인용률이 높아집니다."
+        return "포스트 제목에 '추천', '후기', '근처' 등 검색 의도 키워드를 포함하면 AI 언급 가능성이 높아집니다."
     return "블로그 관리가 양호합니다. 월 2회 이상 꾸준한 발행으로 AI 검색 노출을 유지하세요."
 
 

@@ -23,7 +23,7 @@ test.describe('개선 가이드 허브 — /guide', () => {
 
   test('사업장 없을 때 NoBusiness 또는 가이드 콘텐츠 중 하나 노출', async ({ adminPage: page }) => {
     await page.goto('/guide', { waitUntil: 'domcontentloaded' });
-    const content = page.getByText(/AI 개선 가이드|스캔 결과를 바탕|사업장.*먼저/i).first();
+    const content = page.getByText(/AI 개선 가이드|스캔 결과를 바탕|측정 결과를 바탕|사업장.*먼저/i).first();
     await expect(content).toBeVisible({ timeout: 8_000 });
   });
 

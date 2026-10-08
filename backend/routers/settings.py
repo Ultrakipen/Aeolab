@@ -612,7 +612,7 @@ async def get_onboarding_status(user: dict = Depends(get_current_user)):
 
     steps = [
         {"id": "business",   "label": "사업장 등록",      "done": bool(biz_id),      "link": "/onboarding"},
-        {"id": "scan",       "label": "첫 AI 스캔",        "done": has_scan,           "link": "/dashboard"},
+        {"id": "scan",       "label": "첫 측정",            "done": has_scan,           "link": "/dashboard"},
         {"id": "guide",      "label": "개선 가이드 받기",  "done": has_guide,          "link": "/guide"},
         {"id": "competitor", "label": "경쟁사 등록",       "done": has_competitor,     "link": "/competitors"},
         {"id": "phone",      "label": "카카오 알림 설정",  "done": has_phone,          "link": "/settings"},

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
+import { Pin } from "lucide-react";
 import Link from "next/link";
 import { Notice } from "@/types";
 
@@ -53,7 +54,7 @@ export default async function NoticeDetailPage({ params }: { params: Promise<{ i
 
       <div className="border-b border-gray-200 pb-4 mb-6">
         <div className="flex items-center gap-2 mb-2">
-          {notice.is_pinned && <span className="text-red-700">📌</span>}
+          {notice.is_pinned && <span className="text-red-700"><Pin className="w-4 h-4" aria-label="고정 공지" /></span>}
           <span className={"inline-block px-2 py-0.5 rounded text-sm font-medium " + CATEGORY_BADGE[notice.category]}>
             {CATEGORY_LABEL[notice.category]}
           </span>

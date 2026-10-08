@@ -28,7 +28,7 @@ test.describe('대시보드 — admin 계정 로그인 후 (Biz 권한)', () => 
 
   test('스캔 버튼 존재 확인 (클릭 안 함 — AI 호출 방지)', async ({ adminPage: page }) => {
     // ScanTrigger renders "AI 스캔 시작" after async data fetch — wait for it
-    const scanBtn = page.getByRole('button', { name: /AI 분석|스캔|분석하기|분석 시작|AI 스캔 시작/i }).first();
+    const scanBtn = page.getByRole('button', { name: /AI 분석|스캔|측정|분석하기|분석 시작|AI 스캔 시작|AI 측정 시작/i }).first();
     const registerBtn = page.getByRole('link', { name: /가게 등록|사업장 등록|시작하기/i }).first();
     let hasScan = false;
     try {

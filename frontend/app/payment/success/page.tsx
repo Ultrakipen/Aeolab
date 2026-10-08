@@ -162,17 +162,17 @@ function PaymentSuccessContent() {
             </p>
           )}
           <p className="text-gray-600 text-sm mb-2">
-            이제 네이버·Gemini·ChatGPT 3채널 자동 스캔과 개선 가이드를 이용할 수 있습니다.
+            이제 네이버·Gemini·ChatGPT 3곳 자동 측정과 개선 가이드를 이용할 수 있습니다.
           </p>
           <p className="text-gray-600 text-sm mb-4">
             {countdown}초 후 대시보드로 이동합니다...
           </p>
 
           <div className="bg-blue-50 rounded-xl p-4 mb-4 text-left">
-            <p className="text-sm font-semibold text-blue-800 mb-1">첫 스캔 시작 방법</p>
+            <p className="text-sm font-semibold text-blue-800 mb-1">첫 측정 시작 방법</p>
             <ol className="text-sm text-blue-700 space-y-1">
               <li>1. 대시보드에서 사업장을 등록하세요</li>
-              <li>2. [AI 스캔 시작] 버튼을 누르면 약 30초 후 결과가 나옵니다</li>
+              <li>2. [AI 측정 시작] 버튼을 누르면 약 30초 후 결과가 나옵니다</li>
             </ol>
           </div>
 

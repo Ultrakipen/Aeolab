@@ -864,9 +864,9 @@ async def export_csv(biz_id: str, user=Depends(get_current_user)):
     writer = csv.writer(output)
     # v3.0 듀얼트랙 항목 (Track1: 네이버채널 / Track2: 글로벌AI)
     writer.writerow([
-        "스캔일시", "통합점수", "트랙1(네이버)", "트랙2(글로벌AI)", "검색쿼리",
+        "측정일시", "통합점수", "네이버 방식 점수", "글로벌AI 방식 점수", "검색어",
         "키워드커버리지", "리뷰품질", "스마트플레이스완성도", "네이버AI브리핑노출",
-        "글로벌AI노출", "웹사이트구조화", "온라인언급", "GoogleAI노출",
+        "글로벌AI노출", "웹사이트AI인식", "온라인언급", "GoogleAI노출",
     ])
     for r in rows:
         bd = r.get("score_breakdown") or {}
@@ -1146,7 +1146,7 @@ async def export_keyword_rank_csv(biz_id: str, user=Depends(get_current_user)):
             detail={
                 "code": "PLAN_REQUIRED",
                 "required_plans": ["pro", "biz"],
-                "message": "Pro 플랜 이상에서 키워드 순위 CSV를 다운로드할 수 있습니다",
+                "message": "Pro 플랜 이상에서 키워드 순위 파일을 다운로드할 수 있습니다",
             },
         )
 
@@ -1248,7 +1248,7 @@ async def get_share_page_data(biz_id: str):
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
     score_data = _score_res.data
     if not score_data:
-        raise HTTPException(status_code=404, detail="스캔 결과가 없습니다")
+        raise HTTPException(status_code=404, detail="측정 결과가 없습니다")
 
     s = score_data[0]
     score = s["total_score"] or 0
@@ -1283,7 +1283,7 @@ async def generate_share_card(biz_id: str):
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
     score_data = _score_res.data
     if not score_data:
-        raise HTTPException(status_code=404, detail="스캔 결과가 없습니다")
+        raise HTTPException(status_code=404, detail="측정 결과가 없습니다")
 
     score = score_data[0]["total_score"] or 0
     grade = "A" if score >= 80 else "B" if score >= 60 else "C" if score >= 40 else "D"
@@ -1357,7 +1357,7 @@ async def get_badge(biz_id: str, user=Depends(get_current_user)):
         )
     ).data
     if not score_data:
-        raise HTTPException(status_code=404, detail="스캔 결과가 없습니다")
+        raise HTTPException(status_code=404, detail="측정 결과가 없습니다")
 
     score = score_data[0]["total_score"] or 0
     if score < 70:
@@ -1404,7 +1404,7 @@ async def get_badge_svg(biz_id: str):
     svg = f"""<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
   <rect width="200" height="60" rx="8" fill="#0f172a"/>
   <text x="10" y="22" fill="#60a5fa" font-size="11" font-family="sans-serif" font-weight="bold">AEOlab 인증</text>
-  <text x="10" y="42" fill="white" font-size="14" font-family="sans-serif" font-weight="bold">AI 검색 최적화 {grade}등급</text>
+  <text x="10" y="42" fill="white" font-size="14" font-family="sans-serif" font-weight="bold">AI 검색 {grade}등급</text>
   <text x="10" y="55" fill="#94a3b8" font-size="9" font-family="sans-serif">{issued_at} · aeolab.co.kr</text>
 </svg>"""
     return Response(
@@ -1527,7 +1527,7 @@ async def get_gap_card(biz_id: str, user=Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
     scan = _scan_res.data
     if not scan:
-        raise HTTPException(status_code=404, detail="스캔 결과가 없습니다. 먼저 AI 스캔을 실행해주세요.")
+        raise HTTPException(status_code=404, detail="측정 결과가 없습니다. 먼저 측정을 실행해 주세요.")
 
     my_score = float(scan.get("total_score", 0))
     competitor_scores: dict = scan.get("competitor_scores") or {}
@@ -1608,7 +1608,7 @@ async def get_gap_analysis(biz_id: str, user=Depends(get_current_user)):
     if result is None:
         raise HTTPException(
             status_code=404,
-            detail="격차 분석에 필요한 스캔 데이터 또는 경쟁사 데이터가 없습니다. 먼저 AI 스캔을 실행하고 경쟁사를 등록해주세요.",
+            detail="격차 분석에 필요한 측정 결과 또는 경쟁사 데이터가 없습니다. 먼저 측정을 실행하고 경쟁사를 등록해 주세요.",
         )
 
     gap_dict = result.model_dump(mode="json")
@@ -1958,12 +1958,12 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
         top_kw = (competitor_only[:1] or missing_keywords[:1] or [""])[0]
         top_kw_clean = _clean_keyword(top_kw) if top_kw else ""
         if top_kw_clean:
-            reason = f"'{top_kw_clean}' 키워드가 경쟁사 리뷰엔 있지만 내 가게엔 아직 없습니다. 소개글 안 Q&A 섹션에 이 키워드를 포함하면 AI 브리핑 인용 후보가 됩니다."
+            reason = f"'{top_kw_clean}' 키워드가 경쟁사 리뷰엔 있지만 내 가게엔 아직 없습니다. 소개글 안 Q&A 섹션에 이 키워드를 포함하면 AI 브리핑에 노출될 가능성이 높아집니다."
         elif "네이버 AI 브리핑" in missing_platforms_ko:
-            reason = "네이버 AI 브리핑 스캔에서 내 가게가 확인되지 않았습니다. 소개글 안 Q&A 섹션은 AI 브리핑 인용 후보로 가장 자주 활용되는 콘텐츠입니다."
+            reason = "네이버 AI 브리핑 측정에서 내 가게가 확인되지 않았습니다. 소개글 안 Q&A 섹션은 AI 브리핑에 가장 자주 노출되는 콘텐츠입니다."
         else:
             sp_score = float(breakdown.get("smart_place_completeness", 100))
-            reason = f"스마트플레이스 완성도가 {'낮습니다' if sp_score < 40 else '보통 수준입니다'} — FAQ 미등록이 가장 큰 감점 요인입니다." if sp_score < 70 else "FAQ에 5개 이상 답변이 있으면 AI 브리핑 인용 확률이 크게 올라갑니다."
+            reason = f"스마트플레이스 완성도가 {'낮습니다' if sp_score < 40 else '보통 수준입니다'} — FAQ 미등록이 가장 큰 감점 요인입니다." if sp_score < 70 else "FAQ에 5개 이상 답변이 있으면 AI 브리핑에 나올 가능성이 크게 높아집니다."
         tips.append({
             "id": "faq_from_gap",
             "title": faq_path["path_name"],
@@ -2062,8 +2062,8 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
         missed = [p for p in missing_platforms_ko if p in ("ChatGPT", "구글 검색")]
         kw_clean = _clean_keyword(missing_keywords[0]) if missing_keywords else ""
         reason = (
-            f"{', '.join(missed)} 스캔에서 내 가게가 검출되지 않았습니다. "
-            f"소식 발행 → 네이버 크롤링 → Bing 인덱스 → ChatGPT 학습 경로로 "
+            f"{', '.join(missed)} 측정에서 내 가게가 확인되지 않았습니다. "
+            f"소식 발행 → 네이버가 글을 읽어 가는 과정 → 마이크로소프트 검색에 등록 → ChatGPT가 학습하는 경로로 "
             f"최신성 신호가 쌓입니다 (반영까지 수 주~수개월 소요). 주 1회 꾸준히 발행하세요."
         )
         tips.append({
@@ -2100,7 +2100,7 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
     elif low_items:
         summary = f"{', '.join(low_items[:2])} 항목이 아직 낮아 아래 {len(tips)}가지가 가장 빠르게 반영됩니다."
     else:
-        summary = f"스캔 결과 기반으로 가장 효과 큰 {len(tips)}가지를 골랐습니다."
+        summary = f"측정 결과 기반으로 가장 효과 큰 {len(tips)}가지를 골랐습니다."
 
     return {
         "business_name": business_name,
@@ -2209,8 +2209,8 @@ async def get_smartplace_scorecard(biz_id: str, user=Depends(get_current_user)):
             "done": sp_has_faq or ((tools.get("smart_place_faq_count") or 0) >= 3) or bool(biz.get("has_faq")) or bool(biz.get("has_intro")),
             "count": tools.get("smart_place_faq_count") or (1 if sp_has_faq else 0),
             "impact": "medium",
-            "action": "스마트플레이스 > 업체정보 > 소개글에 '자주 묻는 질문' 섹션을 추가하고 Q&A 5개를 자연스럽게 포함하세요. 소개글은 AI 브리핑 인용 후보 텍스트입니다.",
-            "effect": "AI 브리핑 인용 후보 경로 확보",
+            "action": "스마트플레이스 > 업체정보 > 소개글에 '자주 묻는 질문' 섹션을 추가하고 Q&A 5개를 자연스럽게 포함하세요. 소개글은 AI 브리핑에 자주 활용되는 텍스트입니다.",
+            "effect": "AI 브리핑 노출 경로 확보",
             "deeplink": f"https://smartplace.naver.com/bizes/{naver_place_id}/profile" if naver_place_id else None,
         },
         {
@@ -2240,7 +2240,7 @@ async def get_smartplace_scorecard(biz_id: str, user=Depends(get_current_user)):
             "has_json_ld": bool(website.get("has_json_ld")),
             "impact": "low",
             "action": "독립 웹사이트에 AI 인식 정보 코드를 추가하면 ChatGPT·Gemini에서도 노출됩니다.",
-            "effect": "글로벌 AI 채널 +15~20점",
+            "effect": "글로벌 AI 서비스 노출 +15~20점",
             "deeplink": None,
         },
     ]
@@ -2250,7 +2250,7 @@ async def get_smartplace_scorecard(biz_id: str, user=Depends(get_current_user)):
     pct = round(done_count / total * 100)
 
     if pct >= 85:
-        grade, grade_label = "A", "최적화 완료"
+        grade, grade_label = "A", "AI 검색 개선 완료"
     elif pct >= 65:
         grade, grade_label = "B", "일부 개선 필요"
     elif pct >= 40:
@@ -2348,9 +2348,9 @@ async def get_smart_place_result(biz_id: str, user=Depends(get_current_user)):
             else "https://smartplace.naver.com"
         ),
         "message": (
-            "스마트플레이스 URL을 등록하면 다음 스캔 시 자동으로 분석됩니다."
+            "스마트플레이스 URL을 등록하면 다음 측정 시 자동으로 분석됩니다."
             if not naver_place_url
-            else "다음 AI 스캔 시 스마트플레이스 완성도를 자동으로 분석합니다."
+            else "다음 측정 시 스마트플레이스 완성도를 자동으로 분석합니다."
         ),
         "raw": None,
     }
@@ -2363,17 +2363,17 @@ BREAKDOWN_LABELS = {
     "keyword_search_rank":      "키워드 검색 순위",
     "review_quality":           "리뷰 품질",
     "smart_place_completeness": "스마트플레이스 완성도",
-    "blog_crank":               "블로그 지수",
+    "blog_crank":               "블로그 현황",
     "local_map_score":          "지도 노출",
     "ai_briefing_score":        "AI 브리핑 노출",
     # Track 2 — 공통 4항목 (score_engine.py:296 GLOBAL_TRACK_WEIGHTS)
     "multi_ai_exposure":        "AI 언급 빈도",
-    "schema_seo":               "웹사이트 SEO",
+    "schema_seo":               "웹사이트 검색 노출",
     "online_mentions":          "온라인 언급",
     "google_presence":          "구글 AI 노출",
     # 집계 synthetic 키 (타임라인 하위 호환용 보존)
-    "track1_naver":             "네이버 AI 채널",
-    "track2_global":            "글로벌 AI 채널",
+    "track1_naver":             "네이버 방식 점수",
+    "track2_global":            "글로벌 AI 방식 점수",
 }
 
 
@@ -2404,7 +2404,7 @@ def _next_goal(current_score: float, breakdown: dict) -> dict:
     # 함께 저장돼 있음(score_engine.py:939-970) — bool도 Python isinstance(int) 통과라 여기서
     # 걸러내지 않으면 "google_captcha_blocked 개선으로..." 같은 raw 키가 그대로 노출될 수 있다.
     # growth_drivers(위 5번)와 동일하게 BREAKDOWN_LABELS에 매핑된 키만 후보로 허용한다.
-    action = "스마트플레이스 소개글에 Q&A를 추가하면 AI 브리핑 인용 후보 가능성이 올라갑니다"
+    action = "스마트플레이스 소개글에 Q&A를 추가하면 AI 브리핑에 노출될 가능성이 올라갑니다"
     if breakdown:
         valid = {
             k: v for k, v in breakdown.items()
@@ -2601,7 +2601,7 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
     headline = ""
     headline_type = "stable"
     if scans_raw and insufficient_trend_data:
-        headline = "아직 추세를 판단하기엔 스캔 기록이 부족합니다. 며칠 더 쌓이면 변화 방향을 알려드립니다."
+        headline = "아직 추세를 판단하기엔 측정 기록이 부족합니다. 며칠 더 쌓이면 변화 방향을 알려드립니다."
         headline_type = "insufficient_data"
     elif scans_raw:
         latest_comp_raw = scans_raw[-1].get("competitor_scores") or {}
@@ -2613,14 +2613,14 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
             for cid in latest_comp_raw
         )
         if total_delta_val >= 2:
-            headline = "첫 스캔 이후 AI 검색 노출이 꾸준히 개선되고 있습니다. 잘 하고 계십니다!"
+            headline = "처음 측정한 이후 AI 검색 노출이 꾸준히 개선되고 있습니다. 잘 하고 계십니다!"
             headline_type = "growth"
         elif total_delta_val <= -2:
             if worst_driver:
                 label = worst_driver["label"]
-                headline = f"첫 스캔 이후 노출이 줄었습니다. 가장 큰 원인은 '{label}' 부족입니다."
+                headline = f"처음 측정한 이후 노출이 줄었습니다. 가장 큰 원인은 '{label}' 부족입니다."
             else:
-                headline = "첫 스캔 이후 AI 검색 노출이 줄었습니다. 가이드에서 원인을 확인하세요."
+                headline = "처음 측정한 이후 AI 검색 노출이 줄었습니다. 가이드에서 원인을 확인하세요."
             headline_type = "decline"
         elif comp_gaining and total_delta_val < 1:
             headline = "경쟁 가게가 점수를 올리고 있습니다. 지금 조치가 필요합니다."
@@ -2783,7 +2783,7 @@ async def get_keyword_volumes(biz_id: str, user=Depends(get_current_user)):
             "biz_id": biz_id,
             "category": category,
             "volumes": {},
-            "message": "키워드 갭 데이터가 없습니다. 먼저 AI 스캔을 실행해주세요.",
+            "message": "빠진 검색어 데이터가 없습니다. 먼저 측정을 실행해 주세요.",
         }
 
     # 중복 제거 후 최대 15개
@@ -3384,7 +3384,7 @@ async def get_ai_citations(
         return {
             "citations": [_preview_item] if _preview_item else [],
             "is_preview": True,
-            "preview_message": "ChatGPT 인용 1건을 미리보기로 제공합니다. 전체 분석은 Basic 이상에서 확인하세요.",
+            "preview_message": "ChatGPT 언급 1건을 미리보기로 제공합니다. 전체 분석은 Basic 이상에서 확인하세요.",
             "total_preview": 1,
         }
 
@@ -3575,7 +3575,7 @@ async def log_business_action(
         _logger.warning("[action_log] 저장 실패: %s", e)
         return {
             "ok": False,
-            "message": "action_log 테이블이 없습니다. Supabase SQL Editor에서 스키마를 실행해 주세요.",
+            "message": "action_log 테이블이 없습니다. Supabase SQL Editor에서 테이블 설정을 실행해 주세요.",
         }
 
     return {"ok": True, "score_before": score_before}
@@ -3804,7 +3804,7 @@ async def get_competitor_faq_gap(
         "gap_count": 0,
         "competitors": [],
         "pooled_questions": [],
-        "message": "첫 스캔이 완료되면 경쟁사 키워드 기반 Q&A 제안이 표시됩니다.",
+        "message": "첫 측정이 완료되면 경쟁사 키워드 기반 Q&A 제안이 표시됩니다.",
     }
 
 
@@ -4058,7 +4058,7 @@ async def get_score_explanation(biz_id: str, user=Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
     scan = _scan_res.data
     if not scan:
-        raise HTTPException(status_code=404, detail="스캔 결과가 없습니다. 먼저 AI 스캔을 실행해주세요.")
+        raise HTTPException(status_code=404, detail="측정 결과가 없습니다. 먼저 측정을 실행해 주세요.")
 
     r = scan[0]
     breakdown: dict = r.get("score_breakdown") or {}
@@ -4106,7 +4106,7 @@ async def get_score_explanation(biz_id: str, user=Depends(get_current_user)):
     if naver_exposed < 50:
         t1_parts.append("네이버 AI 브리핑 미노출 확인 — 소개글 Q&A 추가와 키워드 보강이 핵심")
 
-    track1_reason = " / ".join(t1_parts) if t1_parts else "트랙 1 데이터 부족"
+    track1_reason = " / ".join(t1_parts) if t1_parts else "네이버 쪽 데이터 부족"
 
     # ── Track2 설명 생성 ──────────────────────────────────────────────────────
     t2_parts = []
@@ -4114,15 +4114,15 @@ async def get_score_explanation(biz_id: str, user=Depends(get_current_user)):
     blocked_bots = wc.get("ai_crawler_blocked_bots") or []
     if blocked_bots:
         t2_parts.append(
-            "⚠️ robots.txt에서 AI 크롤러 차단 중 (" + ", ".join(blocked_bots) + ") — "
-            "웹사이트를 아무리 개선해도 해당 AI 채널 노출이 원천적으로 막혀 있을 수 있음. "
-            "robots.txt 수정(해당 봇 Disallow 제거) 최우선 권장"
+            "⚠️ 웹사이트 설정 파일에서 AI 프로그램 차단 중 (" + ", ".join(blocked_bots) + ") — "
+            "웹사이트를 아무리 개선해도 해당 AI 서비스 노출이 원천적으로 막혀 있을 수 있음. "
+            "웹사이트 설정 파일 수정(해당 프로그램 Disallow 제거) 최우선 권장"
         )
 
     multi_ai = breakdown.get("multi_ai_exposure", 0)
     ef = int(r.get("exposure_freq") or 0)
     if multi_ai < 30:
-        t2_parts.append(f"글로벌 AI 노출 없음 (Gemini 100회 중 {ef}회 언급) — 웹사이트 Schema·한국어 콘텐츠 부족")
+        t2_parts.append(f"글로벌 AI 노출 없음 (Gemini 100회 중 {ef}회 언급) — 웹사이트 AI 인식 코드·한국어 콘텐츠 부족")
     elif multi_ai < 60:
         t2_parts.append(f"글로벌 AI 간헐적 노출 ({ef}회/100회)")
     else:
@@ -4132,23 +4132,23 @@ async def get_score_explanation(biz_id: str, user=Depends(get_current_user)):
     if schema_seo < 30:
         seo_issues = []
         if not wc.get("has_json_ld"):
-            seo_issues.append("JSON-LD 없음")
+            seo_issues.append("AI 인식 코드 없음")
         if not wc.get("has_open_graph"):
             seo_issues.append("Open Graph 태그 없음")
         if not wc.get("is_https"):
             seo_issues.append("HTTPS 미적용")
         if not wc.get("is_mobile_friendly"):
-            seo_issues.append("모바일 최적화 없음")
+            seo_issues.append("모바일 화면 개선 필요")
         if seo_issues:
-            t2_parts.append("웹사이트 SEO 문제: " + ", ".join(seo_issues))
+            t2_parts.append("웹사이트 검색 노출 문제: " + ", ".join(seo_issues))
         else:
-            t2_parts.append("웹사이트 SEO 낮음 — 개선 필요")
+            t2_parts.append("웹사이트 검색 노출 낮음 — 개선 필요")
     elif schema_seo < 60:
-        t2_parts.append("웹사이트 SEO 개선 중 — 보통")
+        t2_parts.append("웹사이트 검색 노출 개선 중 — 보통")
     else:
-        t2_parts.append("웹사이트 SEO 양호")
+        t2_parts.append("웹사이트 검색 노출 양호")
 
-    track2_reason = " / ".join(t2_parts) if t2_parts else "트랙 2 데이터 부족"
+    track2_reason = " / ".join(t2_parts) if t2_parts else "글로벌 AI 쪽 데이터 부족"
 
     # ── 개선 우선순위 TOP 3 ────────────────────────────────────────────────────
     PRIORITY_MAP = {
@@ -4157,7 +4157,7 @@ async def get_score_explanation(biz_id: str, user=Depends(get_current_user)):
         "review_quality": ("리뷰 수·평점 향상", "basic"),
         "naver_exposure_confirmed": ("네이버 AI 브리핑 노출 확보", "basic"),
         "multi_ai_exposure": ("글로벌 AI 노출 확대", "pro"),
-        "schema_seo": ("웹사이트 Schema·SEO 개선", "pro"),
+        "schema_seo": ("웹사이트 검색 노출 개선", "pro"),
     }
     sorted_items = sorted(breakdown.items(), key=lambda x: float(x[1] or 0))
     top_actions = []
@@ -4626,7 +4626,7 @@ async def simulate_score(
         raise HTTPException(status_code=404, detail="사업장 정보 없음")
     biz = biz_res.data
     if not (scan_res and scan_res.data):
-        raise HTTPException(status_code=404, detail="스캔 데이터 없음")
+        raise HTTPException(status_code=404, detail="측정 데이터 없음")
 
     scan_data = scan_res.data[0]
 
@@ -4761,7 +4761,7 @@ async def get_score_delta(biz_id: str, user=Depends(get_current_user)):
             "next_auto_scan": next_auto_scan,
             "manual_scan_remaining": remaining,
             "manual_scan_daily_limit": daily_limit,
-            "note": "스캔 이력이 없습니다. 첫 스캔을 실행해 주세요.",
+            "note": "측정 기록이 없습니다. 첫 측정을 실행해 주세요.",
         }
 
     scan_data = scan_res.data[0]
@@ -4834,7 +4834,7 @@ async def get_score_delta(biz_id: str, user=Depends(get_current_user)):
         "next_auto_scan":        next_auto_scan,
         "manual_scan_remaining": remaining,
         "manual_scan_daily_limit": daily_limit,
-        "note": "keyword_gap(30%)·AI브리핑 노출(15%)은 마지막 스캔 기준 고정값입니다.",
+        "note": "빠진 검색어(30%)·AI브리핑 노출(15%)은 마지막 측정 기준 고정값입니다.",
     }
 
 
@@ -5260,7 +5260,7 @@ async def get_onboarding_action(biz_id: str, user=Depends(get_current_user)):
     if not scan_rows:
         raise HTTPException(
             status_code=412,
-            detail="먼저 스캔이 필요합니다. 대시보드에서 [지금 분석하기]를 눌러주세요.",
+            detail="먼저 측정이 필요합니다. 대시보드에서 [지금 분석하기]를 눌러주세요.",
         )
 
     scan = scan_rows[0]
@@ -5641,9 +5641,9 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
             "title": f"리뷰 {_review_target}개 달성하기",
             "description": (
                 (
-                    "리뷰 수 미확인 — 스마트플레이스 연동 후 스캔하면 자동으로 확인됩니다"
+                    "리뷰 수 미확인 — 스마트플레이스 연동 후 측정하면 자동으로 확인됩니다"
                     if (review_count == 0 and not naver_place_id)
-                    else "리뷰 수 미확인 — AI 스캔을 실행하면 자동으로 확인됩니다"
+                    else "리뷰 수 미확인 — 측정을 실행하면 자동으로 확인됩니다"
                     if (review_count == 0 and not has_any_scan)
                     else f"현재 리뷰 {review_count}개 — {_review_desc_suffix}"
                 )
@@ -5669,9 +5669,9 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
             "title": "대표 사진 3장 업데이트하기",
             "description": (
                 (
-                    "사진 수 측정 불가 — 스마트플레이스 연동 후 스캔하면 자동으로 확인됩니다"
+                    "사진 수 측정 불가 — 스마트플레이스 연동 후 측정하면 자동으로 확인됩니다"
                     if (photo_count_raw is None and not naver_place_id and not naver_place_url)
-                    else "사진 수 측정 불가 — 다음 AI 스캔 시 자동으로 확인됩니다"
+                    else "사진 수 측정 불가 — 다음 측정 시 자동으로 확인됩니다"
                     if photo_count_raw is None
                     else f"현재 사진 {photo_count}장 — 3장 이상이면 스마트플레이스 노출이 유리해집니다"
                 )
@@ -5687,11 +5687,11 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
         },
         {
             "id": "weekly_scan",
-            "title": "이번 주 AI 스캔 완료" if has_recent_scan else "이번 주 AI 스캔하기",
+            "title": "이번 주 측정 완료" if has_recent_scan else "이번 주 측정하기",
             "description": (
-                "대시보드에서 AI 스캔을 실행하면 이번 주 변화를 바로 확인할 수 있어요"
+                "대시보드에서 측정을 실행하면 이번 주 변화를 바로 확인할 수 있어요"
                 if not has_recent_scan
-                else "이번 주 AI 스캔 완료!"
+                else "이번 주 측정 완료!"
             ),
             "completed": has_recent_scan,
             "priority": 4,
@@ -5713,7 +5713,7 @@ async def get_monthly_checklist(biz_id: str, user=Depends(get_current_user)):
             "description": (
                 "소개글에 Q&A 구조를 추가하면 AI탭 노출 가능성이 높아집니다 — 가이드에서 확인하세요"
                 if not bool(sp_result_raw.get("has_intro"))
-                else "소개글 등록 완료! AI탭 최적화 가이드에서 다음 단계를 확인하세요"
+                else "소개글 등록 완료! AI탭 개선 가이드에서 다음 단계를 확인하세요"
             ),
             "completed": bool(sp_result_raw.get("has_intro")),
             "priority": 6,

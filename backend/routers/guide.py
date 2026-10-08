@@ -138,7 +138,7 @@ async def generate_guide(
                     status_code=403,
                     detail={
                         "code": "PLAN_REQUIRED",
-                        "message": "무료 체험은 체험 스캔한 사업장에만 가이드를 생성할 수 있습니다.",
+                        "message": "무료 체험은 체험 측정한 사업장에만 가이드를 생성할 수 있습니다.",
                         "upgrade_url": "/pricing",
                     },
                 )

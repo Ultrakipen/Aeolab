@@ -60,13 +60,13 @@ def _briefing_strategy_header(eligibility: str, is_franchise: bool) -> str:
 
 def _faq_missing_msg(eligibility: str) -> str:
     if eligibility == "inactive":
-        return "FAQ는 ChatGPT·Gemini가 사용자 질문에 답변할 때 인용 후보로 참고할 수 있는 정보입니다"
-    return "소개글 Q&A 없음 — 네이버 AI 브리핑 인용 후보 중 가장 효과 큰 항목 (소개글 하단에 추가)"
+        return "FAQ는 ChatGPT·Gemini가 사용자 질문에 답변할 때 참고할 수 있는 정보입니다"
+    return "소개글 Q&A 없음 — 네이버 AI 브리핑 노출에 가장 효과 큰 항목 (소개글 하단에 추가)"
 
 
 def _intro_missing_msg(eligibility: str) -> str:
     if eligibility == "inactive":
-        return "소개글 핵심 정보 구조화는 AI탭 노출에 효과적입니다. ChatGPT·Gemini 노출은 구글 비즈니스 프로필 등록이 더 직접적입니다"
+        return "소개글 핵심 정보 정리는 AI탭 노출에 효과적입니다. ChatGPT·Gemini 노출은 구글 비즈니스 프로필 등록이 더 직접적입니다"
     return "소개글(인트로) 없음 — 키워드 3~5개 포함한 2~3문장 소개글 필요"
 
 
@@ -81,7 +81,7 @@ def _naver_briefing_exposure_msg(naver_in_briefing: bool, eligibility: str, unme
     if naver_in_briefing:
         return "있음 ✅"
     if unmeasured:
-        return "측정 실패(일시적 차단·오류) — 다음 스캔에서 재확인 필요, 현재 결과로 미노출 단정 불가"
+        return "측정 실패(일시적 차단·오류) — 다음 측정에서 재확인 필요, 현재 결과로 미노출 단정 불가"
     if eligibility == "inactive":
         return "플레이스형 네이버 AI 브리핑은 현재 이 업종 비대상입니다 — 블로그·콘텐츠로 정보형 AI 브리핑 + ChatGPT·Gemini·Google AI 노출 개선 가능"
     if eligibility == "likely":
@@ -133,7 +133,7 @@ _EXTERNAL_CHANNEL_MAP: dict[str, list[tuple[str, str]]] = {
     "fitness": [
         ("네이버 카페 '운동·다이어트'", "{region} {keyword} 후기 공유"),
         ("인스타그램 운동 인증", "#{keyword} #{region}헬스 해시태그"),
-        ("유튜브 Shorts", "짧은 운동 팁 영상 업로드 (SEO 효과)"),
+        ("유튜브 Shorts", "짧은 운동 팁 영상 업로드 (검색 노출 효과)"),
     ],
     "yoga": [
         ("인스타그램 요가·필라테스 커뮤니티", "#{keyword} #{region}요가 위치태그 + 수업 사진"),
@@ -250,15 +250,15 @@ async def _create_message_with_retry(**kwargs):
 # v3.1 신규 4개 항목 추가 — model_version=="v3.1" 시 breakdown에 평탄화되어 존재
 _DIMENSION_LABELS = {
     # v3.0 호환 항목
-    "keyword_gap_score":        "키워드 갭",
+    "keyword_gap_score":        "빠진 검색어",
     "review_quality":           "리뷰 품질",
     "smart_place_completeness": "스마트플레이스 완성도",
     "naver_exposure_confirmed": "네이버 AI 브리핑 노출",
     "multi_ai_exposure":        "멀티 AI 노출",
-    "schema_seo":               "Schema/SEO",
+    "schema_seo":               "AI 인식 코드",
     # v3.1 신규 항목
     "keyword_search_rank":      "네이버 키워드 검색 순위",
-    "blog_crank":               "블로그 생태계",
+    "blog_crank":               "블로그 현황",
     "local_map_score":          "지도·플레이스 노출",
     "ai_briefing_score":        "AI 브리핑 노출",
 }

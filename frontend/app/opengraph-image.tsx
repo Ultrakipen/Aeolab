@@ -149,7 +149,7 @@ export default async function Image() {
             display: "flex",
           }}
         >
-          AI 검색 노출 분석 플랫폼
+          AI 검색 노출 분석 서비스
         </div>
 
         {/* 설명 */}
@@ -166,7 +166,7 @@ export default async function Image() {
             justifyContent: "center",
           }}
         >
-          네이버·ChatGPT·Gemini·Google AI 4채널 노출 자동 진단 · 경쟁사 벤치마킹 · 개선 가이드
+          네이버·ChatGPT·Gemini·Google AI 4곳 노출 자동 진단 · 경쟁사 벤치마킹 · 개선 가이드
         </div>
 
         {/* 도메인 */}

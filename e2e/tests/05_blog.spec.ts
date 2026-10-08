@@ -26,14 +26,14 @@ test.describe('블로그 AI 진단 페이지 — admin 계정 (Biz 권한)', () 
   test('페이지 렌더링 확인 — 빈 상태 또는 분석 데이터 UI 둘 다 허용', async ({ adminPage: page }) => {
     await page.goto('/blog-analysis', { waitUntil: 'domcontentloaded' });
     // NoBusiness: 설명 텍스트 / BlogClient: 블로그 URL 입력 폼 / 분석 결과 카드
-    const content = page.getByText(/블로그 AI 진단|블로그.*분석.*시작|내 블로그가|키워드 커버리지|AI 인용/i).first();
+    const content = page.getByText(/블로그 AI 진단|블로그.*분석.*시작|내 블로그가|키워드 커버리지|AI 인용|AI 언급/i).first();
     await expect(content).toBeVisible({ timeout: 8_000 });
   });
 
   test('블로그 분석 관련 키워드 텍스트 노출', async ({ adminPage: page }) => {
     await page.goto('/blog-analysis', { waitUntil: 'domcontentloaded' });
     const patterns = [
-      /키워드 커버리지|AI 인용 가능성|블로그 URL|블로그 분석/i,
+      /키워드 커버리지|AI 인용 가능성|AI 언급 가능성|블로그 URL|블로그 분석/i,
     ];
     for (const pattern of patterns) {
       const el = page.getByText(pattern).first();

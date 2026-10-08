@@ -42,7 +42,7 @@ export async function GET() {
   <channel>
     <title>AEOlab 블로그</title>
     <link>${SITE_URL}/blog</link>
-    <description>AI 검색 노출(AEO) 최적화 — 네이버 AI 브리핑·ChatGPT·Gemini·Google AI 노출 가이드</description>
+    <description>AI 검색 노출(AEO) 개선 — 네이버 AI 브리핑·ChatGPT·Gemini·Google AI 노출 가이드</description>
     <language>ko-KR</language>
     <atom:link href="${SITE_URL}/feed.xml" rel="self" type="application/rss+xml" />
 ${items}

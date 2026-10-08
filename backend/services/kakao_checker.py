@@ -56,7 +56,7 @@ KAKAO_CHECKLIST: list[dict] = [
         "label": "카카오톡 채널 연결",
         "weight": 15,
         "auto": False,
-        "tip": "카카오채널(https://business.kakao.com/dashboard/chplus)을 개설하고 내 사업장과 연결하세요. 고객 문의 채널로 활용할 수 있습니다.",
+        "tip": "카카오톡 채널(https://business.kakao.com/dashboard/chplus)를 개설하고 내 사업장과 연결하세요. 고객 문의 창구로 활용할 수 있습니다.",
     },
     {
         "key": "has_menu_info",

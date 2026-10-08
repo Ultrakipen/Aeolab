@@ -1404,7 +1404,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         # gemini_result: 프론트엔드 ScanConclusionCard가 읽는 키 (gemini_evidence_data 직접 전달)
         "gemini_result": gemini_evidence_data,
         "scan_queries": _trial_scan_queries,
-        "message": "무료 원샷 체험 결과입니다. 100회 샘플링 전체 분석은 구독 후 이용 가능합니다.",
+        "message": "무료 원샷 체험 결과입니다. 100회 측정 전체 분석은 구독 후 이용 가능합니다.",
     }
 
 
@@ -1558,7 +1558,7 @@ async def run_basic_trial(req: BasicTrialRequest, user=Depends(get_current_user)
             status_code=403,
             detail={
                 "code": "ALREADY_SUBSCRIBED",
-                "message": "이미 구독 중입니다. 정상 스캔 기능을 사용하세요.",
+                "message": "이미 구독 중입니다. 정상 측정 기능을 사용하세요.",
             },
         )
 
@@ -1595,7 +1595,7 @@ async def run_basic_trial(req: BasicTrialRequest, user=Depends(get_current_user)
     if scan_key in _active_scans:
         raise HTTPException(
             status_code=409,
-            detail={"code": "SCAN_IN_PROGRESS", "message": "이미 스캔이 진행 중입니다"},
+            detail={"code": "SCAN_IN_PROGRESS", "message": "이미 측정이 진행 중입니다"},
         )
 
     # trial 선사용 마킹 (실패 시 롤백) — 중복 호출 방지
@@ -1630,14 +1630,14 @@ async def run_basic_trial(req: BasicTrialRequest, user=Depends(get_current_user)
             }).eq("user_id", user_id))
         except Exception as rollback_e:
             _logger.warning(f"basic_trial rollback failed: {rollback_e}")
-        raise HTTPException(status_code=500, detail="체험 스캔 중 오류가 발생했습니다. 잠시 후 다시 시도하세요.")
+        raise HTTPException(status_code=500, detail="체험 측정 중 오류가 발생했습니다. 잠시 후 다시 시도하세요.")
     finally:
         _active_scans.discard(scan_key)
 
     return {
         "scan_id": scan_id,
         "business_id": biz_id,
-        "message": "Basic 무료 체험 스캔이 완료되었습니다. 대시보드에서 결과를 확인하세요.",
+        "message": "Basic 무료 체험 측정이 완료되었습니다. 대시보드에서 결과를 확인하세요.",
     }
 
 
@@ -1676,7 +1676,7 @@ async def full_scan(req: ScanRequest, bg: BackgroundTasks, user=Depends(get_curr
         _logger.warning("[scan/full] rate_limit blocked: user=%s detail=%s", x_user_id, e.detail)
         raise make_scan_error(
             "PLAN_LIMIT_EXCEEDED",
-            message="월간 스캔 한도에 도달했습니다.",
+            message="이번 달 측정 한도에 도달했습니다.",
             endpoint=_endpoint,
             biz_id=req.business_id,
         )
@@ -1688,7 +1688,7 @@ async def full_scan(req: ScanRequest, bg: BackgroundTasks, user=Depends(get_curr
         _logger.warning("[scan/full] manual_scan_limit blocked: user=%s detail=%s", x_user_id, e.detail)
         raise make_scan_error(
             "PLAN_LIMIT_EXCEEDED",
-            message="일별 수동 스캔 한도에 도달했습니다. 내일 다시 시도해 주세요.",
+            message="오늘 측정 한도에 도달했습니다. 내일 다시 시도해 주세요.",
             endpoint=_endpoint,
             biz_id=req.business_id,
         )
@@ -1769,7 +1769,7 @@ async def prepare_stream(biz_id: str, selected_keyword: str = "", user=Depends(g
     if scan_key in _active_scans:
         raise HTTPException(
             status_code=409,
-            detail={"code": "SCAN_IN_PROGRESS", "message": "이미 스캔이 진행 중입니다"},
+            detail={"code": "SCAN_IN_PROGRESS", "message": "이미 측정이 진행 중입니다"},
         )
 
     # 월간 한도 체크
@@ -1851,7 +1851,7 @@ async def stream_scan(stream_token: str):
         # 중복 스캔 방지
         scan_key = f"{user_id}:{biz_id}"
         if scan_key in _active_scans:
-            _err = {"code": "SCAN_IN_PROGRESS", "message": "이미 스캔이 진행 중입니다. 완료 후 다시 시도해 주세요.", "support": "support@aeolab.co.kr"}
+            _err = {"code": "SCAN_IN_PROGRESS", "message": "이미 측정이 진행 중입니다. 완료 후 다시 시도해 주세요.", "support": "support@aeolab.co.kr"}
             yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
             return
         _active_scans.add(scan_key)
@@ -1862,7 +1862,7 @@ async def stream_scan(stream_token: str):
                 await check_monthly_scan_limit(user_id, get_client())
             except HTTPException as e:
                 _logger.warning("[scan/stream] rate_limit blocked: user=%s detail=%s", user_id, e.detail)
-                _err = {"code": "PLAN_LIMIT_EXCEEDED", "message": "월간 스캔 한도에 도달했습니다.", "support": "support@aeolab.co.kr"}
+                _err = {"code": "PLAN_LIMIT_EXCEEDED", "message": "이번 달 측정 한도에 도달했습니다.", "support": "support@aeolab.co.kr"}
                 yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
                 return
             # free 플랜은 /stream/prepare에서 이미 check_manual_scan_limit 호출 + 마킹 완료.
@@ -1874,7 +1874,7 @@ async def stream_scan(stream_token: str):
                     await check_manual_scan_limit(user_id, get_client(), business_id=biz_id)
                 except HTTPException as e:
                     _logger.warning("[scan/stream] manual_limit blocked: user=%s detail=%s", user_id, e.detail)
-                    _err = {"code": "PLAN_LIMIT_EXCEEDED", "message": "일별 수동 스캔 한도에 도달했습니다. 내일 다시 시도해 주세요.", "support": "support@aeolab.co.kr"}
+                    _err = {"code": "PLAN_LIMIT_EXCEEDED", "message": "오늘 측정 한도에 도달했습니다. 내일 다시 시도해 주세요.", "support": "support@aeolab.co.kr"}
                     yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
                     return
 
@@ -1910,7 +1910,7 @@ async def stream_scan(stream_token: str):
                 _msg_map = {
                     "PLAYWRIGHT_TIMEOUT": "네이버·Google 페이지 로딩 시간이 초과됐습니다. 잠시 후 다시 시도해 주세요.",
                     "AI_SERVICE_UNAVAILABLE": "AI 서비스 일시 응답 지연입니다. 잠시 후 다시 시도해 주세요.",
-                    "INTERNAL_ERROR": "스캔 중 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+                    "INTERNAL_ERROR": "측정 중 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
                 }
                 _err = {
                     "code": _err_code,
@@ -1927,7 +1927,7 @@ async def stream_scan(stream_token: str):
                 await _rollback_free_scan(user_id, "no_channel_results")
                 _err = {
                     "code": "SCAN_FAILED",
-                    "message": "스캔 중 오류가 발생했습니다. 이번 달 무료 스캔 기회가 복원됩니다. 잠시 후 다시 시도해 주세요.",
+                    "message": "측정 중 오류가 발생했습니다. 이번 달 무료 측정 기회가 복원됩니다. 잠시 후 다시 시도해 주세요.",
                     "support": "support@aeolab.co.kr",
                 }
                 yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
@@ -2789,7 +2789,7 @@ async def _enrich_scan_background(
                     "sample_size":   _g_sample + _c_sample,
                     "url": None,
                     "captured_at": datetime.today().date().isoformat(),
-                    "label": "Gemini·ChatGPT 듀얼" if (_g_ok and _c_ok) else ("Gemini AI" if _g_ok else "ChatGPT"),
+                    "label": "Gemini·ChatGPT 동시 측정" if (_g_ok and _c_ok) else ("Gemini AI" if _g_ok else "ChatGPT"),
                 })
             if ai_screenshots:
                 await execute(

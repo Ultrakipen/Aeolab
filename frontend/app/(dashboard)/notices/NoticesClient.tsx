@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Pin } from "lucide-react";
 import Link from "next/link";
 import { Notice } from "@/types";
 
@@ -127,7 +128,7 @@ export default function NoticesClient({ initialItems, initialTotal }: Props) {
                     </td>
                     <td className="py-3">
                       <Link href={"/notices/" + notice.id} className="flex items-center gap-2 hover:text-blue-600 transition-colors">
-                        {notice.is_pinned && <span className="text-red-700 font-bold text-sm shrink-0">📌</span>}
+                        {notice.is_pinned && <span className="text-red-700 font-bold text-sm shrink-0"><Pin className="w-4 h-4" aria-label="고정 공지" /></span>}
                         <span className={notice.is_pinned ? "font-medium" : ""}>{notice.title}</span>
                       </Link>
                     </td>
@@ -144,7 +145,7 @@ export default function NoticesClient({ initialItems, initialTotal }: Props) {
             {items.map((notice) => (
               <Link key={notice.id} href={"/notices/" + notice.id} className="block bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-colors">
                 <div className="flex items-start gap-2 mb-1.5">
-                  {notice.is_pinned && <span className="text-red-700 text-sm shrink-0 mt-0.5">📌</span>}
+                  {notice.is_pinned && <span className="text-red-700 text-sm shrink-0 mt-0.5"><Pin className="w-4 h-4" aria-label="고정 공지" /></span>}
                   <p className={"text-sm text-gray-900 leading-snug " + (notice.is_pinned ? "font-medium" : "")}>{notice.title}</p>
                 </div>
                 <div className="flex items-center gap-2 mt-2">

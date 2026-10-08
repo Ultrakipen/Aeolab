@@ -175,7 +175,7 @@ export function AccountClient({ currentEmail }: Props) {
       {/* 계정 탈퇴 */}
       <div className="border border-red-100 rounded-xl p-4 md:p-5">
         <h3 className="text-base font-semibold text-red-700 mb-1">계정 탈퇴</h3>
-        <p className="text-sm text-gray-600 mb-3">탈퇴 시 모든 사업장, 스캔 기록, 구독이 영구 삭제됩니다.</p>
+        <p className="text-sm text-gray-600 mb-3">탈퇴 시 모든 사업장, 측정 기록, 구독이 영구 삭제됩니다.</p>
         {!showDeleteConfirm ? (
           <button
             onClick={() => setShowDeleteConfirm(true)}

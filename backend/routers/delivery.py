@@ -52,21 +52,21 @@ PACKAGES: dict[str, dict] = {
     "smartplace_register": {
         "name": "01 스마트플레이스 등록 대행",
         "amount": DELIVERY_PRICES["smartplace_register"],
-        "description": "스마트플레이스 신규 등록부터 기본정보, 메뉴, 키워드 최적화까지",
+        "description": "스마트플레이스 신규 등록부터 기본정보, 메뉴, 키워드 정리까지",
         "work_hours": "5.2h 작업",
         "features": [
             "스마트플레이스 신규 등록",
-            "기본정보·메뉴·키워드 최적화",
+            "기본정보·메뉴·키워드 정리",
             "대표 사진 구성 안내",
         ],
     },
     "ai_optimization": {
-        "name": "02 AI 검색 최적화",
+        "name": "02 AI 검색 개선",
         "amount": DELIVERY_PRICES["ai_optimization"],
-        "description": "AI 검색 최적화, 소개글·톡톡메뉴·후기답글·키워드 보강",
+        "description": "AI 검색 개선, 소개글·톡톡메뉴·후기답글·키워드 보강",
         "work_hours": "6.0h 작업",
         "features": [
-            "소개글·톡톡채팅방 메뉴 최적화",
+            "소개글·톡톡채팅방 메뉴 정리",
             "후기 답글 10건 작성",
             "핵심 키워드 보강",
         ],
@@ -74,11 +74,11 @@ PACKAGES: dict[str, dict] = {
     "comprehensive": {
         "name": "03 종합 풀패키지",
         "amount": DELIVERY_PRICES["comprehensive"],
-        "description": "등록+최적화+코칭+30일 재진단 — 개별 구매 시 158,000원 → 139,000원",
+        "description": "등록+개선+코칭+30일 재진단 — 개별 구매 시 158,000원 → 139,000원",
         "work_hours": "11.2h 작업",
         "features": [
             "01 등록 대행 전체 포함",
-            "02 AI 최적화 전체 포함",
+            "02 AI 개선 전체 포함",
             "1:1 코칭 세션 + 30일 재진단",
         ],
     },

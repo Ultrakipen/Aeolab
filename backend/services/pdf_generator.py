@@ -126,15 +126,15 @@ def _text_label(score) -> str:
 
 def _stage(score: float) -> tuple[str, str]:
     for thr, lbl, desc in [
-        (85, "최적화 완료",  "AI 검색 최적화가 매우 잘 되어 있습니다."),
-        (70, "활성화 단계",  "AI 검색에서 활발하게 노출되고 있습니다."),
-        (50, "성장 단계",    "AI 검색 노출이 꾸준히 성장하고 있습니다."),
-        (30, "기반 구축 중", "기본 최적화가 진행 중입니다."),
-        (0,  "초기 단계",    "AI 검색 최적화를 본격적으로 시작할 단계입니다."),
+        (85, "AI 검색 개선 완료",  "AI 검색 개선이 매우 잘 되어 있습니다."),
+        (70, "활성화 단계",        "AI 검색에서 활발하게 노출되고 있습니다."),
+        (50, "성장 단계",          "AI 검색 노출이 꾸준히 성장하고 있습니다."),
+        (30, "기반 구축 중",       "기본 개선이 진행 중입니다."),
+        (0,  "초기 단계",          "AI 검색 개선을 본격적으로 시작할 단계입니다."),
     ]:
         if score >= thr:
             return lbl, desc
-    return "초기 단계", "AI 검색 최적화를 본격적으로 시작할 단계입니다."
+    return "초기 단계", "AI 검색 개선을 본격적으로 시작할 단계입니다."
 
 # ── 이미지 다운로드 ───────────────────────────────────────────────────────────
 
@@ -279,17 +279,17 @@ _IMPROVE_ITEMS = {
         ],
     },
     "schema_seo": {
-        "label": "웹사이트 AI 최적화",
-        "w_desc_with_website": "웹사이트가 있지만 AI 검색 최적화가 이루어지지 않았습니다.",
+        "label": "웹사이트 AI 검색 노출",
+        "w_desc_with_website": "웹사이트가 있지만 AI 검색 노출 개선이 이루어지지 않았습니다.",
         "w_desc_no_website": "웹사이트가 없어 구글·ChatGPT 등이 사업장 정보를 충분히 인식하지 못합니다.",
         "steps_with_website": [
             "웹사이트 제목(title) 태그와 설명(meta description)에 주요 키워드를 포함하세요.",
-            "사업장명·주소·전화번호·영업시간을 JSON-LD 구조화 데이터로 추가하세요.\n"
-            "   AEOlab '스키마 생성' 기능으로 코드를 자동 생성할 수 있습니다.",
+            "사업장명·주소·전화번호·영업시간을 AI 인식 코드로 추가하세요.\n"
+            "   AEOlab 'AI 인식 코드 생성' 기능으로 코드를 자동 생성할 수 있습니다.",
             "모든 사진에 alt 텍스트(키워드 포함)를 추가하세요.",
         ],
         "steps_no_website": [
-            "네이버 모두(modoo.at) 또는 카카오 채널을 무료로 개설하세요.\n"
+            "네이버 모두(modoo.at) 또는 카카오톡 채널를 무료로 개설하세요.\n"
             "   간단한 홈페이지 역할을 하며 구글·AI 검색 노출에 도움이 됩니다.",
             "모두 페이지에 사업장명·주소·전화번호·영업시간·서비스 소개를 상세히 입력하세요.",
             "개설 후 구글 비즈니스 프로필에 해당 URL을 등록하세요.",
@@ -352,8 +352,8 @@ _STRENGTH_CONTEXT = {
         "글로벌 AI 사용자가 사업장을 추천받을 수 있습니다. 젊은 층·외국인 유입에 효과적입니다.",
     ),
     "schema_seo": (
-        "웹사이트 AI 최적화",
-        "웹사이트가 AI 검색에 최적화되어 있습니다.",
+        "웹사이트 AI 검색 노출",
+        "웹사이트가 AI 검색에 잘 연결되어 있습니다.",
         "구글·ChatGPT 등이 사업장 웹사이트 정보를 정확하게 인식합니다.",
     ),
     "online_mentions_t2": (
@@ -489,9 +489,9 @@ def _score_card_row(total: float, nav: dict, gpt: dict, gem: dict, elig: str) ->
     if elig == "inactive":
         n_v, n_s, n_bg, n_fg = "비대상", "업종 미지원", "#f3f4f6", "#6b7280"
     elif nav.get("in_briefing"):
-        n_v, n_s, n_bg, n_fg = "노출중", "AI 브리핑 인용", "#dcfce7", "#166534"
+        n_v, n_s, n_bg, n_fg = "노출중", "AI 브리핑 언급", "#dcfce7", "#166534"
     elif nav.get("eligible"):
-        n_v, n_s, n_bg, n_fg = "미노출", "최적화 필요", "#fef2f2", "#991b1b"
+        n_v, n_s, n_bg, n_fg = "미노출", "개선 필요", "#fef2f2", "#991b1b"
     else:
         n_v, n_s, n_bg, n_fg = "비대상", "업종 미지원", "#f3f4f6", "#6b7280"
 
@@ -612,7 +612,7 @@ _BREAKDOWN_ITEMS = [
     ("review_quality",           "리뷰 관리",           "T1", "고객 반응 신호"),
     ("naver_exposure_confirmed", "네이버 AI 브리핑",    "T1", "AI 브리핑 직접 노출"),
     ("multi_ai_exposure",        "글로벌 AI 노출",      "T2", "ChatGPT·Gemini 언급"),
-    ("schema_seo",               "웹사이트 SEO",        "T2", "웹사이트 AI 인식"),
+    ("schema_seo",               "웹사이트 검색 노출",   "T2", "웹사이트 AI 인식"),
     ("online_mentions_t2",       "온라인 언급량",        "T2", "온라인 콘텐츠 양"),
     ("google_presence",          "Google AI 노출",      "T2", "Google AI 노출"),
 ]
@@ -815,21 +815,21 @@ def generate_pdf_report(
     # 채널 안내 배너
     if elig == "inactive":
         btext = ("【플레이스형 비대상 업종】  '플레이스형' 네이버 AI 브리핑은 음식점·카페·숙박 등 일부 업종만 대상입니다 (네이버 공식 정책). "
-                 "이 사업장은 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 ChatGPT · Gemini · Google AI 최적화에 집중하세요.")
+                 "이 사업장은 블로그·콘텐츠 기반 '정보형 AI 브리핑'과 ChatGPT · Gemini · Google AI 개선에 집중하세요.")
         story.append(_banner(btext, "#fef9c3", "#ca8a04", S))
     elif elig == "likely":
         btext = ("【정보형 AI 브리핑 대상 · 플레이스형 확대 예상 업종】  특정 가게를 요약하는 '플레이스형' AI 브리핑 공식 대상은 "
                  "아니지만, 블로그·콘텐츠 기반 '정보형 AI 브리핑'에는 지금도 노출될 수 있습니다. "
-                 "네이버 지도 상위 노출과 ChatGPT·Gemini도 함께 최적화하세요.")
+                 "네이버 지도 상위 노출과 ChatGPT·Gemini도 함께 개선하세요.")
         story.append(_banner(btext, "#ecfdf5", "#059669", S))
     else:
         btext = ("【노출 대상 업종】  네이버 AI 브리핑 노출 대상 업종입니다. "
-                 "스마트플레이스 최적화가 AI 노출의 핵심입니다.")
+                 "스마트플레이스 개선이 AI 노출의 핵심입니다.")
         story.append(_banner(btext, "#eff6ff", "#2563eb", S))
     story.append(Spacer(1, 8))
 
     # ── AI 플랫폼별 실측 노출 현황 ──────────────────────────────────────────
-    _section_bg(story, "AI 플랫폼별 실측 노출 현황")
+    _section_bg(story, "AI 서비스별 실측 노출 현황")
 
     def _st(text, fg, bold=False):
         return Paragraph(
@@ -855,7 +855,7 @@ def generate_pdf_report(
     ]
 
     pf_rows = [[
-        Paragraph("플랫폼", ParagraphStyle("h", fontName=FONT_NAME, fontSize=9,
+        Paragraph("서비스", ParagraphStyle("h", fontName=FONT_NAME, fontSize=9,
                                            textColor=colors.white, leading=12)),
         Paragraph("상태", ParagraphStyle("h", fontName=FONT_NAME, fontSize=9,
                                          textColor=colors.white, leading=12)),
@@ -908,7 +908,7 @@ def generate_pdf_report(
              f"{gem['freq']}/{gem['n']}회  ({gem['rate']}%)",
              gem_ok,
              (f"총 {gem['n']}회 질문 중 {gem['freq']}회 언급됨" + gem_exc) if gem_ok
-             else f"총 {gem['n']}회 질문에서 미언급  ·  구조화 콘텐츠 및 구글 등록 권장",
+             else f"총 {gem['n']}회 질문에서 미언급  ·  AI 인식 코드 및 구글 등록 권장",
              3)
 
     # Google AI
@@ -918,7 +918,7 @@ def generate_pdf_report(
              "노출됨" if goo_ok else "미노출",
              goo_ok,
              ("Google 검색에 노출 중입니다." + goo_exc) if goo_ok
-             else "미노출 — 구글 비즈니스 프로필 + JSON-LD 등록 권장 (Gemini·Google AI Overview 2~4주 반영 시작, 안정화 3~6개월)",
+             else "미노출 — 구글 비즈니스 프로필 + AI 인식 코드 등록 권장 (Gemini·Google AI Overview 2~4주 반영 시작, 안정화 3~6개월)",
              4)
 
     pf_table = Table(pf_rows, colWidths=[3.8 * cm, 2.8 * cm, 9.0 * cm])
@@ -1013,7 +1013,7 @@ def generate_pdf_report(
 
     if elig == "inactive":
         # INACTIVE: 블로그 검색 스크린샷이 네이버 노출의 유일한 시각적 증거
-        _show_shot(blog_shots, "네이버 블로그 검색 노출 현황  (네이버 SEO 증거)", "#eff6ff", "#1d4ed8")
+        _show_shot(blog_shots, "네이버 블로그 검색 노출 현황  (검색 노출 현황)", "#eff6ff", "#1d4ed8")
     else:
         # ACTIVE/LIKELY: AI 브리핑 먼저, 블로그 두 번째
         _show_shot(ai_shots, "네이버 AI 브리핑 스크린샷", "#f8fafc", "#374151")
@@ -1022,7 +1022,7 @@ def generate_pdf_report(
     # ── 블로그 진단 ────────────────────────────────────────────────────────────
     blog_ok = blog_analysis and not blog_analysis.get("error")
     if blog_ok:
-        _section_bg(story, "블로그 진단  (네이버 블로그 SEO 분석)", bg="#f0fdf4", fg="#166534")
+        _section_bg(story, "블로그 진단  (네이버 블로그 검색 노출 분석)", bg="#f0fdf4", fg="#166534")
         platform_map = {"naver": "네이버 블로그", "tistory": "티스토리",
                         "wordpress": "워드프레스", "other": "기타 블로그"}
         fresh_map    = {"active": "활발 (월 2회+)", "normal": "보통 (월 1회)",
@@ -1052,7 +1052,7 @@ def generate_pdf_report(
         b_top_rec   = blog_analysis.get("top_recommendation") or ""
 
         bl_summary_rows = [
-            [_st("플랫폼", "#374151", bold=True), _st(b_platform, "#1f2937"),
+            [_st("서비스", "#374151", bold=True), _st(b_platform, "#1f2937"),
              _st("총 포스트", "#374151", bold=True), _st(f"{b_post_cnt}개", "#1f2937")],
             [_st("발행 빈도", "#374151", bold=True), _st(b_freshness, "#1f2937"),
              _st("AI 적합도", "#374151", bold=True), _st(_text_label(b_readiness), "#1f2937")],
@@ -1266,7 +1266,7 @@ def generate_pdf_report(
     # ── INACTIVE 전용: 글로벌 AI SEO 5단계 ─────────────────────────────────
     if elig == "inactive":
         story.append(Spacer(1, 6))
-        _section_bg(story, "정보형 AI 브리핑 + 글로벌 AI SEO 전략  (플레이스형 비대상 업종 집중 플랜)", bg="#f5f3ff", fg="#7c3aed")
+        _section_bg(story, "정보형 AI 브리핑 + 글로벌 AI 검색 노출 전략  (플레이스형 비대상 업종 집중 플랜)", bg="#f5f3ff", fg="#7c3aed")
         story.append(Paragraph(
             "'플레이스형' 네이버 AI 브리핑 비대상 업종도 블로그·콘텐츠 강화로 '정보형 AI 브리핑' + ChatGPT·Gemini·Google AI 노출을 높일 수 있습니다. 아래 5단계를 실행하세요.",
             S["small"],
@@ -1279,13 +1279,13 @@ def generate_pdf_report(
             ("콘텐츠 전략 (월 2회 블로그)",
              "사업장 소개·서비스 안내·FAQ 형식으로 네이버 블로그에 월 2회 이상 작성.\n"
              "AI는 이 콘텐츠를 학습해 사용자 질문에 답변합니다."),
-            ("모두(modoo) 또는 카카오 채널 개설" if not has_web else "웹사이트 JSON-LD 구조화 데이터 추가",
+            ("카카오톡 채널 개설" if not has_web else "웹사이트 AI 인식 코드 추가",
              ("무료 웹페이지 역할. 사업장명·주소·전화번호·서비스 소개를 상세히 입력하세요." if not has_web
-              else "AEOlab '스키마 생성' 기능으로 JSON-LD 코드를 자동 생성할 수 있습니다.")),
-            ("NAP 일관성 관리",
+              else "AEOlab 'AI 인식 코드 생성' 기능으로 AI 인식 코드를 자동 생성할 수 있습니다.")),
+            ("이름·주소·전화번호 일관성 관리",
              "네이버지도·카카오맵·구글맵·홈페이지에 사업장 이름·주소·전화번호가 동일한지 확인.\n"
              "불일치하면 AI가 사업장을 다른 곳으로 인식해 노출이 줄어듭니다."),
-            ("리뷰 생태계 구축",
+            ("리뷰 수 늘리기",
              "구글 리뷰 10개 + 네이버 블로그 후기 20개 확보 목표.\n"
              "QR코드 리뷰 요청 카드를 카운터에 비치하는 것이 가장 효과적입니다."),
         ]

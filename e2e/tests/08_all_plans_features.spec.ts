@@ -125,7 +125,7 @@ test.describe('Biz 기능 — admin 계정 (Biz 권한) 검증', () => {
 test.describe('스캔 관련 — 버튼 존재 확인 (클릭 절대 금지)', () => {
   test('수동 스캔 버튼 존재 확인 (AI API 호출 방지 — 클릭 안 함)', async ({ adminPage: page }) => {
     // ScanTrigger renders "AI 스캔 시작" after async data load — wait with timeout
-    const scanBtn = page.getByRole('button', { name: /AI 분석|스캔|분석하기|분석 시작|AI 스캔 시작/i }).first();
+    const scanBtn = page.getByRole('button', { name: /AI 분석|스캔|측정|분석하기|분석 시작|AI 스캔 시작|AI 측정 시작/i }).first();
     const registerBtn = page.getByRole('link', { name: /가게 등록|사업장 등록|시작하기/i }).first();
     let hasScan = false;
     try {
