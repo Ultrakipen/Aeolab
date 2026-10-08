@@ -65,3 +65,14 @@
 - 대상: /trial 전 흐름, score-guide, plans-preview, quick, share, stories, help, blog 목록, tools, 가입, PlanGate 등. 컬러 이모지→lucide, `→`→ArrowRight, 체험 결과에 "왜 네이버 정보가 ChatGPT에 잘 안 나오나요?" 접이식 추가.
 - **미배포/미커밋(사용자 기존 미커밋 변경과 섞임)**: `SchemaClient.tsx`, `AdDefenseClient.tsx`(에이전트가 용어 수정함, 서버와 md5 다름), `settings/team`, `StartupClient`, `tools/keyword/page.tsx` — 기존 변경 내용 확인 후 함께 배포 결정 필요.
 - **남음**: `lib/blog-posts.ts` 블로그 글 본문(검사기 21건, "최적화·세 채널" 등), terms/privacy(법적 문서라 제외), 대시보드(약 500건)·그 공용 컴포넌트.
+
+---
+
+## Phase 7 (2026-10-08) — 대시보드·공용 컴포넌트·lib·블로그 글
+- 6개 에이전트 병렬(가이드 / 경쟁사·블로그·성장·변화기록 / 대시보드 홈·온보딩·설정 / 핵심 카드 7종 / 나머지 카드 / lib). 통일 표현 규칙 `RULES3`(스캔→측정, 인용→언급, 채널→AI 서비스, 최적화→개선 …) + "화면 문구만 변경, 코드 비교용 문자열·키 변경 금지".
+- 메인 세션 검증: 검사기(화면 문구 잔여 13건 중 코드 비교용·제품 고유명사 외 0), tsc 통과, `git diff` 전수 대조 스크립트(비교 패턴·객체 키·다른 곳에 남은 동일 문자열)로 키 불일치 0건 확인, 서버 md5 121개 일치, 빌드·pm2 오류 0.
+- 메인 세션이 바로잡은 것: 카카오톡 채널(제품명)→"카카오 비즈니스 계정"으로 바꾼 것 되돌림, Wix 메뉴명 "SEO" 되돌림, `userGroup.ts`의 "(확대 예상 업종)"→"확대 여부는 네이버가 발표하지 않았습니다", AI탭 "업종 제한 없이"→"업종 제한 발표 없이"(GlobalAiFocusCard).
+- **의도적으로 남긴 것**: `AICitationCard`·`MentionContextCard`의 `includes('(구체적 인용문 없음)')`(백엔드가 저장한 값과 비교), `AiTabPreviewCard`의 `"UGC 풍부도"` 키(백엔드 필드값과 매칭), `KakaoChecklistCard`·`demo/TodayOneActionBox`의 "카카오톡 채널"(제품 고유명사), 법적 면책 원문.
+- **백엔드 문구(미수정)**: `backend/routers/delivery.py` 패키지명·설명의 "최적화", `report.py`/`gap_analyzer.py`/`pdf_generator.py`/`score_engine.py`의 "블로그 지수·블로그 생태계·글로벌 AI 채널·최적화 완료" 등 — 프런트가 이 값을 그대로 표시하는 화면이 있으면 여전히 어려운 말이 보임. 별도 점검 필요.
+- **라이브 미확인**: 로그인 후 대시보드 화면은 실계정 없이 눈으로 확인하지 못함(비로그인 라우트는 /login 리다이렉트 200 정상).
+- 남은 것: `ImpactCard`·`MockupClient`의 컬러 이모지 배열(타입 변경 필요), terms/privacy(법적), admin.
