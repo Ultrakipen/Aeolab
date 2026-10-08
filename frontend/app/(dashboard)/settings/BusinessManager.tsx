@@ -773,7 +773,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
             <div className="border-b border-red-100 bg-red-50 px-4 py-4">
               <p className="text-sm text-red-700 mb-3">
                 <strong>{activeBiz.name}</strong>을(를) 삭제하시겠습니까?<br />
-                <span className="text-sm text-red-700">관련 스캔 기록, 경쟁사 데이터가 모두 비활성화됩니다.</span>
+                <span className="text-sm text-red-700">관련 측정 기록, 경쟁사 데이터가 모두 비활성화됩니다.</span>
               </p>
               <div className="flex gap-2">
                 <button
@@ -874,12 +874,12 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 <p className="text-sm text-red-700 mt-1">http:// 또는 https://로 시작하는 주소를 입력해주세요.</p>
               )}
               <p className="text-sm text-gray-600 mt-1">
-                블로그 주소를 등록하면 가이드 페이지에서 AI 브리핑 최적화 진단을 받을 수 있습니다.
+                블로그 주소를 등록하면 가이드 페이지에서 AI 브리핑 개선 진단을 받을 수 있습니다.
               </p>
             </div>
             {/* 네이버 스마트플레이스 ID + URL + 카카오 */}
             <div className="bg-gray-100 rounded-xl px-4 py-3 space-y-3">
-              <p className="text-sm font-semibold text-gray-700">플랫폼 등록 정보 <span className="font-normal text-gray-600">(선택)</span></p>
+              <p className="text-sm font-semibold text-gray-700">서비스 등록 정보 <span className="font-normal text-gray-600">(선택)</span></p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor={`biz-${activeBiz.id}-naver-place`} className="block text-sm font-medium text-gray-700 mb-1">
@@ -919,7 +919,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   placeholder="예: https://map.naver.com/p/entry/place/12345678"
                   className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <p className="text-sm text-gray-600 mt-1">입력 시 소식·소개글 등록 여부를 스캔 때 자동으로 확인합니다.</p>
+                <p className="text-sm text-gray-600 mt-1">입력 시 소식·소개글 등록 여부를 측정 때 자동으로 확인합니다.</p>
               </div>
               <div>
                 <label htmlFor={`biz-${activeBiz.id}-kakao-id`} className="block text-sm font-medium text-gray-700 mb-1">
@@ -1202,7 +1202,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 고객 리뷰 샘플
-                <span className="ml-1 font-normal text-gray-600">(키워드 갭 분석에 사용, 선택)</span>
+                <span className="ml-1 font-normal text-gray-600">(부족한 키워드 분석에 사용, 선택)</span>
               </label>
               <textarea
                 rows={4}

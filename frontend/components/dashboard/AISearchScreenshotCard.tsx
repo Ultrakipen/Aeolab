@@ -111,7 +111,7 @@ function PlatformCard({ screenshot }: { screenshot: Screenshot }) {
       {/* 스크린샷 */}
       {screenshot.platform === "gemini" ? (
         <div className="w-full rounded-lg border border-blue-200 bg-blue-50 px-4 py-4">
-          <p className="text-sm text-blue-600 font-semibold mb-2">Gemini·ChatGPT 듀얼 측정 노출 결과</p>
+          <p className="text-sm text-blue-600 font-semibold mb-2">Gemini·ChatGPT 측정 노출 결과</p>
           <div className="flex items-center gap-3">
             <div className="flex-1 bg-blue-100 rounded-full h-3 overflow-hidden">
               <div
@@ -125,7 +125,7 @@ function PlatformCard({ screenshot }: { screenshot: Screenshot }) {
           </div>
           <p className="text-sm text-blue-600 mt-2 text-center">
             {(screenshot.sample_size ?? 100) <= 20
-              ? `체험 스캔 — Gemini·ChatGPT 합산 ${screenshot.sample_size ?? 15}회 측정`
+              ? `체험 측정 — Gemini·ChatGPT 합산 ${screenshot.sample_size ?? 15}회 측정`
               : `Gemini·ChatGPT 각 ${Math.round((screenshot.sample_size ?? 100) / 2)}회씩 반복 질문하여 언급 횟수로 노출률을 측정합니다`}
           </p>
         </div>
@@ -136,7 +136,7 @@ function PlatformCard({ screenshot }: { screenshot: Screenshot }) {
               d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
           <p className="text-sm text-orange-700 text-center">
-            ChatGPT는 API로 언급 여부만 확인합니다
+            ChatGPT는 언급 여부만 확인합니다
           </p>
         </div>
       ) : screenshot.url && !imgError ? (
@@ -226,7 +226,7 @@ export default function AISearchScreenshotCard({ bizId, plan, authToken }: Props
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-4">
         <div>
           <h2 className="text-lg font-bold text-gray-900">실제 AI 검색 화면</h2>
-          <p className="text-sm text-gray-600 mt-0.5">스캔 후 자동 캡처 · 네이버 블로그 + 카페 + ChatGPT + Gemini</p>
+          <p className="text-sm text-gray-600 mt-0.5">측정 후 자동 캡처 · 네이버 블로그 + 카페 + ChatGPT + Gemini</p>
         </div>
         {lastChecked && (
           <span className="text-sm text-gray-600">마지막 확인: {formatDate(lastChecked)}</span>
@@ -260,7 +260,7 @@ export default function AISearchScreenshotCard({ bizId, plan, authToken }: Props
           <p className="text-sm text-gray-600 leading-relaxed">
             아직 AI 검색 화면 분석이 완료되지 않았습니다.
             <br />
-            스캔 완료 후 약 20초 뒤 자동으로 나타납니다.
+            측정 완료 후 약 20초 뒤 자동으로 나타납니다.
           </p>
         </div>
       )}

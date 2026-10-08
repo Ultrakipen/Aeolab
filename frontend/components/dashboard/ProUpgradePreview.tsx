@@ -82,15 +82,15 @@ export default function ProUpgradePreview({ businessName, category: _category, p
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* A. 스캔 빈도 비교 */}
         <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
-          <h3 className="text-sm font-bold text-gray-700 mb-1">전체 AI 스캔 빈도</h3>
-          <p className="text-sm text-gray-600 mb-4">7개 AI 채널을 한 번에 분석하는 전체 스캔 횟수</p>
+          <h3 className="text-sm font-bold text-gray-700 mb-1">전체 AI 측정 빈도</h3>
+          <p className="text-sm text-gray-600 mb-4">여러 AI 서비스를 한 번에 분석하는 전체 측정 횟수</p>
 
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
                 Basic (현재)
               </span>
-              <span className="text-sm text-gray-600">월요일만 전체 스캔</span>
+              <span className="text-sm text-gray-600">월요일만 전체 측정</span>
             </div>
             <div className="flex gap-1.5 flex-wrap">
               {WEEKDAY_LABELS.map((label, i) => (
@@ -114,7 +114,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
               <span className="text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
                 Pro (업그레이드 후)
               </span>
-              <span className="text-sm text-gray-600">월·수·금 전체 스캔</span>
+              <span className="text-sm text-gray-600">월·수·금 전체 측정</span>
             </div>
             <div className="flex gap-1.5 flex-wrap">
               {WEEKDAY_LABELS.map((_, i) => (
@@ -122,7 +122,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
               ))}
             </div>
             <p className="text-sm text-indigo-600 font-semibold mt-1.5">
-              주 3회 전체 AI 스캔 → 경쟁사 변화를 3일 안에 포착
+              주 3회 전체 AI 측정 → 경쟁사 변화를 3일 안에 포착
             </p>
           </div>
         </div>
@@ -217,7 +217,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
                 {[
                   "리뷰 기반 소개글 Q&A 추가로 자연 노출 강화",
                   "브랜드 키워드 콘텐츠 확보",
-                  "구글 비즈니스 프로필 최적화",
+                  "구글 비즈니스 프로필 개선",
                 ].map((s, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm text-gray-600">
                     <span className="text-indigo-400 shrink-0 mt-0.5">•</span>
@@ -233,7 +233,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
         <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6 md:col-span-2">
           <h3 className="text-sm font-bold text-gray-700 mb-1">리포트 내보내기</h3>
           <p className="text-sm text-gray-600 mb-4">
-            전체 AI 노출 분석 결과를 PDF·CSV로 다운로드
+            전체 AI 노출 분석 결과를 PDF·엑셀 파일로 다운로드
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="relative border border-gray-200 rounded-xl p-4 flex items-center gap-4 overflow-hidden">
@@ -257,10 +257,10 @@ export default function ProUpgradePreview({ businessName, category: _category, p
             <div className="relative border border-gray-200 rounded-xl p-4 flex items-center gap-4 overflow-hidden">
               <div className="pointer-events-none select-none opacity-40 flex items-center gap-4 flex-1">
                 <div className="w-10 h-12 bg-green-100 border border-green-200 rounded flex items-center justify-center shrink-0">
-                  <span className="text-green-700 font-bold text-sm">CSV</span>
+                  <span className="text-green-700 font-bold text-sm">엑셀</span>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">스캔 이력 데이터</p>
+                  <p className="text-sm font-semibold text-gray-800">측정 이력 데이터</p>
                   <p className="text-sm text-gray-600">90일 점수 이력을 엑셀로 내보내기</p>
                 </div>
               </div>
@@ -283,7 +283,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
               지금 Pro로 전환하면 위 기능을 즉시 이용할 수 있습니다
             </p>
             <p className="text-sm text-gray-600 mt-0.5">
-              현재 스캔 데이터는 Pro 전환 후에도 그대로 유지됩니다 · 7일 이내 미사용 시 100% 환불
+              현재 측정 데이터는 Pro 전환 후에도 그대로 유지됩니다 · 7일 이내 미사용 시 100% 환불
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 shrink-0">

@@ -152,7 +152,7 @@ export function BlogDiagnosisCard({ businessId }: Props) {
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-blue-600" />
-          <div className="text-sm font-semibold text-gray-900">내 블로그 AI 최적화 진단</div>
+          <div className="text-sm font-semibold text-gray-900">내 블로그 AI 노출 진단</div>
         </div>
         {analyzedAt && (
           <span className="text-sm text-gray-600">
@@ -161,7 +161,7 @@ export function BlogDiagnosisCard({ businessId }: Props) {
         )}
       </div>
       <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-        블로그 URL을 등록하면 AI 브리핑에 얼마나 최적화됐는지 진단해 드립니다.
+        블로그 URL을 등록하면 AI 브리핑에 얼마나 잘 노출될지 진단해 드립니다.
       </p>
 
       <div className="flex gap-2 mb-4">
@@ -383,7 +383,7 @@ export function BlogDiagnosisCard({ businessId }: Props) {
               {result.duplicate_topics!.slice(0, 2).map((t, i) => (
                 <p key={i} className="text-sm text-amber-700 mb-1">{t.warning}</p>
               ))}
-              <p className="text-sm text-gray-600">AI 브리핑은 같은 주제 중 1개만 인용합니다.</p>
+              <p className="text-sm text-gray-600">AI 브리핑은 같은 주제 중 1개만 소개합니다.</p>
             </div>
           )}
 

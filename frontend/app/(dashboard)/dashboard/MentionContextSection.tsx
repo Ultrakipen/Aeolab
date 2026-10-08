@@ -68,14 +68,14 @@ export function MentionContextSection({ bizId, token, currentPlan, isPro = false
               <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
               <div className="flex-1">
                 <div className="text-sm font-medium text-emerald-800">긍정 언급 · Gemini</div>
-                <div className="text-sm text-emerald-700 mt-0.5 line-clamp-1">"강남역 근처에서 분위기 좋고 서비스 친절한 카페를 추천해줘" 쿼리에서 언급됨</div>
+                <div className="text-sm text-emerald-700 mt-0.5 line-clamp-1">"강남역 근처에서 분위기 좋고 서비스 친절한 카페를 추천해줘" 검색에서 언급됨</div>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-red-50 rounded-xl">
               <div className="w-2 h-2 rounded-full bg-red-400 shrink-0" />
               <div className="flex-1">
                 <div className="text-sm font-medium text-red-800">미언급 · ChatGPT</div>
-                <div className="text-sm text-red-700 mt-0.5 line-clamp-1">"주차 가능한 카페 추천" 쿼리에서 경쟁사만 언급됨</div>
+                <div className="text-sm text-red-700 mt-0.5 line-clamp-1">"주차 가능한 카페 추천" 검색에서 경쟁사만 언급됨</div>
               </div>
             </div>
           </div>
@@ -99,7 +99,7 @@ export function MentionContextSection({ bizId, token, currentPlan, isPro = false
           <h2 className="text-base font-bold text-gray-700">AI 언급 맥락 분석</h2>
         </div>
         <p className="text-sm text-gray-600">
-          스캔 결과에서 AI 언급 데이터를 불러오지 못했습니다. 스캔을 다시 실행해 주세요.
+          측정 결과에서 AI 언급 데이터를 불러오지 못했습니다. 다시 측정해 주세요.
         </p>
       </div>
     )
@@ -172,9 +172,9 @@ export function MentionContextSection({ bizId, token, currentPlan, isPro = false
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 text-sm text-blue-800 leading-relaxed">
           <span className="font-semibold">미언급은 오류가 아닙니다.</span>{' '}
           ChatGPT·Gemini 같은 글로벌 AI는 온라인에 콘텐츠가 충분히 쌓인 사업장부터 인식합니다.
-          처음 스캔에서는 전체 미언급이 정상 결과이며, Gemini는 구글 비즈니스 프로필 등록 후 2~4주 내,
+          처음 측정에서는 전체 미언급이 정상 결과이며, Gemini는 구글 비즈니스 프로필 등록 후 2~4주 내,
           ChatGPT는 블로그·리뷰 보강 후 수개월~1년 내 개선됩니다.
-          <span className="text-blue-600 text-sm block mt-1">※ Gemini는 구글 검색 실시간 연동, ChatGPT는 AI 학습 데이터 기반으로 측정하며 실시간 검색 결과와 다를 수 있습니다.</span>
+          <span className="text-blue-600 text-sm block mt-1">※ Gemini는 구글 검색 실시간 연동, ChatGPT는 AI가 미리 공부한 자료 기반으로 측정하며 실시간 검색 결과와 다를 수 있습니다.</span>
         </div>
       )}
 

@@ -82,7 +82,7 @@ export default async function GrowthPage() {
             사업장을 먼저 등록해주세요
           </h2>
           <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-            성장 기록은 사업장을 등록한 후 AI 스캔을 진행하면 확인할 수 있습니다.
+            성장 기록은 사업장을 등록한 후 측정을 진행하면 확인할 수 있습니다.
           </p>
           <Link
             href="/onboarding"
@@ -108,12 +108,12 @@ export default async function GrowthPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 md:p-8 text-center">
           <TrendingUp className="w-10 h-10 text-gray-300 mx-auto mb-4" />
           <h2 className="text-lg md:text-xl font-bold text-gray-700 mb-2">
-            첫 AI 스캔을 실행해주세요
+            첫 측정을 시작해 주세요
           </h2>
           <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-            성장 기록은 스캔 기록이 있어야 확인할 수 있습니다.
+            성장 기록은 측정 기록이 있어야 확인할 수 있습니다.
             <br />
-            대시보드에서 첫 AI 스캔을 실행해보세요.
+            대시보드에서 첫 측정을 시작해보세요.
           </p>
           <Link
             href="/dashboard"

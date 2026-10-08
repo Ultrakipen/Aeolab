@@ -7,7 +7,7 @@ import type { SchemaResult, IntroScore, BlogDraft } from '@/types'
 import {
   CheckCircle2, ClipboardCopy, Check, ChevronDown, ChevronUp,
   MapPin, FileText, ListChecks, Lightbulb, AlertCircle,
-  BarChart2, Globe, ExternalLink,
+  BarChart2, Globe, ExternalLink, ClipboardList, Pin, AlertTriangle,
 } from 'lucide-react'
 
 // 영업시간 빌더
@@ -55,11 +55,11 @@ function OpeningHoursBuilder({ rows, onChange }: { rows: HoursRow[]; onChange: (
             </label>
             {!row.closed && (
               <>
-                <select value={row.open} onChange={(e) => updateRow(row.id, 'open', e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm">
+                <select aria-label="영업 시작 시간" value={row.open} onChange={(e) => updateRow(row.id, 'open', e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm">
                   {HOURS.map((h) => <option key={h.value} value={h.value}>{h.label}</option>)}
                 </select>
                 <span className="text-gray-600 text-sm">~</span>
-                <select value={row.close} onChange={(e) => updateRow(row.id, 'close', e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm">
+                <select aria-label="영업 종료 시간" value={row.close} onChange={(e) => updateRow(row.id, 'close', e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm">
                   {HOURS.map((h) => <option key={h.value} value={h.value}>{h.label}</option>)}
                 </select>
               </>
@@ -298,7 +298,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
     { key: 'briefing',    label: '소개글 키워드 점수',     mobileLabel: 'AI점수',    icon: <BarChart2 className="w-4 h-4" /> },
     { key: 'smartplace',  label: '스마트플레이스 소개글',  mobileLabel: '소개글',    icon: <MapPin className="w-4 h-4" /> },
     { key: 'blog',        label: '블로그 포스트 초안',      mobileLabel: '블로그',    icon: <FileText className="w-4 h-4" /> },
-    { key: 'checklist',   label: '최적화 체크리스트',       mobileLabel: '체크리스트', icon: <ListChecks className="w-4 h-4" /> },
+    { key: 'checklist',   label: '개선 체크리스트',       mobileLabel: '체크리스트', icon: <ListChecks className="w-4 h-4" /> },
     ...(hasWebsite
       ? [{ key: 'website' as Tab,   label: '홈페이지 AI 연결',     mobileLabel: 'AI코드',    icon: <AlertCircle className="w-4 h-4" /> }]
       : hasNoWebsiteGuide
@@ -315,16 +315,16 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
     <div className="p-4 md:p-8 max-w-4xl mx-auto">
       {/* 헤더 */}
       <div className="mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-900">AI 검색 최적화 도구</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">AI 검색 도구</h1>
         <p className="text-gray-600 text-sm mt-1 leading-relaxed">
-          AI 검색 등록 코드(JSON-LD) 생성, 스마트플레이스 소개글 AI 키워드 점수 확인, 블로그 초안 3종을 한 번에 만들어 드립니다.
+          AI 검색 등록 코드 생성, 스마트플레이스 소개글 AI 키워드 점수 확인, 블로그 초안 3종을 한 번에 만들어 드립니다.
         </p>
         <div className="mt-3 space-y-2">
           <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-800">
-            <strong>📋 이미 스마트플레이스·블로그를 운영 중이라면</strong> — 가게 이름·메뉴를 입력하면 AI가 소개글 초안을 만들고, 업종 핵심 키워드 포함 여부를 점수로 확인해 드립니다. 현재 소개글과 비교해 부족한 키워드만 추가하세요.
+            <strong className="inline-flex items-center gap-1"><ClipboardList className="w-4 h-4" aria-hidden="true" /> 이미 스마트플레이스·블로그를 운영 중이라면</strong> — 가게 이름·메뉴를 입력하면 AI가 소개글 초안을 만들고, 업종 핵심 키워드 포함 여부를 점수로 확인해 드립니다. 현재 소개글과 비교해 부족한 키워드만 추가하세요.
           </div>
           <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-600">
-            홈페이지가 있다면 <strong>홈페이지 AI 연결 탭</strong>에서 AI 인식 코드(JSON-LD)를 추가하면 구글 AI Overview·Rich Results 노출이 높아집니다. ChatGPT는 학습 데이터 기반이라 JSON-LD 직접 효과는 제한적입니다.
+            홈페이지가 있다면 <strong>홈페이지 AI 연결 탭</strong>에서 AI 인식 코드를 추가하면 구글 AI Overview·Rich Results 노출이 높아집니다. ChatGPT는 AI 인식 코드의 직접 효과가 제한적입니다.
           </div>
         </div>
       </div>
@@ -599,7 +599,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                   {/* 리뷰 모음 선택 시 경고 */}
                   {blogDraftType === 'review' && (
                     <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
-                      ⚠️ 이 초안은 AI가 작성한 <strong>샘플 후기</strong>입니다. 실제 고객 방문 경험을 바탕으로 수정한 뒤 사용하세요. 가상 후기를 그대로 올리면 허위 정보로 처리될 수 있습니다.
+                      <AlertTriangle className="w-4 h-4 inline-block mr-1 shrink-0" aria-hidden="true" /> 이 초안은 AI가 작성한 <strong>샘플 후기</strong>입니다. 실제 고객 방문 경험을 바탕으로 수정한 뒤 사용하세요. 가상 후기를 그대로 올리면 허위 정보로 처리될 수 있습니다.
                     </div>
                   )}
 
@@ -672,7 +672,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                     {[
                       '사진 5장 이상 첨부 — 내부·메뉴·외부 골고루',
                       '포스트 발행 후 스마트플레이스 관리 → [블로그 연결] 등록',
-                      '월 1~2회 꾸준히 올리면 네이버 AI 브리핑·AI탭 최신성 점수 상승 (Gemini는 2~4주 내 시작·수개월 후 안정화, ChatGPT는 학습 데이터 기반이라 수개월~1년 소요)',
+                      '월 1~2회 꾸준히 올리면 네이버 AI 브리핑·AI탭 최신성 점수 상승 (Gemini는 2~4주 내 시작·수개월 후 안정화, ChatGPT는 학습 자료 기반이라 수개월~1년 소요)',
                       '리뷰 답글과 동일한 키워드 사용 권장 (네이버 AI 브리핑 활성도 강화)',
                     ].map((tip) => (
                       <p key={tip} className="text-sm text-amber-700 flex items-start gap-1.5">
@@ -688,7 +688,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="text-sm font-semibold text-gray-800">스마트플레이스 AI 최적화 체크리스트</div>
+                      <div className="text-sm font-semibold text-gray-800">스마트플레이스 AI 점검 목록</div>
                       <p className="text-sm text-gray-600 mt-0.5">항목을 클릭해 완료 표시, 물음표(▾)를 눌러 이유를 확인하세요.</p>
                     </div>
                   </div>
@@ -730,7 +730,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                 <div className="space-y-4">
                   {/* 이 코드 어디에 넣나요? 안내 카드 */}
                   <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                    <p className="text-sm font-bold text-blue-800 mb-2">📌 이 코드를 어디에 넣나요?</p>
+                    <p className="text-sm font-bold text-blue-800 mb-2 flex items-center gap-1"><Pin className="w-4 h-4" aria-hidden="true" /> 이 코드를 어디에 넣나요?</p>
                     <p className="text-sm text-blue-700 mb-3 leading-relaxed">
                       홈페이지 HTML 소스에서 <code className="bg-blue-100 px-1 rounded">&lt;/head&gt;</code> 태그 바로 위에 붙여넣으면 됩니다.<br />
                       홈페이지가 없다면 이 코드 대신 <strong>스마트플레이스 소개글 탭</strong>을 사용하세요.
@@ -746,7 +746,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                       </div>
                       <div className="bg-white rounded-lg px-3 py-2 border border-blue-100">
                         <strong>Wix / 식스샵:</strong><br />
-                        사이트 설정 → SEO → 커스텀 코드 → head 영역
+                        사이트 설정 → SEO(검색 노출) → 커스텀 코드 → head 영역
                       </div>
                       <div className="bg-white rounded-lg px-3 py-2 border border-blue-100">
                         <strong>직접 만든 홈페이지:</strong><br />
@@ -757,7 +757,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
 
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="text-sm font-semibold text-gray-800">AI 검색 최적화 코드</div>
+                      <div className="text-sm font-semibold text-gray-800">AI 검색 등록 코드</div>
                       <p className="text-sm text-gray-600 mt-0.5">복사 후 홈페이지 &lt;/head&gt; 바로 위에 붙여넣기</p>
                     </div>
                     <CopyButton text={result.script_tag} label="코드 복사" />
@@ -768,7 +768,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                     </pre>
                   </div>
                   <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
-                    💡 적용 후 구글 서치 콘솔(search.google.com/search-console)에서 URL을 검사하면 코드가 인식됐는지 확인할 수 있습니다.
+                    <Lightbulb className="w-4 h-4 inline-block mr-1 shrink-0" aria-hidden="true" /> 적용 후 구글 서치 콘솔(search.google.com/search-console)에서 URL을 검사하면 코드가 인식됐는지 확인할 수 있습니다.
                   </div>
                 </div>
               )}
@@ -778,7 +778,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                 <div className="space-y-4">
                   <div>
                     <div className="text-sm font-semibold text-gray-800 mb-1">홈페이지 없이 AI 검색 노출 높이는 방법</div>
-                    <p className="text-sm text-gray-600">홈페이지가 없어도 아래 3가지 플랫폼에 정보를 충실히 등록하면 AI 검색 노출을 높일 수 있습니다.</p>
+                    <p className="text-sm text-gray-600">홈페이지가 없어도 아래 3가지 서비스에 정보를 충실히 등록하면 AI 검색 노출을 높일 수 있습니다.</p>
                   </div>
 
                   {result.no_website_guide && (
@@ -805,7 +805,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                     },
                     {
                       name: '구글 비즈니스 프로필',
-                      desc: '구글 지도·구글 AI Overview 노출. 글로벌 AI 채널 점수에 반영됨.',
+                      desc: '구글 지도·구글 AI Overview 노출. 글로벌 AI 점수에 반영됨.',
                       url: 'https://business.google.com',
                       badge: '글로벌 AI',
                       badgeColor: 'bg-blue-100 text-blue-700',
@@ -837,12 +837,12 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
           <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-800 leading-relaxed">
             <strong>대시보드 상태 업데이트 방법</strong><br />
             {hasWebsite
-              ? <>생성된 AI 검색 코드를 홈페이지 <code className="bg-blue-100 px-1 rounded">&lt;/head&gt;</code> 위에 붙여넣은 뒤, 대시보드에서 스캔을 다시 실행하면 &ldquo;AI에 가게 정보 등록&rdquo; 항목이 완료로 표시됩니다.</>
-              : <>스마트플레이스 소개글과 블로그 초안을 적용한 뒤, 대시보드에서 스캔을 다시 실행하면 변화된 점수를 확인할 수 있습니다.</>
+              ? <>생성된 AI 검색 코드를 홈페이지 <code className="bg-blue-100 px-1 rounded">&lt;/head&gt;</code> 위에 붙여넣은 뒤, 대시보드에서 측정을 다시 실행하면 &ldquo;AI에 가게 정보 등록&rdquo; 항목이 완료로 표시됩니다.</>
+              : <>스마트플레이스 소개글과 블로그 초안을 적용한 뒤, 대시보드에서 측정을 다시 실행하면 변화된 점수를 확인할 수 있습니다.</>
             }
           </div>
           <p className="text-sm text-center text-gray-600">
-            적용 후 네이버 AI 브리핑·AI탭은 2~4주 후 AEOlab 스캔에서 점수 변화를 확인하세요. Gemini는 2~4주 내 시작해 수개월 후 안정적으로 인용되며, ChatGPT는 학습 데이터 기반이라 수개월~1년 소요됩니다.
+            적용 후 네이버 AI 브리핑·AI탭은 2~4주 후 AEOlab 측정에서 점수 변화를 확인하세요. Gemini는 2~4주 내 시작해 수개월 후 안정적으로 소개되며, ChatGPT는 학습 자료 기반이라 수개월~1년 소요됩니다.
           </p>
         </div>
       )}

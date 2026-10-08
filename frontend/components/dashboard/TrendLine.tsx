@@ -243,14 +243,14 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
               {!log.inRange && (
                 log.daysSince <= 0 ? (
                   <span className="text-gray-600">
-                    · 오늘 기록됨 · 재스캔 시 반영 —{' '}
+                    · 오늘 기록됨 · 다시 측정 시 반영 —{' '}
                     <a href="/dashboard" className="underline underline-offset-2 hover:opacity-80">
-                      지금 재스캔 →
+                      지금 다시 측정 →
                     </a>
                   </span>
                 ) : (
                   <span className="text-gray-600">
-                    · {log.daysSince}일 전 완료 · 해당 날짜에 스캔 기록이 없어 그래프에는 표시되지 않습니다
+                    · {log.daysSince}일 전 완료 · 해당 날짜에 측정 기록이 없어 그래프에는 표시되지 않습니다
                   </span>
                 )
               )}

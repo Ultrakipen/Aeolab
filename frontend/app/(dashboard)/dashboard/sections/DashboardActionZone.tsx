@@ -108,7 +108,7 @@ export default function DashboardActionZone({
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-gray-900 leading-snug">맞춤 AI 개선 가이드가 준비됐습니다</p>
               <p className="text-sm text-gray-600 mt-1 leading-snug">
-                이번 스캔 결과를 바탕으로 네이버 AI 브리핑 노출을 높이는<br />
+                이번 측정 결과를 바탕으로 네이버 AI 브리핑 노출을 높이는<br />
                 3가지 우선 개선 항목이 생성됐습니다.
               </p>
               <Link
@@ -150,15 +150,15 @@ export default function DashboardActionZone({
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-800 leading-snug">
-              첫 스캔 후 AI 노출 개선 미션이 표시됩니다
+              첫 측정 후 AI 노출 개선 미션이 표시됩니다
             </p>
-            <p className="text-sm text-gray-600 mt-0.5">스캔하면 경쟁 가게 대비 부족한 항목부터 안내합니다</p>
+            <p className="text-sm text-gray-600 mt-0.5">측정하면 경쟁 가게 대비 부족한 항목부터 안내합니다</p>
           </div>
           <Link
             href="/scan"
             className="shrink-0 text-sm font-semibold text-white bg-rose-700 hover:bg-rose-800 px-3 py-1.5 rounded-lg"
           >
-            스캔하기
+            측정하기
           </Link>
         </div>
       )}

@@ -94,7 +94,7 @@ function AICitationContent({ businessId, authToken, isInactive }: { businessId: 
 
   const emptyMessage = isInactive
     ? 'ChatGPT·Gemini에 아직 언급되지 않았습니다. 가이드를 실행하면 노출 가능성이 높아집니다.'
-    : '아직 AI에 언급되지 않았습니다.\n가이드를 실행하고 재스캔하면 언급 가능성이 높아집니다.'
+    : '아직 AI에 언급되지 않았습니다.\n가이드를 실행하고 다시 측정하면 언급 가능성이 높아집니다.'
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4 md:p-5">
@@ -154,9 +154,9 @@ function AICitationContent({ businessId, authToken, isInactive }: { businessId: 
       {totalNotMentioned > 0 && (
         <div className="mt-3 bg-white/60 rounded-xl p-3 flex items-center gap-2">
           <span className="text-sm text-gray-600">
-            아직 {totalNotMentioned}개 플랫폼에 미노출
+            아직 {totalNotMentioned}곳에 미노출
           </span>
-          <span className="text-sm font-medium text-indigo-600">→ 재스캔으로 확인</span>
+          <span className="text-sm font-medium text-indigo-600">→ 다시 측정으로 확인</span>
         </div>
       )}
     </div>

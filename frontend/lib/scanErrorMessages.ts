@@ -19,17 +19,17 @@ export interface ScanErrorInfo {
 export function getScanErrorInfo(status: number, code = ""): ScanErrorInfo {
   // 백엔드 에러 코드 우선 분기
   if (code === "SCAN_IN_PROGRESS") {
-    return { message: "이미 스캔이 진행 중입니다. 잠시 후 다시 시도해 주세요.", retryable: true };
+    return { message: "이미 측정이 진행 중입니다. 잠시 후 다시 시도해 주세요.", retryable: true };
   }
   if (code === "SCAN_LIMIT" || code === "SCAN_DAILY_LIMIT") {
     return {
-      message: "오늘 스캔 한도를 모두 사용했습니다. 내일 다시 시도하거나 Pro로 업그레이드해 주세요.",
+      message: "오늘 측정 한도를 모두 사용했습니다. 내일 다시 시도하거나 Pro로 업그레이드해 주세요.",
       retryable: false,
     };
   }
   if (code === "PLAN_REQUIRED") {
     return {
-      message: "이번 달 무료 스캔을 이미 사용했습니다. 다음 달에 다시 이용하거나, 계속 이용하려면 유료 플랜으로 업그레이드하세요.",
+      message: "이번 달 무료 측정을 이미 사용했습니다. 다음 달에 다시 이용하거나, 계속 이용하려면 유료 플랜으로 업그레이드하세요.",
       retryable: false,
     };
   }
@@ -42,11 +42,11 @@ export function getScanErrorInfo(status: number, code = ""): ScanErrorInfo {
     return { message: "네트워크 연결을 확인하고 다시 시도해 주세요.", retryable: true };
   }
   if (status === 429) {
-    return { message: "스캔 요청이 많습니다. 1~2분 후 다시 시도해 주세요.", retryable: true };
+    return { message: "측정 요청이 많습니다. 1~2분 후 다시 시도해 주세요.", retryable: true };
   }
   if (status === 402 || status === 403) {
     return {
-      message: "오늘 스캔 한도를 모두 사용했습니다. 내일 다시 시도하거나 Pro로 업그레이드해 주세요.",
+      message: "오늘 측정 한도를 모두 사용했습니다. 내일 다시 시도하거나 Pro로 업그레이드해 주세요.",
       retryable: false,
     };
   }
@@ -59,9 +59,9 @@ export function getScanErrorInfo(status: number, code = ""): ScanErrorInfo {
   }
 
   // 기본 폴백
-  return { message: "스캔을 시작할 수 없습니다. 잠시 후 다시 시도해 주세요.", retryable: true };
+  return { message: "측정을 시작할 수 없습니다. 잠시 후 다시 시도해 주세요.", retryable: true };
 }
 
 /** SSE/스캔 중 타임아웃 메시지 (60초 이상 응답 없을 때) */
 export const SCAN_TIMEOUT_MESSAGE =
-  "스캔이 예상보다 오래 걸리고 있습니다. 페이지를 새로고침하시거나 잠시 후 다시 시도해 주세요.";
+  "측정이 예상보다 오래 걸리고 있습니다. 페이지를 새로고침하시거나 잠시 후 다시 시도해 주세요.";

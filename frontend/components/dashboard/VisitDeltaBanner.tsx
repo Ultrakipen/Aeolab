@@ -105,7 +105,7 @@ export default function VisitDeltaBanner({ bizId }: Props) {
               href="/dashboard"
               className="shrink-0 inline-flex items-center gap-1 text-sm font-semibold text-orange-700 underline underline-offset-2 hover:text-orange-900 transition-colors"
             >
-              지금 스캔해보세요 →
+              지금 측정해보세요 →
             </Link>
           </div>
         )}

@@ -186,7 +186,7 @@ export default function ReviewKeywordGapCard({ bizId, plan }: Props) {
           <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
             <BarChart2 className="w-8 h-8 text-gray-300" />
             <p className="text-sm text-gray-600 break-keep max-w-xs mx-auto leading-relaxed">
-              스캔 후 데이터가 충분히 쌓이면 표시됩니다
+              측정 후 데이터가 충분히 쌓이면 표시됩니다
             </p>
           </div>
         )}
@@ -229,7 +229,7 @@ export default function ReviewKeywordGapCard({ bizId, plan }: Props) {
 
             {competitorDataMissing && (
               <p className="mt-3 text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">
-                경쟁사 리뷰 데이터가 아직 수집되지 않았습니다. 경쟁사 스캔 후 비교 그래프가 표시됩니다.
+                경쟁사 리뷰 데이터가 아직 수집되지 않았습니다. 경쟁사 측정 후 비교 그래프가 표시됩니다.
               </p>
             )}
             <p className="mt-3 text-sm text-gray-600 leading-snug">

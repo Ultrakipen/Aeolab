@@ -94,6 +94,7 @@ export default function TeamPage() {
             className="flex-1 border border-gray-200 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <select
+            aria-label="팀원 역할"
             value={role}
             onChange={(e) => setRole(e.target.value)}
             className="border border-gray-200 rounded-lg px-3 py-3 text-base focus:outline-none sm:w-28"

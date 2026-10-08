@@ -186,7 +186,7 @@ export default function KeywordTrendChart({ bizId, accessToken, categoryKo }: Pr
           />
           <Tooltip
             contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
-            formatter={(value) => [`${value} (관심도 지수)`]}
+            formatter={(value) => [`${value} (관심도 수준)`]}
             labelFormatter={(label) => `기간: ${label}`}
           />
           <Legend
@@ -211,7 +211,7 @@ export default function KeywordTrendChart({ bizId, accessToken, categoryKo }: Pr
       </ResponsiveContainer>
 
       <p className="text-sm text-gray-600 mt-3 text-center">
-        {data.region} · {categoryKo ?? data.category} 업종 · 네이버 검색 관심도 지수 (0~100, 100=최고점)
+        {data.region} · {categoryKo ?? data.category} 업종 · 네이버 검색 관심도 (0~100, 100=최고점)
       </p>
     </div>
   )

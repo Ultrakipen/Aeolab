@@ -79,8 +79,8 @@ function CompetitorKeywordAlertContent({ businessId, authToken }: { businessId: 
         </div>
         <div className="bg-gray-50 rounded-xl p-4 text-center">
           <p className="text-sm text-gray-600 leading-relaxed">
-            스캔이 2회 이상 필요합니다.<br />
-            재스캔 후 경쟁사 키워드 변화를 추적할 수 있습니다.
+            측정이 2회 이상 필요합니다.<br />
+            다시 측정 후 경쟁사 키워드 변화를 추적할 수 있습니다.
           </p>
         </div>
       </div>

@@ -530,7 +530,7 @@ export default function BlogScreenshotSection({
               키워드별 블로그 노출 순위
             </h2>
             <p className="text-sm text-gray-600 mt-0.5">
-              AI 스캔 결과로 스마트플레이스·블로그를 개선하면 이 순위가 올라갑니다. 현재 키워드별 노출 순위를 확인하고 변화를 추적하세요.
+              측정 결과로 스마트플레이스·블로그를 개선하면 이 순위가 올라갑니다. 현재 키워드별 노출 순위를 확인하고 변화를 추적하세요.
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -885,7 +885,7 @@ export default function BlogScreenshotSection({
                     </div>
                   ) : (
                     <div className="flex items-center justify-center h-32 text-sm text-gray-600">
-                      {shot.baseline ? "아직 변화 없음 (스캔 후 업데이트)" : "캡처 없음"}
+                      {shot.baseline ? "아직 변화 없음 (측정 후 업데이트)" : "캡처 없음"}
                     </div>
                   )}
                 </div>

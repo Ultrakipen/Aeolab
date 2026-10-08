@@ -69,11 +69,11 @@ export default function GlobalAiFocusCard({ globalWeight, categoryLabel, categor
               </h3>
             </div>
             <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100 mb-1.5 break-keep">
-              학습 데이터 기반 — 권위·인용도 핵심
+              AI가 미리 공부한 자료 기반 — 권위가 핵심
             </p>
             <ul className="space-y-1 text-sm text-slate-700 dark:text-gray-300 leading-snug">
               <li>• 1년 이상 누적된 웹 콘텐츠 인식</li>
-              <li>• 블로그·뉴스·전문지 인용이 중요</li>
+              <li>• 블로그·뉴스·전문지 언급이 중요</li>
               <li>• 모델 업데이트 주기: 수개월~1년</li>
             </ul>
           </div>
@@ -94,7 +94,7 @@ export default function GlobalAiFocusCard({ globalWeight, categoryLabel, categor
             <ul className="space-y-1 text-sm text-slate-700 dark:text-gray-300 leading-snug">
               <li>• 최근 웹 검색 결과 부분 활용</li>
               <li>• Google 비즈니스 프로필 필수</li>
-              <li>• Open Graph·구조화 데이터 우선</li>
+              <li>• Open Graph·AI 인식 정보 우선</li>
             </ul>
           </div>
 
@@ -113,7 +113,7 @@ export default function GlobalAiFocusCard({ globalWeight, categoryLabel, categor
             </p>
             <ul className="space-y-1 text-sm text-slate-700 dark:text-gray-300 leading-snug">
               <li>• SGE 기반 자연 검색 노출</li>
-              <li>• 독립 웹사이트 SEO 핵심</li>
+              <li>• 독립 웹사이트 검색 노출이 핵심</li>
               <li>• AI 인식 정보 코드 등록 필수</li>
             </ul>
           </div>
@@ -145,14 +145,14 @@ export default function GlobalAiFocusCard({ globalWeight, categoryLabel, categor
             <div className="flex items-start gap-1.5">
               <span className="shrink-0 mt-0.5">•</span>
               <span>
-                <strong>네이버 스마트플레이스 SEO</strong> — 리뷰·키워드 최적화로
+                <strong>네이버 스마트플레이스</strong> — 리뷰·키워드 개선으로
                 네이버 일반 검색 상위 노출 가능
               </span>
             </div>
             <div className="flex items-start gap-1.5">
               <span className="shrink-0 mt-0.5">•</span>
               <span>
-                <strong>네이버 AI탭</strong> (정식 출시) — 업종 제한 없이 노출 가능.
+                <strong>네이버 AI탭</strong> (정식 출시) — 업종 제한 발표 없이 노출 가능.
                 소개글 200자·사진 10장·블로그 후기가 핵심
               </span>
             </div>
@@ -174,9 +174,9 @@ export default function GlobalAiFocusCard({ globalWeight, categoryLabel, categor
             측정 시점·기기·로그인 상태에 따라 결과가 달라질 수 있습니다.
             업종 비중은 AEOlab 시장 조사 데이터 기반이며 사업장별 차이가 있을 수 있습니다.
             {category === "legal" || category === "accounting"
-              ? " 전문직(법무·세무) 업종 특성상 권위 인용·전문지 게재가 노출 향상에 효과적입니다."
+              ? " 전문직(법무·세무) 업종 특성상 권위 있는 언급·전문지 게재가 노출 향상에 효과적입니다."
               : category === "shopping"
-              ? " 온라인 쇼핑 업종은 상품 페이지 구조화 데이터·리뷰 마크업이 핵심입니다."
+              ? " 온라인 쇼핑 업종은 상품 페이지 AI 인식 정보·리뷰 마크업이 핵심입니다."
               : ""}
           </p>
         </div>

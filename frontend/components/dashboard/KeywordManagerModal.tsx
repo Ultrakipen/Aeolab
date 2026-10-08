@@ -410,7 +410,7 @@ export function KeywordManagerModal({
               {activeTab === 'excluded' && (
                 <div className="space-y-4">
                   <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 md:p-4 text-sm md:text-base text-gray-700 leading-relaxed">
-                    제외한 키워드는 스캔·블로그 진단·가이드·경쟁사 갭·QR 등 모든 분석에서 빠집니다. 내가 제공하지 않는 서비스나 관련 없는 키워드를 제외하세요.
+                    제외한 키워드는 측정·블로그 진단·가이드·경쟁사 비교·QR 등 모든 분석에서 빠집니다. 내가 제공하지 않는 서비스나 관련 없는 키워드를 제외하세요.
                   </div>
 
                   {/* Input row (excluded 추가) */}
@@ -473,7 +473,7 @@ export function KeywordManagerModal({
         {/* Footer */}
         <div className="px-5 md:px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <p className="text-sm text-gray-600 leading-relaxed">
-            변경 사항은 즉시 반영되며, 다음 스캔·분석부터 적용됩니다.
+            변경 사항은 즉시 반영되며, 다음 측정·분석부터 적용됩니다.
           </p>
           <button
             type="button"

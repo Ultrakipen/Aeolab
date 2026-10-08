@@ -14,7 +14,7 @@ const SECTIONS = [
   {
     id: 'score',
     label: 'AI 노출 현황',
-    desc: '네이버·ChatGPT·Gemini AI 채널별 노출 결과',
+    desc: '네이버·ChatGPT·Gemini AI 서비스별 노출 결과',
     icon: BarChart2,
     color: 'text-blue-600 bg-blue-50',
     activeBar: 'border-l-4 border-blue-500',
@@ -29,8 +29,8 @@ const SECTIONS = [
   },
   {
     id: 'improve',
-    label: '채널별 분석 · 항목 점검',
-    desc: '채널별 분석 근거 · 스마트플레이스 · 카카오맵 · 웹사이트 자동 점검',
+    label: 'AI 서비스별 분석 · 항목 점검',
+    desc: 'AI 서비스별 분석 근거 · 스마트플레이스 · 카카오맵 · 웹사이트 자동 점검',
     icon: Wrench,
     color: 'text-emerald-700 bg-emerald-50',
     activeBar: 'border-l-4 border-emerald-500',

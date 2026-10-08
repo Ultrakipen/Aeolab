@@ -55,12 +55,12 @@ export default async function HistoryPage() {
     <NoBusiness
       Icon={History}
       title="변화 기록"
-      description="스캔을 진행할 때마다 기록이 쌓입니다. AI 검색 노출이 어떻게 개선되었는지 확인하세요."
+      description="측정을 진행할 때마다 기록이 쌓입니다. AI 검색 노출이 어떻게 개선되었는지 확인하세요."
       features={[
         { Icon: ImageIcon,   title: "Before / After 비교",  desc: "사업장 등록 시점의 AI 검색 결과와 현재를 나란히 비교합니다." },
         { Icon: TrendingUp,  title: "30일 점수 추세선",     desc: "AI Visibility Score의 변화를 그래프로 한눈에 확인하세요." },
-        { Icon: Calendar,    title: "스캔 히스토리 테이블", desc: "날짜별 점수·노출 횟수·전주 대비 변화를 표로 확인합니다." },
-        { Icon: Download,    title: "CSV / PDF 내보내기",   desc: "Pro 이상 구독 시 전체 기록을 엑셀·PDF로 내보낼 수 있습니다." },
+        { Icon: Calendar,    title: "측정 기록 테이블",     desc: "날짜별 점수·노출 횟수·전주 대비 변화를 표로 확인합니다." },
+        { Icon: Download,    title: "엑셀 파일 / PDF 내보내기", desc: "Pro 이상 구독 시 전체 기록을 엑셀·PDF로 내보낼 수 있습니다." },
       ]}
     />
   )
@@ -77,7 +77,7 @@ export default async function HistoryPage() {
             변화 기록은 Basic 이상 요금제에서 사용 가능합니다
           </h2>
           <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-            AI 스캔 기록과 30일 추세선을 확인하고,<br />
+            AI 측정 기록과 30일 추세선을 확인하고,<br />
             내 가게가 어떻게 성장했는지 추적할 수 있습니다.
           </p>
           <Link
@@ -219,7 +219,7 @@ export default async function HistoryPage() {
       <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">변화 기록</h1>
-          <p className="text-gray-600 text-sm mt-1 leading-relaxed">스캔을 진행할 때마다 기록이 쌓입니다. AI 검색 노출이 어떻게 개선되었는지 확인하세요.</p>
+          <p className="text-gray-600 text-sm mt-1 leading-relaxed">측정을 진행할 때마다 기록이 쌓입니다. AI 검색 노출이 어떻게 개선되었는지 확인하세요.</p>
         </div>
         <div className="flex items-center gap-3 shrink-0 flex-wrap">
           <ShareButton
@@ -241,7 +241,7 @@ export default async function HistoryPage() {
               </p>
             </div>
             <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
-              <p className="text-sm text-gray-600 mb-2 font-medium">{latestScore?.weekly_change != null ? "지난주 대비" : "이전 스캔 대비"}</p>
+              <p className="text-sm text-gray-600 mb-2 font-medium">{latestScore?.weekly_change != null ? "지난주 대비" : "이전 측정 대비"}</p>
               <p className={`text-base md:text-lg font-bold ${diff > 2 ? 'text-emerald-700' : diff < -2 ? 'text-red-700' : 'text-gray-600'}`}>
                 {diff > 2 ? '↑ 상승' : diff < -2 ? '↓ 하락' : '— 유지'}
               </p>
@@ -261,7 +261,7 @@ export default async function HistoryPage() {
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <div className="flex-1">
                 <div className="text-base font-medium text-gray-700">AI 노출 상태 기록</div>
-                <div className="text-sm text-gray-600 mt-0.5">스캔할 때마다 AI 검색 노출 상태가 기록됩니다</div>
+                <div className="text-sm text-gray-600 mt-0.5">측정할 때마다 AI 검색 노출 상태가 기록됩니다</div>
               </div>
               {/* 모바일 전용 스크롤 안내 */}
               <div className="md:hidden flex items-center gap-1.5 text-sm text-gray-600 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 self-start">
@@ -284,17 +284,17 @@ export default async function HistoryPage() {
               {lastScanDateEver ? (
                 <>
                   <p className="text-gray-600 text-sm font-medium mb-1">
-                    최근 30일간 스캔 기록이 없습니다. (마지막 스캔: {new Date(lastScanDateEver).toLocaleDateString('ko-KR')})
+                    최근 30일간 측정 기록이 없습니다. (마지막 측정: {new Date(lastScanDateEver).toLocaleDateString('ko-KR')})
                   </p>
-                  <p className="text-gray-600 text-sm mb-3">재스캔하면 최신 AI 검색 노출 상태가 여기에 기록됩니다.</p>
+                  <p className="text-gray-600 text-sm mb-3">다시 측정하면 최신 AI 검색 노출 상태가 여기에 기록됩니다.</p>
                   <Link href="/dashboard" className="inline-block text-sm font-semibold text-blue-600 hover:underline">
-                    대시보드에서 지금 재스캔 →
+                    대시보드에서 지금 측정 →
                   </Link>
                 </>
               ) : (
                 <>
-                  <p className="text-gray-600 text-sm font-medium mb-1">아직 스캔 기록이 없습니다.</p>
-                  <p className="text-gray-600 text-sm">대시보드에서 첫 AI 스캔을 진행하면 여기에 기록이 쌓입니다.</p>
+                  <p className="text-gray-600 text-sm font-medium mb-1">아직 측정 기록이 없습니다.</p>
+                  <p className="text-gray-600 text-sm">대시보드에서 첫 측정을 진행하면 여기에 기록이 쌓입니다.</p>
                 </>
               )}
             </div>
@@ -398,7 +398,7 @@ export default async function HistoryPage() {
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3 items-start">
           <div className="text-blue-400 mt-0.5 shrink-0 text-base">ℹ️</div>
           <div className="text-sm md:text-base text-blue-700">
-            <span className="font-medium">스코어 기록</span>은 대시보드에서 AI 스캔을 실행할 때마다 쌓입니다.
+            <span className="font-medium">스코어 기록</span>은 대시보드에서 측정할 때마다 쌓입니다.
             <span className="font-medium ml-2">키워드별 노출 변화</span>는 가입 시점과 현재를 비교해 개선 여부를 한눈에 확인할 수 있습니다.
           </div>
         </div>

@@ -125,7 +125,7 @@ const TRACK1_LABELS: Record<string, string> = {
 }
 const TRACK2_LABELS: Record<string, string> = {
   multi_ai_exposure:  'AI 검색 노출 (추정)',
-  schema_seo:         '웹사이트 구조화 (추정)',
+  schema_seo:         '웹사이트 AI 인식 코드 (추정)',
   online_mentions_t2: '온라인 언급 수 (추정)',
   google_presence:    'Google AI 노출 (추정)',
 }
@@ -333,7 +333,7 @@ function FreePlanPreview() {
             <span className="ml-auto text-yellow-100 text-sm font-medium">월 {PLAN_PRICES.biz.toLocaleString()}원</span>
           </div>
           <div className="p-4">
-            <p className="text-sm font-semibold text-gray-800 mb-3">전체 경쟁 지형도 + AI 채널별 분석</p>
+            <p className="text-sm font-semibold text-gray-800 mb-3">전체 경쟁 지형도 + AI 서비스별 분석</p>
             <div className="space-y-1.5 blur-sm pointer-events-none select-none">
               {[
                 { name: '내 가게', width: '55%', color: 'bg-blue-400' },
@@ -515,14 +515,14 @@ function GapCard({
               <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="font-semibold mb-1">경쟁사 점수가 비슷하게 나타납니다.</p>
-                <p>처음 등록된 경쟁사는 스캔 전 상태입니다. AI 스캔을 실행하면 각 경쟁사의 실제 점수가 계산됩니다.</p>
+                <p>처음 등록된 경쟁사는 측정 전 상태입니다. 측정을 시작하면 각 경쟁사의 실제 점수가 계산됩니다.</p>
                 {onRequestScan && (
                   <button
                     onClick={onRequestScan}
                     className="mt-2 inline-flex items-center gap-1.5 bg-amber-700 hover:bg-amber-800 text-white text-sm font-bold px-3 py-1.5 rounded-lg transition-colors"
                   >
                     <Zap className="w-3.5 h-3.5" />
-                    지금 AI 스캔 실행
+                    지금 측정 시작
                   </button>
                 )}
               </div>
@@ -620,10 +620,10 @@ function InlineScanModal({
       if (!prepRes.ok) {
         const err = await prepRes.json().catch(() => ({}))
         const code = err?.detail?.code
-        if (code === 'SCAN_IN_PROGRESS') setErrorMsg('이미 스캔이 진행 중입니다. 잠시 후 다시 시도해주세요.')
-        else if (code === 'SCAN_LIMIT' || code === 'SCAN_DAILY_LIMIT') setErrorMsg('오늘 수동 스캔 횟수를 모두 사용했습니다.')
-        else if (code === 'PLAN_REQUIRED') setErrorMsg('무료 체험 스캔을 이미 사용했습니다. Basic 이상 플랜이 필요합니다.')
-        else setErrorMsg('스캔을 시작할 수 없습니다. 잠시 후 다시 시도해주세요.')
+        if (code === 'SCAN_IN_PROGRESS') setErrorMsg('이미 측정이 진행 중입니다. 잠시 후 다시 시도해주세요.')
+        else if (code === 'SCAN_LIMIT' || code === 'SCAN_DAILY_LIMIT') setErrorMsg('오늘 수동 측정 횟수를 모두 사용했습니다.')
+        else if (code === 'PLAN_REQUIRED') setErrorMsg('무료 체험 측정을 이미 사용했습니다. Basic 이상 플랜이 필요합니다.')
+        else setErrorMsg('측정을 시작할 수 없습니다. 잠시 후 다시 시도해주세요.')
         setStep('error')
         return
       }
@@ -635,7 +635,7 @@ function InlineScanModal({
       setEventSource(es)
       setStep('scanning')
     } catch {
-      setErrorMsg('스캔 시작 중 오류가 발생했습니다.')
+      setErrorMsg('측정 시작 중 오류가 발생했습니다.')
       setStep('error')
     }
   }
@@ -681,7 +681,7 @@ function InlineScanModal({
     setStep('error')
     eventSourceRef.current = null
     setEventSource(null)
-    setErrorMsg('스캔 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+    setErrorMsg('측정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
   }
 
   return (
@@ -701,7 +701,7 @@ function InlineScanModal({
               <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 className="w-7 h-7 text-emerald-700" />
               </div>
-              <h3 className="font-bold text-gray-900 text-base md:text-lg mb-2 text-center">스캔 완료!</h3>
+              <h3 className="font-bold text-gray-900 text-base md:text-lg mb-2 text-center">측정 완료!</h3>
               <p className="text-sm text-gray-600 text-center">{enrichMsg || '경쟁사 분석 중...'}</p>
               <div className="mt-3 flex justify-center">
                 <div className="flex gap-1">
@@ -716,7 +716,7 @@ function InlineScanModal({
               <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <PlayCircle className="w-7 h-7 text-blue-600" />
               </div>
-              <h3 className="font-bold text-gray-900 text-base md:text-lg mb-2 text-center">AI 스캔 실행</h3>
+              <h3 className="font-bold text-gray-900 text-base md:text-lg mb-2 text-center">AI 측정 시작</h3>
               <p className="text-sm text-gray-600 mb-1 text-center leading-relaxed">
                 내 가게와 등록된 경쟁사를 동시에 분석합니다.
               </p>
@@ -744,7 +744,7 @@ function InlineScanModal({
                   {step === 'loading' ? (
                     <><RefreshCw className="w-4 h-4 animate-spin" />준비 중…</>
                   ) : (
-                    <><Zap className="w-4 h-4" />스캔 시작</>
+                    <><Zap className="w-4 h-4" />측정 시작</>
                   )}
                 </button>
               </div>
@@ -765,7 +765,7 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
           <BarChart2 className="w-4 h-4 text-gray-600" />
           <div className="text-sm font-semibold text-gray-700">경쟁사 점수 비교</div>
         </div>
-        <p className="text-sm text-gray-600 leading-relaxed">AI 스캔을 실행하면 경쟁사와의 점수를 비교할 수 있습니다.</p>
+        <p className="text-sm text-gray-600 leading-relaxed">측정을 시작하면 경쟁사와의 점수를 비교할 수 있습니다.</p>
       </div>
     )
   }
@@ -895,10 +895,10 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
             Object.values(s.competitor_scores).some(c => c.name === name)
           )
         ) ? (
-          <p className="text-sm text-blue-600">※ 스캔 미완료 경쟁사는 다음 스캔 후 그래프에 나타납니다.</p>
+          <p className="text-sm text-blue-600">※ 측정 전 경쟁사는 다음 측정 후 그래프에 나타납니다.</p>
         ) : null}
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <p className="text-sm text-gray-600">막대 길이 = 최신 점수 기반 · 화살표 = 이전 스캔 대비 변화</p>
+          <p className="text-sm text-gray-600">막대 길이 = 최신 점수 기반 · 화살표 = 이전 측정 대비 변화</p>
           <a href="/guide" className="text-sm text-blue-600 font-medium hover:underline flex items-center gap-1 shrink-0">
             점수 올리는 방법 보기 <ArrowRight className="w-3.5 h-3.5" />
           </a>
@@ -948,7 +948,7 @@ function CompetitorMap({
 
     const clientId = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID
     if (!clientId) {
-      setMapError('네이버 지도 API 키가 설정되지 않았습니다.')
+      setMapError('네이버 지도를 불러올 수 없습니다.')
       setMapLoading(false)
       return
     }
@@ -1042,7 +1042,7 @@ function CompetitorMap({
 
     // 인증 실패 시 호출되는 네이버 전역 콜백
     window.navermap_authFailure = () => {
-      setMapError('네이버 지도 API 인증 실패 — NCP 콘솔에서 키 설정을 확인하세요.')
+      setMapError('네이버 지도 인증에 실패했습니다. 잠시 후 다시 시도해 주세요.')
       setMapLoading(false)
     }
 
@@ -1052,7 +1052,7 @@ function CompetitorMap({
         return
       }
       if (attempts <= 0) {
-        setMapError('지도 초기화 실패 — NCP API 키를 확인하세요.')
+        setMapError('지도를 불러올 수 없습니다. 잠시 후 다시 시도해 주세요.')
         setMapLoading(false)
         return
       }
@@ -1143,7 +1143,7 @@ function CompetitorScoreWaiting({ onRefresh }: { onRefresh: () => void }) {
           <div>
             <p className="text-sm font-semibold text-blue-900">경쟁사 점수를 분석하는 중입니다</p>
             <p className="text-sm text-blue-700 mt-0.5">
-              스캔 완료 후 경쟁사 Gemini 분석이 백그라운드에서 실행됩니다.
+              측정 완료 후 경쟁사 Gemini 분석이 백그라운드에서 실행됩니다.
               {countdown > 0 && <> <strong>{countdown}초</strong> 후 자동으로 새로고침됩니다.</>}
             </p>
           </div>
@@ -1232,7 +1232,7 @@ const COMPARE_BREAKDOWN_LABELS: Record<string, string> = {
   kakao_completeness:       '카카오맵 완성도 (추정)',
   ai_tab_readiness:         'AI탭 준비도 (추정)',
   multi_ai_exposure:        'ChatGPT/Gemini 노출 (추정)',
-  schema_seo:               '웹사이트 구조화 (추정)',
+  schema_seo:               '웹사이트 AI 인식 코드 (추정)',
   online_mentions_t2:       '온라인 언급 (추정)',
   google_presence:          'Google AI 노출 (추정)',
 }
@@ -1428,7 +1428,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                             ? 'bg-amber-50 text-amber-700 border-amber-200'
                             : 'bg-red-50 text-red-700 border-red-200'
                         }`}>
-                          AI 최적화 {competitor.website_seo_score >= 70 ? '양호' : competitor.website_seo_score >= 40 ? '보통' : '미흡'}
+                          AI 노출 개선 {competitor.website_seo_score >= 70 ? '양호' : competitor.website_seo_score >= 40 ? '보통' : '미흡'}
                         </span>
                       )}
                     </div>
@@ -1509,7 +1509,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                         {competitor.place_review_count === 0 && typeof competitor.place_avg_rating === 'number' && competitor.place_avg_rating > 0 && (
                           <p className="text-sm text-amber-700 mt-0.5 flex items-center gap-1">
                             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                            동기화 불완전 — 리뷰 수 미확인. 재스캔을 권장합니다.
+                            동기화 불완전 — 리뷰 수 미확인. 다시 측정을 권장합니다.
                           </p>
                         )}
                       </div>
@@ -2033,7 +2033,7 @@ export function CompetitorsClient({
               </div>
               {lastScannedAt && (
                 <div className="text-sm text-gray-600">
-                  마지막 스캔 {new Date(lastScannedAt).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+                  마지막 측정 {new Date(lastScannedAt).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
                 </div>
               )}
             </div>
@@ -2068,13 +2068,13 @@ export function CompetitorsClient({
           <div className="px-4 md:px-6 py-3 bg-amber-50 border-b border-amber-200 flex flex-col sm:flex-row sm:items-center gap-2">
             <Zap className="w-4 h-4 text-amber-700 shrink-0" />
             <p className="text-sm text-amber-800 flex-1">
-              <strong>{unscannedCount}개 경쟁사</strong>는 이번 스캔에 포함되지 않았습니다. AI 스캔을 다시 실행하면 모든 경쟁사 점수를 최신화합니다.
+              <strong>{unscannedCount}개 경쟁사</strong>는 이번 측정에 포함되지 않았습니다. 다시 측정하면 모든 경쟁사 점수를 최신화합니다.
             </p>
             <button
               onClick={() => setShowInlineScan(true)}
               className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold bg-amber-700 hover:bg-amber-800 text-white px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
             >
-              <Zap className="w-3.5 h-3.5" />지금 스캔
+              <Zap className="w-3.5 h-3.5" />지금 측정
             </button>
           </div>
         ) : null
@@ -2163,7 +2163,7 @@ export function CompetitorsClient({
               </p>
               <p className="flex items-start gap-2"><span className="text-blue-600 font-bold shrink-0">1.</span> 아래 &quot;지역 검색&quot; 탭에서 경쟁 가게 이름 입력</p>
               <p className="flex items-start gap-2"><span className="text-blue-600 font-bold shrink-0">2.</span> 검색 결과에서 경쟁 가게 선택 후 등록</p>
-              <p className="flex items-start gap-2"><span className="text-blue-600 font-bold shrink-0">3.</span> 대시보드에서 &quot;AI 스캔 시작&quot; → 점수 비교 확인</p>
+              <p className="flex items-start gap-2"><span className="text-blue-600 font-bold shrink-0">3.</span> 대시보드에서 &quot;측정 시작&quot; 버튼을 누르면 점수가 비교됩니다</p>
             </div>
           </div>
         </div>
@@ -2229,7 +2229,7 @@ export function CompetitorsClient({
                           )}
                           {csDelta !== null && csDelta !== 0 && (
                             <span className={`hidden md:inline-flex text-sm font-bold px-1.5 py-0.5 rounded-full ${csDelta > 0 ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}
-                              title={csDelta > 0 ? '지난 스캔 대비 상승 (경쟁사 강화)' : '지난 스캔 대비 하락 (내 가게에 유리)'}>
+                              title={csDelta > 0 ? '지난 측정 대비 상승 (경쟁사 강화)' : '지난 측정 대비 하락 (내 가게에 유리)'}>
                               {csDelta > 0 ? '↑ 상승' : '↓ 하락'}
                             </span>
                           )}
@@ -2343,7 +2343,7 @@ export function CompetitorsClient({
                         {c.place_synced_at && c.place_review_count === 0 && typeof c.place_avg_rating === 'number' && c.place_avg_rating > 0 && (
                           <p className="text-sm text-amber-700 mt-1 flex items-center gap-1">
                             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                            동기화 불완전 — 리뷰 수 미확인. 재스캔을 권장합니다.
+                            동기화 불완전 — 리뷰 수 미확인. 다시 측정을 권장합니다.
                           </p>
                         )}
 
@@ -2389,7 +2389,7 @@ export function CompetitorsClient({
                                       ChatGPT·Gemini {globalOn ? '노출됨' : '미노출'} <span className="font-normal">(추정)</span>
                                     </span>
                                   </div>
-                                  <p className="text-sm text-gray-600 mt-0.5">Gemini AI 단일 스캔 기반 추정 — 실제와 다를 수 있음</p>
+                                  <p className="text-sm text-gray-600 mt-0.5">Gemini AI 단일 측정 기반 추정 — 실제와 다를 수 있음</p>
                                 </div>
                               )
                             })()}
@@ -2432,16 +2432,16 @@ export function CompetitorsClient({
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-600 border border-gray-200 rounded-full px-2 py-0.5 text-sm font-semibold">
                                 <Clock className="w-3 h-3" />
-                                스캔 대기
+                                측정 대기
                               </span>
                               <button
                                 onClick={() => setShowInlineScan(true)}
                                 className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-semibold underline underline-offset-2 transition-colors hover:bg-blue-50 rounded px-1 py-0.5"
                               >
-                                <Zap className="w-3 h-3" />지금 스캔하기
+                                <Zap className="w-3 h-3" />지금 측정하기
                               </button>
                             </div>
-                            <p className="text-sm text-gray-600">스캔 후 AI 노출 여부·성장 단계·점수 격차를 확인할 수 있습니다</p>
+                            <p className="text-sm text-gray-600">측정 후 AI 노출 여부·성장 단계·점수 격차를 확인할 수 있습니다</p>
                           </div>
                         )}
                       </div>
@@ -2603,7 +2603,7 @@ export function CompetitorsClient({
                               <div className="flex items-center gap-1.5 text-sm font-bold text-purple-400 mb-1">
                                 <Award className="w-3.5 h-3.5" />AI 검색 노출 점수 상세
                               </div>
-                              <LockedFeature requiredPlan="Pro" feature="ChatGPT·Gemini·Google AI 채널 상세 분석" />
+                              <LockedFeature requiredPlan="Pro" feature="ChatGPT·Gemini·Google AI 서비스별 상세 분석" />
                             </div>
                           )
                         )}
@@ -2613,9 +2613,9 @@ export function CompetitorsClient({
                           </div>
                         )}
                         <div className="mt-2 pt-2 border-t border-gray-100 space-y-1">
-                          <p className="text-sm text-gray-600">막대 길이 = 최신 점수 기반 · 화살표 = 이전 스캔 대비 변화</p>
+                          <p className="text-sm text-gray-600">막대 길이 = 최신 점수 기반 · 화살표 = 이전 측정 대비 변화</p>
                           {allEntries.some(([k]) => TRACK1_KEYS.includes(k)) && (
-                            <p className="text-sm text-gray-600">* (추정) 항목은 Gemini AI 단일 스캔 기반 간접 측정값입니다</p>
+                            <p className="text-sm text-gray-600">* (추정) 항목은 Gemini AI 단일 측정 기반 추정값입니다</p>
                           )}
                         </div>
                       </div>
@@ -2683,9 +2683,9 @@ export function CompetitorsClient({
               <div className="flex items-start gap-2.5 flex-1">
                 <AlertCircle className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-semibold text-amber-900">AI 스캔이 아직 실행되지 않았습니다</p>
+                  <p className="text-sm font-semibold text-amber-900">아직 측정이 시작되지 않았습니다</p>
                   <p className="text-sm text-amber-700 mt-0.5">
-                    스캔을 실행하면 경쟁 가게 {competitors.length}곳의 점수를 자동으로 분석해 비교합니다.
+                    측정을 시작하면 경쟁 가게 {competitors.length}곳의 점수를 자동으로 분석해 비교합니다.
                   </p>
                 </div>
               </div>
@@ -2694,7 +2694,7 @@ export function CompetitorsClient({
                 className="inline-flex items-center justify-center gap-1.5 bg-amber-700 hover:bg-amber-800 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors shadow-sm shrink-0"
               >
                 <Zap className="w-4 h-4" />
-                AI 스캔 시작
+                측정 시작
               </button>
             </div>
           </div>
@@ -3054,8 +3054,8 @@ export function CompetitorsClient({
           ) : (
             <div className="text-center py-5">
               <Search className="w-8 h-8 text-blue-200 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-gray-600">AI 스캔 후 경쟁사가 자동으로 발견됩니다</p>
-              <p className="text-sm text-gray-600 mt-1">스캔을 먼저 실행해주세요</p>
+              <p className="text-sm font-semibold text-gray-600">측정 후 경쟁사가 자동으로 발견됩니다</p>
+              <p className="text-sm text-gray-600 mt-1">측정을 먼저 시작해주세요</p>
             </div>
           )}
         </div>
@@ -3067,7 +3067,7 @@ export function CompetitorsClient({
           <Info className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
           <div>
             <p className="text-sm font-bold text-blue-800 mb-1">경쟁 가게 선택 팁</p>
-            <p className="text-sm text-blue-700 leading-relaxed">같은 지역·업종의 가게를 등록하세요. 스캔 시 AI 검색 노출 순위를 자동으로 비교합니다.</p>
+            <p className="text-sm text-blue-700 leading-relaxed">같은 지역·업종의 가게를 등록하세요. 측정 시 AI 검색 노출 순위를 자동으로 비교합니다.</p>
           </div>
         </div>
       </div>
@@ -3098,7 +3098,7 @@ export function CompetitorsClient({
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-amber-800">웹사이트 없음 — ChatGPT·Gemini 노출 제한</p>
             <p className="text-sm text-amber-700 mt-0.5 leading-relaxed">
-              네이버 콘텐츠는 글로벌 AI 크롤러에 잘 인덱싱되지 않습니다. 독립 웹사이트가 없으면 ChatGPT·Gemini에서 내 가게를 찾기 어렵습니다.
+              네이버 블로그·지도는 ChatGPT 같은 AI가 글을 가져가지 못하게 막혀 있습니다(2026-10-07 확인). 독립 웹사이트가 없으면 ChatGPT·Gemini에서 내 가게를 찾기 어렵습니다.
               {gapAnalysis.naver_only_risk_score_impact > 0 && (
                 <span className="font-semibold"> 웹사이트 구축 시 AI 검색 노출 수준이 향상될 수 있습니다.</span>
               )}
@@ -3161,7 +3161,7 @@ export function CompetitorsClient({
                   key={t.key}
                   onClick={t.show ? () => setKwTab(t.key) : undefined}
                   disabled={!t.show}
-                  title={!t.show ? '스캔 후 데이터가 채워집니다' : undefined}
+                  title={!t.show ? '측정 후 데이터가 채워집니다' : undefined}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
                     !t.show
                       ? 'opacity-40 cursor-not-allowed text-gray-600'
@@ -3349,7 +3349,7 @@ export function CompetitorsClient({
             <div className="flex items-start gap-2">
               <Zap className="w-4 h-4 text-purple-600 mt-0.5 shrink-0" />
               <div>
-                <p className="text-sm font-bold text-purple-800">Pro 플랜에서 AI 검색 채널 상세 분석 해제</p>
+                <p className="text-sm font-bold text-purple-800">Pro 플랜에서 AI 서비스별 상세 분석 확인</p>
                 <p className="text-sm text-purple-600 mt-0.5">ChatGPT·Gemini·Google AI 노출 항목별 비교</p>
               </div>
             </div>
@@ -3389,7 +3389,7 @@ export function CompetitorsClient({
             <div className="text-center py-8 bg-gray-50 rounded-xl border border-gray-100 -mt-2">
               <Target className="w-8 h-8 text-gray-300 mx-auto mb-2.5" />
               <p className="text-sm font-semibold text-gray-600 mb-1">격차 분석 데이터 없음</p>
-              <p className="text-sm text-gray-600">경쟁사를 등록하고 AI 스캔을 실행하면 격차 분석이 표시됩니다.</p>
+              <p className="text-sm text-gray-600">경쟁사를 등록하고 측정을 시작하면 격차 분석이 표시됩니다.</p>
             </div>
           )}
         </>
@@ -3493,7 +3493,7 @@ export function CompetitorsClient({
               <div className="text-center py-10 bg-gray-50 rounded-xl border border-gray-100">
                 <Target className="w-8 h-8 text-gray-300 mx-auto mb-2.5" />
                 <p className="text-sm font-semibold text-gray-600 mb-1">격차 분석 데이터 없음</p>
-                <p className="text-sm text-gray-600">경쟁사를 등록하고 AI 스캔을 실행하면<br />격차 분석이 표시됩니다.</p>
+                <p className="text-sm text-gray-600">경쟁사를 등록하고 측정을 시작하면<br />격차 분석이 표시됩니다.</p>
               </div>
             )}
           </div>
@@ -3587,11 +3587,11 @@ export function CompetitorsClient({
             </div>
             <h3 className="font-bold text-gray-900 text-base md:text-lg mb-2 text-center">경쟁 가게가 추가되었습니다!</h3>
             <p className="text-sm md:text-base text-gray-600 mb-1 text-center leading-relaxed">
-              지금 바로 스캔하면 <strong className="text-gray-900">{scanPromptName}</strong>과의<br />
+              지금 바로 측정하면 <strong className="text-gray-900">{scanPromptName}</strong>과의<br />
               AI 검색 노출 점수를 비교할 수 있습니다.
             </p>
             <p className="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-2 text-center leading-relaxed">
-              지금 스캔하지 않으면 <strong>내일 새벽</strong> 자동 스캔 후 데이터가 표시됩니다.<br />
+              지금 측정하지 않으면 <strong>내일 새벽</strong> 자동 측정 후 데이터가 표시됩니다.<br />
               <span className="text-sm text-amber-700">(점수 비교: 새벽 2시 / 키워드 분석: 새벽 4시)</span>
             </p>
             <div className="flex flex-col gap-2.5">
@@ -3599,7 +3599,7 @@ export function CompetitorsClient({
                 onClick={() => { setScanPromptName(null); setShowInlineScan(true) }}
                 className="w-full bg-blue-600 text-white py-3 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
               >
-                <Zap className="w-4 h-4" />지금 여기서 AI 스캔 실행
+                <Zap className="w-4 h-4" />지금 측정 시작
               </button>
               <button
                 onClick={() => setScanPromptName(null)}

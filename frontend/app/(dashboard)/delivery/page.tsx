@@ -48,7 +48,7 @@ const STATUS_META: Record<string, { label: string; color: string }> = {
 
 const PACKAGE_DISPLAY: Record<string, string> = {
   smartplace_register: "스마트플레이스 등록 대행",
-  ai_optimization: "AI 검색 최적화",
+  ai_optimization: "AI 검색 개선",
   comprehensive: "종합 풀패키지",
 };
 
@@ -92,23 +92,23 @@ const FALLBACK_PACKAGES: DeliveryPackage[] = [
     type: "smartplace_register",
     name: "01 스마트플레이스 등록 대행",
     price: 69000,
-    description: "스마트플레이스 신규 등록부터 기본정보, 메뉴, 키워드 최적화까지",
+    description: "스마트플레이스 신규 등록부터 기본정보, 메뉴, 키워드 개선까지",
     work_hours: "5.2h 작업",
     features: [
       "스마트플레이스 신규 등록",
-      "기본정보·메뉴·키워드 최적화",
+      "기본정보·메뉴·키워드 개선",
       "대표 사진 구성 안내",
     ],
   },
   {
     id: "ai_optimization",
     type: "ai_optimization",
-    name: "02 AI 검색 최적화",
+    name: "02 AI 검색 개선",
     price: 89000,
-    description: "AI 검색 최적화, 소개글·톡톡메뉴·후기답글·키워드 보강",
+    description: "AI 검색 개선, 소개글·톡톡메뉴·후기답글·키워드 보강",
     work_hours: "6.0h 작업",
     features: [
-      "소개글·톡톡채팅방 메뉴 최적화",
+      "소개글·톡톡채팅방 메뉴 개선",
       "후기 답글 10건 작성",
       "핵심 키워드 보강",
     ],
@@ -118,11 +118,11 @@ const FALLBACK_PACKAGES: DeliveryPackage[] = [
     type: "comprehensive",
     name: "03 종합 풀패키지",
     price: 139000,
-    description: "등록+최적화+코칭+30일 재진단 — 개별 구매 시 158,000원 → 139,000원",
+    description: "등록+개선+코칭+30일 재진단 — 개별 구매 시 158,000원 → 139,000원",
     work_hours: "11.2h 작업",
     features: [
       "01 등록 대행 전체 포함",
-      "02 AI 최적화 전체 포함",
+      "02 AI 개선 전체 포함",
       "1:1 코칭 세션 + 30일 재진단",
     ],
   },

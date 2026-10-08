@@ -23,7 +23,7 @@ const CONTENT_ITEMS = [
   },
   {
     key: "has_schema_local_business" as const,
-    label: "업종·위치 구조화 등록",
+    label: "업종·위치 정보 등록",
     desc: "AI 지도 검색에서 업종·주소 자동 분류",
     priority: "필수" as const,
     fixable: true,
@@ -37,7 +37,7 @@ const CONTENT_ITEMS = [
   },
   {
     key: "is_mobile_friendly" as const,
-    label: "모바일 화면 최적화",
+    label: "모바일 화면 맞춤",
     desc: "스마트폰에서 정상 표시",
     priority: "권장" as const,
     fixable: false,
@@ -80,7 +80,7 @@ export default function SchemaCheckCard({
           <span className="text-sm font-semibold text-gray-800">AI에 가게 정보 등록</span>
           <span className="text-xs text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded-full">설정 현황</span>
         </div>
-        <p className="text-sm text-gray-600">첫 스캔 후 웹사이트 AI 인식 설정 현황이 표시됩니다.</p>
+        <p className="text-sm text-gray-600">첫 측정 후 웹사이트 AI 인식 설정 현황이 표시됩니다.</p>
       </div>
     );
   }
@@ -94,14 +94,14 @@ export default function SchemaCheckCard({
           <span className="text-xs text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full">홈페이지 없음</span>
         </div>
         <p className="text-sm text-gray-600 leading-relaxed break-keep">
-          독립 웹사이트가 없어도 네이버·카카오맵 채널로 이용이 가능합니다.
-          ChatGPT·Gemini 노출을 더 높이려면 웹사이트를 추가하거나 카카오맵 비즈니스 채널을 등록하면 됩니다.
+          독립 웹사이트가 없어도 네이버·카카오맵으로 이용이 가능합니다.
+          ChatGPT·Gemini 노출을 더 높이려면 웹사이트를 추가하거나 카카오맵 비즈니스를 등록하면 됩니다.
         </p>
         <Link
           href="/schema"
           className="mt-3 inline-block text-sm text-blue-600 font-medium underline"
         >
-          AI 최적화 소개글·블로그 초안 자동 생성하기 →
+          AI에 맞는 소개글·블로그 초안 자동 생성하기 →
         </Link>
       </div>
     );
@@ -159,7 +159,7 @@ export default function SchemaCheckCard({
       {/* 웹사이트 접근 오류 배너 */}
       {fetchError && (
         <div className="mb-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-700 break-keep">
-          웹사이트 접근 오류 ({fetchError}) — 일부 항목을 확인하지 못했습니다. 스캔을 다시 시도해 주세요.
+          웹사이트 접근 오류 ({fetchError}) — 일부 항목을 확인하지 못했습니다. 측정을 다시 시도해 주세요.
         </div>
       )}
 

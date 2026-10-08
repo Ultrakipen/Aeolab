@@ -15,7 +15,7 @@ export default function CompetitorKeywordCompare({ competitorKeywordSources }: P
       <div>
         <p className="text-sm font-semibold text-gray-700">경쟁사 키워드 비교 준비 중</p>
         <p className="text-sm text-gray-600 mt-0.5">
-          경쟁사를 등록하고 스캔이 완료되면 경쟁사에는 있고 내 가게에 없는 키워드를 자동으로 찾아드립니다
+          경쟁사를 등록하고 측정이 완료되면 경쟁사에는 있고 내 가게에 없는 키워드를 자동으로 찾아드립니다
         </p>
         <a href="/competitors" className="inline-block mt-2 text-sm font-semibold text-blue-600 hover:underline">
           경쟁사 등록하기 →

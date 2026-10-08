@@ -144,13 +144,13 @@ const TRACK1_LABELS: Record<string, string> = {
   keyword_search_rank: "키워드 검색 순위",
   review_quality: "리뷰 품질",
   smart_place_completeness: "스마트플레이스 완성도",
-  blog_crank: "블로그 지수",
+  blog_crank: "블로그 현황",
   local_map_score: "지도 노출",
   ai_briefing_score: "AI 브리핑 노출",
 };
 const TRACK2_LABELS: Record<string, string> = {
   multi_ai_exposure: "AI 언급 빈도",
-  schema_seo: "웹사이트 SEO",
+  schema_seo: "웹사이트 검색 노출",
   online_mentions: "온라인 언급",
   google_presence: "구글 AI 노출",
 };
@@ -365,7 +365,7 @@ export default function GrowthClient({
           <span>내 가게 성장 기록</span>
         </h1>
         <p className="text-sm md:text-base text-gray-600 mt-1">
-          {region} · {categoryLabel} · AI 스캔 결과를 기반으로 내 가게가 얼마나 성장했는지 확인하세요
+          {region} · {categoryLabel} · AI 측정 결과를 기반으로 내 가게가 얼마나 성장했는지 확인하세요
         </p>
         <p className="text-sm text-gray-600 mt-1">
           측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다
@@ -413,7 +413,7 @@ export default function GrowthClient({
               </div>
               {totalDelta !== 0 && sufficientTrendData && (
                 <p className={`text-sm font-semibold ${totalDelta > 0 ? "text-blue-600" : "text-red-700"}`}>
-                  {totalDelta > 0 ? "↑ 첫 스캔 대비 개선됨" : "↓ 첫 스캔 대비 하락"}
+                  {totalDelta > 0 ? "↑ 첫 측정 대비 개선됨" : "↓ 첫 측정 대비 하락"}
                 </p>
               )}
               {latestWeeklyChange !== null && Math.abs(latestWeeklyChange) > 2 && (
@@ -421,7 +421,7 @@ export default function GrowthClient({
                   이번 주 {latestWeeklyChange > 0 ? "↑ 상승" : "↓ 하락"}
                 </p>
               )}
-              <p className="text-sm text-gray-600 mt-1">첫 스캔부터 현재까지</p>
+              <p className="text-sm text-gray-600 mt-1">첫 측정부터 현재까지</p>
             </>
           ) : (
             <>
@@ -435,7 +435,7 @@ export default function GrowthClient({
                   이번 주 {latestWeeklyChange > 0 ? "↑ 상승" : "↓ 하락"}
                 </p>
               )}
-              <p className="text-sm text-gray-600 mt-1">스캔 2회 이상부터 변화 추적</p>
+              <p className="text-sm text-gray-600 mt-1">측정 2회 이상부터 변화 추적</p>
             </>
           )}
           {latestExposureFreq !== null && (
@@ -484,7 +484,7 @@ export default function GrowthClient({
               })()}
             </>
           ) : (
-            <p className="text-sm text-gray-600">스캔 후 표시됩니다</p>
+            <p className="text-sm text-gray-600">측정 후 표시됩니다</p>
           )}
         </div>
 
@@ -516,7 +516,7 @@ export default function GrowthClient({
               })()}
             </>
           ) : (
-            <p className="text-sm text-gray-600">스캔 후 표시됩니다</p>
+            <p className="text-sm text-gray-600">측정 후 표시됩니다</p>
           )}
         </div>
       </div>
@@ -526,7 +526,7 @@ export default function GrowthClient({
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
           <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">성장 요인</h2>
           <p className="text-sm text-gray-600 mb-4">
-            첫 스캔 대비 어떤 항목이 가장 많이 움직였는지 보여줍니다
+            첫 측정 대비 어떤 항목이 가장 많이 움직였는지 보여줍니다
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {growthDrivers.map((d) => (
@@ -672,20 +672,20 @@ export default function GrowthClient({
               현재 AI 노출: <span className="text-blue-600 text-base font-bold">{getScoreTextLabel(chartData[0].score)}</span>
             </p>
             <p className="text-sm text-gray-600">
-              스캔을 1회 더 하면 노출 변화 추이가 그래프로 나타납니다.
+              측정을 1회 더 하면 노출 변화 추이가 그래프로 나타납니다.
             </p>
             <Link
               href="/dashboard"
               className="mt-2 text-sm text-blue-600 font-semibold underline"
             >
-              대시보드에서 AI 스캔 하기 →
+              대시보드에서 측정 시작 →
             </Link>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
             <span className="text-4xl">📊</span>
-            <p className="text-sm font-semibold text-gray-700">아직 스캔 기록이 없습니다</p>
-            <p className="text-sm text-gray-600">대시보드에서 AI 스캔을 시작해 보세요.</p>
+            <p className="text-sm font-semibold text-gray-700">아직 측정 기록이 없습니다</p>
+            <p className="text-sm text-gray-600">대시보드에서 측정을 시작해 보세요.</p>
             <Link
               href="/dashboard"
               className="mt-2 inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
@@ -860,7 +860,7 @@ export default function GrowthClient({
                   아직 비교할 측정 데이터가 부족합니다
                 </p>
                 <p className="text-sm text-gray-600 mt-0.5">
-                  스캔을 실행하면 업종 평균과 비교한 내 위치를 확인할 수 있습니다.
+                  측정을 시작하면 업종 평균과 비교한 내 위치를 확인할 수 있습니다.
                 </p>
               </div>
             ) : getScoreTextLabel(benchmarkData.my_score) === getScoreTextLabel(benchmarkData.avg_score) ? (
@@ -962,17 +962,17 @@ export default function GrowthClient({
             )}
 
             {lastMonthBest === null && (
-              <p className="text-sm text-gray-600">지난달 스캔 기록이 없어 비교할 수 없습니다.</p>
+              <p className="text-sm text-gray-600">지난달 측정 기록이 없어 비교할 수 없습니다.</p>
             )}
           </div>
         ) : (
           <div className="text-center py-6">
-            <p className="text-sm text-gray-600">이번 달 아직 스캔 기록이 없습니다.</p>
+            <p className="text-sm text-gray-600">이번 달 아직 측정 기록이 없습니다.</p>
             <Link
               href="/dashboard"
               className="mt-3 inline-block text-sm text-blue-600 font-semibold underline"
             >
-              대시보드에서 AI 스캔 하기 →
+              대시보드에서 측정 시작 →
             </Link>
           </div>
         )}
@@ -1034,8 +1034,8 @@ export default function GrowthClient({
       {/* 섹션 5: 스캔 기록 목록 */}
       {historyData.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
-          <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">스캔 기록</h2>
-          <p className="text-sm text-gray-600 mb-5">AI 스캔을 할 때마다 점수가 기록됩니다</p>
+          <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-1">측정 기록</h2>
+          <p className="text-sm text-gray-600 mb-5">측정할 때마다 점수가 기록됩니다</p>
 
           <div className="md:hidden flex items-center gap-1.5 text-sm text-gray-600 mb-3">
             <span>←</span>

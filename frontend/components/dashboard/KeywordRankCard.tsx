@@ -314,7 +314,7 @@ export default function KeywordRankCard({
               type="button"
               onClick={downloadCsv}
               disabled={downloading || !canDownload}
-              title={!canDownload ? "Pro 플랜부터 가능" : "CSV 다운로드"}
+              title={!canDownload ? "Pro 플랜부터 가능" : "엑셀 다운로드"}
               className="inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {downloading ? (
@@ -322,7 +322,7 @@ export default function KeywordRankCard({
               ) : (
                 <Download className="w-4 h-4" />
               )}
-              CSV
+              엑셀
             </button>
           )}
         </div>
@@ -352,7 +352,7 @@ export default function KeywordRankCard({
         <ul className="space-y-0.5 text-blue-700">
           <li>· <span className="font-medium">검색어</span>: 지역명 + 등록 키워드 자동 조합{keywords.length > 0 ? ` (등록된 키워드 ${keywords.length}개 각각 측정)` : ""} — 아래 표에 실제 검색어 표시</li>
           <li>· <span className="font-medium">검색 위치</span>: 서울 기준 서버 IP (비로그인, 개인화 없음)</li>
-          <li>· <span className="font-medium">순위 범위</span>: 각 채널 상위 20위 이내 — 20위 밖이면 &apos;미노출&apos; 표시</li>
+          <li>· <span className="font-medium">순위 범위</span>: 각 탭 상위 20위 이내 — 20위 밖이면 &apos;미노출&apos; 표시</li>
           <li>· <span className="font-medium">PC</span> = 네이버 PC 통합검색 &nbsp;·&nbsp; <span className="font-medium">모바일</span> = 네이버 모바일 통합검색 &nbsp;·&nbsp; <span className="font-medium">플레이스</span> = 네이버 플레이스 탭</li>
         </ul>
       </div>
@@ -468,7 +468,7 @@ export default function KeywordRankCard({
             type="button"
             onClick={downloadCsv}
             disabled={downloading || !canDownload}
-            title={!canDownload ? "Pro 플랜부터 가능" : "CSV 다운로드"}
+            title={!canDownload ? "Pro 플랜부터 가능" : "엑셀 다운로드"}
             className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {downloading ? (
@@ -476,7 +476,7 @@ export default function KeywordRankCard({
             ) : (
               <Download className="w-4 h-4" />
             )}
-            {canDownload ? "CSV 다운로드" : "CSV 다운로드 (Pro 플랜부터)"}
+            {canDownload ? "엑셀 다운로드" : "엑셀 다운로드 (Pro 플랜부터)"}
           </button>
         </div>
       )}

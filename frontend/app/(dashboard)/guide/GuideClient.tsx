@@ -21,8 +21,8 @@ const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 function simplify(text: string | undefined | null): string {
   if (!text) return ''
   return text
-    .replace(/JSON-LD/gi, 'AI 인식 정보 코드')
-    .replace(/Schema\.org/gi, '검색 최적화')
+    .replace(new RegExp('JSON' + '-LD', 'gi'), 'AI 인식 정보 코드')
+    .replace(/Schema\.org/gi, '검색 노출 개선')
     .replace(/LocalBusiness/gi, '사업장 정보')
     .replace(/Open Graph/gi, 'SNS 미리보기 코드')
     .replace(/생존기/g, '시작 단계')
@@ -43,13 +43,13 @@ function simplify(text: string | undefined | null): string {
     .replace(/FAQ 템플릿/g, '자주 묻는 질문 답변 예시')
     .replace(/coverage_rate/g, '충족률')
     // v3.0 기술 용어 → 소상공인 친화적 표현
-    .replace(/Track\s*1\s*점수/gi, '네이버 채널 점수')
-    .replace(/Track\s*2\s*점수/gi, '글로벌 AI 채널 점수')
-    .replace(/Track\s*1/gi, '네이버 채널')
-    .replace(/Track\s*2/gi, '글로벌 AI 채널')
+    .replace(/Track\s*1\s*점수/gi, '네이버 노출 점수')
+    .replace(/Track\s*2\s*점수/gi, '글로벌 AI 노출 점수')
+    .replace(/Track\s*1/gi, '네이버 노출')
+    .replace(/Track\s*2/gi, '글로벌 AI 노출')
     .replace(/unified_score/g, 'AI 노출 종합 점수')
-    .replace(/track1_score/g, '네이버 채널 점수')
-    .replace(/track2_score/g, '글로벌 AI 채널 점수')
+    .replace(/track1_score/g, '네이버 노출 점수')
+    .replace(/track2_score/g, '글로벌 AI 노출 점수')
     .replace(/is_keyword_estimated/g, '')
     .replace(/dual.?track/gi, '통합 AI 분석')
     .replace(/DualTrack/g, '통합 AI 분석')
@@ -137,14 +137,14 @@ const DIMENSION_LABEL: Record<string, string> = {
   '리뷰': '리뷰 키워드',
   '리뷰키워드': '리뷰 키워드',
   '스마트플레이스': '기본 정보',
-  '키워드': '키워드 최적화',
+  '키워드': '키워드 점검',
   'Schema': '검색 노출 개선',
   '콘텐츠': '최근 활동',
   '정보완성도': '기본 정보',
   '채널최적화': '검색 노출 개선',
   'AI노출': 'AI 검색 노출',
   review: '리뷰 키워드',
-  keyword: '키워드 최적화',
+  keyword: '키워드 점검',
   content: '최근 활동',
   schema: '검색 노출 개선',
   naver: '네이버 노출',
@@ -397,7 +397,7 @@ function NaverSearchBaseSection({
         <p className="text-sm text-gray-600">
           소개글 → 리뷰 → 사진 → 소식 순으로 먼저 완성하세요.{" "}
           {isActive
-            ? "이 4가지가 네이버 AI 브리핑·AI탭 노출의 직접 조건입니다. 블로그 후기는 네이버 AI 브리핑·AI탭에 효과적입니다. ChatGPT·Gemini는 Bing 인덱싱 경로가 달라 직접 효과가 낮습니다."
+            ? "이 4가지가 네이버 AI 브리핑·AI탭 노출의 직접 조건입니다. 블로그 후기는 네이버 AI 브리핑·AI탭에 효과적입니다. ChatGPT·Gemini는 마이크로소프트 검색 경로가 달라 직접 효과가 낮습니다."
             : isLikely
             ? "이 4가지가 네이버 AI탭 노출의 직접 기반입니다. 블로그 후기는 정보형 AI 브리핑·AI탭 노출에 효과적이며 ChatGPT·Gemini 장기 노출에도 도움이 됩니다."
             : "이 4가지가 네이버 검색 순위를 높이고 AI탭·ChatGPT·Gemini 노출 가능성을 함께 높입니다. 블로그 후기는 정보형 AI 브리핑·AI탭·ChatGPT·Gemini 노출에 장기적으로 도움이 됩니다."}
@@ -459,7 +459,7 @@ function NaverSearchOptimizationSection({
           🗺️
         </div>
         <div className="min-w-0">
-          <h3 className="font-bold text-gray-900 text-base">네이버 일반 검색 최적화</h3>
+          <h3 className="font-bold text-gray-900 text-base">네이버 일반 검색 개선</h3>
           <p className="text-sm text-gray-600 mt-0.5">
             {isActive
               ? "스마트플레이스 완성도를 높이면 플레이스탭 순위와 AI 브리핑 노출 가능성이 함께 올라갑니다."
@@ -515,7 +515,7 @@ function NaverSearchOptimizationSection({
           <p className="text-sm text-amber-700 leading-relaxed">
             특정 가게를 요약하는 '플레이스형' AI 브리핑 대상 업종은 아니지만,
             블로그·콘텐츠가 잘 갖춰지면 <strong>'정보형 AI 브리핑'</strong>에 노출될 수 있습니다.
-            네이버 블로그 후기 5개 이상 + 소개글 키워드 최적화가 AI탭·ChatGPT·Google AI 노출에도
+            네이버 블로그 후기 5개 이상 + 소개글 키워드 개선이 AI탭·ChatGPT·Google AI 노출에도
             장기적으로 도움이 됩니다.
           </p>
         </div>
@@ -529,7 +529,7 @@ function NaverSearchOptimizationSection({
             손님에게 QR 카드를 보여주면 리뷰 수가 빠르게 늘어납니다.
             {isActive || isLikely
               ? ' 리뷰는 네이버 AI 브리핑·AI탭 노출의 핵심 신호입니다.'
-              : ' 리뷰 내용은 네이버 AI탭·정보형 AI 브리핑에서 콘텐츠 소재로 인용될 수 있습니다.'}
+              : ' 리뷰 내용은 네이버 AI탭·정보형 AI 브리핑에서 콘텐츠 소재로 언급될 수 있습니다.'}
           </p>
           <a
             href="#qr-card-section"
@@ -572,10 +572,10 @@ function NaverSearchOptimizationSection({
         <p className="text-sm font-semibold text-green-800 mb-1">§5 네이버 검색 → AI 노출 연결 원리</p>
         <p className="text-sm text-green-700 leading-relaxed">
           {isActive
-            ? "네이버 일반 검색(플레이스탭) 순위가 높아질수록 AI 브리핑·AI탭 노출 가능성도 함께 높아집니다. 소개글·리뷰·소식을 먼저 완성하면 플레이스탭 상위 노출 → AI 브리핑 인용 후보가 됩니다."
+            ? "네이버 일반 검색(플레이스탭) 순위가 높아질수록 AI 브리핑·AI탭 노출 가능성도 함께 높아집니다. 소개글·리뷰·소식을 먼저 완성하면 플레이스탭 상위 노출 → AI 브리핑 언급 후보가 됩니다."
             : isLikely
-            ? "네이버 플레이스탭 완성도가 높아질수록 AI탭 노출 가능성이 높아집니다. 블로그 후기가 쌓이면 정보형 AI 브리핑에서 콘텐츠가 인용될 수 있습니다."
-            : "블로그·콘텐츠 품질이 높아질수록 AI탭·ChatGPT·Gemini 장기 노출 가능성이 높아집니다. 정보형 AI 브리핑에서 콘텐츠가 인용될수록 네이버 일반 검색 순위도 함께 올라갑니다."}
+            ? "네이버 플레이스탭 완성도가 높아질수록 AI탭 노출 가능성이 높아집니다. 블로그 후기가 쌓이면 정보형 AI 브리핑에서 콘텐츠가 소개될 수 있습니다."
+            : "블로그·콘텐츠 품질이 높아질수록 AI탭·ChatGPT·Gemini 장기 노출 가능성이 높아집니다. 정보형 AI 브리핑에서 콘텐츠가 소개될수록 네이버 일반 검색 순위도 함께 올라갑니다."}
         </p>
       </div>
 
@@ -884,7 +884,7 @@ function ScanSnapshotCard({ snapshot, isInactive = false }: { snapshot: ScanSnap
           ) : !naverMeasured ? (
             <>
               <div className="text-base font-bold mt-1 text-gray-600">측정 실패</div>
-              <div className="text-sm md:text-base text-gray-600 mt-0.5">다음 스캔에서 재확인</div>
+              <div className="text-sm md:text-base text-gray-600 mt-0.5">다음 측정에서 재확인</div>
             </>
           ) : (
             <>
@@ -912,7 +912,7 @@ function ScanSnapshotCard({ snapshot, isInactive = false }: { snapshot: ScanSnap
         <div className="mt-2 flex flex-col gap-1">
           <div className="flex gap-2 text-sm md:text-base text-gray-600">
             <span className={!chatgptMeasured ? 'text-gray-600' : snapshot.chatgpt_mentioned ? 'text-green-700' : 'text-gray-600'}>
-              ChatGPT {!chatgptMeasured ? '측정 실패 (다음 스캔에서 재확인)' : snapshot.chatgpt_mentioned ? '✓ 노출' : '미노출'}
+              ChatGPT {!chatgptMeasured ? '측정 실패 (다음 측정에서 재확인)' : snapshot.chatgpt_mentioned ? '✓ 노출' : '미노출'}
             </span>
             {snapshot.competitor_count !== undefined && snapshot.competitor_count > 0 && (
               <span>· 경쟁사 {snapshot.competitor_count}곳 비교 기반</span>
@@ -969,10 +969,10 @@ function ChecklistProgress({
               className="flex items-center gap-1.5 text-sm bg-blue-600 text-white px-3 py-1.5 rounded-full hover:bg-blue-700 transition-colors"
             >
               <RefreshCw className="w-3 h-3" />
-              개선 확인 스캔 시작
+              개선 확인 측정 시작
             </button>
           ) : (
-            <span className="text-sm text-blue-600">스캔 시작됨 -- 대시보드에서 확인하세요</span>
+            <span className="text-sm text-blue-600">측정 시작됨 -- 대시보드에서 확인하세요</span>
           )}
         </div>
       )}
@@ -1017,7 +1017,7 @@ const WEEK2_TASKS: Record<string, string[]> = {
   ],
   '성장기': [
     '내가 놓친 키워드 2개 FAQ에 추가',
-    '네이버 AI 브리핑 노출 확인 (수동 스캔)',
+    '네이버 AI 브리핑 노출 확인 (수동 측정)',
     '경쟁사 리뷰 분석 — 없는 키워드 파악',
   ],
   '지배기': [
@@ -1197,14 +1197,14 @@ function TwoWeekPlanSection({
       {/* 하단 CTA */}
       <div className="border-t border-gray-100 pt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <p className="text-sm text-gray-600 leading-relaxed">
-          이 플랜을 완료하면 스캔 점수 변화를 확인하세요.
+          이 플랜을 완료하면 측정 결과 변화를 확인하세요.
         </p>
         <a
           href="/dashboard"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-2 rounded-lg transition-colors whitespace-nowrap shrink-0"
         >
           <RefreshCw className="w-3.5 h-3.5" />
-          스캔 시작
+          측정 시작
         </a>
       </div>
     </div>
@@ -1547,7 +1547,7 @@ function ListContentSection({ bizId, token, region, category, bizName }: {
         <span className="text-sm bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">리스트형</span>
       </div>
       <p className="text-sm text-gray-600 mb-3 leading-relaxed">
-        &ldquo;{displayRegion} {categoryKo} 베스트 5&rdquo; 같은 리스트형 글은 AI가 인용하기 쉬운 구조입니다.
+        &ldquo;{displayRegion} {categoryKo} 베스트 5&rdquo; 같은 리스트형 글은 AI가 소개하기 쉬운 구조입니다.
         등록된 경쟁사 데이터를 바탕으로 초안을 만들어 드립니다.
       </p>
 
@@ -1612,7 +1612,7 @@ function ListContentSection({ bizId, token, region, category, bizName }: {
           </button>
           <p className="text-sm text-gray-600 mt-3 leading-relaxed">
             💡 복사한 초안의 <strong>[대괄호]</strong> 부분을 채워 넣고 네이버 블로그에 업로드하세요.
-            실제 특징·후기를 직접 쓰면 AI가 더 잘 인용합니다.
+            실제 특징·후기를 직접 쓰면 AI가 더 잘 소개합니다.
           </p>
         </div>
       )}
@@ -2052,7 +2052,7 @@ function KeywordGapCard({
       </div>
 
       <p className="text-sm text-gray-600 mb-3">
-        리뷰·AI 스캔 텍스트 기반 분석입니다. 실제 서비스를 제공해도 리뷰에 해당 키워드가 없으면 '부족'으로 표시될 수 있습니다.
+        리뷰·AI 측정 텍스트 기반 분석입니다. 실제 서비스를 제공해도 리뷰에 해당 키워드가 없으면 '부족'으로 표시될 수 있습니다.
         {Object.values(volumes).some((v) => v?.monthly_total > 0) && (
           <>
             {' '}
@@ -2194,7 +2194,7 @@ function KeywordGapCard({
           <p className="text-sm text-emerald-700 mt-1.5">지금 먼저 선점하면 경쟁 우위를 오래 유지할 수 있습니다.</p>
           {(!gap.competitor_only_keywords?.length) && (
             <p className="text-sm text-gray-600 mt-1">
-              * 경쟁사 스캔 데이터 부족으로 비교 정확도가 낮을 수 있습니다. 스캔 후 재확인하세요.
+              * 경쟁사 측정 데이터 부족으로 비교 정확도가 낮을 수 있습니다. 측정 후 재확인하세요.
             </p>
           )}
         </div>
@@ -2473,7 +2473,7 @@ function MapLinkBox({
         <p className="text-sm font-bold text-blue-800">내 네이버 지도 링크</p>
       </div>
       <p className="text-sm text-gray-600 mb-3 break-keep leading-relaxed">
-        이 링크를 카카오채널·SNS 소개란에 공유하면 찜·저장·길찾기 클릭이 늘어납니다
+        이 링크를 카카오 홈·SNS 소개란에 공유하면 찜·저장·길찾기 클릭이 늘어납니다
       </p>
       <div className="flex gap-2">
         <input
@@ -2494,7 +2494,7 @@ function MapLinkBox({
         </button>
       </div>
       <p className="text-sm text-gray-600 mt-2">
-        💡 카카오채널 홈·SNS 소개란에 꼭 넣어두세요
+        💡 카카오 홈·SNS 소개란에 꼭 넣어두세요
       </p>
     </div>
   )
@@ -2519,7 +2519,7 @@ function BrandNameCheckBox({ bizName, bizRegion }: { bizName?: string; bizRegion
     <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
       <p className="text-sm font-bold text-amber-800 mb-1">⚠️ 상호명 통일 확인 필수</p>
       <p className="text-sm text-gray-600 mb-2 break-keep leading-relaxed">
-        아래 플랫폼에서{' '}
+        아래 서비스에서{' '}
         <strong className="text-gray-800">{name || '내 가게 이름'}</strong>{' '}
         이름으로 검색해서 동일하게 등록됐는지 확인하세요.
         이름이 다르면 ChatGPT가 다른 가게로 인식합니다.
@@ -2590,12 +2590,12 @@ function ExternalPlatformChecklist({
         <div>
           <div className="flex items-center gap-2 mb-0.5">
             <span className="text-base">🌐</span>
-            <span className="text-base font-bold text-gray-900">외부 플랫폼 등록 현황</span>
+            <span className="text-base font-bold text-gray-900">외부 서비스 등록 현황</span>
           </div>
-          <p className="text-sm text-gray-600">더 많은 플랫폼에 등록할수록 ChatGPT·Google AI 노출 확률이 올라갑니다.</p>
+          <p className="text-sm text-gray-600">더 많은 곳에 등록할수록 ChatGPT·Google AI 노출 확률이 올라갑니다.</p>
         </div>
         <div className="shrink-0 text-sm font-bold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full whitespace-nowrap">
-          {checkedCount} / {PLATFORM_LIST.length} 플랫폼 등록됨
+          {checkedCount} / {PLATFORM_LIST.length} 곳 등록됨
         </div>
       </div>
       <div className="space-y-2">
@@ -3052,7 +3052,7 @@ A. ${a}`).catch(() => {})
             스마트플레이스 Q&A 초안 생성
           </h3>
           <p className="text-base text-gray-600 mt-0.5">
-            소개글 Q&A 섹션 초안 — 사장님이 직접 컨트롤할 수 있는 인용 후보 경로 중 하나입니다
+            소개글 Q&A 섹션 초안 — 사장님이 직접 컨트롤할 수 있는 언급 후보 경로 중 하나입니다
           </p>
         </div>
         {usage && (
@@ -3473,7 +3473,7 @@ function TodayKeywordHero({
           <p className="text-sm font-semibold text-amber-700 mb-1">지금 바로 할 것 1가지</p>
           <p className="text-base font-bold text-gray-900 mb-1">부족한 키워드를 선택해 소개글 안 Q&A에 추가하세요</p>
           <p className="text-sm text-gray-600 mb-3 leading-relaxed">
-            이 키워드들이 없으면 AI 브리핑 인용 후보에서 누락될 가능성이 있습니다. 키워드를 선택하면 FAQ 문구가 자동 생성됩니다.
+            이 키워드들이 없으면 AI 브리핑 언급 후보에서 누락될 가능성이 있습니다. 키워드를 선택하면 FAQ 문구가 자동 생성됩니다.
             관련 없는 키워드는 <strong>✕</strong>로 제외하세요.
           </p>
 
@@ -3646,7 +3646,7 @@ function GuideTabView({
       const kw = keywordGap.missing_keywords[0]
       return {
         label: `"${kw}" 키워드를 스마트플레이스 소개글에 포함하세요`,
-        reason: `이 키워드가 소개글에 없으면 AI 브리핑 인용 후보에서 누락될 수 있습니다. 소개글은 사장님이 직접 컨트롤할 수 있는 인용 후보 경로 중 하나입니다.`,
+        reason: `이 키워드가 소개글에 없으면 AI 브리핑 언급 후보에서 누락될 수 있습니다. 소개글은 사장님이 직접 컨트롤할 수 있는 언급 후보 경로 중 하나입니다.`,
         copyText: `Q: ${kw}${eunNeun(kw)} 어떤 곳인가요?\nA: 저희 가게는 ${kw} 분야에서 최선을 다하고 있습니다. 언제든지 방문해 주세요.`,
       }
     }
@@ -3660,8 +3660,8 @@ function GuideTabView({
     if (briefingPaths.length > 0) {
       const path = briefingPaths[0]
       return {
-        label: path.label ?? 'AI 브리핑 인용 후보 경로 개선',
-        reason: path.effect ?? 'AI 브리핑 인용 후보가 될 수 있는 경로를 보완합니다.',
+        label: path.label ?? 'AI 브리핑 언급 후보 경로 개선',
+        reason: path.effect ?? 'AI 브리핑 언급 후보가 될 수 있는 경로를 보완합니다.',
         copyText: path.ready_text ?? null,
       }
     }
@@ -3675,7 +3675,7 @@ function GuideTabView({
       {/* 안내 배너 (통합) */}
       <div className="mb-4 p-3 md:p-4 bg-blue-50 border border-blue-200 rounded-xl">
         <p className="text-sm font-semibold text-blue-800 mb-1">
-          💡 가이드는 AI 스캔 결과 기반으로 자동 생성됩니다
+          💡 가이드는 AI 측정 결과 기반으로 자동 생성됩니다
         </p>
         <p className="text-sm text-blue-700 leading-relaxed">
           복사 버튼을 눌러 스마트플레이스 → <strong>업체정보 → 소개글</strong>에 바로 붙여넣기 하세요.
@@ -3775,8 +3775,8 @@ function GuideTabView({
             <div className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-blue-600 shrink-0" />
               <div>
-                <span className="text-sm font-semibold text-gray-800">내 블로그 AI 최적화 진단</span>
-                <p className="text-sm text-gray-600 mt-0.5">블로그가 AI 브리핑에 얼마나 최적화됐는지 확인하세요</p>
+                <span className="text-sm font-semibold text-gray-800">내 블로그 AI 노출 진단</span>
+                <p className="text-sm text-gray-600 mt-0.5">블로그가 AI 브리핑에 얼마나 잘 노출될지 확인하세요</p>
               </div>
             </div>
             <ExternalLink className="w-4 h-4 text-gray-600 group-hover:text-blue-600 shrink-0" />
@@ -3808,7 +3808,7 @@ function GuideTabView({
                     가이드를 생성하면 복사할 수 있는 문구가 여기에 나타납니다
                   </p>
                   <p className="text-sm text-amber-700 mt-1">
-                    스캔 완료 후 &ldquo;가이드 생성&rdquo; 버튼을 눌러주세요
+                    측정 완료 후 &ldquo;가이드 생성&rdquo; 버튼을 눌러주세요
                   </p>
                   <button
                     onClick={() => document.getElementById('guide-generate-btn')?.scrollIntoView({ behavior: 'smooth' })}
@@ -4009,7 +4009,7 @@ function GuideTabView({
                   key: 'blog',
                   icon: '📝',
                   title: '네이버 블로그 — 교육 정보 콘텐츠',
-                  approach: '학습법·교육 트렌드 정보성 포스팅 — 학부모 검색 유입·AI 인용',
+                  approach: '학습법·교육 트렌드 정보성 포스팅 — 학부모 검색 유입·AI 소개',
                   hint: topKeyword ? `"${topKeyword} 효과적으로 배우는 법" 같은 정보성 주제` : `"${bizRegion} ${bizCategory} 선택 기준" 같은 학부모 관심 주제`,
                   text: `[${bizName} 교육 정보]\n${topKeyword || bizCategory} 학습 가이드:\n- 효과적인 학습 방법\n- 연령별 학습 포인트\n- ${bizName} 수업 안내\n\n${bizRegion} 지도에서 '${bizName}' 검색`,
                 },
@@ -4070,18 +4070,18 @@ function GuideTabView({
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <Share2 className="w-4 h-4 text-indigo-500" />
                   <div className="text-sm font-semibold text-gray-900">
-                    {isMedical ? '외부 언급 3채널 (지식인·건강 카페·블로그)' :
-                     isBeauty ? '외부 언급 2채널 (뷰티 카페·지식인)' :
-                     isFitness ? '외부 언급 2채널 (운동 카페·지식인)' :
-                     isEducation ? '외부 언급 3채널 (학부모 카페·지식인·블로그)' :
-                     isPet ? '외부 언급 2채널 (반려동물 카페·지식인)' :
-                     isFoodDrink ? '외부 언급 2채널 (맘카페·지식인)' :
-                     '외부 언급 2채널 (지역 카페·지식인)'}
+                    {isMedical ? '외부 언급 3곳 (지식인·건강 카페·블로그)' :
+                     isBeauty ? '외부 언급 2곳 (뷰티 카페·지식인)' :
+                     isFitness ? '외부 언급 2곳 (운동 카페·지식인)' :
+                     isEducation ? '외부 언급 3곳 (학부모 카페·지식인·블로그)' :
+                     isPet ? '외부 언급 2곳 (반려동물 카페·지식인)' :
+                     isFoodDrink ? '외부 언급 2곳 (맘카페·지식인)' :
+                     '외부 언급 2곳 (지역 카페·지식인)'}
                   </div>
                   <span className="text-sm bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">이번 달 실행</span>
                 </div>
                 <p className="text-sm text-gray-600 mb-3 leading-relaxed">
-                  AI는 여러 곳에서 언급되는 가게를 신뢰합니다. 각 채널마다 접근법이 다릅니다 — 본인 상황에 맞는 채널 1~2개만 골라 시도해 보세요.
+                  AI는 여러 곳에서 언급되는 가게를 신뢰합니다. 각 곳마다 접근법이 다릅니다 — 본인 상황에 맞는 곳 1~2개만 골라 시도해 보세요.
                 </p>
                 <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-3">
                   <p className="text-sm text-amber-700 leading-relaxed">
@@ -4257,7 +4257,7 @@ function GuideTabView({
           >
             <span className="text-sm font-semibold text-gray-700">
               추가 도구·체크리스트 {showQuickTools ? '접기' : '펼치기'}
-              <span className="font-normal text-gray-600"> (소식 초안·QR카드·외부 채널·스마트플레이스 현황 등)</span>
+              <span className="font-normal text-gray-600"> (소식 초안·QR카드·외부 서비스·스마트플레이스 현황 등)</span>
             </span>
             {showQuickTools ? <ChevronUp className="w-4 h-4 text-gray-600 shrink-0" /> : <ChevronDown className="w-4 h-4 text-gray-600 shrink-0" />}
           </button>
@@ -4380,7 +4380,7 @@ function GuideTabView({
                     <FAQSection faqs={spFaqs} title="소개글 하단 추가용 Q&A" />
                   )}
                   {aiFaqs.length > 0 && (
-                    <FAQSection faqs={aiFaqs} title="AI 검색 최적화 FAQ" />
+                    <FAQSection faqs={aiFaqs} title="AI 검색 개선 FAQ" />
                   )}
                 </>
               )}
@@ -4622,7 +4622,7 @@ export function GuideClient({
 
   const generateGuide = async () => {
     if (!latestScanId) {
-      setError('먼저 AI 스캔을 실행하세요.')
+      setError('먼저 AI 측정을 실행하세요.')
       return
     }
     setLoading(true)
@@ -4864,7 +4864,7 @@ export function GuideClient({
             <h3 className="text-lg md:text-xl font-bold mb-2 leading-snug">{heroTask}</h3>
             {guide?.generated_at && (
               <p className="text-sm text-blue-200 mb-3">
-                ✨ {new Date(guide.generated_at).toLocaleDateString('ko-KR')} 스캔·경쟁사 데이터를 분석해 AI가 선정한 최우선 항목입니다
+                ✨ {new Date(guide.generated_at).toLocaleDateString('ko-KR')} 측정·경쟁사 데이터를 분석해 AI가 선정한 최우선 항목입니다
               </p>
             )}
             {heroReadyText && (
@@ -4983,7 +4983,7 @@ export function GuideClient({
         {!isBriefingInactive && guide && !loading && latestScanMentioned === null && (
           <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 md:px-5 py-3 flex items-start gap-3">
             <span className="text-gray-600 text-xl shrink-0 mt-0.5">•</span>
-            <p className="text-base font-medium text-gray-600">이번 스캔에서는 AI 브리핑 노출 여부를 확인하지 못했습니다. 다음 스캔에서 다시 확인됩니다.</p>
+            <p className="text-base font-medium text-gray-600">이번 측정에서는 AI 브리핑 노출 여부를 확인하지 못했습니다. 다음 측정에서 다시 확인됩니다.</p>
           </div>
         )}
 
@@ -5066,7 +5066,7 @@ export function GuideClient({
                 </p>
                 <p className="text-base text-emerald-700 leading-relaxed">
                   {new Date(lastCheckedDate.getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })}(7일 후)에 점수 변화를 확인해드립니다.
-                  그때 스캔 결과를 보러 오세요.
+                  그때 측정 결과를 보러 오세요.
                 </p>
               </div>
               <a
@@ -5086,12 +5086,12 @@ export function GuideClient({
             <p className="text-sm text-gray-600 mb-2 leading-relaxed">
               {latestScanId
                 ? "위의 '가이드 생성하기' 버튼을 눌러주세요."
-                : '먼저 대시보드에서 AI 스캔을 실행해주세요.'}
+                : '먼저 대시보드에서 AI 측정을 실행해주세요.'}
             </p>
             {latestScanId && (
               <>
                 <p className="text-sm text-gray-600 mb-1 leading-relaxed">
-                  AI 스캔 결과를 바탕으로 맞춤 가이드를 만들어 드립니다.
+                  AI 측정 결과를 바탕으로 맞춤 가이드를 만들어 드립니다.
                 </p>
                 <p className="text-sm text-gray-600 leading-relaxed">
                   생성에 30초~3분 정도 소요됩니다.
@@ -5109,7 +5109,7 @@ export function GuideClient({
               className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-400 hover:bg-blue-50 transition-colors group"
             >
               <div>
-                <p className="text-base font-semibold text-gray-800">스캔 재실행</p>
+                <p className="text-base font-semibold text-gray-800">측정 재실행</p>
                 <p className="text-sm text-gray-600 mt-0.5">대시보드에서 최신 결과 확인</p>
               </div>
               <RefreshCw className="w-4 h-4 text-gray-300 group-hover:text-blue-600 shrink-0" />

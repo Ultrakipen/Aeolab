@@ -39,26 +39,26 @@ export default function ChatGPTDiffCard({
     {
       label: isQuickScan
         ? `Gemini AI 빠른 진단 (${gN}회)`
-        : `Gemini AI에 ${gN}회 자동 질의한 결과`,
+        : `Gemini AI에 ${gN}회 자동으로 물어본 결과`,
       value: `${gN}회 중 ${geminiCount}회 언급`,
       detail: isQuickScan
-        ? `수동 스캔 빠른 진단 결과 (${gN}회). 자동 스캔 시 50회 정밀 측정됩니다`
-        : `AEOlab이 Gemini API를 ${gN}회 프로그래매틱 호출해 측정한 수치입니다`,
+        ? `수동 측정 빠른 진단 결과 (${gN}회). 자동 측정 시 50회 정밀 측정됩니다`
+        : `AEOlab이 Gemini에 ${gN}회 자동으로 물어봐서 측정한 수치입니다`,
       highlight: geminiCount > 0,
     },
     ...(chatgptHasSamples ? [{
       label: cN <= 15
         ? `ChatGPT 빠른 진단 (${cN}회)`
-        : `ChatGPT에 ${cN}회 자동 질의한 결과`,
+        : `ChatGPT에 ${cN}회 자동으로 물어본 결과`,
       value: `${cN}회 중 ${chatgptCount}회 언급`,
       detail: cN <= 15
-        ? `수동 스캔 빠른 진단 결과 (${cN}회). 자동 스캔 시 50회 정밀 측정됩니다`
+        ? `수동 측정 빠른 진단 결과 (${cN}회). 자동 측정 시 50회 정밀 측정됩니다`
         : `OpenAI GPT-4.1-mini를 ${cN}회 호출해 ChatGPT가 내 가게를 얼마나 자주 추천하는지 직접 측정했습니다`,
       highlight: (chatgptCount ?? 0) > 0,
     }] : [{
-      label: "ChatGPT 자동 질의",
-      value: "자동 스캔 시 50회 측정",
-      detail: "자동 스캔(Basic 이상)에서 ChatGPT GPT-4.1-mini 50회 측정이 추가됩니다. 빠른 진단은 Gemini만 포함됩니다",
+      label: "ChatGPT 자동 측정",
+      value: "자동 측정 시 50회 확인",
+      detail: "자동 측정(Basic 이상)에서 ChatGPT GPT-4.1-mini 50회 측정이 추가됩니다. 빠른 진단은 Gemini만 포함됩니다",
       highlight: false,
       inactive: true,
     }]),
@@ -68,7 +68,7 @@ export default function ChatGPTDiffCard({
         ? "플레이스형 해당 없음"
         : naverBriefing ? "현재 노출 중" : "현재 미노출",
       detail: isNaverInactive
-        ? "이 업종은 '플레이스형' 네이버 AI 브리핑 노출 대상이 아닙니다. 블로그·콘텐츠로 '정보형 AI 브리핑'과 글로벌 AI 채널을 함께 최적화하세요."
+        ? "이 업종은 '플레이스형' 네이버 AI 브리핑 노출 대상이 아닙니다. 블로그·콘텐츠로 '정보형 AI 브리핑'과 글로벌 AI 서비스도 함께 개선하세요."
         : "실제 네이버 검색 결과를 직접 파싱합니다. ChatGPT는 네이버 결과를 볼 수 없습니다",
       highlight: !isNaverInactive && naverBriefing,
       inactive: isNaverInactive,
@@ -88,8 +88,8 @@ export default function ChatGPTDiffCard({
         ? "현재 노출 중"
         : "현재 미노출",
       detail: googleAIOverview === null
-        ? "Google 검색 노출 측정 중 오류가 발생했습니다. 다음 스캔에서 재측정됩니다"
-        : "Serper.dev API로 Google 검색 결과에 내 가게가 나오는지 확인합니다. 검색 상단 AI 요약 영역은 현재 측정 API가 결과를 제공하지 않아 확인하지 못합니다. ChatGPT는 Google 검색 결과를 실시간으로 알 수 없습니다",
+        ? "Google 검색 노출 측정 중 오류가 발생했습니다. 다음 측정에서 다시 확인됩니다"
+        : "Google 검색 결과에 내 가게가 나오는지 확인합니다. 검색 상단 AI 요약 영역은 현재 자동 연결로는 확인하지 못합니다. ChatGPT는 Google 검색 결과를 실시간으로 알 수 없습니다",
       highlight: googleAIOverview === true,
       inactive: googleAIOverview === null,
     }] : []),
@@ -118,7 +118,7 @@ export default function ChatGPTDiffCard({
           + (topMissingKeywords.length > 3 ? ` 외 ${topMissingKeywords.length - 3}개 누락` : " 누락")
         : "업종별 키워드 분석 완료",
       detail: topMissingKeywords.length > 0
-        ? "업종 핵심 키워드 중 소개글·리뷰에서 발견되지 않은 키워드입니다. 소개글·소식에 추가하면 키워드 점수가 다음 스캔에서 오르고, 네이버 AI 브리핑 노출 가능성도 개선됩니다."
+        ? "업종 핵심 키워드 중 소개글·리뷰에서 발견되지 않은 키워드입니다. 소개글·소식에 추가하면 키워드 점수가 다음 측정에서 오르고, 네이버 AI 브리핑 노출 가능성도 개선됩니다."
         : "ChatGPT는 내 가게에 '어떤 키워드가 없는지' 구체적으로 알 수 없습니다",
       highlight: topMissingKeywords.length > 0,
     },
@@ -138,7 +138,7 @@ export default function ChatGPTDiffCard({
       <div className="mb-3 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
         <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
         <p className="text-sm text-amber-800 leading-snug">
-          <span className="font-semibold">ChatGPT 인식은 학습 데이터 기반입니다.</span>{" "}
+          <span className="font-semibold">ChatGPT 인식은 AI가 미리 공부한 자료 기반입니다.</span>{" "}
           블로그·소개글 작성으로 단기 변동이 없으며, 수개월~1년 후 모델 업데이트 시 반영됩니다. <span className="font-medium">현재 인식 현황 파악 목적으로 활용하세요.</span>
         </p>
       </div>
@@ -184,7 +184,7 @@ export default function ChatGPTDiffCard({
             <li className="flex items-start gap-1.5">
               <Search className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" aria-hidden="true" />
               <span>
-                <span className="font-semibold">실측 인용 쿼리:</span>{" "}
+                <span className="font-semibold">실측 언급 검색어:</span>{" "}
                 <span className="font-mono text-sm bg-white px-1.5 py-0.5 rounded border border-indigo-200">
                   {chatgptTopQuery}
                 </span>
@@ -193,7 +193,7 @@ export default function ChatGPTDiffCard({
           )}
         </ul>
         <p className="mt-2 text-sm text-indigo-600 leading-snug">
-          <strong>측정 원리 차이:</strong> ChatGPT는 과거 학습 데이터 기반 — 한국 소상공인은 낮은 점수가 일반적이며 단기 변동이 없습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.
+          <strong>측정 원리 차이:</strong> ChatGPT는 AI가 미리 공부한 자료 기반 — 한국 소상공인은 낮은 점수가 일반적이며 단기 변동이 없습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.
         </p>
       </div>
     </div>

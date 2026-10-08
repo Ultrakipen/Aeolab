@@ -166,7 +166,7 @@ export function IntroGeneratorCard({
         </p>
       ) : (
         <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed">
-          ChatGPT·Gemini 같은 AI가 내 가게를 검색할 때 언급하도록 최적화된 소개글입니다.
+          ChatGPT·Gemini 같은 AI가 내 가게를 검색할 때 언급하도록 개선된 소개글입니다.
           자체 웹사이트나 구글 비즈니스 프로필 소개란에 붙여넣으면 글로벌 AI 노출에 효과적입니다.
         </p>
       )}

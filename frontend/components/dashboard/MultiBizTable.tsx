@@ -42,7 +42,7 @@ export function MultiBizTable({ token }: Props) {
   }
 
   function formatDate(iso: string | null) {
-    if (!iso) return "미스캔";
+    if (!iso) return "미측정";
     const d = new Date(iso);
     return `${d.getMonth() + 1}/${d.getDate()}`;
   }
@@ -78,11 +78,11 @@ export function MultiBizTable({ token }: Props) {
           <thead>
             <tr className="border-b border-gray-100">
               <th className="text-left py-2 px-3 text-gray-600 font-medium">사업장</th>
-              <th className="text-center py-2 px-3 text-gray-600 font-medium">AI 노출 종합 지수</th>
+              <th className="text-center py-2 px-3 text-gray-600 font-medium">AI 노출 종합 현황</th>
               <th className="text-center py-2 px-3 text-gray-600 font-medium">네이버</th>
               <th className="text-center py-2 px-3 text-gray-600 font-medium">글로벌</th>
               <th className="text-center py-2 px-3 text-gray-600 font-medium">경쟁사</th>
-              <th className="text-center py-2 px-3 text-gray-600 font-medium">마지막 스캔</th>
+              <th className="text-center py-2 px-3 text-gray-600 font-medium">마지막 측정</th>
             </tr>
           </thead>
           <tbody>

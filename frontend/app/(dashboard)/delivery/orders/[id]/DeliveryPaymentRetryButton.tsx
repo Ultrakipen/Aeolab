@@ -5,7 +5,7 @@ import { Loader2, CreditCard } from "lucide-react";
 
 const PACKAGE_NAMES: Record<string, string> = {
   smartplace_register: "01 스마트플레이스 등록 대행",
-  ai_optimization: "02 AI 검색 최적화",
+  ai_optimization: "02 AI 검색 개선",
   comprehensive: "03 종합 풀패키지",
 };
 

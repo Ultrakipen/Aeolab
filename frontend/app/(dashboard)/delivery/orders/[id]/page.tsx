@@ -46,7 +46,7 @@ interface Message {
 
 const PACKAGE_DISPLAY: Record<string, string> = {
   smartplace_register: "스마트플레이스 등록 대행",
-  ai_optimization: "AI 검색 최적화",
+  ai_optimization: "AI 검색 개선",
   comprehensive: "종합 풀패키지",
 };
 

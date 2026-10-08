@@ -54,7 +54,7 @@ export default async function CompetitorsPage({
       title="경쟁사 관리"
       description="주변 경쟁 점포를 등록하면 AI 검색에서 내 가게가 몇 위인지 비교할 수 있습니다."
       features={[
-        { Icon: Search,    title: "카카오맵 지역 검색",   desc: "카카오 로컬 API로 같은 지역·업종의 실제 경쟁 점포를 검색해 바로 등록하세요." },
+        { Icon: Search,    title: "카카오맵 지역 검색",   desc: "카카오 지역 검색으로 같은 지역·업종의 실제 경쟁 점포를 검색해 바로 등록하세요." },
         { Icon: BarChart2, title: "AI 노출 순위 비교",    desc: "내 가게와 경쟁사의 AI Visibility Score를 나란히 비교해 경쟁 위치를 파악합니다." },
         { Icon: TrendingUp, title: "경쟁사 점수 추이",     desc: "경쟁사의 점수 변화를 모니터링해 시장 흐름을 선제적으로 파악하세요." },
         { Icon: Target,    title: "플랜별 경쟁사 관리",   desc: "Basic 3개 · 창업패키지·Pro 5개 · Biz 무제한으로 경쟁사를 등록할 수 있습니다." },
@@ -191,7 +191,7 @@ export default async function CompetitorsPage({
         if (step >= 3) return null
         const steps = [
           { n: 1, label: '경쟁사 등록' },
-          { n: 2, label: 'AI 스캔' },
+          { n: 2, label: 'AI 측정' },
           { n: 3, label: '결과 확인' },
         ]
         return (
@@ -218,7 +218,7 @@ export default async function CompetitorsPage({
                 <span className="text-sm text-blue-600 font-medium">아래에서 경쟁사를 추가하세요</span>
               ) : (
                 <Link href="/dashboard" className="inline-flex items-center gap-1 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg transition-colors">
-                  <Zap className="w-3.5 h-3.5" />스캔 실행
+                  <Zap className="w-3.5 h-3.5" />측정 시작
                 </Link>
               )}
             </div>
@@ -231,7 +231,7 @@ export default async function CompetitorsPage({
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-sm text-amber-800">
           <strong>현재는 업종 평균과 비교한 추정 데이터입니다.</strong>{' '}
           {(competitors?.length ?? 0) > 0
-            ? '등록된 경쟁사의 AI 스캔이 아직 완료되지 않아 실제 비교 데이터 대신 업종 평균을 사용했습니다. 스캔이 끝나면 자동으로 실제 비교 데이터로 전환됩니다.'
+            ? '등록된 경쟁사의 측정이 아직 완료되지 않아 실제 비교 데이터 대신 업종 평균을 사용했습니다. 측정이 끝나면 자동으로 실제 비교 데이터로 전환됩니다.'
             : '아래에서 경쟁사를 직접 등록하면 실제 가게 간 비교 데이터가 표시됩니다.'}
         </div>
       )}

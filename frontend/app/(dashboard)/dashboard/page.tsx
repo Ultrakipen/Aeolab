@@ -190,7 +190,7 @@ export default async function DashboardPage({
   const scanLimit = (isAdmin || devMode) ? 999 : SCAN_DAILY_LIMITS[plan] ?? 0;
   const scanUsed = scanUsedToday ?? 0;
   const scanInfo = isAdmin
-    ? { label: "자동 스캔 없음 (관리자)", desc: "관리자 계정은 자동 스캔 대상에서 제외됩니다" }
+    ? { label: "자동 측정 없음 (관리자)", desc: "관리자 계정은 자동 측정 대상에서 제외됩니다" }
     : nextScanLabel(plan);
 
   // ── 가이드 파생 ───────────────────────────────────────────────
@@ -438,9 +438,9 @@ export default async function DashboardPage({
                 />
                 {plan === "free" && (
                   freeScanAvailable ? (
-                    <p className="text-sm text-green-700 font-medium mt-2">이번 달 무료 스캔 1회 사용 가능해요</p>
+                    <p className="text-sm text-green-700 font-medium mt-2">이번 달 무료 측정 1회 사용 가능해요</p>
                   ) : (
-                    <p className="text-sm text-gray-600 font-medium mt-2">이번 달 무료 스캔을 사용했어요 · 다음 달에 다시 가능</p>
+                    <p className="text-sm text-gray-600 font-medium mt-2">이번 달 무료 측정을 사용했어요 · 다음 달에 다시 가능</p>
                   )
                 )}
                 <div className="mt-3 pt-3 border-t border-gray-100 space-y-0.5">
@@ -451,8 +451,8 @@ export default async function DashboardPage({
                   <p className="text-sm text-slate-500 leading-snug">· 스마트플레이스 정보 업데이트: <strong className="text-slate-700">즉시~수일</strong></p>
                   <p className="text-sm text-slate-500 leading-snug">· 네이버 검색 순위 변화: <strong className="text-slate-700">2~4주</strong> <span className="text-xs text-gray-600">(경쟁·지역 따라 다름)</span></p>
                   <p className="text-sm text-slate-500 leading-snug">· 네이버 AI 브리핑·AI탭: <strong className="text-slate-700">2~4주</strong> <span className="text-xs text-gray-600">(추정, 네이버 미공개)</span></p>
-                  <p className="text-sm text-slate-500 leading-snug">· Gemini: <strong className="text-slate-700">2~4주 내 시작, 안정적 인용까지 수개월</strong> <span className="text-xs text-gray-600">(Google 실시간 검색 연동)</span></p>
-                  <p className="text-sm text-slate-500 leading-snug">· ChatGPT: <strong className="text-slate-700">수개월~1년</strong> <span className="text-xs text-gray-600">(학습 데이터 기반 측정)</span></p>
+                  <p className="text-sm text-slate-500 leading-snug">· Gemini: <strong className="text-slate-700">2~4주 내 시작, 안정적 언급까지 수개월</strong> <span className="text-xs text-gray-600">(Google 실시간 검색 연동)</span></p>
+                  <p className="text-sm text-slate-500 leading-snug">· ChatGPT: <strong className="text-slate-700">수개월~1년</strong> <span className="text-xs text-gray-600">(AI가 미리 공부한 자료 기반 측정)</span></p>
                 </div>
               </div>
             </div>
@@ -489,12 +489,12 @@ export default async function DashboardPage({
                 /* 첫 스캔 온보딩 — 스캔 후 나타날 정보 미리보기 */
                 <div className="bg-gradient-to-br from-slate-50 to-blue-50 border border-blue-100 rounded-xl p-5 space-y-4">
                   <div>
-                    <p className="text-base font-bold text-gray-800">스캔하면 이런 정보가 나옵니다</p>
-                    <p className="text-sm text-gray-600 mt-0.5 leading-snug">오른쪽에서 키워드를 선택하고 AI 스캔을 시작하세요</p>
+                    <p className="text-base font-bold text-gray-800">측정하면 이런 정보가 나옵니다</p>
+                    <p className="text-sm text-gray-600 mt-0.5 leading-snug">오른쪽에서 키워드를 선택하고 AI 측정을 시작하세요</p>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {([
-                      { icon: Search, title: "네이버 3채널 실측", desc: "AI 브리핑·AI탭·일반검색 노출 여부" },
+                      { icon: Search, title: "네이버 3곳 실측", desc: "AI 브리핑·AI탭·일반검색 노출 여부" },
                       { icon: Bot, title: "ChatGPT·Gemini 측정", desc: "50회 질문 중 내 가게 언급 횟수" },
                       { icon: BarChart2, title: "경쟁사 순위 비교", desc: "동네 경쟁 가게 대비 내 위치" },
                       { icon: CheckCircle2, title: "오늘 할 일 안내", desc: "AI 노출 높이는 구체적 액션" },
@@ -537,7 +537,7 @@ export default async function DashboardPage({
           )}
 
           {/* ① 네이버 채널별 개선 방법 — 소상공인 최우선 채널. Hero 바로 다음에 배치 */}
-          <CollapseSectionWrapper id="section-naver" title="네이버 채널별 개선 방법" description="노출 높이는 구체적 방법 — 요약 상태는 위 진단 카드 참고" iconColor="text-green-700" defaultOpen={true} mobileDefaultOpen={false} highlight={true}>
+          <CollapseSectionWrapper id="section-naver" title="네이버 AI 서비스별 개선 방법" description="노출 높이는 구체적 방법 — 요약 상태는 위 진단 카드 참고" iconColor="text-green-700" defaultOpen={true} mobileDefaultOpen={false} highlight={true}>
             <>
               {/* 4타일 NavBar — 섹션 최상단 */}
               {latestScan && (
@@ -652,7 +652,7 @@ export default async function DashboardPage({
           />
 
           {/* ⑤ 상세 분석 데이터 — 접힘 */}
-          <CollapseSectionWrapper id="section-detail" title="상세 분석 데이터" description="채널별 분석 · 경쟁사 비교 · AI 인용" iconColor="text-indigo-600">
+          <CollapseSectionWrapper id="section-detail" title="상세 분석 데이터" description="AI 서비스별 분석 · 경쟁사 비교 · AI 언급" iconColor="text-indigo-600">
             <Suspense fallback={<div className="h-40 rounded-xl bg-gray-100 animate-pulse" aria-busy="true" aria-label="상세 분석 데이터 불러오는 중" />}>
               <Await promise={Promise.all([actionLogsP, competitorKeywordSourcesP, channelTrendP2])}>
                 {([actionLogs, competitorKeywordSources, channelTrend]) => (
@@ -712,7 +712,7 @@ export default async function DashboardPage({
           </CollapseSectionWrapper>
 
           {/* ⑥ 글로벌 AI — INACTIVE/프랜차이즈는 핵심 대안 채널이나, 자동 펼침 시 ①③과 겹쳐 페이지 과다 길어짐(2026-07-07 실측) → 배지로 우선순위만 표시 */}
-          <CollapseSectionWrapper id="section-global" title="글로벌 AI 현황" description="ChatGPT · Gemini · Google AI 실측 · 글로벌 소개글" iconColor="text-blue-600" defaultOpen={false} badgeText={(briefingEligibility === "inactive" || isFranchise) ? "핵심 채널" : undefined} badgeColor="blue">
+          <CollapseSectionWrapper id="section-global" title="글로벌 AI 현황" description="ChatGPT · Gemini · Google AI 실측 · 글로벌 소개글" iconColor="text-blue-600" defaultOpen={false} badgeText={(briefingEligibility === "inactive" || isFranchise) ? "핵심 경로" : undefined} badgeColor="blue">
             <DashboardGlobalAiZone
               category={bizBase.category}
               plan={plan}
@@ -736,7 +736,7 @@ export default async function DashboardPage({
           </CollapseSectionWrapper>
 
           {/* ⑧ AI 채널 안내 · 심화 가이드 — 접힘, 최하단 */}
-          <CollapseSectionWrapper id="section-guidance" title="AI 채널 안내 · 심화 가이드" description="채널 노출 조건 · 단계 가이드 · 경쟁사 분석" iconColor="text-gray-600">
+          <CollapseSectionWrapper id="section-guidance" title="AI 노출 안내 · 심화 가이드" description="AI 노출 조건 · 단계 가이드 · 경쟁사 분석" iconColor="text-gray-600">
             <>
               <NaverAiPathwayCard
                 briefingEligibility={briefingEligibility}

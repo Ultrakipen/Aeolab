@@ -19,7 +19,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
         <div className="text-sm font-medium text-gray-700 mb-1">웹사이트 AI 인식</div>
         <p className="text-sm text-gray-600 mb-4">
-          독립 웹사이트가 없어도 네이버·카카오맵 채널로 서비스 이용이 가능합니다.
+          독립 웹사이트가 없어도 네이버·카카오맵으로 서비스 이용이 가능합니다.
           ChatGPT·Gemini 노출을 더 높이려면 독립 웹사이트를 추가하면 도움이 됩니다.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -50,7 +50,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
   if (!checkResult) return (
     <div className="rounded-xl border border-gray-100 bg-white p-4 md:p-5">
       <h3 className="font-semibold text-gray-800 mb-2">웹사이트 AI 인식</h3>
-      <p className="text-sm text-gray-600">AI 스캔 실행 후 웹사이트 AI 인식 점수가 표시됩니다.</p>
+      <p className="text-sm text-gray-600">AI 측정 실행 후 웹사이트 AI 인식 점수가 표시됩니다.</p>
     </div>
   )
 
@@ -60,7 +60,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
         <div className="text-sm font-medium text-gray-700 mb-2">웹사이트 AI 인식</div>
         <p className="text-sm text-gray-600 font-medium mb-1">등록된 웹사이트에 일시적으로 접속이 안 됩니다</p>
         <p className="text-sm text-gray-600 mb-3">
-          서비스 이용에는 문제 없습니다. 사이트가 복구되면 다음 스캔 시 자동으로 반영됩니다.
+          서비스 이용에는 문제 없습니다. 사이트가 복구되면 다음 측정 시 자동으로 반영됩니다.
           주소가 잘못됐다면 설정에서 수정할 수 있습니다.
         </p>
         <Link
@@ -78,7 +78,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
       label: 'HTTPS (보안 연결)',
       ok: checkResult.is_https,
       impact: 'high',
-      tip: 'HTTP 사이트는 AI 크롤러가 우선순위를 낮게 처리합니다.',
+      tip: 'HTTP 사이트는 AI가 우선순위를 낮게 처리합니다.',
     },
     {
       label: 'AI 인식 정보 코드',
@@ -99,7 +99,7 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
       tip: 'SNS 공유 시 썸네일·설명이 표시되어 브랜드 인지도를 높입니다.',
     },
     {
-      label: '모바일 최적화 (viewport)',
+      label: '모바일 화면 맞춤 (viewport)',
       ok: checkResult.is_mobile_friendly,
       impact: 'medium',
       tip: '모바일 사용자 비율이 80%+ — 미설정 시 검색 순위에 불이익.',
@@ -137,18 +137,18 @@ export function WebsiteCheckCard({ websiteUrl, checkResult }: WebsiteCheckCardPr
       {blockedBots.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2.5 mb-3">
           <p className="text-sm font-semibold text-red-700">
-            robots.txt에서 AI 크롤러를 차단 중입니다 ({blockedBots.join(', ')})
+            AI 수집 프로그램이 차단되어 있습니다 ({blockedBots.join(', ')})
           </p>
           <p className="text-sm text-red-700 mt-0.5">
-            다른 항목을 아무리 개선해도 이 채널 노출이 원천적으로 막혀 있을 수 있어요.
-            홈페이지 제작사·개발자에게 robots.txt에서 해당 봇 차단을 해제해달라고 요청하세요.
+            다른 항목을 아무리 개선해도 AI 노출이 원천적으로 막혀 있을 수 있어요.
+            홈페이지 제작사·개발자에게 AI 수집 차단을 해제해달라고 요청하세요.
           </p>
         </div>
       )}
 
       {highFailCount > 0 && (
         <div className="bg-red-50 rounded-xl px-3 py-2 mb-3 text-sm text-red-700">
-          중요 항목 {highFailCount}개 미흡 — ChatGPT 인용 가능성이 낮습니다
+          중요 항목 {highFailCount}개 미흡 — ChatGPT 언급 가능성이 낮습니다
         </div>
       )}
 

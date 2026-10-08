@@ -19,11 +19,11 @@ const PACKAGES = [
     type: "smartplace_register",
     name: "01 스마트플레이스 등록 대행",
     price: 69000,
-    description: "스마트플레이스 신규 등록, 기본정보·메뉴·키워드 최적화",
+    description: "스마트플레이스 신규 등록, 기본정보·메뉴·키워드 개선",
   },
   {
     type: "ai_optimization",
-    name: "02 AI 검색 최적화",
+    name: "02 AI 검색 개선",
     price: 89000,
     description: "소개글·톡톡메뉴·후기답글·키워드 보강",
   },
@@ -31,7 +31,7 @@ const PACKAGES = [
     type: "comprehensive",
     name: "03 종합 풀패키지",
     price: 139000,
-    description: "등록+최적화+코칭+30일 재진단 (개별 구매 시 158,000원 → 139,000원)",
+    description: "등록+개선+코칭+30일 재진단 (개별 구매 시 158,000원 → 139,000원)",
   },
 ];
 
@@ -289,7 +289,7 @@ function DeliveryNewForm() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value.slice(0, 100))}
                   maxLength={100}
-                  placeholder="예: 한식당 스마트플레이스 최적화 의뢰"
+                  placeholder="예: 한식당 스마트플레이스 개선 의뢰"
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition placeholder:text-gray-600"
                 />
                 <p className="text-sm text-gray-600 mt-1 text-right">{title.length}/100</p>

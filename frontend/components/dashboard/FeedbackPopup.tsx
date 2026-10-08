@@ -67,7 +67,7 @@ export function FeedbackPopup({ eventType, trigger, accessToken }: Props) {
           <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3 pr-5">
             {eventType === "guide_generated"
               ? "가이드가 도움이 됐나요?"
-              : "스캔 결과에 만족하셨나요?"}
+              : "측정 결과에 만족하셨나요?"}
           </p>
           <div className="flex gap-2 justify-center">
             <button

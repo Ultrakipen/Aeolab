@@ -249,7 +249,7 @@ export default function NaverSeoBaseCard({
           href="/guide"
           className="inline-block text-sm font-medium text-emerald-700 hover:text-emerald-900 underline"
         >
-          플레이스 최적화 가이드 보기 →
+          플레이스 개선 가이드 보기 →
         </a>
       </div>
 

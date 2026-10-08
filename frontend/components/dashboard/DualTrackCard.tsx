@@ -65,7 +65,7 @@ const BLOG_CHANNEL_LABELS: Record<string, string> = {
 const CATEGORY_MESSAGES: Record<string, { track1Tip: string; track2Tip: string }> = {
   restaurant: {
     track1Tip: "소개글 하단에 '주차 가능', '단체 예약' Q&A 추가",
-    track2Tip: "구글 비즈니스 프로필 등록 + AI 검색 최적화 코드 적용",
+    track2Tip: "구글 비즈니스 프로필 등록 + AI 인식 코드 적용",
   },
   cafe: {
     track1Tip: "소개글 하단에 공간 용도·분위기 Q&A 추가 (노트북 가능, 반려견 동반)",
@@ -73,7 +73,7 @@ const CATEGORY_MESSAGES: Record<string, { track1Tip: string; track2Tip: string }
   },
   beauty: {
     track1Tip: "소개글 하단에 당일 예약·전문 시술 Q&A 추가 (탈모 케어, 웨딩 전문)",
-    track2Tip: "시술 전후 사진 + 웹사이트 AI 검색 최적화 코드 적용",
+    track2Tip: "시술 전후 사진 + 웹사이트 AI 인식 코드 적용",
   },
   fitness: {
     track1Tip: "소개글 하단에 24시간 운영·PT 전문 Q&A 추가",
@@ -89,7 +89,7 @@ const CATEGORY_MESSAGES: Record<string, { track1Tip: string; track2Tip: string }
   },
   academy: {
     track1Tip: "소개글 하단에 합격 사례·원어민 강사 Q&A 추가",
-    track2Tip: "ChatGPT·Gemini 노출을 위한 자체 웹사이트·구글 비즈니스 프로필 최적화",
+    track2Tip: "ChatGPT·Gemini 노출을 위한 자체 웹사이트·구글 비즈니스 프로필 개선",
   },
   legal: {
     track1Tip: "소개글 하단에 전문 분야·무료 상담 Q&A 추가",
@@ -107,7 +107,7 @@ const DEFAULT_MESSAGE = {
 };
 
 // INACTIVE 업종 전용 — 블로그 + 스마트플레이스 중심 팁
-const INACTIVE_NAVER_SEO_TIPS: Record<string, string> = {
+const INACTIVE_NAVER_SEARCH_TIPS: Record<string, string> = {
   medical:    "건강 정보 블로그 주 1~2회 발행 + 스마트플레이스 전문의·진료 과목 소개 업데이트",
   pharmacy:   "약 복용·건강 팁 블로그 발행 + 스마트플레이스 약사 소개·영업시간 업데이트",
   education:  "합격 사례·학습법 블로그 발행 + 스마트플레이스 강사·커리큘럼 소개 업데이트",
@@ -280,9 +280,9 @@ function getImmediateAction(sp?: SmartPlaceStatus): string {
 function buildTrack2Tip(category: string, sp?: SmartPlaceStatus): string {
   const missing: string[] = [];
   if (!sp?.hasWebsite) missing.push("웹사이트 등록");
-  if (missing.length > 0) return `${missing.join(" + ")} + AI 검색 최적화 코드 적용`;
+  if (missing.length > 0) return `${missing.join(" + ")} + AI 인식 코드 적용`;
   const catMsg = CATEGORY_MESSAGES[category];
-  return catMsg ? catMsg.track2Tip : "웹사이트에 AI 검색 최적화 코드 적용 + 글로벌 AI 노출 강화";
+  return catMsg ? catMsg.track2Tip : "웹사이트에 AI 인식 코드 적용 + 글로벌 AI 노출 강화";
 }
 
 // 업종별 집중 채널 추천 — naverWeight + 현재 점수 갭 조합
@@ -301,32 +301,32 @@ function FocusRecommendation({
   let msg: string;
   if (naverWeight >= 0.6) {
     if (track1Score < 50)
-      msg = `네이버 채널 집중 — 업종 비중 ${naverPct}%이고 지금 바로 노출을 높일 수 있습니다`;
+      msg = `네이버 노출에 집중 — 업종 비중 ${naverPct}%이고 지금 바로 노출을 높일 수 있습니다`;
     else if (track1Score >= 70 && track2Score < 50)
       msg = `글로벌 AI도 함께 — 네이버는 양호, ChatGPT·Gemini 노출을 지금 강화하세요`;
     else
-      msg = `네이버 채널 우선, 글로벌 AI 병행 — 업종 비중 네이버 ${naverPct}% / 글로벌 ${globalPct}%`;
+      msg = `네이버 먼저, 글로벌 AI 병행 — 업종 비중 네이버 ${naverPct}% / 글로벌 ${globalPct}%`;
   } else if (globalPct >= 60) {
     if (track2Score < 50)
-      msg = `글로벌 AI 채널 집중 — 업종 비중 ${globalPct}%이고 ChatGPT·Gemini 개선이 핵심입니다`;
+      msg = `글로벌 AI에 집중 — 업종 비중 ${globalPct}%이고 ChatGPT·Gemini 개선이 핵심입니다`;
     else if (track2Score >= 70 && track1Score < 50)
       msg = `네이버도 함께 — 글로벌 AI는 양호, 네이버 검색 노출을 함께 강화하세요`;
     else
-      msg = `글로벌 AI 채널 우선, 네이버 병행 — 업종 비중 글로벌 ${globalPct}% / 네이버 ${naverPct}%`;
+      msg = `글로벌 AI 먼저, 네이버 병행 — 업종 비중 글로벌 ${globalPct}% / 네이버 ${naverPct}%`;
   } else {
     if (track1Score < track2Score - 15)
-      msg = `네이버 먼저 — 두 채널 균등 비중이지만 현재 네이버 검색 노출이 더 낮습니다`;
+      msg = `네이버 먼저 — 두 경로 균등 비중이지만 현재 네이버 검색 노출이 더 낮습니다`;
     else if (track2Score < track1Score - 15)
-      msg = `글로벌 AI 먼저 — 두 채널 균등이지만 현재 ChatGPT·Gemini 인식도가 더 낮습니다`;
+      msg = `글로벌 AI 먼저 — 두 경로 균등이지만 현재 ChatGPT·Gemini 인식도가 더 낮습니다`;
     else
-      msg = `두 채널 균등 강화 — 네이버 ${naverPct}% / 글로벌 ${globalPct}% 비중으로 함께 개선하세요`;
+      msg = `두 경로 균등 강화 — 네이버 ${naverPct}% / 글로벌 ${globalPct}% 비중으로 함께 개선하세요`;
   }
 
   return (
     <div className="flex items-start gap-2 rounded-lg bg-indigo-50 border border-indigo-100 px-3 py-2.5">
       <Target className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-indigo-800 mb-0.5">지금 집중할 채널</p>
+        <p className="text-sm font-semibold text-indigo-800 mb-0.5">지금 집중할 곳</p>
         <p className="text-sm text-indigo-700 leading-snug">{msg}</p>
       </div>
     </div>
@@ -427,17 +427,17 @@ export default function DualTrackCard({
   const track1LabelText = isInactive
     ? "네이버 검색 준비도 (AI탭 포함)"
     : isLikely
-    ? "네이버 AI 검색 지수 (AI탭 가능·AI 브리핑 확대 검토 중)"
-    : "네이버 AI 노출 지수";
+    ? "네이버 AI 검색 현황 (AI탭 대상·AI 브리핑 확대 예정)"
+    : "네이버 AI 노출 현황";
 
   const track1Sublabel = isInactive
     ? "블로그·스마트플레이스를 꾸준히 관리하면 AI탭·네이버 검색 노출을 개선할 수 있습니다"
     : isLikely
     ? "AI탭은 지금도 가능합니다. 블로그·스마트플레이스 관리로 AI탭 노출을 높이세요"
-    : "이 지수가 낮으면 네이버 AI 브리핑·AI탭에서 내 가게를 잘 모릅니다";
+    : "이 점수가 낮으면 네이버 AI 브리핑·AI탭에서 내 가게를 잘 모릅니다";
 
   const track1TipFinal = isInactive
-    ? (INACTIVE_NAVER_SEO_TIPS[category] ?? INACTIVE_NAVER_SEO_TIPS.other)
+    ? (INACTIVE_NAVER_SEARCH_TIPS[category] ?? INACTIVE_NAVER_SEARCH_TIPS.other)
     : buildTrack1Tip(category, smartPlaceStatus);
 
   const track1ImmediateAction = isInactive
@@ -479,10 +479,10 @@ export default function DualTrackCard({
             </button>
             {showTooltip && (
               <div className="absolute right-0 top-7 z-10 w-64 bg-gray-900 text-white text-sm rounded-xl p-3 shadow-xl leading-relaxed">
-                <p className="font-semibold mb-1">AI 노출 종합 지수 계산 방식</p>
+                <p className="font-semibold mb-1">AI 노출 현황 계산 방식</p>
                 <p className="text-gray-300">
-                  = 네이버 AI 채널 × {naverPct}%<br />
-                  + 글로벌 AI 채널 × {globalPct}%
+                  = 네이버 AI 결과 × {naverPct}%<br />
+                  + 글로벌 AI 결과 × {globalPct}%
                 </p>
                 <p className="text-gray-300 mt-1.5 text-sm">업종별 비율이 다릅니다. 소상공인 가게는 네이버 비중이 높습니다.</p>
               </div>
@@ -563,7 +563,7 @@ export default function DualTrackCard({
         const introDone = smartPlaceStatus?.hasIntro;
         const remainingTips = [
           !blogDone && "블로그 정기 발행 (주 1~2회) → 네이버 검색 결과 상위 노출",
-          !introDone && "스마트플레이스 소개글·사진 업데이트 → 플레이스 검색 최적화",
+          !introDone && "스마트플레이스 소개글·사진 업데이트 → 플레이스 검색 개선",
           "리뷰 답글 꾸준히 달기 → 네이버 플레이스 신뢰도 향상",
         ].filter((t): t is string => typeof t === "string");
 
@@ -612,7 +612,7 @@ export default function DualTrackCard({
         weight={globalWeight}
         label={<span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5 inline-block" /> 글로벌 AI 인식 현황</span>}
         sublabel="ChatGPT·Gemini가 현재 이 사업장을 인식하는 수준입니다"
-        sourceNote={hasAiData ? "ChatGPT·Gemini 실측 샘플링 기반" : "ChatGPT·Gemini 인식도 추정"}
+        sourceNote={hasAiData ? "ChatGPT·Gemini 각 여러 번 측정" : "ChatGPT·Gemini 인식도 추정"}
         color="bg-blue-500"
         isWeak={isTrack2Weak}
         isVeryLow={isTrack2VeryLow}
@@ -623,8 +623,8 @@ export default function DualTrackCard({
       />
       {/* Track 2 면책 문구 — AI 데이터 유무와 무관하게 항상 표시 */}
       <p className="text-sm text-gray-600 -mt-1 leading-relaxed px-1">
-        한국 소상공인 포함률이 낮아 두 채널 모두 낮은 점수가 일반적입니다. Gemini는 구글 검색 실시간 연동으로 수 주~수개월 내 개선되지만,
-        ChatGPT는 학습 데이터 기반이라 개선 반영까지 수개월~1년 소요됩니다. Google AI Overview(구글 검색 상단 AI 요약)는 구글 비즈니스 프로필 등록 후 수 주 내 개선 시작 가능합니다.
+        한국 소상공인 포함률이 낮아 두 AI 서비스 모두 낮은 점수가 일반적입니다. Gemini는 구글 검색 실시간 연동으로 수 주~수개월 내 개선되지만,
+        ChatGPT는 AI가 미리 공부한 자료 기반이라 개선 반영까지 수개월~1년 소요됩니다. Google AI Overview(구글 검색 상단 AI 요약)는 구글 비즈니스 프로필 등록 후 수 주 내 개선 시작 가능합니다.
       </p>
 
       {/* 집중 채널 추천 */}
@@ -638,7 +638,7 @@ export default function DualTrackCard({
       {hasAiData && (
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 md:p-4">
           <p className="text-sm font-semibold text-blue-800 mb-2.5 flex items-center gap-1.5"><Bot className="w-4 h-4 shrink-0" aria-hidden="true" />AI 도구별 노출 현황 (실측)</p>
-          <p className="text-xs text-blue-600 mb-2.5 -mt-1">업종 키워드로 AI에 직접 질의했을 때 가게명이 언급된 횟수입니다</p>
+          <p className="text-xs text-blue-600 mb-2.5 -mt-1">업종 키워드로 AI에 직접 물어봤을 때 가게명이 언급된 횟수입니다</p>
           <div className="space-y-2.5">
             {chatgptRate !== null && aiExposureData?.chatgptSampleSize ? (
               <div>
@@ -647,7 +647,7 @@ export default function DualTrackCard({
                   <span className="font-semibold">
                     {chatgptRate}%
                     <span className="text-xs text-gray-600 font-normal ml-1">
-                      ({aiExposureData.chatgptSampleSize}번 질의 중 {aiExposureData.chatgptFreq}번 가게명 언급)
+                      ({aiExposureData.chatgptSampleSize}번 중 {aiExposureData.chatgptFreq}번 가게명 언급)
                     </span>
                   </span>
                 </div>
@@ -658,7 +658,7 @@ export default function DualTrackCard({
             ) : (
               <div className="flex justify-between text-sm text-gray-600">
                 <span>ChatGPT</span>
-                <span className="text-sm">{plan && plan !== "free" ? "재스캔 시 측정 포함" : "Basic+ 스캔 후 확인"}</span>
+                <span className="text-sm">{plan && plan !== "free" ? "다시 측정 시 포함" : "Basic+ 측정 후 확인"}</span>
               </div>
             )}
             {geminiRate !== null && aiExposureData?.geminiSampleSize ? (
@@ -668,7 +668,7 @@ export default function DualTrackCard({
                   <span className="font-semibold">
                     {geminiRate}%
                     <span className="text-xs text-gray-600 font-normal ml-1">
-                      ({aiExposureData.geminiSampleSize}번 질의 중 {aiExposureData.geminiFreq}번 가게명 언급)
+                      ({aiExposureData.geminiSampleSize}번 중 {aiExposureData.geminiFreq}번 가게명 언급)
                     </span>
                   </span>
                 </div>
@@ -679,12 +679,12 @@ export default function DualTrackCard({
             ) : (
               <div className="flex justify-between text-sm text-gray-600">
                 <span>Google Gemini</span>
-                <span className="text-sm">{plan && plan !== "free" ? "재스캔 시 측정 포함" : "Basic+ 스캔 후 확인"}</span>
+                <span className="text-sm">{plan && plan !== "free" ? "다시 측정 시 포함" : "Basic+ 측정 후 확인"}</span>
               </div>
             )}
           </div>
           <p className="text-sm text-gray-600 mt-2.5 leading-relaxed">
-            ChatGPT는 과거 학습 데이터 기반 — 한국 소상공인은 낮은 점수가 일반적이며 단기 변동이 없습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.
+            ChatGPT는 AI가 미리 공부한 자료 기반 — 한국 소상공인은 낮은 점수가 일반적이며 단기 변동이 없습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.
           </p>
         </div>
       )}
@@ -692,7 +692,7 @@ export default function DualTrackCard({
       {/* 추정값 안내 — 강조 배너 */}
       {isKeywordEstimated && (
         <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-sm text-amber-700 flex items-start gap-1.5">
-          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" /><span>키워드 데이터가 부족해 <strong>일부 지수는 업종 평균으로 추정</strong>됩니다.
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" /><span>키워드 데이터가 부족해 <strong>일부 항목은 업종 평균으로 추정</strong>됩니다.
           리뷰 텍스트를 입력하면 더 정확해집니다.
           <Link href="/guide" className="underline ml-1">가이드에서 입력하기 →</Link></span>
         </div>
@@ -714,15 +714,15 @@ export default function DualTrackCard({
             </Link>
           </div>
           {citedChannels === null ? (
-            <p className="text-sm text-gray-400 animate-pulse">AI 채널 인용 확인 중...</p>
+            <p className="text-sm text-gray-400 animate-pulse">AI 서비스 언급 확인 중...</p>
           ) : citedChannels.length > 0 ? (
             <p className="text-sm text-green-700 font-medium">
-              ✓ {citedChannels.map((ch) => BLOG_CHANNEL_LABELS[ch] ?? ch).join(" · ")}에서 내 블로그 인용 확인됨
+              ✓ {citedChannels.map((ch) => BLOG_CHANNEL_LABELS[ch] ?? ch).join(" · ")}에서 내 블로그 언급 확인됨
               <Link href="/blog-analysis" className="text-blue-600 underline ml-1">자세히 →</Link>
             </p>
           ) : (
             <p className="text-sm text-gray-600">
-              아직 AI 채널 인용 확인 안 됨 · 블로그 진단에서 자세히 확인하세요
+              아직 AI 서비스 언급 확인 안 됨 · 블로그 진단에서 자세히 확인하세요
               <Link href="/blog-analysis" className="text-blue-600 underline ml-1">바로가기 →</Link>
             </p>
           )}
@@ -735,7 +735,7 @@ export default function DualTrackCard({
           href="/blog-analysis"
           className="mt-2 block text-sm text-blue-600 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 hover:bg-blue-100 transition-colors"
         >
-          블로그를 등록하면 키워드 지수 정확도가 향상됩니다 →
+          블로그를 등록하면 키워드 측정 정확도가 높아집니다 →
         </Link>
       )}
     </div>

@@ -242,7 +242,7 @@ function BlogMentionBar({
         )}
       </div>
       <p className="text-sm text-gray-600 leading-relaxed">
-        블로그 포스팅이 많을수록 AI 검색에서 더 자주 인용됩니다.
+        블로그 포스팅이 많을수록 AI 검색에서 더 자주 언급됩니다.
       </p>
     </div>
   );
@@ -598,7 +598,7 @@ export function CompetitorPlaceCard({
           </div>
           <blockquote className="bg-blue-50 border-l-4 border-blue-400 rounded-r-xl px-4 py-3">
             <p className="text-sm text-blue-900 leading-relaxed italic">"{competitor.ai_excerpt}"</p>
-            <p className="text-sm text-blue-600 mt-1.5">Gemini AI 스캔 기준</p>
+            <p className="text-sm text-blue-600 mt-1.5">Gemini AI 측정 기준</p>
           </blockquote>
           <p className="text-sm text-gray-600 mt-1.5 leading-relaxed">
             AI가 경쟁사를 이렇게 소개하고 있습니다. 내 가게도 이런 키워드가 포함되도록 소개글을 작성하세요.
@@ -616,7 +616,7 @@ export function CompetitorPlaceCard({
           <span className="text-sm text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">자동 수집</span>
         </div>
         <p className="text-sm text-gray-600 mb-2 leading-relaxed">
-          경쟁사 이름으로 네이버 블로그를 검색한 상위 100건 중 제목·요약에 이름이 나오고 같은 지역 글로 확인된 글 수입니다(같은 이름의 다른 지역 글은 제외, 본문에만 나오는 글은 빠져 실제보다 적게 잡힐 수 있음). 블로그 포스팅이 많을수록 AI 검색에서 더 자주 인용됩니다.
+          경쟁사 이름으로 네이버 블로그를 검색한 상위 100건 중 제목·요약에 이름이 나오고 같은 지역 글로 확인된 글 수입니다(같은 이름의 다른 지역 글은 제외, 본문에만 나오는 글은 빠져 실제보다 적게 잡힐 수 있음). 블로그 포스팅이 많을수록 AI 검색에서 더 자주 언급됩니다.
         </p>
         {competitor.blog_mention_count == null ? (
           <p className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2 border border-dashed border-gray-200">
@@ -637,7 +637,7 @@ export function CompetitorPlaceCard({
       {/* ── 웹사이트 보유 및 AI 검색 최적화 ── */}
       <div>
         <div className="text-sm font-medium text-gray-600 mb-2 flex items-center gap-1.5">
-          <span>🌐</span> 웹사이트 보유 및 AI 검색 최적화
+          <span>🌐</span> 웹사이트 보유 및 AI 검색 노출 상태
         </div>
         {competitor.website_url ? (
           <div className="space-y-2">
@@ -661,7 +661,7 @@ export function CompetitorPlaceCard({
                     ? 'bg-amber-50 text-amber-700 border-amber-200'
                     : 'bg-red-50 text-red-700 border-red-200'
                 }`}>
-                  AI 최적화{' '}
+                  AI 노출 개선{' '}
                   {competitor.website_seo_score >= 70 ? '양호' :
                    competitor.website_seo_score >= 40 ? '보통' : '미흡'}
                 </span>
@@ -674,11 +674,11 @@ export function CompetitorPlaceCard({
                     has_json_ld: "AI 검색 정보 태그 설정",
                     has_schema_local_business: "가게 정보 자동 인식 설정",
                     has_open_graph: "SNS 공유 미리보기 설정",
-                    is_mobile_friendly: "모바일 화면 최적화",
+                    is_mobile_friendly: "모바일 화면 최적 상태",
                     has_favicon: "사이트 아이콘 등록",
                     is_https: "보안 연결 (HTTPS)",
                     has_og_tags: "SNS 공유 미리보기 설정",
-                    has_viewport: "모바일 화면 최적화",
+                    has_viewport: "모바일 화면 최적 상태",
                     has_local_business_schema: "가게 정보 자동 인식 설정",
                   };
                   // 백엔드가 같은 항목을 여러 별칭 키로 함께 반환할 수 있어(has_og_tags/has_open_graph 등)

@@ -57,7 +57,7 @@ export default function ActionHeroCard({
               if (btn) btn.click();
             }}
           >
-            AI 스캔 시작하기
+            AI 측정 시작하기
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>

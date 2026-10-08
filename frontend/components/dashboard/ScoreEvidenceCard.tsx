@@ -148,7 +148,7 @@ function StatusIcon({ ok }: { ok: boolean | null }) {
 function WeightBadge({ pct, color }: { pct: number; color: string }) {
   return (
     <span className={`text-sm border px-2 py-0.5 rounded-full font-medium ${color}`}>
-      가중치 {pct}%
+      중요도 {pct}%
     </span>
   );
 }
@@ -257,7 +257,7 @@ function V31SixItems({
         </div>
         {kwSearchItem?.measured === false ? (
           <div className="bg-gray-100 rounded-lg p-3 text-sm text-gray-600">
-            아직 측정 데이터 없음 — 키워드 등록 후 다음 주간 스캔 시 측정됩니다
+            아직 측정 데이터 없음 — 키워드 등록 후 다음 주간 측정 시 확인됩니다
           </div>
         ) : (
           <>
@@ -298,7 +298,7 @@ function V31SixItems({
           <span className="text-sm text-gray-700">
             {finalReviewCount > 0
               ? `리뷰 ${finalReviewCount}개 확인됨${finalAvgRating > 0 ? ` · 평균 ${finalAvgRating.toFixed(1)}점` : ""}`
-              : "리뷰 수 미수집 — 재스캔하면 자동으로 가져옵니다"
+              : "리뷰 수 미수집 — 다시 측정하면 자동으로 가져옵니다"
             }
           </span>
         </div>
@@ -307,7 +307,7 @@ function V31SixItems({
             <span className="text-blue-600 text-sm shrink-0 mt-0.5">→</span>
             <p className="text-sm text-blue-800 font-medium">
               {finalReviewCount === 0
-                ? "재스캔하면 리뷰 수가 자동으로 갱신됩니다. 그래도 0이면 단골 손님 1명에게 네이버 지도 리뷰를 요청하세요"
+                ? "다시 측정하면 리뷰 수가 자동으로 갱신됩니다. 그래도 0이면 단골 손님 1명에게 네이버 지도 리뷰를 요청하세요"
                 : "리뷰 답변에 업종 키워드를 포함하면 키워드 다양성이 높아집니다"
               }
             </p>
@@ -436,12 +436,12 @@ function V31SixItems({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className="text-sm md:text-base font-semibold text-gray-800">
-                ④ 블로그 생태계
+                ④ 블로그 현황
               </span>
               <WeightBadge pct={weights["blog_crank"]} color="text-purple-700 bg-purple-50 border-purple-200" />
               <span className="text-sm text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">(추정)</span>
             </div>
-            <p className="text-sm text-gray-600">블로그 발행 빈도·외부 인용·업체명 매칭으로 콘텐츠 품질을 추정합니다</p>
+            <p className="text-sm text-gray-600">블로그 발행 빈도·외부 언급·업체명 매칭으로 콘텐츠 품질을 추정합니다</p>
           </div>
           <ScoreBadge value={blogItem?.score ?? 0} />
         </div>
@@ -500,7 +500,7 @@ function V31SixItems({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className={`text-sm md:text-base font-semibold ${aiBriefingApplicable ? "text-gray-800" : "text-indigo-900"}`}>
-                {aiBriefingApplicable ? "⑥ AI 브리핑 인용" : "⑥ 네이버 AI탭 (정식 출시)"}
+                {aiBriefingApplicable ? "⑥ AI 브리핑 언급" : "⑥ 네이버 AI탭 (정식 출시)"}
               </span>
               {aiBriefingApplicable ? (
                 <WeightBadge pct={weights["ai_briefing_score"]} color="text-blue-700 bg-blue-50 border-blue-200" />
@@ -536,7 +536,7 @@ function V31SixItems({
                 <StatusIcon ok={naverMentioned} />
                 <span className="text-sm text-gray-700">
                   {naverMentioned === null
-                    ? "네이버 검색 측정 불가 (재스캔 권장)"
+                    ? "네이버 검색 측정 불가 (다시 측정 권장)"
                     : naverMentioned
                       ? "네이버 검색에서 언급됨"
                       : "네이버 검색에서 미언급"}
@@ -546,9 +546,9 @@ function V31SixItems({
                 <StatusIcon ok={inBriefing} />
                 <span className="text-sm text-gray-700">
                   {inBriefing === null
-                    ? "네이버 AI 브리핑 측정 불가 (재스캔 권장)"
+                    ? "네이버 AI 브리핑 측정 불가 (다시 측정 권장)"
                     : inBriefing
-                      ? "네이버 AI 브리핑 인용됨"
+                      ? "네이버 AI 브리핑 언급됨"
                       : "네이버 AI 브리핑 미노출"}
                 </span>
               </div>
@@ -563,7 +563,7 @@ function V31SixItems({
             )}
             {naverResult?.excerpt && (
               <div className="mt-2 bg-green-50 border border-green-100 rounded-lg p-3">
-                <p className="text-sm font-semibold text-green-700 mb-1">네이버 AI 인용 발췌</p>
+                <p className="text-sm font-semibold text-green-700 mb-1">네이버 AI 언급 내용</p>
                 <p className="text-sm text-green-900 italic leading-relaxed">
                   &ldquo;{naverResult.excerpt}&rdquo;
                 </p>
@@ -586,7 +586,7 @@ function V31SixItems({
                   <WeightBadge pct={weights["naver_ai_tab_visible"]} color="text-indigo-700 bg-indigo-50 border-indigo-200" />
                 ) : (
                   <span className="text-sm text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
-                    가중치 0%
+                    중요도 0%
                   </span>
                 )}
               </div>
@@ -605,7 +605,7 @@ function V31SixItems({
             <Info className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" aria-hidden="true" />
             <p className="text-sm text-indigo-700">
               {(aiTabItem?.score ?? 0) > 0
-                ? "AI탭에 노출됩니다. 소개글·사진·키워드 최적화를 유지하세요."
+                ? "AI탭에 노출됩니다. 소개글·사진·키워드 관리를 유지하세요."
                 : "AI탭 노출이 확인되지 않았습니다. 소개글 200자 이상·사진 10장 이상을 권장합니다."}
             </p>
           </div>
@@ -675,7 +675,7 @@ function V30FourItems({
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className="text-sm md:text-base font-semibold text-gray-800">1. 키워드 커버리지</span>
               <span className="text-sm text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-medium">
-                영향도 ★★★ (가중치 30%)
+                영향도 ★★★ (중요도 30%)
               </span>
               {isKeywordEstimated && (
                 <span className="text-sm text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">(추정값)</span>
@@ -706,7 +706,7 @@ function V30FourItems({
             {topMissingKeywords.length > 0 && (
               <div className="bg-amber-50 border border-amber-100 rounded-lg p-3">
                 <p className="text-sm font-semibold text-amber-700 mb-2">
-                  아직 부족한 키워드 — 소개글·소식에 추가하면 다음 스캔부터 반영
+                  아직 부족한 키워드 — 소개글·소식에 추가하면 다음 측정부터 반영
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {bizId ? (
@@ -743,7 +743,7 @@ function V30FourItems({
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className="text-sm md:text-base font-semibold text-gray-800">2. 리뷰 품질</span>
               <span className="text-sm text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-medium">
-                영향도 ★★ (가중치 25%)
+                영향도 ★★ (중요도 25%)
               </span>
             </div>
             <p className="text-sm text-gray-600 leading-relaxed">리뷰 수 × 평균 별점 × 키워드 다양성으로 계산합니다</p>
@@ -758,7 +758,7 @@ function V30FourItems({
           <span className="text-sm text-gray-700">
             {finalReviewCount > 0
               ? `리뷰 ${finalReviewCount}개 확인됨${finalAvgRating > 0 ? ` · 평균 ${finalAvgRating.toFixed(1)}점` : ""}`
-              : "리뷰 수 미수집 — 재스캔하면 자동으로 가져옵니다"
+              : "리뷰 수 미수집 — 다시 측정하면 자동으로 가져옵니다"
             }
           </span>
         </div>
@@ -767,7 +767,7 @@ function V30FourItems({
             <span className="text-blue-600 text-sm shrink-0 mt-0.5">→</span>
             <p className="text-sm text-blue-800 font-medium">
               {finalReviewCount === 0
-                ? "재스캔하면 리뷰 수가 자동 갱신됩니다. 그래도 0이면 단골 손님 1명에게 네이버 지도 리뷰를 요청하세요"
+                ? "다시 측정하면 리뷰 수가 자동 갱신됩니다. 그래도 0이면 단골 손님 1명에게 네이버 지도 리뷰를 요청하세요"
                 : "리뷰 답변에 업종 키워드를 포함하면 키워드 다양성이 높아집니다"
               }
             </p>
@@ -782,11 +782,11 @@ function V30FourItems({
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span className="text-sm md:text-base font-semibold text-gray-800">3. 스마트플레이스 완성도</span>
               <span className="text-sm text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-medium">
-                영향도 ★★ (가중치 15%)
+                영향도 ★★ (중요도 15%)
               </span>
             </div>
             <p className="text-sm text-gray-600 leading-relaxed">
-              마지막 스캔 기준 · 등록·소식·소개글 완성도
+              마지막 측정 기준 · 등록·소식·소개글 완성도
             </p>
           </div>
           <ScoreBadge value={spc} />
@@ -865,7 +865,7 @@ function V30FourItems({
               <div className="flex items-center gap-2 flex-wrap mb-1">
                 <span className="text-sm md:text-base font-semibold text-gray-800">4. 네이버 AI 브리핑 노출</span>
                 <span className="text-sm text-gray-600 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full font-medium">
-                  영향도 ★ (가중치 15%)
+                  영향도 ★ (중요도 15%)
                 </span>
               </div>
               <p className="text-sm text-gray-600 leading-relaxed">실제 네이버 AI 브리핑에 노출됐는지 확인합니다</p>
@@ -885,7 +885,7 @@ function V30FourItems({
           )}
           {naverResult?.excerpt && (
             <div className="mt-2 bg-green-50 border border-green-100 rounded-lg p-3">
-              <p className="text-sm font-semibold text-green-700 mb-1">네이버 AI 인용 발췌</p>
+              <p className="text-sm font-semibold text-green-700 mb-1">네이버 AI 언급 내용</p>
               <p className="text-sm text-green-900 italic leading-relaxed">
                 &ldquo;{naverResult.excerpt}&rdquo;
               </p>
@@ -952,10 +952,10 @@ export default function ScoreEvidenceCard({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <h2 className="text-base md:text-lg font-bold text-gray-900">
-              채널별 노출 분석 ({isV32Parent ? "7" : isV31 ? "6" : "4"}가지 항목)
+              AI별 노출 분석 ({isV32Parent ? "7" : isV31 ? "6" : "4"}가지 항목)
             </h2>
             <p className="text-sm text-gray-600 mt-0.5">
-              채널별 노출 현황과 항목별 분석입니다
+              AI별 노출 현황과 항목별 분석입니다
             </p>
           </div>
           <div className="flex flex-col items-end gap-1">
@@ -984,12 +984,12 @@ export default function ScoreEvidenceCard({
             <div>
               <div className="text-sm font-semibold text-blue-700 uppercase tracking-wide mb-0.5">
                 {effectiveGroup === "INACTIVE"
-                  ? "네이버 검색 최적화 준비 상태"
+                  ? "네이버 검색 개선 준비 상태"
                   : effectiveGroup === "LIKELY"
                   ? "네이버 AI탭 준비 상태"
                   : "네이버 AI 브리핑 준비 상태"}
               </div>
-              <div className="text-sm text-gray-600">업종 가중치 {naverWeightPct}%</div>
+              <div className="text-sm text-gray-600">업종 중요도 {naverWeightPct}%</div>
             </div>
             {effectiveGroup === "INACTIVE" ? (
               <span className="text-sm px-3 py-1 rounded-full font-semibold border bg-gray-100 text-gray-600 border-gray-200">
@@ -1016,7 +1016,7 @@ export default function ScoreEvidenceCard({
                 <Search className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" aria-hidden="true" />
                 <p className="text-sm text-blue-900 leading-relaxed">
                   <strong>네이버 일반 검색 상위 노출은 가능합니다.</strong>{" "}
-                  AI 브리핑 대상은 아니지만, <strong>스마트플레이스 최적화·블로그 후기·키워드 관리</strong>로
+                  AI 브리핑 대상은 아니지만, <strong>스마트플레이스 개선·블로그 후기·키워드 관리</strong>로
                   네이버 검색 결과 상위에 노출될 수 있습니다.
                   아래 ①~⑤ 항목 점수를 높이면 네이버 검색 클릭이 늘어납니다.
                 </p>
@@ -1025,7 +1025,7 @@ export default function ScoreEvidenceCard({
               <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-3 flex items-start gap-2">
                 <Info className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" aria-hidden="true" />
                 <p className="text-sm text-indigo-800 leading-relaxed">
-                  <strong>네이버 AI탭</strong>은 업종 제한 없이 노출 가능합니다 (2026-06-25 정식 출시).{" "}
+                  <strong>네이버 AI탭</strong>은 업종 제한 발표 없이 노출 가능합니다 (2026-06-25 정식 출시).{" "}
                   소개글 200자 이상·사진 10장 이상·블로그 후기 확보가 핵심입니다.
                 </p>
               </div>
@@ -1092,7 +1092,7 @@ export default function ScoreEvidenceCard({
               <div className="text-sm font-semibold text-purple-700 uppercase tracking-wide mb-0.5">
                 ChatGPT · Gemini 등 글로벌 AI 노출 현황
               </div>
-              <div className="text-sm text-gray-600">업종 가중치 {globalWeight}%</div>
+              <div className="text-sm text-gray-600">업종 중요도 {globalWeight}%</div>
             </div>
             <span className={`text-sm px-3 py-1 rounded-full font-semibold border ${
               track2Score >= 80 ? "bg-emerald-50 text-emerald-700 border-emerald-100"
@@ -1142,11 +1142,11 @@ export default function ScoreEvidenceCard({
             <div className="mt-3 bg-purple-50 border border-purple-100 rounded-lg p-3 space-y-1.5">
               <p className="text-sm text-purple-800">
                 <span className="font-semibold">지금 노출 안 되는 건 정상입니다.</span>{" "}
-                ChatGPT는 학습 데이터 기반이라 수개월~1년 소요됩니다. Gemini는 구글 비즈니스 프로필 등록 후 2~4주 내 개선이 시작될 수 있습니다.
+                ChatGPT는 AI가 미리 공부한 자료 기반이라 수개월~1년 소요됩니다. Gemini는 구글 비즈니스 프로필 등록 후 2~4주 내 개선이 시작될 수 있습니다.
               </p>
               <p className="text-sm text-purple-700">
                 <span className="font-medium">지금 할 수 있는 것:</span>{" "}
-                <a href="/schema" className="underline font-medium">AI 인식 코드(JSON-LD) 등록</a>으로
+                <a href="/schema" className="underline font-medium">AI 인식 코드 등록</a>으로
                 Google AI Overview 노출 가능성을 높이고, 네이버 밖의 외부 블로그·뉴스·후기를 꾸준히 쌓으면 ChatGPT·Gemini에 서서히 반영될 수 있습니다(보장 아님).
               </p>
             </div>
@@ -1162,7 +1162,7 @@ export default function ScoreEvidenceCard({
         {missingItems && missingItems.length > 0 && (
           <div className="border-t border-gray-100 pt-5">
             <div className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
-              빠른 지수 상승 항목
+              빠르게 개선할 항목
             </div>
             <div className="space-y-2">
               {missingItems.map((m, i) => (

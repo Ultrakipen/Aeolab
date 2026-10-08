@@ -165,7 +165,7 @@ export function AdDefenseClient({
         } else if (message) {
           setError(message);
         } else {
-          throw new Error("API 오류");
+          throw new Error("서버 오류");
         }
         setLoading(false);
         return;
@@ -219,8 +219,9 @@ export function AdDefenseClient({
       {/* 생성 폼 */}
       <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm mb-6">
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">사업장 선택</label>
+          <label htmlFor="ad-defense-biz" className="block text-sm font-medium text-gray-700 mb-1.5">사업장 선택</label>
           <select
+            id="ad-defense-biz"
             value={bizId}
             onChange={(e) => handleBizChange(e.target.value)}
             className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
@@ -236,20 +237,20 @@ export function AdDefenseClient({
               <p className="text-sm text-amber-700 flex items-center gap-1">
                 <span>⚠</span>
                 <span>
-                  스캔 데이터 없음 —{" "}
-                  <a href="/dashboard" className="underline hover:text-amber-700">스캔 먼저 실행</a>
+                  측정 데이터 없음 —{" "}
+                  <a href="/dashboard" className="underline hover:text-amber-700">측정 먼저 실행</a>
                   하면 더 정확한 가이드가 만들어집니다
                 </span>
               </p>
             ) : scanDays > 30 ? (
               <p className="text-sm text-amber-700 flex items-center gap-1">
                 <span>⚠</span>
-                <span>마지막 스캔 {formatScanDate(lastScanDate!)} — 재스캔하면 최신 데이터로 가이드가 개선됩니다</span>
+                <span>마지막 측정 {formatScanDate(lastScanDate!)} — 다시 측정하면 최신 데이터로 가이드가 개선됩니다</span>
               </p>
             ) : (
               <p className="text-sm text-gray-600 flex items-center gap-1">
                 <span>✓</span>
-                <span>마지막 스캔 {formatScanDate(lastScanDate!)}</span>
+                <span>마지막 측정 {formatScanDate(lastScanDate!)}</span>
               </p>
             )}
           </div>
@@ -300,7 +301,7 @@ export function AdDefenseClient({
                   <div className="text-2xl md:text-3xl font-bold text-gray-900">{result.exposure_freq}</div>
                 )}
                 <div className="text-sm text-gray-600 mt-1">
-                  {result.sample_size === 0 ? "Gemini 언급 (이번 스캔 측정 안 됨)" : `Gemini 언급(/${result.sample_size ?? 50}회 중)`}
+                  {result.sample_size === 0 ? "Gemini 언급 (이번 측정에서 확인 안 됨)" : `Gemini 언급(/${result.sample_size ?? 50}회 중)`}
                 </div>
               </div>
               {result.chatgpt_measured === false ? (

@@ -135,7 +135,7 @@ export default function KeywordToolPage() {
             <h1 className="text-2xl md:text-3xl font-black text-gray-900">무료 키워드 생성기</h1>
           </div>
           <p className="text-sm md:text-base text-gray-600">
-            비즈니스명과 업종만 입력하면 AI가 SEO 키워드 5개를 추천합니다
+            가게 이름과 업종만 입력하면 AI가 키워드 5개를 추천합니다
           </p>
         </div>
       </div>
@@ -184,10 +184,11 @@ export default function KeywordToolPage() {
 
             {/* 업종 선택 */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              <label htmlFor="tools-kw-category" className="block text-sm font-semibold text-gray-700 mb-1.5">
                 업종
               </label>
               <select
+                id="tools-kw-category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition bg-white"

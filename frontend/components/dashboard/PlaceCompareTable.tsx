@@ -200,7 +200,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
         <div className="px-4 md:px-6 py-6 text-center text-sm text-gray-600">
           <AlertTriangle className="w-8 h-8 text-amber-400 mx-auto mb-2" />
           <p className="font-semibold text-gray-700 mb-1">경쟁사 플레이스 데이터가 아직 없습니다</p>
-          <p>경쟁사 AI 스캔 후 자동으로 채워집니다. 대시보드에서 스캔을 실행해 주세요.</p>
+          <p>경쟁사 측정 후 자동으로 채워집니다. 대시보드에서 측정을 시작해 주세요.</p>
         </div>
       )}
 
@@ -237,11 +237,11 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
                           <button
                             onClick={() => void syncCompetitor(c.id!)}
                             disabled={syncingIds[c.id]}
-                            title="네이버 플레이스 데이터 재스캔"
+                            title="네이버 플레이스 데이터 다시 측정"
                             className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-50"
                           >
                             <RefreshCw className={`w-3 h-3 ${syncingIds[c.id] ? 'animate-spin text-blue-600' : ''}`} />
-                            {syncingIds[c.id] ? '스캔 중' : '재스캔'}
+                            {syncingIds[c.id] ? '측정 중' : '다시 측정'}
                           </button>
                         )}
                       </div>
@@ -362,7 +362,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
       {data && data.rows.some(r => r.type === "rating" && r.mine === null) && (
         <div className="px-4 md:px-6 py-3 border-t border-blue-100 bg-blue-50">
           <p className="text-sm text-blue-800">
-            내 가게 평점이 <strong>미입력</strong>으로 표시됩니다. 스캔을 실행하면 자동으로 수집되거나, <a href="/dashboard/settings" className="underline font-medium">사업장 설정</a>에서 직접 입력할 수 있습니다.
+            내 가게 평점이 <strong>미입력</strong>으로 표시됩니다. 측정을 시작하면 자동으로 수집되거나, <a href="/dashboard/settings" className="underline font-medium">사업장 설정</a>에서 직접 입력할 수 있습니다.
           </p>
         </div>
       )}

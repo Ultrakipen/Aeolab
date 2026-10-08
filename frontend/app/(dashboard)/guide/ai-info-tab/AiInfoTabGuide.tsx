@@ -197,7 +197,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 flex-shrink-0 font-bold">①</span>
                   <span><strong>소개글 200자 이상</strong> + 자주 묻는 질문 3~5개 Q&amp;A 형식 포함
-                    <span className="ml-1 text-indigo-400">(Q&amp;A 구조가 AI탭 인용 가능성 높음 — 실측 기반 권장)</span>
+                    <span className="ml-1 text-indigo-400">(Q&amp;A 구조가 AI탭 노출 가능성 높음 — 실측 기반 권장)</span>
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -246,7 +246,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 flex-shrink-0 font-bold">④</span>
-                  <span><strong>리뷰 10건 이상</strong> — 업종 키워드가 포함된 리뷰가 AI탭 인용 가능성 높임</span>
+                  <span><strong>리뷰 10건 이상</strong> — 업종 키워드가 포함된 리뷰가 AI탭 노출 가능성 높임</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 flex-shrink-0 font-bold">⑤</span>
@@ -254,7 +254,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                 </li>
               </ul>
               <p className="mt-3 text-sm text-indigo-600">
-                * AI탭은 정식 출시됐으며, 전체 스캔 시 AI탭 노출 여부(사업장명 언급)를 실측합니다. 노출을 100% 보장하지는 않습니다.
+                * AI탭은 정식 출시됐으며, 전체 측정 시 AI탭 노출 여부(사업장명 언급)를 실측합니다. 노출을 100% 보장하지는 않습니다.
               </p>
             </div>
           </>
@@ -308,7 +308,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                   href="/guide"
                   className="inline-flex items-center gap-1 text-sm md:text-base font-semibold text-indigo-700 hover:text-indigo-900 underline underline-offset-2"
                 >
-                  전체 가이드 목록에서 ChatGPT·Gemini 최적화 보기 →
+                  전체 가이드 목록에서 ChatGPT·Gemini 개선 보기 →
                 </Link>
               </div>
             }
@@ -352,20 +352,20 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
         {/* 단계 3: 소개글 작성 (150~500자) */}
         <Step
           num={3}
-          title="🖊️ 소개글 작성 — 200자 이상 + 키워드 + USP"
+          title="🖊️ 소개글 작성 — 200자 이상 + 키워드 + 핵심 강점"
           time="5분"
           done={!!business?.has_intro}
         >
           <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed">
             {isInactive
-              ? <>Google AI(Overview)는 <strong>구글 비즈니스 프로필</strong>을 실시간 참조합니다. ChatGPT는 학습 데이터 비중이 커서(컷오프 2024.06) 반영까지 수개월~1년이 걸릴 수 있고, Gemini는 구글 정보를 참고해 수주~수개월 걸릴 수 있습니다. 아래 소개글을 홈페이지·구글 비즈니스 프로필에도 활용하세요.</>
+              ? <>Google AI(Overview)는 <strong>구글 비즈니스 프로필</strong>을 실시간 참조합니다. ChatGPT는 미리 공부한 자료 비중이 커서(컷오프 2024.06) 반영까지 수개월~1년이 걸릴 수 있고, Gemini는 구글 정보를 참고해 수주~수개월 걸릴 수 있습니다. 아래 소개글을 홈페이지·구글 비즈니스 프로필에도 활용하세요.</>
 
               : <>AI 브리핑은 소개글의 <strong>핵심 정보를 학습 소스로 활용</strong>합니다.</>}
             {" "}200자 이상(AI 브리핑은 500자 이상 권장) 분량에 사업장의 강점·서비스·키워드를 자연스럽게 포함하세요.
           </p>
           <ul className="list-disc list-inside space-y-1 text-sm md:text-base text-gray-700 mb-3">
             <li>키워드를 단순 나열이 아닌 문장 안에 자연스럽게 배치</li>
-            <li>소개글에 Q&A 5개 포함 — 스마트플레이스 사장님 Q&A 탭이 폐기된 현재, 소개글 안의 Q&A 섹션이 인용 후보 경로 중 하나입니다</li>
+            <li>소개글에 Q&A 5개 포함 — 스마트플레이스 사장님 Q&A 탭이 폐기된 현재, 소개글 안의 Q&A 섹션이 언급 후보 경로 중 하나입니다</li>
             <li>최신 정보(영업시간·휴무·시즌 메뉴) 명시</li>
           </ul>
           {/* Q&A 자동 감지 불가 안내 — 사용자 노출 원칙 §7 */}
@@ -415,7 +415,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
           <ul className="list-disc list-inside space-y-1 text-sm md:text-base text-gray-700 mb-3">
             <li>채팅방 메뉴 6개 (텍스트형 12개도 가능) — 메뉴명 6자 이내</li>
             <li>메뉴 클릭 시 메시지 전송 또는 URL 실행 중 선택</li>
-            <li>응대 시간 단축 + 사장님이 작성한 텍스트의 인용 후보 확보</li>
+            <li>응대 시간 단축 + 사장님이 작성한 텍스트의 언급 후보 확보</li>
           </ul>
           <div className={`rounded p-3 text-sm md:text-base mb-3 ${
             canGenerate
@@ -461,7 +461,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                   30일에 1건 이상 신규 소식을 등록하면 네이버 노출 확률이 상승합니다.
                   ChatGPT·Gemini는 네이버 소식 포스트보다 사업장 웹사이트·구글 비즈니스 프로필 업데이트가 더 직접적입니다.</>
               : <>네이버 AI 브리핑은 <strong>최신성</strong>을 중요하게 평가합니다.
-                  30일에 1건 이상 신규 소식을 등록하면 인용 확률이 상승합니다.</>}
+                  30일에 1건 이상 신규 소식을 등록하면 언급 가능성이 높아집니다.</>}
           </p>
           <ul className="list-disc list-inside space-y-1 text-sm md:text-base text-gray-700 mb-3">
             <li>새 메뉴, 시즌 이벤트, 영업시간 변경 등 실용 정보 위주로</li>
@@ -501,7 +501,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
           <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed">
             {typeof business?.review_count === "number"
               ? <>현재 리뷰: <strong>{business.review_count}건</strong>{business.review_count < 10 && " — 10건 이상 권장"}</>
-              : <>현재 리뷰: <strong>스캔 후 확인 가능</strong> — 첫 스캔을 진행하면 실측 리뷰 수가 표시됩니다.</>}
+              : <>현재 리뷰: <strong>측정 후 확인 가능</strong> — 첫 측정을 진행하면 실측 리뷰 수가 표시됩니다.</>}
           </p>
           {plan !== "free" && (
             <div className="bg-purple-50 border border-purple-200 rounded p-3 text-sm md:text-base text-gray-700 mb-3">
@@ -625,7 +625,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
           ))}
         </div>
         <p className="text-sm text-gray-600 leading-relaxed break-keep">
-          체크는 화면 확인용이며 저장되지 않습니다. 실제 등록은{" "}
+          체크는 화면 표시용이며 저장되지 않습니다. 실제 등록은{" "}
           <a
             href="https://smartplace.naver.com"
             target="_blank"
@@ -641,7 +641,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
       {/* ── §3.8 C-rank 4요소 체크리스트 카드 ────────────────────── */}
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 md:p-6">
         <h3 className="text-base md:text-lg font-bold text-gray-900 mb-1 break-keep">
-          네이버 검색 상위노출을 위한 콘텐츠 품질 4요소 (C-rank)
+          네이버 검색 상위노출을 위한 콘텐츠 품질 4요소 (네이버 블로그 품질 기준)
         </h3>
         <p className="text-sm md:text-base text-gray-600 mb-4 leading-relaxed break-keep">
           네이버가 콘텐츠 품질을 평가하는 4가지 기준입니다. 소개글·소식·블로그 작성 시 이 요소를 충족할수록 검색 상위노출 가능성이 높아집니다.
@@ -687,7 +687,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
           ))}
         </div>
         <p className="text-sm text-gray-600 leading-relaxed break-keep">
-          네이버 콘텐츠 품질 점수는 비공개 알고리즘이며, 위 항목은 영향 요소 추정입니다.
+          네이버 콘텐츠 품질 점수는 네이버 기준 미공개이며, 위 항목은 영향 요소 추정입니다.
         </p>
       </div>
 
@@ -715,17 +715,17 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               !blogScanned ? "text-gray-600" : blogCount === 0 ? "text-rose-700" : "text-green-700"
             }`}>
               {!blogScanned
-                ? "아직 스캔 전이라 블로그 언급 수를 확인할 수 없습니다. 첫 스캔을 진행하면 실측 결과가 표시됩니다."
+                ? "아직 측정 전이라 블로그 언급 수를 확인할 수 없습니다. 첫 측정을 진행하면 실측 결과가 표시됩니다."
                 : blogCount === 0
                 ? "아직 블로그 후기가 감지되지 않았습니다. AI 검색 노출에 블로그 언급은 핵심 신호입니다."
-                : `네이버 블로그에서 "${blogCount}건" 검색 결과가 발견되었습니다 (가게명 키워드 검색 기준). AI탭은 블로그·SNS 후기가 풍부한 플레이스를 우선 노출하는 경향이 있습니다 (실측 기반 권장값, 알고리즘 미공개).`}
+                : `네이버 블로그에서 "${blogCount}건" 검색 결과가 발견되었습니다 (가게명 키워드 검색 기준). AI탭은 블로그·SNS 후기가 풍부한 플레이스를 우선 노출하는 경향이 있습니다 (실측 기반 권장값, 네이버 기준 미공개).`}
             </p>
           </div>
         </div>
         {blogScanned && blogCount === 0 ? (
           <div className="space-y-2">
             <p className="text-sm text-rose-700 leading-relaxed break-keep">
-              외부 블로그 후기 5개 이상 확보 시 AI 브리핑·AI탭 노출 가능성이 높아집니다 (AEOlab 권장 기준, 네이버 알고리즘 비공개).
+              외부 블로그 후기 5개 이상 확보 시 AI 브리핑·AI탭 노출 가능성이 높아집니다 (AEOlab 권장 기준, 네이버 기준 비공개).
               리뷰어 초대, 체험단 운영, 소셜 공유 이벤트를 활용해보세요.
             </p>
             <Link
@@ -737,13 +737,13 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
           </div>
         ) : blogScanned ? (
           <p className="text-sm text-green-700 leading-relaxed break-keep">
-            블로그 언급 수를 꾸준히 늘리면 AI 탭 노출 빈도와 인용 가능성이 함께 상승합니다.
+            블로그 언급 수를 꾸준히 늘리면 AI 탭 노출 빈도와 언급 가능성이 함께 상승합니다.
             목표: <strong>월 3건 이상</strong> 신규 블로그 후기 유지 (AEOlab 권장 기준).
           </p>
         ) : null}
         {blogScanned && (
           <p className="text-sm text-gray-600 mt-3 leading-relaxed break-keep">
-            블로그 언급 수는 스캔 시점 기준이며, 측정 방식에 따라 실제와 차이가 있을 수 있습니다.
+            블로그 언급 수는 측정 시점 기준이며, 측정 방식에 따라 실제와 차이가 있을 수 있습니다.
           </p>
         )}
       </div>

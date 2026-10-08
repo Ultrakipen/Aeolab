@@ -85,17 +85,17 @@ export function AiInfoTabStatusCard({
   const eligibilityBanner =
     eligibility === "active" ? (
       <div className="mb-4 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-sm text-blue-800">
-        AI 브리핑 + AI탭 양면 최적화 대상 업종입니다. 아래에서 AI 정보 탭 상태를 확인·설정하세요.
+        AI 브리핑 + AI탭 양면 개선 대상 업종입니다. 아래에서 AI 정보 탭 상태를 확인·설정하세요.
       </div>
     ) : eligibility === "likely" ? (
       <div className="mb-4 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
-        AI탭 우선 최적화 업종입니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. '플레이스형' AI 브리핑은 네이버 확대 정책에 따라 추가될 예정입니다.
+        AI탭 우선 노출 업종입니다. 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다. '플레이스형' AI 브리핑은 네이버 확대 정책에 따라 추가될 예정입니다.
       </div>
     ) : eligibility === "inactive" ? (
       <div className="mb-4 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm text-slate-700">
         <strong>플레이스형 네이버 AI 브리핑 비대상 업종입니다.</strong>{" "}
         단, 블로그·콘텐츠가 갖춰지면 <strong>'정보형 AI 브리핑'</strong>에 노출될 수 있습니다. <strong>AI탭은 업종 제한 발표 없음</strong> — 정식 출시됐으며 모든 업종이 노출될 수 있습니다.
-        ChatGPT·Gemini 글로벌 AI 채널 최적화도 함께 진행하세요.
+        ChatGPT·Gemini 글로벌 AI 서비스 노출도 함께 준비하세요.
       </div>
     ) : null;
 

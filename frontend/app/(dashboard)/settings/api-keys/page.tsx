@@ -70,13 +70,13 @@ export default function ApiKeysPage() {
   return (
     <div className="p-4 md:p-8 max-w-2xl">
       <div className="mb-5 md:mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Public API 키 관리</h1>
-        <p className="text-sm text-gray-600 mt-1">개발자·대행사용 API 접근 키 (Biz/Enterprise 전용, 최대 5개)</p>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">외부 연결 키 관리</h1>
+        <p className="text-sm text-gray-600 mt-1">개발자·대행사용 외부 연결 키 (Biz/Enterprise 전용, 최대 5개)</p>
       </div>
 
       {/* 새 키 발급 */}
       <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100 mb-4 md:mb-6">
-        <h2 className="text-base md:text-lg font-semibold text-gray-700 mb-4">새 API 키 발급</h2>
+        <h2 className="text-base md:text-lg font-semibold text-gray-700 mb-4">새 연결 키 발급</h2>
         <div className="flex flex-col sm:flex-row gap-3 mb-3">
           <input
             value={name}
@@ -96,7 +96,7 @@ export default function ApiKeysPage() {
         {newKey && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
             <p className="text-sm font-medium text-yellow-800 mb-2">
-              API 키가 발급되었습니다. 지금만 확인 가능합니다.
+              연결 키가 발급되었습니다. 지금만 확인 가능합니다.
             </p>
             <code className="text-sm font-mono text-yellow-900 break-all">{newKey}</code>
           </div>
@@ -108,7 +108,7 @@ export default function ApiKeysPage() {
         <h2 className="text-base md:text-lg font-semibold text-gray-700 mb-3">발급된 키 ({keys.length}/5)</h2>
         {keys.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-sm text-gray-600">발급된 API 키가 없습니다.</p>
+            <p className="text-sm text-gray-600">발급된 연결 키가 없습니다.</p>
             <p className="text-sm text-gray-600 mt-1">위에서 키 이름을 입력해 발급하세요.</p>
           </div>
         ) : (
@@ -137,7 +137,7 @@ export default function ApiKeysPage() {
       {/* API 문서 안내 */}
       <section className="bg-gray-50 rounded-xl p-4 md:p-5 mt-4 border border-gray-100">
         <p className="text-sm text-gray-600">
-          API 키 사용: <code className="font-mono text-sm bg-white px-1.5 py-0.5 rounded border border-gray-200">Authorization: Bearer &lt;api_key&gt;</code> 헤더로 전송.
+          연결 키 사용: <code className="font-mono text-sm bg-white px-1.5 py-0.5 rounded border border-gray-200">Authorization: Bearer &lt;api_key&gt;</code> 헤더로 전송.
         </p>
         <p className="text-sm text-gray-600 mt-1">
           문서: <span className="text-blue-600">aeolab.co.kr/docs/api</span> (준비 중)

@@ -201,7 +201,7 @@ export default function AIDiagnosisCard({
           </p>
         ) : naverUnmeasured ? (
           <p className="text-xl md:text-2xl font-bold text-slate-300 leading-snug">
-            {eunNeun(businessName)} 네이버 AI 브리핑 노출 여부를 이번 스캔에서 확인하지 못했습니다 (일시적 접속 제한 — 다음 스캔에서 다시 확인됩니다)
+            {eunNeun(businessName)} 네이버 AI 브리핑 노출 여부를 이번 측정에서 확인하지 못했습니다 (일시적 접속 제한 — 다음 측정에서 다시 확인됩니다)
           </p>
         ) : naverInBriefing ? (
           <p className="text-xl md:text-2xl font-bold text-green-400 leading-snug">
@@ -235,7 +235,7 @@ export default function AIDiagnosisCard({
             const r = allPlatformResults[key];
             const label = PLATFORM_LABELS[key] ?? key;
             if (!r) {
-              const weeklyNote = "이번 스캔에서 미확인";
+              const weeklyNote = "이번 측정에서 미확인";
               return (
                 <div
                   key={key}
@@ -450,7 +450,7 @@ export default function AIDiagnosisCard({
               }`}
             >
               {mentionedCount === 0
-                ? `점검한 AI 채널(${activePlatformsForSummary.map(k => PLATFORM_SHORT[k]).join("·")})에서 ${businessName}이(가) 노출되지 않았습니다.`
+                ? `점검한 AI 서비스(${activePlatformsForSummary.map(k => PLATFORM_SHORT[k]).join("·")})에서 ${businessName}이(가) 노출되지 않았습니다.`
                 : mentionedCount <= 2
                 ? `${mentionedNames.join("·")}에서만 확인됩니다. ${notMentionedNames.join("·")} 노출이 더 필요합니다.`
                 : `${mentionedNames.join("·")} 등 절반 이상의 AI가 알고 있습니다.`}
@@ -470,7 +470,7 @@ export default function AIDiagnosisCard({
               ) : naverMentionedOnly ? (
                 <span className="flex items-start gap-1.5">
                   <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-                  <span>AI 브리핑 미인용 — 경쟁 가게가 AI 결과 상단을 차지하고 있을 수 있습니다 — 소개글 Q&A 추가가 개선에 도움이 될 수 있습니다</span>
+                  <span>AI 브리핑 미노출 — 경쟁 가게가 AI 결과 상단을 차지하고 있을 수 있습니다 — 소개글 Q&A 추가가 개선에 도움이 될 수 있습니다</span>
                 </span>
               ) : mentionedCount === 0 ? (
                 <span className="flex items-start gap-1.5">
@@ -562,9 +562,9 @@ export default function AIDiagnosisCard({
               {naverInBriefing
                 ? "이미 잘 되고 있습니다. 구글 비즈니스 프로필도 등록하면 ChatGPT·Gemini 노출 가능성이 함께 높아집니다."
                 : !isNaverBriefingInactive && naverMentionedOnly && reviewCount < 10
-                ? "네이버 검색에는 나오지만, AI 브리핑에 인용되려면 리뷰가 최소 10개 이상 필요합니다."
+                ? "네이버 검색에는 나오지만, AI 브리핑에 나오려면 리뷰가 최소 10개 이상 필요합니다."
                 : !isNaverBriefingInactive && naverMentionedOnly && reviewCount >= 10
-                ? `리뷰 ${reviewCount}개로 충분합니다. AI 브리핑 인용을 높이려면 소개글 Q&A에 핵심 키워드를 보강하세요.`
+                ? `리뷰 ${reviewCount}개로 충분합니다. AI 브리핑 노출을 높이려면 소개글 Q&A에 핵심 키워드를 보강하세요.`
                 : reviewCount === 0
                 ? (naverPlaceUrl
                     ? "네이버 플레이스 URL을 저장하면 리뷰 수가 자동 수집됩니다. 방금 등록했다면 약 30초 후 새로고침해 주세요."
@@ -593,7 +593,7 @@ export default function AIDiagnosisCard({
           ) : (
             <p className="text-sm text-gray-600 mt-2">
               스마트플레이스 세부 항목(소개글 Q&A·소식 등)은{" "}
-              <span className="font-medium text-blue-600">채널별 분석 근거</span>에서 확인하세요.{" "}
+              <span className="font-medium text-blue-600">AI별 분석 근거</span>에서 확인하세요.{" "}
               <a href="/onboarding" className="text-blue-400 hover:underline">URL 등록 →</a>
             </p>
           )}
@@ -671,14 +671,14 @@ export default function AIDiagnosisCard({
                 &ldquo;{businessName} 검색 후 별점과 한 줄 후기 남겨주시면 감사해요&rdquo;
               </p>
               <p className="text-sm text-amber-700 mt-1">
-                리뷰 1개가 시작점입니다. 10개 이상 쌓이면 네이버 AI 브리핑 인용 가능성이 높아집니다.
+                리뷰 1개가 시작점입니다. 10개 이상 쌓이면 네이버 AI 브리핑 노출 가능성이 높아집니다.
               </p>
             </div>
           </div>
         </div>
       )}
       <p className="text-sm text-gray-600 mt-3 leading-relaxed">
-        ChatGPT는 과거 학습 데이터 기반 — 한국 소상공인은 낮은 점수가 일반적이며 단기 변동이 없습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.
+        ChatGPT는 AI가 미리 공부한 자료를 바탕으로 하므로 한국 소상공인은 낮은 점수가 일반적이며 단기 변동이 없습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.
       </p>
     </div>
   );

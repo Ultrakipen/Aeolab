@@ -712,7 +712,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
           <div className="space-y-2 pl-1">
             {([
               { key: 'has_recent_post', label: '최근 소식 등록됨 (1개월 내)', desc: '최신성 점수 유지' },
-              { key: 'has_intro', label: '소개글 작성됨', desc: '기본 정보 완성도 (소개글 안에 Q&A 섹션 포함 시 인용 후보)' },
+              { key: 'has_intro', label: '소개글 작성됨', desc: '기본 정보 완성도 (소개글 안에 Q&A 섹션 포함 시 언급 후보)' },
             ] as const).map(({ key, label, desc }) => (
               <label key={key} className="flex items-start gap-3 cursor-pointer group">
                 <input
@@ -747,7 +747,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
         {/* AI 채널 등록 정보 (글로벌 AI 노출용) */}
         <div className="border border-blue-100 rounded-xl p-4 bg-blue-50/50 space-y-3">
           <div>
-            <p className="text-sm font-semibold text-blue-700 mb-0.5">글로벌 AI 채널 등록 정보</p>
+            <p className="text-sm font-semibold text-blue-700 mb-0.5">글로벌 AI 서비스 등록 정보</p>
             <p className="text-sm text-blue-600">
               ChatGPT에서 노출되려면 구글·카카오 등록이 필요합니다.
               <strong> 정보완성도 점수에 반영됩니다.</strong>
@@ -780,7 +780,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                 />
                 <p className="text-sm text-gray-600 mt-1">
-                  입력 시 스캔 때 FAQ·소식·소개글 등록 여부를 자동으로 확인합니다.
+                  입력 시 측정 때 FAQ·소식·소개글 등록 여부를 자동으로 확인합니다.
                 </p>
               </div>
               <div>
@@ -845,7 +845,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
                   />
                 </div>
                 <p className="col-span-2 text-sm text-gray-600">
-                  네이버 플레이스 URL을 입력하면 스캔 시 자동으로 갱신됩니다. 없는 경우 직접 입력하세요.
+                  네이버 플레이스 URL을 입력하면 측정 시 자동으로 갱신됩니다. 없는 경우 직접 입력하세요.
                 </p>
               </div>
             </div>
@@ -1022,7 +1022,7 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
               등록 중...
             </>
           ) : (
-            '사업장 등록 및 AI 스캔 시작'
+            '사업장 등록 및 AI 측정 시작'
           )}
         </button>
       </form>

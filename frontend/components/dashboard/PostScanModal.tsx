@@ -78,7 +78,7 @@ export default function PostScanModal({
           <div className="bg-green-50 border-b border-green-100 px-5 py-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-green-700 text-xl">✓</span>
-              <p className="text-base md:text-lg font-bold text-green-800">스캔 완료! 지금 바로 할 수 있는 것</p>
+              <p className="text-base md:text-lg font-bold text-green-800">측정 완료! 지금 바로 할 수 있는 것</p>
             </div>
             <button
               onClick={onClose}
@@ -100,7 +100,7 @@ export default function PostScanModal({
                   ❌ &ldquo;{topMissingKeyword}&rdquo; 키워드가 없습니다
                 </p>
                 <p className="text-sm text-amber-700 mb-3">
-                  스마트플레이스 소개글 안 Q&A에 이 키워드를 포함하면 AI 브리핑 인용 후보 가능성이 높아집니다.
+                  스마트플레이스 소개글 안 Q&A에 이 키워드를 포함하면 AI 브리핑 언급 후보 가능성이 높아집니다.
                 </p>
                 {faqCopyText && (
                   <div className="bg-white border border-amber-200 rounded-lg p-3 mb-3">
@@ -133,7 +133,7 @@ export default function PostScanModal({
             ) : (
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                 <p className="text-sm font-semibold text-blue-800 mb-1">
-                  {businessName} 스캔이 완료됐습니다
+                  {businessName} 측정이 완료됐습니다
                 </p>
                 <p className="text-sm text-blue-700">
                   아래 가이드에서 개선할 수 있는 항목을 확인해 보세요.

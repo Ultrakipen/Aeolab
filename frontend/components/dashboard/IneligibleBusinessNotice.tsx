@@ -31,7 +31,7 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
           </li>
           <li className="flex items-start gap-2 text-sm text-gray-700">
             <span className="text-green-700 font-bold shrink-0">②</span>
-            <span><strong>블로그 정기 발행</strong> (주 1~2회) → 네이버 검색 상위 노출 + <strong>'정보형 AI 브리핑'</strong> 인용 후보</span>
+            <span><strong>블로그 정기 발행</strong> (주 1~2회) → 네이버 검색 상위 노출 + <strong>'정보형 AI 브리핑'</strong> 언급 후보</span>
           </li>
           <li className="flex items-start gap-2 text-sm text-gray-700">
             <span className="text-green-700 font-bold shrink-0">③</span>
@@ -60,9 +60,9 @@ export function IneligibleBusinessNotice({ categoryLabel, eligibility, isFranchi
       </p>
       <div className="space-y-1.5 text-sm text-gray-700">
         <p className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 shrink-0 text-indigo-600" aria-hidden="true" />네이버 AI탭 — 모든 업종 대상 대화형 검색 지원</p>
-        <p className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 shrink-0 text-indigo-600" aria-hidden="true" />네이버 블로그·일반 검색 — 지금도 최적화 가능</p>
+        <p className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 shrink-0 text-indigo-600" aria-hidden="true" />네이버 블로그·일반 검색 — 지금도 개선 가능</p>
         <p>🔮 AI 브리핑(플레이스형) — 업종 확대 시 자동 활성화 · 블로그·콘텐츠로 &apos;정보형 AI 브리핑&apos; 노출은 지금도 가능</p>
-        <p className="inline-flex items-center gap-1.5"><Target className="w-4 h-4 shrink-0 text-indigo-600" aria-hidden="true" />ChatGPT·Gemini·Google AI — 글로벌 채널 데이터 축적 중</p>
+        <p className="inline-flex items-center gap-1.5"><Target className="w-4 h-4 shrink-0 text-indigo-600" aria-hidden="true" />ChatGPT·Gemini·Google AI — 글로벌 AI 서비스 데이터 축적 중</p>
       </div>
       <Link
         href={`/guide/ai-tab`}

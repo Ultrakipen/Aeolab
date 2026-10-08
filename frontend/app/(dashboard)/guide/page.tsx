@@ -45,12 +45,12 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
     <NoBusiness
       Icon={Lightbulb}
       title="AI 개선 가이드"
-      description="스캔 결과를 바탕으로 AI가 지금 당장 실천 가능한 개선 방법을 알려드립니다."
+      description="측정 결과를 바탕으로 AI가 지금 당장 실천 가능한 개선 방법을 알려드립니다."
       features={[
         { Icon: Bot,         title: "Claude AI 자동 분석", desc: "내 사업장 데이터를 Claude Sonnet이 분석해 맞춤 가이드를 생성합니다." },
         { Icon: ListChecks,  title: "단계별 실천 항목",    desc: "리뷰 전략, AI 정보 등록, 콘텐츠 개선 등 즉시 실천 가능한 항목을 제공합니다." },
         { Icon: CheckSquare, title: "진행률 체크리스트",   desc: "완료한 항목을 체크하며 개선 진행 상황을 한눈에 확인하세요." },
-        { Icon: RefreshCw,   title: "스캔마다 업데이트",   desc: "AI 스캔을 진행할 때마다 최신 상태에 맞는 가이드가 새로 생성됩니다." },
+        { Icon: RefreshCw,   title: "측정마다 업데이트",   desc: "AI 측정을 진행할 때마다 최신 상태에 맞는 가이드가 새로 생성됩니다." },
       ]}
     />
   )
@@ -117,7 +117,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
           </div>
           <h2 className="text-xl md:text-2xl font-bold text-blue-900">AI 개선 가이드는 Basic 이상 플랜에서 이용할 수 있습니다</h2>
           <p className="text-blue-700 text-base leading-relaxed">
-            스캔 결과를 바탕으로 Claude AI가 지금 당장 실천 가능한 개선 방법을 생성해 드립니다.<br />
+            측정 결과를 바탕으로 Claude AI가 지금 당장 실천 가능한 개선 방법을 생성해 드립니다.<br />
             Basic 플랜은 월 3회 · Pro는 월 10회 가이드를 생성할 수 있습니다.
           </p>
           <a
@@ -158,7 +158,7 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
     <div className="p-4 md:p-8 max-w-4xl mx-auto">
       <div className="mb-6 md:mb-8">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900">AI 개선 가이드</h1>
-        <p className="text-gray-600 text-sm mt-1 leading-relaxed">스캔 결과를 바탕으로 AI가 분석한 <strong>지금 당장 실천 가능한</strong> 개선 방법을 알려드립니다.</p>
+        <p className="text-gray-600 text-sm mt-1 leading-relaxed">측정 결과를 바탕으로 AI가 분석한 <strong>지금 당장 실천 가능한</strong> 개선 방법을 알려드립니다.</p>
       </div>
 
       {businesses && businesses.length > 1 && (
@@ -189,9 +189,9 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
         briefingLikelyCategories={briefingCats.likely}
       />
 
-      {/* 채널별 심화 가이드 — 가이드 본문 아래에 배치 (탐색 링크) */}
+      {/* AI별 심화 가이드 — 가이드 본문 아래에 배치 (탐색 링크) */}
       <div className="mt-10 pt-8 border-t border-gray-100">
-        <p className="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wide">채널별 심화 가이드</p>
+        <p className="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wide">AI별 심화 가이드</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
           {/* AI 브리핑 가이드 */}
           <Link
@@ -267,9 +267,9 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
               </span>
             </div>
             <p className="text-sm text-gray-700 mb-2 leading-snug break-keep">
-              글로벌 AI가 내 가게를 언급하게 만드는 소개글·Q&amp;A 최적화.
+              글로벌 AI가 내 가게를 언급하게 만드는 소개글·Q&amp;A 개선.
             </p>
-            <p className="text-sm font-semibold text-purple-700 group-hover:underline">소개글 최적화 가이드 →</p>
+            <p className="text-sm font-semibold text-purple-700 group-hover:underline">소개글 개선 가이드 →</p>
           </Link>
         </div>
 

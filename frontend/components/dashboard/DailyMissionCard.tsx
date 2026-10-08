@@ -49,7 +49,7 @@ const DIMENSION_MESSAGES: Record<string, {
     reason: '소개글·홈페이지 정보가 부족해 AI가 내 가게를 검색 결과에 포함하기 어렵습니다',
     action: '소개글 키워드를 점검하거나, 홈페이지가 있다면 AI용 가게 정보 코드를 추가하세요.',
     link: '/schema',
-    linkLabel: 'AI 최적화 도구 열기',
+    linkLabel: 'AI 개선 도구 열기',
   },
 }
 
@@ -366,7 +366,7 @@ export default function DailyMissionCard({
             actionCompleted ? (
               <div className="flex items-center gap-2 text-green-700 text-sm font-semibold bg-green-50 border border-green-200 rounded-lg px-4 py-3 mb-3">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
-                완료! 다음 스캔에서 개선 효과를 확인해보세요{" "}
+                완료! 다음 측정에서 개선 효과를 확인해보세요{" "}
                 {topDimension?.dimension_key === "multi_ai_exposure"
                   ? "(ChatGPT 수개월~1년, Gemini 2~4주 소요)"
                   : topDimension?.dimension_key === "schema_seo"

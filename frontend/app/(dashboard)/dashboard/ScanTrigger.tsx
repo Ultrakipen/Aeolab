@@ -141,7 +141,7 @@ export function ScanTrigger({
       es.addEventListener('close', () => clearTimeout(timeoutId))
       es.addEventListener('error', () => clearTimeout(timeoutId))
     } catch {
-      setError('스캔 시작 중 오류가 발생했습니다.')
+      setError('측정 시작 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }
@@ -168,7 +168,7 @@ export function ScanTrigger({
     setScanning(false)
     eventSourceRef.current = null
     setEventSource(null)
-    setError('스캔 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+    setError('측정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
   }
 
   if (scanning) {
@@ -194,7 +194,7 @@ export function ScanTrigger({
       {completed && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-xl">
           <div className="flex-1">
-            <p className="text-base text-green-700 font-semibold">스캔 완료! 결과를 분석했습니다.</p>
+            <p className="text-base text-green-700 font-semibold">측정 완료! 결과를 분석했습니다.</p>
             {scannedKeyword && (
               <p className="text-sm text-gray-600 mt-0.5">
                 검색어: <span className="font-semibold text-blue-600">&quot;{regionFirst} {scannedKeyword} 추천&quot;</span>
@@ -247,7 +247,7 @@ export function ScanTrigger({
                     검색어: &quot;{regionFirst} {activeKw} 추천&quot;
                   </p>
                   <p className="text-sm text-gray-600 mt-0.5 break-keep hidden sm:block">
-                    수동: 선택 키워드 스캔 · 자동(새벽 2시): 키워드 순환 스캔
+                    직접 측정: 선택 키워드 · 자동(새벽 2시): 키워드 순환 측정
                   </p>
                 </div>
               )}
@@ -265,19 +265,19 @@ export function ScanTrigger({
                   : "bg-blue-600 text-white border border-blue-600 hover:bg-blue-700"
               } px-5 py-2.5 rounded-lg text-base font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${stacked ? "w-full" : "w-full sm:w-auto"}`}
             >
-              {loading ? '준비 중...' : limitReached ? `오늘 스캔 완료 (${scanUsed}/${scanLimit}회)` : secondary ? (
+              {loading ? '준비 중...' : limitReached ? `오늘 측정 완료 (${scanUsed}/${scanLimit}회)` : secondary ? (
                 <span className="inline-flex items-center gap-1.5 justify-center">
                   <RefreshCw className="w-4 h-4" aria-hidden="true" />
-                  AI 다시 스캔
+                  AI 다시 측정
                 </span>
-              ) : 'AI 스캔 시작'}
+              ) : 'AI 측정 시작'}
             </button>
 
             {/* 스캔 횟수 */}
             {scanLimit > 0 && scanLimit < 999 && (
               <p className={`text-sm ${stacked ? 'text-center' : 'text-center sm:text-right'} text-gray-600`}>
                 {limitReached
-                  ? '새벽 2시에 자동 스캔이 실행됩니다'
+                  ? '새벽 2시에 자동 측정이 실행됩니다'
                   : `오늘 ${scanUsed}/${scanLimit}회 사용`}
               </p>
             )}
@@ -285,7 +285,7 @@ export function ScanTrigger({
             {/* 최근 스캔 키워드 */}
             {lastQueryUsed && (
               <div className={`flex items-center ${stacked ? 'justify-center' : 'justify-center sm:justify-end'} gap-1.5 bg-blue-50 border border-blue-100 rounded-lg px-3 py-1.5`}>
-                <span className="text-sm text-gray-600">최근 스캔:</span>
+                <span className="text-sm text-gray-600">최근 측정:</span>
                 <span className="text-sm font-semibold text-blue-600 truncate max-w-[140px]">&quot;{lastQueryUsed}&quot;</span>
               </div>
             )}

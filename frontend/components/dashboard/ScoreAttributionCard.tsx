@@ -141,13 +141,13 @@ function AttributionItem({ item }: { item: ActionAttribution }) {
         <div className="px-4 pb-4 border-t border-gray-100 bg-gray-50 space-y-3">
           {/* attribution_text는 백엔드 생성 문자열 — 행동 설명만 표시 */}
           <p className="text-sm text-gray-700 mt-3">
-            {item.action_label} 실행 후 노출 지수에 변화가 반영됐습니다.
-            {item.dimension_changes.length > 0 && " 아래에서 채널별 영향을 확인하세요."}
+            {item.action_label} 실행 후 노출 상태에 변화가 반영됐습니다.
+            {item.dimension_changes.length > 0 && " 아래에서 AI별 영향을 확인하세요."}
           </p>
 
           {item.dimension_changes.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-600">채널별 영향</p>
+              <p className="text-sm font-medium text-gray-600">AI별 영향</p>
               {item.dimension_changes.map((d) => (
                 <DimBar key={d.dimension} change={d} maxAbs={maxAbs} />
               ))}
@@ -247,7 +247,7 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
             <TrendingUp className="text-green-700 shrink-0" size={18} />
             <div>
               <p className="text-sm font-semibold text-green-800">
-                최근 {days}일간 노출 지수 {gainLabel}
+                최근 {days}일간 노출 상태 {gainLabel}
               </p>
               {top_effective_action && (
                 <p className="text-sm text-green-700 mt-0.5">
@@ -267,7 +267,7 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
       </div>
 
       <div className="px-5 pb-4 text-sm text-gray-600">
-        재스캔 후 최신 효과를 확인할 수 있습니다.
+        다시 측정 후 최신 효과를 확인할 수 있습니다.
       </div>
     </div>
   );

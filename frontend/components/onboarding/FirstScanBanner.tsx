@@ -71,10 +71,10 @@ export default function FirstScanBanner({ businessId, businessName, plan, hasSca
         {/* 텍스트 */}
         <div className="flex-1 min-w-0">
           <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">
-            {businessName ? `${businessName} 등록 완료!` : "환영합니다!"} 첫 스캔으로 AI 노출 진단을 시작하세요
+            {businessName ? `${businessName} 등록 완료!` : "환영합니다!"} 첫 측정으로 AI 노출 진단을 시작하세요
           </h2>
           <p className="text-sm text-gray-600">
-            약 1분 소요 · 4개 AI 채널 측정 · {planLabel} 무료 스캔 1회
+            약 1분 소요 · 4개 AI 서비스 측정 · {planLabel} 무료 측정 1회
           </p>
         </div>
 
@@ -83,7 +83,7 @@ export default function FirstScanBanner({ businessId, businessName, plan, hasSca
           onClick={handleScanClick}
           className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-5 py-3 rounded-lg transition-colors w-full sm:w-auto text-center"
         >
-          지금 첫 스캔 실행하기
+          지금 첫 측정 실행하기
         </button>
       </div>
     </div>

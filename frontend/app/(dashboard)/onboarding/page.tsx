@@ -24,7 +24,7 @@ import type { BusinessSearchResult } from "@/types";
 
 const STEPS = [
   { id: 1, label: "사업장 등록",  desc: "내 가게 정보 입력" },
-  { id: 2, label: "첫 스캔 안내", desc: "AI 스캔 방법 확인" },
+  { id: 2, label: "첫 측정 안내", desc: "AI 측정 방법 확인" },
   { id: 3, label: "시작하기",     desc: "대시보드로 이동" },
 ];
 
@@ -388,7 +388,7 @@ export default function OnboardingPage() {
               </div>
               <p className="text-sm font-semibold text-orange-700 mb-2">첫 달 8,950원 (50% 할인)</p>
               <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
-                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />주 2회 자동 AI 스캔</li>
+                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />주 2회 자동 AI 측정</li>
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />경쟁사 3곳 비교</li>
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-blue-600 shrink-0" />리뷰 답변 월 50회</li>
               </ul>
@@ -717,7 +717,7 @@ export default function OnboardingPage() {
                 {/* 블로그 자동 분석 안내 */}
                 <p className="text-sm text-blue-600 mt-1 flex items-start gap-1.5">
                   <span className="shrink-0 mt-0.5">💡</span>
-                  <span>블로그 주소를 입력하면 등록 후 자동으로 분석됩니다. 포스트별 네이버 AI 브리핑 인용 여부·4채널 인용 현황·경쟁사 비교까지 확인할 수 있습니다.</span>
+                  <span>블로그 주소를 입력하면 등록 후 자동으로 분석됩니다. 포스트별 네이버 AI 브리핑 언급 여부·4곳 언급 현황·경쟁사 비교까지 확인할 수 있습니다.</span>
                 </p>
               </div>
 
@@ -761,7 +761,7 @@ export default function OnboardingPage() {
                 <div className="mb-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
                   <p className="text-sm font-bold text-blue-800 mb-1">네이버 스마트플레이스란?</p>
                   <p className="text-sm text-blue-700 leading-relaxed mb-3">
-                    네이버 지도·검색에서 내 가게 정보(위치, 영업시간, 메뉴, 사진 등)를 관리하는 공식 플랫폼입니다.
+                    네이버 지도·검색에서 내 가게 정보(위치, 영업시간, 메뉴, 사진 등)를 관리하는 공식 서비스입니다.
                     <strong className="block mt-1">스마트플레이스에 등록된 가게일수록 네이버 AI 브리핑에 더 잘 노출됩니다.</strong>
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -833,7 +833,7 @@ export default function OnboardingPage() {
                 {/* ID 자동 입력된 경우 확인 메시지 */}
                 {form.naver_place_id && (
                   <div className="mt-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-                    <p className="text-sm text-green-700 font-medium">✓ 네이버 스마트플레이스 ID가 입력되었습니다. AI 스캔 정확도가 높아집니다.</p>
+                    <p className="text-sm text-green-700 font-medium">✓ 네이버 스마트플레이스 ID가 입력되었습니다. AI 측정 정확도가 높아집니다.</p>
                   </div>
                 )}
               </div>
@@ -875,7 +875,7 @@ export default function OnboardingPage() {
               <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">가게 분석 준비 완료!</h1>
               <p className="text-base text-gray-600 leading-relaxed">
                 플랜에 따라 자동으로 경쟁 가게와 비교해 드립니다.<br className="hidden sm:block" />
-                AI 스캔 방법을 먼저 확인하세요.
+                AI 측정 방법을 먼저 확인하세요.
               </p>
             </div>
 
@@ -883,10 +883,10 @@ export default function OnboardingPage() {
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 mb-6">
               <div className="flex items-center gap-2 mb-2">
                 <span className="bg-green-700 text-white text-sm font-bold px-3 py-0.5 rounded-full">무료</span>
-                <span className="text-base font-bold text-green-800">첫 스캔 1회는 완전 무료입니다</span>
+                <span className="text-base font-bold text-green-800">첫 측정 1회는 완전 무료입니다</span>
               </div>
               <p className="text-base text-green-700 leading-relaxed">
-                지금 바로 대시보드에서 AI 스캔을 시작하세요.<br className="hidden sm:block" />
+                지금 바로 대시보드에서 AI 측정을 시작하세요.<br className="hidden sm:block" />
                 약 2~3분이면 아래 정보를 모두 확인할 수 있습니다.
               </p>
             </div>
@@ -895,12 +895,12 @@ export default function OnboardingPage() {
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-3">
                 <Lightbulb className="w-5 h-5 text-green-700" strokeWidth={1.8} />
-                <span className="text-base font-bold text-gray-700">첫 스캔 1회로 확인할 수 있는 정보</span>
+                <span className="text-base font-bold text-gray-700">첫 측정 1회로 확인할 수 있는 정보</span>
               </div>
               <div className="grid grid-cols-1 gap-2.5">
                 {[
-                  { icon: Bot,        bg: "bg-blue-100",   color: "text-blue-600",   label: "3채널 노출 신호",       detail: "네이버 AI 브리핑·카카오맵·ChatGPT에서 내 가게 검색 결과" },
-                  { icon: BarChart3,  bg: "bg-indigo-100", color: "text-indigo-600", label: "AI 노출 종합 진단",      detail: "양호·보통·주의 상태 + 네이버 채널 / 글로벌 AI 채널 분리 진단" },
+                  { icon: Bot,        bg: "bg-blue-100",   color: "text-blue-600",   label: "3곳 노출 신호",         detail: "네이버 AI 브리핑·카카오맵·ChatGPT에서 내 가게 검색 결과" },
+                  { icon: BarChart3,  bg: "bg-indigo-100", color: "text-indigo-600", label: "AI 노출 종합 진단",      detail: "양호·보통·주의 상태 + 네이버 서비스 / 글로벌 AI 서비스 분리 진단" },
                   { icon: TrendingUp, bg: "bg-amber-100",  color: "text-amber-700",  label: "성장 단계 진단",         detail: "시작→성장→빠른 성장→지역 1등 중 내 가게의 현재 단계 판정" },
                   { icon: KeyRound,   bg: "bg-red-100",    color: "text-red-700",    label: "없는 키워드 TOP 3",     detail: "경쟁사는 있고 내 가게에 없는 핵심 키워드 — 지금 당장 추가해야 할 단어" },
                   { icon: Camera,     bg: "bg-purple-100", color: "text-purple-600", label: "Before 스크린샷",       detail: "현재 AI 검색 노출 화면 자동 캡처 — 개선 전후 비교의 기준점" },
@@ -924,13 +924,13 @@ export default function OnboardingPage() {
               {[
                 {
                   Icon: Clock,
-                  title: "첫 스캔은 언제?",
-                  desc: "등록 직후 자동으로 Before 스크린샷이 저장됩니다. 대시보드에서 지금 바로 수동 스캔을 시작할 수 있습니다.",
+                  title: "첫 측정은 언제?",
+                  desc: "등록 직후 자동으로 Before 스크린샷이 저장됩니다. 대시보드에서 지금 바로 수동 측정을 시작할 수 있습니다.",
                 },
                 {
                   Icon: Smartphone,
                   title: "카카오톡 알림",
-                  desc: "설정에서 전화번호를 등록하면 점수 변화·AI 인용 등 5가지 알림을 받을 수 있습니다.",
+                  desc: "설정에서 전화번호를 등록하면 점수 변화·AI 언급 등 5가지 알림을 받을 수 있습니다.",
                 },
               ].map(item => (
                 <div key={item.title} className="flex gap-4 p-4 bg-blue-50 rounded-xl">
@@ -955,7 +955,7 @@ export default function OnboardingPage() {
                     <span className="text-sm font-medium px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300">선택 사항</span>
                   </div>
                   <p className="text-base text-yellow-800 leading-relaxed mb-2">
-                    카카오맵은 한국에서 네이버 다음으로 많이 사용되는 지역 검색 플랫폼입니다.
+                    카카오맵은 한국에서 네이버 다음으로 많이 사용되는 지역 검색 서비스입니다.
                     영업시간·전화번호·사진을 등록하면 카카오 AI 검색 노출이 향상됩니다.
                   </p>
                   <a
@@ -996,8 +996,8 @@ export default function OnboardingPage() {
               {[
                 {
                   no: "Step 1/3",
-                  title: "AI 스캔 실행",
-                  desc: "대시보드에서 [AI 스캔 시작] 버튼을 누르면 약 30초 안에 결과가 나옵니다.",
+                  title: "AI 측정 실행",
+                  desc: "대시보드에서 [AI 측정 시작] 버튼을 누르면 약 30초 안에 결과가 나옵니다.",
                   status: hasFirstScan ? "완료" : "자동 시작 중...",
                   done: hasFirstScan,
                   link: "/dashboard",
@@ -1007,8 +1007,8 @@ export default function OnboardingPage() {
                 {
                   no: "Step 2/3",
                   title: "없는 키워드 3개 확인",
-                  desc: "스캔 완료 후 가이드 페이지에서 부족한 키워드를 확인하세요.",
-                  status: hasFirstScan ? "확인 가능" : "스캔 후 가능",
+                  desc: "측정 완료 후 가이드 페이지에서 부족한 키워드를 확인하세요.",
+                  status: hasFirstScan ? "확인 가능" : "측정 후 가능",
                   done: false,
                   link: "/guide",
                   linkLabel: "가이드에서 확인하기",
@@ -1070,7 +1070,7 @@ export default function OnboardingPage() {
                 <div>
                   <p className="text-base font-bold mb-1">사업장 등록 완료!</p>
                   <p className="text-base text-blue-100 leading-relaxed">
-                    대시보드에서 <span className="font-bold text-white">[AI 스캔 시작]</span> 버튼을 눌러
+                    대시보드에서 <span className="font-bold text-white">[AI 측정 시작]</span> 버튼을 눌러
                     <br className="hidden sm:block" />
                     첫 결과를 확인하세요 <span className="font-semibold">(약 30초)</span>
                   </p>
@@ -1094,7 +1094,7 @@ export default function OnboardingPage() {
                     : <Circle className="w-5 h-5 text-gray-300 shrink-0 mt-0.5" />
                   }
                   <span className={`text-base font-medium ${hasFirstScan ? "text-green-700" : "text-gray-700"}`}>
-                    첫 AI 스캔 실행
+                    첫 AI 측정 실행
                     {!hasFirstScan && <span className="ml-1 text-sm text-gray-600 font-normal">(대시보드에서)</span>}
                   </span>
                 </li>

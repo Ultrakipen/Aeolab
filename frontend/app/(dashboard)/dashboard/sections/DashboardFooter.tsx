@@ -13,7 +13,7 @@ interface Props {
 // 와 모바일 하단 탭바(MobileBottomTabs) 양쪽에 이미 있어 여기서 제거함(중복 네비게이션,
 // 2026-09-07 외부 진단 반영). 아래 2개만 두 네비게이션 어디에도 없는 항목.
 const NAV_ITEMS = [
-  { href: "/schema",        Icon: Store,     label: "소개글 · 스키마 만들기", desc: "소개글·블로그 자동 생성" },
+  { href: "/schema",        Icon: Store,     label: "소개글 · AI 인식 코드 만들기", desc: "소개글·블로그 자동 생성" },
   { href: "/guide/channels", Icon: BookOpen, label: "가이드 자료실",          desc: "업종별 AI 검색 노출 체크리스트" },
 ];
 

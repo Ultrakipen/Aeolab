@@ -219,7 +219,7 @@ export default function NaverSearchStrengthCard({ businessId, token }: Props) {
           <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
             <TrendingUp className="w-8 h-8 text-gray-700" aria-hidden="true" />
             <p className="text-sm text-gray-600 break-keep max-w-xs mx-auto leading-relaxed">
-              데이터 수집 중 — 스캔·블로그 분석을 진행하면 표시됩니다
+              데이터 수집 중 — 측정·블로그 분석을 진행하면 표시됩니다
             </p>
           </div>
         )}

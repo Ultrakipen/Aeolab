@@ -27,12 +27,12 @@ export function RescanBanner({ stale = false }: Props) {
       <p className="text-sm text-blue-800">
         {stale ? (
           <>
-            <span className="font-semibold">마지막 스캔이 7일 이상 지났습니다.</span>{' '}
-            최신 AI 검색 노출 현황을 확인하려면 지금 재스캔을 권장합니다.
+            <span className="font-semibold">마지막 측정이 7일 이상 지났습니다.</span>{' '}
+            최신 AI 검색 노출 현황을 확인하려면 지금 다시 측정하기를 권장합니다.
           </>
         ) : (
           <>
-            <span className="font-semibold">AI 스캔이 요청됐습니다.</span>{' '}
+            <span className="font-semibold">AI 측정이 요청됐습니다.</span>{' '}
             분석에 약 2~3분 소요됩니다. 완료되면 점수가 자동으로 업데이트됩니다.
           </>
         )}

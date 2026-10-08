@@ -269,14 +269,14 @@ function citationStatusBadge(p: PostDetail) {
   if (p.cited_confirmed) {
     return (
       <span className="inline-flex items-center border text-sm font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 border-green-300">
-        네이버 인용 확인됨
+        네이버 언급 확인됨
       </span>
     );
   }
   if (p.is_cited === true) {
     return (
       <span className="inline-flex items-center border text-sm font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 border-blue-300">
-        네이버 인용 가능성 있음
+        네이버 언급 가능성 있음
       </span>
     );
   }
@@ -324,7 +324,7 @@ function MethodologyDisclosureBar({
       <span>
         이 진단의 근거 · 블로그 포스트 <strong className="text-gray-700">{postCount}개</strong> 실측 분석{isPostCountEstimated ? " (추정)" : ""}
         {totalMeasurements > 0 && (
-          <> · {channelCount}개 채널 총 <strong className="text-gray-700">{totalMeasurements}회</strong> 실측 스캔 기반</>
+          <> · {channelCount}개 AI 서비스 총 <strong className="text-gray-700">{totalMeasurements}회</strong> 실측 기반</>
         )}
       </span>
       <Link href="/how-it-works" className="text-indigo-600 hover:underline ml-auto shrink-0">
@@ -448,7 +448,7 @@ function InfoBriefingReadinessCard({
       {/* 인과 설명 — 정보형 브리핑은 전 업종 */}
       <div className="mt-4 bg-white/60 border border-gray-200 rounded-xl p-3 text-sm text-gray-700 leading-relaxed">
         <span className="font-semibold text-indigo-700">왜 중요한가요?</span> 블로그·콘텐츠가 충실하면 네이버가 이를 출처로 채택해{" "}
-        <span className="font-semibold">정보형 AI 브리핑(추천·요약형)</span>에 인용합니다. 정보형은 업종 제한이 없어 사진·학원·법무 등{" "}
+        <span className="font-semibold">정보형 AI 브리핑(추천·요약형)</span>에 언급됩니다. 정보형은 업종 제한이 없어 사진·학원·법무 등{" "}
         <span className="font-semibold">전 업종이 노출 대상</span>이며, 같은 콘텐츠가 ChatGPT·Gemini·Google AI 노출에도 함께 작용합니다.
         {eligibility === "active" && " 이 업종은 가게를 직접 요약하는 '플레이스형' AI 브리핑 대상이기도 합니다."}
       </div>
@@ -485,7 +485,7 @@ function WeeklyActionsCard({ actions, businessId }: { actions: WeeklyAction[]; b
         </span>
       </div>
       <p className="text-sm text-blue-700 mb-3 leading-relaxed bg-white/60 border border-blue-100 rounded-lg px-3 py-2">
-        ✓ 완료할수록 <span className="font-semibold">네이버 정보형 AI 브리핑 인용</span> + ChatGPT·Gemini 노출 가능성이 올라갑니다
+        ✓ 완료할수록 <span className="font-semibold">네이버 정보형 AI 브리핑 언급</span> + ChatGPT·Gemini 노출 가능성이 올라갑니다
       </p>
       <div className="space-y-3">
         {actions.map((a, idx) => (
@@ -539,19 +539,19 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
         <p>
           <span className="font-semibold text-green-700">업종 키워드</span>(웨딩스냅·돌잔치 스냅·프로필 촬영 등) —{" "}
           AI가 업종 인식하는 용도 · <span className="font-semibold text-red-700">검색 의도어</span>(추천·후기·비교·가격 등) —{" "}
-          AI 검색이 인용할 &quot;정보성 글&quot;로 분류하는 신호.
+          AI 검색이 언급할 &quot;정보성 글&quot;로 분류하는 신호.
           <br />
           <span className="text-slate-600">
-            예: <span className="font-medium">&quot;창원 웨딩스냅&quot;</span>만 있으면 포트폴리오로 판단, <span className="font-medium">&quot;창원 웨딩스냅 추천&quot;</span>이면 AI 인용 대상.
+            예: <span className="font-medium">&quot;창원 웨딩스냅&quot;</span>만 있으면 포트폴리오로 판단, <span className="font-medium">&quot;창원 웨딩스냅 추천&quot;</span>이면 AI 언급 대상.
           </span>
           <br />
           <span className="text-slate-600">
-            <span className="font-semibold">상태</span> 배지는 이 글의 전반적인 진단 결과, <span className="font-semibold">SEO</span> 배지는 제목이 검색에 얼마나 잘 잡히는지를 각각 나타냅니다. 제목 개선 제안은 이 표 아래 카드에서 바로 복사할 수 있습니다.
+            <span className="font-semibold">상태</span> 배지는 이 글의 전반적인 진단 결과, <span className="font-semibold">검색 노출</span> 배지는 제목이 검색에 얼마나 잘 잡히는지를 각각 나타냅니다. 제목 개선 제안은 이 표 아래 카드에서 바로 복사할 수 있습니다.
           </span>
           <br />
           <span className="text-slate-600">
-            <span className="font-semibold">네이버 인용 확인됨/가능성 있음</span> 배지는 네이버 AI 브리핑(정보형)이 이 포스트를 출처로 쓴 기록을 실측 대조한 결과입니다.
-            ChatGPT·Gemini·Google의 채널별 인용 여부는 이 글 단위가 아닌 사업장 단위로 위 &quot;채널별 AI 인용 현황&quot;에서 확인하세요.
+            <span className="font-semibold">네이버 언급 확인됨/가능성 있음</span> 배지는 네이버 AI 브리핑(정보형)이 이 포스트를 출처로 쓴 기록을 실측 대조한 결과입니다.
+            ChatGPT·Gemini·Google의 AI 서비스별 언급 여부는 이 글 단위가 아닌 사업장 단위로 위 &quot;AI 서비스별 언급 현황&quot;에서 확인하세요.
           </span>
         </p>
       </div>
@@ -571,7 +571,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
               <th className="pb-3 pr-3 font-semibold text-gray-600">제목</th>
               <th className="pb-3 font-semibold text-gray-600 text-center">날짜</th>
               <th className="pb-3 font-semibold text-gray-600 text-center">상태</th>
-              <th className="pb-3 font-semibold text-gray-600 text-center">SEO</th>
+              <th className="pb-3 font-semibold text-gray-600 text-center">검색 노출</th>
               <th className="pb-3 pl-3 font-semibold text-gray-600">문제점</th>
             </tr>
           </thead>
@@ -615,7 +615,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                     ))}
                     {p.full_text_len === -1 && (
                       <span className="bg-gray-50 text-gray-600 border border-gray-200 text-sm px-2 py-0.5 rounded-lg whitespace-normal break-keep leading-snug">
-                        본문 길이 측정 불가 (API 수집)
+                        본문 길이 측정 불가 (자동 수집)
                       </span>
                     )}
                     {p.issues.length === 0 && (p.positives?.length ?? 0) === 0 ? (
@@ -668,7 +668,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                   {postScoreLabel(p.post_score)}
                 </span>
                 <span className={`inline-flex items-center gap-1 border text-sm font-bold px-2.5 py-0.5 rounded-full ${postScoreBadge(p.title_seo_score)}`}>
-                  <span className="font-normal opacity-70">SEO</span>{postScoreLabel(p.title_seo_score)}
+                  <span className="font-normal opacity-70">검색</span>{postScoreLabel(p.title_seo_score)}
                 </span>
               </div>
             </div>
@@ -683,7 +683,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                 ))}
                 {p.full_text_len === -1 && (
                   <span className="bg-gray-50 text-gray-600 border border-gray-200 text-sm px-2 py-0.5 rounded-lg">
-                    본문 길이 측정 불가 (API 수집)
+                    본문 길이 측정 불가 (자동 수집)
                   </span>
                 )}
                 {p.issues.map((issue, i) => (
@@ -824,7 +824,7 @@ function BestCitationCandidateCard({ candidate }: { candidate: NonNullable<BlogA
     <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <Zap className="w-5 h-5 text-amber-700 shrink-0" />
-        <h3 className="text-base md:text-lg font-bold text-amber-900">AI 검색 인용 가능성 높은 포스트</h3>
+        <h3 className="text-base md:text-lg font-bold text-amber-900">AI 검색 언급 가능성 높은 포스트</h3>
       </div>
 
       {/* 포스트 점수 + 제목 */}
@@ -1228,7 +1228,7 @@ function BlogScoreTrendChart({ businessId, token }: { businessId: string; token:
       <p className="text-sm text-gray-600 mb-4">
         {first.analyzed_date} ~ {latest.analyzed_date}
       </p>
-      {renderSeries("AI 인용 준비도", "citation_score")}
+      {renderSeries("AI 언급 준비도", "citation_score")}
       {renderSeries("키워드 커버리지", "keyword_coverage")}
     </div>
   );
@@ -1304,8 +1304,8 @@ function DuplicateTopicsWarning({
 
       <p className="text-sm text-amber-700 mt-4 leading-relaxed">
         {isInactive
-          ? "AI 검색(ChatGPT·Gemini·Google)은 같은 주제 포스트 중 가장 관련성 높은 1개만 인용합니다."
-          : "AI 브리핑은 같은 주제 포스트 중 가장 관련성 높은 1개만 인용합니다."}
+          ? "AI 검색(ChatGPT·Gemini·Google)은 같은 주제 포스트 중 가장 관련성 높은 1개만 언급합니다."
+          : "AI 브리핑은 같은 주제 포스트 중 가장 관련성 높은 1개만 언급합니다."}
       </p>
     </div>
   );
@@ -1364,7 +1364,7 @@ function TitleImprovementSection({ posts, businessId }: { posts: PostDetail[]; b
         )}
       </div>
       <p className="text-sm text-indigo-600 mb-4">
-        AI 인용에 유리하도록 변경한 제목입니다. 해당되지 않는 제안은 <span className="font-semibold">X 버튼</span>으로 삭제하면 대기 중인 다음 제안이 자동으로 표시됩니다.
+        AI 언급에 유리하도록 변경한 제목입니다. 해당되지 않는 제안은 <span className="font-semibold">X 버튼</span>으로 삭제하면 대기 중인 다음 제안이 자동으로 표시됩니다.
       </p>
 
       {shown.length === 0 && dismissed.length > 0 && (
@@ -1483,16 +1483,16 @@ function MultiChannelCitationPanel({
     <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-1">
         <Globe className="w-5 h-5 text-indigo-600 shrink-0" />
-        <h3 className="text-base md:text-lg font-bold text-gray-900">채널별 AI 인용 현황</h3>
-        <span className="text-sm text-gray-600 ml-auto shrink-0">최근 3회 스캔 기준</span>
+        <h3 className="text-base md:text-lg font-bold text-gray-900">AI 서비스별 언급 현황</h3>
+        <span className="text-sm text-gray-600 ml-auto shrink-0">최근 3회 측정 기준</span>
       </div>
       <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-        각 AI 채널에서 사업장 또는 블로그 콘텐츠가 인용된 횟수입니다.
+        각 AI 서비스에서 사업장 또는 블로그 콘텐츠가 언급된 횟수입니다.
         측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
       </p>
 
       {all.length === 0 ? (
-        <p className="text-sm text-gray-600">아직 측정 데이터 없음 — 스캔 후 표시됩니다.</p>
+        <p className="text-sm text-gray-600">아직 측정 데이터 없음 — 측정 후 표시됩니다.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {all.map(([platform, data]) => {
@@ -1520,7 +1520,7 @@ function MultiChannelCitationPanel({
                 <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
                   <span className="text-sm font-semibold text-gray-900">{label}</span>
                   <span className={`inline-flex items-center border text-sm font-bold px-2.5 py-0.5 rounded-full shrink-0 ${badgeClass}`}>
-                    {data.mentioned_count}/{data.total}회 인용
+                    {data.mentioned_count}/{data.total}회 언급
                   </span>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-1.5">
@@ -1530,7 +1530,7 @@ function MultiChannelCitationPanel({
                   />
                 </div>
                 <p className={`text-sm font-semibold ${textClass}`}>
-                  {data.total > 0 ? `${pct}% 인용률` : "측정 데이터 없음"}
+                  {data.total > 0 ? `${pct}% 언급률` : "측정 데이터 없음"}
                 </p>
                 {((data.text_count ?? 0) > 0 || (data.image_count ?? 0) > 0) && (
                   <p className="text-sm text-gray-600 mt-0.5">
@@ -1784,14 +1784,14 @@ function BriefingIneligibilityBanner({ business, isBlogLikely }: { business?: Bu
               AI 브리핑 확대 예상 업종
             </p>
             <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-              미리 블로그 최적화를 완료해두면 확대 시 인용 가능성이 높아집니다 (알고리즘 기준, 100% 보장 아님).
+              미리 블로그를 잘 정비해두면 확대 시 언급 가능성이 높아집니다 (측정 기준, 100% 보장 아님).
               현재도 네이버 AI탭·일반 검색 노출에 효과적입니다. ChatGPT·Gemini는 구글 비즈니스 프로필이 더 직접적입니다.
             </p>
           </>
         ) : (
           <>
             <p className="text-base font-bold text-gray-900 mb-1">
-              현재 '플레이스형' AI 브리핑 비대상 업종 — 블로그 분석은 모든 AI 채널에 효과적입니다
+              현재 '플레이스형' AI 브리핑 비대상 업종 — 블로그 분석은 모든 AI 서비스에 효과적입니다
             </p>
             <p className="text-sm md:text-base text-gray-700 leading-relaxed">
               '플레이스형' 네이버 AI 브리핑 비대상이지만, 블로그·콘텐츠가 갖춰지면 '정보형 AI 브리핑'에 노출될 수 있습니다. 아래 분석 결과는
@@ -1958,7 +1958,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
     setError(null);
     if (!opts?.silent) {
       setToast({ type: "info", message: isBlogInactive
-        ? "블로그를 읽고 AI 검색 인용 신호를 분석 중입니다..."
+        ? "블로그를 읽고 AI 검색 언급 신호를 분석 중입니다..."
         : "블로그를 읽고 AI 브리핑 신호를 분석 중입니다..." });
     }
 
@@ -2178,11 +2178,11 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-4">
                   <div className="flex items-start gap-2 bg-white border border-amber-100 rounded-lg px-3 py-2.5">
                     <Search className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-                    <p className="text-sm text-amber-900">등록하면 포스트별로 네이버 AI 브리핑 인용 여부를 확인할 수 있습니다</p>
+                    <p className="text-sm text-amber-900">등록하면 포스트별로 네이버 AI 브리핑 언급 여부를 확인할 수 있습니다</p>
                   </div>
                   <div className="flex items-start gap-2 bg-white border border-amber-100 rounded-lg px-3 py-2.5">
                     <BarChart2 className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-                    <p className="text-sm text-amber-900">Gemini·ChatGPT·네이버·Google 4채널 인용 현황을 한눈에 봅니다</p>
+                    <p className="text-sm text-amber-900">Gemini·ChatGPT·네이버·Google 4개 AI 서비스 언급 현황을 한눈에 봅니다</p>
                   </div>
                   <div className="flex items-start gap-2 bg-white border border-amber-100 rounded-lg px-3 py-2.5">
                     <Target className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
@@ -2302,8 +2302,8 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   </p>
                   <p className="text-sm mt-0.5">
                     {isBlogInactive
-                      ? "블로그 포스트를 읽고 AI 검색 인용 가능성을 분석합니다. (15~25초 소요)"
-                      : "블로그 포스트를 읽고 AI 브리핑 인용 가능성을 분석합니다. (15~25초 소요)"}
+                      ? "블로그 포스트를 읽고 AI 검색 언급 가능성을 분석합니다. (15~25초 소요)"
+                      : "블로그 포스트를 읽고 AI 브리핑 언급 가능성을 분석합니다. (15~25초 소요)"}
                   </p>
                 </div>
               </div>
@@ -2333,7 +2333,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
             <div>
               <p className="font-semibold text-amber-800">블로그 첫 분석을 자동으로 시작합니다. 잠시만 기다려 주세요.</p>
               <p className="text-sm text-amber-700 mt-0.5 leading-relaxed">
-                등록하신 블로그를 읽고 AI 인용 가능성을 분석합니다. 보통 20~35초 소요됩니다.<br/>
+                등록하신 블로그를 읽고 AI 언급 가능성을 분석합니다. 보통 20~35초 소요됩니다.<br/>
                 분석이 완료되면 결과가 자동으로 표시됩니다. 오래 걸리면 새로고침해 주세요.
               </p>
             </div>
@@ -2432,7 +2432,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                     키워드 설정
                   </button>
                 </div>
-                <p className="text-sm text-gray-600 mb-4">포스트 제목과 본문 내용을 기준으로 분석합니다 (일부 포스트는 API로만 수집되어 제목·요약 정보만 반영될 수 있습니다)</p>
+                <p className="text-sm text-gray-600 mb-4">포스트 제목과 본문 내용을 기준으로 분석합니다 (일부 포스트는 자동으로만 수집되어 제목·요약 정보만 반영될 수 있습니다)</p>
                 {result.top_recommendation && (
                   <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-start gap-2">
                     <TrendingUp className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
@@ -2552,8 +2552,8 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   <CheckCircle2 className="w-5 h-5 text-green-700 shrink-0" />
                   <h3 className="text-base md:text-lg font-bold text-gray-900">
                     {isBlogInactive
-                      ? "정보형 AI 브리핑·ChatGPT·Gemini·Google 인용 체크리스트"
-                      : "AI 브리핑 인용 체크리스트"}
+                      ? "정보형 AI 브리핑·ChatGPT·Gemini·Google 언급 체크리스트"
+                      : "AI 브리핑 언급 체크리스트"}
                   </h3>
                 </div>
                 <div className={result.ai_readiness_items.length >= 5 ? "grid grid-cols-1 md:grid-cols-2 gap-2" : "space-y-2"}>

@@ -57,7 +57,7 @@ const ROWS: Array<{
     label: "D · 다양성",
     maxScore: 25,
     hint: (d) =>
-      `LSI 연관 키워드 ${d.diversity.included}/${d.diversity.total} 포함${
+      `연관 키워드 ${d.diversity.included}/${d.diversity.total} 포함${
         d.diversity.included < 4 ? " — 4개 이상 권장" : ""
       }`,
   },
@@ -141,7 +141,7 @@ export default function DiaScoreBadge({ dia, onRegenerate }: { dia: DiaScore; on
             네이버 고품질 콘텐츠 기준 5요소 점수
           </h4>
           <p className="text-sm text-gray-600 mt-0.5">
-            AI 브리핑 인용 가능성 — 정규식 기반 사후 검증 (AI 호출 0회)
+            AI 브리핑 언급 가능성 — 정규식 기반 사후 검증 (AI 호출 0회)
           </p>
         </div>
         <div className={`text-xl md:text-2xl font-extrabold ${totalColor.text}`}>

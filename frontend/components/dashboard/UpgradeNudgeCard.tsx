@@ -62,10 +62,10 @@ export default function UpgradeNudgeCard({ plan, hasLatestScan }: Props) {
         <li className="flex items-start gap-2">
           <span className="text-amber-700 font-bold shrink-0">→</span>
           <span>
-            <span className="line-through text-gray-600">수동 스캔 0회/일</span>
+            <span className="line-through text-gray-600">수동 측정 0회/일</span>
             {" → "}
             <span className="font-medium text-emerald-700">2회/일</span>
-            <span className="text-gray-600 text-sm ml-1">(스캔 버튼 비활성화 이유)</span>
+            <span className="text-gray-600 text-sm ml-1">(측정 버튼 비활성화 이유)</span>
           </span>
         </li>
         <li className="flex items-start gap-2">

@@ -60,7 +60,7 @@ export default async function AiTabGuidePage({
     {
       num: 1,
       title: '소개글 200자 이상 (Q&A 구조 권장)',
-      desc: 'Q&A 구조의 소개글이 AI탭 인용 가능성이 높습니다 (실측 기반 권장값, 알고리즘 미공개). 자주 묻는 질문 3~5개를 답변과 함께 포함하세요.',
+      desc: 'Q&A 구조의 소개글이 AI탭 노출 가능성이 높습니다 (실측 기반 권장값, 네이버 미공개 기준). 자주 묻는 질문 3~5개를 답변과 함께 포함하세요.',
       example: '예: "Q. 주차 가능한가요? A. 건물 지하 1층 무료 주차 10대 가능합니다."',
       status: '직접 확인',
     },
@@ -76,7 +76,7 @@ export default async function AiTabGuidePage({
       num: 3,
       title: '예약 연동 (선택)',
       desc: '네이버 예약 연동 시 AI탭 결과에 예약 버튼이 추가로 표시됩니다. 음식점·미용·숙박 등 예약 기반 업종 권장.',
-      example: 'partner.naver.com → 예약 채널 설정',
+      example: 'partner.naver.com → 예약 서비스 설정',
       status: hasReservation === true ? '✓ 연동됨' : hasReservation === false ? '미연동' : '미측정',
       statusOk: hasReservation === true,
       externalUrl: 'https://partner.naver.com/',
@@ -84,7 +84,7 @@ export default async function AiTabGuidePage({
     {
       num: 4,
       title: '리뷰 확보 (10건 이상 권장, 업종 키워드 포함)',
-      desc: '업종 핵심 키워드가 포함된 리뷰가 AI탭 인용 가능성을 높입니다. 영수증 리뷰·블로그 리뷰 유도. 공식 임계값은 비공개이며 10건은 권장 기준입니다.',
+      desc: '업종 핵심 키워드가 포함된 리뷰가 AI탭 노출 가능성을 높입니다. 영수증 리뷰·블로그 리뷰 유도. 공식 임계값은 비공개이며 10건은 권장 기준입니다.',
       example: '음식점 → "분위기·맛·재방문" 키워드, 미용 → "시술·만족도·서비스" 키워드',
       status: reviewCount >= 10 ? `✓ ${reviewCount}건` : `현재 ${reviewCount}건`,
       statusOk: reviewCount >= 10,
@@ -227,7 +227,7 @@ export default async function AiTabGuidePage({
 
       {/* 면책 문구 */}
       <p className="text-sm text-gray-600 leading-snug break-keep">
-        AI탭 노출은 네이버 알고리즘 기준이며 보장되지 않습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
+        AI탭 노출은 네이버가 정한 기준이며 보장되지 않습니다. 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
         AI탭은 2026-04-27 베타 출시 · 2026-06-25 정식 출시이며, 노출 조건은 향후 변경될 수 있습니다.
       </p>
 

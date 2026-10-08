@@ -129,7 +129,7 @@ export function IndustryTrendCard({ trend, category, isLoading = false }: Props)
                 width={32}
               />
               <Tooltip
-                formatter={(value) => [`${value}`, "상대 지수"]}
+                formatter={(value) => [`${value}`, "상대 수준"]}
                 labelStyle={{ color: "#374151", fontWeight: 600 }}
                 contentStyle={{
                   borderRadius: "8px",
@@ -156,7 +156,7 @@ export function IndustryTrendCard({ trend, category, isLoading = false }: Props)
 
       {/* 주의 문구 */}
       <p className="text-sm text-gray-600 mt-3">
-        * 네이버 상대 지수 기준 (절대 검색량 아님). 100 = 최고 검색 시점.
+        * 네이버 상대 수준 기준 (절대 검색량 아님). 100 = 최고 검색 시점.
       </p>
     </div>
   );

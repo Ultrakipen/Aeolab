@@ -77,7 +77,7 @@ export default function PhotoCategoryCard({
           {isEmpty ? (
             <div className="flex flex-col items-center justify-center py-6 text-center gap-2">
               <ImageOff className="w-8 h-8 text-gray-300" />
-              <p className="text-sm text-gray-600">다음 스캔 후 표시됩니다</p>
+              <p className="text-sm text-gray-600">다음 측정 후 표시됩니다</p>
             </div>
           ) : (
             <>

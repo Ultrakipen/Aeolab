@@ -110,14 +110,14 @@ function getGrade(score: number): { label: string; color: string; bg: string } {
   if (score <= 30) return { label: "등록 필요", color: "text-red-700",    bg: "bg-red-100 border-red-200" };
   if (score <= 60) return { label: "기본 설정",  color: "text-yellow-700", bg: "bg-yellow-100 border-yellow-200" };
   if (score <= 85) return { label: "거의 완성",  color: "text-blue-700",   bg: "bg-blue-100 border-blue-200" };
-  return               { label: "최적화 완료", color: "text-green-700",  bg: "bg-green-100 border-green-200" };
+  return               { label: "설정 완료", color: "text-green-700",  bg: "bg-green-100 border-green-200" };
 }
 
 function getScoreMessage(score: number): string {
   if (score <= 30) return "카카오맵 등록이 시급합니다";
   if (score <= 60) return "기본 정보를 더 채워보세요";
   if (score <= 85) return "거의 완성됐습니다";
-  return "카카오맵 최적화 완료!";
+  return "카카오맵 설정 완료!";
 }
 
 // ---------------------------------------------------------------------------

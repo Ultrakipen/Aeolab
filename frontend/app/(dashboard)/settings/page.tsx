@@ -263,9 +263,9 @@ export default async function SettingsPage({
                     <div className="space-y-2">
                       <p className="text-sm font-medium text-gray-600 px-1">플랜 사용 한도</p>
                       {[
-                        { label: "직접 스캔",  value: planLimits.scan },
+                        { label: "직접 측정",  value: planLimits.scan },
                         { label: "경쟁사",     value: planLimits.competitors },
-                        { label: "자동 스캔",  value: planLimits.autoScan },
+                        { label: "자동 측정",  value: planLimits.autoScan },
                       ].map(({ label, value }) => (
                         <div key={label} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2.5">
                           <span className="text-sm text-gray-600">{label}</span>
@@ -288,11 +288,11 @@ export default async function SettingsPage({
               ) : (
                 <div className="space-y-4">
                   <p className="text-sm md:text-base text-gray-600">
-                    유료 플랜으로 업그레이드하면 Gemini·ChatGPT 각 100회 (총 200회) AI 샘플링, 경쟁사 분석, 자동 개선 가이드를 이용할 수 있습니다.
+                    유료 플랜으로 업그레이드하면 Gemini·ChatGPT 각 100회(총 200번 질문) 실측, 경쟁사 분석, 자동 개선 가이드를 이용할 수 있습니다.
                   </p>
                   <div className="grid grid-cols-3 gap-2 md:gap-3">
                     {[
-                      { label: "AI 스캔",    value: "200회", desc: "Gemini·ChatGPT 각 100회" },
+                      { label: "AI 측정",    value: "200회", desc: "Gemini·ChatGPT 각 100회" },
                       { label: "경쟁사",     value: "3개",   desc: "비교 분석" },
                       { label: "개선 가이드", value: "매월",  desc: "Claude AI 생성" },
                     ].map(({ label, value, desc }) => (
@@ -378,8 +378,8 @@ export default async function SettingsPage({
                   </thead>
                   <tbody>
                     {([
-                      ["직접 스캔",      "—",  "하루 2회", "하루 3회", "하루 5회", "하루 10회"],
-                      ["자동 스캔",      "—",  "주 2회",  "주 1회",   "주 3회",  "매일"],
+                      ["직접 측정",      "—",  "하루 2회", "하루 3회", "하루 5회", "하루 10회"],
+                      ["자동 측정",      "—",  "주 2회",  "주 1회",   "주 3회",  "매일"],
                       ["경쟁사 비교",    "—",  "3개",     "5개",      "5개",     "무제한"],
                       ["AI 개선 가이드", "—",  "월 3회",  "월 5회",   "월 10회", "월 20회"],
                       ["카카오 알림톡",  "—",  "✓",       "✓",        "✓",       "✓"],

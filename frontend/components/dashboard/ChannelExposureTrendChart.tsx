@@ -118,9 +118,9 @@ export default function ChannelExposureTrendChart({ data }: Props) {
   if (data.length === 0) {
     return (
       <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm">
-        <h3 className="text-base font-medium text-gray-700 mb-3">채널별 AI 노출률 추이</h3>
+        <h3 className="text-base font-medium text-gray-700 mb-3">AI별 노출률 추이</h3>
         <div className="flex items-center justify-center h-28 text-sm text-gray-600">
-          아직 측정 데이터 없음 — 첫 자동 스캔 후 표시됩니다
+          아직 측정 데이터 없음 — 첫 자동 측정 후 표시됩니다
         </div>
       </div>
     )
@@ -152,7 +152,7 @@ export default function ChannelExposureTrendChart({ data }: Props) {
     <div className="bg-white rounded-xl p-4 md:p-5 shadow-sm">
       {/* 헤더 + 범례 */}
       <div className="flex items-start justify-between mb-2 flex-wrap gap-2">
-        <h3 className="text-base font-medium text-gray-700">채널별 AI 노출률 추이</h3>
+        <h3 className="text-base font-medium text-gray-700">AI별 노출률 추이</h3>
         <div className="flex items-center gap-3 text-sm text-gray-600 flex-wrap">
           {/* Gemini 범례 */}
           <span className="flex items-center gap-1">

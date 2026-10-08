@@ -116,7 +116,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
           </div>
         )}
         <p className="text-sm text-gray-600 leading-relaxed">
-          아직 AI 인용 데이터가 없습니다. 스캔을 완료하면 자동으로 분석됩니다.
+          아직 AI 언급 데이터가 없습니다. 측정을 완료하면 자동으로 분석됩니다.
         </p>
         <div className="mt-4 bg-amber-50 rounded-lg p-3">
           <p className="text-sm font-semibold text-amber-800">AI가 아직 내 가게를 언급하지 않고 있습니다</p>
@@ -200,7 +200,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
                 ) : (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2.5">
                     <p className="text-sm text-blue-600 font-semibold mb-1">
-                      {c.platform === 'gemini' ? 'Gemini가 추천 시 사용할 표현 (샘플링 기반)' : 'ChatGPT가 추천 시 사용할 표현 (샘플링 기반)'}
+                      {c.platform === 'gemini' ? 'Gemini가 추천 시 사용할 표현 (여러 번 측정 기반)' : 'ChatGPT가 추천 시 사용할 표현 (여러 번 측정 기반)'}
                     </p>
                     <p className="text-sm text-gray-800 leading-relaxed italic">
                       &ldquo;{c.excerpt}&rdquo;
@@ -209,22 +209,22 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
                 )
               ) : c.platform === 'google' ? (
                 <p className="text-sm text-gray-600 italic">
-                  이번 스캔에서 Google 검색 결과에 내 가게가 나오지 않았습니다. (검색 상단 AI 요약 영역은 현재 측정 API가 결과를 제공하지 않아 확인하지 못합니다.)
+                  이번 측정에서 Google 검색 결과에 내 가게가 나오지 않았습니다. (검색 상단 AI 요약 영역은 현재 자동 연결로는 결과를 확인하지 못합니다.)
                   구글 비즈니스 프로필 등록 시 2~4주 내 인식이 개선될 수 있습니다.
                 </p>
               ) : c.platform === 'chatgpt' ? (
                 <p className="text-sm text-gray-600 italic">
-                  ChatGPT 학습 데이터에 아직 포함되지 않았습니다.
+                  ChatGPT가 미리 공부한 자료에 아직 포함되지 않았습니다.
                   한국 소상공인 ChatGPT 평균 언급률 약 1~3%(추정) — 현재 수준이 일반적입니다.
                 </p>
               ) : c.platform === 'gemini' ? (
                 <p className="text-sm text-gray-600 italic">
-                  이번 스캔에서 Gemini가 가게를 언급하지 않았습니다.
+                  이번 측정에서 Gemini가 가게를 언급하지 않았습니다.
                   구글 비즈니스 프로필 등록 시 개선 가능합니다.
                 </p>
               ) : (
                 <p className="text-sm text-gray-600 italic">
-                  이번 스캔에서 인용 문장이 감지되지 않았습니다.
+                  이번 측정에서 언급한 문장이 감지되지 않았습니다.
                 </p>
               )}
               {/* 부정 sentiment 인용에 개선 링크 */}
@@ -242,7 +242,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
       {isPreview && (
         <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4 text-center">
           <p className="text-sm font-semibold text-blue-800">
-            {previewMessage || 'ChatGPT 인용 전체 분석은 Basic 이상에서 확인하세요'}
+            {previewMessage || 'ChatGPT 언급 전체 분석은 Basic 이상에서 확인하세요'}
           </p>
           <Link
             href="/pricing"
@@ -273,10 +273,10 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
           <div className="bg-amber-50 rounded-lg p-3 space-y-2">
             <p className="text-sm font-semibold text-amber-800">AI가 아직 내 가게를 언급하지 않고 있습니다</p>
             <p className="text-sm text-amber-700">
-              <strong>Gemini 개선</strong> — 구글 비즈니스 프로필 등록 후 <strong>2~4주 내 반영 시작</strong>, 안정적 인용까지 3~6개월 소요됩니다.
+              <strong>Gemini 개선</strong> — 구글 비즈니스 프로필 등록 후 <strong>2~4주 내 반영 시작</strong>, 안정적 언급까지 3~6개월 소요됩니다.
             </p>
             <p className="text-sm text-amber-700">
-              <strong>ChatGPT</strong> — 학습 데이터 기반으로 단기 개선이 어렵습니다. 블로그·미디어 언급이 장기적으로 누적되어야 반영됩니다.
+              <strong>ChatGPT</strong> — AI가 미리 공부한 자료 기반으로 단기 개선이 어렵습니다. 블로그·미디어 언급이 장기적으로 누적되어야 반영됩니다.
             </p>
             <Link href="/guide" className="mt-1 inline-flex items-center text-sm font-semibold text-amber-800 hover:underline">
               Gemini 노출 설정 가이드 →

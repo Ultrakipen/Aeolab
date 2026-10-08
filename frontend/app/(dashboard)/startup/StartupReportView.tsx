@@ -395,7 +395,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
                 )}
                 {isCompetitive && (
                   <p className="text-sm text-amber-700 mt-2.5 leading-relaxed">
-                    경쟁사들이 이미 AI 검색 노출을 잘 관리하고 있다는 뜻 — 신규 진입 시 AI 채널 경쟁이 치열할 수 있습니다.
+                    경쟁사들이 이미 AI 검색 노출을 잘 관리하고 있다는 뜻 — 신규 진입 시 AI 노출 경쟁이 치열할 수 있습니다.
                   </p>
                 )}
                 <p className="text-xs text-gray-600 mt-3 leading-relaxed">
@@ -515,7 +515,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
 
           {report.strategy.ai_optimization_tips && (
             <div className="mb-5">
-              <SubLabel colorClass="text-green-700">AI 최적화 팁</SubLabel>
+              <SubLabel colorClass="text-green-700">AI 노출 개선 팁</SubLabel>
               <ul className="space-y-3">
                 {report.strategy.ai_optimization_tips.map((t, i) => (
                   <li key={i} className="flex gap-3">
@@ -557,7 +557,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
       {/* 다음 단계 */}
       <section className="bg-white rounded-2xl p-5 md:p-7 shadow-sm mb-5">
         <SectionTitle>다음 단계</SectionTitle>
-        <p className="text-sm text-gray-600 mt-2 mb-4 leading-relaxed">창업을 진행하신다면, 사업장을 등록하고 실제 AI 검색 노출을 직접 스캔·관리해보세요. 위 진입 전략을 실행 가이드로 이어서 받아볼 수 있습니다.</p>
+        <p className="text-sm text-gray-600 mt-2 mb-4 leading-relaxed">창업을 진행하신다면, 사업장을 등록하고 실제 AI 검색 노출을 직접 측정·관리해보세요. 위 진입 전략을 실행 가이드로 이어서 받아볼 수 있습니다.</p>
         <a
           href="/dashboard"
           className="inline-block bg-blue-600 text-white px-6 py-3 rounded-xl text-base font-semibold hover:bg-blue-700 transition-colors min-h-[44px]"

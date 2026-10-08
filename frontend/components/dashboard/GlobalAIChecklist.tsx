@@ -40,7 +40,7 @@ export function GlobalAIChecklist({
     },
     hasWebsite
       ? {
-          label: "독립 웹사이트 보유 (AI 크롤링 가능)",
+          label: "독립 웹사이트 보유 (AI 수집 가능)",
           done: true,
           actionLabel: "웹사이트 없이 AI 노출하는 법 →",
           actionHref: "/how-it-works#track2",
@@ -53,7 +53,7 @@ export function GlobalAIChecklist({
         },
     hasWebsite
       ? {
-          label: "홈페이지 AI 인식 코드 설치 (JSON-LD)",
+          label: "홈페이지 AI 인식 코드 설치",
           done: websiteSeoScore >= 40,
           actionLabel: "AI 인식 코드 자동 생성 →",
           actionHref: "/schema",
@@ -159,7 +159,7 @@ export function GlobalAIChecklist({
           <div className="flex items-start gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" aria-hidden="true" />
             <p className="text-sm text-amber-800 leading-relaxed">
-              ChatGPT는 학습 데이터 기반으로 측정합니다.
+              ChatGPT는 AI가 미리 공부한 자료를 바탕으로 측정합니다.
             </p>
           </div>
           <p className="text-sm text-amber-700 leading-relaxed pl-6">

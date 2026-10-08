@@ -270,7 +270,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
               href="/guide/ai-info-tab"
               className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-semibold px-5 py-2.5 transition-colors border border-blue-200"
             >
-              AI탭 최적화 가이드 미리 보기 →
+              AI탭 노출 개선 가이드 미리 보기
             </Link>
           </div>
         )}
@@ -327,8 +327,8 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
             <p className="font-semibold text-slate-800 mb-1">플레이스형 AI 브리핑 비대상 업종 — 정보형 AI 브리핑·AI탭은 모든 업종 가능</p>
             <p className="leading-relaxed break-keep">
               AI탭은 업종 제한 발표 없이 모든 업종이 대상입니다.
-              소개글 200자·사진 10장·리뷰 키워드를 미리 최적화하면 플레이스 에이전트를 통한 AI탭 노출에 유리합니다.
-              ChatGPT·Gemini 등 글로벌 AI 최적화도 함께 진행하세요.
+              소개글 200자·사진 10장·리뷰 키워드를 미리 준비하면 플레이스 에이전트를 통한 AI탭 노출에 유리합니다.
+              ChatGPT·Gemini 등 글로벌 AI 개선도 함께 진행하세요.
             </p>
           </div>
         )}
@@ -342,7 +342,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-emerald-800">AI탭 노출 확인됨</p>
                   <p className="text-sm text-emerald-700 mt-0.5 leading-snug break-keep">
-                    마지막 스캔에서 네이버 AI탭에 내 사업장이 실제로 노출된 것을 확인했습니다.
+                    마지막 측정에서 네이버 AI탭에 내 사업장이 실제로 노출된 것을 확인했습니다.
                   </p>
                   <span className="inline-flex items-center mt-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-sm font-semibold">
                     실측 확인
@@ -356,7 +356,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-gray-700">AI탭 미노출</p>
                   <p className="text-sm text-gray-600 mt-0.5 leading-snug break-keep">
-                    마지막 스캔에서 AI탭 노출이 확인되지 않았습니다. 아래 체크리스트를 완료하면 노출 가능성이 높아집니다.
+                    마지막 측정에서 AI탭 노출이 확인되지 않았습니다. 아래 체크리스트를 완료하면 노출 가능성이 높아집니다.
                   </p>
                   <span className="inline-flex items-center mt-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200 px-2 py-0.5 text-sm font-medium">
                     실측 기반
@@ -371,7 +371,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                   <p className="text-sm font-bold text-orange-800">측정 대기 중</p>
                   <p className="text-sm text-orange-700 mt-0.5 leading-snug break-keep">
                     AI탭 실측 데이터가 아직 없습니다. 아래는 등록 정보 기반 추정 시뮬레이션입니다.
-                    스캔을 다시 실행하면 최신 상태로 측정됩니다.
+                    다시 측정하면 최신 상태로 확인됩니다.
                   </p>
                   <span className="inline-flex items-center mt-1 rounded-full bg-orange-100 text-orange-700 border border-orange-200 px-2 py-0.5 text-sm font-medium">
                     추정 예시
@@ -421,7 +421,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                 <div className="mb-3 flex items-start gap-1.5 rounded-lg px-3 py-2 bg-orange-50 border border-orange-200">
                   <AlertCircle className="w-4 h-4 text-orange-700 shrink-0 mt-0.5" />
                   <p className="text-sm text-orange-800 leading-snug break-keep">
-                    최근 스캔에서 <strong>광고 영역</strong>으로 감지되었습니다. 유기 노출 점수에는 반영되지 않습니다.
+                    최근 측정에서 <strong>광고 영역</strong>으로 감지되었습니다. 유기 노출 점수에는 반영되지 않습니다.
                   </p>
                 </div>
               )}
@@ -439,7 +439,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
               </p>
               {/* AI탭 베타 면책 문구 */}
               <p className="mt-1 text-sm text-gray-600 leading-snug break-keep">
-                네이버 AI탭 노출 기준은 알고리즘 업데이트에 따라 변경될 수 있습니다.
+                네이버 AI탭 노출 기준은 네이버가 정한 기준이 바뀌면 변경될 수 있습니다.
               </p>
               {/* 실측 정보 — has_reservation / photo_count */}
               {(data.has_reservation !== null && data.has_reservation !== undefined) || data.photo_count !== null && data.photo_count !== undefined ? (
@@ -465,7 +465,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                 </div>
               ) : (
                 <p className="mt-1.5 text-sm text-gray-600 leading-snug">
-                  * 예약 연동·사진 수는 스캔 시 자동 감지됩니다.
+                  * 예약 연동·사진 수는 측정 시 자동 감지됩니다.
                 </p>
               )}
 
@@ -606,7 +606,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                     href="/guide/ai-info-tab"
                     className="mt-2 inline-flex items-center text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
                   >
-                    AI탭 최적화 가이드 →
+                    AI탭 노출 개선 가이드
                   </Link>
                 </div>
               )}
@@ -693,9 +693,9 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                   <div className="mb-3 flex items-start gap-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2">
                     <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
                     <p className="text-sm text-blue-800 leading-relaxed break-keep">
-                      <strong>✓ 표시 항목</strong>은 마지막 스캔에서 자동으로 확인된 완료 상태입니다.
+                      <strong>✓ 표시 항목</strong>은 마지막 측정에서 자동으로 확인된 완료 상태입니다.
                       나머지 항목은 스마트플레이스에서 직접 확인이 필요합니다.
-                      스캔을 다시 실행하면 최신 상태로 업데이트됩니다.
+                      다시 측정하면 최신 상태로 업데이트됩니다.
                     </p>
                   </div>
                 )}
@@ -751,7 +751,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                             {isDone
                               ? isUserConfirmed
                                 ? "직접 확인 완료"
-                                : "스캔에서 확인 완료"
+                                : "측정에서 확인 완료"
                               : isUnknown
                               ? `직접 확인 필요 — ${signal}`
                               : signal}

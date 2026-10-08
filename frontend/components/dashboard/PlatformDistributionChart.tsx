@@ -184,9 +184,9 @@ export function PlatformDistributionChart({
     <div className="bg-white rounded-xl p-6 shadow-sm">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <div className="text-sm font-medium text-gray-700">AI 플랫폼별 노출 현황</div>
+          <div className="text-sm font-medium text-gray-700">AI 서비스별 노출 현황</div>
           <p className="text-sm text-gray-600 mt-0.5">
-            네이버 생태계와 글로벌 AI 채널을 분리해 보여줍니다
+            네이버 영역과 글로벌 AI 서비스를 분리해 보여줍니다
           </p>
         </div>
         <div className="flex gap-3 text-sm text-gray-600">
@@ -203,7 +203,7 @@ export function PlatformDistributionChart({
         <div className="flex items-center gap-2 mb-2.5">
           <div className="w-2 h-2 rounded-full bg-green-500" />
           <span className="text-sm font-semibold text-gray-600">
-            네이버 AI 생태계
+            네이버 AI 영역
           </span>
         </div>
         <div className="space-y-2 pl-4">
@@ -233,7 +233,7 @@ export function PlatformDistributionChart({
                 <p className="text-sm text-gray-600 pl-1">
                   {infoTypeExposed
                     ? '→ 블로그·콘텐츠 기반 정보형 AI 브리핑에 노출 중입니다 (가게 카드형은 이 업종 미대상)'
-                    : '→ 블로그·콘텐츠로 정보형 AI 브리핑 노출 가능 · 네이버 일반 검색 상위노출(C-Rank · 리뷰·소식 최적화) 집중 권장'}
+                    : '→ 블로그·콘텐츠로 정보형 AI 브리핑 노출 가능 · 네이버 일반 검색 상위노출(네이버가 좋은 글 고르는 기준 · 리뷰·소식 개선) 집중 권장'}
                 </p>
                 <PlatformRow
                   platform={{ key: 'naver_ai_tab', label: '네이버 AI탭', color: '#0ea5e9' }}
@@ -256,7 +256,7 @@ export function PlatformDistributionChart({
         <div className="flex items-center gap-2 mb-2.5">
           <div className="w-2 h-2 rounded-full bg-blue-500" />
           <span className="text-sm font-semibold text-gray-600">
-            글로벌 AI 채널
+            글로벌 AI 서비스
           </span>
           <span className="text-sm text-gray-600 ml-1">
             (ChatGPT 한국 MAU 2,000만+ 대응)
@@ -274,8 +274,8 @@ export function PlatformDistributionChart({
             const channelHint = p.key === 'gemini'
               ? '구글 비즈니스 등록 시 개선 가능'
               : p.key === 'chatgpt'
-              ? '학습 데이터 기반 · 단기 개선 어려움'
-              : '실시간 검색 기반 · 웹사이트 SEO 개선 시 반영'
+              ? 'AI가 미리 공부한 자료 기반 · 단기 개선 어려움'
+              : '실시간 검색 기반 · 웹사이트 검색 노출 개선 시 반영'
 
             return (
               <div key={p.key}>
@@ -302,10 +302,10 @@ export function PlatformDistributionChart({
             return (
               <div className="mt-3 bg-blue-50 border border-blue-100 rounded-lg p-3">
                 <p className="text-sm text-blue-800 leading-relaxed">
-                  3개 채널 모두 미노출은 한국 소상공인의 일반적인 현재 상태입니다.<br />
+                  3개 AI 서비스 모두 미노출은 한국 소상공인의 일반적인 현재 상태입니다.<br />
                   Gemini는 구글 비즈니스 프로필 등록 후 수주 내 개선 가능합니다.<br />
-                  ChatGPT는 학습 데이터 기반으로 단기 개선이 어렵습니다.<br />
-                  Google 검색 노출은 실시간 검색 기반이라 웹사이트 SEO 개선이 반영되면 비교적 빠르게 변화합니다.
+                  ChatGPT는 AI가 미리 공부한 자료 기반으로 단기 개선이 어렵습니다.<br />
+                  Google 검색 노출은 실시간 검색 기반이라 웹사이트 검색 노출 개선이 반영되면 비교적 빠르게 변화합니다.
                 </p>
               </div>
             )

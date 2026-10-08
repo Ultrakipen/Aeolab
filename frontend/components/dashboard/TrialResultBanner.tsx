@@ -56,7 +56,7 @@ export default function TrialResultBanner() {
             {businessName && <span className="font-normal"> — {businessName}</span>}
           </p>
           <p className="text-sm text-amber-700 mt-0.5">
-            전체 AI 분석 결과를 보려면 스캔을 시작하거나 체험 결과를 다시 확인하세요.
+            전체 AI 분석 결과를 보려면 측정을 시작하거나 체험 결과를 다시 확인하세요.
           </p>
         </div>
       </div>

@@ -22,7 +22,7 @@ interface OnboardingStatus {
 
 const DEFAULT_STEPS: Omit<OnboardingStep, "done">[] = [
   { key: "business_registered", label: "내 가게 등록하기",       href: "/onboarding" },
-  { key: "first_scan_done",     label: "첫 AI 스캔 실행하기",    href: "/dashboard" },
+  { key: "first_scan_done",     label: "첫 AI 측정 실행하기",    href: "/dashboard" },
   { key: "competitor_added",    label: "경쟁사 1곳 이상 등록",   href: "/competitors" },
   { key: "guide_checked",       label: "개선 가이드 확인하기",   href: "/guide" },
   { key: "schema_generated",    label: "AI 검색 등록 완료하기",  href: "/schema" },

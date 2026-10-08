@@ -136,7 +136,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
         <div>
           <h3 className="text-base font-bold text-gray-900">스마트플레이스 실시간 점검</h3>
           <p className="text-sm text-gray-600 mt-0.5">
-            지금 실제 스마트플레이스 상태를 직접 확인합니다 (위 스캔 점수와 다를 수 있음)
+            지금 실제 스마트플레이스 상태를 직접 확인합니다 (위 측정 점수와 다를 수 있음)
           </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">

@@ -135,7 +135,7 @@ export function ScoreDeltaBanner({ bizId, accessToken }: Props) {
 
       {/* 면책 문구 */}
       <p className="text-xs text-gray-600 mt-2 leading-relaxed">
-        키워드 커버리지·AI 브리핑 노출은 마지막 스캔 기준이며 실제 점수는 측정 후 확정됩니다.
+        키워드 커버리지·AI 브리핑 노출은 마지막 측정 기준이며 실제 점수는 측정 후 확정됩니다.
       </p>
     </div>
   );

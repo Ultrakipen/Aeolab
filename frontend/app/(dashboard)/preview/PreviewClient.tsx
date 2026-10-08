@@ -355,7 +355,7 @@ function PlatformResultTable({ showAll }: { showAll: boolean }) {
       <table className="w-full min-w-[360px] text-sm">
         <thead>
           <tr className="bg-gray-50 text-left">
-            <th className="py-2 px-3 text-sm font-semibold text-gray-600 w-28">AI 플랫폼</th>
+            <th className="py-2 px-3 text-sm font-semibold text-gray-600 w-28">AI 서비스</th>
             <th className="py-2 px-3 text-sm font-semibold text-gray-600 w-24">노출 여부</th>
             <th className="py-2 px-3 text-sm font-semibold text-gray-600">노출 키워드</th>
           </tr>
@@ -393,7 +393,7 @@ function PlatformResultTable({ showAll }: { showAll: boolean }) {
           </div>
           <div className="absolute inset-0 flex items-center justify-center bg-white/70 gap-1.5 rounded">
             <Lock className="w-4 h-4 text-gray-600" />
-            <span className="text-sm font-medium text-gray-600">Basic 이상에서 전체 공개 (AI 전체 채널)</span>
+            <span className="text-sm font-medium text-gray-600">Basic 이상에서 전체 공개 (전체 AI 서비스)</span>
           </div>
         </div>
       )}
@@ -477,7 +477,7 @@ function FreeTab({
       {/* ① 설명 배너 */}
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
         <p className="text-sm font-semibold text-gray-700 mb-1">
-          무료 체험 — Gemini AI 1회 스캔
+          무료 체험 — Gemini AI 1회 측정
         </p>
         <p className="text-sm text-gray-600 leading-relaxed">
           로그인 없이 지금 바로 내 가게의 AI 검색 노출 준비도를 확인합니다.
@@ -490,7 +490,7 @@ function FreeTab({
         <SectionTitle
           icon={<BarChart3 className="w-4 h-4 text-gray-600" />}
           title="네이버 AI 검색 준비도 (AI브리핑·AI탭)"
-          subtitle="Gemini 10회 샘플링 기반 즉시 진단"
+          subtitle="Gemini에게 10회 질문해 즉시 진단"
         />
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <span className="text-sm font-medium text-gray-700">준비 상태</span>
@@ -512,7 +512,7 @@ function FreeTab({
       <div className="bg-white border border-gray-200 rounded-xl p-4">
         <SectionTitle
           icon={<Globe className="w-4 h-4 text-gray-600" />}
-          title="AI 플랫폼별 노출 여부"
+          title="AI 서비스별 노출 여부"
           subtitle="Gemini 결과 공개 · 나머지 6개는 Basic 이상"
         />
         <PlatformResultTable showAll={false} />
@@ -530,7 +530,7 @@ function FreeTab({
             스마트플레이스 소개글 안 Q&A 추가
           </p>
           <p className="text-sm text-amber-700 leading-relaxed">
-            주차 가능 여부, 단체 예약 가능 여부를 소개글 안 Q&A에 추가하면 AI 브리핑 인용 후보 가능성이 높아질 수 있습니다.
+            주차 가능 여부, 단체 예약 가능 여부를 소개글 안 Q&A에 추가하면 AI 브리핑 언급 후보 가능성이 높아질 수 있습니다.
           </p>
         </div>
         <div className="relative rounded-lg overflow-hidden border border-dashed border-gray-300">
@@ -552,13 +552,13 @@ function FreeTab({
           title="무료 체험 포함 내용"
         />
         <div className="divide-y divide-gray-50">
-          <FeatureRow label="Gemini AI 1회 스캔" available={true} />
+          <FeatureRow label="Gemini AI 1회 측정" available={true} />
           <FeatureRow label="네이버 AI 검색 준비도 점수 (AI브리핑·AI탭)" available={true} />
           <FeatureRow label="성장 단계 진단" available={true} />
           <FeatureRow label="개선 방향 1개 공개" available={true} />
-          <FeatureRow label="AI 4채널 전체 결과" available={false} />
+          <FeatureRow label="AI 4개 서비스 전체 결과" available={false} />
           <FeatureRow label="경쟁사 비교" available={false} />
-          <FeatureRow label="자동 스캔" available={false} />
+          <FeatureRow label="자동 측정" available={false} />
           <FeatureRow label="리뷰 답변 초안" available={false} />
         </div>
       </div>
@@ -622,7 +622,7 @@ function BasicTab({
         lines={[
           {
             icon: "📊",
-            text: `매주 월요일 AI 4채널이 ${d.bizName}을 얼마나 추천하는지 자동으로 추적합니다`,
+            text: `매주 월요일 AI 4개 서비스가 ${d.bizName}을 얼마나 추천하는지 자동으로 추적합니다`,
           },
           {
             icon: "🎯",
@@ -641,7 +641,7 @@ function BasicTab({
           Basic — {PLAN_PRICES.basic.toLocaleString()}원/월
         </p>
         <p className="text-sm text-blue-700 leading-relaxed">
-          매주 월요일 AI 4채널 자동 스캔 + 경쟁사 3곳 비교. 커피 한 잔 값으로 내 가게가 AI에서
+          매주 월요일 AI 4개 서비스 자동 측정 + 경쟁사 3곳 비교. 커피 한 잔 값으로 내 가게가 AI에서
           어떻게 보이는지 매주 자동으로 추적합니다.
         </p>
       </div>
@@ -651,7 +651,7 @@ function BasicTab({
         <div className="flex items-start justify-between gap-2">
           <SectionTitle
             icon={<BarChart3 className="w-4 h-4 text-indigo-500" />}
-            title="듀얼트랙 AI 가시성 점수"
+            title="AI 노출 종합 점수"
             subtitle="네이버 브리핑 + 글로벌 AI 통합 분석"
           />
           <div className="text-right shrink-0">
@@ -675,7 +675,7 @@ function BasicTab({
         />
         {!scan && (
           <p className="text-sm text-gray-600 text-center">
-            * 예시 데이터입니다. 실제 스캔 후 내 사업장 점수로 표시됩니다.
+            * 예시 데이터입니다. 실제 측정 후 내 사업장 점수로 표시됩니다.
           </p>
         )}
       </div>
@@ -684,7 +684,7 @@ function BasicTab({
       <div className="bg-white border border-gray-200 rounded-xl p-4">
         <SectionTitle
           icon={<Globe className="w-4 h-4 text-blue-600" />}
-          title="AI 플랫폼별 노출 결과표"
+          title="AI 서비스별 노출 결과표"
           subtitle="네이버·ChatGPT·Gemini·Google AI 노출 현황 · 매주 자동 업데이트"
         />
         <PlatformResultTable showAll={true} />
@@ -781,7 +781,7 @@ function BasicTab({
         <div className="bg-amber-50 border border-amber-100 rounded-lg p-3">
           <p className="text-sm font-bold text-amber-800 mb-0.5">개선 포인트</p>
           <p className="text-sm text-amber-700 leading-relaxed">
-            "{d.missingKeyword}" 블로그 언급 없음 — 소식 탭 포스팅 1개 추가 시 AI 인용 가능성 상승
+            "{d.missingKeyword}" 블로그 언급 없음 — 소식 탭 포스팅 1개 추가 시 AI 언급 가능성 상승
           </p>
         </div>
         <p className="text-sm text-gray-600">* 예시 데이터</p>
@@ -792,7 +792,7 @@ function BasicTab({
         <SectionTitle
           icon={<TrendingUp className="w-4 h-4 text-blue-600" />}
           title="30일 점수 추세"
-          subtitle="매주 자동 스캔으로 성장 궤적 추적"
+          subtitle="매주 자동 측정으로 성장 궤적 추적"
         />
         <div className="h-40">
           <ResponsiveContainer width="100%" height="100%">
@@ -897,15 +897,15 @@ function BasicTab({
           title="Basic 포함 기능"
         />
         <div className="divide-y divide-gray-50">
-          <FeatureRow label="매주 월요일 AI 4채널 자동 스캔" available={true} />
+          <FeatureRow label="매주 월요일 AI 4개 서비스 자동 측정" available={true} />
           <FeatureRow label="경쟁사 비교" available={true} note="최대 3곳" />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 3회" />
           <FeatureRow label="리뷰 답변 초안 생성" available={true} note="월 50회" />
           <FeatureRow label="소개글·Q&A 자동 생성" available={true} note="월 5회" />
           <FeatureRow label="블로그 키워드 진단" available={true} />
           <FeatureRow label="30일 성장 추세 그래프" available={true} />
-          <FeatureRow label="수동 스캔" available={true} note="하루 2회" />
-          <FeatureRow label="CSV 내보내기" available={true} />
+          <FeatureRow label="수동 측정" available={true} note="하루 2회" />
+          <FeatureRow label="파일 내보내기" available={true} />
           <FeatureRow label="PDF 리포트" available={false} />
         </div>
       </div>
@@ -1000,7 +1000,7 @@ function StartupTab({
             <p className="text-sm text-blue-700 mt-0.5">상위 10% 평균</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3 text-center">
-            <p className="text-base font-extrabold text-gray-600">스캔 후 확인</p>
+            <p className="text-base font-extrabold text-gray-600">측정 후 확인</p>
             <p className="text-sm text-gray-600 mt-0.5">내 예상</p>
           </div>
         </div>
@@ -1103,12 +1103,12 @@ function StartupTab({
           <FeatureRow label="창업 시장 분석 리포트 (업종·지역 경쟁 강도)" available={true} />
           <FeatureRow label="시장 진입 난이도 + 틈새 키워드 발굴" available={true} />
           <FeatureRow label="경쟁사 비교" available={true} note="최대 5개" />
-          <FeatureRow label="매주 월요일 AI 4채널 자동 스캔" available={true} />
+          <FeatureRow label="매주 월요일 AI 4개 서비스 자동 측정" available={true} />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 5회" />
           <FeatureRow label="리뷰 답변 초안 생성" available={true} note="무제한" />
-          <FeatureRow label="CSV 내보내기" available={true} />
+          <FeatureRow label="파일 내보내기" available={true} />
           <FeatureRow label="90일 성장 추이" available={true} />
-          <FeatureRow label="수동 스캔" available={true} note="하루 3회" />
+          <FeatureRow label="수동 측정" available={true} note="하루 3회" />
           <FeatureRow label="PDF 리포트" available={false} />
           <FeatureRow label="ChatGPT 광고 대응 가이드" available={false} />
         </div>
@@ -1176,7 +1176,7 @@ function ProTab({
         lines={[
           {
             icon: "⏱️",
-            text: "경쟁사가 AI 브리핑에서 앞서기 시작하면 3일 안에 알 수 있습니다 (주 3회 자동 스캔)",
+            text: "경쟁사가 AI 브리핑에서 앞서기 시작하면 3일 안에 알 수 있습니다 (주 3회 자동 측정)",
           },
           {
             icon: "🛡️",
@@ -1254,7 +1254,7 @@ function ProTab({
         <SectionTitle
           icon={<BarChart3 className="w-4 h-4 text-indigo-500" />}
           title="경쟁사 5곳 비교 분석"
-          subtitle="키워드 갭 + 순위 변화 3일 주기 업데이트"
+          subtitle="빠진 검색어 + 순위 변화 3일 주기 업데이트"
         />
         <div className="space-y-1.5">
           {[d.bizName, ...d.competitors].slice(0, 5).map((name, i) => {
@@ -1363,14 +1363,14 @@ function ProTab({
             {
               step: "1단계",
               title: "FAQ 5개 등록 — 지금 당장",
-              desc: `"${d.missingKeyword} 어디가 좋아요?" 같은 질문에 내 가게가 직접 답변하면 ChatGPT가 인용 확률이 높아집니다.`,
+              desc: `"${d.missingKeyword} 어디가 좋아요?" 같은 질문에 내 가게가 직접 답변하면 ChatGPT가 언급할 확률이 높아집니다.`,
               badge: "즉시 가능",
               badgeColor: "bg-green-100 text-green-700",
             },
             {
               step: "2단계",
               title: "소개글에 핵심 키워드 3개 포함",
-              desc: "AI는 구조화된 텍스트를 먼저 인용합니다. 소개글에 지역명 + 업종 특성 + 차별점을 명시하세요.",
+              desc: "AI는 잘 정리된 텍스트를 먼저 언급합니다. 소개글에 지역명 + 업종 특성 + 차별점을 명시하세요.",
               badge: "30분 작업",
               badgeColor: "bg-blue-100 text-blue-700",
             },
@@ -1415,15 +1415,15 @@ function ProTab({
           title="Pro 포함 기능"
         />
         <div className="divide-y divide-gray-50">
-          <FeatureRow label="월·수·금 주 3회 AI 4채널 자동 스캔" available={true} />
+          <FeatureRow label="월·수·금 주 3회 AI 4개 서비스 자동 측정" available={true} />
           <FeatureRow label="경쟁사 비교" available={true} note="최대 5개" />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 10회" />
           <FeatureRow label="리뷰 답변 초안 생성" available={true} note="무제한" />
-          <FeatureRow label="CSV 내보내기" available={true} />
+          <FeatureRow label="파일 내보내기" available={true} />
           <FeatureRow label="PDF 리포트 다운로드" available={true} />
           <FeatureRow label="ChatGPT 광고 대응 가이드" available={true} />
           <FeatureRow label="90일 히스토리 + Before/After 카드" available={true} />
-          <FeatureRow label="수동 스캔" available={true} note="하루 5회" />
+          <FeatureRow label="수동 측정" available={true} note="하루 5회" />
         </div>
       </div>
 
@@ -1502,7 +1502,7 @@ function BizTab({
         </div>
         <p className="text-sm text-emerald-700 leading-relaxed">
           사업장 5개 × 매일 전체 AI 분석. 다점포 사업자·컨설턴트를 위한 플랜.
-          수동 스캔·경쟁사·리뷰 답변 3가지 무제한 제공.
+          수동 측정·경쟁사·리뷰 답변 3가지 무제한 제공.
         </p>
       </div>
 
@@ -1558,13 +1558,13 @@ function BizTab({
         <SectionTitle
           icon={<FileSpreadsheet className="w-4 h-4 text-emerald-700" />}
           title="엑셀 내보내기"
-          subtitle="30일 스캔 데이터 CSV · 무제한 다운로드"
+          subtitle="30일 측정 데이터 파일 · 무제한 다운로드"
         />
         <div className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-100 rounded-lg">
           <FileSpreadsheet className="w-8 h-8 text-emerald-700 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-800">aeolab_스캔데이터_2026-04.csv</p>
-            <p className="text-sm text-gray-600 mt-0.5">AI 플랫폼 × 30일 데이터</p>
+            <p className="text-sm font-semibold text-gray-800">aeolab_측정데이터_2026-04.csv</p>
+            <p className="text-sm text-gray-600 mt-0.5">AI 서비스 × 30일 데이터</p>
           </div>
           <button
             className="shrink-0 inline-flex items-center gap-1.5 text-sm text-white bg-emerald-700 rounded-lg px-3 py-1.5 font-medium opacity-70 cursor-default"
@@ -1586,7 +1586,7 @@ function BizTab({
         />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
-            { icon: <BarChart3 className="w-5 h-5" />, label: "수동 스캔", sub: "횟수 무제한" },
+            { icon: <BarChart3 className="w-5 h-5" />, label: "수동 측정", sub: "횟수 무제한" },
             { icon: <TrendingUp className="w-5 h-5" />, label: "경쟁사", sub: "등록 무제한" },
             { icon: <MessageSquare className="w-5 h-5" />, label: "리뷰 답변", sub: "월 무제한" },
           ].map((item) => (
@@ -1609,10 +1609,10 @@ function BizTab({
           title="Biz 포함 기능 (Pro 전체 포함)"
         />
         <div className="divide-y divide-gray-50">
-          <FeatureRow label="수동 스캔 무제한" available={true} />
+          <FeatureRow label="수동 측정 무제한" available={true} />
           <FeatureRow label="경쟁사 무제한" available={true} />
           <FeatureRow label="리뷰 답변 초안 무제한" available={true} />
-          <FeatureRow label="사업장 5개 × AI 4채널 매일 자동 스캔" available={true} />
+          <FeatureRow label="사업장 5개 × AI 4개 서비스 매일 자동 측정" available={true} />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 20회" />
           <FeatureRow label="창업·신규 지점 시장 분석 리포트" available={true} />
           <FeatureRow label="히스토리 무제한 + 엑셀·PDF 무제한" available={true} />
@@ -1638,7 +1638,7 @@ function BizTab({
         <div className="rounded-xl bg-emerald-700 p-5 text-white text-center space-y-2">
           <p className="text-base font-bold">Biz 문의하기</p>
           <p className="text-sm opacity-90">
-            사업장 1개당 9,980원 · 다점포·컨설턴트 최적화
+            사업장 1개당 9,980원 · 다점포·컨설턴트용
           </p>
           <a
             href="mailto:support@aeolab.co.kr"
@@ -1714,7 +1714,7 @@ export default function PreviewClient({ currentPlan, businessData, latestScan, b
       {businessData && !latestScan && (
         <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
           <p className="text-sm text-amber-700">
-            아직 스캔 데이터가 없어 아래는 예시 화면입니다. 첫 스캔 후 사장님 사업장의 실제 상태가 반영됩니다.
+            아직 측정 데이터가 없어 아래는 예시 화면입니다. 첫 측정 후 사장님 사업장의 실제 상태가 반영됩니다.
           </p>
         </div>
       )}

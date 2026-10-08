@@ -46,7 +46,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
           id="naver-ai-pathway-title"
           className="text-base md:text-lg font-bold text-slate-800 break-keep"
         >
-          AI 검색 채널 5종 — 내 가게가 노출될 수 있는 곳
+          AI 검색 노출 경로 5곳 — 내 가게가 보일 수 있는 곳
         </h2>
       </div>
 
@@ -57,7 +57,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
           </p>
         ) : (
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed break-keep">
-            AEOlab은 5가지 AI 채널 노출을 측정합니다. 네이버 2채널은 업종 조건이 있고, 글로벌 3채널은 모든 업종 가능합니다.
+            AEOlab은 5가지 AI 노출 경로를 측정합니다. 네이버 2곳은 업종 조건이 있고, 글로벌 3곳은 모든 업종 가능합니다.
           </p>
         )}
 
@@ -71,7 +71,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
             <ul className="space-y-1 text-sm text-slate-700 leading-snug">
               <li>• 스마트플레이스 소개글·사진·소식 업데이트 → 플레이스탭 상위 노출</li>
               <li>• 블로그 정기 발행 (주 1~2회) → 네이버 검색 결과 상위 노출</li>
-              <li>• 리뷰 답글 꾸준히 달기 → 플레이스 신뢰도·C-Rank 향상</li>
+              <li>• 리뷰 답글 꾸준히 달기 → 플레이스 신뢰도 향상</li>
             </ul>
           </div>
         )}
@@ -138,7 +138,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
               <div className="mt-2 flex items-start gap-1.5 rounded px-2 py-1.5 bg-orange-50 border border-orange-200">
                 <AlertTriangle className="w-4 h-4 text-orange-700 shrink-0" aria-hidden="true" />
                 <p className="text-sm text-orange-800 leading-snug break-keep">
-                  최근 스캔 결과 <strong>광고 영역</strong>에서 노출됨 — 유기 점수에 미반영. 자연 노출 강화가 필요합니다.
+                  최근 측정 결과 <strong>광고 영역</strong>에서 노출됨 — 유기 점수에 미반영. 자연 노출 강화가 필요합니다.
                 </p>
               </div>
             )}
@@ -176,7 +176,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
 
         {/* 글로벌 AI 3채널 — 모든 업종 가능 */}
         <div className="mt-3 md:mt-4">
-          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">글로벌 AI 3채널 — 모든 업종</p>
+          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">글로벌 AI 3곳 — 모든 업종</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* ChatGPT */}
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
@@ -193,9 +193,9 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
                 </span>
               </div>
               <ul className="space-y-0.5 text-sm text-slate-600 leading-snug">
-                <li>• AEOlab 측정: AI 학습 데이터 인식도</li>
-                <li>• 실사용 ChatGPT는 웹 검색(Bing 외 소스 포함) 기반 — 네이버 블로그 직접 효과 없음</li>
-                <li>• 구글 비즈니스 프로필·외부 리뷰 사이트·구조화 데이터 핵심</li>
+                <li>• AEOlab 측정: AI 인식도 (AI가 미리 공부한 자료 기반)</li>
+                <li>• 실사용 ChatGPT는 웹 검색(마이크로소프트 검색 외 소스 포함) 기반 — 네이버 블로그 직접 효과 없음</li>
+                <li>• 구글 비즈니스 프로필·외부 리뷰 사이트·AI가 읽기 쉬운 정보 정리가 핵심</li>
               </ul>
             </div>
             {/* Gemini */}
@@ -213,8 +213,8 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
                 </span>
               </div>
               <ul className="space-y-0.5 text-sm text-slate-600 leading-snug">
-                <li>• AEOlab 측정: 학습 데이터 기반 / 실사용 Gemini는 구글 검색 실시간 연동</li>
-                <li>• 50~100회 샘플링 → 노출 빈도 측정</li>
+                <li>• AEOlab 측정: AI가 미리 공부한 자료 기반 / 실사용 Gemini는 구글 검색 실시간 연동</li>
+                <li>• 같은 질문을 50~100번 물어봐 노출 빈도 측정</li>
                 <li>• 구글 비즈니스 프로필·위치 정보 중요</li>
               </ul>
             </div>
@@ -234,8 +234,8 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
               </div>
               <ul className="space-y-0.5 text-sm text-slate-600 leading-snug">
                 <li>• Google AI Overviews (한국 확대 중)</li>
-                <li>• 스캔 시 Google 검색 노출 여부 확인</li>
-                <li>• 구조화 데이터(Schema.org) 핵심</li>
+                <li>• 측정 시 Google 검색 노출 여부 확인</li>
+                <li>• AI가 읽기 쉬운 정보 정리(Schema.org) 핵심</li>
               </ul>
             </div>
           </div>
@@ -282,7 +282,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
         {globalWeight !== undefined && globalWeight < 0.65 && (
           <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
             <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2">
-              채널별 측정 원리
+              AI별 측정 원리
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
               <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/30 p-3">
@@ -294,13 +294,13 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
               <div className="rounded-lg bg-violet-50 dark:bg-violet-900/30 p-3">
                 <p className="font-semibold text-violet-900 dark:text-violet-100">ChatGPT</p>
                 <p className="text-violet-800 dark:text-violet-300 leading-snug mt-1">
-                  학습 데이터 기반. 블로그·뉴스 인용도가 핵심 — 반영까지 수개월~1년.
+                  AI가 미리 공부한 자료 기반. 블로그·뉴스 언급 빈도가 핵심 — 반영까지 수개월~1년.
                 </p>
               </div>
               <div className="rounded-lg bg-blue-50 dark:bg-blue-900/30 p-3">
                 <p className="font-semibold text-blue-900 dark:text-blue-100">Gemini</p>
                 <p className="text-blue-800 dark:text-blue-300 leading-snug mt-1">
-                  Google 실시간 검색 일부 반영. 구글 비즈니스 프로필 등록이 핵심 — 2~4주 내 반영 시작, 안정적 인용까지 수개월 소요.
+                  Google 실시간 검색 일부 반영. 구글 비즈니스 프로필 등록이 핵심 — 2~4주 내 반영 시작, 안정적 언급까지 수개월 소요.
                 </p>
               </div>
             </div>
@@ -308,7 +308,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
         )}
 
         <p className="mt-3 text-sm text-gray-600 leading-snug break-keep">
-          AEOlab은 AI 채널별 노출 가능성을 측정합니다. 최종 노출 여부는 네이버·Google 알고리즘이 결정하며, 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
+          AEOlab은 AI별 노출 가능성을 측정합니다. 최종 노출 여부는 네이버·Google이 정한 기준으로 결정하며, 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
         </p>
       </div>
     </section>

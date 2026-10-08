@@ -99,7 +99,7 @@ export default function MonthlyChecklistCard({ bizId, authToken }: Props) {
       {streak_days >= 7 && (
         <div className="inline-flex items-center gap-1.5 bg-orange-50 border border-orange-200 text-orange-700 text-sm font-medium px-3 py-1 rounded-full mb-4">
           <Flame className="w-4 h-4" />
-          {streak_days}일 연속 스캔 중!
+          {streak_days}일 연속 측정 중!
         </div>
       )}
 

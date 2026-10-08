@@ -207,7 +207,7 @@ export default function DashboardDetailZone({
             {iGa(business.name)} 나오는지 아직 모릅니다.
           </p>
           <p className="text-sm md:text-base text-slate-500 max-w-md mx-auto leading-relaxed">
-            지금 AI 스캔을 시작하면 네이버·ChatGPT·Google AI에서<br className="hidden md:block" />
+            지금 AI 측정을 시작하면 네이버·ChatGPT·Google AI에서<br className="hidden md:block" />
             내 가게가 언급되는지 1분 안에 확인합니다.
           </p>
         </div>
@@ -225,16 +225,16 @@ export default function DashboardDetailZone({
           ))}
         </div>
         <div className="bg-blue-50 border border-blue-100 rounded-xl px-6 py-5 max-w-md w-full text-left">
-          <p className="text-base font-semibold text-blue-800 mb-3">스캔 후 바로 확인할 수 있습니다</p>
+          <p className="text-base font-semibold text-blue-800 mb-3">측정 후 바로 확인할 수 있습니다</p>
           <ul className="space-y-2 text-base text-blue-700">
-            <li>→ 네이버·카카오·ChatGPT 3채널에서 내 가게가 나오는지</li>
+            <li>→ 네이버·카카오·ChatGPT 3곳에서 내 가게가 나오는지</li>
             <li>→ 네이버 AI 브리핑에 내 가게가 포함되는지</li>
-            <li>→ 경쟁 가게와의 AI 노출 지수 비교</li>
-            <li>→ AI 노출 지수를 높이는 맞춤 개선 가이드</li>
+            <li>→ 경쟁 가게와의 AI 노출 현황 비교</li>
+            <li>→ AI 노출 현황을 높이는 맞춤 개선 가이드</li>
           </ul>
         </div>
         <p className="text-base text-gray-600">
-          상단 <strong className="text-gray-700">AI 스캔 시작</strong> 버튼을 눌러주세요 · 약 2~3분 소요
+          상단 <strong className="text-gray-700">AI 측정 시작</strong> 버튼을 눌러주세요 · 약 2~3분 소요
         </p>
       </div>
     );
@@ -481,7 +481,7 @@ export default function DashboardDetailZone({
             ) : (
               <div className="text-center py-6">
                 <p className="text-sm text-gray-600 mb-3">
-                  경쟁 가게를 등록하면 AI 노출 지수를 비교할 수 있습니다
+                  경쟁 가게를 등록하면 AI 노출 현황을 비교할 수 있습니다
                 </p>
                 <Link
                   href="/competitors"

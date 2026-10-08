@@ -42,7 +42,7 @@ const SCENARIOS: Record<string, StartupReport> = {
       ai_optimization_tips: [
         "가게 소개글에 지역명+업종 키워드를 자연스럽게 포함",
         "톡톡 채팅방 메뉴를 활용해 자주 묻는 질문에 미리 답변 등록",
-        "정기적인 스캔으로 AI 노출 변화를 추적하며 개선",
+        "정기적인 측정으로 AI 노출 변화를 추적하며 개선",
       ],
       risk_factors: [
         "데이터가 부족한 상태에서 섣불리 '경쟁이 없다'고 판단하지 말 것",
@@ -134,7 +134,7 @@ const SCENARIOS: Record<string, StartupReport> = {
       is_estimated: false,
     },
     strategy: {
-      entry_strategy: "이미 14곳의 경쟁사가 등록돼 있고 평균 노출 수준도 높은 편이라, 진입 초기부터 명확한 차별화 포인트(전문 시술·가격대·타깃 고객층)가 필요합니다. 상위 경쟁사들은 노출 빈도가 높으므로 틈새 키워드 전략이 유효합니다.",
+      entry_strategy: "이미 14곳의 경쟁사가 등록돼 있고 평균 노출 수준도 높은 편이라, 진입 초기부터 명확한 차별화 포인트(전문 시술·가격대·주요 고객층)가 필요합니다. 상위 경쟁사들은 노출 빈도가 높으므로 틈새 키워드 전략이 유효합니다.",
       key_actions: [
         "상위 경쟁사가 다루지 않는 세부 시술 키워드로 차별화",
         "리뷰 감정 분석으로 경쟁사 약점(가격·대기시간 등) 파악 후 보완",
@@ -142,7 +142,7 @@ const SCENARIOS: Record<string, StartupReport> = {
       ],
       ai_optimization_tips: [
         "이 업종은 AI 브리핑(플레이스형) 확대 예정 업종 — 스마트플레이스 완성도를 지금부터 준비",
-        "블로그 C-rank 확보를 위한 시술 후기 콘텐츠 축적",
+        "블로그 신뢰도 확보를 위한 시술 후기 콘텐츠 축적",
         "경쟁사 대비 리뷰 최신성에서 우위 확보",
       ],
       risk_factors: [
@@ -179,7 +179,7 @@ export function MockupClient() {
       <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 mb-6">
         <p className="text-sm font-bold text-amber-800 mb-1">⚠ 목업 페이지 — 실제 데이터 아님</p>
         <p className="text-sm text-amber-700 leading-relaxed">
-          화면 레이아웃 확인 전용입니다. 아래 수치·문구는 모두 가상 예시이며, 실제 스캔·Claude AI 호출 없이 하드코딩된 값입니다.
+          화면 레이아웃 확인 전용입니다. 아래 수치·문구는 모두 가상 예시이며, 실제 측정·Claude AI 호출 없이 하드코딩된 값입니다.
           관리자 계정에서만 접근 가능합니다.
         </p>
       </div>

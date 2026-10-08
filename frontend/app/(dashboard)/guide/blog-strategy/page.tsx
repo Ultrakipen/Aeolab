@@ -26,7 +26,7 @@ function ChecklistSection() {
   const items = [
     "스마트플레이스 '제안하기' 기능으로 블로그 리뷰어 5명 이상 초대",
     "1개월 1회 체험단·시식회·런칭 이벤트 운영 (네이버 카페·인플루언서 활용)",
-    "방문 고객에게 '리뷰 작성 시 음료 1잔 무료' 등 가벼운 인센티브 제공 (지나친 대가성은 어뷰징)",
+    "방문 고객에게 '리뷰 작성 시 음료 1잔 무료' 등 가벼운 인센티브 제공 (지나친 대가성은 정책 위반 위험)",
     "고객 리뷰에 진정성 있는 답글 1주 내 작성 — 답글 자체가 검색 신호",
     "사장님이 직접 사장님 블로그 운영 (월 2회 이상, 신메뉴·이벤트·일상 소식)",
     "인스타·페이스북에서 #지역명_업종 해시태그로 노출 → 블로그 유입 유도",
@@ -141,7 +141,7 @@ export default function BlogStrategyGuidePage() {
           <AlertTriangle className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" />
           <p className="text-sm md:text-base text-amber-800 leading-relaxed">
             <span className="font-semibold">유의: </span>
-            대가성 후기 작성 시 네이버 정책상 어뷰징으로 분류될 수 있습니다.
+            대가성 후기 작성 시 네이버 정책 위반으로 분류될 수 있습니다.
             인센티브는 가볍게(음료 1잔·할인 5% 수준), 후기 내용은 고객의 자발적 표현으로 받는 것이 안전합니다.
           </p>
         </div>
@@ -170,7 +170,7 @@ export default function BlogStrategyGuidePage() {
             },
             {
               title: "ChatGPT·Gemini 학습 소스",
-              desc: "외부 공개 블로그(티스토리·자체 블로그 등)는 ChatGPT·Gemini 학습 데이터에 포함될 수 있습니다. 네이버 블로그는 Bing 내 영향력이 매우 제한적이어서 ChatGPT·Gemini 응답에 미치는 효과가 작습니다. 네이버 AI 브리핑·AI탭에는 효과적입니다.",
+              desc: "외부 공개 블로그(티스토리·자체 블로그 등)는 ChatGPT·Gemini가 미리 공부한 자료에 포함될 수 있습니다. 네이버 블로그는 마이크로소프트 검색 내 영향력이 매우 제한적이어서 ChatGPT·Gemini 응답에 미치는 효과가 작습니다. 네이버 AI 브리핑·AI탭에는 효과적입니다.",
             },
           ].map(({ title, desc }) => (
             <div
@@ -207,19 +207,19 @@ export default function BlogStrategyGuidePage() {
               num: 2,
               icon: <Gift className="w-5 h-5 text-emerald-700" />,
               title: "체험단·시식회 운영 — 월 1회 정기 이벤트",
-              desc: "네이버 카페(맘카페·지역카페), 인스타 마이크로 인플루언서(팔로워 1천~1만), 체험단 플랫폼(레뷰·디너의여왕 등)을 활용. 신메뉴 출시·시즌 변경 시점에 진행하면 효과 극대.",
+              desc: "네이버 카페(맘카페·지역카페), 인스타 마이크로 인플루언서(팔로워 1천~1만), 체험단 서비스(레뷰·디너의여왕 등)를 활용. 신메뉴 출시·시즌 변경 시점에 진행하면 효과 극대.",
             },
             {
               num: 3,
               icon: <Hash className="w-5 h-5 text-blue-600" />,
               title: "고객 자발 후기 유도 — 가벼운 인센티브 + 해시태그",
-              desc: '"리뷰 작성 시 음료 1잔 무료" 등 가벼운 수준 권장. 매장 내 안내문에 "#지역명_업종" 해시태그 안내 → 블로그 검색에 노출. 대가성 강조는 어뷰징 위험.',
+              desc: '"리뷰 작성 시 음료 1잔 무료" 등 가벼운 수준 권장. 매장 내 안내문에 "#지역명_업종" 해시태그 안내 → 블로그 검색에 노출. 대가성 강조는 정책 위반 위험.',
             },
             {
               num: 4,
               icon: <MessageCircle className="w-5 h-5 text-rose-700" />,
               title: "리뷰 답글 — 모든 후기에 1주 내 진정성 있는 답글",
-              desc: "사장님 답글이 달린 리뷰는 검색 알고리즘에서 더 높은 가중치를 받습니다. 단순 감사 인사보다 후기 내용을 인용하며 구체적으로 답글 작성. 부정 후기에도 침착하게 응대.",
+              desc: "사장님 답글이 달린 리뷰는 네이버가 정한 기준에서 더 높은 중요도로 평가됩니다. 단순 감사 인사보다 후기 내용을 언급하며 구체적으로 답글 작성. 부정 후기에도 침착하게 응대.",
             },
             {
               num: 5,
@@ -262,7 +262,7 @@ export default function BlogStrategyGuidePage() {
             <AlertTriangle className="w-4 h-4 text-amber-700" />
           </div>
           <h2 className="text-lg md:text-xl font-bold text-gray-900">
-            3. 어뷰징 금지선 — 절대 하지 말 것
+            3. 정책 위반 금지선 — 절대 하지 말 것
           </h2>
         </div>
 
@@ -270,7 +270,7 @@ export default function BlogStrategyGuidePage() {
           {[
             {
               label: "원고 제공 후기",
-              value: "사장님이 후기 본문을 작성해 블로거에게 그대로 게시하게 하는 행위. 네이버 알고리즘이 동일 패턴을 감지해 검색 노출에서 제외할 수 있습니다.",
+              value: "사장님이 후기 본문을 작성해 블로거에게 그대로 게시하게 하는 행위. 네이버가 정한 기준으로 동일 패턴을 감지해 검색 노출에서 제외할 수 있습니다.",
             },
             {
               label: "별점·키워드 강요",
@@ -328,7 +328,7 @@ export default function BlogStrategyGuidePage() {
           />
           <FaqItem
             q="AEOlab이 블로그 후기 수를 어떻게 측정하나요?"
-            a="네이버 블로그 검색 결과에서 사업장명 + 지역 키워드 조합으로 언급된 포스팅 수를 집계합니다. 스캔 시점 기준이며, 사장님이 직접 작성한 포스팅과 외부 블로거가 작성한 포스팅을 모두 포함합니다. 정확한 분류는 AEOlab 블로그 분석(/blog-analysis)에서 확인할 수 있습니다."
+            a="네이버 블로그 검색 결과에서 사업장명 + 지역 키워드 조합으로 언급된 포스팅 수를 집계합니다. 측정 시점 기준이며, 사장님이 직접 작성한 포스팅과 외부 블로거가 작성한 포스팅을 모두 포함합니다. 정확한 분류는 AEOlab 블로그 분석(/blog-analysis)에서 확인할 수 있습니다."
           />
           <FaqItem
             q="블로그 외에 인스타그램·유튜브 후기도 효과가 있나요?"
@@ -358,7 +358,7 @@ export default function BlogStrategyGuidePage() {
           className="flex-1 inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-gray-200 text-gray-700 font-semibold rounded-xl px-5 py-3 text-sm md:text-base transition-colors min-h-[44px]"
         >
           <BookOpen className="w-4 h-4" />
-          ChatGPT 최적화 가이드 →
+          ChatGPT 노출 개선 가이드 →
         </Link>
       </div>
     </div>

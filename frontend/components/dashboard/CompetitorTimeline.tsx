@@ -270,12 +270,12 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
         <div className="py-10 text-center">
           <p className="text-sm text-gray-600 leading-relaxed">
             {scans.length === 0
-              ? <>경쟁사를 등록하고 첫 스캔이 완료되면<br />비교 그래프가 나타납니다.</>
-              : <>지난 {effectiveDays}일간 스캔 내역이 없습니다.<br />AI 스캔을 실행하면 비교 그래프가 업데이트됩니다.</>
+              ? <>경쟁사를 등록하고 첫 측정이 완료되면<br />비교 그래프가 나타납니다.</>
+              : <>지난 {effectiveDays}일간 측정 내역이 없습니다.<br />측정을 시작하면 비교 그래프가 업데이트됩니다.</>
             }
           </p>
           <a href="/dashboard" className="inline-block mt-3 text-sm text-blue-600 font-semibold hover:underline">
-            대시보드에서 AI 스캔 실행 →
+            대시보드에서 측정 시작
           </a>
         </div>
       )}
@@ -300,7 +300,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
                     ? <TrendingUp className="w-4 h-4 shrink-0" />
                     : <TrendingDown className="w-4 h-4 shrink-0" />}
                   <span>
-                    <strong>{s.name}</strong>이(가) 최근 스캔에서{' '}
+                    <strong>{s.name}</strong>이(가) 최근 측정에서{' '}
                     {s.change > 0 ? '상승 — 경쟁 위협 증가' : '하락 — 경쟁 완화'}
                   </span>
                 </div>
@@ -369,7 +369,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
           {/* 현재 점수 순위 — 차트에서 겹쳐 보이지 않는 경쟁사도 명확히 표시 */}
           {compNames.length > 0 && (
             <div className="mt-3 pt-3 border-t border-gray-100">
-              <div className="text-sm font-semibold text-gray-600 mb-2">최근 스캔 기준 점수 순위</div>
+              <div className="text-sm font-semibold text-gray-600 mb-2">최근 측정 기준 점수 순위</div>
               <div className="space-y-1.5">
                 {(() => {
                   // 순위는 unified(total_score) 기준 — 위 차트의 내가게 값·CompetitorTrendChart와

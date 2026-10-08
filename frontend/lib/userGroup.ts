@@ -98,8 +98,8 @@ export const GROUP_MESSAGES: Record<UserGroup, GroupMessage> = {
     badgeColor: "bg-green-100 text-green-800 border border-green-200",
   },
   LIKELY: {
-    headline: "네이버 정보형 AI 브리핑 + 검색·지도 + ChatGPT·Gemini 노출 최적화",
-    sub: "특정 가게를 요약하는 '플레이스형' AI 브리핑 공식 대상은 아니지만(확대 예상 업종), 블로그·콘텐츠 기반 '정보형 AI 브리핑'에는 지금도 노출될 수 있습니다. 네이버 지도 상위 노출과 ChatGPT·Gemini도 함께 집중 개선합니다.",
+    headline: "네이버 정보형 AI 브리핑 + 검색·지도 + ChatGPT·Gemini 노출 개선",
+    sub: "특정 가게를 요약하는 '플레이스형' AI 브리핑 공식 대상은 아니지만(확대 여부는 네이버가 발표하지 않았습니다), 블로그·콘텐츠 기반 '정보형 AI 브리핑'에는 지금도 노출될 수 있습니다. 네이버 지도 상위 노출과 ChatGPT·Gemini도 함께 집중 개선합니다.",
     badge: "정보형 AI + 로컬 노출",
     badgeColor: "bg-blue-100 text-blue-800 border border-blue-200",
   },

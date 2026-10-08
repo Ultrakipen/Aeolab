@@ -53,8 +53,8 @@ export function SentimentDashboard({ bizId, token }: Props) {
           <h3 className="text-base md:text-lg font-bold text-gray-900">리뷰 감정 분석</h3>
         </div>
         <p className="text-sm text-gray-600">
-          리뷰 스캔 데이터가 아직 없습니다.<br/>
-          <span className="text-sm text-gray-600">AI 스캔을 실행하면 리뷰 감정 분석이 자동으로 시작됩니다.</span>
+          리뷰 측정 데이터가 아직 없습니다.<br/>
+          <span className="text-sm text-gray-600">AI 측정을 실행하면 리뷰 감정 분석이 자동으로 시작됩니다.</span>
         </p>
       </div>
     );
@@ -144,7 +144,7 @@ export function SentimentDashboard({ bizId, token }: Props) {
       {(data.top_positive?.length ?? 0) > 0 && (
         <div className="mt-3 bg-emerald-50 rounded-lg p-3">
           <p className="text-sm text-emerald-700 flex items-start gap-1.5">
-            <Lightbulb className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />&ldquo;{data.top_positive.slice(0, 2).join('", "')}&rdquo; 키워드를 소개글·Q&A 섹션에 넣으면 AI가 더 자주 인용합니다.
+            <Lightbulb className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />&ldquo;{data.top_positive.slice(0, 2).join('", "')}&rdquo; 키워드를 소개글·Q&A 섹션에 넣으면 AI가 더 자주 언급합니다.
           </p>
         </div>
       )}

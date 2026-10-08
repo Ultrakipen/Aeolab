@@ -96,7 +96,7 @@ export default function NaverMultiChannelCard({ cafeResult, jisikResult }: Props
 
       {/* 면책 문구 */}
       <p className="mt-4 text-sm text-gray-600 leading-snug">
-        측정 시점·검색어에 따라 달라질 수 있음. 일 25,000건 API 공유 한도 내 측정.
+        측정 시점·검색어에 따라 달라질 수 있음. 하루 최대 25,000건 범위 내 측정.
       </p>
     </div>
   );

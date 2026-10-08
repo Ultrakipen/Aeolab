@@ -17,9 +17,9 @@ const STEPS: Step[] = [
     targetAttr: "register-business",
   },
   {
-    title: "AI 스캔 실행하기",
+    title: "AI 측정 실행하기",
     description:
-      "상단의 'AI 스캔 시작' 버튼을 누르면 네이버·ChatGPT·Gemini·Google AI 4개 채널에서 내 가게 노출 여부를 약 2분 안에 확인합니다.",
+      "상단의 'AI 측정 시작' 버튼을 누르면 네이버·ChatGPT·Gemini·Google AI에서 내 가게 노출 여부를 약 2분 안에 확인합니다.",
     targetAttr: "scan-button",
   },
   {
@@ -31,7 +31,7 @@ const STEPS: Step[] = [
   {
     title: "완료! 이제 점수를 확인하세요",
     description:
-      "기본 설정이 완료됐습니다. 대시보드에서 AI 노출 점수와 개선 가이드를 확인하고 꾸준히 최적화해 보세요.",
+      "기본 설정이 완료됐습니다. 대시보드에서 AI 노출 점수와 개선 가이드를 확인하고 꾸준히 개선해 보세요.",
     targetAttr: "",
   },
 ];

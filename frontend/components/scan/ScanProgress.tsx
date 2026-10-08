@@ -27,7 +27,7 @@ interface ScanProgressProps {
 export function ScanProgress({ eventSource, onComplete, onError }: ScanProgressProps) {
   const [steps, setSteps] = useState<Record<string, 'waiting' | 'running' | 'done' | 'error'>>({})
   const [progress, setProgress] = useState(0)
-  const [message, setMessage] = useState('AI 스캔을 시작합니다...')
+  const [message, setMessage] = useState('AI 측정을 시작합니다...')
   const allResults = useRef<Record<string, unknown>>({})
   const completedRef = useRef(false)
 

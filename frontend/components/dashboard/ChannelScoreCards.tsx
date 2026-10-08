@@ -63,7 +63,7 @@ export function ChannelScoreCards({
     ? `카카오맵 ${kakaoRank ? `${kakaoRank}위 노출` : '등록됨'}`
     : '카카오맵 등록 필요'
   const naverBriefingLabel =
-    naverMentioned === undefined ? '네이버 AI 브리핑 측정 불가 (재스캔 권장)' : '네이버 AI 브리핑 노출'
+    naverMentioned === undefined ? '네이버 AI 브리핑 측정 불가 (다시 측정 권장)' : '네이버 AI 브리핑 노출'
   const naverItems = [
     { label: naverBriefingLabel, ok: !!naverMentioned, unmeasured: naverMentioned === undefined },
     { label: '네이버 AI탭 노출 (정식 출시)', ok: !!aiTabMentioned },
@@ -78,13 +78,13 @@ export function ChannelScoreCards({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {/* 네이버 AI 채널 */}
+      {/* 네이버 AI */}
       <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
         <div className="flex items-start gap-4">
           <ScoreRing score={naverScore} color={naverColor} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-              <span className="text-sm font-bold text-gray-900">네이버 AI 채널</span>
+              <span className="text-sm font-bold text-gray-900">네이버 AI</span>
               <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${
                 naverGrade === 'good' ? 'bg-green-100 text-green-700'
                 : naverGrade === 'mid' ? 'bg-amber-100 text-amber-700'
@@ -99,7 +99,7 @@ export function ChannelScoreCards({
               )}
             </div>
             <p className="text-base text-gray-600 mb-3">
-              네이버 AI 브리핑·AI탭·카카오맵 생태계 노출
+              네이버 AI 브리핑·AI탭·카카오맵 노출
             </p>
             <div className="space-y-1.5">
               {naverItems.map((item) => (
@@ -122,13 +122,13 @@ export function ChannelScoreCards({
         </div>
       </div>
 
-      {/* 글로벌 AI 채널 */}
+      {/* 글로벌 AI */}
       <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
         <div className="flex items-start gap-4">
           <ScoreRing score={globalScore} color={globalColor} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-              <span className="text-sm font-bold text-gray-900">글로벌 AI 채널</span>
+              <span className="text-sm font-bold text-gray-900">글로벌 AI</span>
               <span className={`text-sm px-2 py-0.5 rounded-full font-medium ${
                 globalGrade === 'good' ? 'bg-green-100 text-green-700'
                 : globalGrade === 'mid' ? 'bg-blue-100 text-blue-700'
@@ -143,7 +143,7 @@ export function ChannelScoreCards({
               )}
             </div>
             <p className="text-base text-gray-600 mb-3">
-              ChatGPT · Google AI 인용
+              ChatGPT · Google AI 언급
             </p>
             <div className="space-y-1.5">
               {globalItems.map((item) => (

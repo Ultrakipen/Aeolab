@@ -346,13 +346,13 @@ export default function ConversionGuideSection({ bizId, plan }: Props) {
       {/* 헤더 */}
       <div className="mb-4">
         <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">
-          AI 노출 지수를 높이는 방법
+          AI 노출을 높이는 방법
         </h2>
         <p className="text-sm text-gray-600">
           {loading
-            ? "내 스캔 결과를 분석하고 있습니다…"
+            ? "내 측정 결과를 분석하고 있습니다…"
             : data?.summary ??
-              "스캔 결과 기반으로 가장 효과 큰 행동부터 추천합니다."}
+              "측정 결과 기반으로 가장 효과 큰 행동부터 추천합니다."}
         </p>
         {!loading && data?.missing_platforms && data.missing_platforms.length > 0 && (
           <div className="mt-2 inline-flex flex-wrap gap-1.5">
@@ -403,7 +403,7 @@ export default function ConversionGuideSection({ bizId, plan }: Props) {
       {/* 팁 없음 (스캔 미실행 등) */}
       {!loading && !error && data && data.tips.length === 0 && (
         <div className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-600">
-          먼저 AI 스캔을 실행해 주세요. 스캔 결과가 있어야 맞춤 개선 팁을 만들 수
+          먼저 AI 측정을 실행해 주세요. 측정 결과가 있어야 맞춤 개선 팁을 만들 수
           있습니다.
         </div>
       )}

@@ -35,7 +35,7 @@ function getRecommendedPackage(score: number, isSmartPlace: boolean): PackageInf
   if (score < 70) {
     return {
       number: "02",
-      name: "AI 검색 최적화",
+      name: "AI 검색 개선",
       price: 89000,
       packageType: "ai_optimization",
       reason: "기본은 있지만 콘텐츠 보강으로 점수 향상이 가능합니다",

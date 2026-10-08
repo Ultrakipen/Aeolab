@@ -11,20 +11,20 @@ interface ExportButtonProps {
   plan: string
 }
 
-// CSV: basic+ 이상 가능 (v3.4: Basic에 CSV 포함)
+// 엑셀 파일: basic+ 이상 가능 (v3.4: Basic에 포함)
 // PDF: pro+ 이상 가능
-const CSV_PLANS  = ['basic', 'startup', 'pro', 'biz', 'enterprise']
+const EXCEL_PLANS  = ['basic', 'startup', 'pro', 'biz', 'enterprise']
 const PDF_PLANS  = ['pro', 'biz', 'enterprise']
 
 export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
-  const [loadingCsv, setLoadingCsv] = useState(false)
+  const [loadingExcel, setLoadingExcel] = useState(false)
   const [loadingPdf, setLoadingPdf] = useState(false)
 
-  const canCsv = CSV_PLANS.includes(plan)
+  const canExcel = EXCEL_PLANS.includes(plan)
   const canPdf = PDF_PLANS.includes(plan)
 
   // 둘 다 불가능한 플랜 (free)
-  if (!canCsv && !canPdf) {
+  if (!canExcel && !canPdf) {
     return (
       <div className="relative group">
         <button
@@ -35,7 +35,7 @@ export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
           <span className="text-sm bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded">Basic+</span>
         </button>
         <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover:block z-10 w-56 bg-gray-900 text-white text-sm rounded-lg p-2 text-center">
-          Basic(월 {PLAN_PRICES.basic.toLocaleString()}원)부터 CSV 내보내기,
+          Basic(월 {PLAN_PRICES.basic.toLocaleString()}원)부터 엑셀 파일 내보내기,
           Pro 플랜(월 {PLAN_PRICES.pro.toLocaleString()}원)부터 PDF 리포트 이용 가능합니다
         </div>
       </div>
@@ -47,15 +47,15 @@ export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
     return session?.access_token ?? null
   }
 
-  const handleCsv = async () => {
-    setLoadingCsv(true)
+  const handleExcel = async () => {
+    setLoadingExcel(true)
     try {
       const token = await getToken()
       await exportReport(bizId, userId, token ?? undefined)
     } catch (e) {
       if (e instanceof ApiError) alert(e.message)
     } finally {
-      setLoadingCsv(false)
+      setLoadingExcel(false)
     }
   }
 
@@ -73,14 +73,14 @@ export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
 
   return (
     <div className="flex items-center gap-2">
-      {/* CSV 버튼: basic+ */}
-      {canCsv ? (
+      {/* 엑셀 파일 버튼: basic+ */}
+      {canExcel ? (
         <button
-          onClick={handleCsv}
-          disabled={loadingCsv}
+          onClick={handleExcel}
+          disabled={loadingExcel}
           className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors disabled:opacity-50 whitespace-nowrap shrink-0"
         >
-          {loadingCsv ? '다운로드 중...' : 'CSV'}
+          {loadingExcel ? '다운로드 중...' : '엑셀 파일'}
         </button>
       ) : (
         <div className="relative group">
@@ -88,7 +88,7 @@ export function ExportButton({ bizId, userId, plan }: ExportButtonProps) {
             disabled
             className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed whitespace-nowrap shrink-0"
           >
-            <span>CSV</span>
+            <span>엑셀 파일</span>
             <span className="text-sm bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded whitespace-nowrap">Basic+</span>
           </button>
           <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover:block z-10 w-48 bg-gray-900 text-white text-sm rounded-lg p-2 text-center">

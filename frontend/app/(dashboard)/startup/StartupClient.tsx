@@ -151,8 +151,9 @@ export function StartupClient() {
       <section className="bg-white rounded-xl p-4 md:p-6 shadow-sm mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">업종</label>
+            <label htmlFor="startup-category" className="block text-sm font-medium text-gray-700 mb-1.5">업종</label>
             <select
+              id="startup-category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"

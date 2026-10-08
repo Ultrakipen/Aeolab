@@ -48,9 +48,9 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
         if (detail?.code === "BASIC_TRIAL_USED") {
           setError("이미 체험을 사용하셨습니다. 계속 이용하려면 Basic 플랜에 가입해 주세요.");
         } else if (detail?.code === "ALREADY_SUBSCRIBED") {
-          setError("이미 구독 중이신 고객님은 체험 대신 자동 스캔이 진행됩니다.");
+          setError("이미 구독 중이신 고객님은 체험 대신 자동 측정이 진행됩니다.");
         } else if (detail?.code === "SCAN_IN_PROGRESS") {
-          setError("이미 스캔이 진행 중입니다. 잠시만 기다려 주세요.");
+          setError("이미 측정이 진행 중입니다. 잠시만 기다려 주세요.");
         } else {
           setError(detail?.message || e.message || "잠시 후 다시 시도해 주세요.");
         }
@@ -77,7 +77,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
               전체 AI가 내 가게를 확인하고 있어요...
             </p>
             <p className="text-sm md:text-base text-emerald-700 mt-1">
-              ChatGPT · 네이버 AI 브리핑 · 구글 AI · Gemini 4개 채널 동시 분석 중 (약 1분 소요)
+              ChatGPT · 네이버 AI 브리핑 · 구글 AI · Gemini 동시 분석 중 (약 1분 소요)
             </p>
             <p className="text-sm text-emerald-700 mt-2">
               이 페이지를 닫지 말고 잠시만 기다려 주세요.
@@ -106,7 +106,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
               어떻게 소개하는지 확인할 수 있습니다.
             </p>
             <ul className="text-sm text-emerald-700 mt-2 space-y-0.5 leading-relaxed">
-              <li>• Gemini·ChatGPT 각 50회 샘플링으로 AI 노출 빈도 측정</li>
+              <li>• Gemini·ChatGPT 각 50회 여러 번 물어봐서 AI 노출 빈도 측정</li>
               <li>• AI 개선 가이드 1회 자동 생성</li>
               <li>• 약 1분 소요 · 평생 1회 무료</li>
               <li className="text-emerald-700">• Basic 구독 시 각 100회로 정확도 상승 + 주 2회 자동 반복 측정</li>
@@ -166,8 +166,8 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
             </h3>
             <p className="text-sm md:text-base text-slate-600 mt-1 leading-relaxed">
               계속 이용하려면 <strong className="text-slate-900">Basic 플랜</strong>에 가입해 주세요.
-              방금 체험한 50회 샘플링이 <strong className="text-slate-900">100회로 늘어나 정확도가 높아지고</strong>,
-              주 2회(월·목) 자동 스캔과 개선 가이드를 지속해서 받을 수 있습니다.
+              방금 체험한 50회 질문이 <strong className="text-slate-900">100회로 늘어나 정확도가 높아지고</strong>,
+              주 2회(월·목) 자동 측정과 개선 가이드를 지속해서 받을 수 있습니다.
             </p>
             <p className="text-sm md:text-base font-semibold text-emerald-700 mt-2">
               <span className="flex items-center gap-1.5"><PartyPopper className="w-4 h-4 shrink-0" aria-hidden="true" />지금 가입하면 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 (50% 할인) · 이후 월 {PLAN_PRICES.basic.toLocaleString()}원</span>

@@ -250,7 +250,7 @@ export default function DashboardInsightZone({
           {isActiveOrLikely ? (
             <><strong>아래 AI 브리핑·AI탭 노출을 높이는 개선 활동은 네이버 일반 검색 상위 노출에도 함께 도움이 됩니다.</strong> 소개글·리뷰·블로그를 채울수록 검색 순위와 AI 노출이 같이 올라갑니다.</>
           ) : (
-            <><strong>네이버 일반 검색 상위 노출은 지금도 가능합니다.</strong> 스마트플레이스 최적화·블로그 후기로 검색 결과 상위에 노출될 수 있습니다.</>
+            <><strong>네이버 일반 검색 상위 노출은 지금도 가능합니다.</strong> 스마트플레이스 정보 개선·블로그 후기로 검색 결과 상위에 노출될 수 있습니다.</>
           )}
         </p>
       </div>
@@ -285,7 +285,7 @@ export default function DashboardInsightZone({
           className="w-full flex items-center justify-center gap-1 py-2.5 text-sm text-gray-600 hover:text-gray-700 transition-colors border border-dashed border-gray-200 rounded-lg"
         >
           <ChevronDown className="w-4 h-4" />
-          카페·지식채널 · 사진 카테고리 · 리뷰 키워드 상세 보기
+          카페·지식iN · 사진 카테고리 · 리뷰 키워드 상세 보기
         </button>
       ) : (
         <div className="space-y-3">

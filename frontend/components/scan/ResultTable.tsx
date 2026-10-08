@@ -46,7 +46,7 @@ function NaverSection({
       {/* 섹션 헤더 */}
       <tr>
         <td colSpan={3} className="px-4 md:px-6 py-2 bg-gray-50 text-sm font-semibold text-gray-600 uppercase tracking-wide">
-          네이버 AI 생태계
+          네이버 AI 서비스
         </td>
       </tr>
 
@@ -120,7 +120,7 @@ function NaverSection({
             {aiTabVisible === null || aiTabVisible === undefined ? (
               <div className="space-y-1">
                 <span className="text-gray-600 text-sm font-medium block">측정 예정</span>
-                <span className="text-gray-600 text-sm block">다음 정기 스캔에서 자동 측정됩니다</span>
+                <span className="text-gray-600 text-sm block">다음 정기 측정에서 자동으로 확인됩니다</span>
               </div>
             ) : aiTabVisible ? (
               <span className="inline-flex items-center gap-1 text-green-700 font-medium text-sm">
@@ -209,14 +209,14 @@ export function ResultTable({ results, briefingEligibility }: ResultTableProps) 
       <div className="px-4 md:px-6 py-4 border-b border-gray-100">
         <div className="text-sm font-semibold text-gray-800">AI별 노출 결과</div>
         <div className="text-sm text-gray-600 mt-0.5">
-          각 AI 플랫폼에서 내 가게가 검색 결과에 나타나는지 확인합니다
+          각 AI 서비스에서 내 가게가 검색 결과에 나타나는지 확인합니다
         </div>
       </div>
       <div className="overflow-x-auto" tabIndex={0}>
         <table className="w-full text-sm min-w-[480px]">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
-              <th className="text-left px-4 md:px-6 py-3 text-sm font-semibold text-gray-600 uppercase tracking-wide w-[40%]">AI 플랫폼</th>
+              <th className="text-left px-4 md:px-6 py-3 text-sm font-semibold text-gray-600 uppercase tracking-wide w-[40%]">AI 서비스</th>
               <th className="text-left px-4 md:px-6 py-3 text-sm font-semibold text-gray-600 uppercase tracking-wide w-[35%]">노출 여부</th>
               <th className="text-left px-4 md:px-6 py-3 text-sm font-semibold text-gray-600 uppercase tracking-wide w-[25%]">상세</th>
             </tr>
@@ -235,7 +235,7 @@ export function ResultTable({ results, briefingEligibility }: ResultTableProps) 
               <>
                 <tr>
                   <td colSpan={3} className="px-4 md:px-6 py-2 bg-gray-50 text-sm font-semibold text-gray-600 uppercase tracking-wide">
-                    글로벌 AI 채널
+                    글로벌 AI 서비스
                   </td>
                 </tr>
                 {globalEntries.map(([key, result]) => (

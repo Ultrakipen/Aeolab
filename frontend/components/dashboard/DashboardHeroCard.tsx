@@ -63,10 +63,10 @@ export default function DashboardHeroCard({
         bg: "bg-green-50",
         cardBorder: "border-green-300",
         sub: infoBriefingExposed
-          ? "네이버 검색·플레이스·AI탭이 핵심 노출 채널 — 블로그·콘텐츠 기반 '정보형 AI 브리핑'에도 노출 중입니다"
+          ? "네이버 검색·플레이스·AI탭이 주요 노출 경로 — 블로그·콘텐츠 기반 '정보형 AI 브리핑'에도 노출 중입니다"
           : isFranchise
           ? "네이버 검색·플레이스·AI탭 집중 전략 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다"
-          : "네이버 검색·플레이스·AI탭이 핵심 노출 채널 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다",
+          : "네이버 검색·플레이스·AI탭이 주요 노출 경로 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다",
       }
     : { label: stage.label, labelColor: stage.labelColor, bg: stage.bg, cardBorder: stage.cardBorder, sub: null as string | null };
 
@@ -159,7 +159,7 @@ export default function DashboardHeroCard({
                 {lastScannedLabel && <span>{lastScannedLabel}</span>}
                 {staleRescan && (
                   <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-100 font-semibold px-1.5 py-0.5 rounded">
-                    <RefreshCw className="w-3 h-3 shrink-0" /> 재스캔 권장
+                    <RefreshCw className="w-3 h-3 shrink-0" /> 다시 측정 권장
                   </span>
                 )}
               </p>
@@ -180,7 +180,7 @@ export default function DashboardHeroCard({
         <div className="flex items-center gap-1.5 mb-3">
           <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" aria-hidden="true" />
           <p className="text-sm font-bold text-gray-700">{isInactiveOrFranchise ? "네이버 노출 현황" : "네이버 AI 현황"}</p>
-          <span className="ml-1 text-xs text-gray-600 hidden sm:inline">소상공인 핵심 채널</span>
+          <span className="ml-1 text-xs text-gray-600 hidden sm:inline">소상공인에게 가장 중요한 곳</span>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {naverChannels.map((card) => (

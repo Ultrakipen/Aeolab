@@ -17,7 +17,7 @@ const CANCEL_REASONS = [
   {
     id: "no_effect",
     label: "효과를 못 느꼈어요",
-    response: "스캔 결과의 '지금 할 것' 액션을 실행하셨나요? 스마트플레이스 소개글에 Q&A 1개 추가 후 7일 뒤 변화를 확인해보세요.",
+    response: "측정 결과의 '지금 할 것' 액션을 실행하셨나요? 스마트플레이스 소개글에 Q&A 1개 추가 후 7일 뒤 변화를 확인해보세요.",
     link: null,
     linkLabel: null,
   },
@@ -255,7 +255,7 @@ export function SettingsClient({
         </div>
         <div className="space-y-2.5">
           {[
-            { label: "스캔 완료 알림",     desc: "AI 스캔이 완료되면 결과를 알림톡으로 받습니다.",       value: scanNotify,       field: "scan" as const },
+            { label: "측정 완료 알림",     desc: "AI 측정이 완료되면 결과를 알림톡으로 받습니다.",       value: scanNotify,       field: "scan" as const },
             { label: "경쟁사 순위변동 알림", desc: "경쟁사가 내 점수를 추월하면 즉시 알림을 받습니다.",  value: competitorNotify, field: "competitor" as const },
           ].map(({ label, desc, value, field }) => (
             <div key={field} className="flex items-center justify-between gap-4 bg-white rounded-lg px-4 py-3.5 border border-gray-100">
@@ -373,7 +373,7 @@ export function SettingsClient({
             <h3 className="text-base font-semibold text-red-700">구독 해지</h3>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <p className="text-sm text-gray-600 flex-1">구독을 해지하면 자동 스캔과 알림이 중단됩니다. 현재 구독 기간이 끝날 때까지는 서비스를 계속 이용할 수 있습니다.</p>
+            <p className="text-sm text-gray-600 flex-1">구독을 해지하면 자동 측정과 알림이 중단됩니다. 현재 구독 기간이 끝날 때까지는 서비스를 계속 이용할 수 있습니다.</p>
             <button
               onClick={() => { setShowCancelModal(true); setCancelError(""); setSelectedReason(null); }}
               className="w-full sm:w-auto text-sm text-red-700 hover:text-red-800 font-medium border border-red-200 px-4 py-2.5 rounded-lg hover:bg-red-50 transition-colors"

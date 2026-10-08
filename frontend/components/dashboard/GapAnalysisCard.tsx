@@ -12,21 +12,21 @@ interface Props {
 const DIMENSION_LABELS: Record<string, string> = {
   exposure_freq:              "AI 검색 노출 빈도",
   review_quality:             "리뷰 수·평점",
-  schema_score:               "AI 인식 최적화",
+  schema_score:               "AI 인식 관리",
   online_mentions:            "온라인 언급 빈도",
   info_completeness:          "정보 완성도",
   content_freshness:          "최신성",
   naver_exposure_confirmed:   "네이버 AI 브리핑 노출",
   smart_place_completeness:   "스마트플레이스 완성도",
-  schema_seo:                 "웹사이트 AI 구조화",
+  schema_seo:                 "웹사이트 AI 인식 설정",
   keyword_gap_score:          "키워드 격차",
   keyword_search_rank:        "네이버 키워드 검색 노출",
-  multi_ai_exposure:          "다중 AI 플랫폼 노출",
+  multi_ai_exposure:          "AI 서비스 노출",
   online_mentions_t2:         "온라인 언급 빈도",
   google_presence:            "구글 검색 노출",
   ai_briefing_score:          "AI 브리핑 노출",
   local_map_score:            "지도·플레이스 노출",
-  blog_crank:                 "블로그 생태계",
+  blog_crank:                 "블로그 활동",
 };
 
 /** 점수 → 수준 레이블 + 색상 (사이트 표준 임계값 75/55/30, lib/scoreLabels.ts와 동일 구간) */
@@ -49,7 +49,7 @@ function scoreBadgeCls(score: number): string {
 function ScoreBasisPanel() {
   return (
     <div className="mt-1 mb-3 bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-600 space-y-2">
-      <p className="font-semibold text-gray-700 mb-1">AI 노출 지수 산출 근거 (100점 만점)</p>
+      <p className="font-semibold text-gray-700 mb-1">AI 노출 점수 산출 근거 (100점 만점)</p>
       <div className="space-y-1.5">
         <div className="flex items-start gap-2">
           <span className="shrink-0 font-medium text-gray-600 w-5">①</span>
@@ -133,7 +133,7 @@ export function GapAnalysisCard({ gap }: Props) {
         className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 mb-3 transition-colors"
       >
         <Info className="w-3.5 h-3.5" />
-        지수가 어떻게 계산되나요?
+        점수가 어떻게 계산되나요?
         {showBasis ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
       </button>
       {showBasis && <ScoreBasisPanel />}
@@ -237,17 +237,17 @@ export function GapAnalysisCard({ gap }: Props) {
                       </div>
                     </div>
                     <p className="text-sm text-amber-700 mb-2">
-                      경쟁 가게가 새로 등록됐거나 아직 첫 스캔이 실행되지 않아 항목별 세부 비교가 준비되지 않았습니다.
+                      경쟁 가게가 새로 등록됐거나 아직 첫 측정이 실행되지 않아 항목별 세부 비교가 준비되지 않았습니다.
                     </p>
                     <div className="bg-white rounded-lg p-3 border border-amber-200 space-y-1.5 text-sm">
                       <p className="text-gray-700 font-medium">해결 방법</p>
                       <p className="text-gray-600 flex items-start gap-1.5">
                         <span className="text-amber-700 font-bold shrink-0">①</span>
-                        <span><strong>지금 바로:</strong> 경쟁사 페이지 상단 &ldquo;AI 스캔 시작&rdquo; 버튼을 누르면 즉시 항목별 비교가 나타납니다.</span>
+                        <span><strong>지금 바로:</strong> 경쟁사 페이지 상단 &ldquo;AI 측정 시작&rdquo; 버튼을 누르면 즉시 항목별 비교가 나타납니다.</span>
                       </p>
                       <p className="text-gray-600 flex items-start gap-1.5">
                         <span className="text-amber-700 font-bold shrink-0">②</span>
-                        <span><strong>자동 해소:</strong> 매일 새벽 2시 자동 스캔 후 자동으로 채워집니다.</span>
+                        <span><strong>자동 해소:</strong> 매일 새벽 2시 자동 측정 후 자동으로 채워집니다.</span>
                       </p>
                     </div>
                   </div>
