@@ -161,7 +161,7 @@ export default function KeywordsIndexPage() {
             내 가게 AI 노출 점수를 지금 확인하세요
           </h2>
           <p className="text-blue-100 text-sm md:text-base mb-6 break-keep">
-            위 지역·업종 기준으로 네이버 검색과 ChatGPT에서 내 가게가 나오는지
+            위 지역·업종 기준으로 네이버 검색·ChatGPT·구글 지도에서 내 가게가 나오는지
             바로 진단합니다
           </p>
           <Link

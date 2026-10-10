@@ -220,7 +220,7 @@ export default async function BlogPostPage({
             가이드를 읽었다면, 지금 내 가게를 진단해보세요
           </h2>
           <p className="text-blue-100 text-sm mb-5 break-keep">
-            네이버 검색과 ChatGPT에서 내 가게가 어떻게 노출되는지
+            네이버 검색·ChatGPT·구글 지도에서 내 가게가 어떻게 노출되는지
             바로 확인합니다
           </p>
           <Link
