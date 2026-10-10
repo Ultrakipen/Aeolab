@@ -5,7 +5,7 @@ interface ChannelTimelineBoxProps {
   globalOnly?: boolean;
 }
 
-interface ChannelRow {
+export interface ChannelRow {
   channel: string;
   duration: string;
   durationColor: string;
@@ -15,7 +15,8 @@ interface ChannelRow {
   isGlobal?: boolean;
 }
 
-const CHANNEL_ROWS: ChannelRow[] = [
+// 채널별 반영 기간의 단일 소스 — 체험 결과의 '5개 길' 카드도 이 값을 그대로 쓴다
+export const CHANNEL_ROWS: ChannelRow[] = [
   {
     channel: "네이버 AI탭",
     duration: "2~4주",

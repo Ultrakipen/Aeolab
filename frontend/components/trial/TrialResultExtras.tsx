@@ -632,15 +632,19 @@ export interface CompBlog {
   rank?: number;
   name: string;
   count: number;
+  // 블로그 100건까지만 살펴보므로 capped=true면 실제 글 수는 count보다 많다("이상"으로 표기해야 함)
+  capped?: boolean;
 }
 
 export function CompetitorBlogBars({
   myName,
   myCount,
+  myCapped = false,
   competitors,
 }: {
   myName: string;
   myCount: number;
+  myCapped?: boolean;
   competitors: CompBlog[];
 }) {
   // 경쟁사를 못 찾았다고 카드가 조용히 사라지면 "측정 실패"가 아니라 "시스템 오류"로 보일 위험이 있다
@@ -661,9 +665,10 @@ export function CompetitorBlogBars({
     );
   }
   const rows = [
-    { name: `내 가게 (${myName})`, count: myCount, mine: true },
-    ...competitors.map((c) => ({ name: c.name, count: c.count, mine: false })),
+    { name: `내 가게 (${myName})`, count: myCount, mine: true, capped: myCapped },
+    ...competitors.map((c) => ({ name: c.name, count: c.count, mine: false, capped: !!c.capped })),
   ];
+  const hasCapped = rows.some((r) => r.capped);
   const max = Math.max(...rows.map((r) => r.count), 1);
   return (
     <div className="rounded-xl border border-slate-200 bg-white px-4 py-4 mb-4 shadow-sm">
@@ -684,13 +689,26 @@ export function CompetitorBlogBars({
             <div className="h-6 rounded-md bg-slate-100 overflow-hidden mb-1 md:mb-0" aria-hidden="true">
               <div
                 className={`h-6 rounded-md ${r.mine ? "bg-blue-700" : "bg-slate-500"}`}
-                style={{ width: `${Math.max(2, Math.round((r.count / max) * 100))}%` }}
+                style={{
+                  width: `${Math.max(2, Math.round((r.count / max) * 100))}%`,
+                  // 줄무늬 = "이상"(100건까지만 살펴봐서 실제로는 더 많음)
+                  ...(r.capped
+                    ? { backgroundImage: "repeating-linear-gradient(135deg, rgba(255,255,255,.55) 0 5px, transparent 5px 10px)" }
+                    : {}),
+                }}
               />
             </div>
-            <p className="text-sm md:text-base font-bold text-slate-900 md:text-right">{r.count.toLocaleString()}건</p>
+            <p className="text-sm md:text-base font-bold text-slate-900 md:text-right">
+              {r.count.toLocaleString()}건{r.capped ? " 이상" : ""}
+            </p>
           </div>
         ))}
       </div>
+      {hasCapped && (
+        <p className="mt-3 text-sm text-slate-700 leading-snug break-keep">
+          줄무늬 막대는 &lsquo;이상&rsquo;이라는 뜻입니다. 블로그 글을 100개까지만 살펴봐서 실제로는 더 많습니다.
+        </p>
+      )}
       <p className="mt-3 text-sm text-slate-700 leading-snug break-keep">
         네이버 블로그 검색 상위 100건 중 제목·요약에 가게 이름이 실제로 나오고 우리 동네(시·구) 글로 확인되는 글 수입니다. 같은 이름의 다른 지역 가게 글과 다른 동네의 같은 동 이름 글은 뺐습니다. 본문에만 이름이 나오거나 요약에 지역이 없는 글도 빠져 실제보다 적게 잡힐 수 있고, 모든 가게에 같은 방식을 적용했습니다. 이종 업종 가게는 제외했습니다.
       </p>

@@ -37,6 +37,7 @@ import {
   type PassedItem,
   type AiPlace,
 } from "@/components/trial/TrialResultExtras";
+import { ChannelWaysCard, CompareVerdictCard, DiagnosisFixCard, MobileCollapse } from "@/components/trial/TrialWaysCard";
 import ResultSummaryHero from "@/components/common/ResultSummaryHero";
 import { naverSeoTile, aiTabTile, briefingTile, rankTile, makeTile, type ChannelTile } from "@/lib/scoreLabels";
 import type {
@@ -447,6 +448,9 @@ export default function TrialResultStep(props: TrialResultProps) {
   const faqText = result.faq_copy_text ?? null;
   const [dismissedKws, setDismissedKws] = useState<string[]>([]);
   const [tab, setTab] = useState<TrialTabKey>("glance");
+  // 소개글·소식을 AEOlab이 직접 못 본 경우, 사장님이 눌러서 바로잡는 답(null = 아직 답 안 함)
+  const [introAnswer, setIntroAnswer] = useState<boolean | null>(null);
+  const [postAnswer, setPostAnswer] = useState<boolean | null>(null);
   // "오늘 할 일 보기 ↓" 등 #today-action 링크·버튼 → 할 일 탭으로 전환 후 해당 위치로 스크롤
   // 탭 전환 계측 — 어떤 구역까지 보는지 알아야 다음 개선의 근거가 생긴다(2026-09-28)
   const changeTab = (k: TrialTabKey) => {
@@ -680,8 +684,8 @@ export default function TrialResultStep(props: TrialResultProps) {
   // ── 결과 화면 재구성용 파생 데이터 (2026-09-28) — 전부 실측·입력 기반, 더미 없음 ──
   const spCheck = result.smart_place_check ?? null;
   const spMeasured = !!(spCheck && !spCheck.error);
-  const introKnown = spMeasured ? (spCheck?.has_intro ?? hasIntro) : hasIntro;
-  const postKnown = spMeasured ? (spCheck?.has_recent_post ?? hasRecentPost) : hasRecentPost;
+  const introKnown = spMeasured ? (spCheck?.has_intro ?? hasIntro) : (introAnswer ?? hasIntro);
+  const postKnown = spMeasured ? (spCheck?.has_recent_post ?? hasRecentPost) : (postAnswer ?? hasRecentPost);
   // 우선순위는 AEOlab 판단 기준(추정) — 화면에도 그렇게 표기
   // effect 문구는 TodayOneAction.tsx의 같은 항목과 동일한 반영 기간 근거를 재사용한다(새 주장 추가 금지)
   // 온라인·전문직(non_location) 업종은 naver_data 자체가 없어(scan.py non_location 분기, naver=null)
@@ -843,7 +847,9 @@ export default function TrialResultStep(props: TrialResultProps) {
       label: "네이버 검색",
       text: bestNaverRank
         ? `내 가게는 네이버 지역검색 ${bestNaverRank}위입니다.`
-        : `${_kr.length > 1 ? `${_kr.length}개 검색어` : "검색"}에서 내 가게가 네이버 지역검색 상위 결과에 나오지 않았습니다.`,
+        : _kr.length > 1
+          ? `${_kr.length}개 검색어 모두에서 내 가게가 네이버 지역검색 상위 결과에 나오지 않았습니다.`
+          : "내 가게가 네이버 지역검색 상위 결과에 나오지 않았습니다.",
       tone: naverWeak ? "warn" : "ok",
     });
     const _topName = (naver as { top_competitor_name?: string | null } | null)?.top_competitor_name;
@@ -861,6 +867,13 @@ export default function TrialResultStep(props: TrialResultProps) {
         verdictBullets.push({ label: "블로그", text: `가게 이름이 나온 글 ${blogCount.toLocaleString()}건입니다(블로그 검색 상위 100건 기준).`, tone: "neutral" });
       }
     }
+  }
+
+  // 한 줄 진단의 대표 근거는 "나쁜 신호가 있는 첫 항목"이다. ChatGPT는 가장 안 바뀌는 길이라 앞세우지 않고
+  // 네이버 → 블로그 → ChatGPT 순으로 둔다(네이버가 정상이고 ChatGPT만 약하면 그대로 ChatGPT가 대표가 된다). (2026-10-10)
+  {
+    const _order: Record<string, number> = { "네이버 검색": 0, "블로그": 1, "AI 검색": 2, "참고": 3 };
+    verdictBullets.sort((a, b) => (_order[a.label] ?? 9) - (_order[b.label] ?? 9));
   }
 
   // 결과 화면 마운트 시 최상단으로 스크롤 (스캔 진행 중 아래로 스크롤된 상태 초기화)
@@ -1027,6 +1040,38 @@ export default function TrialResultStep(props: TrialResultProps) {
 
         {/* ── 첫 화면: 한 줄 진단 + 먼저 고칠 것 3가지 (5초 안에 "그래서 지금 어떤가/무엇부터"에 답한다) ── */}
         <TrialVerdictCard headline={verdictHeadline} bullets={verdictBullets} />
+
+        {/* ── 손님이 가게를 찾는 5개 길 — 어디를 직접 재 봤고 어디가 남았는지 (2026-10-10) ── */}
+        <ChannelWaysCard
+          isNonLocation={isNonLocationTrial}
+          naverMeasured={naverMeasured}
+          myRank={naver?.my_rank ?? null}
+          competitorCount={naverCompetitorCount}
+          searchQuery={naverSearchQuery ?? undefined}
+          briefingCategory={briefingCategory}
+          isFranchise={isFranchise}
+          chatgptMeasured={chatgptMentioned !== undefined}
+          chatgptFreq={chatgptResult?.exposure_freq}
+          chatgptSample={chatgptSampleSize}
+          chatgptQuery={directChatgptQuery || undefined}
+        />
+
+        {/* 소개글·소식은 직접 못 본 경우에만 — 사장님이 누른 답으로 "먼저 고칠 것"이 바뀐다 */}
+        {!spMeasured && !isNonLocationTrial && (
+          <DiagnosisFixCard
+            intro={introAnswer}
+            setIntro={(v) => {
+              setIntroAnswer(v);
+              trackEvent("trial_diag_fix_answer", { field: "intro", value: v, trial_id: (result as { trial_id?: string }).trial_id });
+            }}
+            post={postAnswer}
+            setPost={(v) => {
+              setPostAnswer(v);
+              trackEvent("trial_diag_fix_answer", { field: "post", value: v, trial_id: (result as { trial_id?: string }).trial_id });
+            }}
+          />
+        )}
+
         <PriorityFixCard
           items={priorityItems}
           onMore={() => {
@@ -1035,24 +1080,51 @@ export default function TrialResultStep(props: TrialResultProps) {
           }}
         />
 
-        {/* ── 채널별 즉시 현황 바 ── */}
-        <ScanStatusBar
-          chatgptMentioned={chatgptMentioned}
-          chatgptExposureFreq={chatgptResult?.exposure_freq}
-          chatgptSampleSize={chatgptSampleSize}
-          geminiExposureFreq={geminiExposureFreq}
-          inBriefing={inBriefing}
-          briefingCategory={briefingCategory}
-          smartPlaceCheck={result.smart_place_check ?? null}
-          isSmartPlace={isSmartPlace}
-        />
-
-
         {/* ── 결과 구역 탭 (한눈에 / 경쟁 비교 / 네이버 현황 / AI 검색 / 할 일·로드맵) ── */}
         <ResultTabs active={tab} onChange={changeTab} />
 
         {/* ── 한눈에 ── */}
         <div role="tabpanel" id="trial-panel-glance" aria-labelledby="trial-tab-glance" className={tab === "glance" ? "" : "hidden"}>
+          {/* ── 주변 가게와 나란히 — 한 줄 결론 + 블로그 막대 + ChatGPT가 추천한 가게 (탭 안에 묻혀 있던 것을 첫 화면으로) ── */}
+          {!isNonLocationTrial && (
+            <>
+              <CompareVerdictCard
+                myRank={naver?.my_rank ?? null}
+                competitorCount={naverCompetitorCount}
+                myBlog={blogCount}
+                myBlogCapped={!!(naver as { blog_mentions_capped?: boolean } | null)?.blog_mentions_capped}
+                competitors={competitorBlogCounts}
+              />
+              <MobileCollapse
+                title="주변 가게와 블로그 글 수 비교"
+                hint="주변 가게 이름과 글 수를 막대로 보기"
+                onOpen={() => trackEvent("trial_board_open", { board: "blog_compare", trial_id: (result as { trial_id?: string }).trial_id })}
+              >
+                <CompetitorBlogBars
+                  myName={form.business_name || "내 가게"}
+                  myCount={blogCount}
+                  myCapped={!!(naver as { blog_mentions_capped?: boolean } | null)?.blog_mentions_capped}
+                  competitors={competitorBlogCounts}
+                />
+              </MobileCollapse>
+            </>
+          )}
+          {aiPlaces.length > 0 && (
+            <MobileCollapse
+              title="ChatGPT가 추천한 가게"
+              hint={`${chatgptSampleSize}번 중 어느 가게가 몇 번 나왔는지 보기`}
+              onOpen={() => trackEvent("trial_board_open", { board: "ai_places", trial_id: (result as { trial_id?: string }).trial_id })}
+            >
+              <AIRecommendedPlacesCard
+                businessName={form.business_name || "내 가게"}
+                sampleSize={chatgptSampleSize}
+                exposureFreq={chatgptResult?.exposure_freq ?? 0}
+                avgRank={aiAvgRank}
+                places={aiPlaces}
+              />
+            </MobileCollapse>
+          )}
+
           {/* ── 이번 스캔 발견 ── */}
           <ScanConclusionCard
             businessName={form.business_name || "내 가게"}
@@ -1143,16 +1215,7 @@ export default function TrialResultStep(props: TrialResultProps) {
 
         {/* ── 경쟁 비교 ── */}
         <div role="tabpanel" id="trial-panel-compete" aria-labelledby="trial-tab-compete" className={tab === "compete" ? "" : "hidden"}>
-          {/* 온라인·전문직 업종은 지역 경쟁사 개념이 없어 competitor_blog_counts가 항상 비어 있음(scan.py 비location_based
-              분기는 이 집계를 하지 않음) — location_based일 때만 렌더링, 아니면 새 "비교 대상 없음" 안내와
-              아래 구조적 안내 문구가 중복돼 혼란을 준다 (2026-09-29) */}
-          {(result as { business_type?: string }).business_type !== "non_location" && (
-            <CompetitorBlogBars
-              myName={form.business_name || "내 가게"}
-              myCount={blogCount}
-              competitors={competitorBlogCounts}
-            />
-          )}
+          {/* 경쟁 블로그 막대는 첫 화면(한눈에)으로 옮겼다 — 같은 카드를 두 번 보여 주지 않는다 (2026-10-10) */}
           {/* ── 네이버 현황 ── */}
           {(result as { business_type?: string }).business_type !== "non_location" && (
             <NaverStatusSection
@@ -1326,13 +1389,6 @@ export default function TrialResultStep(props: TrialResultProps) {
               exposureFreq={chatgptResult?.exposure_freq}
             />
           )}
-          <AIRecommendedPlacesCard
-            businessName={form.business_name || "내 가게"}
-            sampleSize={chatgptSampleSize}
-            exposureFreq={chatgptResult?.exposure_freq ?? 0}
-            avgRank={aiAvgRank}
-            places={aiPlaces}
-          />
           <GeminiExampleCard query={chatgptDisplayQueries[0] ?? ""} />
           <ChannelPeriodsCard />
         </div>
@@ -2006,101 +2062,6 @@ function BriefingBadgeChip({
 }
 
 // ── 즉시 파악 현황 요약 바 ────────────────────────────────────────────
-function ScanStatusBar({
-  chatgptMentioned, chatgptExposureFreq, chatgptSampleSize,
-  geminiExposureFreq, inBriefing, briefingCategory, smartPlaceCheck, isSmartPlace,
-}: {
-  chatgptMentioned: boolean | undefined;
-  chatgptExposureFreq?: number;
-  chatgptSampleSize: number;
-  geminiExposureFreq?: number;
-  inBriefing: boolean | null;
-  briefingCategory: "active" | "likely" | "inactive";
-  smartPlaceCheck: TrialSmartPlaceCheck | null | undefined;
-  isSmartPlace: boolean;
-}) {
-  const chatgptOk = chatgptExposureFreq !== undefined ? chatgptExposureFreq > 0 : chatgptMentioned === true;
-  const geminiOk = (geminiExposureFreq ?? 0) > 0;
-  const briefingOk = briefingCategory === "active" ? inBriefing === true : null;
-
-  // smartPlaceCheck 상세 데이터 우선, 없으면 place_match/form 감지 결과 사용
-  const spOk: boolean | null = (smartPlaceCheck && !smartPlaceCheck.error)
-    ? (smartPlaceCheck.is_smart_place && (smartPlaceCheck.has_intro ?? true))
-    : isSmartPlace ? true : null;
-  const spDetail = spOk === null
-    ? "확인 불가"
-    : spOk
-      ? (smartPlaceCheck?.has_intro !== undefined ? "기본 완료" : "등록 확인")
-      : (smartPlaceCheck?.is_smart_place ? "소개글 없음" : "보완 필요");
-
-  type ItemStatus = "ok" | "warn" | "na" | "unknown";
-  const items: { label: string; status: ItemStatus; detail: string }[] = [
-    {
-      label: "ChatGPT",
-      // 표본이 50회이므로 1~2회 언급을 "노출 확인"으로 크게 표시하지 않고 빈도 등급 + 횟수로 표기한다
-      status:
-        chatgptMentioned === undefined
-          ? "unknown"
-          : !chatgptOk
-            ? "warn"
-            : chatgptExposureFreq !== undefined && chatgptSampleSize > 0 && chatgptExposureFreq / chatgptSampleSize < 0.3
-              ? "warn"
-              : "ok",
-      detail: !chatgptOk
-        ? "미노출"
-        : chatgptExposureFreq !== undefined && chatgptSampleSize > 0
-          ? `${
-              chatgptExposureFreq / chatgptSampleSize >= 0.6
-                ? "자주 노출"
-                : chatgptExposureFreq / chatgptSampleSize >= 0.3
-                  ? "가끔 노출"
-                  : "드물게 노출"
-            } (${chatgptExposureFreq}/${chatgptSampleSize}회)`
-          : "노출 확인",
-    },
-    {
-      label: "Gemini",
-      status: geminiExposureFreq === undefined ? "unknown" : geminiOk ? "ok" : "warn",
-      detail: geminiExposureFreq === undefined ? "가입 후 실측" : geminiOk ? `${geminiExposureFreq}/${10}회 노출` : "미노출",
-    },
-    {
-      label: "네이버 AI브리핑",
-      // 체험은 브리핑을 측정하지 않는다(inBriefing null) — 대상 업종이라도 "미노출"이 아니라 "가입 후 실측"
-      status: briefingCategory !== "active" ? "na" : inBriefing === null ? "unknown" : briefingOk ? "ok" : "warn",
-      detail: briefingCategory !== "active" ? "비대상 업종" : inBriefing === null ? "가입 후 실측" : briefingOk ? "노출 중" : "미노출",
-    },
-    {
-      label: "스마트플레이스",
-      status: spOk === null ? "unknown" : spOk ? "ok" : "warn",
-      detail: spDetail,
-    },
-  ];
-
-  const statusStyle: Record<ItemStatus, { bg: string; text: string; dot: string }> = {
-    ok:      { bg: "bg-green-50 border-green-200",  text: "text-green-700",  dot: "bg-green-500" },
-    warn:    { bg: "bg-amber-50 border-amber-200",   text: "text-amber-700",  dot: "bg-amber-400" },
-    na:      { bg: "bg-slate-50 border-slate-200",   text: "text-slate-400",  dot: "bg-slate-300" },
-    unknown: { bg: "bg-slate-50 border-slate-200",   text: "text-slate-500",  dot: "bg-slate-300" },
-  };
-
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
-      {items.map((item) => {
-        const s = statusStyle[item.status];
-        return (
-          <div key={item.label} className={`rounded-xl border px-3 py-3 ${s.bg}`}>
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className={`w-2 h-2 rounded-full shrink-0 ${s.dot}`} />
-              <span className="text-sm font-semibold text-slate-600">{item.label}</span>
-            </div>
-            <p className={`text-base font-black leading-tight ${s.text}`}>{item.detail}</p>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 // ── Sticky 하단 배너 ──────────────────────────────────────────────────
 function StickySignupBanner({
   isLoggedIn,
