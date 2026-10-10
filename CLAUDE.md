@@ -651,7 +651,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 2. **빌드 완료 확인** — `ssh root@115.68.231.57 "cd /var/www/aeolab/frontend && npm run build 2>&1 | tail -5"` — 빌드 성공 로그 확인. **파일 업로드만으로 반영 안 됨 — 빌드 필수**
 3. **PM2 재시작 + 에러 확인** — `pm2 restart aeolab-frontend` 후 `pm2 logs aeolab-frontend --lines 30 --nostream` 에러 0건
 
-> **백엔드는 파일 교체 즉시 반영, 프론트엔드는 반드시 빌드(npm run build) 후 재시작해야 반영됨 — 이 차이를 항상 구분할 것**
+> **백엔드는 `uvicorn --workers 1`을 `--reload` 없이 실행 중(2026-10-10 `pm2 describe` 확인)이라 `.py`를 올린 뒤 `pm2 restart aeolab-backend`를 해야 반영된다. 프론트엔드는 `npm run build` 후 `pm2 restart aeolab-frontend`. 둘 다 파일만 올려서는 반영되지 않는다.**
 
 ---
 
@@ -724,6 +724,8 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 ---
 
 ## 최근 업데이트 (2026-08-23~08-27 상세 내역은 `docs/changelog_archive.md`로 이관)
+
+- **2026-10-10 무료 체험 입력·결과 개편 + 측정 정확도 수정**: 가게 이름만 입력하는 2화면 경로, 결과 "손님이 찾는 5개 길", ChatGPT 질문을 구 이름·동네 이름 두 가지로 나란히 측정(동네 칸은 직접 입력 경로에도 있음), 구글 지도 노출·평점·리뷰 수 카드(Serper `/places`, 체험당 최대 2크레딧). **카카오 측정 수정**: 지역 첫 단어만 쓰고 상위 5곳에 없으면 "미등록"으로 단정하던 것을 시·군·구 단위·상위 15곳·이름 재조회로 바꿈(조회 실패는 알 수 없음). **점수 결함 수정**: `calc_kakao_completeness`가 `mentioned`만 읽어 카카오 등록 가게도 0점이던 것을 `is_on_kakao` 인식으로 수정(`score_engine.py:566`). ⚠️ `scan.py`의 `businesses.kakao_score` 자동 저장 블록(`kakao_data.get("mentioned")` 등)은 같은 이유로 죽은 코드이며 **살리면 안 됨** — 저장값이 사용자 체크리스트 점수보다 우선해 덮어씀. 랜딩·공개 페이지·대시보드의 "1분/30초" 등 시간 표현 삭제, 무료 진단 범위를 "네이버 지도·검색, ChatGPT, 구글 지도(직접 측정) / AI 브리핑·AI탭·제미나이·구글 AI·검색(가입 후)"로 정정. 미해결: 공용 `names_match`가 "점"만 붙은 지점 표기를 못 잡음(ChatGPT 노출 횟수 과소 집계 가능, 유료 스캔 영향), `app/` 안 `.bak` 파일 20여 개 정리 결정 대기. 상세 `docs/trial_improvement_2026_09_28_v1.0.md` §17~§23.
 
 - **2026-09-28 무료 체험 개선 — 저장 P0·Gemini 제거·비유도 ChatGPT 50회·탭 구조 재구성**: 무료 체험 정보가 실측·사실인지 점검 → ①`trial_scans` insert가 `smart_place_completeness`(INTEGER)에 9.0을 넣어 22P02로 실패, 7/15 이후 저장 0건·즉시 결과 이메일 미발송(정수 변환으로 수정) ②Gemini API 키가 무료 티어(하루 20회·분당 5회)라 체험·스캔 대부분 실패(체험에서 Gemini 호출 제거, 결제 연결은 사용자 작업) ③ChatGPT 판정이 가게명을 넣는 유도형이라 표본 50회에서 가짜 가게가 1~4회 "노출" 판정 → 가게명을 넣지 않는 `sample_recommend`로 교체(가짜 0/50, 부산물로 AI가 추천한 가게 top_places·평균 순서) ④체험 화면을 5탭(한눈에/경쟁 비교/네이버 현황/AI 검색/할 일·로드맵)으로 재구성 — 먼저 고칠 것 3가지·직접 확인(질문 복사)·확인 완료 접기·경쟁 5곳 블로그 막대·키워드 월 검색량(SearchAd, 0→"10회 미만")·AI 추천 가게(네이버 지역검색 대조 exact/similar/none)·Gemini 예시 카드(예시 라벨)·미측정은 "가입 후 실측" 표기. 이름 매칭은 부분 문자열 대신 지점 표기만 허용(`names_match`). 라이브 실측 17~21초·모바일 문서 10,000→5,400px. 상세·잔여 과제 `docs/trial_improvement_2026_09_28_v1.0.md`.
 
