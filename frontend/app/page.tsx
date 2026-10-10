@@ -891,7 +891,7 @@ export default function LandingPage() {
               스마트플레이스·리뷰·키워드·블로그를 함께 관리하면 AI 추천 가능성이 높아집니다
             </p>
             <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.75)" }}>
-              AEOlab이 4가지 기준을 자동 점검하고 개선 순서를 알려드립니다 — 1분 무료 진단
+              AEOlab이 4가지 기준을 자동 점검하고 개선 순서를 알려드립니다 — 무료 진단
             </p>
             <a
               href="/trial"
@@ -1139,7 +1139,7 @@ export default function LandingPage() {
         <p className="text-sm" style={{ color: "#475569" }}>
           아직 망설이고 있다면,{" "}
           <a href="/trial" className="font-bold underline" style={{ color: "#7C3AED" }}>
-            1분 무료 진단
+            무료 진단
           </a>
           은 회원가입 없이 바로 가능합니다
         </p>
@@ -1307,7 +1307,7 @@ export default function LandingPage() {
             {[
               { icon: Lock, text: "가입 불필요" },
               { icon: CreditCard, text: "카드 없이" },
-              { icon: Clock, text: "1분 소요" },
+              { icon: Clock, text: "무료 진단" },
             ].map(({ icon: Icon, text }) => (
               <span
                 key={text}
@@ -1327,7 +1327,7 @@ export default function LandingPage() {
               className="inline-flex items-center gap-2 text-sm md:text-base font-bold px-8 py-3.5 rounded-xl transition-all hover:scale-105 hover:shadow-lg"
               style={{ background: "#FFFFFF", color: "#0F172A", boxShadow: "0 4px 20px rgba(0,0,0,0.3)" }}
             >
-              1분 무료 진단 시작
+              무료 진단 시작
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>

@@ -75,7 +75,7 @@ function FindView({ query, setQuery, results, loading, done, onSelect, onManual,
         <p className="text-base text-gray-600 leading-relaxed break-keep">
           네이버에서 찾아 업종과 지역을 자동으로 채워 드려요.{" "}
           <br className="hidden sm:block" />
-          네이버 검색과 ChatGPT에서 내 가게가 나오는지, 20~40초면 알려 드립니다.
+          네이버 검색과 ChatGPT에서 내 가게가 나오는지 알려 드립니다.
         </p>
       </div>
 
@@ -471,7 +471,7 @@ function ConfirmView(p: TrialFindStepProps) {
             {blockReason ? blockReason : `${candidate.title} 진단 시작 →`}
           </button>
           <p className="mt-2 text-sm text-center text-slate-500 break-keep">
-            가입 없이 무료 · ChatGPT에 50번 질문하는 데 20~40초 걸려요
+            가입 없이 무료 · ChatGPT에 50번 질문해 봅니다
           </p>
         </div>
       </div>

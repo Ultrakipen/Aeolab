@@ -105,7 +105,7 @@ export const PLANS: PlanInfo[] = [
       { title: "내 가게 성장 단계", desc: "시작 · 성장 · 빠른 성장 · 지역 1등 중 어디쯤인지 알려드려요" },
       { title: "엑셀 파일 내려받기 · 변화 기록 60일 보관", desc: "파일로 저장하고 최근 60일 변화를 볼 수 있어요" },
     ],
-    cta: "1분 무료 회원가입",
+    cta: "무료 회원가입",
     href: "/signup",
     isPay: true,
   },

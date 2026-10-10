@@ -258,19 +258,17 @@ export default function HeroSection() {
                 className="text-sm leading-relaxed break-keep"
                 style={{ color: "rgba(255,255,255,0.80)" }}
               >
-                <strong style={{ color: "#A5F3FC" }}>ChatGPT·Gemini·Google AI</strong> 노출까지 함께 확인 —
-                가입 없이 1분 · 무료
+                무료 진단은 <strong style={{ color: "#A5F3FC" }}>네이버 검색과 ChatGPT</strong>를 직접 재 봅니다.
+                네이버 AI 브리핑·AI탭, 제미나이, 구글은 가입하면 확인해 드려요.
               </p>
             </div>
 
             {/* 진단 채널 배지 */}
-            <div className="flex flex-wrap gap-2 mb-5">
+            <p className="text-sm font-semibold mb-1.5" style={{ color: "rgba(255,255,255,0.70)" }}>무료로 직접 재 보는 길</p>
+            <div className="flex flex-wrap gap-2 mb-3">
               {[
-                { label: "네이버 AI브리핑", color: "#22C55E" },
-                { label: "네이버 AI탭", color: "#22C55E" },
-                { label: "네이버 검색 노출", color: "#22C55E" },
-                { label: "ChatGPT", color: "#60A5FA" },
-                { label: "Gemini", color: "#60A5FA" },
+                { label: "네이버 지도·검색", color: "#22C55E" },
+                { label: "ChatGPT", color: "#22C55E" },
               ].map(({ label, color }) => (
                 <span
                   key={label}
@@ -285,6 +283,22 @@ export default function HeroSection() {
                     className="w-1.5 h-1.5 rounded-full shrink-0"
                     style={{ background: color }}
                   />
+                  {label}
+                </span>
+              ))}
+            </div>
+            <p className="text-sm font-semibold mb-1.5" style={{ color: "rgba(255,255,255,0.70)" }}>가입하면 확인하는 길</p>
+            <div className="flex flex-wrap gap-2 mb-5">
+              {["네이버 AI 브리핑", "네이버 AI탭", "제미나이", "구글"].map((label) => (
+                <span
+                  key={label}
+                  className="inline-flex items-center gap-1.5 text-sm font-medium px-2.5 py-1 rounded-full"
+                  style={{
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px dashed rgba(255,255,255,0.25)",
+                    color: "rgba(255,255,255,0.70)",
+                  }}
+                >
                   {label}
                 </span>
               ))}
@@ -368,7 +382,7 @@ export default function HeroSection() {
                       className="text-sm mt-1"
                       style={{ color: "rgba(255,255,255,0.58)" }}
                     >
-                      1분 · 가입 불필요 · 즉시 결과
+                      가입 불필요 · 카드 없이 무료
                     </p>
                   </div>
                   <span
@@ -486,7 +500,7 @@ export default function HeroSection() {
 
                 {/* 신뢰 배지 */}
                 <div className="flex items-center justify-center gap-4 mt-4">
-                  {["가입 없음", "카드 없음", "즉시 결과"].map((t) => (
+                  {["가입 없음", "카드 없음", "무료"].map((t) => (
                     <span
                       key={t}
                       className="flex items-center gap-1.5 text-sm"

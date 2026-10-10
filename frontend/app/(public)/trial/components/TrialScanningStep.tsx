@@ -45,7 +45,7 @@ export default function TrialScanningStep({
         을<br />
         네이버에서 검색하고 ChatGPT에게 50번 물어보고 있습니다
       </p>
-      <p className="text-sm text-slate-400 mb-8">보통 20~40초 소요됩니다</p>
+      <p className="text-sm text-slate-400 mb-8">단계별로 진행 중이에요</p>
 
       {/* 스캔 단계 목록 */}
       <div className="max-w-sm mx-auto space-y-2 text-left">

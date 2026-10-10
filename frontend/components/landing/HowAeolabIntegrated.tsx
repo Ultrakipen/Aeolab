@@ -200,7 +200,7 @@ export function HowAeolabIntegrated() {
       border: "#BFDBFE",
       label: "STEP 01",
       title: "우리 가게 입력",
-      desc: "업종·가게 이름만 입력하면 네이버 AI 브리핑부터 ChatGPT·Gemini·Google AI까지 한번에 분석합니다",
+      desc: "가게 이름만 입력하면 네이버 검색과 ChatGPT에서 내 가게가 나오는지 바로 재 봅니다",
       ui: (
         <div className="space-y-1.5 mb-3">
           {[
@@ -224,7 +224,7 @@ export function HowAeolabIntegrated() {
             진단 시작 <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </div>
           <p className="text-center text-sm" style={{ color: "#475569" }}>
-            1분 소요 · 가입 불필요 · 예시
+            가입 불필요 · 예시
           </p>
         </div>
       ),
@@ -237,7 +237,7 @@ export function HowAeolabIntegrated() {
       border: "#C7D2FE",
       label: "STEP 02",
       title: "노출 현황 분석 + 개선 방향",
-      desc: "네이버 AI 브리핑 노출 현황·빠진 키워드 안내 · ChatGPT·Gemini·Google AI 분석도 함께 제공",
+      desc: "네이버 검색·ChatGPT 결과와 개선 방향 안내 · 가입하면 AI 브리핑·AI탭·제미나이·구글까지 확인",
       ui: (
         <div className="space-y-2 mb-3">
           {/* AI 노출 현황 카드 */}
@@ -330,7 +330,7 @@ export function HowAeolabIntegrated() {
             className="text-2xl md:text-3xl font-black tracking-tight break-keep"
             style={{ color: "#0F172A", letterSpacing: "-0.6px" }}
           >
-            1분 진단,{" "}
+            무료 진단,{" "}
             <span
               style={{
                 background: "linear-gradient(90deg,#2563EB 0%,#7C3AED 100%)",

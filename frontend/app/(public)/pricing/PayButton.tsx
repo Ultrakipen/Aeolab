@@ -74,7 +74,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
     })();
   }, [showConfirm]);
 
-  const displayCta = isLoggedIn && ctaText === "1분 무료 회원가입" ? "결제하기" : (ctaText ?? "시작하기");
+  const displayCta = isLoggedIn && ctaText === "무료 회원가입" ? "결제하기" : (ctaText ?? "시작하기");
 
   const chargeAmount = firstMonthAmount && isFirstTime ? firstMonthAmount : amount;
 

@@ -56,7 +56,7 @@ export default function TextShareButton({
     `요즘 손님들, AI로 가게 먼저 검색하는 거 아셨어요?`,
     findingLine,
     `진단 결과로 어떤 키워드가 부족한지, 어떻게 개선하면 되는지까지 바로 알려줘요`,
-    `사장님 가게도 30초 무료 진단 👉 https://aeolab.co.kr/trial`,
+    `사장님 가게도 무료 진단 👉 https://aeolab.co.kr/trial`,
   ].join("\n");
 
   const handleShare = async () => {

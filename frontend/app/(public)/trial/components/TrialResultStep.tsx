@@ -73,7 +73,7 @@ import { IconTile } from "@/components/common/IconTile";
 // ── 구독 행동 기능 잠금 카드 ────────────────────────────────────────
 function ActionFeaturesLock({ onSave }: { onSave: () => void }) {
   const actions: { icon: LucideIcon; label: string; desc: string }[] = [
-    { icon: PenLine, label: "소개글 개선 초안 자동 생성", desc: "빠진 검색어를 반영한 소개글 1분 완성" },
+    { icon: PenLine, label: "소개글 개선 초안 자동 생성", desc: "빠진 검색어를 반영한 소개글 자동 완성" },
     { icon: Calendar, label: "7일 후 순위 변화 자동 측정", desc: "소개글 수정 후 결과를 직접 확인" },
     { icon: Bell, label: "경쟁 가게 AI 노출 변화 알림", desc: "경쟁사가 AI에서 뜨면 즉시 알림" },
     { icon: BarChart3, label: "매주 자동 순위 추적 + 30일 추세", desc: "내가 한 행동이 효과 있었는지 확인" },
@@ -2179,7 +2179,7 @@ function StickySignupBanner({
             }}
             className="bg-white text-blue-700 font-bold text-sm md:text-base px-5 py-2.5 rounded-xl hover:bg-blue-50 transition-colors whitespace-nowrap shadow-md"
           >
-            회원가입하기 (1분)
+            회원가입하기
           </Link>
           <button
             onClick={handleDismiss}
