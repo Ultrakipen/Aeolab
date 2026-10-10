@@ -70,6 +70,7 @@ export function ChannelWaysCard({
   chatgptSample,
   chatgptQuery,
   neighborhood,
+  googleMapShown,
 }: {
   isNonLocation: boolean;
   naverMeasured: boolean;
@@ -84,6 +85,8 @@ export function ChannelWaysCard({
   chatgptQuery?: string;
   /** 동네·역 이름으로 물은 결과 — 있으면 구 이름 결과와 함께 말한다 */
   neighborhood?: { name: string; freq: number } | null;
+  /** 구글 지도 카드가 화면에 실제로 나오는지 — 나올 때만 "아래 카드"를 가리킨다 */
+  googleMapShown?: boolean;
 }) {
   // 곳 수를 알면 "상위 5곳", 모르면 "상위권" — 앞에 "상위"를 따로 붙이지 않는다
   const topWord = competitorCount > 0 ? `상위 ${competitorCount}곳` : "상위권";
@@ -179,7 +182,9 @@ export function ChannelWaysCard({
       name: "제미나이·구글",
       hint: "구글의 AI와 구글 검색",
       state: "later",
-      now: "내 가게가 나오는지는 아직 재 보지 않았어요.",
+      now: googleMapShown
+        ? "구글의 AI 답변과 구글 검색에 내 가게가 나오는지는 아직 재 보지 않았어요. 구글 지도는 아래 \u2018구글 지도에서의 모습\u2019에서 직접 재 봤어요."
+        : "내 가게가 나오는지는 아직 재 보지 않았어요.",
       nowTone: "muted",
       affects: "구글 지도에 가게 등록(구글 비즈니스 프로필)",
       duration: durationOf("Gemini"),

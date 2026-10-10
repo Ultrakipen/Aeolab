@@ -1079,6 +1079,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           chatgptSample={chatgptSampleSize}
           chatgptQuery={directChatgptQuery || undefined}
           neighborhood={hasNb ? { name: nbName, freq: nbFreq } : null}
+          googleMapShown={!!googlePlaces && (googlePlaces.top.length > 0 || googlePlaces.is_on_google !== null)}
         />
 
         {/* 소개글·소식은 직접 못 본 경우에만 — 사장님이 누른 답으로 "먼저 고칠 것"이 바뀐다 */}

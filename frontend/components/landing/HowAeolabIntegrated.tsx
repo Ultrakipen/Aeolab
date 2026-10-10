@@ -200,7 +200,7 @@ export function HowAeolabIntegrated() {
       border: "#BFDBFE",
       label: "STEP 01",
       title: "우리 가게 입력",
-      desc: "가게 이름만 입력하면 네이버 검색과 ChatGPT에서 내 가게가 나오는지 바로 재 봅니다",
+      desc: "가게 이름만 입력하면 네이버 검색·ChatGPT·구글 지도에서 내 가게가 나오는지 바로 재 봅니다",
       ui: (
         <div className="space-y-1.5 mb-3">
           {[
@@ -237,7 +237,7 @@ export function HowAeolabIntegrated() {
       border: "#C7D2FE",
       label: "STEP 02",
       title: "노출 현황 분석 + 개선 방향",
-      desc: "네이버 검색·ChatGPT 결과와 개선 방향 안내 · 가입하면 AI 브리핑·AI탭·제미나이·구글까지 확인",
+      desc: "네이버 검색·ChatGPT·구글 지도 결과와 개선 방향 안내 · 가입하면 AI 브리핑·AI탭·제미나이·구글 AI까지 확인",
       ui: (
         <div className="space-y-2 mb-3">
           {/* AI 노출 현황 카드 */}

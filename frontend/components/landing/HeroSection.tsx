@@ -258,8 +258,8 @@ export default function HeroSection() {
                 className="text-sm leading-relaxed break-keep"
                 style={{ color: "rgba(255,255,255,0.80)" }}
               >
-                무료 진단은 <strong style={{ color: "#A5F3FC" }}>네이버 검색과 ChatGPT</strong>를 직접 재 봅니다.
-                네이버 AI 브리핑·AI탭, 제미나이, 구글은 가입하면 확인해 드려요.
+                무료 진단은 <strong style={{ color: "#A5F3FC" }}>네이버 검색·ChatGPT·구글 지도</strong>를 직접 재 봅니다.
+                네이버 AI 브리핑·AI탭, 제미나이, 구글 AI·검색은 가입하면 확인해 드려요.
               </p>
             </div>
 
@@ -269,6 +269,7 @@ export default function HeroSection() {
               {[
                 { label: "네이버 지도·검색", color: "#22C55E" },
                 { label: "ChatGPT", color: "#22C55E" },
+                { label: "구글 지도", color: "#22C55E" },
               ].map(({ label, color }) => (
                 <span
                   key={label}
@@ -289,7 +290,7 @@ export default function HeroSection() {
             </div>
             <p className="text-sm font-semibold mb-1.5" style={{ color: "rgba(255,255,255,0.70)" }}>가입하면 확인하는 길</p>
             <div className="flex flex-wrap gap-2 mb-5">
-              {["네이버 AI 브리핑", "네이버 AI탭", "제미나이", "구글"].map((label) => (
+              {["네이버 AI 브리핑", "네이버 AI탭", "제미나이", "구글 AI·검색"].map((label) => (
                 <span
                   key={label}
                   className="inline-flex items-center gap-1.5 text-sm font-medium px-2.5 py-1 rounded-full"

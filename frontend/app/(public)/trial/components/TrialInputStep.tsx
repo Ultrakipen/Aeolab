@@ -474,7 +474,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                           <li className="flex items-start gap-1.5">
                             <span className="text-blue-600 shrink-0 mt-0.5">•</span>
                             <p className="text-sm text-blue-800">
-                              <strong>네이버 플레이스·지도</strong> 노출 + <strong>ChatGPT·Gemini</strong> 검색을 중심으로 진단
+                              <strong>네이버 플레이스·지도</strong> 노출 + <strong>ChatGPT</strong> 검색을 중심으로 진단 (제미나이는 가입 후 확인)
                             </p>
                           </li>
                           <li className="flex items-start gap-1.5">
