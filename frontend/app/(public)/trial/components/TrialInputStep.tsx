@@ -73,6 +73,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
     onMoveToInfo,
     inlineSearchResults,
     inlineSearchLoading,
+    inlineSearchDone,
     inlineSelectedCandidate,
     onInlinePlaceSelect,
     onInlinePlaceClear,
@@ -163,9 +164,9 @@ export default function TrialInputStep(props: TrialInputStepProps) {
           "max-w-2xl py-10"
         }`}
       >
-        {/* ── 무료 진단으로 얻는 것 ── */}
-        {step !== "scanning" && step !== "search" && (
-          <div className="mb-7 max-w-2xl mx-auto">
+        {/* ── 무료 진단으로 얻는 것 — 첫 단계에서만 (정보 입력 중에는 입력칸이 먼저 보이도록) ── */}
+        {step === "category" && (
+          <div className="mb-5 md:mb-7 max-w-2xl mx-auto">
             <p className="text-sm font-semibold text-slate-500 text-center mb-3">무료 진단으로 얻는 것</p>
             <div className="grid grid-cols-3 gap-2.5">
               {[
@@ -191,7 +192,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 >
                   <item.Icon className="w-6 h-6 text-blue-600" aria-hidden="true" />
                   <p className="text-sm font-bold text-slate-800 leading-tight">{item.title}</p>
-                  <p className="text-sm text-slate-500 leading-snug">{item.desc}</p>
+                  <p className="hidden md:block text-sm text-slate-500 leading-snug">{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -205,7 +206,10 @@ export default function TrialInputStep(props: TrialInputStepProps) {
               { key: "tags", label: "서비스" },
               { key: "info", label: "정보" },
               { key: "search", label: "가게 찾기" },
-            ].map((s, i) => (
+            ]
+              // "가게 찾기"는 상황에 따라 건너뛰는 단계라 실제로 그 화면일 때만 표시 (모바일 줄바꿈 방지)
+              .filter((s) => s.key !== "search" || step === "search")
+              .map((s, i, arr) => (
               <div key={s.key} className="flex items-center gap-1.5">
                 <div
                   className={`flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-full ${
@@ -219,7 +223,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                   <span>{i + 1}</span>
                   <span>{s.label}</span>
                 </div>
-                {i < 3 && <div className="w-4 h-0.5 bg-gray-300" aria-hidden="true" />}
+                {i < arr.length - 1 && <div className="w-4 h-0.5 bg-gray-300" aria-hidden="true" />}
               </div>
             ))}
           </div>
@@ -242,24 +246,6 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 아래에서 업종을 선택해 주세요
               </p>
             </div>
-            <p className="text-gray-600 text-center text-sm mb-3">
-              가장 가까운 업종을 선택하세요
-            </p>
-
-            {/* AI 채널 범례 */}
-            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 mb-4 px-1">
-              {[
-                { dot: "bg-green-500", label: "네이버 AI 브리핑 대상" },
-                { dot: "bg-blue-400", label: "AI 브리핑 확대 예정" },
-                { dot: "bg-violet-400", label: "글로벌 AI (ChatGPT·Gemini)" },
-              ].map(({ dot, label }) => (
-                <span key={label} className="flex items-center gap-1.5 text-sm text-gray-600">
-                  <span className={`w-2 h-2 rounded-full ${dot} inline-block shrink-0`} aria-hidden="true" />
-                  {label}
-                </span>
-              ))}
-            </div>
-
             {/* 업종 검색 입력 */}
             <div className="relative mb-4 max-w-lg mx-auto">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" aria-hidden="true" />
@@ -329,17 +315,10 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                       const cfg = CATEGORY_ICON_MAP[cat.value];
                       const Icon = cfg?.Icon;
                       const selected = selectedCategory === cat.value;
-                      const grp = getUserGroup(cat.value, false, briefingCats?.active, briefingCats?.likely);
-                      const aiBadge =
-                        grp === "ACTIVE"
-                          ? { text: "AI 브리핑", cls: "bg-green-100 text-green-700", dot: "bg-green-500" }
-                          : grp === "LIKELY"
-                          ? { text: "AI 브리핑 확대 예정", cls: "bg-blue-100 text-blue-700", dot: "bg-blue-400" }
-                          : { text: "글로벌 AI", cls: "bg-violet-50 text-violet-700", dot: "bg-violet-400" };
                       return (
                         <button
                           key={cat.value}
-                          aria-label={`${cat.label} 업종 선택 — ${aiBadge.text}`}
+                          aria-label={`${cat.label} 업종 선택`}
                           onClick={() => {
                             setSelectedCategory(cat.value);
                             setSelectedTags([]);
@@ -373,14 +352,10 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                             {cat.label}
                           </span>
                           {cat.typeTags && cat.typeTags.length > 0 && (
-                            <span className="text-xs text-gray-600 text-center leading-tight truncate w-full px-1">
+                            <span className="text-sm text-gray-600 text-center leading-tight truncate w-full px-1">
                               {cat.typeTags.slice(0, 2).join("·")} 등
                             </span>
                           )}
-                          <span className={`text-sm font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${aiBadge.cls}`}>
-                            <span className={`w-2 h-2 rounded-full ${aiBadge.dot} inline-block shrink-0`} aria-hidden="true" />
-                            {aiBadge.text}
-                          </span>
                         </button>
                       );
                     })}
@@ -397,7 +372,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                       c.groupLabel.toLowerCase().includes(categorySearch.trim().toLowerCase()),
                   ),
               ) && (
-                <p className="text-center text-sm text-slate-400 py-6">
+                <p className="text-center text-sm text-slate-500 py-6">
                   일치하는 업종이 없습니다. 다른 단어로 검색해 보세요.
                 </p>
               )}
@@ -737,74 +712,6 @@ export default function TrialInputStep(props: TrialInputStepProps) {
               );
             })()}
 
-            {/* 분석 기준 키워드 — 경쟁사·AI 측정에 사용되는 핵심 키워드 (항상 표시) */}
-            {(() => {
-              const categoryKorean: Record<string, string> = {
-                restaurant: "레스토랑", cafe: "카페", bakery: "베이커리", bar: "바",
-                beauty: "미용실", nail: "네일샵", medical: "의원", pharmacy: "약국",
-                fitness: "헬스장", yoga: "요가원", pet: "반려동물", education: "학원",
-                tutoring: "과외", legal: "법무사", realestate: "부동산", interior: "인테리어",
-                auto: "자동차", cleaning: "청소", shopping: "쇼핑", fashion: "패션",
-                photo: "사진관", video: "영상", design: "디자인", accommodation: "숙박", other: "가게",
-              };
-              const fallbackKeyword =
-                selectedTags[0] ||
-                categoryKorean[selectedCategory] ||
-                "대표 키워드 입력";
-              const previewKeyword = primaryKeyword || selectedTags[0];
-              return (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Info className="w-5 h-5 text-blue-600 shrink-0" aria-hidden="true" />
-                    <p className="text-base font-bold text-blue-900">분석 기준 키워드 확인</p>
-                  </div>
-                  <p className="text-sm text-blue-700 mb-1 leading-relaxed">
-                    이 키워드로 네이버 검색과 ChatGPT에 <strong>&ldquo;[지역] [키워드] 추천&rdquo;</strong> 형식으로 실제 질문을 던져 내 가게가 나오는지 확인하고, 경쟁 가게와 비교합니다.
-                  </p>
-                  <p className="text-sm font-semibold text-blue-800 mb-3">
-                    내 가게의 대표 서비스·업종명이 맞는지 확인하세요.
-                  </p>
-                  <input
-                    ref={keywordInputRef}
-                    type="text"
-                    value={primaryKeyword}
-                    onChange={e => {
-                      setPrimaryKeyword(e.target.value.slice(0, 20));
-                      if (e.target.value.trim()) setKeywordError(false);
-                    }}
-                    placeholder={fallbackKeyword}
-                    className={`w-full border-2 rounded-xl px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 font-medium transition-colors ${
-                      keywordError
-                        ? "border-red-400 focus:ring-red-300 focus:border-red-400"
-                        : "border-amber-300 focus:ring-amber-400 focus:border-amber-400"
-                    }`}
-                    maxLength={20}
-                  />
-                  {keywordError && (
-                    <p className="text-sm font-semibold text-red-700 mt-1.5 flex items-center gap-1.5" role="alert">
-                      <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden="true" />
-                      키워드를 직접 입력해 주세요. 분석 기준이 되는 가장 중요한 항목입니다.
-                    </p>
-                  )}
-                  {!keywordError && previewKeyword && form.region ? (
-                    <div className="mt-2 bg-white border border-amber-200 rounded-lg px-3 py-2">
-                      <p className="text-sm text-amber-700 font-semibold mb-0.5">실제 측정 검색어 미리보기</p>
-                      <p className="text-sm text-slate-700">&ldquo;<strong>{form.region.split(" ")[0]} {previewKeyword} 추천</strong>&rdquo; 등 5가지 방식</p>
-                    </div>
-                  ) : !keywordError && previewKeyword && !isStartupMode ? (
-                    <div className="mt-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-start gap-1.5">
-                      <AlertTriangle className="w-4 h-4 text-red-700 shrink-0 mt-0.5" aria-hidden="true" />
-                      <p className="text-sm text-red-700">
-                        <strong>지역을 아래에 입력</strong>해야 <strong className="text-slate-700">&ldquo;[지역] {previewKeyword} 추천&rdquo;</strong> 형태로 정확하게 검색됩니다.
-                      </p>
-                    </div>
-                  ) : !keywordError && (
-                    <p className="text-sm text-amber-700 mt-1.5">지역을 입력하면 실제 측정 검색어를 미리 볼 수 있습니다.</p>
-                  )}
-                </div>
-              );
-            })()}
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
               <button
                 type="button"
@@ -878,6 +785,18 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                     </div>
                   )}
 
+                  {/* 검색 끝났는데 후보 0건 — 침묵하지 않고 다음 행동 안내 */}
+                  {!inlineSelectedCandidate &&
+                    !inlineSearchLoading &&
+                    inlineSearchDone &&
+                    inlineSearchResults.length === 0 &&
+                    form.business_name.trim().length >= 2 && (
+                      <p className="mt-2 text-sm text-slate-600 leading-relaxed break-keep">
+                        네이버에서 찾지 못했어요. <strong className="text-slate-700">가게 이름만</strong> 입력해 보세요 (동네 이름은 빼고).
+                        그래도 안 나오면 그대로 진단하셔도 됩니다.
+                      </p>
+                    )}
+
                   {/* 인라인 검색 결과 드롭다운 */}
                   {!inlineSelectedCandidate && inlineSearchResults.length > 0 && (
                     <div className="mt-1 border border-slate-200 rounded-xl overflow-hidden shadow-sm bg-white">
@@ -922,8 +841,8 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 {!isStartupMode && (
                   <p className="text-sm text-slate-500 mb-1.5 leading-snug">
                     {businessType === "non_location"
-                      ? <>서비스 지역을 입력하세요. 전국 대상이면 <strong className="text-slate-700">&apos;전국&apos;</strong> 입력. 배달도 배달의민족·쿠팡이츠 기준 지역 단위로 측정됩니다.</>
-                      : <><strong className="text-slate-700">시·구 단위</strong>로 입력하세요 (예: 창원시 의창구, 서울 강남구). 같은 동 이름이 다른 시·구에도 존재하므로 구 단위까지 입력해야 경쟁사 비교가 정확합니다.</>
+                      ? <>서비스 지역을 입력하세요. 전국 대상이면 <strong className="text-slate-700">&apos;전국&apos;</strong>이라고 쓰세요.</>
+                      : <><strong className="text-slate-700">시·구까지</strong> 입력하세요. 같은 동 이름이 다른 구에도 있어, 구까지 써야 경쟁 가게 비교가 정확합니다.</>
                     }
                   </p>
                 )}
@@ -935,8 +854,8 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                     isStartupMode
                       ? "서울 강남 등 (비워두면 전국 분석)"
                       : businessType === "non_location"
-                        ? "서비스 지역 입력 (예: 서울 강남구, 전국 서비스면 '전국')"
-                        : "시+구 단위로 입력 (예: 창원시 의창구, 서울 강남구)"
+                        ? "예: 서울 강남구 / 전국"
+                        : "예: 창원시 의창구, 서울 강남구"
                   }
                   value={form.region}
                   onChange={(e) => {
@@ -959,6 +878,67 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                   </p>
                 )}
               </div>
+
+              {/* 검색하는 말 확인 — 지역 입력 직후에 둬서 "[지역] [키워드] 추천" 미리보기가 바로 보이게 함 */}
+              {(() => {
+                const categoryKorean: Record<string, string> = {
+                  restaurant: "레스토랑", cafe: "카페", bakery: "베이커리", bar: "바",
+                  beauty: "미용실", nail: "네일샵", medical: "의원", pharmacy: "약국",
+                  fitness: "헬스장", yoga: "요가원", pet: "반려동물", education: "학원",
+                  tutoring: "과외", legal: "법무사", realestate: "부동산", interior: "인테리어",
+                  auto: "자동차", cleaning: "청소", shopping: "쇼핑", fashion: "패션",
+                  photo: "사진관", video: "영상", design: "디자인", accommodation: "숙박", other: "가게",
+                };
+                const fallbackKeyword =
+                  selectedTags[0] ||
+                  categoryKorean[selectedCategory] ||
+                  "대표 키워드 입력";
+                const previewKeyword = primaryKeyword || selectedTags[0];
+                return (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <Info className="w-5 h-5 text-blue-600 shrink-0" aria-hidden="true" />
+                      <p className="text-base font-bold text-blue-900">손님이 검색하는 말 확인</p>
+                    </div>
+                    <p className="text-sm text-blue-800 mb-3 leading-relaxed break-keep">
+                      손님이 <strong>&ldquo;[지역] [이 말] 추천&rdquo;</strong>이라고 검색하는 상황으로 네이버와 ChatGPT에서 내 가게가 나오는지 확인합니다. 내 가게를 가장 잘 나타내는 말인지 봐 주세요.
+                    </p>
+                    <input
+                      ref={keywordInputRef}
+                      type="text"
+                      aria-label="손님이 검색하는 말"
+                      value={primaryKeyword}
+                      onChange={e => {
+                        setPrimaryKeyword(e.target.value.slice(0, 20));
+                        if (e.target.value.trim()) setKeywordError(false);
+                      }}
+                      placeholder={fallbackKeyword}
+                      className={`w-full border-2 rounded-xl px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 font-medium transition-colors ${
+                        keywordError
+                          ? "border-red-400 focus:ring-red-300 focus:border-red-400"
+                          : "border-blue-300 focus:ring-blue-400 focus:border-blue-400"
+                      }`}
+                      maxLength={20}
+                    />
+                    {keywordError && (
+                      <p className="text-sm font-semibold text-red-700 mt-1.5 flex items-center gap-1.5" role="alert">
+                        <AlertTriangle className="w-4 h-4 shrink-0" aria-hidden="true" />
+                        검색하는 말을 입력해 주세요. 측정의 기준이 되는 가장 중요한 항목입니다.
+                      </p>
+                    )}
+                    {!keywordError && previewKeyword && form.region ? (
+                      <div className="mt-2 bg-white border border-blue-200 rounded-lg px-3 py-2">
+                        <p className="text-sm text-blue-800 font-semibold mb-0.5">실제로 이렇게 검색해 봅니다</p>
+                        <p className="text-sm text-slate-700">&ldquo;<strong>{form.region.trim()} {previewKeyword} 추천</strong>&rdquo; 등 5가지 방식</p>
+                      </div>
+                    ) : (
+                      !keywordError && (
+                        <p className="text-sm text-slate-600 mt-1.5">위에 지역을 입력하면 실제 검색어를 미리 볼 수 있어요.</p>
+                      )
+                    )}
+                  </div>
+                );
+              })()}
 
               <div>
                 <label
@@ -987,7 +967,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 <div>
                   <label className="block text-base font-semibold text-slate-700 mb-2">
                     네이버 스마트플레이스 등록 여부
-                    <span className="ml-2 text-sm font-normal text-slate-400">진단 정확도에 영향을 줍니다</span>
+                    <span className="ml-2 text-sm font-normal text-slate-500">진단 정확도에 영향을 줍니다</span>
                   </label>
 
                   {/* 인라인 선택 시: 자동 확인 표시 */}
@@ -1076,7 +1056,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                                     className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all ${
                                       item.value === true
                                         ? "bg-green-700 text-white border-green-600 shadow-sm"
-                                        : "bg-white text-slate-400 border-slate-200 hover:border-green-400 hover:text-green-700"
+                                        : "bg-white text-slate-600 border-slate-200 hover:border-green-400 hover:text-green-700"
                                     }`}
                                   >
                                     있어요
@@ -1087,7 +1067,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                                     className={`px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all ${
                                       item.value === false
                                         ? "bg-slate-100 text-slate-700 border-slate-400"
-                                        : "bg-white text-slate-400 border-slate-200 hover:border-slate-400 hover:text-slate-600"
+                                        : "bg-white text-slate-600 border-slate-200 hover:border-slate-400 hover:text-slate-700"
                                     }`}
                                   >
                                     없어요
@@ -1097,7 +1077,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                             ))}
                           </div>
                           {[hasIntro, hasRecentPost, hasFaq].some((v) => v === undefined) && (
-                            <p className="text-sm text-slate-400 mt-2">
+                            <p className="text-sm text-slate-600 mt-2">
                               미선택 항목은 기본값(없어요)으로 처리됩니다
                             </p>
                           )}
@@ -1168,7 +1148,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 <div className="flex-1 min-w-0">
                   <span className="text-base font-medium text-slate-800">프랜차이즈 가맹점입니다</span>
                   <span className="block text-sm text-slate-500 mt-0.5">
-                    네이버 공식: 프랜차이즈는 현재 &apos;플레이스형&apos; AI 브리핑 제공 대상에서 제외됩니다(2026-04-30 확인)
+                    가맹점은 네이버 AI 브리핑 노출 대상에서 빠지므로, 그에 맞춰 진단합니다
                   </span>
                 </div>
               </label>
@@ -1194,7 +1174,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                   }}
                   className="w-full border border-slate-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
-                <p className="text-xs text-slate-500 mt-1.5">
+                <p className="text-sm text-slate-500 mt-1.5">
                   입력하시면 측정 완료 후 결과 요약을 바로 이메일로 보내드립니다.
                 </p>
                 {form.email.trim() && (
@@ -1328,7 +1308,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 </p>
                 <p className="font-semibold text-slate-700 pt-0.5">가입 후 1회 체험·구독에서 추가 확인</p>
                 <p className="leading-relaxed break-keep">
-                  네이버 AI 브리핑 실제 노출 여부 · Gemini 노출 · 네이버 AI탭 · 구글 검색 노출 · 매주 자동 측정 + 변화 알림
+                  네이버 AI 브리핑·AI탭 실제 노출 여부 · 구글 제미나이(Gemini) 노출 · 구글 검색 노출 · 매주 자동 측정과 변화 알림
                 </p>
               </div>
 
@@ -1406,6 +1386,8 @@ function SearchStep({
   onBack,
   getCandidateKey,
 }: SearchStepProps) {
+  // 후보 전부가 place id 없이 오는 경우가 일반적이라, 카드마다 반복하지 않고 목록 위에 한 번만 안내
+  const someHasRealId = candidates.some((c) => !!(c.naver_place_id || "").trim());
   return (
     <div>
       <button
@@ -1428,6 +1410,12 @@ function SearchStep({
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4">
           <p className="text-sm text-red-700">{searchError}</p>
         </div>
+      )}
+
+      {candidates.length > 0 && !someHasRealId && (
+        <p className="text-sm text-gray-600 mb-3 leading-relaxed break-keep">
+          ※ 소개글·최근 소식은 자동으로 확인하지 못해, 앞에서 입력하신 정보로 진단합니다.
+        </p>
       )}
 
       {candidates.length > 0 && (
@@ -1482,9 +1470,9 @@ function SearchStep({
                     <span>{c.phone}</span>
                   </p>
                 )}
-                {!hasRealId && (
+                {!hasRealId && someHasRealId && (
                   <p className="text-sm text-gray-600 mt-2">
-                    ※ 정보 자동 진단은 사용 불가 — 입력하신 체크박스 정보로 진단합니다
+                    ※ 이 가게는 소개글·소식을 자동으로 확인하지 못해, 입력하신 정보로 진단합니다
                   </p>
                 )}
               </button>

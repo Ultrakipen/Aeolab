@@ -181,6 +181,8 @@ export default function TrialPage() {
   // ── 인라인 스마트플레이스 검색 state ──────────────────────────────────
   const [inlineSearchResults, setInlineSearchResults] = useState<TrialBusinessCandidate[]>([]);
   const [inlineSearchLoading, setInlineSearchLoading] = useState(false);
+  // 검색이 끝났는데 후보가 0건인 경우를 "아직 검색 전"과 구분하기 위한 플래그
+  const [inlineSearchDone, setInlineSearchDone] = useState(false);
   const [inlineSelectedCandidate, setInlineSelectedCandidate] = useState<TrialBusinessCandidate | null>(null);
   const [forceManualEntry, setForceManualEntry] = useState(false);
   // 내 가게 네이버 지도 주소(선택) — 붙여넣기로 place_id 확보 → 스마트플레이스 자동 진단
@@ -348,16 +350,19 @@ export default function TrialPage() {
     if (step !== "info" || businessType !== "location_based" || isStartupMode) {
       setInlineSearchResults([]);
       setInlineSearchLoading(false);
+      setInlineSearchDone(false);
       return;
     }
     const name = form.business_name.trim();
     if (name.length < 2) {
       setInlineSearchResults([]);
       setInlineSearchLoading(false);
+      setInlineSearchDone(false);
       return;
     }
     if (inlineSelectedCandidate && inlineSelectedCandidate.title === name) return;
     setInlineSelectedCandidate(null);
+    setInlineSearchDone(false);
     const timer = setTimeout(async () => {
       setInlineSearchLoading(true);
       try {
@@ -367,6 +372,7 @@ export default function TrialPage() {
         setInlineSearchResults([]);
       } finally {
         setInlineSearchLoading(false);
+        setInlineSearchDone(true);
       }
     }, 700);
     return () => clearTimeout(timer);
@@ -585,6 +591,7 @@ export default function TrialPage() {
     setForceManualEntry(false);
     setInlineSearchResults([]);
     setInlineSearchLoading(false);
+    setInlineSearchDone(false);
     setInlineSelectedCandidate(null);
   };
 
@@ -692,6 +699,7 @@ export default function TrialPage() {
           onMoveToInfo={handleMoveToInfo}
           inlineSearchResults={inlineSearchResults}
           inlineSearchLoading={inlineSearchLoading}
+          inlineSearchDone={inlineSearchDone}
           inlineSelectedCandidate={inlineSelectedCandidate}
           onInlinePlaceSelect={handleInlinePlaceSelect}
           onInlinePlaceClear={handleInlinePlaceClear}

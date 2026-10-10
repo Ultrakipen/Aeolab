@@ -95,6 +95,7 @@ export interface TrialInputStepProps {
   onMoveToInfo: () => void;
   inlineSearchResults: TrialBusinessCandidate[];
   inlineSearchLoading: boolean;
+  inlineSearchDone: boolean;
   inlineSelectedCandidate: TrialBusinessCandidate | null;
   onInlinePlaceSelect: (c: TrialBusinessCandidate) => void;
   onInlinePlaceClear: () => void;
