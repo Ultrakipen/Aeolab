@@ -60,16 +60,9 @@ def _district_token(region: str) -> str:
     return ""
 
 
-_BARE_BRANCH = {"점", "지점", "본점", "역점"}
-
-
 def _same_name(t: str, name: str) -> bool:
-    """지점 표기만 다르면 같은 가게. names_match는 표기 앞에 글자가 1개 이상 있어야 하므로
-    "어니언 성수"와 "어니언 성수점"처럼 "점"만 붙은 경우를 여기서 보완한다(부분 문자열 포함은 쓰지 않는다)."""
-    if names_match(t, name):
-        return True
-    shorter, longer = (t, name) if len(t) <= len(name) else (name, t)
-    return len(shorter) >= 2 and longer.startswith(shorter) and longer[len(shorter):] in _BARE_BRANCH
+    """지점 표기만 다르면 같은 가게 — 규칙은 names_match 하나로 통일(2026-10-10: "점"만 붙은 표기까지 포함하도록 거기서 처리)."""
+    return names_match(t, name)
 
 
 def _is_my_shop(target: str, doc: dict, district: str) -> bool:

@@ -10,8 +10,9 @@ from services.ai_usage_logger import log_ai_usage
 _logger = logging.getLogger(__name__)
 
 
-# 지점 표기(본점·OO점·OO역·OO동…)만 다른 경우를 같은 가게로 인정하기 위한 접미사 패턴
-_BRANCH_SUFFIX_RE = re.compile(r"^(?:본점|\d*호점|[가-힣0-9a-z]{1,8}(?:지점|점|역|동|구))?$")
+# 지점 표기(점·본점·OO점·OO역·OO동…)만 다른 경우를 같은 가게로 인정하기 위한 접미사 패턴
+# (2026-10-10: "어니언성수"↔"어니언성수점"처럼 "점"만 붙은 표기를 추가. 알려진 한계: "카페모모"↔"카페모모카점"처럼 한 글자+점은 지점으로 보므로 구별하지 못한다)
+_BRANCH_SUFFIX_RE = re.compile(r"^(?:본점|점|\d*호점|[가-힣0-9a-z]{1,8}(?:지점|점|역|동|구))?$")
 
 
 def names_match(a: str, b: str) -> bool:
