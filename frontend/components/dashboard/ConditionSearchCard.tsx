@@ -141,7 +141,7 @@ export default function ConditionSearchCard({
             등록 키워드와 소개글이<br />
             AI 검색 의도에 얼마나 적합한지 분석합니다
           </p>
-          <p className="text-sm text-gray-600 mb-5">소요 시간: 약 30초 / 1시간 캐시</p>
+          <p className="text-sm text-gray-600 mb-5">결과는 1시간 동안 저장됩니다</p>
           {error && (
             <p className="text-sm text-red-700 mb-3">{error}</p>
           )}

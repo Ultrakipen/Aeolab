@@ -191,7 +191,7 @@ export function PlaceCompareTable({ bizId, currentPlan, authToken: initialToken 
       {data?.sp_auto_syncing && (
         <div className="px-4 md:px-6 py-3 flex items-start gap-2 text-sm text-blue-700 bg-blue-50 border-b border-blue-100">
           <Loader2 className="w-4 h-4 shrink-0 mt-0.5 animate-spin text-blue-600" />
-          <span>내 가게 스마트플레이스 정보를 처음 가져오고 있습니다. 약 30초 후 <strong>새로고침</strong>하면 소개글·메뉴 등록 여부가 정확히 표시됩니다.</span>
+          <span>내 가게 스마트플레이스 정보를 처음 가져오고 있습니다. 잠시 후 <strong>새로고침</strong>하면 소개글·메뉴 등록 여부가 정확히 표시됩니다.</span>
         </div>
       )}
 

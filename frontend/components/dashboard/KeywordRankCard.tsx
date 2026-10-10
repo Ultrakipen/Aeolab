@@ -334,7 +334,7 @@ export default function KeywordRankCard({
         >
           {scanning ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" /> 측정 중 (~30초)
+              <Loader2 className="w-4 h-4 animate-spin" /> 측정 중
             </>
           ) : hasData ? (
             <>

@@ -421,7 +421,7 @@ export default function BlogScreenshotSection({
         return
       }
       if (res.status === 202 || res.ok) {
-        setMessage("분석을 시작했습니다. 약 1~3분 후 새로고침 버튼을 누르세요.")
+        setMessage("분석을 시작했습니다. 잠시 후 새로고침 버튼을 누르세요.")
       } else {
         const data = await res.json().catch(() => ({}))
         setError((data as { detail?: string }).detail || "분석 요청에 실패했습니다.")
@@ -795,7 +795,7 @@ export default function BlogScreenshotSection({
             <div className="text-center py-10">
               <Camera className="w-10 h-10 text-gray-200 mx-auto mb-3" />
               <p className="text-sm font-medium text-gray-600 mb-1">아직 캡처된 스크린샷이 없습니다.</p>
-              <p className="text-sm text-gray-600">"첫 스크린샷 촬영" 버튼을 누르면 현재 네이버 블로그 검색 화면을 저장합니다.<br />약 1~2분 후 새로고침하세요.</p>
+              <p className="text-sm text-gray-600">"첫 스크린샷 촬영" 버튼을 누르면 현재 네이버 블로그 검색 화면을 저장합니다.<br />잠시 후 새로고침하세요.</p>
             </div>
           ) : initialShots.filter((s) => s.baseline || s.latest).map((shot) => (
             <div key={shot.keyword}>

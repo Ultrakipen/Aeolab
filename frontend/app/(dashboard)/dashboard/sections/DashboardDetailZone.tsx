@@ -234,7 +234,7 @@ export default function DashboardDetailZone({
           </ul>
         </div>
         <p className="text-base text-gray-600">
-          상단 <strong className="text-gray-700">AI 측정 시작</strong> 버튼을 눌러주세요 · 약 2~3분 소요
+          상단 <strong className="text-gray-700">AI 측정 시작</strong> 버튼을 눌러주세요
         </p>
       </div>
     );

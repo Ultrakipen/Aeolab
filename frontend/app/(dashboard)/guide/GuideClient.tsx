@@ -4841,7 +4841,7 @@ export function GuideClient({
               <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
               <p className="text-gray-700 font-semibold mb-1">Claude AI가 가이드를 만들고 있어요... ({elapsedSeconds}초)</p>
               <p className="text-gray-600 text-sm">
-                {elapsedSeconds < 20 ? '보통 30초~3분 소요됩니다' :
+                {elapsedSeconds < 20 ? '가이드를 만들고 있어요' :
                  elapsedSeconds < 60 ? '거의 다 됐습니다...' :
                  elapsedSeconds < 120 ? '내용이 많아 시간이 조금 더 걸리고 있어요...' :
                  '거의 마무리 단계입니다. 조금만 더 기다려주세요...'}
@@ -5096,7 +5096,7 @@ export function GuideClient({
                   AI 측정 결과를 바탕으로 맞춤 가이드를 만들어 드립니다.
                 </p>
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  생성에 30초~3분 정도 소요됩니다.
+                  생성에 잠시 시간이 걸립니다.
                 </p>
               </>
             )}

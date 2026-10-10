@@ -172,7 +172,7 @@ function PaymentSuccessContent() {
             <p className="text-sm font-semibold text-blue-800 mb-1">첫 측정 시작 방법</p>
             <ol className="text-sm text-blue-700 space-y-1">
               <li>1. 대시보드에서 사업장을 등록하세요</li>
-              <li>2. [AI 측정 시작] 버튼을 누르면 약 30초 후 결과가 나옵니다</li>
+              <li>2. [AI 측정 시작] 버튼을 누르면 결과가 나옵니다</li>
             </ol>
           </div>
 

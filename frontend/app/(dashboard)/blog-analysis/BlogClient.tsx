@@ -2308,8 +2308,8 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   </p>
                   <p className="text-sm mt-0.5">
                     {isBlogInactive
-                      ? "블로그 포스트를 읽고 AI 검색 언급 가능성을 분석합니다. (15~25초 소요)"
-                      : "블로그 포스트를 읽고 AI 브리핑 언급 가능성을 분석합니다. (15~25초 소요)"}
+                      ? "블로그 포스트를 읽고 AI 검색 언급 가능성을 분석합니다. 잠시만 기다려 주세요."
+                      : "블로그 포스트를 읽고 AI 브리핑 언급 가능성을 분석합니다. 잠시만 기다려 주세요."}
                   </p>
                 </div>
               </div>
@@ -2339,7 +2339,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
             <div>
               <p className="font-semibold text-amber-800">블로그 첫 분석을 자동으로 시작합니다. 잠시만 기다려 주세요.</p>
               <p className="text-sm text-amber-700 mt-0.5 leading-relaxed">
-                등록하신 블로그를 읽고 AI 언급 가능성을 분석합니다. 보통 20~35초 소요됩니다.<br/>
+                등록하신 블로그를 읽고 AI 언급 가능성을 분석합니다. 잠시 걸릴 수 있어요.<br/>
                 분석이 완료되면 결과가 자동으로 표시됩니다. 오래 걸리면 새로고침해 주세요.
               </p>
             </div>

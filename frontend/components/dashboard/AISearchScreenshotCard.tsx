@@ -260,7 +260,7 @@ export default function AISearchScreenshotCard({ bizId, plan, authToken }: Props
           <p className="text-sm text-gray-600 leading-relaxed">
             아직 AI 검색 화면 분석이 완료되지 않았습니다.
             <br />
-            측정 완료 후 약 20초 뒤 자동으로 나타납니다.
+            측정 완료 후 자동으로 나타납니다.
           </p>
         </div>
       )}

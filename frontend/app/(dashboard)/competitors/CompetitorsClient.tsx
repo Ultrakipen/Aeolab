@@ -720,7 +720,7 @@ function InlineScanModal({
               <p className="text-sm text-gray-600 mb-1 text-center leading-relaxed">
                 내 가게와 등록된 경쟁사를 동시에 분석합니다.
               </p>
-              <p className="text-sm text-gray-600 mb-5 text-center">약 1~2분 소요됩니다</p>
+              <p className="text-sm text-gray-600 mb-5 text-center">잠시만 기다려 주세요</p>
 
               {step === 'error' && errorMsg && (
                 <div className="flex items-center gap-2 text-sm text-red-700 bg-red-50 rounded-xl px-3 py-2.5 mb-4 border border-red-100">

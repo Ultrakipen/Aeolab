@@ -201,7 +201,7 @@ export function BlogDiagnosisCard({ businessId }: Props) {
       {loading && (
         <div className="bg-blue-50 rounded-xl p-4 flex items-center gap-3">
           <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin shrink-0" />
-          <p className="text-sm text-blue-700">블로그 포스트를 분석하는 중... 잠시만 기다려주세요. (약 15초)</p>
+          <p className="text-sm text-blue-700">블로그 포스트를 분석하는 중... 잠시만 기다려주세요.</p>
         </div>
       )}
 

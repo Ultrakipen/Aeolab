@@ -195,7 +195,7 @@ export function TalktalkFAQGeneratorCard({
           disabled={generating}
           className="w-full md:w-auto px-5 py-3 bg-purple-600 text-white rounded font-medium text-sm md:text-base hover:bg-purple-700 disabled:opacity-50 transition-colors"
         >
-          {generating ? "생성 중... (30초)" : "채팅방 메뉴 자동 생성"}
+          {generating ? "생성 중..." : "채팅방 메뉴 자동 생성"}
         </button>
       )}
 

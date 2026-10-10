@@ -997,7 +997,7 @@ export default function OnboardingPage() {
                 {
                   no: "Step 1/3",
                   title: "AI 측정 실행",
-                  desc: "대시보드에서 [AI 측정 시작] 버튼을 누르면 약 30초 안에 결과가 나옵니다.",
+                  desc: "대시보드에서 [AI 측정 시작] 버튼을 누르면 결과가 나옵니다.",
                   status: hasFirstScan ? "완료" : "자동 시작 중...",
                   done: hasFirstScan,
                   link: "/dashboard",
@@ -1072,7 +1072,7 @@ export default function OnboardingPage() {
                   <p className="text-base text-blue-100 leading-relaxed">
                     대시보드에서 <span className="font-bold text-white">[AI 측정 시작]</span> 버튼을 눌러
                     <br className="hidden sm:block" />
-                    첫 결과를 확인하세요 <span className="font-semibold">(약 30초)</span>
+                    첫 결과를 확인하세요
                   </p>
                 </div>
               </div>

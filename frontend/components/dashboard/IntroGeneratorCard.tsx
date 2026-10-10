@@ -184,7 +184,7 @@ export function IntroGeneratorCard({
           disabled={generating}
           className="w-full md:w-auto px-5 py-3 bg-blue-600 text-white rounded font-medium text-sm md:text-base hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
-          {generating ? "AI가 소개글 쓰는 중... (약 30초)" : "소개글 자동 생성"}
+          {generating ? "AI가 소개글 쓰는 중..." : "소개글 자동 생성"}
         </button>
       )}
 

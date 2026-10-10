@@ -457,7 +457,7 @@ export function CompetitorPlaceCard({
           )}
           {saveSuccess && (
             <p className="text-sm text-green-700 font-semibold">
-              ✓ 저장 완료! 데이터를 수집하는 중입니다 (30초~1분 소요)
+              ✓ 저장 완료! 데이터를 수집하는 중입니다
             </p>
           )}
           {/* 이미 place_id가 있으면 동기화 버튼 표시 */}

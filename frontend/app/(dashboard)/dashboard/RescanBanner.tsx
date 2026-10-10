@@ -33,7 +33,7 @@ export function RescanBanner({ stale = false }: Props) {
         ) : (
           <>
             <span className="font-semibold">AI 측정이 요청됐습니다.</span>{' '}
-            분석에 약 2~3분 소요됩니다. 완료되면 점수가 자동으로 업데이트됩니다.
+            분석 중입니다. 완료되면 점수가 자동으로 업데이트됩니다.
           </>
         )}
       </p>

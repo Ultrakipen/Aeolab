@@ -405,7 +405,7 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               <h3 className="text-base md:text-lg font-bold text-gray-900 break-keep">
                 (선택) 톡톡 채팅방 메뉴 등록
               </h3>
-              <p className="text-sm md:text-base text-gray-600 mt-0.5">예상 소요: 2~5분 (AI 자동 생성 이용 시)</p>
+              <p className="text-sm md:text-base text-gray-600 mt-0.5">AI 자동 생성을 이용하면 더 쉽습니다</p>
             </div>
           </div>
           <p className="text-sm md:text-base text-gray-700 mb-3 leading-relaxed break-keep">
