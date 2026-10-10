@@ -560,15 +560,21 @@ def calc_kakao_completeness(scan_result: dict, biz: dict) -> float:
     kakao_result = scan_result.get("kakao_result") or scan_result.get("kakao") or {}
     if kakao_result:
         score = 0.0
-        if kakao_result.get("mentioned"):
+        # 2026-10-10: get_kakao_visibility()는 "mentioned"가 아니라 "is_on_kakao"를 돌려준다.
+        # 이전에는 이 키를 읽지 않아 카카오맵에 등록된 가게도 0점이 됐다.
+        # is_on_kakao=None(조회 실패·알 수 없음)은 등록으로 세지 않는다.
+        if kakao_result.get("mentioned") or kakao_result.get("is_on_kakao") is True:
             score += 25.0   # 등록 확인
+        # has_hours/has_phone/has_photos는 현재 스캔 결과에 채워지지 않는다(카카오 체크리스트 점수 businesses.kakao_score 경로 전용)
         if kakao_result.get("has_hours"):
             score += 15.0
         if kakao_result.get("has_phone"):
             score += 15.0
         if kakao_result.get("has_photos"):
             score += 20.0
-        return min(100.0, score)
+        # 조회에 실패해 등록 여부를 알 수 없고(None) 다른 근거도 없으면 0점으로 확정하지 않고 아래 3순위(kakao_place_id)로 넘어간다
+        if score > 0 or kakao_result.get("is_on_kakao") is not None or "is_on_kakao" not in kakao_result:
+            return min(100.0, score)
 
     # 3순위: kakao_place_id 존재 여부 (등록만 확인된 경우 25점)
     if biz.get("kakao_place_id"):
