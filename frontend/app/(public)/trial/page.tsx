@@ -10,7 +10,7 @@ import { mapNaverCategory, FLAT_CATEGORY_MAP } from "@/lib/categories";
 import { getBriefingEligibility } from "@/lib/userGroup";
 import { useBriefingCategories } from "@/lib/useBriefingCategories";
 import { parseNaverPlaceUrl } from "@/lib/naverPlaceUrl";
-import { shortRegionFromAddress, keywordFromNaverCategory } from "@/lib/trialAutofill";
+import { shortRegionFromAddress, keywordFromNaverCategory, neighborhoodSuggestion } from "@/lib/trialAutofill";
 import { getSafeSession } from "@/lib/supabase/client";
 import type {
   TrialScanResult,
@@ -201,6 +201,9 @@ export default function TrialPage() {
   const [findLoading, setFindLoading] = useState(false);
   const [findDone, setFindDone] = useState(false);
   const [confirmCandidate, setConfirmCandidate] = useState<TrialBusinessCandidate | null>(null);
+  // 동네·역 이름(선택) — 주소에서 찾은 제안값을 기본으로 채우고 사장님이 고친다. ChatGPT에 구 이름과 별도로 이 이름으로도 묻는다.
+  const [neighborhood, setNeighborhood] = useState("");
+  const [neighborhoodAuto, setNeighborhoodAuto] = useState("");
   // 업종 자동 판정이 "기타"로 떨어졌을 땐 사용자가 직접 고르기 전까지 시작 불가
   const [categoryConfirmed, setCategoryConfirmed] = useState(true);
   // 진단 실패 시 어느 경로로 돌아갈지(빠른 경로면 confirm, 직접 입력이면 info)
@@ -546,6 +549,9 @@ export default function TrialPage() {
     setHasIntro(undefined);
     setHasRecentPost(undefined);
     setHasFaq(undefined);
+    const nb = neighborhoodSuggestion(c.title, c.address, c.jibun_address);
+    setNeighborhood(nb);
+    setNeighborhoodAuto(nb);
     setConfirmCandidate(c);
     setFastPath(true);
     setError("");
@@ -556,6 +562,8 @@ export default function TrialPage() {
   const handleManual = (kind: ManualKind) => {
     setFastPath(false);
     setConfirmCandidate(null);
+    setNeighborhood("");
+    setNeighborhoodAuto("");
     if (kind === "online") setBusinessType("non_location");
     if (kind === "startup") setIsStartupMode(true);
     else if (findQuery.trim()) {
@@ -634,6 +642,8 @@ export default function TrialPage() {
         review_text: reviewText || undefined,
         description: description || undefined,
         naver_place_id: naverPlaceId || undefined,
+        // 동네·역 이름은 빠른 경로(가게 이름만 입력)에서 확인 화면을 거친 경우에만 보낸다
+        neighborhood: fastPath && neighborhood.trim() ? neighborhood.trim() : undefined,
         place_match: selectedCandidate
           ? {
               title: selectedCandidate.title,
@@ -690,6 +700,8 @@ export default function TrialPage() {
     setFindLoading(false);
     setFindDone(false);
     setConfirmCandidate(null);
+    setNeighborhood("");
+    setNeighborhoodAuto("");
     setCategoryConfirmed(true);
     setFastPath(false);
     setIsStartupMode(false);
@@ -796,6 +808,9 @@ export default function TrialPage() {
           onCategoryChange={handleCategoryChange}
           primaryKeyword={primaryKeyword}
           onKeywordChange={handleKeywordChange}
+          neighborhood={neighborhood}
+          setNeighborhood={setNeighborhood}
+          neighborhoodAuto={neighborhoodAuto}
           hasFaq={hasFaq}
           setHasFaq={setHasFaq}
           hasRecentPost={hasRecentPost}

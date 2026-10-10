@@ -459,6 +459,7 @@ async def trial_search(request: Request, query: str, region: str = ""):
         items_out.append({
             "title":            title,
             "address":          item.get("roadAddress") or item.get("address", ""),
+            "jibun_address":    item.get("address", ""),  # 동·가 이름이 들어 있는 지번 주소 — 동네·역 이름 기본값 추출용
             "phone":            item.get("telephone") or None,
             "category":         item.get("category", ""),
             "naver_place_id":   place_id,
@@ -744,13 +745,29 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
     else:
         query = f"{req.region} {keyword_ko}{_suffix} 추천"
 
+    # ── ChatGPT 질문 목록 (2026-10-10) ───────────────────────────────
+    # 유료 스캔과 같은 5가지 말투(첫 요소 == 위 query). 한 질문을 50번 반복하면 "손님처럼 50번 물었다"는 설명이 과장이었음.
+    _ai_kw = f"{keyword_ko}{_suffix}".strip()
+    _ai_queries = _build_ai_scan_queries("" if is_non_location else (req.region or ""), _ai_kw)
+    # 동네·역 이름 질문 — 위치 기반이고 값이 있으며 지역 이름과 겹치지 않을 때만. 구 이름만으로는 중심 동(성수 등)의
+    # 가게 위주로 추천돼 다른 동의 가게가 0번으로 과소 측정됨(서버 실험: 왕십리역점 구 0/50 vs 왕십리 11/50).
+    _nb = (req.neighborhood or "").strip()
+    _nb_queries = None
+    if _nb and not is_non_location:
+        _region_tokens = set((req.region or "").split())
+        if not all(t in _region_tokens for t in _nb.split()):  # "성동구"처럼 지역과 같은 값이면 중복이라 생략
+            _nb_queries = _build_ai_scan_queries(_nb, _ai_kw)
+        else:
+            _nb = ""
+    _nb_result = None
+
     # ── context별 병렬 실행 ──────────────────────────────────────────
     if is_non_location:
         # non_location: ChatGPT 50회 + 웹사이트 체크 (naver/kakao 생략)
         # 2026-09-28: 체험에서 Gemini 호출 제거 — 무료 티어 한도(일 20회·분당 5회) 초과로 대부분 실패했고
         # 그 실패가 화면에 "미노출"로 표시됐다. Gemini 실측은 가입 후 1회 체험(scan_all)에서 제공한다.
         coros = [
-            scanner.scan_trial(query, req.business_name),
+            scanner.scan_trial(_ai_queries, req.business_name),
         ]
         if req.website_url:
             from services.website_checker import check_website_seo
@@ -806,18 +823,24 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
             _name_hint or _cat_ko_fallback,
         )
         _gather_results = await asyncio.gather(
-            scanner.scan_trial(query, req.business_name),
+            scanner.scan_trial(_ai_queries, req.business_name, _nb_queries),
             _naver_multi(req.business_name, _trial_multi_kws, req.region or "", category_ko=_comp_category_ko),
             get_kakao_visibility(req.business_name, keyword_ko, req.region or ""),
             return_exceptions=True,
         )
         ai_result, naver_data, kakao_data = _gather_results
         gemini_evidence_data = None  # 체험에서 Gemini 미측정 (non_location 분기 주석 참조)
+        # 동네 이름 질문 결과는 점수 계산 입력(ai_result)과 분리해 별도 필드로만 내보낸다(점수는 구 이름 결과 기준 유지)
+        if isinstance(ai_result, dict):
+            _nb_result = ai_result.pop("chatgpt_neighborhood", None)
         # AI가 추천한 가게가 네이버 지역검색에 실제 있는지 대조 (지어낸 이름 걸러내기)
         try:
             _tp = ((ai_result.get("chatgpt") or {}).get("top_places")) if isinstance(ai_result, dict) else None
             if _tp:
                 await _verify_places_on_naver(_tp, req.region or "")
+            _nbp = (_nb_result or {}).get("top_places")
+            if _nbp:
+                await _verify_places_on_naver(_nbp, req.region or "")
         except Exception as _vpe:
             _logger.warning(f"[scan/trial] top_places naver verify failed: {_vpe}")
         # 경쟁 가게별 블로그 건수 (막대 차트용) — 실패해도 체험 본 응답에는 영향 없음
@@ -1380,6 +1403,8 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         "review_copy_text": review_copy_text,
         # AI 플랫폼별 결과 (프론트엔드 플랫폼 카드에서 직접 참조)
         "chatgpt_result": ai_result.get("chatgpt"),
+        # 동네·역 이름으로 물은 ChatGPT 결과(없으면 null) — 구 이름 결과와 나란히 보여 주기 위한 별도 필드
+        "chatgpt_neighborhood": ({**_nb_result, "neighborhood": _nb} if _nb_result else None),
         # 기존 필드 (하위호환)
         "score": score,
         "result": ai_result,

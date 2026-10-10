@@ -1,3 +1,4 @@
+import re
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from uuid import UUID
 from typing import Annotated, Literal, Optional, List
@@ -62,6 +63,20 @@ class TrialScanRequest(BaseModel):
     # 네이버 지역검색에서 사용자가 선택한 가게의 place_id.
     # 들어오면 smart_place_auto_check로 4개 체크박스 자동 진단
     naver_place_id: Optional[str] = Field(None, max_length=50)
+
+    # 동네·역 이름(선택) — ChatGPT에 구 이름과 별도로 동네 이름으로도 묻는다(구 단위만으로는 성수 같은 중심 동 위주로
+    # 추천돼 다른 동의 가게가 0번으로 과소 측정됨, 2026-10-10 실측). 질문 문장의 따옴표 안에 들어가므로 정제한다.
+    neighborhood: Optional[str] = Field(None, max_length=30)
+
+    @field_validator("neighborhood", mode="before")
+    @classmethod
+    def _sanitize_neighborhood(cls, v):
+        if v is None:
+            return None
+        # 공백류를 먼저 정리하고(줄바꿈이 단어를 붙이지 않게), 한글·숫자·공백만 남긴다 — 영문 문장을 질문에 끼워 넣을 수 없게
+        s = re.sub(r"\s+", " ", str(v))
+        s = re.sub(r"[^가-힣0-9 ]", "", s).strip()
+        return s[:20] if len(s) >= 2 else None
 
     @field_validator("naver_place_id", mode="before")
     @classmethod

@@ -197,6 +197,8 @@ export interface TrialScanRequest {
   description?: string;
   // 신뢰도 강화 1라운드: 네이버 지역검색에서 선택한 가게의 place ID
   naver_place_id?: string;
+  // 동네·역 이름(선택) — ChatGPT에 구 이름과 별도로 동네 이름으로도 묻는다 (2026-10-10)
+  neighborhood?: string;
   // v3.3-fix: 사용자가 후보를 명시적으로 선택했을 때만 채워서 전달
   // 백엔드는 이 객체가 있을 때만 응답 place_match를 채운다 (재검색·자동 매칭 금지)
   place_match?: {
@@ -215,6 +217,8 @@ export interface TrialScanRequest {
 export interface TrialBusinessCandidate {
   title: string;
   address: string;
+  /** 지번 주소(동·가 이름 포함) — 동네·역 이름 기본값 추출용 */
+  jibun_address?: string;
   phone: string | null;
   category: string;
   naver_place_id: string;
@@ -323,7 +327,22 @@ export interface GrowthStage {
   estimated_weeks_to_next?: number;
 }
 
+/** ChatGPT 추천 샘플링 한 묶음의 결과 (구 이름 질문 또는 동네 이름 질문) */
+export interface TrialChatgptGroup {
+  exposure_freq?: number;
+  sample_size?: number;
+  mentioned?: boolean;
+  avg_rank?: number | null;
+  queries_used?: string[];
+  top_places?: Array<{ name: string; count: number; on_naver?: "exact" | "similar" | "none" | null }>;
+  excerpt?: string | null;
+  /** 동네 이름 질문 묶음일 때 사용한 동네·역 이름 */
+  neighborhood?: string;
+}
+
 export interface TrialScanResult {
+  /** 동네·역 이름으로 물은 ChatGPT 결과 (입력이 없거나 실패하면 null) */
+  chatgpt_neighborhood?: TrialChatgptGroup | null;
   score: {
     total_score: number;
     unified_score?: number;

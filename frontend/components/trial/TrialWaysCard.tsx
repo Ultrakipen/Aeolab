@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { CHANNEL_ROWS } from "@/components/common/ChannelTimelineBox";
 import type { CompBlog } from "@/components/trial/TrialResultExtras";
+import type { TrialChatgptGroup } from "@/types";
+import { maybeSameShop } from "@/lib/trialAutofill";
 
 /**
  * 무료 체험 결과 — "손님이 가게를 찾는 5개 길" + 주변 비교 한 줄 결론 + 소개글·소식 확인 질문.
@@ -67,6 +69,7 @@ export function ChannelWaysCard({
   chatgptFreq,
   chatgptSample,
   chatgptQuery,
+  neighborhood,
 }: {
   isNonLocation: boolean;
   naverMeasured: boolean;
@@ -79,6 +82,8 @@ export function ChannelWaysCard({
   chatgptFreq?: number;
   chatgptSample: number;
   chatgptQuery?: string;
+  /** 동네·역 이름으로 물은 결과 — 있으면 구 이름 결과와 함께 말한다 */
+  neighborhood?: { name: string; freq: number } | null;
 }) {
   // 곳 수를 알면 "상위 5곳", 모르면 "상위권" — 앞에 "상위"를 따로 붙이지 않는다
   const topWord = competitorCount > 0 ? `상위 ${competitorCount}곳` : "상위권";
@@ -126,8 +131,10 @@ export function ChannelWaysCard({
         ? "아직 대상 업종이 아니에요. 네이버가 대상을 넓힐 예정이라고 해요."
         : "가게 소개형 대상 업종이 아니에요. 블로그 같은 글이 많으면 글 기반 AI 요약에는 나올 수 있어요.";
 
-  const lowChatgpt =
+  const lowGu =
     chatgptMeasured && chatgptFreq !== undefined && chatgptSample > 0 && chatgptFreq / chatgptSample < 0.3;
+  // 동네 이름 결과가 있으면 둘 다 0번일 때만 "낮아도 정상"이라고 말한다(동네 이름에서 나온 것은 좋은 발견이라 달래는 말을 붙이지 않는다)
+  const lowChatgpt = lowGu && (!neighborhood || neighborhood.freq === 0);
 
   const ways: Way[] = [
     naver,
@@ -154,13 +161,15 @@ export function ChannelWaysCard({
     {
       key: "chatgpt",
       name: "ChatGPT",
-      hint: chatgptQuery ? `“${chatgptQuery}” 물어보기` : "추천을 물어보기",
+      hint: neighborhood ? "구 이름·동네 이름으로 추천 물어보기" : chatgptQuery ? `“${chatgptQuery}” 물어보기` : "추천을 물어보기",
       state: chatgptMeasured ? "measured" : "later",
       now: !chatgptMeasured
         ? "이번에는 재지 못했어요."
         : chatgptFreq === undefined
           ? "추천 여부를 확인했어요."
-          : `${chatgptSample}번 중 ${chatgptFreq}번 추천됐어요.${lowChatgpt ? " 이 길은 지금 낮아도 정상이에요." : ""}`,
+          : neighborhood
+            ? `구 이름으로 ${chatgptFreq}번, 동네 이름(${neighborhood.name})으로 ${neighborhood.freq}번 추천됐어요 (각 ${chatgptSample}번 중).${lowChatgpt ? " 이 길은 지금 낮아도 정상이에요." : ""}`
+            : `${chatgptSample}번 중 ${chatgptFreq}번 추천됐어요.${lowChatgpt ? " 이 길은 지금 낮아도 정상이에요." : ""}`,
       nowTone: !chatgptMeasured ? "muted" : lowChatgpt ? "calm" : "ok",
       affects: "AI가 미리 공부한 자료 (단기에는 거의 안 바뀌어요)",
       duration: durationOf("ChatGPT"),
@@ -401,5 +410,125 @@ export function MobileCollapse({
       </button>
       <div className={`${open ? "block mt-3" : "hidden"} md:block`}>{children}</div>
     </div>
+  );
+}
+
+/**
+ * ChatGPT가 구 이름 질문과 동네·역 이름 질문에서 각각 어느 가게를 추천했는지 나란히 보여 준다.
+ * 서버 실험(2026-10-10): 같은 가게도 질문의 지역 단위에 따라 결과가 크게 다르다
+ * (준오헤어 왕십리역점: "서울 성동구" 0/50, "왕십리" 11/50 / 어니언 성수는 26 vs 19로 비슷).
+ * 문장은 두 실측값만으로 만들고, 몇 번 안팎의 차이는 표본 흔들림이라 "비슷하다"고 말한다(차이 기준 = 표본의 16%p).
+ */
+function AreaGroupBox({ label, group, sample }: { label: string; group: TrialChatgptGroup; sample: number }) {
+  const freq = group.exposure_freq ?? 0;
+  const queries = group.queries_used ?? [];
+  const places = (group.top_places ?? []).filter((p) => p.on_naver === "exact" || p.on_naver === "similar").slice(0, 5);
+  return (
+    <div className="rounded-xl border border-slate-200 p-3 md:p-4">
+      <p className="text-sm md:text-base font-extrabold text-slate-900">{label}</p>
+      {queries[0] && (
+        <p className="mt-0.5 text-sm text-slate-600 break-keep">
+          &ldquo;{queries[0]}&rdquo; 등 {queries.length > 1 ? `${queries.length}가지 말투` : "질문"}
+        </p>
+      )}
+      <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+        <div className="h-4 rounded-lg bg-slate-100 overflow-hidden" aria-hidden="true">
+          <div className="h-full rounded-lg bg-blue-700" style={{ width: `${freq === 0 ? 0 : Math.max(3, Math.round((freq / sample) * 100))}%` }} />
+        </div>
+        <p className="text-sm md:text-base font-extrabold text-slate-900 tabular-nums">{freq}번 / {sample}번</p>
+      </div>
+      <p className="mt-3 text-sm font-bold text-slate-600">대신 추천된 가게</p>
+      {places.length > 0 ? (
+        <ol className="mt-1.5 space-y-1.5">
+          {places.map((p) => (
+            <li key={p.name} className="grid grid-cols-[minmax(0,1fr)_72px_44px] items-center gap-2 text-sm">
+              <span className="min-w-0 break-keep">
+                <span className="font-semibold text-slate-900">{p.name}</span>
+                <span className="block text-sm text-slate-600">
+                  {p.on_naver === "exact" ? "네이버에서 확인됨" : "비슷한 이름이 네이버에 있어요"}
+                </span>
+              </span>
+              <span className="h-2.5 rounded bg-slate-100 overflow-hidden" aria-hidden="true">
+                <span className="block h-full rounded bg-slate-400" style={{ width: `${Math.round((p.count / sample) * 100)}%` }} />
+              </span>
+              <span className="text-right font-bold text-slate-800 tabular-nums">{p.count}번</span>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="mt-1 text-sm text-slate-600 break-keep">네이버에서 확인된 가게가 없었어요.</p>
+      )}
+    </div>
+  );
+}
+
+export function AreaCompareCard({
+  businessName,
+  gu,
+  nb,
+}: {
+  businessName: string;
+  gu: TrialChatgptGroup;
+  nb: TrialChatgptGroup;
+}) {
+  const gS = gu.sample_size || 50;
+  const nS = nb.sample_size || 50;
+  const gF = gu.exposure_freq ?? 0;
+  const nF = nb.exposure_freq ?? 0;
+  const name = nb.neighborhood || "동네";
+  const gR = gF / gS;
+  const nR = nF / nS;
+  const big = Math.abs(nR - gR) >= 0.16;
+
+  let verdict: string;
+  if (gF === 0 && nF === 0) {
+    verdict = `구 이름으로도 동네 이름(${name})으로도 추천되지 않았어요. 이 길은 지금 낮아도 정상이에요.`;
+  } else if (gF === 0) {
+    verdict = `구 이름으로 물으면 0번이고, 동네 이름(${name})으로 물으면 ${nF}번 추천돼요. 손님이 동네 이름으로 찾을 때는 ChatGPT가 내 가게를 추천해요.`;
+  } else if (nF === 0) {
+    verdict = `동네 이름(${name})으로 물으면 0번이고, 구 이름으로 물으면 ${gF}번 추천돼요.`;
+  } else if (big) {
+    verdict = nR > gR
+      ? `동네 이름(${name})으로 물을 때(${nF}번)가 구 이름으로 물을 때(${gF}번)보다 더 많이 추천돼요.`
+      : `구 이름으로 물을 때(${gF}번)가 동네 이름(${name})으로 물을 때(${nF}번)보다 더 많이 추천돼요.`;
+  } else {
+    verdict = `구 이름으로 물어도(${gF}번) 동네 이름(${name})으로 물어도(${nF}번) 비슷하게 추천돼요. 몇 번 정도의 차이는 같은 질문을 다시 해도 생겨요.`;
+  }
+
+  // 같은 가게일 수 있는 이름(지점 표기만 다름) — 같은 가게로 세지는 않고 안내만 한다
+  const allPlaces = [...(gu.top_places ?? []), ...(nb.top_places ?? [])];
+  const sibling = allPlaces.find((p) => maybeSameShop(businessName, p.name));
+
+  return (
+    <section aria-labelledby="trial-area-h" className="rounded-xl border border-slate-200 bg-white px-4 py-4 mb-4 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 id="trial-area-h" className="text-base md:text-lg font-extrabold text-slate-900 break-keep">
+          ChatGPT는 어느 가게를 추천했을까요
+        </h2>
+        <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-green-50 border border-green-200 px-2.5 py-0.5 text-sm font-bold text-green-800">
+          <span className="h-2 w-2 rounded-full bg-green-600" aria-hidden="true" />직접 재 본 값
+        </span>
+      </div>
+      <p className="mt-3 rounded-lg bg-blue-50 px-3 py-2.5 text-sm md:text-base font-medium text-slate-900 leading-snug break-keep">{verdict}</p>
+
+      <div className="mt-3 grid gap-3 md:grid-cols-2">
+        <AreaGroupBox label="구 이름으로 물었을 때" group={gu} sample={gS} />
+        <AreaGroupBox label={`동네 이름(${name})으로 물었을 때`} group={nb} sample={nS} />
+      </div>
+
+      {sibling && (
+        <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-900 leading-snug break-keep">
+          &lsquo;{sibling.name}&rsquo;은 내 가게(&lsquo;{businessName}&rsquo;)와 같은 가게일 수 있어요. 같은 가게라면 실제 추천 횟수는 더 많아요.
+        </p>
+      )}
+      {big && (
+        <p className="mt-3 rounded-lg border border-blue-300 px-3 py-2.5 text-sm md:text-base text-slate-900 leading-snug break-keep">
+          <b className="text-blue-800">이렇게 해 보세요</b> 소개글과 블로그 글 제목에 가게가 있는 동네·역 이름(예: {name})을 넣어 보세요. 실제로 그 동네에 있는 가게일 때만 쓰세요.
+        </p>
+      )}
+      <p className="mt-3 text-sm text-slate-600 leading-snug break-keep">
+        ChatGPT 결과는 AI가 미리 공부한 자료를 기준으로 해서, 실시간 검색 결과와 다를 수 있어요. 같은 질문을 다시 해도 몇 번 정도는 달라질 수 있어요. 막대 전체가 {gS}번이에요. 측정 시점·기기·로그인 상태에 따라서도 달라질 수 있어요.
+      </p>
+    </section>
   );
 }

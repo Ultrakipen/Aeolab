@@ -257,11 +257,14 @@ async function copyText(text: string): Promise<boolean> {
 
 export function DirectCheckCard({
   chatgptQuery,
+  chatgptNeighborhoodQuery,
   naverQuery,
   googleQuery,
   onAction,
 }: {
   chatgptQuery: string;
+  /** 동네·역 이름으로 물은 질문(있을 때만 ChatGPT 칸을 하나 더 보여 준다) */
+  chatgptNeighborhoodQuery?: string;
   naverQuery: string;
   googleQuery: string;
   /** 계측용 — channel: chatgpt|naver|google, action: copy|open */
@@ -274,6 +277,14 @@ export function DirectCheckCard({
       ch: "ChatGPT",
       how: "ChatGPT에 아래 질문을 그대로 넣고, 답변에 내 가게가 나오는지 봅니다.",
       q: chatgptQuery,
+      btn: "ChatGPT 열기",
+      href: "https://chatgpt.com/",
+    },
+    {
+      key: "chatgpt_area",
+      ch: "ChatGPT (동네 이름)",
+      how: "같은 방식으로, 동네·역 이름을 넣은 질문도 넣어 봅니다.",
+      q: chatgptNeighborhoodQuery ?? "",
       btn: "ChatGPT 열기",
       href: "https://chatgpt.com/",
     },
@@ -312,7 +323,7 @@ export function DirectCheckCard({
       <p className="text-sm text-slate-700 leading-relaxed mb-3 break-keep">
         결과가 믿기 어렵다면 아래 질문을 직접 넣어 보세요. 측정 시점과 기기에 따라 답이 달라질 수 있습니다.
       </p>
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className={`grid gap-3 ${rows.length > 3 ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
         {rows.map((r) => (
           <div key={r.key} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 flex flex-col gap-2">
             <p className="text-sm md:text-base font-extrabold text-blue-800">{r.ch}</p>

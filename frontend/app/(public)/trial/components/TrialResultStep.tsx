@@ -37,7 +37,8 @@ import {
   type PassedItem,
   type AiPlace,
 } from "@/components/trial/TrialResultExtras";
-import { ChannelWaysCard, CompareVerdictCard, DiagnosisFixCard, MobileCollapse } from "@/components/trial/TrialWaysCard";
+import { ChannelWaysCard, CompareVerdictCard, DiagnosisFixCard, MobileCollapse, AreaCompareCard } from "@/components/trial/TrialWaysCard";
+import type { TrialChatgptGroup } from "@/types";
 import ResultSummaryHero from "@/components/common/ResultSummaryHero";
 import { naverSeoTile, aiTabTile, briefingTile, rankTile, makeTile, type ChannelTile } from "@/lib/scoreLabels";
 import type {
@@ -138,6 +139,7 @@ function ScanConclusionCard({
   chatgptMentioned,
   chatgptSampleSize,
   chatgptExposureFreq,
+  chatgptNeighborhood,
   geminiExposureFreq,
   smartPlaceCheck,
   missingKws,
@@ -153,6 +155,8 @@ function ScanConclusionCard({
   chatgptMentioned: boolean | undefined;
   chatgptSampleSize: number;
   chatgptExposureFreq?: number;
+  /** 동네·역 이름으로 물은 결과(있을 때) */
+  chatgptNeighborhood?: { name: string; freq: number; sample: number } | null;
   geminiExposureFreq?: number;
   smartPlaceCheck: TrialSmartPlaceCheck | null | undefined;
   missingKws: string[];
@@ -241,7 +245,9 @@ function ScanConclusionCard({
       {/* ChatGPT 측정 결과 1줄 요약 */}
       <p className="text-sm text-slate-600 leading-snug break-keep">
         ChatGPT {chatgptSampleSize}회 초기 측정 —{" "}
-        {chatgptMentioned
+        {chatgptNeighborhood
+          ? `"${businessName}"은(는) 구 이름으로 ${chatgptSampleSize}회 중 ${chatgptExposureFreq ?? 0}회, 동네 이름(${chatgptNeighborhood.name})으로 ${chatgptNeighborhood.sample}회 중 ${chatgptNeighborhood.freq}회 추천 목록에 등장`
+          : chatgptMentioned
           ? chatgptExposureFreq !== undefined
             ? `"${businessName}" ${chatgptSampleSize}회 중 ${chatgptExposureFreq}회 추천 목록에 등장`
             : `"${businessName}" 노출됨`
@@ -261,7 +267,7 @@ function ScanConclusionCard({
         )}
 
         {/* 네이버 상위권인데 ChatGPT 미노출 — 정상 맥락 설명 */}
-        {chatgptExposureFreq === 0 && (geminiExposureFreq === 0 || geminiExposureFreq === undefined) &&
+        {chatgptExposureFreq === 0 && (!chatgptNeighborhood || chatgptNeighborhood.freq === 0) && (geminiExposureFreq === 0 || geminiExposureFreq === undefined) &&
          naverMyRank !== null && naverMyRank !== undefined && naverMyRank <= 5 && (
           <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 bg-blue-50 border border-blue-100">
             <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
@@ -772,7 +778,11 @@ export default function TrialResultStep(props: TrialResultProps) {
   }
   // 직접 확인용 질문
   const _q0 = chatgptDisplayQueries[0] ?? "";
-  const directChatgptQuery = _q0 ? (_q0.endsWith("추천") ? `${_q0}해줘` : _q0) : "";
+  // 복사해 넣는 문장은 실제로 보낸 5가지 말투 중 자연어 형태(4번째: "…잘하는 곳 추천해줘")를 쓴다 — 보낸 적 없는 변형을 보여 주지 않는다
+  const directChatgptQuery =
+    chatgptDisplayQueries.length >= 4 && chatgptDisplayQueries[3]
+      ? chatgptDisplayQueries[3]
+      : _q0 ? (_q0.endsWith("추천") ? `${_q0}해줘` : _q0) : "";
   const directNaverQuery =
     naverSearchQuery ?? (form.region ? `${form.region} ${analyzedKeyword ?? categoryLabel}`.trim() : "");
   const directGoogleQuery = _q0;
@@ -786,13 +796,25 @@ export default function TrialResultStep(props: TrialResultProps) {
     (chatgptResult as { avg_rank?: number | null } | undefined)?.avg_rank ?? null;
   const chatgptConfidence =
     (chatgptResult as { confidence?: { lower: number; upper: number } } | undefined)?.confidence;
+  // 동네·역 이름으로 물은 ChatGPT 결과(없으면 null). "미노출" 같은 단정은 구 이름 결과만이 아니라 두 결과를 함께 보고 한다.
+  const nbGroup = (result as { chatgpt_neighborhood?: TrialChatgptGroup | null }).chatgpt_neighborhood ?? null;
+  const nbName = nbGroup?.neighborhood ?? "";
+  const nbSample = nbGroup?.sample_size ?? 0;
+  const nbFreq = nbGroup?.exposure_freq ?? 0;
+  const hasNb = !!(nbGroup && nbName && nbSample > 0);
+  const nbDirectQuery = (() => {
+    const list = nbGroup?.queries_used ?? [];
+    if (list.length >= 4 && list[3]) return list[3];
+    const q = list[0] ?? "";
+    return q ? (q.endsWith("추천") ? `${q}해줘` : q) : "";
+  })();
 
   // ── 첫 화면 한 줄 진단 (2026-09-28) — 실측·입력에서 계산한 문장만, 더미 없음 ──
   const _freq = chatgptResult?.exposure_freq;
   const verifiedPlaces = aiPlaces.filter((p) => p.on_naver === "exact" || p.on_naver === "similar").slice(0, 3);
-  const aiWeak =
-    chatgptMentioned !== undefined &&
-    (!chatgptMentioned || (_freq !== undefined && chatgptSampleSize > 0 && _freq / chatgptSampleSize < 0.3));
+  const _guWeak = !chatgptMentioned || (_freq !== undefined && chatgptSampleSize > 0 && _freq / chatgptSampleSize < 0.3);
+  const _nbWeak = !hasNb || nbFreq / nbSample < 0.3; // 동네 이름 결과가 없으면 구 이름 결과만 본다
+  const aiWeak = chatgptMentioned !== undefined && _guWeak && _nbWeak;
   const _kr =
     (result as { keyword_ranks?: Array<{ query: string; rank: number | null; exposed: boolean }> }).keyword_ranks ?? [];
   const bestNaverRank: number | null =
@@ -818,19 +840,20 @@ export default function TrialResultStep(props: TrialResultProps) {
   const _vq = chatgptDisplayQueries[0] ?? "";
   const _vname = form.business_name || "내 가게";
   if (chatgptMentioned !== undefined) {
-    const base =
-      chatgptMentioned && _freq
+    const base = hasNb
+      ? `ChatGPT에 구 이름으로 ${chatgptSampleSize}회 물었을 때 내 가게(“${_vname}”)는 ${_freq ?? 0}회, 동네 이름(${nbName})으로 ${nbSample}회 물었을 때는 ${nbFreq}회 추천 목록에 나왔습니다.`
+      : chatgptMentioned && _freq
         ? `ChatGPT에 “${_vq}”라고 ${chatgptSampleSize}회 물었을 때, 내 가게(“${_vname}”)는 추천 목록에 ${_freq}회 나왔습니다.`
         : `ChatGPT에 “${_vq}”라고 ${chatgptSampleSize}회 물었을 때, 내 가게(“${_vname}”)는 추천 목록에 나오지 않았습니다.`;
     // "자주"라고 단정하지 않는다 — 추천 횟수는 작을 수 있어, 네이버에서 실제 확인된 곳만 이름으로 안내
     const more =
-      verifiedPlaces.length > 0
+      !hasNb && verifiedPlaces.length > 0
         ? ` 추천된 가게 중 네이버에서 확인된 곳: ${verifiedPlaces.map((p) => p.name).join(" · ")}.`
         : "";
     verdictBullets.push({ label: "AI 검색", text: base + more, tone: aiWeak ? "warn" : "ok" });
     // 나쁜 소식만 나열하지 않는다 — 실측한 1위 경쟁 가게의 노출률 자체가 낮을 때만(사실일 때만) 안심 신호를 더한다
     // (2026-09-29 "결과가 전부 부정적이면 신뢰도가 떨어진다"는 지적에 따른 개선. 지어낸 위로가 아니라 같은 measurement 재사용)
-    if (aiWeak && aiPlaces.length > 0 && chatgptSampleSize > 0) {
+    if (aiWeak && !hasNb && aiPlaces.length > 0 && chatgptSampleSize > 0) {
       const topPlace = aiPlaces[0];
       const topRate = topPlace.count / chatgptSampleSize;
       if (topRate < 0.3) {
@@ -1054,6 +1077,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           chatgptFreq={chatgptResult?.exposure_freq}
           chatgptSample={chatgptSampleSize}
           chatgptQuery={directChatgptQuery || undefined}
+          neighborhood={hasNb ? { name: nbName, freq: nbFreq } : null}
         />
 
         {/* 소개글·소식은 직접 못 본 경우에만 — 사장님이 누른 답으로 "먼저 고칠 것"이 바뀐다 */}
@@ -1109,19 +1133,27 @@ export default function TrialResultStep(props: TrialResultProps) {
               </MobileCollapse>
             </>
           )}
-          {aiPlaces.length > 0 && (
+          {(aiPlaces.length > 0 || hasNb) && (
             <MobileCollapse
-              title="ChatGPT가 추천한 가게"
-              hint={`${chatgptSampleSize}번 중 어느 가게가 몇 번 나왔는지 보기`}
-              onOpen={() => trackEvent("trial_board_open", { board: "ai_places", trial_id: (result as { trial_id?: string }).trial_id })}
+              title={hasNb ? "ChatGPT가 추천한 가게 (구 이름·동네 이름)" : "ChatGPT가 추천한 가게"}
+              hint={hasNb ? "구 이름과 동네 이름으로 물었을 때를 나란히 보기" : `${chatgptSampleSize}번 중 어느 가게가 몇 번 나왔는지 보기`}
+              onOpen={() => trackEvent("trial_board_open", { board: hasNb ? "ai_area_compare" : "ai_places", trial_id: (result as { trial_id?: string }).trial_id })}
             >
-              <AIRecommendedPlacesCard
-                businessName={form.business_name || "내 가게"}
-                sampleSize={chatgptSampleSize}
-                exposureFreq={chatgptResult?.exposure_freq ?? 0}
-                avgRank={aiAvgRank}
-                places={aiPlaces}
-              />
+              {hasNb && nbGroup && chatgptResult ? (
+                <AreaCompareCard
+                  businessName={form.business_name || "내 가게"}
+                  gu={chatgptResult as TrialChatgptGroup}
+                  nb={nbGroup}
+                />
+              ) : (
+                <AIRecommendedPlacesCard
+                  businessName={form.business_name || "내 가게"}
+                  sampleSize={chatgptSampleSize}
+                  exposureFreq={chatgptResult?.exposure_freq ?? 0}
+                  avgRank={aiAvgRank}
+                  places={aiPlaces}
+                />
+              )}
             </MobileCollapse>
           )}
 
@@ -1131,6 +1163,7 @@ export default function TrialResultStep(props: TrialResultProps) {
             chatgptMentioned={chatgptMentioned}
             chatgptSampleSize={chatgptSampleSize}
             chatgptExposureFreq={chatgptResult?.exposure_freq}
+            chatgptNeighborhood={hasNb ? { name: nbName, freq: nbFreq, sample: nbSample } : null}
             geminiExposureFreq={geminiExposureFreq}
             smartPlaceCheck={result.smart_place_check ?? null}
             missingKws={effectiveMissingKws}
@@ -1175,7 +1208,7 @@ export default function TrialResultStep(props: TrialResultProps) {
                 <div className="flex gap-2">
                   <span className="shrink-0">·</span>
                   <p className="break-keep">
-                    ChatGPT = &ldquo;{directChatgptQuery}&rdquo;를 {chatgptSampleSize}회 질문 (가게 이름은 알려 주지 않음)
+                    ChatGPT = &ldquo;{chatgptDisplayQueries[0] ?? directChatgptQuery}&rdquo; 등 5가지 말투로 {chatgptSampleSize}회 질문{hasNb ? `, 동네 이름(${nbName})으로 ${nbSample}회 더 질문` : ""} (가게 이름은 알려 주지 않음)
                   </p>
                 </div>
               )}
@@ -1188,6 +1221,7 @@ export default function TrialResultStep(props: TrialResultProps) {
 
           <DirectCheckCard
             chatgptQuery={directChatgptQuery}
+            chatgptNeighborhoodQuery={hasNb ? nbDirectQuery : undefined}
             naverQuery={directNaverQuery}
             googleQuery={directGoogleQuery}
             onAction={(channel, action) =>
@@ -1387,6 +1421,7 @@ export default function TrialResultStep(props: TrialResultProps) {
               missingKws={effectiveMissingKws}
               confidence={chatgptConfidence}
               exposureFreq={chatgptResult?.exposure_freq}
+              neighborhood={hasNb ? { name: nbName, freq: nbFreq, sample: nbSample } : null}
             />
           )}
           <GeminiExampleCard query={chatgptDisplayQueries[0] ?? ""} />
@@ -1870,9 +1905,12 @@ function ChatGPTResultCard({
   missingKws,
   confidence,
   exposureFreq,
+  neighborhood,
 }: {
   businessName: string;
   queries: string[];
+  /** 동네·역 이름으로 물은 결과(있을 때) — 구 이름 결과가 0이어도 동네 이름에서 나오면 "왜 안 나오나요"를 보이지 않는다 */
+  neighborhood?: { name: string; freq: number; sample: number } | null;
   mentioned: boolean;
   excerpt?: string;
   exposureFreq?: number;
@@ -1903,7 +1941,7 @@ function ChatGPTResultCard({
         {/* 질의 목록 */}
         <div>
           <p className="text-sm text-gray-600 mb-1.5 leading-snug">
-            실제 손님이 AI에게 묻는 방식으로 {sampleSize}회 테스트했습니다
+            {queries.length > 1 ? `손님이 물을 법한 말투 ${queries.length}가지로` : "아래 질문으로"} {sampleSize}회 테스트했습니다
             <span className="ml-1 text-slate-500">(구독 시엔 100회 — 표본이 많을수록 결과가 안정적입니다)</span>
           </p>
           <ul className="space-y-0.5 mb-2">
@@ -1921,13 +1959,24 @@ function ChatGPTResultCard({
 
         {/* 결론 */}
         <p className="text-base font-semibold leading-snug text-gray-800">
-          &ldquo;{businessName}&rdquo;는 이번 {sampleSize}회 테스트{mentioned && exposureFreq !== undefined ? ` 중 ${exposureFreq}회` : "에서"} 추천 목록에{" "}
+          &ldquo;{businessName}&rdquo;는 {neighborhood ? "구 이름으로 물은 " : ""}이번 {sampleSize}회 테스트{mentioned && exposureFreq !== undefined ? ` 중 ${exposureFreq}회` : "에서"} 추천 목록에{" "}
           {mentioned ? (
             <span className="text-green-700">등장했습니다.</span>
           ) : (
             <span className="text-slate-700">아직 등장하지 않았습니다.</span>
           )}
         </p>
+
+        {neighborhood && (
+          <p className="text-base font-semibold leading-snug text-gray-800">
+            동네 이름({neighborhood.name})으로 물었을 때는 {neighborhood.sample}회 중 {neighborhood.freq}회{" "}
+            {neighborhood.freq > 0 ? (
+              <span className="text-green-700">추천 목록에 등장했습니다.</span>
+            ) : (
+              <span className="text-slate-700">추천 목록에 등장하지 않았습니다.</span>
+            )}
+          </p>
+        )}
 
         {/* 포함된 경우: ChatGPT가 나열한 추천 목록 예 (가게명을 미리 알려 주지 않는 비유도형 질문의 답) */}
         {mentioned && excerpt && (
@@ -1964,7 +2013,7 @@ function ChatGPTResultCard({
 
         {/* 미포함: ChatGPT에 맞는 안내 — 네이버 소개글·Q&A를 ChatGPT 미노출의 "원인"으로 단정하지 않는다
             (ChatGPT는 학습 데이터 기반이라 스마트플레이스 소개글을 직접 읽지 않음. 네이버용 조치는 "할 일" 탭에 있음) */}
-        {!mentioned && (
+        {!mentioned && !(neighborhood && neighborhood.freq > 0) && (
           <div>
             <p className="text-sm font-semibold text-gray-700 mb-1.5">왜 안 나오나요</p>
             <ul className="space-y-1.5">
@@ -1980,7 +2029,7 @@ function ChatGPTResultCard({
           </div>
         )}
 
-        {!mentioned && (
+        {!mentioned && !(neighborhood && neighborhood.freq > 0) && (
           <div>
             <p className="text-sm font-semibold text-gray-700 mb-1.5">ChatGPT 노출을 위해 할 수 있는 일</p>
             <ol className="space-y-1.5">

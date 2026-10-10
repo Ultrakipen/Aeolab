@@ -34,6 +34,11 @@ export interface TrialFindStepProps {
   onCategoryChange: (v: string) => void;
   primaryKeyword: string;
   onKeywordChange: (v: string) => void;
+  /** 동네·역 이름(선택) — ChatGPT에 구 이름과 별도로 이 이름으로도 묻는다 */
+  neighborhood: string;
+  setNeighborhood: (v: string) => void;
+  /** 주소에서 자동으로 찾은 제안값(없으면 빈 문자열) */
+  neighborhoodAuto: string;
   hasFaq: boolean | undefined;
   setHasFaq: (v: boolean) => void;
   hasRecentPost: boolean | undefined;
@@ -195,7 +200,8 @@ function FindView({ query, setQuery, results, loading, done, onSelect, onManual,
 function ConfirmView(p: TrialFindStepProps) {
   const {
     candidate, form, setForm, selectedCategory, categoryConfirmed, onCategoryChange,
-    primaryKeyword, onKeywordChange, hasFaq, setHasFaq, hasRecentPost, setHasRecentPost,
+    primaryKeyword, onKeywordChange, neighborhood, setNeighborhood, neighborhoodAuto,
+    hasFaq, setHasFaq, hasRecentPost, setHasRecentPost,
     hasIntro, setHasIntro, placeUrl, setPlaceUrl, cooldownMs, error, onBack, onStart,
   } = p;
   const [showMore, setShowMore] = useState(false);
@@ -216,7 +222,7 @@ function ConfirmView(p: TrialFindStepProps) {
   const previewQuery = regionOk && keywordOk ? `${form.region.trim()} ${primaryKeyword.trim()} 추천` : "";
 
   return (
-    <div className="mx-auto max-w-xl px-4 pt-6 pb-12 md:pt-10">
+    <div className="mx-auto max-w-2xl px-4 pt-6 pb-12 md:pt-10">
       <button
         type="button"
         onClick={onBack}
@@ -268,18 +274,51 @@ function ConfirmView(p: TrialFindStepProps) {
           </select>
         </div>
 
-        {/* 지역 */}
-        <div>
-          <label htmlFor="trial-confirm-region" className="block text-base font-semibold text-slate-700 mb-1">지역</label>
-          <input
-            id="trial-confirm-region"
-            type="text"
-            value={form.region}
-            onChange={(e) => setForm((f) => ({ ...f, region: e.target.value.slice(0, 50) }))}
-            placeholder="예: 서울 성동구"
-            className="w-full rounded-xl border border-slate-300 px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
+        {/* 지역 + 동네·역 이름 — PC는 가로 두 칸 */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="trial-confirm-region" className="block text-base font-semibold text-slate-700 mb-1">지역</label>
+            <input
+              id="trial-confirm-region"
+              type="text"
+              value={form.region}
+              onChange={(e) => setForm((f) => ({ ...f, region: e.target.value.slice(0, 50) }))}
+              placeholder="예: 서울 성동구"
+              className="w-full rounded-xl border border-slate-300 px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label htmlFor="trial-confirm-neighborhood" className="block text-base font-semibold text-slate-700 mb-1">
+              동네·역 이름 <span className="font-normal text-slate-500">(선택)</span>
+            </label>
+            <input
+              id="trial-confirm-neighborhood"
+              type="text"
+              value={neighborhood}
+              onChange={(e) => setNeighborhood(e.target.value.slice(0, 20))}
+              maxLength={20}
+              placeholder="예: 왕십리, 성수동"
+              className="w-full rounded-xl border border-slate-300 px-4 py-3.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
         </div>
+        <p className="-mt-2 text-sm text-slate-600 break-keep">
+          {neighborhoodAuto && neighborhood.trim() === neighborhoodAuto
+            ? "주소에서 찾은 이름이에요. 손님이 가게를 찾을 때 쓰는 이름이 아니면 고쳐 주세요."
+            : "손님이 가게를 찾을 때 쓰는 동네나 역 이름이에요. 비워 두면 구 이름으로만 물어요."}
+          {neighborhoodAuto && neighborhood.trim() !== neighborhoodAuto && (
+            <>
+              {" "}
+              <button
+                type="button"
+                onClick={() => setNeighborhood(neighborhoodAuto)}
+                className="font-bold text-blue-700 underline underline-offset-2"
+              >
+                주소에서 찾은 &lsquo;{neighborhoodAuto}&rsquo; 사용
+              </button>
+            </>
+          )}
+        </p>
 
         {/* 손님이 검색하는 말 */}
         <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
@@ -301,6 +340,32 @@ function ConfirmView(p: TrialFindStepProps) {
             </p>
           )}
         </div>
+
+        {/* ChatGPT에 실제로 보내는 질문 예시 — 백엔드 build_ai_scan_queries의 앞 두 말투와 같은 모양(말투 5가지 중 일부만 보여 줌) */}
+        {primaryKeyword.trim() && form.region.trim() && (
+          <div className="rounded-xl bg-blue-50 px-4 py-3">
+            <p className="text-sm md:text-base font-bold text-blue-900">ChatGPT에는 이렇게 물어봐요</p>
+            <div className={`mt-2 grid gap-3 ${neighborhood.trim() ? "sm:grid-cols-2" : ""}`}>
+              <div>
+                <p className="text-sm font-bold text-blue-800">구 이름으로</p>
+                <ul className="mt-1 list-disc pl-5 text-sm text-slate-800 space-y-0.5">
+                  <li>{form.region.trim()} {primaryKeyword.trim()} 추천</li>
+                  <li>{form.region.trim()}에서 {primaryKeyword.trim()} 잘하는 곳 추천해줘</li>
+                </ul>
+              </div>
+              {neighborhood.trim() && (
+                <div>
+                  <p className="text-sm font-bold text-blue-800">동네 이름으로</p>
+                  <ul className="mt-1 list-disc pl-5 text-sm text-slate-800 space-y-0.5">
+                    <li>{neighborhood.trim()} {primaryKeyword.trim()} 추천</li>
+                    <li>{neighborhood.trim()}에서 {primaryKeyword.trim()} 잘하는 곳 추천해줘</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+            <p className="mt-2 text-sm text-slate-700 break-keep">각각 5가지 말투로 물어요. 가게 이름은 질문에 넣지 않아요.</p>
+          </div>
+        )}
 
         {/* 프랜차이즈 */}
         <label className="flex items-start gap-3 cursor-pointer p-3 rounded-xl border border-slate-200 hover:bg-slate-50">

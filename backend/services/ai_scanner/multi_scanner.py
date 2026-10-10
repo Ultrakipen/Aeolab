@@ -63,8 +63,13 @@ class MultiAIScanner:
         result = await self.chatgpt.check_mention(query, target)
         return {"chatgpt": result}
 
-    async def scan_trial(self, query: str, target: str) -> dict:
+    async def scan_trial(self, query: "str | list[str]", target: str, neighborhood_queries: "list[str] | None" = None) -> dict:
         """Trial 체험: ChatGPT(gpt-4.1-mini) 50회 샘플링.
+
+        2026-10-10: query는 문자열 1개 또는 5가지 말투 목록(유료 스캔 build_ai_scan_queries와 동일).
+        neighborhood_queries(동네·역 이름 질문 목록)가 있으면 구 이름 50회와 별도로 동네 이름 50회를 병렬로 더 묻는다
+        (서버 실험: 준오헤어 왕십리역점은 "서울 성동구" 0/50, "왕십리" 11/50 — 질문의 지역 단위가 결과를 좌우).
+        반환: {"chatgpt": 구 이름 결과, "chatgpt_neighborhood": 동네 이름 결과(없거나 실패하면 키 없음)}
 
         2026-09-28 5회 → 50회 상향(사용자 결정): "50회 중 N회 언급" 표시, 신뢰구간이 5회 대비
         크게 좁아진다(0회 노출 시 상한 43% → 7%).
@@ -78,11 +83,28 @@ class MultiAIScanner:
         """
         # 비유도형 추천 프로브 — 가게명을 프롬프트에 넣지 않는다(유도형 sample_n은 존재하지 않는 가게도
         # 환각으로 "추천됨"이라 답해 50회 표본에서 가짜 노출 판정이 나왔음, 2026-09-28)
-        result = await self.chatgpt.sample_recommend(query, target, n=50)
+        if neighborhood_queries:
+            result, nb_result = await asyncio.gather(
+                self.chatgpt.sample_recommend(query, target, n=50),
+                self.chatgpt.sample_recommend(neighborhood_queries, target, n=50),
+                return_exceptions=True,
+            )
+            if isinstance(result, Exception):
+                raise result  # 구 이름 결과가 기준이므로 실패하면 기존처럼 체험 전체를 실패 처리
+            out = {"chatgpt": result}
+            if isinstance(nb_result, Exception):
+                _logger.warning("[scan_trial] 동네 이름 질문 실패 — 구 이름 결과만 반환: %s", nb_result)
+            else:
+                nb_result["mentioned"] = nb_result.get("exposure_freq", 0) > 0
+                nb_result["excerpt"] = (nb_result.get("citations") or [None])[0]
+                out["chatgpt_neighborhood"] = nb_result
+        else:
+            result = await self.chatgpt.sample_recommend(query, target, n=50)
+            out = {"chatgpt": result}
         # 하위 호환: mentioned 필드 보정 (exposure_freq 기반)
         result["mentioned"] = result.get("exposure_freq", 0) > 0
         result["excerpt"] = (result.get("citations") or [None])[0]
-        return {"chatgpt": result}
+        return out
 
     async def _run_playwright(self, fn, *args):
         """Playwright 기반 스캐너 세마포어 제한 (최대 동시 1개) — 대기열 15초 + 실행 40초 타임아웃"""
