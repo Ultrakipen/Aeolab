@@ -452,8 +452,8 @@ export default function HowItWorksPage() {
               tone="green"
               num={2}
               title="소식"
-              summary="매주 자동 초안 생성 — 1분 복사·등록으로 최신성 유지."
-              detail="매주 월요일 오전 9시에 자동 초안을 생성합니다. 사장님은 1분 만에 복사·등록만 하면 최신성 점수가 유지됩니다."
+              summary="매주 자동 초안 생성 — 복사·등록만으로 최신성 유지."
+              detail="매주 월요일 오전 9시에 자동 초안을 생성합니다. 사장님은 복사·등록만 하면 최신성 점수가 유지됩니다."
             />
             <ContentCard
               icon={Star}
@@ -823,7 +823,7 @@ export default function HowItWorksPage() {
               <ul className="space-y-2 text-sm md:text-base text-gray-700 leading-relaxed">
                 <li className="flex items-start gap-2"><IconTile icon={FileText} tone="blue" size="sm" className="mt-0.5 shrink-0" /> AI 정보 탭 토글 ON 직접 설정</li>
                 <li className="flex items-start gap-2"><IconTile icon={FileText} tone="blue" size="sm" className="mt-0.5 shrink-0" /> 자동 생성된 소개글 복사·붙여넣기</li>
-                <li className="flex items-start gap-2"><IconTile icon={FileText} tone="blue" size="sm" className="mt-0.5 shrink-0" /> 자동 초안 소식을 1분 만에 등록</li>
+                <li className="flex items-start gap-2"><IconTile icon={FileText} tone="blue" size="sm" className="mt-0.5 shrink-0" /> 자동 초안 소식을 복사해 등록</li>
                 <li className="flex items-start gap-2"><IconTile icon={FileText} tone="blue" size="sm" className="mt-0.5 shrink-0" /> QR 카드 출력해 매장에 비치</li>
                 <li className="flex items-start gap-2"><IconTile icon={FileText} tone="blue" size="sm" className="mt-0.5 shrink-0" /> 자동 생성된 리뷰 답변 검토·등록</li>
                 <li className="flex items-start gap-2"><IconTile icon={FileText} tone="blue" size="sm" className="mt-0.5 shrink-0" /> 프랜차이즈 여부 정직히 답변</li>
@@ -880,7 +880,7 @@ export default function HowItWorksPage() {
             <h2 className="text-xl md:text-2xl font-bold text-gray-900 break-keep">시작하는 법</h2>
           </div>
           <ol className="space-y-3 text-sm md:text-base text-gray-700 leading-relaxed mb-5">
-            <li><strong>1.</strong>{" "}<Link href="/trial" className="text-blue-600 hover:underline font-medium">무료 진단</Link>{" "}— 비로그인으로 가게 이름·업종만 입력하면 1분 만에 현재 점수 확인</li>
+            <li><strong>1.</strong>{" "}<Link href="/trial" className="text-blue-600 hover:underline font-medium">무료 진단</Link>{" "}— 비로그인으로 가게 이름·업종만 입력하면 현재 노출 상태 확인</li>
             <li><strong>2.</strong>{" "}<Link href="/pricing" className="text-blue-600 hover:underline font-medium">요금제 보기</Link>{" "}— Basic 첫 달 50% 할인({PLAN_PRICES.basic && Math.round(PLAN_PRICES.basic / 2).toLocaleString()}원)으로 시작</li>
             <li><strong>3.</strong>{" "}가입 후 대시보드 → <strong>내 업종에 맞는 AI 노출 가이드</strong>를 따라 15분간 설정</li>
             <li><strong>4.</strong>{" "}플랜에 따라 자동 점검 결과 + 카카오 알림으로 변화 추적</li>

@@ -145,7 +145,7 @@ export function AiInfoTabStatusCard({
       {eligibility !== "inactive" && (
       <details className="mb-4">
         <summary className="text-sm md:text-base font-medium text-blue-700 cursor-pointer hover:text-blue-900 select-none">
-          확인 방법 보기 (1분)
+          확인 방법 보기
         </summary>
         <div className="mt-3 p-3 md:p-4 bg-blue-50 rounded text-sm md:text-base text-gray-700 leading-relaxed">
           <ol className="list-decimal pl-5 space-y-1.5">

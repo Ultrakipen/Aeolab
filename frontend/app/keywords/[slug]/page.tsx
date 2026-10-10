@@ -191,7 +191,7 @@ export default async function KeywordPage({
           </h2>
           <p className="text-blue-100 text-sm mb-5 break-keep">
             {page.region} {page.category} 기준으로 AI 노출 점수와 키워드 공백을
-            30초 안에 확인합니다
+            바로 확인합니다
           </p>
           <Link
             href="/trial"
@@ -199,7 +199,7 @@ export default async function KeywordPage({
           >
             내 가게 AI 노출 확인하기
           </Link>
-          <p className="text-sm text-blue-200 mt-3">가입 없이 · 카드 없이 · 30초</p>
+          <p className="text-sm text-blue-200 mt-3">가입 없이 · 카드 없이</p>
         </div>
 
         {/* 관련 페이지 */}

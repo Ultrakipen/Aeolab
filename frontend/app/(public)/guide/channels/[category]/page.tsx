@@ -333,7 +333,7 @@ export default async function ChannelGuidePage({
             내 {entry.label} 점수를 무료로 진단해보세요
           </h2>
           <p className="text-sm md:text-base text-gray-700 mb-5 leading-relaxed break-keep">
-            가게 이름과 업종만 입력하면 1분 안에 AI 검색 노출 점수와 개선 가이드를 확인할 수 있습니다.
+            가게 이름과 업종만 입력하면 AI 검색 노출 현황과 개선 방향을 확인할 수 있습니다.
           </p>
           <div className="flex flex-col md:flex-row gap-3">
             <TrackedCTA
@@ -352,7 +352,7 @@ export default async function ChannelGuidePage({
             </Link>
           </div>
           <p className="text-sm text-gray-600 mt-3 leading-relaxed break-keep">
-            회원가입·신용카드 입력 없이 1분 무료 체험. Basic 첫 달 50% 할인({FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원).
+            회원가입·신용카드 입력 없이 무료 체험. Basic 첫 달 50% 할인({FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원).
           </p>
         </section>
       </div>

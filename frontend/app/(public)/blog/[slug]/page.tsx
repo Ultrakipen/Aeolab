@@ -220,8 +220,8 @@ export default async function BlogPostPage({
             가이드를 읽었다면, 지금 내 가게를 진단해보세요
           </h2>
           <p className="text-blue-100 text-sm mb-5 break-keep">
-            ChatGPT·네이버 AI 브리핑에서 내 가게가 어떻게 노출되는지 30초 안에
-            확인합니다
+            네이버 검색과 ChatGPT에서 내 가게가 어떻게 노출되는지
+            바로 확인합니다
           </p>
           <Link
             href="/trial"
@@ -230,7 +230,7 @@ export default async function BlogPostPage({
             내 가게 AI 노출 확인하기
           </Link>
           <p className="text-sm text-blue-200 mt-3">
-            가입 없이 · 카드 없이 · 30초
+            가입 없이 · 카드 없이
           </p>
         </div>
 

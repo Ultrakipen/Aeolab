@@ -136,7 +136,7 @@ const SERVICE_FAQS: FAQData[] = [
   {
     q: "결과가 나오기까지 얼마나 걸리나요?",
     short:
-      "무료 체험은 약 30초 소요됩니다. 유료 전체 점검은 몇 분 걸립니다. 네이버 쪽 확인에 시간이 걸려 네트워크 상황에 따라 더 걸릴 수 있습니다. 진행률은 실시간으로 표시됩니다.",
+      "무료 체험은 잠시 기다리면 결과가 나옵니다. 유료 전체 점검은 더 오래 걸립니다. 네이버 쪽 확인에 시간이 걸려 네트워크 상황에 따라 더 걸릴 수 있습니다. 진행률은 실시간으로 표시됩니다.",
   },
   {
     q: "언제든지 해지할 수 있나요?",
@@ -442,7 +442,7 @@ export default function FAQPage() {
               지금 바로 AI 노출 현황을 확인해 보세요
             </h2>
             <p className="text-base text-blue-100 mb-6 break-keep">
-              업종 선택 → 30초 → 경쟁사 순위 확인
+              업종 선택 → 진단 → 경쟁사 순위 확인
             </p>
             <Link
               href="/trial"
@@ -451,7 +451,7 @@ export default function FAQPage() {
               무료 진단 시작 →
             </Link>
             <p className="text-sm text-blue-200 mt-3">
-              가입 불필요 · 카드 등록 불필요 · 30초
+              가입 불필요 · 카드 등록 불필요
             </p>
           </div>
         </section>

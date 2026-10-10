@@ -208,7 +208,7 @@ export default function DashboardDetailZone({
           </p>
           <p className="text-sm md:text-base text-slate-500 max-w-md mx-auto leading-relaxed">
             지금 AI 측정을 시작하면 네이버·ChatGPT·Google AI에서<br className="hidden md:block" />
-            내 가게가 언급되는지 1분 안에 확인합니다.
+            내 가게가 언급되는지 확인합니다.
           </p>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-w-lg w-full">

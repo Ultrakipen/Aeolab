@@ -63,7 +63,7 @@ export default function FirstTimeEducationCard() {
         <div>
           <span className="text-sm font-semibold text-blue-600 uppercase tracking-wide">처음 오셨나요?</span>
           <h3 className="text-lg md:text-xl font-bold text-blue-900 mt-0.5">
-            네이버 AI 브리핑 — 30초 핵심 정리
+            네이버 AI 브리핑 — 핵심 정리
           </h3>
         </div>
         <button

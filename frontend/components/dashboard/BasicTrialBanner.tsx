@@ -77,7 +77,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
               전체 AI가 내 가게를 확인하고 있어요...
             </p>
             <p className="text-sm md:text-base text-emerald-700 mt-1">
-              ChatGPT · 네이버 AI 브리핑 · 구글 AI · Gemini 동시 분석 중 (약 1분 소요)
+              ChatGPT · 네이버 AI 브리핑 · 구글 AI · Gemini 동시 분석 중
             </p>
             <p className="text-sm text-emerald-700 mt-2">
               이 페이지를 닫지 말고 잠시만 기다려 주세요.
@@ -108,7 +108,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
             <ul className="text-sm text-emerald-700 mt-2 space-y-0.5 leading-relaxed">
               <li>• Gemini·ChatGPT 각 50회 여러 번 물어봐서 AI 노출 빈도 측정</li>
               <li>• AI 개선 가이드 1회 자동 생성</li>
-              <li>• 약 1분 소요 · 평생 1회 무료</li>
+              <li>• 평생 1회 무료</li>
               <li className="text-emerald-700">• Basic 구독 시 각 100회로 정확도 상승 + 주 2회 자동 반복 측정</li>
             </ul>
           </div>
@@ -130,7 +130,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
         ) : (
           <div className="bg-white border border-emerald-200 rounded-xl p-4">
             <p className="text-sm md:text-base text-gray-800 font-medium mb-3">
-              지금 한 번만 무료 체험이 가능합니다. 약 1분이 소요됩니다. 시작할까요?
+              지금 한 번만 무료 체험이 가능합니다. 시작할까요?
             </p>
             <div className="flex flex-col sm:flex-row gap-2">
               <button

@@ -158,7 +158,7 @@ export default function AdCostCalculatorPage() {
           <p className="text-base font-bold text-gray-900 mb-1">
             실제 내 사업장의 AI 노출 현황이 궁금하다면?
           </p>
-          <p className="text-sm text-gray-600 mb-4">회원가입 없이 1분 무료 진단</p>
+          <p className="text-sm text-gray-600 mb-4">회원가입 없이 무료 진단</p>
           <Link
             href="/trial"
             className="inline-block px-7 py-3 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition-colors"

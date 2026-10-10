@@ -161,8 +161,8 @@ export default function KeywordsIndexPage() {
             내 가게 AI 노출 점수를 지금 확인하세요
           </h2>
           <p className="text-blue-100 text-sm md:text-base mb-6 break-keep">
-            위 지역·업종 기준으로 ChatGPT·네이버 AI 브리핑이 내 가게를 추천하는지
-            30초 안에 자동 진단합니다
+            위 지역·업종 기준으로 네이버 검색과 ChatGPT에서 내 가게가 나오는지
+            바로 진단합니다
           </p>
           <Link
             href="/trial"
@@ -171,7 +171,7 @@ export default function KeywordsIndexPage() {
             내 가게 무료 진단 시작
           </Link>
           <p className="text-sm text-blue-200 mt-3">
-            가입 없이 · 카드 없이 · 30초
+            가입 없이 · 카드 없이
           </p>
         </div>
       </div>

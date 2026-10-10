@@ -44,9 +44,9 @@ export default function ScoreGuidePage() {
         </h1>
       </div>
 
-      {/* 2. 30초 핵심 요약 — 이탈 전 반드시 읽히는 카드 */}
+      {/* 2. 핵심 요약 — 이탈 전 반드시 읽히는 카드 */}
       <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200 rounded-xl p-5 mb-4">
-        <p className="text-sm font-bold text-indigo-700 uppercase tracking-wide mb-3 flex items-center gap-1"><Zap className="w-4 h-4" aria-hidden="true" /> 30초 핵심 요약</p>
+        <p className="text-sm font-bold text-indigo-700 uppercase tracking-wide mb-3 flex items-center gap-1"><Zap className="w-4 h-4" aria-hidden="true" /> 핵심 요약</p>
         <div className="space-y-3">
           <div className="flex items-start gap-3">
             <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">1</span>

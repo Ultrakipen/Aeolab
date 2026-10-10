@@ -166,7 +166,7 @@ export default function DashboardHeader({
               >
                 내 가게 등록하고 시작하기
               </a>
-              <p className="text-sm text-blue-600 text-center">무료로 시작 · 1분 소요</p>
+              <p className="text-sm text-blue-600 text-center">무료로 시작</p>
             </div>
           </div>
         </div>

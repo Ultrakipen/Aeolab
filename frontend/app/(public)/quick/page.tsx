@@ -266,7 +266,7 @@ export default function QuickPage() {
         <div className="max-w-md mx-auto flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-blue-600">AEOlab</Link>
           <div className="flex items-center gap-2 md:gap-3">
-            <span className="hidden sm:inline text-sm text-gray-600 font-medium whitespace-nowrap">30초 간이 AI 진단</span>
+            <span className="hidden sm:inline text-sm text-gray-600 font-medium whitespace-nowrap">간이 AI 진단</span>
             <AuthNavControlClient />
           </div>
         </div>
@@ -285,7 +285,7 @@ export default function QuickPage() {
               <p className="text-base text-gray-600 leading-relaxed break-keep">
                 가게 이름과 지역만 입력하면
                 <br />
-                <strong className="text-gray-700">30초 안에 AI 노출 점수</strong>를 무료로 알려드립니다.
+                <strong className="text-gray-700">AI 노출 상태</strong>를 무료로 알려드립니다.
               </p>
             </div>
 
@@ -298,7 +298,7 @@ export default function QuickPage() {
                 <span className="text-green-700 font-bold">✓</span> 회원가입 불필요
               </span>
               <span className="text-sm text-gray-600 flex items-center gap-1">
-                <span className="text-green-700 font-bold">✓</span> 30초
+                <span className="text-green-700 font-bold">✓</span> 무료
               </span>
             </div>
 
@@ -389,7 +389,7 @@ export default function QuickPage() {
               </button>
 
               <p className="text-center text-sm text-gray-600 mt-2">
-                하루 3회 무료 · 결과는 약 30초 내 표시됩니다
+                하루 3회 무료
               </p>
             </form>
 
