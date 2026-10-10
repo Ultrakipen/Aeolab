@@ -10,18 +10,21 @@ import { mapNaverCategory, FLAT_CATEGORY_MAP } from "@/lib/categories";
 import { getBriefingEligibility } from "@/lib/userGroup";
 import { useBriefingCategories } from "@/lib/useBriefingCategories";
 import { parseNaverPlaceUrl } from "@/lib/naverPlaceUrl";
+import { shortRegionFromAddress, keywordFromNaverCategory } from "@/lib/trialAutofill";
 import { getSafeSession } from "@/lib/supabase/client";
 import type {
   TrialScanResult,
   TrialBusinessCandidate,
 } from "@/types";
 import TrialInputStep from "./components/TrialInputStep";
+import TrialFindStep from "./components/TrialFindStep";
 import TrialScanningStep from "./components/TrialScanningStep";
 import TrialResultStep from "./components/TrialResultStep";
 import type {
   Step,
   BusinessType,
   TrialFormState,
+  ManualKind,
 } from "./components/TrialSharedTypes";
 
 // ── 모듈 레벨 상수 ────────────────────────────────────────────────────
@@ -141,7 +144,7 @@ export default function TrialPage() {
   const briefingCats = useBriefingCategories();
 
   // ── 핵심 state ──────────────────────────────────────────────────────
-  const [step, setStep] = useState<Step>("category");
+  const [step, setStep] = useState<Step>("find");
   const [result, setResult] = useState<TrialScanResult | null>(null);
   const [error, setError] = useState("");
   const [isRestored, setIsRestored] = useState(false);
@@ -191,6 +194,17 @@ export default function TrialPage() {
     const r = parseNaverPlaceUrl(placeUrl);
     return r.status === "ok" ? r.placeId : "";
   })();
+
+  // ── "가게 이름만 입력" 빠른 경로(find → confirm) state ──────────────────
+  const [findQuery, setFindQuery] = useState("");
+  const [findResults, setFindResults] = useState<TrialBusinessCandidate[]>([]);
+  const [findLoading, setFindLoading] = useState(false);
+  const [findDone, setFindDone] = useState(false);
+  const [confirmCandidate, setConfirmCandidate] = useState<TrialBusinessCandidate | null>(null);
+  // 업종 자동 판정이 "기타"로 떨어졌을 땐 사용자가 직접 고르기 전까지 시작 불가
+  const [categoryConfirmed, setCategoryConfirmed] = useState(true);
+  // 진단 실패 시 어느 경로로 돌아갈지(빠른 경로면 confirm, 직접 입력이면 info)
+  const [fastPath, setFastPath] = useState(false);
 
   const [apiBenchmark, setApiBenchmark] = useState<{
     count: number;
@@ -284,6 +298,8 @@ export default function TrialPage() {
         business_name: paramName,
         ...(paramRegion ? { region: paramRegion } : {}),
       }));
+      // 이름만 넘어온 링크 — 빠른 경로 검색창에 미리 채워 바로 후보가 뜨게 한다
+      setFindQuery(paramRegion ? `${paramRegion} ${paramName}` : paramName);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -333,6 +349,38 @@ export default function TrialPage() {
       .catch(() => { setApiBenchmark(null); });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result]);
+
+  // ── 가게 이름 검색 (find 단계, 디바운스) ───────────────────────────────
+  useEffect(() => {
+    if (step !== "find") return;
+    const q = findQuery.trim();
+    if (q.length < 2) {
+      setFindResults([]);
+      setFindLoading(false);
+      setFindDone(false);
+      return;
+    }
+    setFindDone(false);
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      setFindLoading(true);
+      try {
+        const data = await searchTrialBusiness(q);
+        if (!cancelled) setFindResults((data.results || []).slice(0, 5));
+      } catch {
+        if (!cancelled) setFindResults([]);
+      } finally {
+        if (!cancelled) {
+          setFindLoading(false);
+          setFindDone(true);
+        }
+      }
+    }, 600);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [findQuery, step]);
 
   // ── 쿨다운 인터벌 ───────────────────────────────────────────────────
   useEffect(() => {
@@ -477,6 +525,68 @@ export default function TrialPage() {
     await runScan(pastedPlaceId || null);
   };
 
+  // ── 빠른 경로 핸들러 ────────────────────────────────────────────────
+  const handleFindSelect = (c: TrialBusinessCandidate) => {
+    const mapped = mapNaverCategory(c.category);
+    const label = FLAT_CATEGORY_MAP[mapped]?.label || "";
+    const kw = keywordFromNaverCategory(c.category, mapped === "other" ? "" : label);
+    setSelectedCategory(mapped);
+    setCategoryConfirmed(mapped !== "other");
+    setPrimaryKeyword(kw);
+    setSelectedTags(kw ? [kw] : []);
+    setBusinessType("location_based");
+    setIsStartupMode(false);
+    setForceManualEntry(false);
+    setForm((prev) => ({
+      ...prev,
+      business_name: c.title,
+      region: shortRegionFromAddress(c.address) || prev.region,
+      is_smart_place: true,
+    }));
+    setHasIntro(undefined);
+    setHasRecentPost(undefined);
+    setHasFaq(undefined);
+    setConfirmCandidate(c);
+    setFastPath(true);
+    setError("");
+    setStep("confirm");
+    if (typeof window !== "undefined") window.scrollTo({ top: 0 });
+  };
+
+  const handleManual = (kind: ManualKind) => {
+    setFastPath(false);
+    setConfirmCandidate(null);
+    if (kind === "online") setBusinessType("non_location");
+    if (kind === "startup") setIsStartupMode(true);
+    else if (findQuery.trim()) {
+      setForm((prev) => ({ ...prev, business_name: findQuery.trim() }));
+    }
+    setStep("category");
+    if (typeof window !== "undefined") window.scrollTo({ top: 0 });
+  };
+
+  const handleCategoryChange = (v: string) => {
+    setSelectedCategory(v);
+    setCategoryConfirmed(!!v);
+  };
+
+  const handleKeywordChange = (v: string) => {
+    setPrimaryKeyword(v);
+    const t = v.trim();
+    setSelectedTags(t ? [t] : []);
+  };
+
+  const handleConfirmStart = async () => {
+    const remaining = getTrialCooldownRemaining();
+    if (remaining > 0) {
+      setCooldownMs(remaining);
+      return;
+    }
+    if (!confirmCandidate) return;
+    const realId = (confirmCandidate.naver_place_id || "").trim();
+    await runScan(realId || pastedPlaceId || null, confirmCandidate.title, confirmCandidate);
+  };
+
   const runScan = async (
     naverPlaceId: string | null,
     candidateTitle?: string,
@@ -563,7 +673,7 @@ export default function TrialPage() {
       } else {
         setError("측정 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
       }
-      setStep("info");
+      setStep(fastPath ? "confirm" : "info");
     }
   };
 
@@ -571,7 +681,16 @@ export default function TrialPage() {
     clearResultCache();
     setIsRestored(false);
     setRestoreBanner("hidden");
-    setStep("category");
+    setStep("find");
+    setFindQuery("");
+    setFindResults([]);
+    setFindLoading(false);
+    setFindDone(false);
+    setConfirmCandidate(null);
+    setCategoryConfirmed(true);
+    setFastPath(false);
+    setIsStartupMode(false);
+    setPlaceUrl("");
     setResult(null);
     setSelectedCategory("");
     setSelectedTags([]);
@@ -656,7 +775,40 @@ export default function TrialPage() {
       )}
 
       {/* 입력 단계 (category / tags / info / search) */}
-      {step !== "result" && step !== "scanning" && (
+      {(step === "find" || step === "confirm") && (
+        <TrialFindStep
+          step={step}
+          query={findQuery}
+          setQuery={setFindQuery}
+          results={findResults}
+          loading={findLoading}
+          done={findDone}
+          onSelect={handleFindSelect}
+          onManual={handleManual}
+          candidate={confirmCandidate}
+          form={form}
+          setForm={setForm}
+          selectedCategory={selectedCategory}
+          categoryConfirmed={categoryConfirmed}
+          onCategoryChange={handleCategoryChange}
+          primaryKeyword={primaryKeyword}
+          onKeywordChange={handleKeywordChange}
+          hasFaq={hasFaq}
+          setHasFaq={setHasFaq}
+          hasRecentPost={hasRecentPost}
+          setHasRecentPost={setHasRecentPost}
+          hasIntro={hasIntro}
+          setHasIntro={setHasIntro}
+          placeUrl={placeUrl}
+          setPlaceUrl={setPlaceUrl}
+          cooldownMs={cooldownMs}
+          error={error}
+          onBack={() => setStep("find")}
+          onStart={handleConfirmStart}
+        />
+      )}
+
+      {step !== "result" && step !== "scanning" && step !== "find" && step !== "confirm" && (
         <TrialInputStep
           step={step}
           setStep={setStep}

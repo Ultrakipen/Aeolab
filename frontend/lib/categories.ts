@@ -440,14 +440,14 @@ export function mapNaverCategory(naverCat?: string): string {
   if (!naverCat) return "other";
   const c = naverCat.toLowerCase();
 
-  // 음식·음료
-  if (/한식|중식|일식|양식|분식|음식점|식당|국밥|돈까스|초밥|냉면|피자|버거|패스트푸드|맛집/.test(c)) return "restaurant";
-  if (/치킨|닭갈비|닭/.test(c)) return "restaurant";
-  if (/고기|갈비|삼겹살|육류/.test(c)) return "restaurant";
+  // 음식·음료 — 네이버 업종은 "음식점>카페,디저트"처럼 오므로 카페류를 음식점보다 먼저 판정
+  if (/키즈카페|어린이카페/.test(c)) return "kids";
   if (/카페|커피|디저트카페/.test(c)) return "cafe";
   if (/베이커리|빵집|제과점|제빵/.test(c)) return "bakery";
   if (/주점|술집|호프|포차|이자카야/.test(c)) return "bar";
-  if (/키즈카페|어린이카페/.test(c)) return "kids";
+  if (/한식|중식|일식|양식|분식|음식점|식당|국밥|돈까스|초밥|냉면|피자|버거|패스트푸드|맛집/.test(c)) return "restaurant";
+  if (/치킨|닭갈비|닭/.test(c)) return "restaurant";
+  if (/고기|갈비|삼겹살|육류/.test(c)) return "restaurant";
 
   // 뷰티·건강 (skincare/massage/spa를 beauty보다 먼저 체크)
   if (/피부관리|에스테틱|스킨케어|피부샵/.test(c)) return "skincare";
@@ -458,9 +458,11 @@ export function mapNaverCategory(naverCat?: string): string {
   if (/미용실|헤어|뷰티|미장원/.test(c)) return "beauty";
   if (/피부/.test(c)) return "skincare";
   if (/네일/.test(c)) return "nail";
+  // 동물병원은 "병원"보다 먼저 (반려동물)
+  if (/동물병원|펫|반려동물|애견|애묘/.test(c)) return "pet";
   // 의료 세분화 — medical보다 먼저 체크
   if (/치과|치아교정|임플란트|스케일링/.test(c)) return "dental";
-  if (/한의원|한방|침|추나/.test(c)) return "oriental_medicine";
+  if (/한의원|한방|추나|침술/.test(c)) return "oriental_medicine";
   if (/안경원|안경점|렌즈|라식/.test(c)) return "optics";
   if (/병원|의원|클리닉|정형외과|내과|소아과/.test(c)) return "medical";
   if (/약국/.test(c)) return "pharmacy";
@@ -475,15 +477,12 @@ export function mapNaverCategory(naverCat?: string): string {
   if (/수영|아쿠아|수영장/.test(c)) return "swim";
   if (/찜질방|사우나|한증막/.test(c)) return "jjimjil";
 
-  // 반려동물
-  if (/동물병원|펫|반려동물|애견|애묘/.test(c)) return "pet";
-
   // 교육 세분화 — education보다 먼저 체크
   if (/스터디카페|독서실|스터디룸/.test(c)) return "study";
   if (/과외/.test(c)) return "tutoring";
   if (/작곡교습소|작곡학원|레코딩스튜디오|음악스튜디오|녹음스튜디오/.test(c)) return "music_studio";
-  if (/음악교실|음악학원|피아노학원|바이올린학원|첼로학원/.test(c)) return "music_class";
   if (/피아노레슨|기타레슨|드럼레슨|보컬레슨|악기레슨|개인레슨/.test(c)) return "music_lesson";
+  if (/음악교실|음악학원|피아노학원|바이올린학원|첼로학원|음악교육|피아노|실용음악/.test(c)) return "music_class";
   if (/요리교실|쿠킹|베이킹클래스|요리학원|쿡클래스/.test(c)) return "cooking";
   if (/미술학원|미술교실|입시미술|어린이미술/.test(c)) return "art_class";
   if (/어린이집|유치원|보육원/.test(c)) return "childcare";
@@ -498,7 +497,7 @@ export function mapNaverCategory(naverCat?: string): string {
   if (/세차|코팅|광택·왁스/.test(c)) return "car_wash";
   if (/자동차|카센터|타이어|정비/.test(c)) return "auto";
   if (/핸드폰수리|스마트폰수리|액정교체|가전수리/.test(c)) return "electronics_repair";
-  if (/세탁소|드라이클리닝|코인세탁/.test(c)) return "laundry";
+  if (/세탁|빨래방|드라이클리닝/.test(c)) return "laundry";
   if (/청소/.test(c)) return "cleaning";
 
   // 쇼핑·생활 — fashion보다 먼저 체크

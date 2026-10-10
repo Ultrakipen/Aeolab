@@ -40,7 +40,7 @@ export default function TrialScanningStep({
       </h2>
       <p className="text-base text-slate-500 leading-relaxed mb-2">
         <span className="font-semibold text-blue-600">
-          &ldquo;{[region, selectedTag].filter(Boolean).join(" ") || "이 업종"} 추천&rdquo;
+          &ldquo;{[region, selectedTag].filter(Boolean).join(" ") || "이 업종"}{" "}추천&rdquo;
         </span>
         을<br />
         네이버에서 검색하고 ChatGPT에게 50번 물어보고 있습니다

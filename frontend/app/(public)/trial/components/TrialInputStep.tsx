@@ -232,6 +232,14 @@ export default function TrialInputStep(props: TrialInputStepProps) {
         {/* 1단계: 업종 선택 */}
         {step === "category" && (
           <div>
+            <button
+              type="button"
+              onClick={() => setStep("find")}
+              aria-label="가게 이름으로 찾기"
+              className="text-base text-gray-600 hover:text-gray-800 mb-3 flex items-center gap-1"
+            >
+              <ChevronLeft className="w-4 h-4" aria-hidden="true" /> 가게 이름으로 찾기
+            </button>
             <div className="text-center mb-4">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
                 지금 내 가게, AI 검색에서 찾히나요?

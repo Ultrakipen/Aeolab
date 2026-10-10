@@ -10,7 +10,10 @@ import type {
   TrialBusinessCandidate,
 } from "@/types";
 
-export type Step = "category" | "tags" | "info" | "search" | "scanning" | "result";
+// find·confirm = "가게 이름만 입력" 빠른 경로 (2화면), category·tags·info·search = 직접 입력 경로
+export type Step = "find" | "confirm" | "category" | "tags" | "info" | "search" | "scanning" | "result";
+
+export type ManualKind = "manual" | "online" | "startup";
 
 export type BusinessType = "location_based" | "non_location";
 
