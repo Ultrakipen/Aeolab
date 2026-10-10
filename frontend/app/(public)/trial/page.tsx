@@ -596,6 +596,8 @@ export default function TrialPage() {
     setStep("scanning");
     setRestoreBanner("hidden");
     setScanStep(0);
+    // 시작 버튼이 화면 아래쪽에 있어 스크롤이 내려간 채 진행 화면이 열리는 문제 방지
+    if (typeof window !== "undefined") window.scrollTo({ top: 0 });
 
     const stepInterval = setInterval(() => {
       setScanStep((prev) => {
@@ -662,6 +664,7 @@ export default function TrialPage() {
         hasIntro: hasIntro ?? false,
       });
       setStep("result");
+      if (typeof window !== "undefined") window.scrollTo({ top: 0 });
     } catch (err: unknown) {
       clearInterval(stepInterval);
       if (err instanceof ApiError && err.code === "TRIAL_LIMIT") {
