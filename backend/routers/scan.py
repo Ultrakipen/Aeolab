@@ -782,6 +782,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         website_data = results[1] if (req.website_url and not isinstance(results[1], Exception)) else None
         naver_data = None
         kakao_data = None
+        google_places_data = None
 
         # AI 완전 실패(ChatGPT + Gemini 모두 예외) 시 503 반환
         if _ai_exc and not ai_result and gemini_evidence_data is None:
@@ -795,6 +796,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         # location_based: Gemini + 네이버(멀티쿼리) + 카카오
         from services.naver_visibility import get_naver_visibility_multi as _naver_multi
         from services.kakao_visibility import get_kakao_visibility
+        from services.google_places_visibility import get_google_places_visibility
 
         # trial: 등록 키워드 최대 3개 + 카테고리 fallback → 최대 4개 병렬
         # normalize_category로 alias 정규화 후 한국어 변환 (e.g. "professional" → "photo" → "사진·영상")
@@ -826,9 +828,13 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
             scanner.scan_trial(_ai_queries, req.business_name, _nb_queries),
             _naver_multi(req.business_name, _trial_multi_kws, req.region or "", category_ko=_comp_category_ko),
             get_kakao_visibility(req.business_name, keyword_ko, req.region or ""),
+            get_google_places_visibility(req.business_name, keyword_ko, req.region or ""),
             return_exceptions=True,
         )
-        ai_result, naver_data, kakao_data = _gather_results
+        ai_result, naver_data, kakao_data, google_places_data = _gather_results
+        if isinstance(google_places_data, Exception):
+            _logger.warning("[scan/trial] google_places exception: %s", google_places_data)
+            google_places_data = None
         gemini_evidence_data = None  # 체험에서 Gemini 미측정 (non_location 분기 주석 참조)
         # 동네 이름 질문 결과는 점수 계산 입력(ai_result)과 분리해 별도 필드로만 내보낸다(점수는 구 이름 결과 기준 유지)
         if isinstance(ai_result, dict):
@@ -1419,6 +1425,8 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
             else (naver_data or {}).get("keyword_blog_comparison", [])
         ),
         "kakao": kakao_data,
+        # 구글 지도 상위 10곳 노출·평점·리뷰 수(체험 전용, 점수에는 반영하지 않음)
+        "google_places": google_places_data,
         "website_health": website_data,
         "context": req.business_type or "location_based",
         # v3.3 — 신뢰도 강화 1라운드 (둘 다 nullable)

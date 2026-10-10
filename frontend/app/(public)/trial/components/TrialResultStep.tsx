@@ -37,8 +37,8 @@ import {
   type PassedItem,
   type AiPlace,
 } from "@/components/trial/TrialResultExtras";
-import { ChannelWaysCard, CompareVerdictCard, DiagnosisFixCard, MobileCollapse, AreaCompareCard } from "@/components/trial/TrialWaysCard";
-import type { TrialChatgptGroup } from "@/types";
+import { ChannelWaysCard, CompareVerdictCard, DiagnosisFixCard, MobileCollapse, AreaCompareCard, GoogleMapCard } from "@/components/trial/TrialWaysCard";
+import type { TrialChatgptGroup, TrialGooglePlaces } from "@/types";
 import ResultSummaryHero from "@/components/common/ResultSummaryHero";
 import { naverSeoTile, aiTabTile, briefingTile, rankTile, makeTile, type ChannelTile } from "@/lib/scoreLabels";
 import type {
@@ -799,6 +799,7 @@ export default function TrialResultStep(props: TrialResultProps) {
   // 동네·역 이름으로 물은 ChatGPT 결과(없으면 null). "미노출" 같은 단정은 구 이름 결과만이 아니라 두 결과를 함께 보고 한다.
   const nbGroup = (result as { chatgpt_neighborhood?: TrialChatgptGroup | null }).chatgpt_neighborhood ?? null;
   const nbName = nbGroup?.neighborhood ?? "";
+  const googlePlaces = (result as { google_places?: TrialGooglePlaces | null }).google_places ?? null;
   const nbSample = nbGroup?.sample_size ?? 0;
   const nbFreq = nbGroup?.exposure_freq ?? 0;
   const hasNb = !!(nbGroup && nbName && nbSample > 0);
@@ -1154,6 +1155,16 @@ export default function TrialResultStep(props: TrialResultProps) {
                   places={aiPlaces}
                 />
               )}
+            </MobileCollapse>
+          )}
+
+          {googlePlaces && (googlePlaces.top.length > 0 || googlePlaces.is_on_google !== null) && (
+            <MobileCollapse
+              title="구글 지도에서의 모습"
+              hint="구글 지도 검색 상위 가게와 평점·리뷰 수 보기"
+              onOpen={() => trackEvent("trial_board_open", { board: "google_map", trial_id: (result as { trial_id?: string }).trial_id })}
+            >
+              <GoogleMapCard businessName={form.business_name || "내 가게"} data={googlePlaces} />
             </MobileCollapse>
           )}
 

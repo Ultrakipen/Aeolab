@@ -383,6 +383,7 @@ export interface TrialScanResult {
   competitors: string[];
   naver?: NaverVisibilityData;
   kakao?: KakaoVisibilityData;
+  google_places?: TrialGooglePlaces | null;
   website_health?: WebsiteCheckResult;
   message: string;
   context?: string;
@@ -681,4 +682,14 @@ export interface TalktalkFAQItem {
 export interface TalktalkFAQGeneratedResult {
   items: TalktalkFAQItem[];
   chat_menus: string[];
+}
+
+/** 무료 체험 — 구글 지도 상위 노출 확인(Serper /places). is_on_google null = 확인하지 못함 */
+export interface TrialGooglePlaces {
+  search_query: string;
+  my_rank: number | null;
+  is_on_google: boolean | null;
+  my_place: { name: string; rating: number | null; rating_count: number | null; address: string } | null;
+  top: Array<{ rank: number; name: string; rating: number | null; rating_count: number | null; address: string }>;
+  registration_checked: boolean;
 }

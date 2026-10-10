@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CHANNEL_ROWS } from "@/components/common/ChannelTimelineBox";
 import type { CompBlog } from "@/components/trial/TrialResultExtras";
-import type { TrialChatgptGroup } from "@/types";
+import type { TrialChatgptGroup, TrialGooglePlaces } from "@/types";
 import { maybeSameShop } from "@/lib/trialAutofill";
 
 /**
@@ -528,6 +528,60 @@ export function AreaCompareCard({
       )}
       <p className="mt-3 text-sm text-slate-600 leading-snug break-keep">
         ChatGPT 결과는 AI가 미리 공부한 자료를 기준으로 해서, 실시간 검색 결과와 다를 수 있어요. 같은 질문을 다시 해도 몇 번 정도는 달라질 수 있어요. 막대 전체가 {gS}번이에요. 측정 시점·기기·로그인 상태에 따라서도 달라질 수 있어요.
+      </p>
+    </section>
+  );
+}
+
+/** 구글 지도 검색에서 내 가게가 어떻게 보이는지 — 직접 재 본 값(Serper /places). 점수에는 반영하지 않는다. */
+export function GoogleMapCard({ businessName, data }: { businessName: string; data: TrialGooglePlaces }) {
+  const rate = (r: number | null, c: number | null) =>
+    r != null && c != null ? `평점 ${r} · 리뷰 ${c.toLocaleString()}개` : "평점·리뷰 정보 없음";
+  const mine = data.my_place;
+  let verdict: string;
+  if (data.is_on_google === true && data.my_rank) {
+    verdict = `구글 지도에서 “${data.search_query}”를 검색하면 상위 10곳 중 ${data.my_rank}번째로 나와요.`;
+  } else if (data.is_on_google === true) {
+    verdict = `구글 지도에는 등록돼 있지만, “${data.search_query}” 검색 상위 10곳에는 보이지 않아요.`;
+  } else if (data.is_on_google === false) {
+    verdict = `구글 지도에서 “${businessName}”을(를) 찾지 못했어요. 구글 비즈니스 프로필에 가게를 등록하면 구글 지도에 나올 수 있어요.`;
+  } else {
+    verdict = "이번에는 구글 지도에서 내 가게를 확인하지 못했어요.";
+  }
+  return (
+    <section aria-labelledby="trial-gmap-h" className="rounded-xl border border-slate-200 bg-white px-4 py-4 mb-4 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 id="trial-gmap-h" className="text-base md:text-lg font-extrabold text-slate-900 break-keep">
+          구글 지도에서는 이렇게 보여요
+        </h2>
+        <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-green-50 border border-green-200 px-2.5 py-0.5 text-sm font-bold text-green-800">
+          <span className="h-2 w-2 rounded-full bg-green-600" aria-hidden="true" />직접 재 본 값
+        </span>
+      </div>
+      <p className="mt-3 rounded-lg bg-blue-50 px-3 py-2.5 text-sm md:text-base font-medium text-slate-900 leading-snug break-keep">{verdict}</p>
+      {mine && (
+        <p className="mt-2 text-sm md:text-base text-slate-800 leading-snug break-keep">
+          내 가게: <b>{mine.name}</b> · {rate(mine.rating, mine.rating_count)}
+        </p>
+      )}
+      {data.top.length > 0 && (
+        <div className="mt-3">
+          <p className="text-sm font-semibold text-slate-700 mb-1.5">구글 지도 검색 상위 가게</p>
+          <ol className="space-y-1.5">
+            {data.top.map((p) => (
+              <li key={p.rank} className="flex items-start gap-2 text-sm md:text-base text-slate-800">
+                <span className="w-5 shrink-0 font-bold text-slate-500">{p.rank}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block line-clamp-2 break-words">{p.name}</span>
+                  <span className="block text-sm text-slate-600">{rate(p.rating, p.rating_count)}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+      <p className="mt-3 text-sm text-slate-600 leading-snug break-keep">
+        구글 지도 검색 결과는 검색하는 사람의 위치·시점·로그인 상태에 따라 달라질 수 있어요. 구글 지도의 평점·리뷰 수는 네이버와 별개예요.
       </p>
     </section>
   );
