@@ -38,7 +38,7 @@ export const CHANNEL_ROWS: ChannelRow[] = [
   },
   {
     channel: "Gemini",
-    duration: "수 주~수개월",
+    duration: "수주~수개월",
     durationColor: "text-blue-600",
     note: "구글 비즈니스 프로필 등록 후 반영 시작",
     isGlobal: true,
@@ -53,7 +53,7 @@ export const CHANNEL_ROWS: ChannelRow[] = [
   },
   {
     channel: "Google AI",
-    duration: "수 주~수개월",
+    duration: "수주~수개월",
     durationColor: "text-orange-700",
     note: "구글 비즈니스 프로필 + AI 정보 코드 등록 후 반영",
     isGlobal: true,

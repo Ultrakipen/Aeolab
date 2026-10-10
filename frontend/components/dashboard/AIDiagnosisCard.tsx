@@ -613,7 +613,7 @@ export default function AIDiagnosisCard({
                 구글 비즈니스 프로필 등록
               </p>
               <p className="text-sm md:text-base text-blue-800 mt-1 leading-relaxed">
-                구글 비즈니스 프로필 정보가 Gemini(구글 AI)에 반영됩니다. 지금 등록하면 2~4주 내 Gemini 노출이 개선될 수 있습니다. 네이버 AI탭은 스마트플레이스 소개글·리뷰를 채울수록 노출 가능성이 높아집니다.
+                구글 비즈니스 프로필 정보가 Gemini(구글 AI)에 반영됩니다. 지금 등록하면 2~4주 내 Gemini 반영이 시작될 수 있습니다. 네이버 AI탭은 스마트플레이스 소개글·리뷰를 채울수록 노출 가능성이 높아집니다.
               </p>
             </div>
           </div>
@@ -678,7 +678,7 @@ export default function AIDiagnosisCard({
         </div>
       )}
       <p className="text-sm text-gray-600 mt-3 leading-relaxed">
-        ChatGPT는 AI가 미리 공부한 자료를 바탕으로 하므로 한국 소상공인은 낮은 점수가 일반적이며 단기 변동이 없습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.
+        ChatGPT는 AI가 미리 공부한 자료를 바탕으로 하므로 한국 소상공인은 낮은 점수가 일반적이며 단기 변동이 없습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 반영이 시작될 수 있습니다.
       </p>
     </div>
   );

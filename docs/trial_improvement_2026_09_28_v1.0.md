@@ -279,3 +279,23 @@
 6. `chatgpt_result.top_places[].count`는 "표본 N번 중 그 가게가 나온 응답 수"(코드로 확인, `chatgpt_scanner.py:293`).
 
 **남은 일**: 모바일 길이(접힘 상태 약 5,900px, 변경 전 약 4,400px) 추가 단축 검토 / 업종별(음식점·카페·온라인) 실제 결과로 재확인 / 가입 클릭 이벤트 비교(`trial_board_open`, `trial_diag_fix_answer` 신규) / 서비스 내 기간 문구 불일치(ChatGPT "3개월~1년" vs "수개월~1년", 제미나이 "3~6개월" vs "수개월") 통일 / "같은 브랜드 다른 지점" 해석 규칙 미정(구현 안 함).
+
+## §18. 2026-10-10 기간 문구 통일 (채널별 반영 시간)
+
+**기준(단일 소스 = `ChannelTimelineBox.CHANNEL_ROWS`)**: 네이버 AI 브리핑·AI탭·일반검색 2~4주(네이버 미공개, 추정) / Gemini·Google AI 수주~수개월(등록 후 2~4주부터 반영 시작, 안정적으로 나오기까지 수개월) / ChatGPT 수개월~1년(이상). ChatGPT와 Gemini는 원리가 달라 한 문장에 묶지 않는다.
+
+**충돌이었던 것 → 수정**
+- "안정화(안정적 언급) 3~6개월" ×4(GlobalAiActionCard, AICitationCard, how-it-works Google AI, gap_analyzer, pdf_generator) → "수개월"
+- "ChatGPT 3개월~1년" ×2(GlobalAiActionCard, gap_analyzer) → "수개월~1년"
+- 결과 화면 ChatGPT 미노출 줄 "수개월 내 반영 예상"(예측성 + 기간 불일치) → "ChatGPT는 반영까지 수개월~1년 걸릴 수 있어요"
+- Gemini "2~4주 내 개선됩니다/개선될 수 있습니다" ×4 → "2~4주 내 반영이 시작되고/시작될 수 있습니다"
+- ChatGPT·Gemini를 한 문장으로 묶은 곳: 이메일 푸터, startup_report 프롬프트(분기 3+기본값 1) → 분리
+- 이메일 "수개월 후 ChatGPT…" ×2 → "수개월~1년 뒤"
+- 행동별 효과 칩(GlobalAiActionCard: 1~3·2~4·1~2개월 등) → "수주~1년 (채널마다 달라요)" (이 카드는 TrialDetailAccordion이 어디서도 import되지 않아 **현재 미사용 코드** — 화면 검증 불가)
+- "수 주~수개월" 띄어쓰기 → "수주~수개월"
+
+**제외(다른 종류의 주장)**: 창업 시장 분석 시안의 "경쟁 밀집 업종 3~6개월", 블로그 효과 "수개월", 서비스 이용 기록 보관 3개월(개인정보).
+
+**배운 점**
+- `pm2 describe aeolab-backend` → `--reload` 없음. 백엔드 `.py` 수정은 파일 교체만으론 반영되지 않고 **재시작해야** 한다(CLAUDE.md의 "백엔드는 파일 교체 즉시 반영" 서술은 틀림).
+- 같은 파일이 로컬/서버에서 CRLF 차이로 md5가 달라 보일 수 있다 → `tr -d '\r'` 후 비교(pdf_generator.py).

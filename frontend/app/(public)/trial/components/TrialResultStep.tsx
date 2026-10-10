@@ -245,7 +245,7 @@ function ScanConclusionCard({
           ? chatgptExposureFreq !== undefined
             ? `"${businessName}" ${chatgptSampleSize}회 중 ${chatgptExposureFreq}회 추천 목록에 등장`
             : `"${businessName}" 노출됨`
-          : "아직 미노출 (네이버 개선 후 수개월 내 반영 예상)"}
+          : "아직 미노출 (ChatGPT는 반영까지 수개월~1년 걸릴 수 있어요)"}
       </p>
 
       <div className="space-y-2 mt-3">

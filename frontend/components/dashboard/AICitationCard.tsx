@@ -210,7 +210,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
               ) : c.platform === 'google' ? (
                 <p className="text-sm text-gray-600 italic">
                   이번 측정에서 Google 검색 결과에 내 가게가 나오지 않았습니다. (검색 상단 AI 요약 영역은 현재 자동 연결로는 결과를 확인하지 못합니다.)
-                  구글 비즈니스 프로필 등록 시 2~4주 내 인식이 개선될 수 있습니다.
+                  구글 비즈니스 프로필 등록 시 2~4주 내 반영이 시작될 수 있습니다.
                 </p>
               ) : c.platform === 'chatgpt' ? (
                 <p className="text-sm text-gray-600 italic">
@@ -273,7 +273,7 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
           <div className="bg-amber-50 rounded-lg p-3 space-y-2">
             <p className="text-sm font-semibold text-amber-800">AI가 아직 내 가게를 언급하지 않고 있습니다</p>
             <p className="text-sm text-amber-700">
-              <strong>Gemini 개선</strong> — 구글 비즈니스 프로필 등록 후 <strong>2~4주 내 반영 시작</strong>, 안정적 언급까지 3~6개월 소요됩니다.
+              <strong>Gemini 개선</strong> — 구글 비즈니스 프로필 등록 후 <strong>2~4주 내 반영 시작</strong>, 안정적 언급까지 수개월 걸릴 수 있습니다.
             </p>
             <p className="text-sm text-amber-700">
               <strong>ChatGPT</strong> — AI가 미리 공부한 자료 기반으로 단기 개선이 어렵습니다. 블로그·미디어 언급이 장기적으로 누적되어야 반영됩니다.

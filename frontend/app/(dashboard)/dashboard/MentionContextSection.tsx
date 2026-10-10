@@ -172,8 +172,8 @@ export function MentionContextSection({ bizId, token, currentPlan, isPro = false
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 text-sm text-blue-800 leading-relaxed">
           <span className="font-semibold">미언급은 오류가 아닙니다.</span>{' '}
           ChatGPT·Gemini 같은 글로벌 AI는 온라인에 콘텐츠가 충분히 쌓인 사업장부터 인식합니다.
-          처음 측정에서는 전체 미언급이 정상 결과이며, Gemini는 구글 비즈니스 프로필 등록 후 2~4주 내,
-          ChatGPT는 블로그·리뷰 보강 후 수개월~1년 내 개선됩니다.
+          처음 측정에서는 전체 미언급이 정상 결과이며, Gemini는 구글 비즈니스 프로필 등록 후 2~4주 내 반영이 시작되고,
+          ChatGPT는 블로그·리뷰 보강 후 수개월~1년 걸릴 수 있습니다.
           <span className="text-blue-600 text-sm block mt-1">※ Gemini는 구글 검색 실시간 연동, ChatGPT는 AI가 미리 공부한 자료 기반으로 측정하며 실시간 검색 결과와 다를 수 있습니다.</span>
         </div>
       )}

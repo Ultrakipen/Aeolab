@@ -145,7 +145,7 @@ def _day1_html(
   </div>
 
   <div style="border-top:1px solid #f1f5f9; padding-top:14px;">
-    <p style="font-size:12px; color:#94a3b8; margin:0 0 6px;">개선 후 2~4주 뒤 네이버 반영 기대 · ChatGPT·Gemini는 수개월 소요</p>
+    <p style="font-size:12px; color:#94a3b8; margin:0 0 6px;">개선 후 2~4주 뒤 네이버 반영 기대 · Gemini는 수주~수개월, ChatGPT는 수개월~1년</p>
     <a href="https://aeolab.co.kr/pricing" style="font-size:12px; color:#64748b;">매주 자동 변화 추적 → Basic 첫 달 8,950원</a>
   </div>
 
@@ -265,7 +265,7 @@ def _day7_html(
         recall_border = "#fecaca"
         recall_color = "#991b1b"
         recall_text = f"7일 전 스캔: ChatGPT 5회 질의에서 '{business_name}' 0번 등장"
-        recall_note = "소개글을 업데이트했다면 수개월 후 ChatGPT 학습 데이터에 반영될 수 있습니다."
+        recall_note = "소개글을 업데이트했다면 수개월~1년 뒤 ChatGPT 학습 데이터에 반영될 수 있습니다."
     elif has_intro is False:
         recall_bg = "#fef2f2"
         recall_border = "#fecaca"
@@ -900,7 +900,7 @@ async def send_trial_claim_link(
         _f_neg = True
     elif ai_mentioned is False:
         _f_title = f"ChatGPT {_TRIAL_CHATGPT_SAMPLE_N}회 질의 — '{biz_name}' 0번 등장"
-        _f_desc = "소개글 키워드 다양성을 높이면 수개월 후 ChatGPT 학습 데이터에 포함될 가능성이 높아집니다."
+        _f_desc = "소개글 키워드 다양성을 높이면 수개월~1년 뒤 ChatGPT 학습 데이터에 포함될 가능성이 높아집니다."
         _f_neg = True
     else:
         _f_title = "기본 설정이 갖춰져 있습니다"

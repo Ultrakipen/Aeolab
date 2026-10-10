@@ -78,7 +78,7 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
       id: "google_biz",
       title: "Google 비즈니스 프로필 등록",
       timeLabel: "10분",
-      effectLabel: "즉시~1개월 (추정)",
+      effectLabel: "수주~수개월 (추정)",
       description:
         "Google 비즈니스 프로필은 ChatGPT가 참고하는 마이크로소프트 검색과 Gemini 실시간 검색 연동 모두에서 참조됩니다. business.google.com 무료 등록이 글로벌 AI 노출의 첫 단계입니다.",
       copyText: null,
@@ -121,7 +121,7 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
         id: "structured_content",
         title: `'${keyword}' 소개글 Q&A 작성`,
         timeLabel: "5분",
-        effectLabel: "1~3개월 (추정)",
+        effectLabel: "수주~1년 (채널마다 달라요)",
         description: `ChatGPT·Gemini는 '${keyword}'처럼 명확한 Q&A 형식 텍스트를 소개하는 경향이 있습니다. 홈페이지·소개글에 아래 문구를 추가해 보세요.`,
         copyText,
         copyLabel: "Q&A 문구 복사하기",
@@ -149,7 +149,7 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
         id: "structured_content_fallback",
         title: "업종 키워드 Q&A 작성",
         timeLabel: "5분",
-        effectLabel: "1~3개월 (추정)",
+        effectLabel: "수주~1년 (채널마다 달라요)",
         description:
           "ChatGPT·Gemini는 명확한 Q&A 형식 텍스트를 소개하는 경향이 있습니다. 홈페이지·소개글에 아래 문구를 추가해 보세요.",
         copyText,
@@ -171,7 +171,7 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
         id: "blog_content",
         title: "블로그·외부 콘텐츠 확보",
         timeLabel: "2분 (리뷰 요청 문자 발송)",
-        effectLabel: "2~4개월 (추정)",
+        effectLabel: "수주~1년 (채널마다 달라요)",
         description:
           "ChatGPT는 로컬 검색 시 마이크로소프트 검색을 실시간으로 사용합니다. 구글 리뷰·외부 블로그 후기를 확보하면 마이크로소프트 검색에 포함되어 ChatGPT 노출 가능성이 높아집니다. 네이버 리뷰·블로그는 네이버 AI 브리핑·AI탭에 효과적입니다.",
         copyText: reviewText,
@@ -192,7 +192,7 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
         id: "meta_tag",
         title: "홈페이지 검색 정보 개선",
         timeLabel: "30분",
-        effectLabel: "1~2개월 (추정)",
+        effectLabel: "수주~1년 (채널마다 달라요)",
         description: `홈페이지가 있다면 제목·설명 태그에 '${businessName} ${regionStr} ${category}' 키워드를 포함하면 Google AI와 ChatGPT 소개 가능성이 높아집니다.`,
         copyText,
         copyLabel: "검색 정보 태그 코드 복사하기",
@@ -212,7 +212,7 @@ function buildActions(props: GlobalAiActionCardProps): Action[] {
         id: "json_ld",
         title: "AI가 내 가게 정보를 정확히 알 수 있도록 등록",
         timeLabel: "자동 생성",
-        effectLabel: "1~2개월 (추정)",
+        effectLabel: "수주~1년 (채널마다 달라요)",
         description:
           "가게 이름·주소·업종·운영시간을 AI가 이해하는 형식으로 등록하면 ChatGPT·Google AI 소개 정확도가 높아집니다. AEOlab Basic 플랜에서 자동으로 생성해 드립니다.",
         copyText: null,
@@ -473,7 +473,7 @@ export default function GlobalAiActionCard({
       <div className="border-t border-gray-100 pt-3">
         <p className="text-sm text-gray-600 leading-relaxed">
           ※ ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
-          Gemini는 구글 비즈니스 프로필 개선 후 2~4주 내 반영 시작(안정화 3~6개월), ChatGPT는 3개월~1년 소요됩니다. 결과는 보장되지 않습니다.
+          Gemini는 구글 비즈니스 프로필 개선 후 2~4주 내 반영이 시작되고 안정적으로 소개되기까지 수개월, ChatGPT는 수개월~1년 걸릴 수 있습니다. 결과는 보장되지 않습니다.
         </p>
       </div>
     </div>

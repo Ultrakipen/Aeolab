@@ -530,7 +530,7 @@ export default function HowItWorksPage() {
                 <span className="w-7 h-7 rounded-full bg-purple-700 text-white text-sm font-bold flex items-center justify-center shrink-0">3</span>
                 <p className="text-sm md:text-base font-bold text-purple-900">Google AI Overview — <span className="text-purple-700">수주~수개월</span></p>
               </div>
-              <p className="text-sm text-gray-700 ml-9 leading-relaxed break-keep">구글 검색에 잡힌 글 기반 → 검색 등록 완료 후 2~4주 내 반영. 안정 소개까지 3~6개월.</p>
+              <p className="text-sm text-gray-700 ml-9 leading-relaxed break-keep">구글 검색에 잡힌 글 기반 → 검색 등록 완료 후 2~4주 내 반영 시작. 안정 소개까지 수개월 (보장 아님).</p>
               <MoreInfo summary="상세 액션 보기" tone="light" className="mt-2">
                 <ul className="space-y-1 text-sm text-gray-700">
                   <li>• 구글 비즈니스 프로필 완성</li>

@@ -918,7 +918,7 @@ def generate_pdf_report(
              "노출됨" if goo_ok else "미노출",
              goo_ok,
              ("Google 검색에 노출 중입니다." + goo_exc) if goo_ok
-             else "미노출 — 구글 비즈니스 프로필 + AI 인식 코드 등록 권장 (Gemini·Google AI Overview 2~4주 반영 시작, 안정화 3~6개월)",
+             else "미노출 — 구글 비즈니스 프로필 + AI 인식 코드 등록 권장 (Gemini·Google AI Overview 2~4주 반영 시작, 안정적 소개까지 수개월)",
              4)
 
     pf_table = Table(pf_rows, colWidths=[3.8 * cm, 2.8 * cm, 9.0 * cm])
