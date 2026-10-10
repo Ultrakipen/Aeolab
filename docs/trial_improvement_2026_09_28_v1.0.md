@@ -327,3 +327,8 @@
 - **랜딩**: 무료 진단이 직접 재 보는 것(네이버 지도·검색, ChatGPT)과 가입 후 확인하는 것(AI 브리핑·AI탭·제미나이·구글)을 구분해 표기. 시간 표현("1분/30초/20~40초/즉시 결과") 삭제: 랜딩·요금제 CTA(`plans.ts`↔`PayButton.tsx` 비교 문자열 동시 변경)·체험 3화면·공유 문구·블로그 3곳.
 - **남은 시간 표현(범위 밖, 미변경)**: `quick/page.tsx`, `keywords/*`, `blog/*`, `faq`, `guide/channels/*`, `how-it-works`, `share/growth`, `tools/ad-cost-calculator`, `pricing/PlanRecommender`, 대시보드 안내문 다수. 대부분 공개 마케팅 페이지 — 같은 방식으로 정리 여부 결정 필요.
 - **미변경 플래그**: `score_engine.calc_kakao_completeness` 키 불일치 가능성(점수 영향), 공용 `names_match`가 "점"만 붙은 지점 표기를 못 잡아 ChatGPT 노출 횟수를 과소 집계할 수 있음.
+
+## §21. 직접 입력 경로에 동네·역 이름 칸 추가 (2026-10-10)
+- 이전: 동네·역 이름은 빠른 경로(가게 이름만 입력 → 확인 화면)에서만 입력·전송(`fastPath &&`). 직접 입력 사용자는 구 이름 결과만 받아 비관적으로 보일 수 있었음(같은 가게 구 이름 0/50 vs 동네 이름 11/50 실측).
+- 변경: `TrialInputStep` 지역 칸 아래 "동네·역 이름(선택)" 추가(위치 기반 업종·창업 모드 아님일 때만), 전송 조건을 `businessType !== "non_location" && !isStartupMode`로 변경. 백엔드 변경 없음(기존 sanitizer·`chatgpt_neighborhood` 재사용).
+- 확인: 타입 검사·서버 빌드·번들 포함 확인. 화면 직접 확인과 실제 체험 1회 실행은 하지 않음(IP 한도·AI 비용).

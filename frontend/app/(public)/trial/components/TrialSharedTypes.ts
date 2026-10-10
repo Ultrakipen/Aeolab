@@ -95,6 +95,8 @@ export interface TrialInputStepProps {
   getCandidateKey: (c: TrialBusinessCandidate) => string;
   primaryKeyword: string;
   setPrimaryKeyword: (v: string) => void;
+  neighborhood: string;
+  setNeighborhood: (v: string) => void;
   onMoveToInfo: () => void;
   inlineSearchResults: TrialBusinessCandidate[];
   inlineSearchLoading: boolean;

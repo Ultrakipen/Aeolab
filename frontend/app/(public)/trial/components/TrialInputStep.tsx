@@ -70,6 +70,8 @@ export default function TrialInputStep(props: TrialInputStepProps) {
     getCandidateKey,
     primaryKeyword,
     setPrimaryKeyword,
+    neighborhood,
+    setNeighborhood,
     onMoveToInfo,
     inlineSearchResults,
     inlineSearchLoading,
@@ -886,6 +888,27 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                   </p>
                 )}
               </div>
+
+              {/* 동네·역 이름 — 손님은 구 이름보다 동네·역 이름으로 검색하는 경우가 많아, ChatGPT에도 그 이름으로 따로 물어 비교한다 */}
+              {!isStartupMode && businessType !== "non_location" && (
+                <div>
+                  <label htmlFor="trial-neighborhood" className="block text-base font-semibold text-slate-700 mb-1">
+                    동네·역 이름 <span className="font-normal text-slate-500">(선택)</span>
+                  </label>
+                  <input
+                    id="trial-neighborhood"
+                    type="text"
+                    value={neighborhood}
+                    onChange={(e) => setNeighborhood(e.target.value.slice(0, 20))}
+                    maxLength={20}
+                    placeholder="예: 왕십리, 성수동"
+                    className="w-full border-2 border-slate-300 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                  <p className="mt-1.5 text-sm text-slate-600 break-keep">
+                    적으면 ChatGPT에 구 이름과 동네·역 이름으로 각각 물어 두 결과를 나란히 보여 드려요.
+                  </p>
+                </div>
+              )}
 
               {/* 검색하는 말 확인 — 지역 입력 직후에 둬서 "[지역] [키워드] 추천" 미리보기가 바로 보이게 함 */}
               {(() => {

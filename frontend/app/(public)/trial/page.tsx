@@ -642,8 +642,8 @@ export default function TrialPage() {
         review_text: reviewText || undefined,
         description: description || undefined,
         naver_place_id: naverPlaceId || undefined,
-        // 동네·역 이름은 빠른 경로(가게 이름만 입력)에서 확인 화면을 거친 경우에만 보낸다
-        neighborhood: fastPath && neighborhood.trim() ? neighborhood.trim() : undefined,
+        // 동네·역 이름은 위치 기반 업종에서만 보낸다(빠른 경로 확인 화면·직접 입력 화면 공통)
+        neighborhood: businessType !== "non_location" && !isStartupMode && neighborhood.trim() ? neighborhood.trim() : undefined,
         place_match: selectedCandidate
           ? {
               title: selectedCandidate.title,
@@ -866,6 +866,8 @@ export default function TrialPage() {
           getCandidateKey={getCandidateKey}
           primaryKeyword={primaryKeyword}
           setPrimaryKeyword={setPrimaryKeyword}
+          neighborhood={neighborhood}
+          setNeighborhood={setNeighborhood}
           onMoveToInfo={handleMoveToInfo}
           inlineSearchResults={inlineSearchResults}
           inlineSearchLoading={inlineSearchLoading}
