@@ -3,7 +3,9 @@ import { KEYWORD_PAGES } from "@/lib/keywords-data";
 import { BLOG_POSTS } from "@/lib/blog-posts";
 import { FLAT_CATEGORIES } from "@/lib/categories";
 
-const SITE_BUILD_DATE = new Date("2026-06-18");
+// 실제로 내용이 바뀐 날짜만 갱신할 것 — 매번 오늘 날짜로 바꾸면 구글이 lastmod를 신뢰하지 않는다.
+const SITE_BUILD_DATE = new Date("2026-10-12"); // 랜딩·체험·요금 등 10-10 개편 반영
+const LEGAL_UPDATED_DATE = new Date("2026-06-18"); // 약관·개인정보(미변경)
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://aeolab.co.kr";
@@ -62,13 +64,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${baseUrl}/terms`,
-      lastModified: SITE_BUILD_DATE,
+      lastModified: LEGAL_UPDATED_DATE,
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
       url: `${baseUrl}/privacy`,
-      lastModified: SITE_BUILD_DATE,
+      lastModified: LEGAL_UPDATED_DATE,
       changeFrequency: "yearly",
       priority: 0.3,
     },
@@ -89,18 +91,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: SITE_BUILD_DATE,
       changeFrequency: "weekly",
       priority: 0.75,
-    },
-    {
-      url: `${baseUrl}/login`,
-      lastModified: SITE_BUILD_DATE,
-      changeFrequency: "yearly",
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/signup`,
-      lastModified: SITE_BUILD_DATE,
-      changeFrequency: "yearly",
-      priority: 0.5,
     },
     {
       url: `${baseUrl}/ranking`,
