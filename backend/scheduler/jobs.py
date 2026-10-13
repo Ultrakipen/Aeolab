@@ -63,6 +63,11 @@ def start_scheduler():
         check_competitor_overtake, "cron", hour=3, minute=0, id="competitor_overtake",
         replace_existing=True,
     )
+    # 공개 문의 게시판 보존기간(1년) 경과 글 파기 (매일 03:40 KST) — 개인정보처리방침 §3 약속 이행
+    scheduler.add_job(
+        purge_old_board_posts, "cron", hour=3, minute=40, id="board_purge",
+        replace_existing=True,
+    )
     # 인메모리 캐시·SSE 토큰 주기 정리 (10분마다)
     scheduler.add_job(
         _cleanup_memory_stores, "interval", minutes=10, id="memory_cleanup",
@@ -364,6 +369,24 @@ def _on_job_error(event) -> None:
         asyncio.create_task(send_operator_alert(f"스케줄러 잡 실패: {job_id}", detail))
     except Exception as e:
         logger.warning(f"[scheduler] 잡 실패 알림 발송 준비 중 오류: {e}")
+
+
+async def purge_old_board_posts():
+    """공개 문의 게시판(public_posts) 글 중 작성 후 1년이 지난 것을 삭제 (공지 제외).
+
+    개인정보처리방침에 "문의 접수일로부터 1년 보관 후 파기"로 명시한 보존기간 이행 잡.
+    """
+    from db.supabase_client import get_client, execute
+    try:
+        cutoff = (datetime.utcnow() - timedelta(days=365)).isoformat()
+        res = await execute(
+            get_client().table("public_posts").delete().eq("is_notice", False).lt("created_at", cutoff)
+        )
+        n = len(res.data) if (res and res.data) else 0
+        if n:
+            logger.info(f"[board_purge] 보존기간 경과 게시글 {n}건 파기")
+    except Exception as e:
+        logger.warning(f"[board_purge] 실패: {e}")
 
 
 async def _cleanup_memory_stores():

@@ -28,32 +28,52 @@ export function HelpContactCTA({ variant }: { variant: "banner" | "footer" | "bu
           <MessageCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-medium text-blue-800">
-              {loggedIn ? "1:1 문의를 작성할 수 있습니다." : "직접 문의하려면 로그인이 필요합니다."}
+              {loggedIn ? "1:1 문의를 작성할 수 있습니다." : "해결되지 않으셨나요? 로그인 없이도 문의를 남길 수 있습니다."}
             </p>
             {loggedIn === false && (
-              <p className="text-sm text-blue-600">로그인 후 1:1 문의를 작성할 수 있습니다.</p>
+              <p className="text-sm text-blue-700">구독 중이라면 로그인 후 1:1 문의가 계정·결제 문제 처리에 더 빠릅니다.</p>
             )}
           </div>
         </div>
-        <Link
-          href={href}
-          className="shrink-0 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors text-center"
-        >
-          <span className="inline-flex items-center gap-1">{loggedIn ? "1:1 문의 작성하기" : "로그인 후 문의하기"} <ArrowRight className="w-4 h-4" aria-hidden="true" /></span>
-        </Link>
+        <div className="shrink-0 flex flex-col sm:flex-row gap-2">
+          <Link
+            href={href}
+            className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors text-center"
+          >
+            <span className="inline-flex items-center gap-1">{loggedIn ? "1:1 문의 작성하기" : "로그인 후 문의하기"} <ArrowRight className="w-4 h-4" aria-hidden="true" /></span>
+          </Link>
+          {!loggedIn && (
+            <Link
+              href="/board/new"
+              className="px-4 py-2 rounded-xl border border-blue-300 bg-white text-blue-700 text-sm font-semibold hover:bg-blue-50 transition-colors text-center"
+            >
+              로그인 없이 게시판에 문의
+            </Link>
+          )}
+        </div>
       </div>
     );
   }
 
   if (variant === "button") {
     return (
-      <Link
-        href={href}
-        className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
-      >
-        <MessageCircle className="w-4 h-4" />
-        {loggedIn ? "1:1 문의 작성하기" : "로그인 후 문의하기"}
-      </Link>
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Link
+          href={href}
+          className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+        >
+          <MessageCircle className="w-4 h-4" />
+          {loggedIn ? "1:1 문의 작성하기" : "로그인 후 문의하기"}
+        </Link>
+        {!loggedIn && (
+          <Link
+            href="/board/new"
+            className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-blue-300 bg-white text-blue-700 text-sm font-semibold hover:bg-blue-50 transition-colors"
+          >
+            로그인 없이 게시판에 문의
+          </Link>
+        )}
+      </div>
     );
   }
 
@@ -64,6 +84,15 @@ export function HelpContactCTA({ variant }: { variant: "banner" | "footer" | "bu
         {loggedIn ? "1:1 문의 작성" : "로그인 후 직접 문의"}
       </Link>
       해 주세요.
+      {!loggedIn && (
+        <>
+          {" "}로그인 없이는{" "}
+          <Link href="/board/new" className="text-blue-600 hover:underline">
+            게시판에 문의 남기기
+          </Link>
+          가 가능합니다.
+        </>
+      )}
     </p>
   );
 }

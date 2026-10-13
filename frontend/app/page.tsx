@@ -95,6 +95,13 @@ export default function LandingPage() {
               FAQ
             </Link>
             <Link
+              href="/board"
+              className="hidden lg:inline-block text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
+              style={{ color: "#475569" }}
+            >
+              문의
+            </Link>
+            <Link
               href="/showcase"
               className="hidden md:inline-block text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
               style={{ color: "#475569" }}
@@ -1346,7 +1353,7 @@ export default function LandingPage() {
       <SiteFooter />
 
       {/* 모바일 전용 FAQ floating 버튼 (랜딩 페이지 한정) */}
-      <HelpFAQFloat />
+      <HelpFAQFloat boardLink />
     </main>
   );
 }

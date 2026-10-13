@@ -15,6 +15,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { X, HelpCircle } from "lucide-react";
 import HelpSearchInput from "@/components/common/HelpSearchInput";
@@ -24,7 +25,8 @@ import {
   trackHelpSearchNoResult,
 } from "@/lib/analytics";
 
-export default function HelpFAQFloat() {
+// boardLink: 비로그인 방문자용 랜딩에서만 true — 찾는 답이 없을 때 로그인 없이 쓰는 문의 게시판으로 연결
+export default function HelpFAQFloat({ boardLink = false }: { boardLink?: boolean }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -130,6 +132,14 @@ export default function HelpFAQFloat() {
           <p className="mt-3 text-sm text-gray-600 text-center">
             요금제, 측정 결과, 개선 가이드 등을 검색해보세요
           </p>
+          {boardLink && (
+            <Link
+              href="/board/new"
+              className="mt-4 block w-full text-center rounded-xl border border-blue-200 bg-blue-50 py-3 text-sm font-semibold text-blue-700 hover:bg-blue-100"
+            >
+              찾는 답이 없나요? 로그인 없이 문의 남기기
+            </Link>
+          )}
         </div>
       </div>
     </>

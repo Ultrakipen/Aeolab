@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { href: "/admin/growth-funnel", label: "성장 퍼널" },
   { href: "/admin/delivery", label: "대행 의뢰" },
   { href: "/admin/support", label: "Q&A 문의" },
+  { href: "/admin/board", label: "문의 게시판" },
   { href: "/admin/stories", label: "성공 사례" },
   { href: "/admin/feedback", label: "피드백" },
   { href: "/admin/notices", label: "공지사항" },

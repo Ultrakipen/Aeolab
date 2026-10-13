@@ -46,6 +46,7 @@ from routers import tips as tips_router
 from routers import messages as messages_router
 from routers import feedback as feedback_router
 from routers import system_status as system_status_router
+from routers import board as board_router
 from scheduler.jobs import start_scheduler
 from utils.logger import setup_logging
 import logging
@@ -177,6 +178,8 @@ app.include_router(api_keys_router.router, prefix="/api/v1/keys",    tags=["publ
 app.include_router(notices_router.router, prefix="/api/notices", tags=["notices"])
 app.include_router(faq_router.router,     prefix="/api/faq",     tags=["faq"])
 app.include_router(inquiry_router.router, prefix="/api/inquiry", tags=["inquiry"])
+app.include_router(board_router.router,   prefix="/api/board",   tags=["board"])
+app.include_router(board_router.admin_router, prefix="/admin/board", tags=["admin-board"])
 app.include_router(kakao_router.router,   prefix="/api/kakao",   tags=["kakao"])
 app.include_router(blog_router.router,    prefix="/api/blog",    tags=["blog"])
 app.include_router(public_index_router.router, prefix="/api/public/index", tags=["public-index"])

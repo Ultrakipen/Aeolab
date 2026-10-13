@@ -130,6 +130,12 @@ export function ContactModal({ open, onClose }: Props) {
               <p className="text-sm text-center text-gray-600">
                 영업일 기준 1일 이내 회신드립니다
               </p>
+              <p className="text-sm text-center text-gray-600">
+                이메일 앱을 쓰지 않으신다면{" "}
+                <a href="/board/new?type=biz" className="text-blue-700 underline">
+                  게시판에 문의 남기기
+                </a>
+              </p>
             </>
           )}
         </div>

@@ -3111,3 +3111,36 @@ ALTER TABLE delivery_orders
   ADD COLUMN IF NOT EXISTS refund_request_reason TEXT,
   ADD COLUMN IF NOT EXISTS refund_requested_at TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS refund_reject_reason TEXT;
+
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- 공개 문의 게시판 (2026-10-13) — 비로그인 작성, 제목 공개·본문 비밀번호 보호
+-- 설계: docs/public_board_v1.0.md  /  백엔드: backend/routers/board.py
+-- ⚠️ Supabase SQL Editor에서 수동 실행 필요
+-- RLS: 정책 없이 활성화 = anon/authenticated 직접 접근 전부 차단(서비스 롤 백엔드만 접근).
+--      pw_hash·email·content 가 anon 키로 조회되던 trial_scans 유출 사고(2026-09-22) 재발 방지.
+-- ═══════════════════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS public_posts (
+  id            BIGSERIAL PRIMARY KEY,
+  category      TEXT NOT NULL DEFAULT 'general'
+                CHECK (category IN ('general','suggest','partner','biz','other')),
+  title         TEXT NOT NULL,
+  content       TEXT NOT NULL,
+  author_name   TEXT NOT NULL,
+  email         TEXT,
+  pw_hash       TEXT,                       -- scrypt "salt$hash". 공지(is_notice)는 NULL
+  title_private BOOLEAN NOT NULL DEFAULT FALSE,
+  is_notice     BOOLEAN NOT NULL DEFAULT FALSE,
+  is_hidden     BOOLEAN NOT NULL DEFAULT FALSE,
+  status        TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','answered')),
+  answer        TEXT,
+  answered_at   TIMESTAMPTZ,
+  ip_hash       TEXT,
+  fail_count    INTEGER NOT NULL DEFAULT 0,
+  locked_until  TIMESTAMPTZ,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_public_posts_list ON public_posts (is_hidden, is_notice, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_public_posts_status ON public_posts (status, created_at DESC);
+ALTER TABLE public_posts ENABLE ROW LEVEL SECURITY;

@@ -60,6 +60,15 @@ export default function PrivacyPage() {
                 </ul>
               </div>
               <div>
+                <p className="font-medium text-gray-800 mb-1">문의 게시판 작성 시 (비회원 포함)</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>필수: 이름, 비밀번호 (단방향 암호화하여 저장하며 복구할 수 없음), 작성 내용</li>
+                  <li>선택: 이메일 주소 (답변 등록 알림 발송용, 목록에 공개되지 않음)</li>
+                  <li>자동: IP 주소 (스팸 방지용, 해시 처리 후 저장)</li>
+                  <li>제목과 마스킹된 이름(예: 홍*동)은 게시판 목록에 공개되며, 내용·답변은 비밀번호를 아는 사람만 열람할 수 있습니다.</li>
+                </ul>
+              </div>
+              <div>
                 <p className="font-medium text-gray-800 mb-1">자동 수집 항목</p>
                 <ul className="list-disc pl-5 space-y-1">
                   <li>서비스 이용 기록, 접속 로그</li>
@@ -78,6 +87,7 @@ export default function PrivacyPage() {
               <li>결제 정보: 관련 법령에 따라 5년 보관 (전자상거래법)</li>
               <li>스캔 결과 및 분석 데이터: 회원 탈퇴 시 즉시 파기</li>
               <li>로그인 기록: 3개월</li>
+              <li>문의 게시판 글(이름·이메일·내용·답변): 작성자가 직접 삭제하거나 삭제를 요청하는 즉시 파기하며, 그 외에는 작성일로부터 1년 보관 후 파기</li>
               <li>IP 해시·이메일 (무료 체험): 개인 식별 없이 서비스 통계·업종 벤치마크 산정 목적으로 보유</li>
             </ul>
           </section>
