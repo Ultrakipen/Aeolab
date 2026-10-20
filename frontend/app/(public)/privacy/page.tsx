@@ -73,7 +73,7 @@ export default function PrivacyPage() {
                 <ul className="list-disc pl-5 space-y-1">
                   <li>서비스 이용 기록, 접속 로그</li>
                   <li>IP 주소 (무료 체험 스캔 횟수 제한용, 해시 처리 후 저장)</li>
-                  <li>결제 수단 정보 (마스킹된 카드번호 일부·카드사 정보를 자사 DB에 보관; 전체 카드번호는 수집하지 않으며, 빌링키는 토스페이먼츠에 위탁 저장)</li>
+                  <li>결제 수단 정보 (마스킹된 카드번호 일부·카드사 정보를 자사 DB에 보관; 전체 카드번호는 수집하지 않으며, 빌링키는 크렙에 위탁 저장)</li>
                   <li>쿠키 및 유사 기술 (Google Analytics 4를 통한 방문·이용 통계 분석 목적). 쿠키 저장을 거부하려면 웹 브라우저 설정에서 쿠키 저장을 거부할 수 있으며, 이 경우 일부 서비스 이용에 어려움이 있을 수 있습니다.</li>
                 </ul>
               </div>
@@ -113,7 +113,7 @@ export default function PrivacyPage() {
                     <td className="border border-gray-200 px-3 py-2">발송 후 즉시 삭제</td>
                   </tr>
                   <tr className="bg-gray-50">
-                    <td className="border border-gray-200 px-3 py-2">토스페이먼츠</td>
+                    <td className="border border-gray-200 px-3 py-2">크렙</td>
                     <td className="border border-gray-200 px-3 py-2">결제 처리</td>
                     <td className="border border-gray-200 px-3 py-2">이메일, 결제 정보</td>
                     <td className="border border-gray-200 px-3 py-2">5년 (법령 의거)</td>
@@ -150,7 +150,7 @@ export default function PrivacyPage() {
                     <td className="border border-gray-200 px-3 py-2">서버 호스팅</td>
                   </tr>
                   <tr>
-                    <td className="border border-gray-200 px-3 py-2">토스페이먼츠</td>
+                    <td className="border border-gray-200 px-3 py-2">크렙</td>
                     <td className="border border-gray-200 px-3 py-2">결제 처리 및 빌링키 관리</td>
                   </tr>
                   <tr className="bg-gray-50">
