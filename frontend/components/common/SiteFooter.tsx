@@ -3,6 +3,7 @@ import Link from 'next/link'
 export function SiteFooter({ activePage }: { activePage?: string }) {
   const mainLinks = [
     { href: '/how-it-works',         label: '서비스 안내' },
+    { href: '/ai-search-diagnosis',  label: 'AI 노출 진단' },
     { href: '/guide/channels',       label: '업종별 가이드' },
     { href: '/ranking',              label: 'AI 노출 랭킹' },
     { href: '/guide/chatgpt-search', label: 'ChatGPT 가이드' },

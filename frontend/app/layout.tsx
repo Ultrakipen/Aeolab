@@ -29,11 +29,11 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://aeolab.co.kr"),
-  title: "AEOlab — AI 검색 시대, 내 가게는 보이고 있을까요?",
+  title: "AI 검색 노출 진단 — 내 가게 무료 체크 | AEOlab",
   description:
     "네이버·ChatGPT·구글 AI 검색에 내 가게가 나오는지 무료로 진단하고, 경쟁사 비교와 개선 방법까지 알려드립니다.",
   keywords: [
-    "AI 검색 노출", "네이버 AI 브리핑", "ChatGPT 노출", "AEO", "AI Engine Optimization",
+    "AI 검색 노출 진단", "AI 노출 진단 도구", "AI 검색 노출", "네이버 AI 브리핑", "ChatGPT 노출", "AEO", "AI Engine Optimization",
     "소상공인 AI", "스마트플레이스", "지역 검색 최적화", "AI 검색 마케팅",
   ],
   alternates: {
