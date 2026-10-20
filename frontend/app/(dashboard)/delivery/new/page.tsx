@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { loadCreb, getBuyerInfo } from "@/lib/creb";
 import { CheckCircle2, ChevronRight, AlertCircle, Loader2 } from "lucide-react";
 import { DELIVERY_FREQUENCY, DELIVERY_SCHEDULE } from "@/lib/deliverySchedule";
 
@@ -142,26 +143,31 @@ function DeliveryNewForm() {
       const order = await res.json();
       const orderId = order.id ?? order.order_id;
 
-      // 토스 결제 오픈
-      const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
-      if (!clientKey) {
+      // 크렙 결제창 오픈
+      if (!process.env.NEXT_PUBLIC_CREB_CLIENT_KEY) {
         // 결제 키 없으면 의뢰 상세로 바로 이동 (운영자 수동 확인)
         router.push(`/delivery/orders/${orderId}`);
         return;
       }
 
       try {
-        // @ts-ignore — 토스 스크립트 동적 로드
-        const { loadTossPayments } = await import("@tosspayments/payment-sdk");
-        const tossPayments = await loadTossPayments(clientKey);
-
-        const tossOrderId = `delivery_${orderId}_${Date.now()}`;
-        // @ts-ignore — 토스 requestPayment 타입 유연하게 처리
-        await tossPayments.requestPayment("카드", {
-          amount: pkg.price,
-          orderId: tossOrderId,
-          orderName: `AEOlab 대행 서비스 - ${pkg.name}`,
-          successUrl: `${window.location.origin}/delivery/payment-confirm?orderId=${orderId}&amount=${pkg.price}&tossOrderId=${encodeURIComponent(tossOrderId)}`,
+        const buyer = await getBuyerInfo();
+        if (!buyer.phone) {
+          // 크렙 웹결제창은 구매자 전화번호 필수 — 임의 번호를 넣지 않고 안내 후 의뢰 상세로 이동(received 상태 유지)
+          alert("결제에 필요한 휴대폰 번호가 등록되어 있지 않습니다. 설정에서 번호를 등록한 뒤 의뢰 상세에서 결제해 주세요.");
+          router.push(`/delivery/orders/${orderId}`);
+          return;
+        }
+        const creb = await loadCreb();
+        const pgOrderId = `delivery_${orderId}_${Date.now()}`;
+        await creb.requestPayment({
+          amount: String(pkg.price),
+          orderId: pgOrderId,
+          orderName: `AEOlab 대행 서비스 - ${pkg.name}`.slice(0, 100),
+          customerName: buyer.name,
+          customerPhone: buyer.phone,
+          ...(buyer.email ? { customerEmail: buyer.email } : {}),
+          successUrl: `${window.location.origin}/delivery/payment-confirm?orderId=${orderId}&amount=${pkg.price}&pgOrderId=${encodeURIComponent(pgOrderId)}`,
           failUrl: `${window.location.origin}/delivery/orders/${orderId}?payment=fail`,
         });
       } catch (payErr: unknown) {

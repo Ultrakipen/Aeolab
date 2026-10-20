@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient, getSafeSession } from "@/lib/supabase/client";
 import { updatePhone } from "@/lib/api";
+import { loadCreb } from "@/lib/creb";
 
 interface Props {
   planName: string;
@@ -113,20 +114,14 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
         console.warn("전화번호 저장 실패(결제는 계속 진행):", phoneSaveErr);
       }
 
-      const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
-      if (!clientKey) {
+      if (!process.env.NEXT_PUBLIC_CREB_CLIENT_KEY) {
         alert("결제 키가 설정되지 않았습니다.");
         return;
       }
 
-      // @ts-ignore — 토스 스크립트 동적 로드
-      const { loadTossPayments } = await import("@tosspayments/payment-sdk");
-      const tossPayments = await loadTossPayments(clientKey);
-
-      const customerKey = `customer_${user.id}`;
-
-      await tossPayments.requestBillingAuth("카드", {
-        customerKey,
+      // 크렙 카드등록창 — 완료 시 successUrl로 auth_key가 붙어 리다이렉트됨(카드 소유자는 서버가 로그인 토큰으로 확정)
+      const creb = await loadCreb();
+      await creb.requestBillingAuth({
         successUrl: `${window.location.origin}/payment/success?plan=${encodeURIComponent(planName)}&amount=${chargeAmount}`,
         failUrl: `${window.location.origin}/payment/fail`,
       });

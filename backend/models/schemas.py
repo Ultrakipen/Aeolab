@@ -156,8 +156,7 @@ class SchemaRequest(BaseModel):
 
 
 class BillingIssueRequest(BaseModel):
-    authKey: str
-    customerKey: str
+    authKey: str  # 크렙 카드등록창이 successUrl로 돌려준 auth_key
     plan: str
     amount: int
 

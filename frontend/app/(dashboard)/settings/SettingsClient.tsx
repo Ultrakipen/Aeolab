@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { updatePhone, reactivateSubscription, ApiError } from "@/lib/api";
 import { getSafeSession } from "@/lib/supabase/client";
+import { loadCreb } from "@/lib/creb";
 import { CreditCard, Bell, Phone, AlertTriangle, CheckCircle2, X, ArrowRight } from "lucide-react";
 
 // 해지 사유 선택지
@@ -143,12 +144,8 @@ export function SettingsClient({
         return;
       }
 
-      const { loadTossPayments } = await import("@tosspayments/payment-sdk");
-      const tossPayments = await loadTossPayments(
-        process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY!
-      );
-      await tossPayments.requestBillingAuth("카드", {
-        customerKey: `customer_${effectiveUserId}`,
+      const creb = await loadCreb();
+      await creb.requestBillingAuth({
         successUrl: `${window.location.origin}/payment/card-update`,
         failUrl: `${window.location.origin}/payment/fail?from=card-update`,
       });

@@ -1,5 +1,6 @@
-"""Toss Payments 카드사 코드(issuerCode) → 한글 표시명 매핑.
-출처: https://docs.tosspayments.com/reference/codes (2026-07-07 확인)
+"""카드사 코드 → 한글 표시명 매핑 (레거시).
+크렙 전환(2026-10-20) 이후 subscriptions.card_issuer_code에는 크렙 cardCompany 한글명이 그대로 저장되며,
+이 매핑에 없는 값은 card_issuer_name()이 입력값을 그대로 반환한다.
 """
 
 CARD_ISSUER_NAMES: dict[str, str] = {

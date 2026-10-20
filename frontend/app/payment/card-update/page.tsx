@@ -19,10 +19,9 @@ function CardUpdateContent() {
   const [retryFailed, setRetryFailed] = useState(false);
 
   useEffect(() => {
-    const authKey = searchParams.get("authKey");
-    const customerKey = searchParams.get("customerKey");
+    const authKey = searchParams.get("auth_key");
 
-    if (!authKey || !customerKey) {
+    if (!authKey) {
       setStatus("error");
       setErrorMsg("카드 인증 정보가 올바르지 않습니다. 다시 시도해 주세요.");
       return;
@@ -37,7 +36,7 @@ function CardUpdateContent() {
           return;
         }
 
-        const result = await updateBillingCard(authKey, customerKey, session.access_token);
+        const result = await updateBillingCard(authKey, session.access_token);
         setReactivated(Boolean(result?.reactivated));
         setRetryFailed(Boolean(result?.retry_failed));
         setStatus("success");

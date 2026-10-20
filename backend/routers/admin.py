@@ -367,7 +367,7 @@ async def get_system_alerts(limit: int = Query(100, ge=1, le=500), _=Depends(ver
 @router.get("/payment-events")
 async def get_payment_events(limit: int = Query(100, ge=1, le=500), _=Depends(verify_admin)):
     """결제 이벤트 이력 조회 (§3-A P1-구조적). webhook.py issue_billing(최초결제)·
-    services/toss_billing.py retry_billing(자동갱신)에서 utils.payment_event_log.
+    services/creb_billing.py retry_billing(자동갱신)에서 utils.payment_event_log.
     record_payment_event가 자동 기록 — 이 엔드포인트는 조회 전용. 테이블 생성
     시점(2026-07-10) 이후 이벤트만 존재 — 소급 이력 없음."""
     supabase = get_supabase()

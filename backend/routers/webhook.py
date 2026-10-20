@@ -1,5 +1,3 @@
-import httpx
-import os
 import logging
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -11,13 +9,15 @@ from config.prices import (
     DISCOUNT_TO_REGULAR,
 )
 from utils import cache as _cache
+from services import creb_client
+from middleware.plan_gate import get_current_user
 
 logger = logging.getLogger("aeolab")
 
 router = APIRouter()
 
 # IP당 분당 5회 rate limit (security_audit_v1.0.md M3) — 인증 없는 엔드포인트라
-# 잘못된 authKey로도 Toss API를 무제한 호출해 남용/비용 리스크가 있음. public_briefing.py 패턴 통일.
+# 잘못된 authKey로도 크렙 API를 무제한 호출해 남용/비용 리스크가 있음. public_briefing.py 패턴 통일.
 _BILLING_ISSUE_RATE_LIMIT = 5
 _BILLING_ISSUE_RATE_WINDOW = 60  # seconds
 
@@ -103,40 +103,31 @@ PLAN_NAME_TO_KEY = {
 }
 
 
-@router.post("/toss/billing/issue")
-async def issue_billing(body: BillingIssueRequest, request: Request):
-    """빌링키 발급 + 첫 결제 → 구독 활성화"""
+@router.post("/creb/billing/issue")
+async def issue_billing(body: BillingIssueRequest, request: Request, user: dict = Depends(get_current_user)):
+    """빌링키 발급 + 첫 결제 → 구독 활성화 (크렙). 카드 등록자는 Bearer 토큰으로 확정한다
+    (크렙 auth_key 리다이렉트에는 customerKey가 없으므로 클라이언트 값을 신뢰하지 않음)."""
     client_ip = (request.client.host if request.client else "unknown")
     _check_billing_issue_rate_limit(client_ip)
 
-    import re as _re
-    if not _re.match(r"^customer_[a-f0-9\-]{36}$", body.customerKey):
-        raise HTTPException(status_code=400, detail="유효하지 않은 customerKey 형식입니다")
-    secret_key = os.getenv("TOSS_SECRET_KEY", "")
+    user_id = user["id"]
+    customer_key = f"customer_{user_id}"
 
     # 1. 빌링키 발급
-    async with httpx.AsyncClient(timeout=30) as c:
-        resp = await c.post(
-            "https://api.tosspayments.com/v1/billing/authorizations/issue",
-            auth=(secret_key, ""),
-            json={"authKey": body.authKey, "customerKey": body.customerKey},
-        )
-    if resp.status_code != 200:
-        logger.error(f"빌링키 발급 실패: {resp.text}")
+    issue_res = await creb_client.issue_billkey(body.authKey)
+    if not issue_res.ok:
+        logger.error(f"빌링키 발급 실패: {issue_res.code} {issue_res.msg}")
         raise HTTPException(status_code=400, detail="빌링키 발급에 실패했습니다. 카드 정보를 확인 후 다시 시도해 주세요.")
 
-    issue_resp_json = resp.json()
-    billing_key = issue_resp_json.get("billingKey")
+    billing_key = issue_res.data.get("billKey")
     if not billing_key:
         raise HTTPException(status_code=500, detail="빌링키를 받지 못했습니다")
 
-    # 등록 카드 정보 (설정 페이지에 표시용 — card.number는 Toss가 이미 마스킹해 내려줌)
-    card_info = issue_resp_json.get("card") or {}
-    card_issuer_code = card_info.get("issuerCode")
-    card_number_masked = card_info.get("number")
+    # 등록 카드 정보 (설정 페이지에 표시용 — cardNumber는 크렙이 마스킹해 내려줌, 카드사는 한글 이름 그대로 저장)
+    card_issuer_code = issue_res.data.get("cardCompany") or issue_res.data.get("cardResultName")
+    card_number_masked = issue_res.data.get("cardNumber")
 
-    # customerKey 형식: customer_{user_id} — user_id가 실제 존재하는 계정인지 검증
-    user_id = body.customerKey.replace("customer_", "", 1)
+    # user_id가 실제 존재하는 계정인지 검증
     _user_check = await execute(
         get_client().table("profiles").select("user_id").eq("user_id", user_id).limit(1)
     )
@@ -168,12 +159,12 @@ async def issue_billing(body: BillingIssueRequest, request: Request):
     billing_cycle_issue = "yearly" if is_yearly_issue else "monthly"
     end_at_issue = (datetime.now() + timedelta(days=365 if is_yearly_issue else 30)).date().isoformat()
 
-    # 이중 청구 방지: Toss 청구(2번)는 성공했지만 그 직후 구독 저장(3번)이 실패해
+    # 이중 청구 방지: 청구(2번)는 성공했지만 그 직후 구독 저장(3번)이 실패해
     # 프론트가 에러로 표시 → 사용자가 재시도하면, 같은 금액의 성공 이벤트가 10분
-    # 이내에 이미 있으므로 Toss에 재청구하지 않고 구독 저장만 다시 시도한다.
+    # 이내에 이미 있으므로 재청구하지 않고 구독 저장만 다시 시도한다.
     from utils.payment_event_log import find_recent_success_event
     recent_match = await find_recent_success_event(user_id, "billing_issue", body.amount, window_minutes=10)
-    payment_key = None
+    payment_key = None  # 크렙 transactionNumber(tid) — 7일 환불 시 취소 키
     charge_start_at = datetime.now().isoformat()
     skip_charge = False
     if recent_match:
@@ -183,28 +174,26 @@ async def issue_billing(body: BillingIssueRequest, request: Request):
 
     if not skip_charge:
         # 2. 첫 결제
-        async with httpx.AsyncClient(timeout=30) as c:
-            resp = await c.post(
-                f"https://api.tosspayments.com/v1/billing/{billing_key}",
-                auth=(secret_key, ""),
-                json={
-                    "customerKey": body.customerKey,
-                    "amount": body.amount,
-                    "orderId": order_id,
-                    "orderName": f"AEOlab {body.plan} 구독",
-                },
-            )
-        if resp.status_code != 200:
-            logger.error(f"첫 결제 실패: {resp.text}")
-            from utils.payment_event_log import record_payment_event
-            await record_payment_event(user_id, "billing_issue", "failed", body.amount, resp.text)
+        from services.creb_billing import get_buyer_info
+        from utils.payment_event_log import record_payment_event
+        buyer = await get_buyer_info(user_id, user.get("email"))
+        pay_res = await creb_client.billpay(
+            order_id=order_id,
+            billkey=billing_key,
+            amount=body.amount,
+            goods_name=f"AEOlab {body.plan} 구독",
+            buyer_name=buyer["name"],
+            buyer_phone=buyer["phone"],
+            buyer_email=buyer["email"],
+        )
+        if not pay_res.ok:
+            logger.error(f"첫 결제 실패: {pay_res.code} {pay_res.msg}")
+            await record_payment_event(user_id, "billing_issue", "failed", body.amount, f"{pay_res.code} {pay_res.msg}")
             raise HTTPException(status_code=400, detail="결제에 실패했습니다. 카드 한도·잔액을 확인 후 다시 시도해 주세요.")
 
-        data = resp.json()
-        from utils.payment_event_log import record_payment_event
-        await record_payment_event(user_id, "billing_issue", "success", body.amount, data.get("paymentKey"))
-        payment_key = data.get("paymentKey")
-        charge_start_at = data.get("approvedAt") or charge_start_at
+        payment_key = pay_res.data.get("transactionNumber")
+        await record_payment_event(user_id, "billing_issue", "success", body.amount, payment_key)
+        charge_start_at = datetime.now().isoformat()
 
     # 3. 구독 저장
     supabase = get_client()
@@ -216,7 +205,7 @@ async def issue_billing(body: BillingIssueRequest, request: Request):
         "start_at": charge_start_at,
         "end_at": end_at_issue,
         "billing_key": billing_key,
-        "customer_key": body.customerKey,
+        "customer_key": customer_key,
         "first_payment_amount": body.amount,
         "first_payment_key": payment_key,
         "card_issuer_code": card_issuer_code,

@@ -186,15 +186,13 @@ export async function generateGuide(req: { business_id: string; scan_id: string 
   });
 }
 
-export async function issueBilling(body: {
-  authKey: string;
-  customerKey: string;
-  plan: string;
-  amount: number;
-}) {
-  return apiCall(`${BACKEND_URL}/api/webhook/toss/billing/issue`, {
+export async function issueBilling(
+  body: { authKey: string; plan: string; amount: number },
+  token: string,
+) {
+  return apiCall(`${BACKEND_URL}/api/webhook/creb/billing/issue`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify(body),
   });
 }
@@ -797,7 +795,6 @@ export async function getKeywordSerp(
 // ── 카드 변경 ─────────────────────────────────────────────────
 export async function updateBillingCard(
   authKey: string,
-  customerKey: string,
   token: string,
 ): Promise<{ message: string; reactivated?: boolean; retry_failed?: boolean }> {
   return apiCall<{ message: string; reactivated?: boolean; retry_failed?: boolean }>(`${BACKEND_URL}/api/settings/card/update`, {
@@ -806,7 +803,7 @@ export async function updateBillingCard(
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ authKey, customerKey }),
+    body: JSON.stringify({ authKey }),
   });
 }
 

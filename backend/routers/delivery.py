@@ -19,8 +19,6 @@
   POST /admin/delivery/{order_id}/complete  — 완료 보고서 등록
 """
 
-import aiohttp
-import base64
 import logging
 import os
 from datetime import datetime, timezone
@@ -32,6 +30,7 @@ from pydantic import BaseModel, field_validator
 from config.prices import DELIVERY_PRICES
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
+from services import creb_client
 from utils.admin_auth import verify_admin, require_owner
 
 _logger = logging.getLogger("aeolab")
@@ -45,7 +44,6 @@ admin_router = APIRouter()
 _ADMIN_SENDER_ID = "00000000-0000-0000-0000-000000000000"
 
 # 토스 API 호출 timeout (무한 대기 방지)
-_TOSS_TIMEOUT = aiohttp.ClientTimeout(total=30)
 
 # ── 패키지 정의 (금액은 config/prices.py DELIVERY_PRICES 단일 소스) ──────────
 PACKAGES: dict[str, dict] = {
@@ -148,9 +146,9 @@ class DeliveryMessageCreate(BaseModel):
 
 
 class DeliveryPaymentConfirm(BaseModel):
-    payment_key: str
+    payment_key: str  # 크렙 웹결제창이 successUrl로 돌려준 paymentId (승인 후 transactionNumber로 교체 저장)
     amount: int
-    toss_order_id: str  # 토스 orderID (UUID)
+    pg_order_id: str  # 웹결제창에 보낸 orderId (delivery_{order_id}_{timestamp})
 
 
 class AdminStatusUpdate(BaseModel):
@@ -275,29 +273,15 @@ async def _get_latest_business_score(business_id: Optional[str]) -> Optional[flo
         return None
 
 
-async def _toss_cancel_payment(payment_key: str, reason: str) -> tuple[bool, str]:
-    """토스 결제취소(전액 환불) API 호출. 성공 시 (True, ""), 실패 시 (False, 사유)."""
-    toss_secret = os.getenv("TOSS_SECRET_KEY", "")
-    if not toss_secret:
-        return False, "TOSS_SECRET_KEY 미설정 — 환불 처리 불가"
-
-    encoded = base64.b64encode(f"{toss_secret}:".encode()).decode()
-    try:
-        async with aiohttp.ClientSession(timeout=_TOSS_TIMEOUT) as session:
-            async with session.post(
-                f"https://api.tosspayments.com/v1/payments/{payment_key}/cancel",
-                headers={
-                    "Authorization": f"Basic {encoded}",
-                    "Content-Type": "application/json",
-                },
-                json={"cancelReason": reason},
-            ) as resp:
-                data = await resp.json()
-                if resp.status != 200:
-                    return False, data.get("message", f"토스 환불 실패 (status={resp.status})")
-                return True, ""
-    except aiohttp.ClientError as e:
-        return False, f"결제 서버 연결 실패: {e}"
+async def _creb_cancel_payment(tid: str, amount: int, reason: str) -> tuple[bool, str]:
+    """크렙 결제취소(전액 환불) API 호출. tid = 승인 시 저장한 transactionNumber.
+    성공 시 (True, ""), 실패 시 (False, 사유). 이미 전액 취소된 거래는 성공으로 간주(멱등)."""
+    if not creb_client.is_configured():
+        return False, "CREB_SID/CREB_SECRET_KEY 미설정 — 환불 처리 불가"
+    res = await creb_client.cancel_full(tid, int(amount or 0), reason)
+    if res.ok or creb_client.is_already_canceled(res):
+        return True, ""
+    return False, res.msg or f"크렙 환불 실패 (code={res.error_code})"
 
 
 async def _send_status_kakao(order_id: str, new_status: str) -> None:
@@ -771,46 +755,38 @@ async def confirm_delivery_payment(
             detail=f"결제 금액이 올바르지 않습니다 (expected={expected_amount})",
         )
 
-    # 4. 토스 서버 재검증
-    toss_secret = os.getenv("TOSS_SECRET_KEY", "")
-    if not toss_secret and os.getenv("APP_ENV", "development") == "production":
+    # 4. 크렙 서버 승인(confirm) — 호출하지 않으면 결제가 성립하지 않음
+    creb_ready = creb_client.is_configured()
+    if not creb_ready and os.getenv("APP_ENV", "development") == "production":
         # 운영 환경에서 키 미설정 시 무검증 통과를 막기 위해 fail-closed
         # (개발 환경은 아래 else 분기에서 경고 로그 후 스킵 유지)
-        _logger.error(f"[delivery/confirm] 운영 환경에서 TOSS_SECRET_KEY 미설정 — 결제 확정 거부 (order_id={order_id})")
+        _logger.error(f"[delivery/confirm] 운영 환경에서 CREB_SECRET_KEY 미설정 — 결제 확정 거부 (order_id={order_id})")
         raise HTTPException(status_code=500, detail="결제 검증 설정 오류입니다. 잠시 후 다시 시도하거나 고객센터로 문의해 주세요.")
-    if toss_secret:
-        encoded = base64.b64encode(f"{toss_secret}:".encode()).decode()
-        try:
-            async with aiohttp.ClientSession(timeout=_TOSS_TIMEOUT) as session:
-                async with session.post(
-                    "https://api.tosspayments.com/v1/payments/confirm",
-                    headers={
-                        "Authorization": f"Basic {encoded}",
-                        "Content-Type": "application/json",
-                    },
-                    json={
-                        "paymentKey": body.payment_key,
-                        "orderId": body.toss_order_id,
-                        "amount": body.amount,
-                    },
-                ) as resp:
-                    toss_data = await resp.json()
-        except aiohttp.ClientError as e:
-            _logger.warning(f"[delivery/confirm] 토스 API 연결 오류: {e}")
-            raise HTTPException(status_code=502, detail="결제 서버 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.")
-
-        if toss_data.get("status") != "DONE":
+    tid = body.payment_key
+    if creb_ready:
+        # orderId가 이 주문의 것인지 확인 — 다른 주문의 결제건을 끌어다 쓰는 것을 막는다
+        if not body.pg_order_id.startswith(f"delivery_{order_id}_"):
+            _logger.warning(f"[delivery/confirm] orderId 불일치: order_id={order_id}, pg_order_id={body.pg_order_id}")
+            raise HTTPException(status_code=400, detail="결제 정보가 주문과 일치하지 않습니다")
+        confirm = await creb_client.confirm_web_payment(body.payment_key, body.pg_order_id, body.amount)
+        if not confirm.ok:
             _logger.warning(
-                f"[delivery/confirm] 토스 결제 확인 실패: order_id={order_id}, "
-                f"toss_status={toss_data.get('status')}, message={toss_data.get('message')}"
+                f"[delivery/confirm] 크렙 결제 승인 실패: order_id={order_id}, code={confirm.code}, msg={confirm.msg}"
             )
             raise HTTPException(
                 status_code=400,
-                detail=f"결제 확인 실패: {toss_data.get('message', '알 수 없는 오류')}",
+                detail=f"결제 확인 실패: {confirm.msg or '알 수 없는 오류'}",
             )
+        if int(confirm.data.get("amount") or 0) != expected_amount:
+            _logger.error(
+                f"[delivery/confirm] 승인 금액 불일치: order_id={order_id}, expected={expected_amount}, "
+                f"confirmed={confirm.data.get('amount')}"
+            )
+            raise HTTPException(status_code=400, detail="승인 금액이 올바르지 않습니다. 고객센터에 문의해 주세요")
+        tid = confirm.data.get("transactionNumber") or body.payment_key  # 환불(취소)에 쓰는 거래번호
     else:
-        # 테스트/개발 환경: TOSS_SECRET_KEY 미설정 시 검증 건너뜀
-        _logger.warning(f"[delivery/confirm] TOSS_SECRET_KEY 미설정 — 토스 검증 건너뜀 (dev/test 전용)")
+        # 테스트/개발 환경: CREB 키 미설정 시 검증 건너뜀
+        _logger.warning("[delivery/confirm] CREB 키 미설정 — 결제 승인 건너뜀 (dev/test 전용)")
 
     # 5. 상태 업데이트
     supabase = get_client()
@@ -819,7 +795,7 @@ async def confirm_delivery_payment(
         supabase.table("delivery_orders")
         .update({
             "status": "paid",
-            "payment_key": body.payment_key,
+            "payment_key": tid,
         })
         .eq("id", order_id)
     )
@@ -1030,10 +1006,10 @@ async def admin_update_status(
         if not payment_key:
             raise HTTPException(
                 status_code=400,
-                detail="결제 키가 없어 자동 환불이 불가합니다. 토스 관리자 콘솔에서 수동 확인 후 처리해 주세요",
+                detail="결제 키가 없어 자동 환불이 불가합니다. 크렙 관리자 콘솔에서 수동 확인 후 처리해 주세요",
             )
 
-        # 이중 환불 방지 — 조건부 UPDATE로 선점(claim) 후에만 토스 API 호출.
+        # 이중 환불 방지 — 조건부 UPDATE로 선점(claim) 후에만 크렙 API 호출.
         # 동시 클릭이나 delivery_auto_refund_job(스케줄러, 매일 11:30)과 경합 시
         # 둘 중 하나만 이 UPDATE에 성공(영향 행 1건)하고 나머지는 0건 → 409.
         claim_res = await execute(
@@ -1049,17 +1025,17 @@ async def admin_update_status(
                 detail="이미 환불 처리 중이거나 처리된 주문입니다 (동시 요청 감지)",
             )
 
-        # _toss_cancel_payment 내부에서 못 잡는 예외(비-JSON 응답의 json.JSONDecodeError,
+        # _creb_cancel_payment 내부에서 못 잡는 예외(비-JSON 응답의 json.JSONDecodeError,
         # asyncio.TimeoutError 등)가 여기까지 전파되면 락 해제 코드가 실행되지 못하고
         # __refund_processing__ 마커가 영구 잔류해 재시도가 전부 409로 막히므로 반드시 감쌈
         try:
-            ok, err = await _toss_cancel_payment(payment_key, "관리자 수동 환불 처리")
+            ok, err = await _creb_cancel_payment(payment_key, order.get("amount"), "관리자 수동 환불 처리")
         except Exception as _toss_e:
             await execute(
                 supabase.table("delivery_orders").update({"refund_reason": None}).eq("id", order_id)
             )
             _logger.error(f"[admin/delivery] 수동 환불 중 예외: order_id={order_id}, error={_toss_e}")
-            raise HTTPException(status_code=502, detail=f"토스 환불 처리 중 오류: {_toss_e}")
+            raise HTTPException(status_code=502, detail=f"환불 처리 중 오류: {_toss_e}")
 
         if not ok:
             # 락 해제 — 재시도 가능하도록 원복
@@ -1067,7 +1043,7 @@ async def admin_update_status(
                 supabase.table("delivery_orders").update({"refund_reason": None}).eq("id", order_id)
             )
             _logger.error(f"[admin/delivery] 수동 환불 실패: order_id={order_id}, error={err}")
-            raise HTTPException(status_code=502, detail=f"토스 환불 실패: {err}")
+            raise HTTPException(status_code=502, detail=f"환불 실패: {err}")
 
         update_res = await execute(
             supabase.table("delivery_orders")

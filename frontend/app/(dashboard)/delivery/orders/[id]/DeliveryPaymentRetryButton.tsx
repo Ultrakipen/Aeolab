@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2, CreditCard } from "lucide-react";
+import { loadCreb, getBuyerInfo } from "@/lib/creb";
 
 const PACKAGE_NAMES: Record<string, string> = {
   smartplace_register: "01 스마트플레이스 등록 대행",
@@ -22,25 +23,29 @@ export default function DeliveryPaymentRetryButton({ orderId, packageType, amoun
   const handlePayment = async () => {
     setLoading(true);
     setError(null);
-    const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
-    if (!clientKey) {
+    if (!process.env.NEXT_PUBLIC_CREB_CLIENT_KEY) {
       setError("결제 설정이 완료되지 않았습니다. 고객센터에 문의해주세요.");
       setLoading(false);
       return;
     }
     try {
-      // @ts-ignore
-      const { loadTossPayments } = await import("@tosspayments/payment-sdk");
-      const tossPayments = await loadTossPayments(clientKey);
+      const buyer = await getBuyerInfo();
+      if (!buyer.phone) {
+        setError("결제에 필요한 휴대폰 번호가 등록되어 있지 않습니다. 설정에서 번호를 등록한 뒤 다시 시도해주세요.");
+        return;
+      }
+      const creb = await loadCreb();
       const price = amount;
       const pkgName = PACKAGE_NAMES[packageType] ?? packageType;
-      const tossOrderId = `delivery_${orderId}_${Date.now()}`;
-      // @ts-ignore
-      await tossPayments.requestPayment("카드", {
-        amount: price,
-        orderId: tossOrderId,
-        orderName: `AEOlab 대행 서비스 - ${pkgName}`,
-        successUrl: `${window.location.origin}/delivery/payment-confirm?orderId=${orderId}&amount=${price}&tossOrderId=${encodeURIComponent(tossOrderId)}`,
+      const pgOrderId = `delivery_${orderId}_${Date.now()}`;
+      await creb.requestPayment({
+        amount: String(price),
+        orderId: pgOrderId,
+        orderName: `AEOlab 대행 서비스 - ${pkgName}`.slice(0, 100),
+        customerName: buyer.name,
+        customerPhone: buyer.phone,
+        ...(buyer.email ? { customerEmail: buyer.email } : {}),
+        successUrl: `${window.location.origin}/delivery/payment-confirm?orderId=${orderId}&amount=${price}&pgOrderId=${encodeURIComponent(pgOrderId)}`,
         failUrl: `${window.location.origin}/delivery/orders/${orderId}?payment=fail`,
       });
     } catch (err: unknown) {

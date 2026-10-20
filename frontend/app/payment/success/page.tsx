@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { issueBilling, ApiError } from "@/lib/api";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, getSafeSession } from "@/lib/supabase/client";
 import { XCircle, CheckCircle2 } from "lucide-react";
 import { trackSubscriptionActive } from "@/lib/analytics";
 
@@ -42,12 +42,11 @@ function PaymentSuccessContent() {
     if (calledRef.current) return;
     calledRef.current = true;
 
-    const authKey = searchParams.get("authKey");
-    const customerKey = searchParams.get("customerKey");
+    const authKey = searchParams.get("auth_key");
     const plan = searchParams.get("plan") ?? "Basic";
     const amount = Number(searchParams.get("amount"));
 
-    if (!authKey || !customerKey || !amount) {
+    if (!authKey || !amount) {
       setStatus("error");
       setErrorMsg("결제 정보가 올바르지 않습니다.");
       return;
@@ -57,7 +56,11 @@ function PaymentSuccessContent() {
     setChargedAmount(amount);
     setStatus("billing");
 
-    issueBilling({ authKey, customerKey, plan, amount })
+    (async () => {
+      const session = await getSafeSession();
+      if (!session?.access_token) throw new Error("로그인 세션이 만료되었습니다.");
+      await issueBilling({ authKey, plan, amount }, session.access_token);
+    })()
       .then(async () => {
         // 웹훅 처리 지연을 고려해 Supabase 구독 상태 폴링
         setStatus("waiting");

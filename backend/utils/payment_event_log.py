@@ -3,7 +3,7 @@
 admin_service_oversight_design_v1.0.md §3-A P1-구조적. "결제했는데 구독이 안
 됐어요" 문의 시 subscriptions 현재 상태만으로는 결제 시도 자체가 있었는지,
 성공했는지, 실패했는지 구분할 수 없었다. webhook.py issue_billing(최초 결제)과
-services/toss_billing.py retry_billing(자동 갱신)에서 호출한다.
+services/creb_billing.py retry_billing(자동 갱신)에서 호출한다.
 """
 
 import logging
@@ -40,10 +40,10 @@ async def record_payment_event(
 async def find_recent_success_event(
     user_id: str | None, event_type: str, expected_amount: int, window_minutes: int = 10
 ) -> dict | None:
-    """Toss 청구는 성공했지만 그 직후 DB 저장이 실패해 재시도가 재청구로 이어지는
+    """크렙 청구는 성공했지만 그 직후 DB 저장이 실패해 재시도가 재청구로 이어지는
     것을 막는 공통 가드. 같은 금액의 성공 이벤트가 window_minutes 이내에 있으면 그
     이벤트 레코드(dict)를, 없으면 None을 반환한다. 호출부는 truthy 체크로 스킵 여부를
-    판단하고, 필요하면 record["detail"](예: paymentKey)을 재사용할 수 있다.
+    판단하고, 필요하면 record["detail"](예: 크렙 transactionNumber)을 재사용할 수 있다.
     webhook.py issue_billing(최초결제)·settings.py update_card(재활성화)·
     scheduler/jobs.py subscription_lifecycle_job(자동갱신) 3곳에서 공유."""
     if not user_id:

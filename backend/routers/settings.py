@@ -1,7 +1,7 @@
 import os
 import asyncio
 import logging
-import httpx
+from services import creb_client
 from datetime import date, datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -161,17 +161,9 @@ async def update_my_settings(body: ProfileUpdate, user: dict = Depends(get_curre
     return {"status": "updated"}
 
 
-def _toss_error_code(resp) -> str:
-    """토스 오류 응답 본문의 code 추출 (파싱 실패 시 빈 문자열)."""
-    try:
-        return str((resp.json() or {}).get("code") or "")
-    except Exception:
-        return ""
-
-
 async def _cancel_subscription_core(user_id: str) -> dict:
-    """구독 해지 핵심 로직. 7일 청약철회 자격(구독 시작 7일 이내+미이용)이면 토스 결제취소로 즉시 전액환불,
-    아니면 기존처럼 end_at까지 서비스 유지 + status→cancelled + 토스 빌링키 삭제.
+    """구독 해지 핵심 로직. 7일 청약철회 자격(구독 시작 7일 이내+미이용)이면 크렙 결제취소로 즉시 전액환불,
+    아니면 기존처럼 end_at까지 서비스 유지 + status→cancelled + 크렙 빌링키 삭제.
 
     사용자 본인 해지(POST /settings/cancel)와 관리자 강제 해지/환불(POST /admin/subscriptions/{user_id}/cancel)
     양쪽이 이 함수를 공유한다 — 안전장치(경쟁조건 방어·DB 갱신 실패 알림·7일 분기)를 두 경로에서
@@ -193,21 +185,17 @@ async def _cancel_subscription_core(user_id: str) -> dict:
     refunded = False
     refund_amount = None
     if await _check_refund_eligibility(user_id, supabase, sub.get("start_at"), sub.get("first_payment_key")):
-        secret_key = os.getenv("TOSS_SECRET_KEY", "")
         try:
-            async with httpx.AsyncClient(timeout=15) as c:
-                cancel_resp = await c.post(
-                    f"https://api.tosspayments.com/v1/payments/{sub['first_payment_key']}/cancel",
-                    auth=(secret_key, ""),
-                    json={"cancelReason": "7일 이내 청약철회"},
-                )
-            if cancel_resp.status_code == 200:
+            cancel_resp = await creb_client.cancel_full(
+                sub["first_payment_key"], int(sub.get("first_payment_amount") or 0), "7일 이내 청약철회"
+            )
+            if cancel_resp.ok:
                 refunded = True
                 refund_amount = sub.get("first_payment_amount")
                 logger.info(f"7일 청약철회 자동환불 성공 (user={user_id}, amount={refund_amount})")
             else:
                 # 동시 요청 경쟁조건 방어: 이 요청과 거의 동시에 도착한 다른 요청이 먼저 환불을
-                # 완료시켰다면(Toss는 같은 paymentKey 재취소를 4xx로 거부) status가 이미 cancelled로
+                # 완료시켰다면(크렙은 이미 취소된 거래를 ALREADY_FULLY_CANCELED로 거부) status가 이미 cancelled로
                 # 바뀌어 있다 — 이 경우는 실패가 아니라 정상적인 중복 응답이므로 오탐 알림을 억제한다.
                 _recheck = (
                     await execute(
@@ -220,15 +208,15 @@ async def _cancel_subscription_core(user_id: str) -> dict:
                     )
                 else:
                     logger.error(
-                        f"7일 청약철회 자동환불 실패 (user={user_id}): status={cancel_resp.status_code} body={cancel_resp.text}"
+                        f"7일 청약철회 자동환불 실패 (user={user_id}): code={cancel_resp.error_code} msg={cancel_resp.msg}"
                     )
                     await send_operator_alert(
                         "7일 청약철회 자동환불 실패 — 수동 확인 필요",
-                        f"user_id={user_id}\nfirst_payment_key={sub['first_payment_key']}\n"
-                        f"status={cancel_resp.status_code}\nbody={cancel_resp.text}",
+                        f"user_id={user_id}\nfirst_payment_key(tid)={sub['first_payment_key']}\n"
+                        f"code={cancel_resp.error_code}\nmsg={cancel_resp.msg}",
                     )
                     await send_slack_alert(
-                        "7일 청약철회 자동환불 실패", f"user_id={user_id}, status={cancel_resp.status_code}", level="error"
+                        "7일 청약철회 자동환불 실패", f"user_id={user_id}, code={cancel_resp.error_code}", level="error"
                     )
         except Exception as e:
             logger.error(f"7일 청약철회 자동환불 요청 오류 (user={user_id}): {e}")
@@ -237,35 +225,27 @@ async def _cancel_subscription_core(user_id: str) -> dict:
             )
             await send_slack_alert("7일 청약철회 자동환불 오류", f"user_id={user_id}, error={e}", level="error")
 
-    # 토스 빌링키 삭제 (실패해도 DB는 취소 처리 — 자동결제 재시도 방지 목적이므로 best-effort)
+    # 크렙 빌링키 삭제 (실패해도 DB는 취소 처리 — 자동결제 재시도 방지 목적이므로 best-effort)
     billing_key = sub.get("billing_key")
-    billing_key_gone = not billing_key  # 애초에 없거나, 토스에서 삭제 확인된 경우 True
+    billing_key_gone = not billing_key  # 애초에 없거나, 크렙에서 삭제 확인된 경우 True
     if billing_key:
-        secret_key = os.getenv("TOSS_SECRET_KEY", "")
         try:
-            async with httpx.AsyncClient(timeout=15) as c:
-                resp = await c.delete(
-                    f"https://api.tosspayments.com/v1/billing/{billing_key}",
-                    auth=(secret_key, ""),
-                )
-            if resp.status_code in (200, 204):
+            resp = await creb_client.delete_billkey(billing_key)
+            if resp.ok:
                 billing_key_gone = True
-                logger.info(f"토스 빌링키 삭제 완료 (user={user_id})")
-            elif resp.status_code == 404 or _toss_error_code(resp) in ("ALREADY_REMOVED_BILLING_KEY", "NOT_FOUND_BILLING_KEY"):
-                # 이미 토스에서 삭제됐거나 없는 키 — 삭제된 것과 동일하게 취급(멱등).
-                # 토스는 이미 삭제된 키를 404가 아니라 400 ALREADY_REMOVED_BILLING_KEY로 응답함(2026-09-30 실측).
-                billing_key_gone = True
-                logger.info(f"토스 빌링키 이미 삭제됨/없음(status={resp.status_code}) — 삭제 완료로 간주 (user={user_id})")
+                logger.info(f"크렙 빌링키 삭제 완료 (user={user_id})")
             else:
+                # 이미 삭제된 키의 응답 코드는 문서에 없어 실측 전엔 구분 불가 — 실패로 두고 키를 남겨
+                # 운영자가 재삭제할 수 있게 한다(자동결제는 DB 상태 cancelled로 이미 차단됨).
                 logger.warning(
-                    f"토스 빌링키 삭제 실패 (user={user_id}): status={resp.status_code} body={resp.text}"
+                    f"크렙 빌링키 삭제 실패 (user={user_id}): code={resp.code} msg={resp.msg}"
                 )
         except Exception as e:
-            logger.warning(f"토스 빌링키 삭제 요청 오류 (user={user_id}): {e}")
+            logger.warning(f"크렙 빌링키 삭제 요청 오류 (user={user_id}): {e}")
 
     update_payload = {"status": "cancelled"}
     # 해지 후 카드 정보 잔존 방지 — 화면 표시용 카드(발급사·마스킹 번호)는 항상 지우고, 빌링키는
-    # 토스 삭제가 확인된 경우에만 지운다(삭제 실패 시 키를 남겨야 운영자가 재삭제할 수 있음).
+    # 크렙 삭제가 확인된 경우에만 지운다(삭제 실패 시 키를 남겨야 운영자가 재삭제할 수 있음).
     # 해지 취소(재활성화) 후에는 카드를 다시 등록해야 다음 결제가 진행된다.
     update_payload["card_number_masked"] = None
     update_payload["card_issuer_code"] = None
@@ -282,7 +262,7 @@ async def _cancel_subscription_core(user_id: str) -> dict:
         if refunded:
             await send_operator_alert(
                 "환불 완료 후 DB 상태 갱신 실패 — 수동 확인 필요",
-                f"user_id={user_id}\nToss 환불은 이미 처리됨(amount={refund_amount}). "
+                f"user_id={user_id}\n크렙 환불은 이미 처리됨(amount={refund_amount}). "
                 f"subscriptions.status를 수동으로 cancelled 처리해야 함.\nerror={e}",
             )
             await send_slack_alert(
@@ -317,7 +297,7 @@ async def cancel_subscription(user: dict = Depends(get_current_user)):
 @router.post("/reactivate")
 async def reactivate_subscription(user: dict = Depends(get_current_user)):
     """해지 취소(재활성화) — cancelled 상태이고 잔여기간(end_at)이 아직 남은 경우에만 허용.
-    토스 빌링키는 해지 시 best-effort로 삭제되므로, 다음 자동갱신 때 결제가 실패해도
+    크렙 빌링키는 해지 시 best-effort로 삭제되므로, 다음 자동갱신 때 결제가 실패해도
     기존 유예기간(grace_period) 재시도 흐름으로 자연스럽게 이어진다 — 카드 재등록이 필요하면
     /settings/card/update로 별도 안내."""
     user_id = user["id"]
@@ -344,8 +324,7 @@ async def reactivate_subscription(user: dict = Depends(get_current_user)):
 
 
 class CardUpdateRequest(BaseModel):
-    authKey: str
-    customerKey: str
+    authKey: str  # 크렙 카드등록창이 successUrl로 돌려준 auth_key (카드 소유자는 Bearer 토큰으로 확정)
 
 
 @router.post("/card/update")
@@ -353,7 +332,6 @@ async def update_card(body: CardUpdateRequest, user: dict = Depends(get_current_
     """카드 변경 — 새 빌링키 발급 → 기존 빌링키 삭제 → DB 업데이트"""
     user_id = user["id"]
     supabase = get_client()
-    secret_key = os.getenv("TOSS_SECRET_KEY", "")
 
     # 1. 현재 구독에서 기존 billing_key 조회 (정지 상태 재시도용 필드 포함)
     sub = (
@@ -370,37 +348,26 @@ async def update_card(body: CardUpdateRequest, user: dict = Depends(get_current_
     was_suspended = sub.get("status") == "suspended"
     old_billing_key = sub.get("billing_key")
 
-    # 2. 토스 API로 새 빌링키 발급
-    async with httpx.AsyncClient(timeout=30) as c:
-        resp = await c.post(
-            "https://api.tosspayments.com/v1/billing/authorizations/issue",
-            auth=(secret_key, ""),
-            json={"authKey": body.authKey, "customerKey": body.customerKey},
-        )
-    if resp.status_code != 200:
-        logger.error(f"새 빌링키 발급 실패 (user={user_id}): {resp.text}")
+    # 2. 크렙 API로 새 빌링키 발급
+    resp = await creb_client.issue_billkey(body.authKey)
+    if not resp.ok:
+        logger.error(f"새 빌링키 발급 실패 (user={user_id}): {resp.code} {resp.msg}")
         raise HTTPException(status_code=400, detail="카드 등록에 실패했습니다. 카드 정보를 확인 후 다시 시도해 주세요.")
 
-    issue_resp_json = resp.json()
-    new_billing_key = issue_resp_json.get("billingKey")
+    new_billing_key = resp.data.get("billKey")
     if not new_billing_key:
         raise HTTPException(status_code=500, detail="새 빌링키를 받지 못했습니다")
 
-    card_info = issue_resp_json.get("card") or {}
-    card_issuer_code = card_info.get("issuerCode")
-    card_number_masked = card_info.get("number")
+    card_issuer_code = resp.data.get("cardCompany") or resp.data.get("cardResultName")
+    card_number_masked = resp.data.get("cardNumber")
 
     # 3. 기존 빌링키 삭제 (실패해도 새 카드 등록은 유지 — best-effort)
     if old_billing_key and old_billing_key != new_billing_key:
         try:
-            async with httpx.AsyncClient(timeout=15) as c:
-                del_resp = await c.delete(
-                    f"https://api.tosspayments.com/v1/billing/{old_billing_key}",
-                    auth=(secret_key, ""),
-                )
-            if del_resp.status_code not in (200, 204):
+            del_resp = await creb_client.delete_billkey(old_billing_key)
+            if not del_resp.ok:
                 logger.warning(
-                    f"기존 빌링키 삭제 실패 (user={user_id}): status={del_resp.status_code} body={del_resp.text}"
+                    f"기존 빌링키 삭제 실패 (user={user_id}): code={del_resp.code} msg={del_resp.msg}"
                 )
             else:
                 logger.info(f"기존 빌링키 삭제 완료 (user={user_id})")
@@ -421,11 +388,11 @@ async def update_card(body: CardUpdateRequest, user: dict = Depends(get_current_
     # 5. 정지(suspended) 상태였다면 새 카드로 즉시 결제 재시도 — 성공 시 active 복귀 + 기간 연장
     reactivated = False
     if was_suspended:
-        from services.toss_billing import retry_billing, compute_renewal_amount
+        from services.creb_billing import retry_billing, compute_renewal_amount
         sub["billing_key"] = new_billing_key
         sub["user_id"] = user_id  # select에 user_id가 없어 payment_events 기록 시 NULL 방지
 
-        # 이중 청구 방지: retry_billing(Toss 청구) 성공 후 바로 아래 상태 업데이트가
+        # 이중 청구 방지: retry_billing(크렙 청구) 성공 후 바로 아래 상태 업데이트가
         # 실패해 사용자가 카드 변경을 재시도하면 재청구로 이어지는 문제 차단
         # (webhook.py issue_billing과 동일 패턴, 2026-07-11)
         from utils.payment_event_log import find_recent_success_event
@@ -473,7 +440,7 @@ async def delete_account(user: dict = Depends(get_current_user)):
     supabase = get_client()
 
     # 0. 활성 구독이 있으면 해지 로직을 먼저 실행 — _cancel_subscription_core가 7일 청약철회
-    #    자동환불 판정+토스 결제취소를 수행한다. 이 단계 없이 곧장 아래로 진행하면 환불 자격이
+    #    자동환불 판정+크렙 결제취소를 수행한다. 이 단계 없이 곧장 아래로 진행하면 환불 자격이
     #    있는 사용자가 "해지" 대신 "탈퇴"를 선택하는 것만으로 환불 없이 구독 기록이 삭제되던 버그.
     sub_status_res = await execute(
         supabase.table("subscriptions").select("status").eq("user_id", user_id).maybe_single()
@@ -525,21 +492,16 @@ async def delete_account(user: dict = Depends(get_current_user)):
         except Exception as e:
             logger.warning(f"delete_account {table} 삭제 실패 (user={user_id}): {e}")
 
-    # 8. 토스 빌링키 삭제 (자동결제 재시도 방지 — best-effort)
+    # 8. 크렙 빌링키 삭제 (자동결제 재시도 방지 — best-effort)
     sub_res = await execute(
         supabase.table("subscriptions").select("billing_key").eq("user_id", user_id).maybe_single()
     )
     billing_key = (sub_res.data or {}).get("billing_key")
     if billing_key:
-        secret_key = os.getenv("TOSS_SECRET_KEY", "")
         try:
-            async with httpx.AsyncClient(timeout=15) as c:
-                del_resp = await c.delete(
-                    f"https://api.tosspayments.com/v1/billing/{billing_key}",
-                    auth=(secret_key, ""),
-                )
-            if del_resp.status_code not in (200, 204):
-                logger.warning(f"delete_account 빌링키 삭제 실패 (user={user_id}): {del_resp.status_code}")
+            del_resp = await creb_client.delete_billkey(billing_key)
+            if not del_resp.ok:
+                logger.warning(f"delete_account 빌링키 삭제 실패 (user={user_id}): {del_resp.code} {del_resp.msg}")
         except Exception as e:
             logger.warning(f"delete_account 빌링키 삭제 오류 (user={user_id}): {e}")
 

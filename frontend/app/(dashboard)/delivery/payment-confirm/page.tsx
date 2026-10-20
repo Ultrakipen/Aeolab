@@ -12,15 +12,15 @@ function PaymentConfirmInner() {
   const router = useRouter();
 
   const orderId = searchParams.get("orderId") ?? "";
-  const paymentKey = searchParams.get("paymentKey") ?? "";
+  const paymentKey = searchParams.get("paymentId") ?? ""; // 크렙 웹결제창이 돌려주는 결제 고유키
   const amount = Number(searchParams.get("amount") ?? "0");
-  const tossOrderId = searchParams.get("tossOrderId") ?? "";
+  const pgOrderId = searchParams.get("pgOrderId") ?? "";
 
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    if (!orderId || !paymentKey || !tossOrderId) {
+    if (!orderId || !paymentKey || !pgOrderId) {
       setStatus("error");
       setErrorMsg("유효하지 않은 결제 요청입니다. (파라미터 누락)");
       return;
@@ -47,7 +47,7 @@ function PaymentConfirmInner() {
           body: JSON.stringify({
             payment_key: paymentKey,
             amount,
-            toss_order_id: tossOrderId,
+            pg_order_id: pgOrderId,
           }),
         });
 
@@ -62,7 +62,7 @@ function PaymentConfirmInner() {
         setErrorMsg((err as Error).message ?? "결제 확인 중 오류가 발생했습니다.");
       }
     })();
-  }, [orderId, paymentKey, amount, tossOrderId, router]);
+  }, [orderId, paymentKey, amount, pgOrderId, router]);
 
   if (status === "loading") {
     return (

@@ -32,7 +32,9 @@ const nextConfig: NextConfig = {
     // nonce 기반 strict-dynamic은 App Router 미들웨어 재작업이
     // 커서 1차는 allowlist 방식(script-src에 'unsafe-inline' 포함 — 백엔드 main.py CSP와 동일 절충).
     // 실측 도메인(1차 추정과 실제가 달랐던 것 위주로 기록):
-    //   - Toss: SDK가 런타임에 <script src="https://js.tosspayments.com/v1">를 직접 주입함
+    //   - 크렙(2026-10-20 토스에서 전환): pay.js(payapi.creb.co.kr)를 lib/creb.ts가 동적 주입. 결제창/카드등록창이
+    //     iframe·팝업·폼 POST 중 무엇으로 뜨는지, 카드사 인증 도메인이 따로 있는지는 실결제 플로우 실측으로 보정 필요(미실측).
+    //   - (이전) Toss: SDK가 런타임에 <script src="https://js.tosspayments.com/v1">를 직접 주입함
     //     (번들 내장 추정이 오판이었음, 실측으로 발견) — script-src에 추가.
     //     결제창은 실제로 iframe(payment-gateway-sandbox.tosspayments.com)으로 뜸 — frame-src 확인.
     //   - Kakao SDK: t1.kakaocdn.net (SRI 고정, KakaoSDKLoader.tsx)
@@ -47,17 +49,17 @@ const nextConfig: NextConfig = {
     //   - Cloudflare: static.cloudflareinsights.com (엣지에서 자동 주입되는 beacon)
     const cspDirectives = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://t1.kakaocdn.net https://static.cloudflareinsights.com https://js.tosspayments.com",
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://t1.kakaocdn.net https://static.cloudflareinsights.com https://payapi.creb.co.kr",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https://duqepesuqquqffqvlkxf.supabase.co https://t1.kakaocdn.net https://www.googletagmanager.com https://*.google-analytics.com https://*.google.com https://*.google.co.kr https://*.doubleclick.net",
       "font-src 'self' data:",
       // *.analytics.google.com은 서브도메인만 매칭하고 루트 도메인 자체(analytics.google.com,
       // 실측된 gtag.js 수집 엔드포인트)는 못 잡아 별도로 명시 필요(실측으로 발견한 CSP 와일드카드 함정)
-      "connect-src 'self' https://duqepesuqquqffqvlkxf.supabase.co https://*.ingest.us.sentry.io https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://*.googletagmanager.com https://*.doubleclick.net https://*.tosspayments.com https://static.cloudflareinsights.com",
-      "frame-src 'self' https://*.tosspayments.com",
+      "connect-src 'self' https://duqepesuqquqffqvlkxf.supabase.co https://*.ingest.us.sentry.io https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://*.googletagmanager.com https://*.doubleclick.net https://*.creb.co.kr https://static.cloudflareinsights.com",
+      "frame-src 'self' https://*.creb.co.kr",
       "object-src 'none'",
       "base-uri 'self'",
-      "form-action 'self'",
+      "form-action 'self' https://*.creb.co.kr",
     ].join("; ");
 
     return [

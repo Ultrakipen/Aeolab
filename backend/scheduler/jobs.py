@@ -1523,11 +1523,11 @@ async def daily_kakao_notify():
 async def subscription_lifecycle_job():
     """매일 오전 1시: 구독 만료/갱신/정지 처리"""
     from db.supabase_client import get_client
-    from services.toss_billing import retry_billing, compute_renewal_amount
+    from services.creb_billing import retry_billing, compute_renewal_amount
     from services.kakao_notify import KakaoNotifier
     from utils.payment_event_log import find_recent_success_event
 
-    # 이중 청구 방지: retry_billing(Toss 청구) 성공 후 바로 아래 status/end_at 갱신이
+    # 이중 청구 방지: retry_billing(크렙 청구) 성공 후 바로 아래 status/end_at 갱신이
     # 실패하면(예: Supabase 일시 오류) 그 구독 행이 그대로 "만료됨"으로 남아, 다음날
     # 이 잡이 다시 돌 때 같은 구독을 또 결제 대상으로 골라 재청구할 수 있었다
     # (2026-07-11, settings.py update_card·webhook.py issue_billing과 동일 패턴 발견).
@@ -1561,10 +1561,10 @@ async def subscription_lifecycle_job():
         )
         expiring_soon = _exp_res.data or []
 
-        # 2. 오늘(또는 그 이전 — 배치 누락분 포함) 만료 → 갱신 시도 (토스 자동결제)
+        # 2. 오늘(또는 그 이전 — 배치 누락분 포함) 만료 → 갱신 시도 (크렙 자동결제)
         # .eq(today)였던 예전 코드는 하루라도 못 돌면 해당 행을 영구히 못 찾는 P0 버그였음(2026-07-07 발견)
         # .lte()로 전환하면 갱신 성공 직후 status가 바뀌어 보통은 중복 처리되지 않지만, 그 상태
-        # 갱신 자체가 실패하는 경우(Toss 청구는 성공, DB 저장만 실패)엔 다음날 재선택돼 재청구
+        # 갱신 자체가 실패하는 경우(크렙 청구는 성공, DB 저장만 실패)엔 다음날 재선택돼 재청구
         # 위험이 있었음(2026-07-11 발견) — _charge_once()의 이중청구 방지 가드로 대응
         _expired_res = await _db(
             supabase.table("subscriptions")
@@ -5552,7 +5552,7 @@ async def delivery_auto_cancel_job():
     - created_at < now() - 7일
     - materials_url IS NULL 또는 빈 배열 (참고용 필터 — 결제 전이라 사실상 항상 비어있음)
     멱등성: 이미 cancelled 상태인 행은 조회 자체에서 제외됨.
-    환불 없음: 결제 자체가 이뤄지지 않았으므로 Toss 결제취소 API 호출 불필요.
+    환불 없음: 결제 자체가 이뤄지지 않았으므로 크렙 결제취소 API 호출 불필요.
     """
     from datetime import timezone  # 2026-07-10: 누락 발견 — 이 import 없이는 timezone.utc가
     # NameError를 던지고 아래 broad try/except가 삼켜, 이 잡이 배포 이후 매일 조용히
@@ -5617,7 +5617,7 @@ async def delivery_auto_refund_job():
     - status = 'paid'
     - paid_at IS NOT NULL AND paid_at < now() - 7일 (v6.2b 마이그레이션 필요 — 없으면 대상 0건)
     - materials_url IS NULL 또는 빈 배열
-    처리: Toss 결제취소 API로 전액 환불 → 성공 시 status='refunded', refund_amount 기록,
+    처리: 크렙 결제취소 API로 전액 환불 → 성공 시 status='refunded', refund_amount 기록,
     delivery_messages에 고객이 볼 수 있는 시스템 안내 메시지 삽입(카카오 환불 전용 템플릿
     미보유). 실패 시 이메일+Slack 운영자 알림(수동 확인 필요 — money-moving 이벤트).
     멱등성: status='paid' 조건이라 이미 refunded/cancelled된 행은 재조회되지 않음.
@@ -5631,9 +5631,9 @@ async def delivery_auto_refund_job():
     # 이중 환불(double refund) 방지용 원자적 락 마커(refund_reason IS NULL 조건부 UPDATE로 선점).
     _REFUND_CLAIM_MARKER = "__refund_processing__"
 
-    toss_secret = os.getenv("TOSS_SECRET_KEY", "")
-    if not toss_secret:
-        logger.warning("[delivery_auto_refund_job] TOSS_SECRET_KEY 미설정 — 잡 스킵")
+    from services import creb_client
+    if not creb_client.is_configured():
+        logger.warning("[delivery_auto_refund_job] CREB_SID/CREB_SECRET_KEY 미설정 — 잡 스킵")
         return
 
     try:
@@ -5674,7 +5674,7 @@ async def delivery_auto_refund_job():
                 )
                 continue
 
-            # 이중 환불 방지 — 조건부 UPDATE로 선점(claim) 후에만 토스 API 호출.
+            # 이중 환불 방지 — 조건부 UPDATE로 선점(claim) 후에만 크렙 API 호출.
             # routers/delivery.py admin_update_status(관리자 수동 환불)와 동일 마커 사용 —
             # 동시 실행/경합 시 둘 중 하나만 이 UPDATE에 성공(영향 행 1건)한다.
             claim_res = await _db(
@@ -5691,14 +5691,11 @@ async def delivery_auto_refund_job():
                 continue
 
             try:
-                async with httpx.AsyncClient(timeout=15) as c:
-                    cancel_resp = await c.post(
-                        f"https://api.tosspayments.com/v1/payments/{payment_key}/cancel",
-                        auth=(toss_secret, ""),
-                        json={"cancelReason": "대행 서비스 자료 미제출 7일 경과 자동 환불"},
-                    )
+                cancel_resp = await creb_client.cancel_full(
+                    payment_key, int(amount or 0), "대행 서비스 자료 미제출 7일 경과 자동 환불"
+                )
             except Exception as e:
-                logger.error(f"[delivery_auto_refund_job] 토스 API 요청 오류: order_id={order_id}, error={e}")
+                logger.error(f"[delivery_auto_refund_job] 크렙 API 요청 오류: order_id={order_id}, error={e}")
                 await _db(
                     supabase.table("delivery_orders")
                     .update({"refund_reason": None})
@@ -5713,7 +5710,7 @@ async def delivery_auto_refund_job():
                 )
                 continue
 
-            if cancel_resp.status_code != 200:
+            if not cancel_resp.ok and not creb_client.is_already_canceled(cancel_resp):
                 # 락 해제 — 재시도 가능하도록 원복
                 await _db(
                     supabase.table("delivery_orders")
@@ -5732,16 +5729,16 @@ async def delivery_auto_refund_job():
                     )
                     continue
                 logger.error(
-                    f"[delivery_auto_refund_job] 토스 환불 실패: order_id={order_id}, "
-                    f"status={cancel_resp.status_code} body={cancel_resp.text}"
+                    f"[delivery_auto_refund_job] 크렙 환불 실패: order_id={order_id}, "
+                    f"code={cancel_resp.error_code} msg={cancel_resp.msg}"
                 )
                 await send_operator_alert(
                     "대행 서비스 자동환불 실패 — 수동 확인 필요",
-                    f"order_id={order_id}\npayment_key={payment_key}\n"
-                    f"status={cancel_resp.status_code}\nbody={cancel_resp.text}",
+                    f"order_id={order_id}\npayment_key(tid)={payment_key}\n"
+                    f"code={cancel_resp.error_code}\nmsg={cancel_resp.msg}",
                 )
                 await send_slack_alert(
-                    "대행 서비스 자동환불 실패", f"order_id={order_id}, status={cancel_resp.status_code}", level="error"
+                    "대행 서비스 자동환불 실패", f"order_id={order_id}, code={cancel_resp.error_code}", level="error"
                 )
                 continue
 
@@ -5769,14 +5766,14 @@ async def delivery_auto_refund_job():
                 )
                 logger.info(f"[delivery_auto_refund_job] 환불 완료: order_id={order_id}, amount={amount}")
             except Exception as e:
-                # 토스 환불은 이미 성공했는데 DB 갱신이 실패하면 "돈은 나갔는데 상태는 paid로
+                # 크렙 환불은 이미 성공했는데 DB 갱신이 실패하면 "돈은 나갔는데 상태는 paid로
                 # 남는" 불일치 발생 — money-moving 이후이므로 silent pass 금지.
                 logger.error(
                     f"[delivery_auto_refund_job] 환불 완료 후 DB 갱신 실패: order_id={order_id}, error={e}"
                 )
                 await send_operator_alert(
                     "대행 서비스 환불 완료 후 DB 갱신 실패 — 수동 확인 필요",
-                    f"order_id={order_id}\nToss 환불은 이미 처리됨(amount={amount}). DB 상태를 수동으로 refunded로 변경해 주세요.\nerror={e}",
+                    f"order_id={order_id}\n크렙 환불은 이미 처리됨(amount={amount}). DB 상태를 수동으로 refunded로 변경해 주세요.\nerror={e}",
                 )
                 await send_slack_alert(
                     "대행 서비스 환불 DB 갱신 실패", f"order_id={order_id}, amount={amount}", level="error"
@@ -6720,7 +6717,7 @@ async def payment_subscription_reconciliation_job() -> None:
     건을 찾아 운영자에게 알린다 — 매시 정각 실행.
 
     2026-08-23 운영 중 대응 점검에서 발견: webhook.py issue_billing·
-    toss_billing.py retry_billing 둘 다 Toss 청구(돈이 빠져나가는 단계) 성공 뒤
+    creb_billing.py retry_billing 둘 다 크렙 청구(돈이 빠져나가는 단계) 성공 뒤
     subscriptions upsert가 별도 단계로 진행된다. 이 upsert만 실패하면(Supabase
     일시 장애 등) "결제는 됐는데 구독은 비활성"인 상태가 되는데, 기존
     `/admin/payment-events`(admin.py:367)는 단순 조회만 제공해 운영자가 수동

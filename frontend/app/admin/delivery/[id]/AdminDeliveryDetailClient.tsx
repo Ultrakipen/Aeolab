@@ -150,7 +150,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
     }
     if (newStatus === "refunded") {
       const ok = window.confirm(
-        "환불 처리하면 토스 결제취소 API가 실제로 호출되어 고객에게 결제 금액이 환불됩니다. 계속하시겠습니까?",
+        "환불 처리하면 크렙 결제취소 API가 실제로 호출되어 고객에게 결제 금액이 환불됩니다. 계속하시겠습니까?",
       );
       if (!ok) return;
     }
@@ -312,7 +312,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
 
       {/* 우측: 상태 변경 패널 */}
       <div className="w-full lg:w-72 shrink-0 space-y-4">
-        {/* 고객 환불 요청 — 승인 시 기존 토스 실환불 경로, 거절 시 사유 메시지 발송 */}
+        {/* 고객 환불 요청 — 승인 시 기존 실환불 경로, 거절 시 사유 메시지 발송 */}
         {refundRequest?.status === "pending" && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
             <h2 className="text-base font-semibold text-amber-900 mb-1">환불 요청 접수됨</h2>
@@ -332,7 +332,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
                 disabled={!!changingStatus || rejectingRefund}
                 className="w-full py-3 rounded-xl bg-red-700 text-white text-sm font-semibold hover:bg-red-800 transition-colors disabled:opacity-50"
               >
-                환불 승인 (토스 실환불)
+                환불 승인 (실환불)
               </button>
               <button
                 onClick={handleRejectRefund}
@@ -421,7 +421,7 @@ export function AdminDeliveryDetailClient({ orderId, initialMessages, initialMat
                 disabled={!!changingStatus}
                 className="w-full py-3 rounded-xl bg-gray-50 text-gray-600 text-sm font-medium hover:bg-gray-100 transition-colors disabled:opacity-50 border border-gray-200"
               >
-                환불 처리 (토스 실환불)
+                환불 처리 (실환불)
               </button>
             )}
 

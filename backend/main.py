@@ -62,7 +62,7 @@ if _missing:
     raise RuntimeError(f"필수 환경변수 미설정: {', '.join(_missing)}")
 
 # AI·결제 키 미설정 시 경고만 출력 (기능 호출 시 개별 오류 처리)
-_OPTIONAL_ENVS = ["GEMINI_API_KEY", "ANTHROPIC_API_KEY", "TOSS_SECRET_KEY"]
+_OPTIONAL_ENVS = ["GEMINI_API_KEY", "ANTHROPIC_API_KEY", "CREB_SID", "CREB_SECRET_KEY"]
 _missing_optional = [k for k in _OPTIONAL_ENVS if not os.getenv(k)]
 if _missing_optional:
     import warnings
