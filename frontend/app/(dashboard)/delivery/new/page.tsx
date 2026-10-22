@@ -160,14 +160,15 @@ function DeliveryNewForm() {
         }
         const creb = await loadCreb();
         const pgOrderId = `delivery_${orderId}_${Date.now()}`;
+        const payAmount = Number(order.amount) || pkg.price; // 서버가 확정한 주문 금액 우선
         await creb.requestPayment({
-          amount: String(pkg.price),
+          amount: String(payAmount),
           orderId: pgOrderId,
           orderName: `AEOlab 대행 서비스 - ${pkg.name}`.slice(0, 100),
           customerName: buyer.name,
           customerPhone: buyer.phone,
           ...(buyer.email ? { customerEmail: buyer.email } : {}),
-          successUrl: `${window.location.origin}/delivery/payment-confirm?orderId=${orderId}&amount=${pkg.price}&pgOrderId=${encodeURIComponent(pgOrderId)}`,
+          successUrl: `${window.location.origin}/delivery/payment-confirm?orderId=${orderId}&amount=${payAmount}&pgOrderId=${encodeURIComponent(pgOrderId)}`,
           failUrl: `${window.location.origin}/delivery/orders/${orderId}?payment=fail`,
         });
       } catch (payErr: unknown) {

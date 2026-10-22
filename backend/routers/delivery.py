@@ -365,6 +365,15 @@ async def _send_status_kakao(order_id: str, new_status: str) -> None:
 
 # ── 사용자 엔드포인트 ───────────────────────────────────────────────────────────
 
+def _order_amount(user_id: str, pkg_amount: int) -> int:
+    """PG 결제 QA용 임시 금액 — CREB_TEST_PRICE_USER_ID로 지정한 계정에만 적용(미설정 시 항상 정상가).
+    QA 종료 후 .env에서 해당 변수를 제거할 것."""
+    test_uid = os.getenv("CREB_TEST_PRICE_USER_ID", "")
+    if test_uid and user_id == test_uid:
+        return int(os.getenv("CREB_TEST_PRICE_AMOUNT", "1000"))
+    return pkg_amount
+
+
 @router.get("/packages")
 async def list_packages():
     """패키지 3종 정보 반환 (인증 불필요)."""
@@ -426,7 +435,7 @@ async def create_order(
         "request_title": body.request_title,
         "request_body": body.request_body,
         "status": "received",
-        "amount": pkg["amount"],
+        "amount": _order_amount(user_id, pkg["amount"]),
         "consent_agreed": True,
         "consent_signed_at": now,
         "score_before": score_before,
@@ -441,7 +450,7 @@ async def create_order(
 
     order_id = insert_res.data[0]["id"]
     _logger.info(f"[delivery] 의뢰 생성 완료: order_id={order_id}, user_id={user_id}, package={body.package_type}")
-    return {"id": order_id, "order_id": order_id, "status": "received", "amount": pkg["amount"]}
+    return {"id": order_id, "order_id": order_id, "status": "received", "amount": payload["amount"]}
 
 
 @router.get("/orders/me")
@@ -745,6 +754,7 @@ async def confirm_delivery_payment(
     if expected_amount is None:
         _logger.warning(f"[delivery/confirm] 알 수 없는 패키지 타입: {order['package_type']}")
         raise HTTPException(status_code=400, detail="알 수 없는 패키지 타입입니다")
+    expected_amount = _order_amount(user_id, expected_amount)
     if body.amount != expected_amount:
         _logger.warning(
             f"[delivery/confirm] 금액 불일치: order_id={order_id}, "
