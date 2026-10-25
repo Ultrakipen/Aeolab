@@ -346,7 +346,7 @@ export default function LandingPage() {
                   }}
                 >
                   {item.isAiTab && (
-                    <p className="text-sm font-bold mb-0.5" style={{ color: "#6366F1" }}>AI탭 · 글로벌 AI</p>
+                    <p className="text-sm font-bold mb-0.5" style={{ color: "#4F46E5" }}>AI탭 · 글로벌 AI</p>
                   )}
                   <p
                     className="text-2xl md:text-3xl font-black leading-none"
@@ -589,7 +589,7 @@ export default function LandingPage() {
                   <div className="flex items-center gap-2 text-sm text-white rounded-lg px-2.5 py-1.5" style={{ background: "#2563EB" }}>
                     <span className="font-bold shrink-0">1</span>
                     <span className="font-bold">○○카페</span>
-                    <span className="ml-auto shrink-0" style={{ color: "rgba(255,255,255,0.7)" }}>분위기 최고</span>
+                    <span className="ml-auto shrink-0" style={{ color: "rgba(255,255,255,0.95)" }}>분위기 최고</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm px-2 py-0.5" style={{ color: "#45556C" }}>
                     <span>2</span><span>△△커피</span>
@@ -624,7 +624,7 @@ export default function LandingPage() {
 
           <p className="text-center text-sm fade-up break-keep" style={{ color: "#45556C" }}>
             음식점·카페·베이커리·바·숙박업 등 가게 요약형 네이버 AI 브리핑 대상 업종 기준 ·{" "}
-            <strong style={{ color: "#6366F1" }}>그 외 업종도 블로그·콘텐츠 채택 시 글 모음형 AI 브리핑 노출 가능 + AI탭(업종 제한 발표 없음, 2026-06-25 정식 출시) + ChatGPT·Gemini·Google AI 가이드 자동 제공</strong>
+            <strong style={{ color: "#4F46E5" }}>그 외 업종도 블로그·콘텐츠 채택 시 글 모음형 AI 브리핑 노출 가능 + AI탭(업종 제한 발표 없음, 2026-06-25 정식 출시) + ChatGPT·Gemini·Google AI 가이드 자동 제공</strong>
           </p>
           <p className="text-center text-sm mt-2 fade-up break-keep" style={{ color: "#45556C" }}>
             AI 브리핑 노출은 네이버가 정한 기준으로 보장되지 않으며, 측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.
@@ -640,7 +640,7 @@ export default function LandingPage() {
         <div className="max-w-[1020px] mx-auto">
           <MobileAccordion label="네이버 AI탭이란? 모든 업종 노출 가능 — 자세히 보기">
           <div className="text-center mb-6 md:mb-8 fade-up">
-            <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#6366F1" }}>
+            <p className="text-sm font-bold tracking-widest mb-2" style={{ color: "#4F46E5" }}>
               네이버 AI탭 (검색결과 새 탭)
             </p>
             <h2
@@ -660,7 +660,7 @@ export default function LandingPage() {
             style={{ borderColor: "#A5B4FC", background: "#EEF2FF" }}
           >
             <p className="text-sm md:text-base font-bold break-keep text-center" style={{ color: "#3730A3" }}>
-              학원·병원·미용실·헬스장·법무사 등 — 가게 요약형 AI 브리핑 비대상이어도 글 모음형 AI 브리핑과 <span style={{ color: "#6366F1" }}>AI탭</span> 노출을 준비할 수 있습니다
+              학원·병원·미용실·헬스장·법무사 등 — 가게 요약형 AI 브리핑 비대상이어도 글 모음형 AI 브리핑과 <span style={{ color: "#4F46E5" }}>AI탭</span> 노출을 준비할 수 있습니다
             </p>
           </div>
 
@@ -730,7 +730,7 @@ export default function LandingPage() {
                 <div className="flex items-center gap-2 mb-1">
                   <Sparkles className="w-5 h-5 text-white" aria-hidden="true" />
                   <h3 className="text-base font-black text-white">네이버 AI탭</h3>
-                  <span className="text-sm font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.25)", color: "#fff" }}>정식 출시</span>
+                  <span className="text-sm font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(0,0,0,0.22)", color: "#fff" }}>정식 출시</span>
                 </div>
                 <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>
                   검색 탭에서 &apos;AI&apos;를 클릭하면 나오는 AI 답변
@@ -851,7 +851,7 @@ export default function LandingPage() {
                     <Search className="w-7 h-7 text-indigo-600" aria-hidden="true" />
                     <span className="text-sm font-bold text-indigo-700">AEOlab 진단</span>
                   </div>
-                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-sm font-black text-white" style={{ background: "#6366F1" }}>②</span>
+                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-sm font-black text-white" style={{ background: "#4F46E5" }}>②</span>
                 </div>
                 <h3 className="text-base font-bold text-gray-900 mb-2">AEOlab이 내 가게를 자동 점검합니다</h3>
                 <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3 w-full text-left">

@@ -150,7 +150,7 @@ export default function DashboardPreview() {
                 {" — "}Google 실시간 검색 연동: <strong>수 주</strong> / 미리 공부한 자료 기반: <strong>수개월~1년</strong>
               </p>
               <p className="text-sm break-keep" style={{ color: "#475569" }}>
-                <span className="font-semibold" style={{ color: "#10A37F" }}>ChatGPT</span>
+                <span className="font-semibold" style={{ color: "#047857" }}>ChatGPT</span>
                 {" — "}미리 공부한 자료 기반 · 노출까지 <strong>수개월~1년</strong> 소요
               </p>
               <p className="text-sm break-keep" style={{ color: "#45556C" }}>
@@ -170,12 +170,12 @@ export default function DashboardPreview() {
                 <p className="text-sm font-bold mb-2" style={{ color: "#0F172A" }}>7주 변화 · 노출 단계 변화</p>
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-semibold px-2.5 py-1 rounded-full" style={{ background: "#FEF9C3", color: "#92400E" }}>보통</span>
-                  <span className="text-sm font-medium" style={{ color: "#94A3B8" }}>→ 7주 후 →</span>
+                  <span className="text-sm font-medium" style={{ color: "#475569" }}>→ 7주 후 →</span>
                   <span className="text-sm font-semibold px-2.5 py-1 rounded-full" style={{ background: "#DBEAFE", color: "#1D4ED8" }}>양호</span>
-                  <span className="text-sm font-semibold" style={{ color: "#16A34A" }}>↑ 한 단계 성장</span>
+                  <span className="text-sm font-semibold" style={{ color: "#15803D" }}>↑ 한 단계 성장</span>
                 </div>
               </div>
-              <span className="text-sm shrink-0 ml-2" style={{ color: "#94A3B8" }}>(예시)</span>
+              <span className="text-sm shrink-0 ml-2" style={{ color: "#475569" }}>(예시)</span>
             </div>
 
             {/* 확대된 라인 차트 */}

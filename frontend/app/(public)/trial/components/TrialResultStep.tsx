@@ -126,7 +126,7 @@ function chatgptFreqLabel(freq: number | undefined, mentioned: boolean | undefin
 }
 
 function geminiFreqLabel(freq: number | undefined): { text: string; color: string } {
-  if (freq === undefined) return { text: "미측정", color: "text-slate-400" };
+  if (freq === undefined) return { text: "미측정", color: "text-slate-500" };
   if (freq === 0) return { text: "미노출", color: "text-slate-500" };
   if (freq >= 7) return { text: "자주 노출", color: "text-green-700" };
   if (freq >= 4) return { text: "가끔 노출", color: "text-blue-700" };
@@ -1679,9 +1679,9 @@ function ScoreBreakdownBox({
                 <span
                   className={`text-sm font-bold ${
                     isUnmeasured
-                      ? "text-slate-400"
+                      ? "text-slate-500"
                       : item.value === undefined
-                        ? "text-slate-400"
+                        ? "text-slate-500"
                         : val >= 65
                           ? "text-blue-700"
                           : val >= 40
@@ -2175,10 +2175,10 @@ function StickySignupBanner({
     >
       <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-sm md:text-base font-semibold leading-snug">
+          <p className="text-sm md:text-base font-semibold leading-snug break-keep">
             7일 후 AI가 내 가게를 인식했는지 자동으로 확인해 드립니다
           </p>
-          <p className="text-sm text-blue-50 mt-0.5">
+          <p className="text-sm text-blue-50 mt-0.5 break-keep">
             가입은 무료 · 전체 AI 분석 1회 추가 체험 · 구독 시 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 · 7일 내 환불 가능
           </p>
         </div>
