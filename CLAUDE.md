@@ -260,7 +260,7 @@
 | AI 스캔 | Gemini 2.5 Flash + OpenAI gpt-4.1-mini (Basic 자동 50/50 분할, Full 각 100회) + 네이버 AI 브리핑(Playwright) + Google AI Overview(Serper.dev API) | 4종 운영 |
 | AI 가이드 | Claude sonnet-4-6 (가이드 전용) + Claude Haiku (FAQ/감정분석) | |
 | 스크린샷 | Playwright 1.44+ | `PLAYWRIGHT_SEMAPHORE = Semaphore(int(os.getenv("PLAYWRIGHT_MAX_CONCURRENCY","1")))` 전역 공유 (6개 파일 통합 완료 2026-05-20) |
-| 결제 | 토스페이먼츠 v2 (test_ 키) | §"남은 작업" 참조 |
+| 결제 | 크렙(Creb) PG (심사 중, 테스트 키). 토스페이먼츠는 사용 중단·키 삭제(2026-10-25) | §"남은 작업" 참조 |
 | 알림 | 카카오 비즈API v2 알림톡 5유형 | |
 | 서버 | iwinv vCPU2/RAM4GB, Ubuntu 24.04 LTS, Nginx + PM2 | aeolab.co.kr |
 | CI/CD | GitHub Actions — main 브랜치 push 시 자동 배포 | |
@@ -306,7 +306,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 ### 환경변수 요약 (`.env.example`)
 - Supabase: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 - AI: `GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`
-- 결제: `NEXT_PUBLIC_TOSS_CLIENT_KEY`, `TOSS_SECRET_KEY` (현재 test_)
+- 결제: `NEXT_PUBLIC_CREB_CLIENT_KEY`(프론트), `CREB_SID`, `CREB_SECRET_KEY`(백엔드) — 현재 테스트 키. 심사 QA용 `CREB_TEST_PRICE_USER_ID`·`CREB_TEST_PRICE_AMOUNT`는 실결제 전환 시 삭제. (토스 키는 2026-10-25 서버에서 삭제)
 - 알림: `KAKAO_APP_KEY`, `KAKAO_SENDER_KEY`, `KAKAO_REST_API_KEY`
 - 검색: `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` (Open API, DataLab 겸용) / `NAVER_SEARCHAD_API_KEY`, `NAVER_SEARCHAD_SECRET_KEY`, `NAVER_SEARCHAD_CUSTOMER_ID` (검색광고 키워드도구 API, searchad.naver.com 별도 발급 — 미설정 시 graceful degradation)
 - 기타: `BACKEND_URL`, `SECRET_KEY`
@@ -655,7 +655,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ## 최근 업데이트 (2026-10-10 이전 상세 내역은 `docs/changelog_archive.md` "CLAUDE.md 최근 업데이트 이관(2026-10-10)"로 이관)
 
-- **2026-10-25 상업 서비스 직전 종합 점검(5영역 에이전트 + 메인 재검증)**: FAQ DB 토스페이먼츠 문구 2건→크렙, 체험 화면 흐린 글자(slate-400) 상향, 체험 안내문 4곳에 구글 지도 추가, 체험 스캔 이탈 이벤트 `trial_scan_abort` 신설, Pretendard 폰트 서브셋(1.4MB→360KB, load 이벤트 −5초·전송량 −54%이나 **버튼·입력 동작 시점·LCP는 불변** — 처음 "JS 4.5초 지연"이라 한 건 `route.fulfill`이 네트워크 제한을 우회한 측정 오류였고 정정함). 에이전트 오판 6건 기각(랜딩 gray-400 57건·폰트 CLS·가입완료 혼선 등). **미해결(사용자)**: Supabase Auth SMTP 설정 확인(이메일 인증 필수), 후기 확보, 실결제 전환 시 `.env`의 `CREB_TEST_PRICE_*`·`TOSS_SECRET_KEY` 삭제. 상세 `docs/prelaunch_inspection_2026_10_25_v1.0.md`.
+- **2026-10-25 상업 서비스 직전 종합 점검(5영역 에이전트 + 메인 재검증)**: FAQ DB 토스페이먼츠 문구 2건→크렙, 체험 화면 흐린 글자(slate-400) 상향, 체험 안내문 4곳에 구글 지도 추가, 체험 스캔 이탈 이벤트 `trial_scan_abort` 신설, Pretendard 폰트 서브셋(1.4MB→360KB, load 이벤트 −5초·전송량 −54%이나 **버튼·입력 동작 시점·LCP는 불변** — 처음 "JS 4.5초 지연"이라 한 건 `route.fulfill`이 네트워크 제한을 우회한 측정 오류였고 정정함). 에이전트 오판 6건 기각(랜딩 gray-400 57건·폰트 CLS·가입완료 혼선 등). **미해결(사용자)**: Supabase Auth SMTP 설정 확인(이메일 인증 필수), 후기 확보, 실결제 전환 시 `.env`의 `CREB_TEST_PRICE_*` 삭제(`TOSS_SECRET_KEY`·`NEXT_PUBLIC_TOSS_CLIENT_KEY`는 코드 미사용이라 서버 `.env`와 백업 파일에서 삭제 완료. 루트 `.env.example` 등 예시 파일의 토스 줄은 권한 설정상 편집이 막혀 미정리). 상세 `docs/prelaunch_inspection_2026_10_25_v1.0.md`.
 
 - **2026-10-10 무료 체험 입력·결과 개편 + 측정 정확도 수정**: 가게 이름만 입력하는 2화면 경로, 결과 "손님이 찾는 5개 길", ChatGPT 질문을 구 이름·동네 이름 두 가지로 나란히 측정(동네 칸은 직접 입력 경로에도 있음), 구글 지도 노출·평점·리뷰 수 카드(Serper `/places`, 체험당 최대 2크레딧). **카카오 측정 수정**: 지역 첫 단어만 쓰고 상위 5곳에 없으면 "미등록"으로 단정하던 것을 시·군·구 단위·상위 15곳·이름 재조회로 바꿈(조회 실패는 알 수 없음). **점수 결함 수정**: `calc_kakao_completeness`가 `mentioned`만 읽어 카카오 등록 가게도 0점이던 것을 `is_on_kakao` 인식으로 수정(`score_engine.py:566`). ⚠️ `scan.py`의 `businesses.kakao_score` 자동 저장 블록(`kakao_data.get("mentioned")` 등)은 같은 이유로 죽은 코드이며 **살리면 안 됨** — 저장값이 사용자 체크리스트 점수보다 우선해 덮어씀. 랜딩·공개 페이지·대시보드의 "1분/30초" 등 시간 표현 삭제, 무료 진단 범위를 "네이버 지도·검색, ChatGPT, 구글 지도(직접 측정) / AI 브리핑·AI탭·제미나이·구글 AI·검색(가입 후)"로 정정. 공용 `names_match`는 "점"만 붙은 지점 표기까지 인정하도록 수정(알려진 한계: 한 글자+점은 구별 불가). 미해결: `app/` 안 `.bak` 파일 20여 개 정리(보류 결정), 이번 세션 커밋 push 여부. 상세 `docs/trial_improvement_2026_09_28_v1.0.md` §17~§24.
 
@@ -665,7 +665,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ### 사용자가 직접 해야 할 것
 - ⏳ **베타 후기 1~3개 확보** → `frontend/lib/testimonials.ts` `isPlaceholder: false`로 교체 (Phase 0 인터뷰 후)
-- **실결제 전환 시**: `TOSS_SECRET_KEY` test_ → live_ 교체 + pm2 restart
+- **실결제 전환 시**: 크렙 심사 통과 후 `CREB_SID`·`CREB_SECRET_KEY`·`NEXT_PUBLIC_CREB_CLIENT_KEY`를 라이브 키로 교체(프론트는 재빌드) + `CREB_TEST_PRICE_*` 삭제 + pm2 restart. 토스 키는 이미 삭제됨
 - ✅ **NAVER API Hub 키 발급·전환 완료** (2026-09-02) — 마이그레이션 실질 완료, 재작업 불필요
 - ✅ **카카오 비즈센터 승인내역 확인 완료** (2026-09-02, 스크린샷 제공) — `AEOLAB_SCAN_01`/`AEOLAB_COMP_02` 승인 확인 후 `send_scan_complete()`/`send_competitor_overtake()` 연결 완료(git `50ab946`). 재작업 불필요
 - ✅ **네이버 서치어드바이저 사이트 등록 + 사이트맵 제출 완료** (2026-08-07) — HTML 파일 방식으로 소유확인(`frontend/public/naver90ab854379ebb072c6795b390f874ac8.html`, git `b45b952`, 라이브 200 확인) 후 사이트맵 제출까지 사용자 완료. 색인 반영은 네이버 측 처리 시간 소요 — 재작업 불필요
