@@ -2151,8 +2151,10 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
     # 캡챠 차단 시 mentioned/in_briefing을 False로 덮어쓰면 실제 미노출로 오집계됨 — captcha_detected 시 제거
     # 2026-08-08: 일일 상한(quota_skipped) 도달 시에도 동일하게 적용 — 측정 스킵을 "미노출"로 오집계 금지
     naver_scanner_result = results.get("naver") or {}
-    if naver_scanner_result.get("captcha_detected") or naver_scanner_result.get("quota_skipped"):
-        _logger.warning("naver_scanner: captcha/quota skip — skipping mentioned/in_briefing override to prevent false-negative")
+    # 2026-10-25: 페이지 접속 실패(error="page_load_failed")도 동일하게 취급
+    if (naver_scanner_result.get("captcha_detected") or naver_scanner_result.get("quota_skipped")
+            or naver_scanner_result.get("error") == "page_load_failed"):
+        _logger.warning("naver_scanner: captcha/quota/page_load skip — skipping mentioned/in_briefing override to prevent false-negative")
         naver_scanner_result = {k: v for k, v in naver_scanner_result.items() if k not in ("mentioned", "in_briefing", "rank")}
     naver_data = {**(naver_visibility if isinstance(naver_visibility, dict) else {}), **naver_scanner_result}
 

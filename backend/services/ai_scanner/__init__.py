@@ -140,6 +140,10 @@ _PROXY_ERROR_SIGNATURES = (
     # 셀렉터 대기 등 다른 사후 타임아웃과 구분하기 위해 "Page.goto: Timeout"으로 한정
     # (post-navigation 타임아웃까지 넓히면 프록시와 무관한 실패까지 오탐할 수 있음).
     "Page.goto: Timeout",
+    # 2026-10-25 추가: Webshare 프록시가 407(계정 목록에 없는 프록시)을 돌려주면 Chromium이
+    # net::ERR_HTTP_RESPONSE_CODE_FAILURE로 표면화 — 위 시그니처에 없어 8일 넘게 회로차단 없이 실패했음.
+    # 네이버 자체 4xx/5xx도 같은 문구라 연속 2회면 프록시를 30분 우회(직접 연결)하는 보수적 동작.
+    "ERR_HTTP_RESPONSE_CODE_FAILURE",
 )
 
 

@@ -119,10 +119,12 @@ class NaverAIBriefingScanner:
         source_urls:     list      = []
         source_blog_ids: list[str] = []
         source_image_map: dict[str, bool] = {}  # blog_id -> 이미지 썸네일과 함께 인용됐는지
+        nav_ok = False  # goto 성공 여부 — 실패 시 "미노출"이 아니라 "측정 실패"로 반환하기 위함
 
         try:
             url = f"https://search.naver.com/search.naver?query={query}"
             await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+            nav_ok = True
             note_proxy_result(None)  # goto 성공 — 프록시 정상, 실패 카운터 리셋
             await page.wait_for_timeout(random.randint(2800, 4800))  # 인간 편차 딜레이
 
@@ -310,6 +312,19 @@ class NaverAIBriefingScanner:
         except Exception as e:
             logger.warning(f"NaverAIBriefingScanner page check error for '{query}': {e}")
             note_proxy_result(e)
+
+        # 2026-10-25: 페이지 접속 자체가 실패한 경우(프록시 407·타임아웃 등) 결과를 "미노출"로 저장하면
+        # 실제 측정 실패가 사용자에게 "AI 브리핑에 안 나옴"으로 보임(Webshare 프록시 407이 8일 이상 이어졌음).
+        # error를 달면 score_engine._is_naver_unmeasured / guide_generator / report.py가 "미측정"으로 처리.
+        if not nav_ok:
+            return {
+                "platform": "naver", "mentioned": False, "in_briefing": False,
+                "rank": None, "excerpt": "", "captcha_detected": False,
+                "error": "page_load_failed", "_query_used": query,
+                "in_ai_tab": False, "ai_tab_excerpt": "", "ad_only": False,
+                "queries_used": [query],
+                "source_urls": [], "source_blog_ids": [], "source_image_map": {},
+            }
 
         return {
             "platform":        "naver",
