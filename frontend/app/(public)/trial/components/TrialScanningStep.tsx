@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Search, Check, Lightbulb } from "lucide-react";
+import { trackTrialScanAbort } from "@/lib/analytics";
 import type { TrialScanningStepProps } from "./TrialSharedTypes";
 
 /**
@@ -16,6 +18,17 @@ export default function TrialScanningStep({
   region,
   briefingCategory = undefined,
 }: TrialScanningStepProps) {
+  // 스캔 중 페이지를 벗어나는 이탈 계측 (스캔 완료 시 이 컴포넌트가 언마운트되어 리스너가 제거됨)
+  const stepRef = useRef(scanStep);
+  useEffect(() => {
+    stepRef.current = scanStep;
+  }, [scanStep]);
+  useEffect(() => {
+    const onHide = () => trackTrialScanAbort(stepRef.current);
+    window.addEventListener("pagehide", onHide);
+    return () => window.removeEventListener("pagehide", onHide);
+  }, []);
+
   return (
     <div className="max-w-md mx-auto px-4 py-8 md:py-12 text-center">
       {/* 스피너 + 이모지 오버레이 */}
@@ -45,7 +58,7 @@ export default function TrialScanningStep({
         을<br />
         네이버에서 검색하고 ChatGPT에게 50번 물어보고 있습니다
       </p>
-      <p className="text-sm text-slate-400 mb-8">단계별로 진행 중이에요</p>
+      <p className="text-sm text-slate-500 mb-8">단계별로 진행 중이에요</p>
 
       {/* 스캔 단계 목록 */}
       <div className="max-w-sm mx-auto space-y-2 text-left">
@@ -86,14 +99,14 @@ export default function TrialScanningStep({
 
       {/* 체험 스캔 범위 안내 (ACTIVE 업종) */}
       {briefingCategory === "active" && (
-        <p className="text-sm text-slate-400 mt-6 leading-relaxed bg-slate-50 rounded-xl px-4 py-3 text-left">
-          <Lightbulb className="inline w-4 h-4 text-amber-400 mr-1 align-text-bottom" aria-hidden="true" /> <span className="font-semibold text-slate-600">체험 측정 범위:</span> 네이버 스마트플레이스 자동 점검·ChatGPT 검색을 진행합니다.
+        <p className="text-sm text-slate-600 mt-6 leading-relaxed bg-slate-50 rounded-xl px-4 py-3 text-left">
+          <Lightbulb className="inline w-4 h-4 text-amber-400 mr-1 align-text-bottom" aria-hidden="true" /> <span className="font-semibold text-slate-600">체험 측정 범위:</span> 네이버 스마트플레이스 자동 점검·ChatGPT 검색·구글 지도 노출 확인을 진행합니다.
           네이버 AI 브리핑 실측 확인은 가입 후 정식 측정에서 제공됩니다.
         </p>
       )}
 
       {/* 하단 안심 메시지 */}
-      <p className="text-sm text-slate-400 mt-4 leading-relaxed">
+      <p className="text-sm text-slate-500 mt-4 leading-relaxed">
         실제로 AI에게 질문을 보내고 응답을 분석합니다.
         <br />
         측정 중에는 이 탭을 유지해 주세요.

@@ -166,7 +166,7 @@ export default function NaverStatusSection({
         {/* ── 키워드별 순위 요약 (2개 이상 키워드 조사 시) ── */}
         {keywordRanks && keywordRanks.length > 1 && (
           <div className="px-4 pt-3 pb-2 border-b border-slate-100">
-            <p className="text-xs text-slate-400 font-semibold mb-2 uppercase tracking-wide">
+            <p className="text-xs text-slate-500 font-semibold mb-2 uppercase tracking-wide">
               {keywordRanks.length}개 검색어 조사 결과
             </p>
             <div className="space-y-1.5">
@@ -248,7 +248,7 @@ export default function NaverStatusSection({
                         )}
                       </p>
                       {comp.address && (
-                        <p className="text-sm text-slate-400 truncate mt-0.5">{comp.address}</p>
+                        <p className="text-sm text-slate-500 truncate mt-0.5">{comp.address}</p>
                       )}
                     </div>
                   </li>

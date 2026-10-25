@@ -11,6 +11,9 @@ import { PLAN_PRICES } from "@/lib/plans";
 // pricing/page.tsx 1곳뿐)이라 fonttools varLib.instancer로 45~930 가변축을
 // 400~930으로 트리밍 — 2.06MB→1.45MB(29% 감소), 400~900 렌더링은 픽셀 단위로
 // 동일함을 스크린샷 비교로 확인. weight 선언도 실제 파일 범위에 맞춤.
+// 2026-10-25: 한글을 KS X 1001 2,350자 + 소스에 실제 쓰인 한글로 서브셋(1.4MB→360KB).
+// 1.4MB 폰트가 JS와 대역폭을 다퉈 모바일 느린 4G에서 JS 로드가 2.3~4.5초 늦어지던 것을
+// 폰트 차단 A/B로 확인(LCP·CLS 영향 없음). 서브셋 밖 한글(사용자 입력 등 희귀 글자)은 시스템 폰트로 대체 표시.
 const pretendard = localFont({
   src: "../public/fonts/PretendardVariable.woff2",
   variable: "--font-pretendard",

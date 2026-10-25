@@ -374,11 +374,11 @@ function ScoreSummaryCard({
           )}
         </div>
         <div className="flex justify-between mt-1">
-          <span className="text-sm text-slate-400">시작</span>
+          <span className="text-sm text-slate-500">시작</span>
           {!isEstimatedBenchmark && benchmarkAvg > 0 && (
-            <span className="text-sm text-slate-400">{categoryLabel} 업종 평균</span>
+            <span className="text-sm text-slate-500">{categoryLabel} 업종 평균</span>
           )}
-          <span className="text-sm text-slate-400">완성</span>
+          <span className="text-sm text-slate-500">완성</span>
         </div>
       </div>
 
@@ -1027,7 +1027,7 @@ export default function TrialResultStep(props: TrialResultProps) {
         {form.business_name ? (
           <div className="rounded-xl bg-white border border-slate-200 px-5 py-4 mb-4 shadow-sm">
             {/* 레이블 */}
-            <p className="text-sm font-bold text-slate-400 tracking-widest uppercase mb-3 flex items-center gap-1.5">
+            <p className="text-sm font-bold text-slate-500 tracking-widest uppercase mb-3 flex items-center gap-1.5">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-slate-300"></span>
               진단 대상 가게
             </p>
@@ -2086,7 +2086,7 @@ function NextScanDateNote({
       <p className="text-sm text-slate-600 leading-snug">
         지금 가입하면 다음 자동 측정:{" "}
         <span className="font-bold text-slate-800">{nextScanDate}</span>
-        <span className="ml-1.5 text-slate-400">· 매주 변화 감지 + 카카오 알림</span>
+        <span className="ml-1.5 text-slate-600">· 매주 변화 감지 + 카카오 알림</span>
       </p>
     </div>
   );

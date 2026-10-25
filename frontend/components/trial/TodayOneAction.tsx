@@ -121,7 +121,7 @@ function ActionCard({
           <badge.Icon className="w-3 h-3" aria-hidden="true" />
           {badge.label}
         </span>
-        <span className="text-xs text-slate-400 flex items-center gap-1 ml-auto shrink-0">
+        <span className="text-xs text-slate-600 flex items-center gap-1 ml-auto shrink-0">
           <Clock className="w-3 h-3" />
           {action.time}
         </span>

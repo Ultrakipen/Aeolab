@@ -33,6 +33,14 @@ export function trackEvent(name: string, params?: Record<string, unknown>): void
 }
 
 /**
+ * 무료 체험 스캔 중 이탈 — 스캔 진행 화면에서 페이지를 벗어난 경우 (step_index: 이탈 시점의 진행 단계)
+ * 페이지 종료 시점이라 beacon 전송을 지정한다.
+ */
+export function trackTrialScanAbort(stepIndex: number): void {
+  trackEvent("trial_scan_abort", { step_index: stepIndex, transport_type: "beacon" });
+}
+
+/**
  * CTA 클릭 — location: 'hero' | 'final' | 'header' 등 위치 식별
  * extra: 헤드라인 인덱스 등 추가 컨텍스트
  */

@@ -175,7 +175,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 {
                   Icon: Search,
                   title: "AI 검색 노출 현황",
-                  desc: "네이버 검색과 ChatGPT 50회 질문으로 내 가게가 보이는지 바로 확인",
+                  desc: "네이버 검색·구글 지도, ChatGPT 50회 질문으로 내 가게가 보이는지 바로 확인",
                 },
                 {
                   Icon: Target,
@@ -247,7 +247,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 지금 내 가게, AI 검색에서 찾히나요?
               </h1>
               <p className="text-sm text-gray-600 leading-relaxed">
-                업종과 가게 이름을 입력하면 네이버 검색과 ChatGPT에서
+                업종과 가게 이름을 입력하면 네이버 검색·ChatGPT·구글 지도에서
                 내 가게가 보이는지 확인하고,
                 <br />
                 오늘 당장 할 수 있는 개선 방법을 알려드립니다.
@@ -414,7 +414,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                           네이버 AI 브리핑 대상 업종입니다
                         </p>
                         <p className="text-sm text-green-800">
-                          네이버 검색과 ChatGPT 노출을 진단합니다. 네이버 AI 브리핑·Gemini는 가입 후 1회 체험에서 측정합니다.
+                          네이버 검색·ChatGPT·구글 지도 노출을 진단합니다. 네이버 AI 브리핑·Gemini는 가입 후 1회 체험에서 측정합니다.
                         </p>
                       </div>
                     </div>

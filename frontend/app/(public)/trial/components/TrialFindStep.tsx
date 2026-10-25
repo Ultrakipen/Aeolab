@@ -75,7 +75,7 @@ function FindView({ query, setQuery, results, loading, done, onSelect, onManual,
         <p className="text-base text-gray-600 leading-relaxed break-keep">
           네이버에서 찾아 업종과 지역을 자동으로 채워 드려요.{" "}
           <br className="hidden sm:block" />
-          네이버 검색과 ChatGPT에서 내 가게가 나오는지 알려 드립니다.
+          네이버 검색·ChatGPT·구글 지도에서 내 가게가 나오는지 알려 드립니다.
         </p>
       </div>
 
