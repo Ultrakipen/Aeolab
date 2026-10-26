@@ -18,6 +18,8 @@
 | 6 | **10-25 밤 스캔(KST 02:00경) 정상 확인** — 프록시 제거·접속실패 표시 수정·쿠키·Serper 키 교체 후 첫 실전 스캔 | Claude | 저장된 `naver_result`에 `error`/`page_load_failed` 없음, 구글 측정 정상, 백엔드 로그 새 오류 없음 | ⏳ 사용자가 10-26 오전에 요청하면 확인 |
 | 7 | **`@aeolab.co.kr` 수신 정상화 + 운영 알림 수신** — 루트 MX에 SES 반송 서버(`feedback-smtp…amazonses.com`)가 iwinv와 같은 우선순위로 중복돼 수신 메일 약 절반이 `550 Mailbox does not exist!`로 반송됨(6/20 `test@`, 7/11 `contact@`, 10/26 시험). 이 때문에 Resend가 `contact@`를 차단(Suppressed)해 **운영 알림(NID_SES 만료·Gemini 실패 등)이 전부 미도착** | 사용자+Claude | Cloudflare 루트 MX 삭제 → `dig`로 반영 확인 → 외부 메일로 `contact@`·`support@` 수신 확인 → Resend Suppressions에서 `contact@` 삭제 → 시험 메일 도착 | ✅ **완료(2026-10-26)** — 루트 MX 정리, `support@`·외부 메일 수신 확인, Resend Suppressions에서 `contact@` 삭제, `send_operator_alert` 시험 메일이 `contact@` 메일함에 도착함. ⚠️ 이전(~10-26)에 나간 운영 알림(NID_SES 만료·Gemini 실패 등)은 전부 차단돼 도착하지 않았음 |
 
+| 8 | **Anthropic(Claude) 크레딧 충전 + 자동 충전 설정** — 2026-10-26 첫 분석에서 `credit balance is too low`로 **개선 가이드 생성이 실패**. 가이드·소개글·FAQ·리뷰 답변·감정 분석·창업 리포트가 모두 Claude를 써서 크레딧이 떨어지면 핵심 기능이 한꺼번에 멈춤(로그에는 오늘 1건만 확인, 언제부터인지 불명) | 사용자 | Anthropic Console → Plans & Billing에서 충전·자동 충전 → 충전 후 가이드가 생성되는지 Claude가 확인. 이후 잔액 소진 시 운영자 알림 메일이 `contact@`로 감(6시간에 1회, git `16e4dde`) | ❌ 미충전(2026-10-26 기준) |
+| 9 | **GitHub push 후 오늘 밤 정기 스캔 확인** — 사전 스캔(`github_naver_scan.py`)이 새 스캐너 코드로 도는지 | Claude | 10-27 오전 `naver_prescan` 결과에 `briefing_present`·`briefing_type`이 있고 `page_load_failed`가 없는지 | ⏳ push 완료(2026-10-26 17:17 배포 success), 결과 확인 대기 |
 ---
 
 ## 2. 하는 편이 좋은 것 (출시를 막지는 않음, 위험을 인지하고 판단)
@@ -56,6 +58,8 @@
 - **키워드 순위 미측정이 0점으로 계산됨**(`score_engine.py:1349·1445`): 키워드 순위는 별도 작업이 채우므로 수동·첫 분석 직후 점수에는 이 항목(ACTIVE 25%)이 항상 0 — 점수 산식 변경이라 사용자 승인 대기(제외·재정규화 시 종합이 크게 오름).
 - **수집 리뷰 수 표기**: 플레이스는 요약 "리뷰 1만"(총합)을, 서비스는 방문자 리뷰 탭의 정확한 수(어니언 성수 2,283)를 저장 → 화면에 어떤 숫자를 보여 줄지 결정 필요(평균 별점은 플레이스가 표시하지 않아 0.0으로 비어 있음).
 - **정기 스캔의 네이버 측정은 GitHub 사전 스캔 결과가 덮어씀**(`jobs.py:512`): push 전에는 옛 스캐너 코드로 측정 — 이번 인식·측정불가 수정은 push 후 반영.
+- **키워드 순위는 점수 계산 뒤에 측정돼 점수에 반영되지 않음**(`jobs.py:5252`, `scan.py:3860`이 가장 최근 분석 기록에 덧붙임, 점수는 재계산 안 함): 정기 스캔 사업장 4곳 모두 점수 계산 시 `keyword_search_rank: 0.0/measured:false`. 이번에 저장된 순위는 전부 None(미노출)이고 어니언 성수도 일반 키워드 3개 모두 None이라 **지금은 점수 차이가 없지만**, 상위 노출 가게는 이 항목(ACTIVE 25%) 점수를 못 받음. ⚠️ "측정 못 했으니 점수에서 제외"는 오히려 진짜 미노출을 가려 점수를 부풀리므로 **금지** — 순위 측정 후 점수 재계산이 올바른 수정.
+- **플레이스 ID 자동 확정은 도로명 주소가 있어야 함**: 지번 주소만 있는 가게는 `unverified`로 확정하지 않으며 직접 입력 필요. 이름 일치 1곳 + 도로명·건물번호 일치일 때만 저장(`naver_place_resolver.py`).
 - 폰트 서브셋 밖의 희귀 한글(상호명 등)은 시스템 폰트로 대체 표시. 되돌리려면 git 이전 버전 `PretendardVariable.woff2` 복원 후 빌드.
 - 서버 `bandwidth_tracker`의 프록시 월 예산(3GB) 80% 메일 경보는 프록시를 비운 지금 의미 없음(미확인·미조치).
 - 오래된 일회성 잡(`ai_tab_trigger_check_job`, 2026-06-01 date)이 재시작 때마다 "146일 늦음" 경고를 찍음 — 실행되지 않는 로그, 무해.
