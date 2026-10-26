@@ -157,6 +157,17 @@ _GAP_REASONS = {
 }
 
 
+def _is_unmeasured_dimension(key: str, my_breakdown: dict) -> bool:
+    """키워드 순위가 측정되지 않았으면(키 없음 또는 과거 기록의 0.0) 격차 계산에서 제외.
+
+    미측정 0점을 "경쟁사보다 순위가 낮다"는 실제 격차로 안내하면 허위 근거가 된다.
+    (과거 기록은 미측정도 0.0으로 저장돼 있어 0.0도 미측정으로 본다)
+    """
+    if key != "keyword_search_rank":
+        return False
+    return not my_breakdown.get(key)
+
+
 def _build_gap_reason(
     dimension: str,
     gap: float,
@@ -507,6 +518,8 @@ def analyze_gap(
     # DimensionGap 계산
     dimensions: list[DimensionGap] = []
     for key, label in _DIMENSION_LABELS.items():
+        if _is_unmeasured_dimension(key, my_breakdown):
+            continue
         my_val = my_breakdown.get(key, 0)
         top_val = top_breakdown.get(key, my_val)
         avg_val = avg_breakdown.get(key, my_val)
@@ -918,6 +931,7 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
                 priority=0,
             )
             for key, label in _DIMENSION_LABELS.items()
+            if not _is_unmeasured_dimension(key, my_breakdown)
         ]
         # gap × weight 내림차순 정렬 후 우선순위 부여 (명세 § 7)
         _raw_fallback_dims.sort(key=lambda d: d.gap_to_top * d.weight, reverse=True)

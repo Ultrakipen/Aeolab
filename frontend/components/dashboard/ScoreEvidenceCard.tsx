@@ -49,6 +49,7 @@ interface V31Detail {
   user_group: string;
   model_version: string;
   weights: Record<string, number>;
+  excluded?: string[];
   items: Record<string, V31ItemDetail>;
 }
 
@@ -204,8 +205,18 @@ function V31SixItems({
   const isV32 = detail.model_version === "v3.2";
   const weightsTable = isV32 ? V3_2_WEIGHTS : V3_1_WEIGHTS;
   const ug = detail.user_group in weightsTable ? detail.user_group : "ACTIVE";
-  const weights = weightsTable[ug];
+  const baseWeights = weightsTable[ug];
   const items = detail.items;
+  // 키워드 순위가 점수에서 제외된 기록(excluded 표시 있음)은 남은 항목 비중을 100%로 다시 맞춰 표시
+  const rankExcluded = (detail.excluded ?? []).includes("keyword_search_rank");
+  const weights: Record<string, number> = rankExcluded
+    ? Object.fromEntries(
+        Object.entries(baseWeights).map(([k, v]) => [
+          k,
+          k === "keyword_search_rank" ? 0 : Math.round((v / (100 - baseWeights["keyword_search_rank"])) * 100),
+        ])
+      )
+    : baseWeights;
 
   const finalReviewCount = kakaoResult?.review_count ?? reviewCount ?? naverResult?.review_count ?? 0;
   const finalAvgRating   = kakaoResult?.avg_rating   ?? avgRating   ?? naverResult?.avg_rating   ?? 0;
@@ -245,7 +256,11 @@ function V31SixItems({
               <span className="text-sm md:text-base font-semibold text-gray-800">
                 ① 네이버 키워드 검색 노출
               </span>
-              <WeightBadge pct={weights["keyword_search_rank"]} color="text-amber-700 bg-amber-50 border-amber-200" />
+              {rankExcluded ? (
+                <span className="text-sm text-gray-600 border border-gray-200 bg-white rounded px-2 py-0.5">점수 미반영</span>
+              ) : (
+                <WeightBadge pct={weights["keyword_search_rank"]} color="text-amber-700 bg-amber-50 border-amber-200" />
+              )}
             </div>
             <p className="text-sm text-gray-600">등록한 키워드로 네이버에서 직접 검색해 내 사업장이 몇 위에 나오는지 확인합니다</p>
           </div>
@@ -257,7 +272,7 @@ function V31SixItems({
         </div>
         {kwSearchItem?.measured === false ? (
           <div className="bg-gray-100 rounded-lg p-3 text-sm text-gray-600">
-            아직 측정 데이터 없음 — 키워드 등록 후 다음 주간 측정 시 확인됩니다
+            아직 측정 데이터 없음 — 이 항목은 점수에 반영하지 않았고, 측정되면 확인됩니다
           </div>
         ) : (
           <>

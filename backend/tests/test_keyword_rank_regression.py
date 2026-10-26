@@ -63,3 +63,49 @@ def test_card_rank_uses_card_order_not_html_presence():
     assert asyncio.run(kr._place_card_rank(_FakePage(cards), "내가게", "999999")) is None
     # ID 없는 사업장은 카드 글자의 이름으로 찾는다
     assert asyncio.run(kr._place_card_rank(_FakePage(cards), "내가게", None)) == 2
+
+
+# ── 미측정 순위 점수 제외·재정규화 (2026-10-26) ──────────────────────────
+from services.score_engine import _renormalized_track1
+from services.gap_analyzer import _is_unmeasured_dimension
+
+_W = {
+    "keyword_search_rank": 0.25, "review_quality": 0.15, "smart_place_completeness": 0.15,
+    "blog_crank": 0.10, "local_map_score": 0.10, "ai_briefing_score": 0.25,
+}
+_ITEMS = {
+    "keyword_search_rank": 0.0, "review_quality": 60.0, "smart_place_completeness": 40.0,
+    "blog_crank": 20.0, "local_map_score": 50.0, "ai_briefing_score": 80.0,
+}
+
+
+def test_renormalize_no_exclusion_equals_weighted_sum():
+    expected = sum(_ITEMS[k] * _W[k] for k in _W)
+    assert abs(_renormalized_track1(_ITEMS, _W, set()) - expected) < 1e-9
+
+
+def test_renormalize_excluding_ai_matches_legacy_formula():
+    """기존 AI 브리핑 제외식 sum(나머지)/(1-w_ai)와 동일해야 한다(회귀 방지)."""
+    legacy = sum(_ITEMS[k] * _W[k] for k in _W if k != "ai_briefing_score") / (1 - _W["ai_briefing_score"])
+    assert abs(_renormalized_track1(_ITEMS, _W, {"ai_briefing_score"}) - legacy) < 1e-9
+
+
+def test_renormalize_excluding_rank_does_not_penalize_unmeasured():
+    with_zero = _renormalized_track1(_ITEMS, _W, set())
+    excluded = _renormalized_track1(_ITEMS, _W, {"keyword_search_rank"})
+    assert excluded > with_zero
+    # 나머지 항목이 전부 100점이면 순위 제외 시 정확히 100점
+    full = {k: 100.0 for k in _ITEMS}
+    full["keyword_search_rank"] = 0.0
+    assert abs(_renormalized_track1(full, _W, {"keyword_search_rank"}) - 100.0) < 1e-9
+
+
+def test_renormalize_all_excluded_is_zero():
+    assert _renormalized_track1(_ITEMS, _W, set(_W)) == 0.0
+
+
+def test_gap_skips_unmeasured_rank_only():
+    assert _is_unmeasured_dimension("keyword_search_rank", {}) is True
+    assert _is_unmeasured_dimension("keyword_search_rank", {"keyword_search_rank": 0.0}) is True
+    assert _is_unmeasured_dimension("keyword_search_rank", {"keyword_search_rank": 60.0}) is False
+    assert _is_unmeasured_dimension("review_quality", {}) is False

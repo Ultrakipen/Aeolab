@@ -1036,6 +1036,9 @@ def calculate_score(
         for key in ("keyword_search_rank", "smart_place_completeness", "blog_crank", "local_map_score", "ai_briefing_score", "naver_ai_tab_visible"):
             item = items.get(key)
             if isinstance(item, dict) and "score" in item:
+                # 키워드 순위 미측정은 0점이 아니라 항목 자체를 생략 (gap·가이드가 0점을 실제 격차로 오해하지 않게)
+                if key == "keyword_search_rank" and item.get("measured") is False:
+                    continue
                 breakdown[key] = item["score"]
         breakdown["user_group"] = track1_detail.get("user_group")
         breakdown["model_version"] = track1_detail.get("model_version", "v3.1")
@@ -1395,6 +1398,18 @@ def calc_naver_ai_tab_visible_score(scan_result: dict) -> float:
     return 0.0
 
 
+def _renormalized_track1(items: dict[str, float], weights: dict, excluded: set[str]) -> float:
+    """미측정 항목을 제외하고 남은 항목 가중치 합으로 나눠 재정규화한 Track1 점수.
+
+    미측정을 0점으로 세면 "측정 못 함"이 "최하점"으로 오집계된다(AI 브리핑은 기존에도 이렇게
+    제외, 2026-10-26 키워드 순위에도 동일 적용). 남은 가중치 합이 0이면 0.0.
+    """
+    total_w = sum(w for k, w in weights.items() if k not in excluded)
+    if total_w <= 0:
+        return 0.0
+    return sum(items[k] * weights[k] for k in items if k not in excluded) / total_w
+
+
 def calc_track1_score_v3_1(
     scan_result: dict,
     biz: dict,
@@ -1439,27 +1454,25 @@ def calc_track1_score_v3_1(
     if user_group == "INACTIVE" and _naver_r_v31.get("in_briefing"):
         weights = NAVER_TRACK_WEIGHTS_V3_1["LIKELY"]
 
-    # CAPTCHA/오류로 네이버 측정 실패 시 ai_briefing_score 제외 후 나머지 항목으로 재정규화
-    # (calc_track2_score의 _is_google_unmeasured 처리와 동일 패턴)
-    _ai_brief_w = weights["ai_briefing_score"]
-    if _is_naver_unmeasured(scan_result) and _ai_brief_w > 0:
-        _norm = 1.0 - _ai_brief_w
-        score = (
-            kw_search  * weights["keyword_search_rank"] +
-            rv_qual    * weights["review_quality"] +
-            sp_comp    * weights["smart_place_completeness"] +
-            blog_crank * weights["blog_crank"] +
-            local_map  * weights["local_map_score"]
-        ) / _norm
-    else:
-        score = (
-            kw_search  * weights["keyword_search_rank"] +
-            rv_qual    * weights["review_quality"] +
-            sp_comp    * weights["smart_place_completeness"] +
-            blog_crank * weights["blog_crank"] +
-            local_map  * weights["local_map_score"] +
-            ai_brief   * weights["ai_briefing_score"]
-        )
+    # 미측정 항목은 0점이 아니라 제외 후 나머지 가중치로 재정규화
+    #  - 네이버 측정 실패(CAPTCHA/오류) → ai_briefing_score 제외 (calc_track2_score의 _is_google_unmeasured와 동일 패턴)
+    #  - 키워드 순위 미측정 → keyword_search_rank 제외 (순위 측정은 분석 뒤 별도 작업이라 첫 분석엔 항상 비어 있음)
+    _excluded: set[str] = set()
+    if _is_naver_unmeasured(scan_result) and weights["ai_briefing_score"] > 0:
+        _excluded.add("ai_briefing_score")
+    if not kw_measured:
+        _excluded.add("keyword_search_rank")
+    score = _renormalized_track1(
+        {
+            "keyword_search_rank":      kw_search,
+            "review_quality":           rv_qual,
+            "smart_place_completeness": sp_comp,
+            "blog_crank":               blog_crank,
+            "local_map_score":          local_map,
+            "ai_briefing_score":        ai_brief,
+        },
+        weights, _excluded,
+    )
 
     # 대시보드 "빠른 지수 상승 항목" 섹션용 — v3.0 calc_track1_score와 동일 소스 사용
     _eligibility_v31 = get_briefing_eligibility(_eff_category, bool(biz.get("is_franchise")))
@@ -1470,6 +1483,7 @@ def calc_track1_score_v3_1(
         "user_group":    user_group,
         "model_version": "v3.1",
         "weights":       weights,
+        "excluded":      sorted(_excluded),
         "missing":       missing,
         "items": {
             "keyword_search_rank":      {"score": round(kw_search, 1),  "measured": kw_measured},
@@ -1574,29 +1588,26 @@ def calc_track1_score_v3_2(
     ai_brief = calc_naver_exposure(scan_result)
     ai_tab_visible = calc_naver_ai_tab_visible_score(scan_result)
 
-    # CAPTCHA/오류로 네이버 측정 실패 시 ai_briefing_score 제외 후 나머지 항목으로 재정규화
-    # (calc_track2_score의 _is_google_unmeasured 처리와 동일 패턴)
-    _ai_brief_w = weights["ai_briefing_score"]
-    if _is_naver_unmeasured(scan_result) and _ai_brief_w > 0:
-        _norm = 1.0 - _ai_brief_w
-        score = (
-            kw_search      * weights["keyword_search_rank"] +
-            rv_qual        * weights["review_quality"] +
-            sp_comp        * weights["smart_place_completeness"] +
-            blog_crank     * weights["blog_crank"] +
-            local_map      * weights["local_map_score"] +
-            ai_tab_visible * weights["naver_ai_tab_visible"]
-        ) / _norm
-    else:
-        score = (
-            kw_search      * weights["keyword_search_rank"] +
-            rv_qual        * weights["review_quality"] +
-            sp_comp        * weights["smart_place_completeness"] +
-            blog_crank     * weights["blog_crank"] +
-            local_map      * weights["local_map_score"] +
-            ai_brief       * weights["ai_briefing_score"] +
-            ai_tab_visible * weights["naver_ai_tab_visible"]
-        )
+    # 미측정 항목은 0점이 아니라 제외 후 나머지 가중치로 재정규화
+    #  - 네이버 측정 실패(CAPTCHA/오류) → ai_briefing_score 제외 (calc_track2_score의 _is_google_unmeasured와 동일 패턴)
+    #  - 키워드 순위 미측정 → keyword_search_rank 제외 (순위 측정은 분석 뒤 별도 작업이라 첫 분석엔 항상 비어 있음)
+    _excluded: set[str] = set()
+    if _is_naver_unmeasured(scan_result) and weights["ai_briefing_score"] > 0:
+        _excluded.add("ai_briefing_score")
+    if not kw_measured:
+        _excluded.add("keyword_search_rank")
+    score = _renormalized_track1(
+        {
+            "keyword_search_rank":      kw_search,
+            "review_quality":           rv_qual,
+            "smart_place_completeness": sp_comp,
+            "blog_crank":               blog_crank,
+            "local_map_score":          local_map,
+            "ai_briefing_score":        ai_brief,
+            "naver_ai_tab_visible":     ai_tab_visible,
+        },
+        weights, _excluded,
+    )
 
     # 대시보드 "빠른 지수 상승 항목" 섹션용 — v3.0/v3.1과 동일 소스 사용
     # (v3.3은 이 detail을 **base_detail로 상속하므로 별도 처리 불필요)
@@ -1608,6 +1619,7 @@ def calc_track1_score_v3_2(
         "user_group":    user_group,
         "model_version": "v3.2",
         "weights":       weights,
+        "excluded":      sorted(_excluded),
         "missing":       missing,
         "items": {
             "keyword_search_rank":      {"score": round(kw_search, 1),  "measured": kw_measured},
