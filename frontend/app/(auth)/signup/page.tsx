@@ -32,6 +32,7 @@ function SignupForm() {
   const [done, setDone] = useState(false);
   const [resending, setResending] = useState(false);
   const [resendDone, setResendDone] = useState(false);
+  const [resendError, setResendError] = useState("");
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +66,9 @@ function SignupForm() {
         setError("비밀번호는 최소 8자 이상이어야 합니다.");
       } else if (msg.includes("rate limit") || msg.includes("too many")) {
         setError("요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.");
+      } else if (msg.includes("sending") || msg.includes("confirmation email") || signupError.status === 500) {
+        // 인증 메일 발송 실패(SMTP 설정·발송 서버 장애) — 가입은 완료되지 않았으므로 다시 시도 또는 문의 안내
+        setError("인증 메일을 보내지 못했습니다. 잠시 후 다시 시도해 주시고, 계속 안 되면 support@aeolab.co.kr로 문의해 주세요.");
       } else {
         setError("회원가입 중 오류가 발생했습니다. 다시 시도해 주세요.");
       }
@@ -80,9 +84,20 @@ function SignupForm() {
 
   const handleResend = async () => {
     setResending(true);
+    setResendError("");
     const supabase = createClient();
-    await supabase.auth.resend({ type: "signup", email });
+    const { error: resendErr } = await supabase.auth.resend({ type: "signup", email });
     setResending(false);
+    // 실패를 성공처럼 보여주지 않음 — 오류가 있으면 안내만 표시하고 재시도 버튼을 유지
+    if (resendErr) {
+      const m = resendErr.message ?? "";
+      setResendError(
+        m.includes("rate limit") || m.includes("too many") || m.includes("seconds")
+          ? "방금 발송했습니다. 1분쯤 뒤에 다시 시도해 주세요."
+          : "인증 메일을 다시 보내지 못했습니다. 잠시 후 다시 시도하거나 support@aeolab.co.kr로 문의해 주세요."
+      );
+      return;
+    }
     setResendDone(true);
     setTimeout(() => setResendDone(false), 10000);
   };
@@ -105,6 +120,14 @@ function SignupForm() {
               링크를 클릭하면 자동으로 로그인됩니다.<br />
               메일이 오지 않으면 스팸함을 확인해주세요.
             </p>
+            {/* 이미 인증을 마친 주소로 가입하면 보안상 새 메일이 발송되지 않음 — 가입 여부와 무관하게 항상 안내 */}
+            <p className="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2.5 mb-4 leading-relaxed text-left">
+              이미 가입한 이메일이라면 새 인증 메일이 오지 않습니다.{" "}
+              <Link href="/login" className="text-blue-600 underline font-medium">로그인</Link>
+              하시거나,{" "}
+              <Link href="/reset-password" className="text-blue-600 underline font-medium">비밀번호 재설정</Link>
+              을 이용해 주세요.
+            </p>
             {resendDone ? (
               <p className="text-sm text-green-700 font-medium mb-4">✓ 인증 메일을 다시 발송했습니다.</p>
             ) : (
@@ -115,6 +138,9 @@ function SignupForm() {
               >
                 {resending ? "발송 중..." : "인증 메일 재발송"}
               </button>
+            )}
+            {resendError && (
+              <p role="alert" className="text-sm text-red-700 mb-4 leading-relaxed">{resendError}</p>
             )}
             {planParam ? (
               <>
