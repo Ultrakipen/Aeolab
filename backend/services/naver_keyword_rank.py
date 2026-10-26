@@ -123,6 +123,48 @@ async def _find_rank_in_elements(
     return None
 
 
+_PLACE_CARD_JS = r"""
+() => {
+  const re = /(?:\/place\/|place\.naver\.com\/[a-z]+\/)(\d{6,})/;
+  const ids = [], text = {};
+  document.querySelectorAll('a[href]').forEach(a => {
+    const m = a.href.match(re);
+    if (!m) return;
+    if (!ids.includes(m[1])) ids.push(m[1]);
+    text[m[1]] = (text[m[1]] || '') + ' ' + (a.innerText || '');
+  });
+  return ids.slice(0, 30).map(id => ({ id, text: text[id] }));
+}
+"""
+
+
+async def _place_card_rank(
+    page: Page,
+    biz_name_norm: str,
+    place_id: Optional[str],
+) -> Optional[int]:
+    """검색 결과 화면의 가게(플레이스) 카드 노출 순서에서 내 가게 순위를 구한다.
+
+    2026-10-26: 예전엔 li/a 요소 인덱스에서 이름 부분일치로 찾아 블로그 언급·광고에도
+    걸렸고, 최후 폴백(HTML에 ID 문자열만 있어도 1위)이 실제 2위를 1위로 부풀렸다.
+    이제는 플레이스 링크를 가진 카드만, 화면 순서대로, ID(없으면 카드 글자의 이름)로 찾는다.
+    카드에서 못 찾으면 None(미노출) — 임의 대체 금지.
+    """
+    try:
+        await page.wait_for_timeout(1500)
+        cards = await page.evaluate(_PLACE_CARD_JS)
+    except Exception as e:
+        _logger.warning(f"keyword_rank 카드 수집 실패: {e}")
+        return None
+    for idx, c in enumerate(cards[:RESULT_LIMIT], start=1):
+        if place_id and c.get("id") == str(place_id):
+            return idx
+        if not place_id and _is_match(biz_name_norm, c.get("text", "")):
+            return idx
+    return None
+
+
+# (구) 요소 인덱스 방식 셀렉터 — 카드 순서 방식으로 대체됨, 참고용으로만 유지
 # PC 통합검색 셀렉터 목록 (우선순위 순)
 _PC_SELECTORS = [
     "#main_pack li.bx",
@@ -161,18 +203,7 @@ async def _measure_pc(
         _logger.warning(f"keyword_rank PC nav 실패 ({keyword}): {e}")
         return None
 
-    for sel in _PC_SELECTORS:
-        rank = await _find_rank_in_elements(page, sel, biz_name_norm, place_id)
-        if rank is not None:
-            _logger.debug(f"PC rank found: '{keyword}' → {rank}위 (sel={sel})")
-            return rank
-
-    # 최후 폴백: place_id가 페이지 어딘가에 있으면 노출로 처리
-    if place_id and await _page_contains_place_id(page, place_id):
-        _logger.debug(f"PC rank fallback (page html): '{keyword}' → 1")
-        return 1
-
-    return None
+    return await _place_card_rank(page, biz_name_norm, place_id)
 
 
 async def _measure_place_api(
@@ -220,17 +251,7 @@ async def _measure_mobile(
         _logger.warning(f"keyword_rank mobile nav 실패 ({keyword}): {e}")
         return None
 
-    for sel in _MOBILE_SELECTORS:
-        rank = await _find_rank_in_elements(page, sel, biz_name_norm, place_id)
-        if rank is not None:
-            _logger.debug(f"Mobile rank found: '{keyword}' → {rank}위 (sel={sel})")
-            return rank
-
-    if place_id and await _page_contains_place_id(page, place_id):
-        _logger.debug(f"Mobile rank fallback (page html): '{keyword}' → 1")
-        return 1
-
-    return None
+    return await _place_card_rank(page, biz_name_norm, place_id)
 
 
 async def measure_keywords(
@@ -273,6 +294,8 @@ async def _run_with_browser(
                     locale="ko-KR",
                     user_agent=UA_MOBILE,
                     viewport={"width": 390, "height": 844},
+                    is_mobile=True,
+                    has_touch=True,
                 )
 
                 pc_page = await pc_ctx.new_page()
@@ -284,7 +307,12 @@ async def _run_with_browser(
                     if not kw or not isinstance(kw, str):
                         continue
                     kw_norm = _norm(kw)
-                    if region and region_norm and region_norm not in kw_norm:
+                    # 키워드에 지역 단어(시·군·구 등)가 이미 있으면 다시 붙이지 않는다
+                    # ("성동구 미용실"에 "서울 성동구"를 붙여 "서울 성동구 성동구 미용실"이 되던 문제)
+                    _region_in_kw = region_norm in kw_norm or any(
+                        len(_norm(t)) >= 2 and _norm(t) in kw_norm for t in region.split()
+                    )
+                    if region and region_norm and not _region_in_kw:
                         search_query = f"{region} {kw}"
                     else:
                         search_query = kw

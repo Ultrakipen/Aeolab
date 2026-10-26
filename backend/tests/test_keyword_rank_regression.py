@@ -43,3 +43,23 @@ def test_score_ignores_error_rows():
 def test_score_all_errors_is_unmeasured():
     ranks = {"a": {"pc_rank": None, "error": "ValueError"}}
     assert calc_keyword_search_rank_score({"keyword_ranks": ranks}) == (0.0, False)
+
+
+class _FakePage:
+    def __init__(self, cards):
+        self.cards = cards
+
+    async def wait_for_timeout(self, ms):
+        return None
+
+    async def evaluate(self, js):
+        return self.cards
+
+
+def test_card_rank_uses_card_order_not_html_presence():
+    """ID가 카드 목록에 없으면 미노출(None) — HTML에 ID가 있다는 이유로 1위로 부풀리지 않는다."""
+    cards = [{"id": "111111", "text": "다른 가게"}, {"id": "222222", "text": "내 가게"}]
+    assert asyncio.run(kr._place_card_rank(_FakePage(cards), "내가게", "222222")) == 2
+    assert asyncio.run(kr._place_card_rank(_FakePage(cards), "내가게", "999999")) is None
+    # ID 없는 사업장은 카드 글자의 이름으로 찾는다
+    assert asyncio.run(kr._place_card_rank(_FakePage(cards), "내가게", None)) == 2
