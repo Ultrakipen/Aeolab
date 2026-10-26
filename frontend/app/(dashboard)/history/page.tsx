@@ -9,6 +9,8 @@ import { History, ImageIcon, TrendingUp, Calendar, Download, Lock, AlertTriangle
 import Link from 'next/link'
 import { getActiveBusinessId } from '@/lib/active-business'
 import { getScoreTextLabel } from '@/lib/scoreLabels'
+import { spansScoreMethodChange } from '@/lib/scoreMethodChange'
+import ScoreMethodChangeNote from '@/components/dashboard/ScoreMethodChangeNote'
 
 // 서버 컴포넌트: 공개 도메인(Cloudflare 경유) 대신 로컬 백엔드 직접 호출 (BACKEND_URL은 서버 전용 env)
 const BACKEND = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
@@ -300,6 +302,9 @@ export default async function HistoryPage() {
             </div>
           ) : (
             <div className="overflow-x-auto" tabIndex={0}>
+              {spansScoreMethodChange((history ?? []).map((r) => r.score_date)) && (
+                <ScoreMethodChangeNote className="m-3" />
+              )}
               <table className="w-full text-sm min-w-[480px]">
                 <thead className="bg-gray-50">
                   <tr>

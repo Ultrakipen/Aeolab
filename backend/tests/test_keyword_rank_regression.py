@@ -198,3 +198,39 @@ def test_keyword_change_notification_skips_failed_rows(monkeypatch):
     monkeypatch.setattr(dbc, "get_client", boom)
     asyncio.run(jobs._maybe_notify_keyword_change({"user_id": "u", "name": "n"}, prev, curr))
     assert touched == []
+
+
+def test_rank_canary_parse_and_alert(monkeypatch):
+    import scheduler.jobs as jobs
+    import services.email_sender as es
+    import services.naver_keyword_rank as krmod
+
+    assert jobs._parse_rank_canaries("어니언 성수|38561949; 이상한항목 ;가게|abc;B|12") == [("어니언 성수", "38561949"), ("B", "12")]
+    assert jobs._parse_rank_canaries("") == []
+
+    sent = []
+
+    async def fake_alert(subject, message):
+        sent.append(subject)
+        return True
+
+    async def no_sleep(*a, **k):
+        return None
+
+    monkeypatch.setenv("RANK_CANARY", "어니언 성수|38561949")
+    monkeypatch.setattr(es, "send_operator_alert", fake_alert)
+    monkeypatch.setattr(jobs.asyncio, "sleep", no_sleep)
+
+    async def good(keywords, biz_name, place_id=None, region=None):
+        return {keywords[0]: {"pc_rank": 1, "mobile_rank": 1, "place_rank": 1}}
+
+    async def bad(keywords, biz_name, place_id=None, region=None):
+        return {keywords[0]: {"pc_rank": None, "mobile_rank": 1, "place_rank": 1}}
+
+    monkeypatch.setattr(krmod, "measure_keywords", good)
+    asyncio.run(jobs.rank_canary_job())
+    assert sent == []          # 정상이면 알림 없음
+
+    monkeypatch.setattr(krmod, "measure_keywords", bad)
+    asyncio.run(jobs.rank_canary_job())
+    assert sent == ["키워드 순위 측정 점검 실패"]   # 재시도 후에도 어긋나면 알림

@@ -221,6 +221,12 @@ def start_scheduler():
         id="keyword_rank_pro_daily", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
+    # 순위 측정 건강 점검 — 정답 아는 가게 1위 확인 (매일 04:50 KST, 순위 잡 이후)
+    scheduler.add_job(
+        rank_canary_job, "cron", hour=4, minute=50,
+        id="rank_canary", replace_existing=True,
+        max_instances=1, misfire_grace_time=600,
+    )
     # 네이버 Playwright 일일 사용량 마감 로그 (매일 23:58 KST) — 요일 분산 설계의 트리거(월요일 150건 등) 판단 근거
     scheduler.add_job(
         naver_quota_daily_summary_job, "cron", hour=23, minute=58,
@@ -5478,6 +5484,68 @@ async def keyword_rank_pro_daily_job() -> None:
         await _run_keyword_rank_for_plans(["pro", "biz", "enterprise", "startup"])
     except Exception as e:
         logger.error(f"[keyword_rank_pro_daily_job] 실패: {e}")
+
+
+def _parse_rank_canaries(raw: str) -> list[tuple[str, str]]:
+    """RANK_CANARY="이름|플레이스ID;이름2|ID2" → [(이름, ID)]. 형식이 틀린 항목은 건너뛴다."""
+    out: list[tuple[str, str]] = []
+    for part in (raw or "").split(";"):
+        if "|" not in part:
+            continue
+        name, pid = (x.strip() for x in part.split("|", 1))
+        if name and pid.isdigit():
+            out.append((name, pid))
+    return out
+
+
+async def rank_canary_job() -> None:
+    """순위 측정 건강 점검(매일 04:50 KST) — 정답을 아는 가게로 측정 코드가 아직 맞는지 확인한다.
+
+    정식 이름 전체로 검색하면 등록된 가게는 PC·모바일 모두 1위로 나온다(2026-10-26 17곳 실측).
+    네이버 화면 구조가 바뀌거나 접속이 막혀 측정이 조용히 틀어지면(9월 API 오류 사고처럼 두 달간 모르고 지남)
+    이 점검이 그날 알려준다. 환경변수 RANK_CANARY="이름|플레이스ID;…" 미설정이면 건너뛴다.
+    상한 임박 시에는 측정 자체가 건너뛰어지므로 점검도 건너뛴다(거짓 경보 방지).
+    """
+    try:
+        canaries = _parse_rank_canaries(os.getenv("RANK_CANARY", ""))
+        if not canaries:
+            logger.info("[rank_canary] RANK_CANARY 미설정 — 건너뜀")
+            return
+        from services.ai_scanner import naver_playwright_quota_usage
+        from services.naver_keyword_rank import measure_keywords as _measure
+
+        used, cap = naver_playwright_quota_usage()
+        if cap and used >= cap - 6:
+            logger.info("[rank_canary] 일일 상한 임박(%d/%d) — 건너뜀", used, cap)
+            return
+
+        failures: list[str] = []
+        for name, pid in canaries:
+            ok = False
+            for attempt in (1, 2):
+                res = await _measure([name], name, pid, "")
+                d = res.get(name) if isinstance(res.get(name), dict) else {}
+                if not d.get("error") and d.get("pc_rank") == 1 and d.get("mobile_rank") == 1:
+                    ok = True
+                    break
+                if attempt == 1:
+                    await asyncio.sleep(60)
+            if ok:
+                logger.info("[rank_canary] 정상 — %s PC·모바일 1위", name)
+            else:
+                logger.warning("[rank_canary] 이상 — %s 기대 PC=1·모바일=1, 실제 PC=%s 모바일=%s error=%s",
+                               name, d.get("pc_rank"), d.get("mobile_rank"), d.get("error"))
+                failures.append(f"{name}(PC={d.get('pc_rank')}, 모바일={d.get('mobile_rank')}, error={d.get('error')})")
+        if failures:
+            from services.email_sender import send_operator_alert
+            await send_operator_alert(
+                "키워드 순위 측정 점검 실패",
+                "정답을 아는 점검용 가게의 순위가 기대와 다릅니다: " + "; ".join(failures)
+                + ". 네이버 화면 구조 변경·접속 차단·측정 코드 오류 가능성이 있으니 순위 측정을 점검하기 전에는 "
+                "사용자 화면의 순위를 신뢰하지 마세요. (docs/keyword_rank_measurement_findings_2026_10_26.md 참조)",
+            )
+    except Exception as e:
+        logger.warning(f"[rank_canary_job] 실패: {e}")
 
 
 async def naver_quota_daily_summary_job() -> None:

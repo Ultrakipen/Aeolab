@@ -16,6 +16,8 @@ import {
 } from "recharts";
 import { getScoreTextLabel } from "@/lib/scoreLabels";
 import { CATEGORY_LABEL } from "@/lib/categories";
+import { spansScoreMethodChange } from "@/lib/scoreMethodChange";
+import ScoreMethodChangeNote from "@/components/dashboard/ScoreMethodChangeNote";
 import { TrendingUp, Trophy, BarChart3, PartyPopper, ImageIcon } from "lucide-react";
 
 // 행동 타입별 색상
@@ -552,6 +554,10 @@ export default function GrowthClient({
         <p className="text-sm text-gray-600 mb-5">
           최근 30일 동안 내 가게가 AI에 노출되는 정도가 어떻게 변했는지 보여줍니다
         </p>
+
+        {spansScoreMethodChange(historyData.map((e) => e.scanned_at ?? e.score_date)) && (
+          <ScoreMethodChangeNote className="mb-3" />
+        )}
 
         {chartData.length >= 2 ? (
           <>

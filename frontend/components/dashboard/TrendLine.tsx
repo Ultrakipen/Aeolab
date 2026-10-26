@@ -5,6 +5,8 @@ import {
   Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea,
 } from 'recharts'
 import { getScoreTextLabel } from '@/lib/scoreLabels'
+import { spansScoreMethodChange } from '@/lib/scoreMethodChange'
+import ScoreMethodChangeNote from '@/components/dashboard/ScoreMethodChangeNote'
 
 interface TrendPoint {
   score_date: string
@@ -219,6 +221,8 @@ export function TrendLine({ data, actionLogs = [] }: TrendLineProps) {
           />
         </ComposedChart>
       </ResponsiveContainer>
+
+      {spansScoreMethodChange(sorted.map((d) => d.score_date)) && <ScoreMethodChangeNote className="mt-3" />}
 
       {/* 행동 기록 범례 목록 */}
       {logsForChart.length > 0 && (
