@@ -106,8 +106,18 @@ class NaverAIBriefingScanner:
     Playwright로 실제 검색 결과를 렌더링 후 DOM 파싱
     """
 
-    async def _check_single_page(self, page, query: str, target: str, category: str = "") -> dict:
-        """단일 페이지에서 AI 브리핑 및 플레이스 결과 확인"""
+    async def _check_single_page(self, page, query: str, target: str, category: str = "",
+                                 search_base: str = "https://search.naver.com/search.naver?query=") -> dict:
+        """단일 페이지에서 AI 브리핑 및 플레이스 결과 확인
+
+        search_base: PC 기본. 모바일 측정 시 https://m.search.naver.com/search.naver?query= 전달.
+        결과의 briefing_present / briefing_type 으로 "브리핑이 아예 안 뜬 검색어"와
+        "브리핑은 떴는데 내 가게가 없음"을 구분한다(2026-10-26). 머리글은 있는데 본문을 못 찾으면
+        in_briefing=False 로 단정하지 않고 error="briefing_unrecognized"(측정 불가)로 반환한다.
+        """
+        briefing_present      = False   # AI 브리핑 영역이 화면에 떴는가
+        briefing_type         = None    # "info"(정보형) | "place"(플레이스형) | "other"
+        briefing_unrecognized = False   # "AI 브리핑" 머리글은 있으나 본문 영역을 못 찾음 → 측정 불가
         mentioned        = False
         in_briefing      = False
         excerpt          = ""
@@ -122,7 +132,7 @@ class NaverAIBriefingScanner:
         nav_ok = False  # goto 성공 여부 — 실패 시 "미노출"이 아니라 "측정 실패"로 반환하기 위함
 
         try:
-            url = f"https://search.naver.com/search.naver?query={query}"
+            url = f"{search_base}{query}"
             await page.goto(url, wait_until="domcontentloaded", timeout=30000)
             nav_ok = True
             note_proxy_result(None)  # goto 성공 — 프록시 정상, 실패 카운터 리셋
@@ -183,6 +193,8 @@ class NaverAIBriefingScanner:
                 try:
                     el = await page.query_selector(sel)
                     if el:
+                        briefing_present = True
+                        briefing_type = "info" if "fds-aib" in sel else "other"
                         text = await el.inner_text()
                         if _name_in_text(target, text):
                             in_briefing = True
@@ -256,35 +268,52 @@ class NaverAIBriefingScanner:
                     logger.debug(f"[naver_scanner] briefing selector failed — {_e}")
                     continue
 
-            # ── 플레이스형 AI 브리핑 감지 (2026-10-26 실측) ──────────────────
-            # 가게 이름으로 검색하면 뜨는 "AI 브리핑 — 사용자 리뷰를 요약해 드립니다" 는 정보형(fds-aib-*)과
-            # DOM 이 달라 위 셀렉터로 잡히지 않았다(PC·모바일·쿠키 유무 무관하게 fds-aib 요소 0개,
-            # 구조: section.sc_new > div.api_subject_bx > div.mod_title_area > h2.title > strong "AI 브리핑").
-            # 클래스명은 바뀔 수 있으므로 "AI 브리핑" 머리글 텍스트를 기준으로 가장 가까운 상자를 찾는다.
+            # ── "AI 브리핑" 머리글 기반 감지 (플레이스형 등, 2026-10-26 실측) ───────
+            # 가게 이름으로 검색하면 뜨는 "AI 브리핑 — 사용자 리뷰를 요약해 드립니다"(플레이스형)는 정보형(fds-aib-*)과
+            # DOM 이 달라 위 셀렉터로 잡히지 않는다. 바깥 상자의 클래스가 PC(.api_subject_bx)와
+            # 모바일(div.place_section)이 다르고 바뀔 수 있으므로, 클래스 이름 대신
+            # "AI 브리핑" 머리글(leaf 요소)에서 위로 올라가며 본문이 들어 있는 가장 가까운 상자를 쓴다.
+            # 머리글은 있는데 본문 상자를 못 찾으면 '미노출'로 단정하지 않고 측정 불가(briefing_unrecognized)로 둔다.
             if not in_briefing:
                 try:
                     pb = await page.evaluate("""() => {
-                        const h = [...document.querySelectorAll('h2, strong')]
-                            .find(e => e.children.length === 0 && (e.textContent || '').trim() === 'AI 브리핑');
-                        if (!h) return null;
-                        const box = h.closest('.api_subject_bx') || h.closest('section');
-                        if (!box) return null;
-                        const urls = [...new Set([...box.querySelectorAll('a[href]')].map(a => a.href))];
-                        return { text: box.innerText || '', urls: urls };
+                        const heads = [...document.querySelectorAll('*')]
+                            .filter(e => e.children.length === 0 && (e.textContent || '').trim() === 'AI 브리핑');
+                        if (!heads.length) return { head: false };
+                        let e = heads[0].parentElement;
+                        for (let i = 0; i < 8 && e; i++, e = e.parentElement) {
+                            const t = e.innerText || '';
+                            if (t.length > 6000) break;
+                            if (t.length >= 80) {
+                                return {
+                                    head: true, text: t, place: t.includes('사용자 리뷰를 요약'),
+                                    urls: [...new Set([...e.querySelectorAll('a[href]')].map(a => a.href))],
+                                };
+                            }
+                        }
+                        return { head: true, text: '' };
                     }""")
-                    if pb and _name_in_text(target, pb.get("text") or ""):
-                        in_briefing = True
-                        lines = [l for l in (pb.get("text") or "").split("\n") if _name_in_text(target, l)]
-                        excerpt = lines[0][:120] if lines else ""
-                        for _pu in (pb.get("urls") or []):
-                            _pm = re.search(r'blog\.naver\.com/([^/]+)/', _pu)
-                            if _pm:
-                                if _pu not in source_urls:
-                                    source_urls.append(_pu)
-                                if _pm.group(1) not in source_blog_ids:
-                                    source_blog_ids.append(_pm.group(1))
+                    if pb and pb.get("head"):
+                        _ptxt = pb.get("text") or ""
+                        if _ptxt:
+                            if not briefing_present:
+                                briefing_present = True
+                                briefing_type = "place" if pb.get("place") else "other"
+                            if _name_in_text(target, _ptxt):
+                                in_briefing = True
+                                lines = [l for l in _ptxt.split("\n") if _name_in_text(target, l)]
+                                excerpt = lines[0][:120] if lines else ""
+                                for _pu in (pb.get("urls") or []):
+                                    _pm = re.search(r'blog\.naver\.com/([^/]+)/', _pu)
+                                    if _pm:
+                                        if _pu not in source_urls:
+                                            source_urls.append(_pu)
+                                        if _pm.group(1) not in source_blog_ids:
+                                            source_blog_ids.append(_pm.group(1))
+                        elif not briefing_present:
+                            briefing_unrecognized = True
                 except Exception as _e:
-                    logger.debug(f"[naver_scanner] 플레이스형 AI 브리핑 감지 실패 — {_e}")
+                    logger.debug(f"[naver_scanner] AI 브리핑 머리글 기반 감지 실패 — {_e}")
 
             # ── AI탭 섹션 감지 ──────────────────────────────────
             for sel in AI_TAB_SELECTORS:
@@ -356,7 +385,7 @@ class NaverAIBriefingScanner:
                 "source_urls": [], "source_blog_ids": [], "source_image_map": {},
             }
 
-        return {
+        result = {
             "platform":        "naver",
             "mentioned":       mentioned or in_briefing,
             "in_briefing":     in_briefing,
@@ -370,7 +399,14 @@ class NaverAIBriefingScanner:
             "source_urls":     source_urls,
             "source_blog_ids": source_blog_ids,
             "source_image_map": source_image_map,
+            # 이 검색어에서 AI 브리핑이 떴는가(없음/있음)와 유형 — "브리핑 없음"과 "있는데 가게 미포함"을 구분
+            "briefing_present": briefing_present,
+            "briefing_type":    briefing_type,
         }
+        # "AI 브리핑" 머리글은 있는데 본문 상자를 못 찾음 → 미노출로 단정하지 않고 측정 불가 처리
+        if briefing_unrecognized and not briefing_present and not in_briefing:
+            result["error"] = "briefing_unrecognized"
+        return result
 
     @staticmethod
     def _quota_skipped_result(query: str) -> dict:
@@ -479,11 +515,13 @@ class NaverAIBriefingScanner:
             await record_usage_mb(_bw_counter[0] / 1024 / 1024)
 
         # 최선 결과: in_briefing+excerpt > in_briefing > mentioned > first
+        # 측정 불가(error)인 검색어가 대표 결과가 되어 전체를 미측정으로 만들지 않도록, 정상 결과가 있으면 그 안에서 고른다
+        _cands = [r for r in keyword_results if not r.get("error")] or keyword_results
         best = (
-            next((r for r in keyword_results if r.get("in_briefing") and r.get("excerpt")), None)
-            or next((r for r in keyword_results if r.get("in_briefing")), None)
-            or next((r for r in keyword_results if r.get("mentioned")), None)
-            or keyword_results[0]
+            next((r for r in _cands if r.get("in_briefing") and r.get("excerpt")), None)
+            or next((r for r in _cands if r.get("in_briefing")), None)
+            or next((r for r in _cands if r.get("mentioned")), None)
+            or _cands[0]
         )
         return {**best, "keyword_results": keyword_results, "queries_used": queries}
 

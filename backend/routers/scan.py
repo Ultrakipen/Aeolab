@@ -2164,7 +2164,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
     naver_scanner_result = results.get("naver") or {}
     # 2026-10-25: 페이지 접속 실패(error="page_load_failed")도 동일하게 취급
     if (naver_scanner_result.get("captcha_detected") or naver_scanner_result.get("quota_skipped")
-            or naver_scanner_result.get("error") == "page_load_failed"):
+            or naver_scanner_result.get("error") in ("page_load_failed", "briefing_unrecognized")):
         _logger.warning("naver_scanner: captcha/quota/page_load skip — skipping mentioned/in_briefing override to prevent false-negative")
         naver_scanner_result = {k: v for k, v in naver_scanner_result.items() if k not in ("mentioned", "in_briefing", "rank")}
     naver_data = {**(naver_visibility if isinstance(naver_visibility, dict) else {}), **naver_scanner_result}
