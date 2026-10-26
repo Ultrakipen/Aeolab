@@ -5219,6 +5219,9 @@ async def _measure_keyword_rank_for_biz(biz: dict) -> bool:
             keywords=keywords,
             biz_name=biz["name"],
             place_id=biz.get("naver_place_id"),
+            # 수동 측정(scan.py)과 같은 검색어를 쓰도록 지역을 넘긴다 — 빠뜨리면 정기 측정만
+            # "초밥"처럼 지역 없는 전국 검색어로 돌아 수동 결과·대시보드 표시 검색어와 어긋난다(2026-10-26 발견)
+            region=biz.get("region") or "",
         )
     except Exception as e:
         logger.warning(f"[keyword_rank] biz={biz_id} 측정 실패: {e}")
@@ -5328,7 +5331,7 @@ async def _run_keyword_rank_for_plans(plans: list[str]) -> None:
     try:
         biz_res = await execute(
             supabase.table("businesses")
-                .select("id, user_id, name, naver_place_id, keywords")
+                .select("id, user_id, name, naver_place_id, keywords, region")
                 .in_("user_id", user_ids)
         )
     except Exception as e:
