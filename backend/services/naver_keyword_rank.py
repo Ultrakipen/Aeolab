@@ -138,6 +138,11 @@ _PLACE_CARD_JS = r"""
 """
 
 
+_PLACE_LINK_WAIT_JS = r"""
+() => Array.from(document.querySelectorAll('a[href]')).some(a => /\/place\/\d{6,}|place\.naver\.com\/[a-z]+\/\d{6,}/.test(a.href))
+"""
+
+
 async def _place_card_rank(
     page: Page,
     biz_name_norm: str,
@@ -149,19 +154,46 @@ async def _place_card_rank(
     걸렸고, 최후 폴백(HTML에 ID 문자열만 있어도 1위)이 실제 2위를 1위로 부풀렸다.
     이제는 플레이스 링크를 가진 카드만, 화면 순서대로, ID(없으면 카드 글자의 이름)로 찾는다.
     카드에서 못 찾으면 None(미노출) — 임의 대체 금지.
+    광고 카드는 플레이스 링크가 아닌 광고 링크라 세지 않는다 — 즉 "광고 제외 순위"다
+    (2026-10-26 화면 대조: 같은 가게가 화면에서는 광고 3칸 아래인 4번째로 보여도 1위로 보고됨).
     """
     try:
-        await page.wait_for_timeout(1500)
+        # 가게 목록은 페이지 이동 직후가 아니라 조금 뒤에 그려진다 — 가게 링크가 나타날 때까지 기다린다
+        # (고정 대기만 쓰면 PC에서 간헐적으로 빈 목록을 읽어 "미노출"로 오판했음)
+        try:
+            await page.wait_for_function(_PLACE_LINK_WAIT_JS, timeout=8000)
+        except Exception:
+            pass  # 가게 목록이 아예 없는 검색어일 수 있음 — 아래에서 빈 목록 → None
+        await page.wait_for_timeout(800)
         cards = await page.evaluate(_PLACE_CARD_JS)
     except Exception as e:
         _logger.warning(f"keyword_rank 카드 수집 실패: {e}")
         return None
-    for idx, c in enumerate(cards[:RESULT_LIMIT], start=1):
-        if place_id and c.get("id") == str(place_id):
-            return idx
-        if not place_id and _is_match(biz_name_norm, c.get("text", "")):
-            return idx
-    return None
+    def _find(cards_: list) -> Optional[int]:
+        for idx, c in enumerate(cards_[:RESULT_LIMIT], start=1):
+            if place_id and c.get("id") == str(place_id):
+                return idx
+            if not place_id and _is_match(biz_name_norm, c.get("text", "")):
+                return idx
+        return None
+
+    rank = _find(cards)
+    if rank is None:
+        # 간헐적 오판 방지: 네이버가 가끔 가게 목록 없이 광고 블록만 먼저 내려주거나(목록 0개),
+        # 목록이 덜 그려진 채 읽힌다. 목록이 비었으면 새로고침 후, 아니면 2초 더 기다린 뒤 한 번 더 확인한다.
+        # 실제 미노출이면 같은 결과이므로 비용은 몇 초뿐이다.
+        try:
+            if not cards:
+                await page.reload(wait_until="domcontentloaded", timeout=PAGE_TIMEOUT_MS)
+                try:
+                    await page.wait_for_function(_PLACE_LINK_WAIT_JS, timeout=8000)
+                except Exception:
+                    pass
+            await page.wait_for_timeout(2000)
+            rank = _find(await page.evaluate(_PLACE_CARD_JS))
+        except Exception as e:
+            _logger.warning(f"keyword_rank 카드 재확인 실패: {e}")
+    return rank
 
 
 # (구) 요소 인덱스 방식 셀렉터 — 카드 순서 방식으로 대체됨, 참고용으로만 유지
