@@ -85,3 +85,24 @@
 
 - 서버 `.env`에서 읽는 과정에서 Webshare 프록시 계정 정보와 Serper API 키가 대화 출력에 노출됨. Serper 키는 **재발급·교체 완료**. Webshare 계정 정보는 현재 미사용(프록시 제거) — 재도입 시 새로 받은 값 사용.
 - 사용자가 제공한 네이버 쿠키(`NID_SES`/`NID_AUT`)와 새 Serper 키는 대화 기록에 남아 있음. 쿠키 계정이 메인 계정이면 네이버 보안 설정에서 로그인 기록 확인·비밀번호 변경 시 이 쿠키도 무효화됨.
+
+---
+
+## 8. DNS 정상 기준 (Cloudflare, 2026-10-26 복구 후 8개 레코드)
+
+> 2026-10-26: 루트 MX 중복 정리 중 **루트 A 레코드가 함께 삭제**돼 약 40분(추정) 접속 불가. 복구 후 아래 8개가 정상 기준이다. DNS를 수정할 때는 **직전 목록을 스크린샷으로 남기고, 직후 같은 목록을 다시 대조**할 것. 지운 뒤 일부 리졸버(8.8.8.8 등)는 "없음"을 최대 약 1시간 캐시한다(SOA 3600초).
+
+| 이름 | 종류 | 내용 | 프록시 |
+|---|---|---|---|
+| `aeolab.co.kr` | A | `115.68.231.57` | DNS only |
+| `www.aeolab.co.kr` | A | `115.68.231.57` | DNS only |
+| `mail.aeolab.co.kr` | CNAME | `mx2.mail.iwinv.kr` | DNS only(켜면 메일 장애) |
+| `aeolab.co.kr` | MX | `10 mx2.mail.iwinv.kr` | — |
+| `send.aeolab.co.kr` | MX | `10 feedback-smtp.ap-northeast-1.amazonses.com` | — |
+| `aeolab.co.kr` | TXT | `v=spf1 ip4:115.68.168.219 include:_spf.mail.iwinv.kr ~all` | — |
+| `_dmarc.aeolab.co.kr` | TXT | `v=DMARC1; p=none; rua=mailto:contact@aeolab.co.kr; pct=100` | — |
+| `send.aeolab.co.kr` | TXT | `v=spf1 include:amazonses.com ~all` | — |
+| `resend._domainkey.aeolab.co.kr` | TXT | Resend DKIM 공개키(`p=MIGf…`) — Resend 대시보드 Domains에서 확인 | — |
+
+- **루트(`aeolab.co.kr`)에 SES용 MX(`feedback-smtp…`)를 두지 말 것**: iwinv MX와 우선순위가 같아 수신 메일 약 절반이 `550 Mailbox does not exist!`로 반송된다(`send.` 서브도메인에만 둔다).
+- 확인 명령(서버): `dig +short A aeolab.co.kr @eve.ns.cloudflare.com`, `dig +short MX aeolab.co.kr @eve.ns.cloudflare.com`.
