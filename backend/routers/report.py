@@ -2743,6 +2743,61 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
     return result
 
 
+# ── 강점 신호 (측정으로 확인된 사실만, 점수와 무관) ─────────────────────────────
+
+@router.get("/strengths/{biz_id}")
+async def get_strengths(biz_id: str, user=Depends(get_current_user)):
+    """대시보드 '측정으로 확인된 점' 카드용. 규칙은 services/strength_signals.py 단일 소스.
+
+    AI 호출 0·조회 전용. 값이 없거나 측정 오류·오래된 측정은 표시하지 않고, 오류는
+    '확인하지 못한 항목'으로만 알린다(미노출로 오인 금지).
+    """
+    from services.strength_signals import build_strengths
+
+    supabase = get_client()
+    await _verify_biz_ownership(supabase, biz_id, user["id"])
+
+    biz_res, scan_res, rank_res, comp_res = await asyncio.gather(
+        execute(
+            supabase.table("businesses")
+            .select("id, name, naver_place_id, visitor_review_count, avg_rating")
+            .eq("id", biz_id)
+            .limit(1)
+        ),
+        execute(
+            supabase.table("scan_results")
+            .select("scanned_at, chatgpt_result, naver_result, google_result, kakao_result")
+            .eq("business_id", biz_id)
+            .order("scanned_at", desc=True)
+            .limit(1)
+        ),
+        execute(
+            supabase.table("scan_results")
+            .select("scanned_at, keyword_ranks")
+            .eq("business_id", biz_id)
+            .not_.is_("keyword_ranks", "null")
+            .order("scanned_at", desc=True)
+            .limit(1)
+        ),
+        execute(
+            supabase.table("competitors")
+            .select("naver_review_count, is_active")
+            .eq("business_id", biz_id)
+            .eq("is_active", True)
+        ),
+    )
+    biz = (biz_res.data or [None])[0] if biz_res else None
+    if not biz:
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+    scan = (scan_res.data or [None])[0] if scan_res else None
+    rank_scan = (rank_res.data or [None])[0] if rank_res else None
+    competitors = (comp_res.data or []) if comp_res else []
+
+    result = build_strengths(biz, scan, rank_scan, competitors)
+    result["disclaimer"] = "측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다."
+    return result
+
+
 # ── 키워드 검색량 조회 (Basic+) ───────────────────────────────────────────────
 
 @router.get("/keyword-volumes/{biz_id}")

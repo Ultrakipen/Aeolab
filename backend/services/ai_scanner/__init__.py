@@ -278,9 +278,11 @@ def check_naver_playwright_quota(source: str = "") -> bool:
                 except Exception as _e:
                     _logger.warning("[naver_quota] 알림 발송 실패: %s", _e)
 
+            _alert_coro = _alert()
             try:
-                asyncio.create_task(_alert())
+                asyncio.create_task(_alert_coro)
             except RuntimeError:
+                _alert_coro.close()  # 실행되지 않은 코루틴 경고 방지
                 # 이벤트 루프 밖(동기 호출)에서는 알림만 건너뛴다 — 상한 판단 자체는 예외 없이 False 반환
                 _logger.warning("[naver_quota] 이벤트 루프 없음 — 상한 도달 알림 메일 생략")
         return False

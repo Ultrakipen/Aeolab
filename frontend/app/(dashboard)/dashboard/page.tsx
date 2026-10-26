@@ -13,6 +13,7 @@ import { MaintenanceBanner } from "@/components/dashboard/MaintenanceBanner";
 import DashboardScoreZone from "./sections/DashboardScoreZone";
 import DashboardActionZone from "./sections/DashboardActionZone";
 import DashboardInsightZone from "./sections/DashboardInsightZone";
+import StrengthSignalsCard from "@/components/dashboard/StrengthSignalsCard";
 
 import DashboardDetailZone from "./sections/DashboardDetailZone";
 import DashboardGuidanceZone from "./sections/DashboardGuidanceZone";
@@ -512,6 +513,11 @@ export default async function DashboardPage({
               )}
             </div>
           </div>
+
+          {/* 측정으로 확인된 점 — 점수와 무관, 실측 사실만(조회 실패·항목 없음 시 안내만) */}
+          {bizBase && accessToken && (
+            <StrengthSignalsCard bizId={bizBase.id} accessToken={accessToken} />
+          )}
 
           {/* 🎁 Basic 무료 체험 배너 — 비구독 사용자에게만 표시 (체험 전: 유도 / 체험 후: 구독 CTA) */}
           {plan === "free" && accessToken && bizBase && (
