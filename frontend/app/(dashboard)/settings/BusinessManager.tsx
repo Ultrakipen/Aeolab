@@ -1216,7 +1216,13 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               </p>
             </div>
 
-            <div className="flex items-center justify-between pt-2 gap-3">
+            {/* 저장 줄 — 화면이 길어도 항상 보이도록 하단 고정(2026-10-26: 맨 아래에만 있어 '저장 버튼이 없다'고 보였고,
+                저장 오류(키워드 3개 미만 등)가 맨 위에만 표시돼 저장이 안 되는 이유를 알 수 없었음).
+                모바일은 하단 탭(MobileBottomTabs, 56px, z-30) 위에, PC는 맨 아래에 붙는다. */}
+            <div className="sticky bottom-14 lg:bottom-0 z-20 -mx-4 -mb-5 px-4 py-3 bg-white/95 backdrop-blur border-t border-gray-200 flex flex-wrap items-center justify-between gap-3">
+              {error && (
+                <p role="alert" className="w-full text-sm text-red-700 font-medium">{error}</p>
+              )}
               {saveSuccess ? (
                 <span className="text-sm text-green-700 font-medium flex items-center gap-1.5">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -1224,6 +1230,8 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   </svg>
                   저장되었습니다
                 </span>
+              ) : isDirty ? (
+                <span className="text-sm text-amber-700 font-medium">저장하지 않은 변경사항이 있습니다</span>
               ) : (
                 <span />
               )}

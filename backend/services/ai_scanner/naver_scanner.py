@@ -256,6 +256,36 @@ class NaverAIBriefingScanner:
                     logger.debug(f"[naver_scanner] briefing selector failed — {_e}")
                     continue
 
+            # ── 플레이스형 AI 브리핑 감지 (2026-10-26 실측) ──────────────────
+            # 가게 이름으로 검색하면 뜨는 "AI 브리핑 — 사용자 리뷰를 요약해 드립니다" 는 정보형(fds-aib-*)과
+            # DOM 이 달라 위 셀렉터로 잡히지 않았다(PC·모바일·쿠키 유무 무관하게 fds-aib 요소 0개,
+            # 구조: section.sc_new > div.api_subject_bx > div.mod_title_area > h2.title > strong "AI 브리핑").
+            # 클래스명은 바뀔 수 있으므로 "AI 브리핑" 머리글 텍스트를 기준으로 가장 가까운 상자를 찾는다.
+            if not in_briefing:
+                try:
+                    pb = await page.evaluate("""() => {
+                        const h = [...document.querySelectorAll('h2, strong')]
+                            .find(e => e.children.length === 0 && (e.textContent || '').trim() === 'AI 브리핑');
+                        if (!h) return null;
+                        const box = h.closest('.api_subject_bx') || h.closest('section');
+                        if (!box) return null;
+                        const urls = [...new Set([...box.querySelectorAll('a[href]')].map(a => a.href))];
+                        return { text: box.innerText || '', urls: urls };
+                    }""")
+                    if pb and _name_in_text(target, pb.get("text") or ""):
+                        in_briefing = True
+                        lines = [l for l in (pb.get("text") or "").split("\n") if _name_in_text(target, l)]
+                        excerpt = lines[0][:120] if lines else ""
+                        for _pu in (pb.get("urls") or []):
+                            _pm = re.search(r'blog\.naver\.com/([^/]+)/', _pu)
+                            if _pm:
+                                if _pu not in source_urls:
+                                    source_urls.append(_pu)
+                                if _pm.group(1) not in source_blog_ids:
+                                    source_blog_ids.append(_pm.group(1))
+                except Exception as _e:
+                    logger.debug(f"[naver_scanner] 플레이스형 AI 브리핑 감지 실패 — {_e}")
+
             # ── AI탭 섹션 감지 ──────────────────────────────────
             for sel in AI_TAB_SELECTORS:
                 try:
