@@ -23,9 +23,12 @@ function PaymentFailContent() {
   const errorMsg = searchParams.get("message") ?? "";
   const isCardUpdate = searchParams.get("from") === "card-update";
 
+  // 주소의 message 값은 누구나 만들 수 있으므로(링크로 임의 문구를 우리 화면에 띄울 수 있음) 그대로 쓰지 않는다.
+  // 짧은 한글 문구(숫자 4자리 이상 연속·URL·영문 없음)일 때만 PG가 준 사유로 인정한다.
+  const safePgMessage = /^[가-힣0-9\s.,()·~\-]{2,60}$/.test(errorMsg) && !/\d{4,}/.test(errorMsg) ? errorMsg : "";
   const displayMsg =
     ERROR_MESSAGES[errorCode] ||
-    errorMsg ||
+    safePgMessage ||
     "카드 등록이 완료되지 않았습니다. 결제는 진행되지 않았으니 안심하고 다시 시도해주세요.";
 
   return (
