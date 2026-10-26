@@ -15,11 +15,17 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
+  const [linkFailed, setLinkFailed] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (searchParams.get("reason") === "session_expired") {
       setSessionExpired(true);
+    }
+    // 인증 메일 링크 처리 실패(만료·이미 사용·다른 기기 등) — 이유와 다음 행동 안내
+    const err = searchParams.get("error");
+    if (err === "auth_link_failed" || err === "auth_callback_failed") {
+      setLinkFailed(true);
     }
   }, [searchParams]);
 
@@ -64,6 +70,19 @@ export default function LoginPage() {
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4">
             <p className="text-sm text-amber-700 text-center">
               세션이 만료되어 자동으로 로그아웃되었습니다. 다시 로그인해주세요.
+            </p>
+          </div>
+        )}
+
+        {/* 인증 링크 실패 배너 */}
+        {linkFailed && (
+          <div role="alert" className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4">
+            <p className="text-sm text-amber-800 leading-relaxed break-keep">
+              인증 링크를 처리하지 못했습니다. <strong>이미 인증을 마치셨다면 아래에서 로그인</strong>해 주세요.
+              링크가 만료되었거나 이미 사용된 경우에는{" "}
+              <Link href="/signup" className="underline font-medium">가입 화면</Link>에서 ‘인증 메일 재발송’을,
+              비밀번호 재설정 링크라면{" "}
+              <Link href="/reset-password" className="underline font-medium">비밀번호 재설정</Link>을 다시 요청해 주세요.
             </p>
           </div>
         )}

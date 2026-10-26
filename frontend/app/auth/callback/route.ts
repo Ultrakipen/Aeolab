@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getPublicOrigin } from "@/lib/publicOrigin";
 import { NextRequest, NextResponse } from "next/server";
 
 // 서버 라우트: 공개 도메인(Cloudflare 경유) 대신 로컬 백엔드 직접 호출 (BACKEND_URL은 서버 전용 env)
@@ -17,7 +18,9 @@ const BACKEND =
  * - 실패해도 가입 자체는 성공이므로 그냥 next 또는 dashboard로 이동
  */
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  // request.url 의 origin 은 nginx 뒤에서 localhost:3000 으로 계산됨 → 공개 주소 사용 (2026-10-26)
+  const origin = getPublicOrigin(request);
   const code = searchParams.get("code");
   const type = searchParams.get("type");
   const trialId = searchParams.get("trial_id");

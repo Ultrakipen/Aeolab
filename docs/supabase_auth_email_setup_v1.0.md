@@ -22,6 +22,22 @@
 
 ---
 
+## 1-1. 링크를 눌렀더니 `https://localhost:3000/login?error=auth_callback_failed` (2026-10-26 수정)
+
+두 가지 원인이 겹쳐 있었다.
+1. **주소 계산:** `/auth/callback` 이 `new URL(request.url).origin` 으로 이동 주소를 만들었는데, nginx 뒤의 Next.js는 이를 내부 주소(`localhost:3000`)로 계산 → 성공·실패 모두 localhost로 이동. `lib/publicOrigin.ts` 로 교체(허용 도메인 `aeolab.co.kr`·`www.aeolab.co.kr`, 그 외는 `NEXT_PUBLIC_APP_URL`).
+2. **다른 기기·브라우저에서 열면 실패:** 기존 방식(PKCE 코드 교환)은 **가입한 브라우저의 쿠키**가 있어야 성공 → 휴대폰 메일 앱에서 열면 `auth_callback_failed`. 쿠키가 필요 없는 **`/auth/confirm`(token_hash + verifyOtp)** 경로를 신설하고 메일 템플릿 링크를 이 경로로 바꿨다. 실패 시 로그인 화면에 이유와 다음 행동 안내 배너 표시.
+
+⚠️ 템플릿을 이미 붙여넣었다면 **링크가 바뀐 새 파일로 다시 붙여넣어야** 한다(`{{ .ConfirmationURL }}` → `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=…&next=…`). Site URL이 `https://aeolab.co.kr`이어야 링크가 맞는 도메인으로 나온다.
+
+| 템플릿 | 링크의 type / next |
+|---|---|
+| Confirm sign up | `type=email` / `next=/onboarding` |
+| Reset password | `type=recovery` / `next=/auth/update-password` |
+| Change email address | `type=email_change` / `next=/settings` |
+
+---
+
 ## 2. 한국어 인증 메일 템플릿 적용
 
 대시보드 → **Authentication → Emails → Templates**(또는 Email Templates). 템플릿별로 **Subject(제목)** 와 **Message body(본문 HTML)** 를 바꾼다. 본문은 해당 `.html` 파일 **전체**를 붙여넣는다.
