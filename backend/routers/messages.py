@@ -16,6 +16,40 @@ def _verify_admin(x_admin_key: str = Header(None)) -> None:
         raise HTTPException(status_code=403, detail="Admin only")
 
 
+def _parse_ts(v):
+    """ISO 문자열/datetime → tz-aware datetime. 해석 불가면 None."""
+    from datetime import datetime, timezone
+    if not v:
+        return None
+    if isinstance(v, datetime):
+        dt = v
+    else:
+        try:
+            dt = datetime.fromisoformat(str(v).replace("Z", "+00:00"))
+        except ValueError:
+            return None
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+
+def _only_after_signup(msgs: list, user_created) -> list:
+    """가입 전에 만들어진 공지는 신규 가입자에게 보이지 않게 거른다 (2026-10-26).
+
+    2026-05 '점수 모델 v3.1 업그레이드' 공지가 만료일 없이 남아, 오늘 가입한 사용자에게도
+    '업그레이드되었습니다'가 읽지 않은 알림으로 표시됐다. 공지는 '그 시점에 이미 가입한 사용자'에게
+    알리는 것이므로 가입일보다 먼저 만들어진 메시지는 제외한다.
+    가입일을 알 수 없으면 거르지 않고 기존 동작을 유지한다(메시지 누락보다 안전).
+    """
+    joined = _parse_ts(user_created)
+    if joined is None:
+        return msgs
+    kept = []
+    for m in msgs:
+        created = _parse_ts(m.get("created_at"))
+        if created is None or created >= joined:
+            kept.append(m)
+    return kept
+
+
 @router.get("/unread")
 async def get_unread_messages(
     authorization: Optional[str] = Header(None),
@@ -51,6 +85,7 @@ async def get_unread_messages(
         read_ids = {r["message_id"] for r in (reads_res.data or [])}
 
         unread = [m for m in (msgs_res.data or []) if m["id"] not in read_ids]
+        unread = _only_after_signup(unread, getattr(user_res.user, "created_at", None))
         return {"messages": unread, "unread_count": len(unread)}
     except Exception as _e:
         _logger.warning(f"[messages] get_unread_messages 실패 — {_e}")
