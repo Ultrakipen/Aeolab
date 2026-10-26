@@ -13,6 +13,7 @@ _logger = logging.getLogger("aeolab")
 
 async def create_message_with_retry(client, **kwargs):
     """429(rate limit) 한정 1회 재시도. client는 호출부에서 이미 구성된 AsyncAnthropic 인스턴스."""
+    from services.billing_alert import note_billing_error  # 크레딧 소진 시 운영자 알림(6시간에 1회) — 호출 흐름은 바꾸지 않음
     try:
         return await client.messages.create(**kwargs)
     except Exception as e:
@@ -22,7 +23,12 @@ async def create_message_with_retry(client, **kwargs):
             or "rate limit" in str(e).lower()
         )
         if not is_rate_limit:
+            note_billing_error("anthropic", e)
             raise
         _logger.warning("Claude rate-limited(429), retrying in 1.5s: model=%s", kwargs.get("model"))
         await asyncio.sleep(1.5)
-        return await client.messages.create(**kwargs)
+        try:
+            return await client.messages.create(**kwargs)
+        except Exception as e2:
+            note_billing_error("anthropic", e2)
+            raise

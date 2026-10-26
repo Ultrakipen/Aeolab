@@ -123,6 +123,9 @@ class ChatGPTScanner:
         """API 호출 실패 기록 — 2026-07-12 OpenAI 결제 미등록 장애가 예외를 삼키고 조용히
         폴백되던 걸 로그로 감지 못 했던 사고 이후 신설."""
         log_ai_usage("chatgpt", "gpt-4.1-mini", f"{purpose}:FAILED:{type(error).__name__}", 0, 0)
+        # 결제 미등록·한도 초과면 운영자에게 알림(6시간에 1회, 예외 없음) — 2026-10-26
+        from services.billing_alert import note_billing_error
+        note_billing_error("openai", error)
 
     def _wilson_ci(self, k: int, n: int) -> dict:
         """Wilson 신뢰구간 (95%)"""
