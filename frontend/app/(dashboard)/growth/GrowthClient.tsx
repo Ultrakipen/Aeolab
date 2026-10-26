@@ -86,6 +86,8 @@ interface Props {
   category: string;
   region: string;
   historyData: HistoryEntry[];
+  /** 측정 기록 조회 자체가 실패했을 때 true — "기록 없음"과 구분해 안내 */
+  loadFailed?: boolean;
   growthCardUrl: string | null;
   benchmarkData: BenchmarkData | null;
   actionLogs?: ActionLog[];
@@ -205,6 +207,7 @@ export default function GrowthClient({
   category,
   region,
   historyData,
+  loadFailed = false,
   growthCardUrl,
   benchmarkData,
   actionLogs = [],
@@ -396,6 +399,12 @@ export default function GrowthClient({
             {headline}
           </p>
         </div>
+      )}
+
+      {loadFailed && (
+        <p role="alert" className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 break-keep">
+          측정 기록을 불러오지 못했습니다. 기록이 없는 것이 아니라 일시적인 문제일 수 있으니 잠시 후 새로고침해 주세요.
+        </p>
       )}
 
       {/* 요약 카드 3개 */}

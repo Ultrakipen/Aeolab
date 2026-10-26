@@ -213,8 +213,8 @@ export default function DashboardDetailZone({
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-w-lg w-full">
           {[
-            { name: "Gemini", note: "50회 측정" },
-            { name: "ChatGPT", note: "50회 측정" },
+            { name: "Gemini", note: "최대 100회 측정" },
+            { name: "ChatGPT", note: "최대 100회 측정" },
             { name: "네이버 AI", note: "브리핑 포함" },
             { name: "Google AI", note: "AI Overview" },
           ].map((p) => (

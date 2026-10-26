@@ -998,7 +998,7 @@ export default function LandingPage() {
               {
                 Icon: KeyRound,
                 title: "키워드 순위 추적",
-                desc: "설정한 키워드가 네이버에서 몇 위에 노출되는지 자동 측정. 요금제에 따라 주 1회~매일 업데이트",
+                desc: "설정한 키워드가 네이버 검색 첫 화면(광고 제외)에서 몇 위에 노출되는지 자동 측정. 요금제에 따라 주 1회~매일 업데이트",
                 badge: null,
                 badgeColor: "",
               },

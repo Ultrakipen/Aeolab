@@ -292,7 +292,7 @@ export default function ScoreGuidePage() {
                 {
                   item: "AI 노출 빈도",
                   weight: "30%",
-                  desc: "Gemini·ChatGPT 각 50회 (총 100회, Basic 기준)",
+                  desc: "Gemini·ChatGPT 각 100회 (총 200회, 자동 스캔 기준)",
                 },
                 {
                   item: "웹사이트 정보 등록",

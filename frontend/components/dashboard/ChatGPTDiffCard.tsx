@@ -42,7 +42,7 @@ export default function ChatGPTDiffCard({
         : `Gemini AI에 ${gN}회 자동으로 물어본 결과`,
       value: `${gN}회 중 ${geminiCount}회 언급`,
       detail: isQuickScan
-        ? `수동 측정 빠른 진단 결과 (${gN}회). 자동 측정 시 50회 정밀 측정됩니다`
+        ? `수동 측정 빠른 진단 결과 (${gN}회). 자동 측정 시 최대 100회 정밀 측정됩니다`
         : `AEOlab이 Gemini에 ${gN}회 자동으로 물어봐서 측정한 수치입니다`,
       highlight: geminiCount > 0,
     },
@@ -52,7 +52,7 @@ export default function ChatGPTDiffCard({
         : `ChatGPT에 ${cN}회 자동으로 물어본 결과`,
       value: `${cN}회 중 ${chatgptCount}회 언급`,
       detail: cN <= 15
-        ? `수동 측정 빠른 진단 결과 (${cN}회). 자동 측정 시 50회 정밀 측정됩니다`
+        ? `수동 측정 빠른 진단 결과 (${cN}회). 자동 측정 시 최대 100회 정밀 측정됩니다`
         : `OpenAI GPT-4.1-mini를 ${cN}회 호출해 ChatGPT가 내 가게를 얼마나 자주 추천하는지 직접 측정했습니다`,
       highlight: (chatgptCount ?? 0) > 0,
     }] : [{

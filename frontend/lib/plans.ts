@@ -3,7 +3,7 @@
  * v3.2 소상공인 공감 중심 재설계 (2026-04-02)
  *
  * 자동 스캔 실제 동작 (scheduler/jobs.py 기준):
- *   basic           : Gemini 50회 + ChatGPT 50회 + 네이버 3종 주 2회(월·목) 자동 스캔 (2026-07-15 차별화)
+ *   basic           : Gemini 100회 + ChatGPT 100회(scan_all, jobs.py) + 네이버 3종 주 2회(월·목) 자동 스캔 (2026-07-15 차별화)
  *   startup         : Gemini 50회 + ChatGPT 50회 + 네이버 3종 주 1회(월요일) 자동 스캔 (A안 50/50 적용)
  *   pro             : 4종 AI 풀스캔 주 3회(월·수·금) + 나머지 날 경량 스캔
  *   biz             : 4종 AI 풀스캔 매일

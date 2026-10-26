@@ -3786,6 +3786,10 @@ class KeywordRankScanRequest(BaseModel):
     keywords: Optional[list[str]] = None
 
 
+_keyword_rank_calls: dict = {}  # user_id -> 최근 1시간 수동 순위 측정 시각 (프로세스 메모리, resolve-place와 같은 방식)
+_KEYWORD_RANK_PER_HOUR = 5
+
+
 @router.post("/keyword-rank")
 async def keyword_rank_scan(
     req: KeywordRankScanRequest,
@@ -3817,6 +3821,20 @@ async def keyword_rank_scan(
     biz = biz_res.data
     if biz.get("user_id") != user["id"]:
         raise HTTPException(status_code=403, detail="권한이 없습니다")
+
+    # 남용 방지: 이 측정은 네이버 자동화 요청(키워드당 2건)을 쓰므로 사용자당 시간당 횟수를 제한한다.
+    # 전역 일일 상한만으로는 한 사용자가 반복 호출해 정기 측정 몫을 선점할 수 있다(2026-10-27 점검).
+    import time as _time
+    _uid = str(user["id"])
+    _now = _time.time()
+    _calls = [t for t in _keyword_rank_calls.get(_uid, []) if _now - t < 3600]
+    if len(_calls) >= _KEYWORD_RANK_PER_HOUR:
+        raise HTTPException(
+            status_code=429,
+            detail=f"순위 측정은 시간당 {_KEYWORD_RANK_PER_HOUR}회까지 가능합니다. 잠시 후 다시 시도해 주세요.",
+        )
+    _calls.append(_now)
+    _keyword_rank_calls[_uid] = _calls
 
     keywords = req.keywords or biz.get("keywords") or []
     keywords = [k.strip() for k in keywords if isinstance(k, str) and k.strip()]

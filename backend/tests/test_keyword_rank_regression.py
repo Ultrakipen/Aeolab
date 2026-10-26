@@ -234,3 +234,77 @@ def test_rank_canary_parse_and_alert(monkeypatch):
     monkeypatch.setattr(krmod, "measure_keywords", bad)
     asyncio.run(jobs.rank_canary_job())
     assert sent == ["키워드 순위 측정 점검 실패"]   # 재시도 후에도 어긋나면 알림
+
+
+def test_guide_latest_reports_recent_generation_failure(monkeypatch):
+    """가이드 생성이 실패하면 /latest가 404(생성 중처럼 보임)가 아니라 503+코드로 알린다."""
+    import time as _t
+    from fastapi import HTTPException
+    import routers.guide as g
+
+    class R:
+        data = []
+
+    async def fake_exec(q):
+        return R()
+
+    class Q:
+        def select(self, *a, **k): return self
+        def eq(self, *a, **k): return self
+        def in_(self, *a, **k): return self
+        def order(self, *a, **k): return self
+        def limit(self, *a, **k): return self
+
+    class C:
+        def table(self, name): return Q()
+
+    async def ok_owner(*a, **k): return None
+
+    monkeypatch.setattr(g, "get_client", lambda: C())
+    monkeypatch.setattr(g, "execute", fake_exec)
+    monkeypatch.setattr(g, "_verify_biz_ownership", ok_owner)
+
+    g._guide_generation_failures.clear()
+    try:
+        asyncio.run(g.get_latest_guide("b1", scan_id="s1", user={"id": "u"}))
+        assert False, "404 expected"
+    except HTTPException as e:
+        assert e.status_code == 404
+
+    g._guide_generation_failures["b1"] = _t.time()
+    try:
+        asyncio.run(g.get_latest_guide("b1", scan_id="s1", user={"id": "u"}))
+        assert False, "503 expected"
+    except HTTPException as e:
+        assert e.status_code == 503 and e.detail["code"] == "GUIDE_GENERATION_FAILED"
+
+    g._guide_generation_failures["b1"] = _t.time() - 3600   # 오래된 실패는 무시
+    try:
+        asyncio.run(g.get_latest_guide("b1", scan_id="s1", user={"id": "u"}))
+        assert False, "404 expected"
+    except HTTPException as e:
+        assert e.status_code == 404
+
+
+# ── 한쪽 AI 측정 실패는 0점이 아니라 다른 쪽만으로 평가 (2026-10-27) ──
+def test_multi_ai_exposure_ignores_failed_side():
+    from services.score_engine import calc_multi_ai_exposure as f
+    chat = {"exposure_freq": 25, "sample_size": 50}                       # 50%
+    gem_ok = {"exposure_freq": 25, "sample_size": 50}
+    gem_fail = {"error": "quota"}
+    gem_mass = {"exposure_freq": 0, "sample_size": 5, "failed_count": 95}  # 100회 중 95회 실패
+    gem_zero = {"exposure_freq": 0, "sample_size": 0, "failed_count": 100}
+
+    both = f({"gemini": gem_ok, "chatgpt": chat})
+    assert both == 50.0
+    # Gemini가 실패했으면 ChatGPT 50%만으로 50점 (예전엔 25점으로 깎였다)
+    for g in (gem_fail, gem_mass, gem_zero):
+        assert f({"gemini": g, "chatgpt": chat}) == 50.0, g
+    # 반대로 ChatGPT가 실패하면 Gemini만으로
+    assert f({"gemini": gem_ok, "chatgpt": {"error": "insufficient_quota"}}) == 50.0
+    # 둘 다 실패면 0점(기존 동작)
+    assert f({"gemini": gem_fail, "chatgpt": {"error": "x"}}) == 0.0
+    # 정상 표본이 작을 뿐(10회 중 성공 10)이면 실패로 보지 않는다
+    assert f({"gemini": {"exposure_freq": 5, "sample_size": 10, "failed_count": 0}, "chatgpt": chat}) == 50.0
+    # Gemini를 아예 안 돌린 스캔(빈 dict)은 기존 동작 유지(실패로 보지 않음)
+    assert f({"gemini": {}, "chatgpt": chat}) == round(22.5 * 100 / 90, 2)

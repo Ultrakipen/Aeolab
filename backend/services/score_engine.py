@@ -804,6 +804,34 @@ def calc_track1_score(
 # Track 2 계산 함수들
 # ────────────────────────────────────────────────────────────────
 
+_AI_FAIL_MIN_SUCCESS = 10   # 성공 표본이 이보다 적고
+_AI_FAIL_MIN_FAILED = 10    # 실패 건수가 이 이상이면 "대량 실패"로 본다
+
+
+def _ai_measurement_failed(r: dict) -> bool:
+    """Gemini/ChatGPT 측정이 사실상 실패했는가 — 오류 표시 또는 (성공 표본 극소 + 실패 다수).
+
+    빈 dict(스캔 종류상 아예 안 돌린 경우)는 실패로 보지 않는다(하위 호환: Quick·Trial은 한쪽만 돌림).
+    """
+    if not isinstance(r, dict) or not r:
+        return False
+    if r.get("error"):
+        return True
+    size, failed = r.get("sample_size"), r.get("failed_count")
+    return (
+        isinstance(size, (int, float)) and isinstance(failed, (int, float))
+        and size < _AI_FAIL_MIN_SUCCESS and failed >= _AI_FAIL_MIN_FAILED
+    )
+
+
+def _one_ai_rate(r: dict) -> float:
+    """한 AI의 노출 비율(0~1). sample_size 없으면 mentioned boolean."""
+    n = r.get("sample_size") or 0
+    if n > 0:
+        return min(1.0, (r.get("exposure_freq", 0) or 0) / n)
+    return 1.0 if r.get("mentioned") else 0.0
+
+
 def calc_multi_ai_exposure(scan_result: dict) -> float:
     """멀티 AI 노출 점수 (0~100).
 
@@ -814,6 +842,16 @@ def calc_multi_ai_exposure(scan_result: dict) -> float:
     """
     gemini = scan_result.get("gemini") or {}
     chatgpt = scan_result.get("chatgpt") or {}
+
+    # 한쪽 AI의 측정이 사실상 실패했으면(오류·대량 실패) 0점으로 세지 않고 다른 쪽만으로 평가한다
+    # ("측정 못 함"을 "미노출"로 오집계하지 않기 위함 — 키워드 순위·AI 브리핑·구글과 같은 원칙).
+    # 둘 다 실패면 기존대로 0점.
+    _g_bad = _ai_measurement_failed(gemini)
+    _c_bad = _ai_measurement_failed(chatgpt)
+    if _g_bad and not _c_bad and chatgpt:
+        return min(100.0, round(_one_ai_rate(chatgpt) * 100.0, 2))
+    if _c_bad and not _g_bad and gemini:
+        return min(100.0, round(_one_ai_rate(gemini) * 100.0, 2))
 
     # Gemini 점수: sample_size 기준 비율 × 45점
     g_n = gemini.get("sample_size") or 100  # 기본값 100 (sample_100 하위 호환)

@@ -4669,6 +4669,7 @@ export function GuideClient({
         return
       }
       let guideData = null
+      let generationFailedMessage: string | null = null
       // 최대 14회 x 10초 = 140초 대기 (Sonnet 529 재시도 최대 60초 + 생성 시간 여유)
       for (let attempt = 0; attempt < 14; attempt++) {
         await new Promise((r) => setTimeout(r, 10000))
@@ -4679,6 +4680,15 @@ export function GuideClient({
           if (res.ok) {
             guideData = await res.json()
             break
+          }
+          // 생성 실패는 140초를 기다리지 않고 바로 원인을 알린다(백엔드가 503 + 코드로 알려 줌)
+          if (res.status === 503) {
+            const body = await res.json().catch(() => null)
+            const d = body?.detail
+            if (d?.code === 'GUIDE_GENERATION_FAILED') {
+              generationFailedMessage = d.message || 'AI 서비스에 일시적인 문제가 있어 가이드를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.'
+              break
+            }
           }
         } catch {}
       }
@@ -4691,6 +4701,8 @@ export function GuideClient({
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ action_type: 'guide_generated', action_label: 'AI 개선 가이드 생성' }),
         }).catch(() => {})
+      } else if (generationFailedMessage) {
+        setError(generationFailedMessage)
       } else {
         setError('가이드 생성에 시간이 걸리고 있습니다. 페이지를 새로고침해주세요.')
       }

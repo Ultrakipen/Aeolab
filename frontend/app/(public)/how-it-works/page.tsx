@@ -809,7 +809,7 @@ export default function HowItWorksPage() {
             <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 md:p-5">
               <h3 className="text-base md:text-lg font-bold text-blue-900 mb-3">AEOlab이 하는 일</h3>
               <ul className="space-y-2 text-sm md:text-base text-gray-700 leading-relaxed">
-                <li className="flex items-start gap-2"><IconTile icon={CheckCircle2} tone="green" size="sm" className="mt-0.5 shrink-0" /> 노출 조건 6항목 점수화·시각화</li>
+                <li className="flex items-start gap-2"><IconTile icon={CheckCircle2} tone="green" size="sm" className="mt-0.5 shrink-0" /> 노출 조건 점수화·시각화 (점수 5항목 + 키워드 순위 별도 표시)</li>
                 <li className="flex items-start gap-2"><IconTile icon={CheckCircle2} tone="green" size="sm" className="mt-0.5 shrink-0" /> AI 콘텐츠 초안 자동 생성 (소개글·채팅방 메뉴·소식)</li>
                 <li className="flex items-start gap-2"><IconTile icon={CheckCircle2} tone="green" size="sm" className="mt-0.5 shrink-0" /> 플랜에 따라 Gemini·ChatGPT·네이버·Google AI 4곳 점검 + 결과 추적</li>
                 <li className="flex items-start gap-2"><IconTile icon={CheckCircle2} tone="green" size="sm" className="mt-0.5 shrink-0" /> 경쟁사 비교 + 상위 가게와의 차이 분석</li>

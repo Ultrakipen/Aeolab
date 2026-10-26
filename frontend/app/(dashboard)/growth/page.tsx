@@ -249,6 +249,7 @@ export default async function GrowthPage() {
       category={business.category}
       region={business.region}
       historyData={historyData}
+      loadFailed={!historyRes?.ok}
       growthCardUrl={growthCardUrl}
       benchmarkData={benchmarkData}
       actionLogs={actionLogs}

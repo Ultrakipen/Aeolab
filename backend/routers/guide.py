@@ -4,6 +4,7 @@
 """
 import asyncio
 import logging
+import time
 from fastapi import APIRouter, Body, Header, HTTPException, BackgroundTasks, Depends
 from pydantic import BaseModel
 from models.schemas import GuideRequest
@@ -21,6 +22,10 @@ router = APIRouter()
 # 완료 후에나 일어나 그 사이 동시 요청이 같은 한도를 여러 번 통과할 수 있었다.
 # 단일 프로세스(PM2 fork) 배포라 in-memory set으로 충분 — scan.py _active_scans와 동일 패턴.
 _guide_generation_locks: set[str] = set()
+# 생성 실패 기록(프로세스 메모리, 사업장별 최근 1건) — 백그라운드 생성이 조용히 실패하면 사용자는
+# "시간이 걸립니다"만 보고 원인을 알 수 없었다(Claude 크레딧 소진 시 140초 뒤 같은 문구 반복).
+_guide_generation_failures: dict[str, float] = {}
+_GUIDE_FAILURE_TTL_SEC = 15 * 60
 
 # review-reply/crisis-reply도 COUNT 체크 후 Claude 호출(수백ms~수초) 사이 동시요청이
 # 같은 월별 한도를 여러 번 통과할 수 있는 동일한 TOCTOU 구조 — 위와 같은 이유로 락 추가.
@@ -231,6 +236,17 @@ async def get_latest_guide(biz_id: str, scan_id: str | None = None, context: str
         query = query.in_("context", ["location_based", "non_location"])
     result = await execute(query.order("generated_at", desc=True).limit(1))
     if not result.data:
+        # 방금 생성이 실패했다면 404(아직 생성 중처럼 보임) 대신 실패를 알린다
+        failed_at = _guide_generation_failures.get(biz_id)
+        if scan_id and failed_at and (time.time() - failed_at) <= _GUIDE_FAILURE_TTL_SEC:
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "code": "GUIDE_GENERATION_FAILED",
+                    "message": "AI 서비스에 일시적인 문제가 있어 가이드를 만들지 못했습니다. "
+                               "이번 시도는 월 생성 한도에서 차감되지 않으니 잠시 후 다시 시도해 주세요.",
+                },
+            )
         raise HTTPException(status_code=404, detail="No guide found")
     row = result.data[0]
     row.setdefault("checklist_done", {})
@@ -802,6 +818,7 @@ async def _generate_and_save_release_lock(req: GuideRequest, user_id: str):
 
 async def _generate_and_save(req: GuideRequest):
     """가이드 생성 백그라운드 태스크 — ActionPlan 구조로 저장"""
+    _guide_generation_failures.pop(req.business_id, None)  # 새 시도 시작 — 이전 실패 기록 해제
     try:
         supabase = get_client()
         biz_res, scan_res, comp_res = await asyncio.gather(
@@ -991,6 +1008,7 @@ async def _generate_and_save(req: GuideRequest):
 
     except Exception as e:
         _logger.error(f"Guide generation failed (biz={req.business_id}, scan={req.scan_id}): {e}", exc_info=True)
+        _guide_generation_failures[req.business_id] = time.time()
 
 
 class SmartplaceFAQRequest(BaseModel):
