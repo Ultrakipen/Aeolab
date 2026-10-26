@@ -574,6 +574,7 @@ export default async function DashboardPage({
               )}
               <DashboardInsightZone
                 bizId={bizBase.id}
+                bizName={bizBase.name}
                 accessToken={accessToken}
                 subscriptionPlan={subscriptionPlan}
                 plan={plan}

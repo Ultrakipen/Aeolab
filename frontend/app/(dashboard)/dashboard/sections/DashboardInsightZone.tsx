@@ -3,6 +3,7 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { ChevronDown, ChevronUp, Bot, Sparkles, Search, BarChart2, Target, type LucideIcon } from "lucide-react";
 import KeywordRankCard from "@/components/dashboard/KeywordRankCard";
+import { isBrandKeyword } from "@/lib/keywordBrand";
 import { AiInfoTabStatusCard } from "@/components/dashboard/AiInfoTabStatusCard";
 import AiTabPreviewCard from "@/components/dashboard/AiTabPreviewCard";
 import NaverMultiChannelCard from "@/components/dashboard/NaverMultiChannelCard";
@@ -17,8 +18,11 @@ import NaverSearchStrengthCard from "@/components/dashboard/NaverSearchStrengthC
     "1페이지"는 KeywordRankCard.tsx의 rankBadge() 기준(rank<=10)과 동일 — 임의 수치 금지 원칙 준수 */
 function summarizeKeywordRanks(
   keywords: string[] | undefined,
-  ranks: Record<string, unknown> | null | undefined
+  ranks: Record<string, unknown> | null | undefined,
+  businessName?: string
 ): { total: number; measured: number; onFirstPage: number } | null {
+  // 가게 이름 키워드는 거의 모두 1위로 나와 요약을 부풀리므로 뺀다
+  keywords = keywords?.filter((k) => !isBrandKeyword(k, businessName));
   if (!keywords || keywords.length === 0) return null;
   let measured = 0;
   let onFirstPage = 0;
@@ -52,6 +56,7 @@ interface PhotoGuideItem {
 
 interface Props {
   bizId: string;
+  bizName?: string;
   accessToken: string;
   subscriptionPlan: string;
   plan: string;
@@ -132,6 +137,7 @@ function CollapsibleSub({
 
 export default function DashboardInsightZone({
   bizId,
+  bizName,
   accessToken,
   subscriptionPlan,
   plan,
@@ -212,7 +218,7 @@ export default function DashboardInsightZone({
         <div className="mt-3">
           {/* 모바일 전용 1줄 요약 — 토글이 접혀도 발견성 유지 (2026-07-25 스크롤 길이 개선) */}
           {(() => {
-            const summary = summarizeKeywordRanks(keywords, initialKeywordRanks);
+            const summary = summarizeKeywordRanks(keywords, initialKeywordRanks, bizName);
             if (!summary) return null;
             return (
               <p className="md:hidden flex items-start gap-1.5 text-sm font-semibold text-green-800 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-2 break-keep">
@@ -232,7 +238,8 @@ export default function DashboardInsightZone({
               initialKeywordRanks={initialKeywordRanks ?? null}
               userGroup={userGroup ?? "INACTIVE"}
               region={region}
-              reviewCount={reviewCount}
+              reviewCount={naverPlaceId ? reviewCount : undefined}
+              businessName={bizName}
             />
           </CollapsibleSub>
         </div>

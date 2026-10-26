@@ -383,14 +383,15 @@ export default function HowItWorksPage() {
         <section id="step2" className="mb-12 scroll-mt-20">
           <div className="flex items-center gap-3 mb-3">
             <IconTile icon={BarChart3} tone="blue" size="md" />
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 break-keep">2단계. 콘텐츠 점수 100점 — 네이버 6항목</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 break-keep">2단계. 콘텐츠 점수 100점 — 네이버 5항목</h2>
           </div>
           <p className="text-sm md:text-base text-gray-600 mb-4 leading-relaxed break-keep">
-            업종 그룹(AI 브리핑 대상 / 확대 예정 / 글로벌 AI 중심)에 따라 6항목 중요도가 달리 적용됩니다.
+            업종 그룹(AI 브리핑 대상 / 확대 예정 / 글로벌 AI 중심)에 따라 5항목 중요도가 달리 적용됩니다.
             비대상 업종은 AI 브리핑 비중이 0%로 빠져 점수상 불이익이 없습니다.
           </p>
 
-          <MoreInfo summary="업종별 항목 중요도 자세히 보기 (6가지 항목)" tone="soft">
+          <MoreInfo summary="업종별 항목 중요도 자세히 보기 (5가지 항목)" tone="soft">
+            <p className="text-sm text-gray-700 mb-2 leading-relaxed break-keep">네이버 키워드 검색 순위는 점수에 넣지 않고 대시보드에서 &apos;네이버 키워드 검색 노출&apos;로 따로 보여드립니다. 키워드 선택과 측정 시점에 따라 값이 달라 점수에 섞으면 설명하기 어렵기 때문입니다. 아래 비율은 나머지 5항목을 합쳐 100%로 맞춘 값이며, 소수점은 반올림했습니다.</p>
             <p className="text-sm text-gray-500 mb-2 md:hidden">← 좌우로 밀어 비교하세요</p>
             <div className="overflow-x-auto" tabIndex={0}>
               <table className="w-full text-sm border border-gray-200 rounded-lg min-w-[480px]">
@@ -404,12 +405,11 @@ export default function HowItWorksPage() {
                   </tr>
                 </thead>
                 <tbody className="text-gray-700">
-                  <tr className="border-t border-gray-100"><td className="px-3 py-2 font-medium">네이버 키워드 검색 노출</td><td className="px-3 py-2 text-center">25%</td><td className="px-3 py-2 text-center">30%</td><td className="px-3 py-2 text-center font-bold text-blue-700">35%</td><td className="px-3 py-2 hidden md:table-cell text-sm text-gray-600">등록한 키워드로 네이버 PC·모바일·플레이스 탭 순위 자동 측정</td></tr>
-                  <tr className="border-t border-gray-100 bg-gray-50/40"><td className="px-3 py-2 font-medium">리뷰 품질</td><td className="px-3 py-2 text-center">15%</td><td className="px-3 py-2 text-center">17%</td><td className="px-3 py-2 text-center">20%</td><td className="px-3 py-2 hidden md:table-cell text-sm text-gray-600">리뷰수·평점·영수증 리뷰·최신성</td></tr>
-                  <tr className="border-t border-gray-100"><td className="px-3 py-2 font-medium">스마트플레이스 완성도</td><td className="px-3 py-2 text-center">15%</td><td className="px-3 py-2 text-center">18%</td><td className="px-3 py-2 text-center">20%</td><td className="px-3 py-2 hidden md:table-cell text-sm text-gray-600">소개글·소식·메뉴·사진·영업시간 + 키워드 콘텐츠 매칭</td></tr>
-                  <tr className="border-t border-gray-100 bg-gray-50/40"><td className="px-3 py-2 font-medium">블로그 활동 (추정)</td><td className="px-3 py-2 text-center">10%</td><td className="px-3 py-2 text-center">10%</td><td className="px-3 py-2 text-center">10%</td><td className="px-3 py-2 hidden md:table-cell text-sm text-gray-600">30일 내 발행 + 외부 언급 + 업체명 매칭</td></tr>
-                  <tr className="border-t border-gray-100"><td className="px-3 py-2 font-medium">지도/플레이스 + 카카오맵</td><td className="px-3 py-2 text-center">10%</td><td className="px-3 py-2 text-center">10%</td><td className="px-3 py-2 text-center">15%</td><td className="px-3 py-2 hidden md:table-cell text-sm text-gray-600">네이버 지도 50% + 카카오맵 50%</td></tr>
-                  <tr className="border-t border-gray-100 bg-gray-50/40"><td className="px-3 py-2 font-medium">AI 브리핑 언급</td><td className="px-3 py-2 text-center font-bold text-emerald-700">25%</td><td className="px-3 py-2 text-center">15%</td><td className="px-3 py-2 text-center text-gray-400">0%</td><td className="px-3 py-2 hidden md:table-cell text-sm text-gray-600">네이버 AI 브리핑 노출 여부 자동 확인 + AI 정보 탭 ON 여부</td></tr>
+                  <tr className="border-t border-gray-100"><td className="px-3 py-2 font-medium">리뷰 품질</td><td className="px-3 py-2 text-center">20.0%</td><td className="px-3 py-2 text-center">24.3%</td><td className="px-3 py-2 text-center">30.8%</td><td className="px-3 py-2 hidden md:table-cell text-sm text-gray-600">리뷰수·평점·영수증 리뷰·최신성</td></tr>
+                  <tr className="border-t border-gray-100 bg-gray-50/40"><td className="px-3 py-2 font-medium">스마트플레이스 완성도</td><td className="px-3 py-2 text-center">20.0%</td><td className="px-3 py-2 text-center">25.7%</td><td className="px-3 py-2 text-center">30.8%</td><td className="px-3 py-2 hidden md:table-cell text-sm text-gray-600">소개글·소식·메뉴·사진·영업시간 + 키워드 콘텐츠 매칭</td></tr>
+                  <tr className="border-t border-gray-100"><td className="px-3 py-2 font-medium">블로그 활동 (추정)</td><td className="px-3 py-2 text-center">13.3%</td><td className="px-3 py-2 text-center">14.3%</td><td className="px-3 py-2 text-center">15.4%</td><td className="px-3 py-2 hidden md:table-cell text-sm text-gray-600">30일 내 발행 + 외부 언급 + 업체명 매칭</td></tr>
+                  <tr className="border-t border-gray-100 bg-gray-50/40"><td className="px-3 py-2 font-medium">지도/플레이스 + 카카오맵</td><td className="px-3 py-2 text-center">13.3%</td><td className="px-3 py-2 text-center">14.3%</td><td className="px-3 py-2 text-center">23.1%</td><td className="px-3 py-2 hidden md:table-cell text-sm text-gray-600">네이버 지도 50% + 카카오맵 50%</td></tr>
+                  <tr className="border-t border-gray-100"><td className="px-3 py-2 font-medium">AI 브리핑 언급</td><td className="px-3 py-2 text-center">33.3%</td><td className="px-3 py-2 text-center">21.4%</td><td className="px-3 py-2 text-center">0%</td><td className="px-3 py-2 hidden md:table-cell text-sm text-gray-600">네이버 AI 브리핑 노출 여부 자동 확인 + AI 정보 탭 ON 여부</td></tr>
                   <tr className="border-t-2 border-gray-300 font-semibold bg-blue-50"><td className="px-3 py-2">합계</td><td className="px-3 py-2 text-center">100%</td><td className="px-3 py-2 text-center">100%</td><td className="px-3 py-2 text-center">100%</td><td className="px-3 py-2 hidden md:table-cell"></td></tr>
                 </tbody>
               </table>
@@ -640,7 +640,7 @@ export default function HowItWorksPage() {
                 <span className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm shrink-0">1</span>
                 <h3 className="font-bold text-gray-900 text-sm md:text-base break-keep">네이버 키워드 검색 순위 추적</h3>
               </div>
-              <p className="text-sm text-gray-700 ml-10 mb-2 leading-relaxed break-keep">등록한 키워드로 네이버 PC·모바일·플레이스 탭 순위를 자동 측정합니다.</p>
+              <p className="text-sm text-gray-700 ml-10 mb-2 leading-relaxed break-keep">등록한 키워드로 네이버 PC·모바일 검색 첫 화면의 가게 노출 순위(광고 제외)를 자동 측정해 점수와 별도로 보여드립니다.</p>
               <MoreInfo summary="플랜별 측정 주기 보기" tone="light">
                 <div className="overflow-x-auto" tabIndex={0}>
                   <table className="w-full text-sm border-collapse min-w-[280px]">

@@ -7,7 +7,7 @@ import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 export const metadata: Metadata = {
   title: "점수 계산 방식 | AEOlab",
   description:
-    "AEOlab AI 가시성 점수가 어떻게 계산되는지 알아보세요. 업종별 네이버/글로벌 AI 비율, 6개 세부 항목, 등급 기준을 설명합니다.",
+    "AEOlab AI 가시성 점수가 어떻게 계산되는지 알아보세요. 업종별 네이버/글로벌 AI 비율, 5개 점수 항목과 별도로 보여주는 키워드 순위, 등급 기준을 설명합니다.",
 };
 
 export default function ScoreGuidePage() {
@@ -164,7 +164,7 @@ export default function ScoreGuidePage() {
           </span>
         </div>
         <p className="text-sm text-gray-600 mb-3">
-          네이버 AI 검색 6개 항목 — 업종 그룹에 따라 아래 비율이 자동 적용됩니다
+          네이버 AI 검색 5개 항목 — 업종 그룹에 따라 아래 비율이 자동 적용됩니다. 키워드 검색 순위는 점수에 넣지 않고 대시보드에서 따로 보여드립니다(키워드 선택과 측정 시점에 따라 값이 달라 점수에 섞으면 설명하기 어렵기 때문). 아래 비율은 나머지 5개 항목을 합쳐 100%로 맞춘 값이며 소수점은 반올림했습니다.
         </p>
         <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full text-sm border-collapse min-w-[480px]">
@@ -181,8 +181,8 @@ export default function ScoreGuidePage() {
             <tbody>
               {[
                 {
-                  item: "키워드 검색 순위",
-                  desc: "Playwright로 네이버에서 직접 측정한 키워드별 검색 순위",
+                  item: "키워드 검색 순위 (점수 미포함)",
+                  desc: "네이버 검색 첫 화면의 가게 노출 순위(광고 제외)를 직접 측정해 대시보드에 따로 보여드립니다",
                 },
                 {
                   item: "리뷰 품질",
@@ -245,12 +245,11 @@ export default function ScoreGuidePage() {
             </thead>
             <tbody>
               {[
-                { item: "키워드 검색 순위", active: "25%", likely: "30%", inactive: "35%" },
-                { item: "리뷰 품질",        active: "15%", likely: "17%", inactive: "20%" },
-                { item: "스마트플레이스 완성도", active: "15%", likely: "18%", inactive: "20%" },
-                { item: "지도·카카오맵",    active: "10%", likely: "10%", inactive: "15%" },
-                { item: "블로그 노출",      active: "10%", likely: "10%", inactive: "10%" },
-                { item: "AI 브리핑 노출",   active: "25%", likely: "15%", inactive: "0%" },
+                { item: "리뷰 품질",        active: "20.0%", likely: "24.3%", inactive: "30.8%" },
+                { item: "스마트플레이스 완성도", active: "20.0%", likely: "25.7%", inactive: "30.8%" },
+                { item: "지도·카카오맵",    active: "13.3%", likely: "14.3%", inactive: "23.1%" },
+                { item: "블로그 노출",      active: "13.3%", likely: "14.3%", inactive: "15.4%" },
+                { item: "AI 브리핑 노출",   active: "33.3%", likely: "21.4%", inactive: "0%" },
               ].map((row, i) => (
                 <tr key={i} className="border-b border-gray-100 last:border-0 hover:bg-gray-50">
                   <td className="py-2.5 px-3 font-medium text-gray-800">{row.item}</td>

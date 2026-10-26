@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Search, Loader2, RefreshCw, Download, ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
 import { getSafeSession } from "@/lib/supabase/client";
+import { isBrandKeyword } from "@/lib/keywordBrand";
 import { trackKeywordMeasureStart, trackKeywordMeasureComplete } from "@/lib/analytics";
 import {
   LineChart,
@@ -61,8 +62,10 @@ interface KeywordRankCardProps {
   plan?: string;
   /** 사업장 지역 — 측정 조건 예시 동적 생성용 */
   region?: string;
-  /** 사업장 네이버 리뷰 수(측정·입력값, 0/없음이면 표시 안 함) */
+  /** 사업장 네이버 리뷰 수(자동 수집된 경우에만 전달, 0/없음이면 표시 안 함) */
   reviewCount?: number;
+  /** 사업장 이름 — 가게 이름 키워드를 일반 키워드와 분리하기 위함 */
+  businessName?: string;
 }
 
 function isKeywordRankData(v: unknown): v is KeywordRankData {
@@ -123,6 +126,7 @@ export default function KeywordRankCard({
   plan,
   region,
   reviewCount,
+  businessName,
 }: KeywordRankCardProps) {
   const [ranks, setRanks] = useState<KeywordRanksMap>(() => {
     if (!initialKeywordRanks || typeof initialKeywordRanks !== "object") return {};
@@ -387,7 +391,10 @@ export default function KeywordRankCard({
         <>
           {/* 요약 — 측정 성공한 키워드만 센다(측정 실패는 미노출로 세지 않음) */}
           {(() => {
-            const rows = Object.values(ranks);
+            // 가게 이름 키워드는 거의 모두 1위로 나오므로 일반 키워드 요약에서 뺀다(별도 안내)
+            const entries = Object.entries(ranks);
+            const brandCount = entries.filter(([k]) => isBrandKeyword(k, businessName)).length;
+            const rows = entries.filter(([k]) => !isBrandKeyword(k, businessName)).map(([, d]) => d);
             const failed = rows.filter((d) => d.error).length;
             const ok = rows.filter((d) => !d.error);
             const bestOf = (d: KeywordRankData) =>
@@ -396,7 +403,7 @@ export default function KeywordRankCard({
               );
             const onFirstPage = ok.filter((d) => bestOf(d).some((v) => v <= 10)).length;
             const outOfRange = ok.length - ok.filter((d) => bestOf(d).length > 0).length;
-            if (ok.length === 0 && failed === 0) return null;
+            if (ok.length === 0 && failed === 0 && brandCount === 0) return null;
             return (
               <div className="mb-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 text-sm text-green-900 space-y-1">
                 {ok.length > 0 && (
@@ -407,6 +414,11 @@ export default function KeywordRankCard({
                 {outOfRange > 0 && (
                   <p className="text-green-800 break-keep">
                     {outOfRange}개 키워드는 검색 첫 화면에서 찾지 못했습니다. 스마트플레이스 소개글·소식·리뷰에 이 키워드를 자연스럽게 담으면 노출을 늘릴 여지가 있습니다.
+                  </p>
+                )}
+                {brandCount > 0 && (
+                  <p className="text-green-800 break-keep">
+                    가게 이름이 들어간 키워드 {brandCount}개는 이름으로 검색하면 대부분 1위로 나오므로 위 요약에서 뺐습니다.
                   </p>
                 )}
                 {outOfRange > 0 && typeof reviewCount === "number" && reviewCount > 0 && (
@@ -441,8 +453,21 @@ export default function KeywordRankCard({
                   const displayKw = data.search_query || kw;
                   return (
                     <tr key={kw} className="border-b border-gray-100 last:border-0">
-                      <td className="py-2.5 font-medium text-gray-800 truncate max-w-xs">
-                        {displayKw}
+                      <td className="py-2.5 font-medium text-gray-800 max-w-xs">
+                        <span className="truncate block">
+                          {displayKw}
+                          {isBrandKeyword(kw, businessName) && (
+                            <span className="ml-1.5 text-sm font-normal text-gray-600 border border-gray-200 rounded px-1.5">가게 이름</span>
+                          )}
+                        </span>
+                        <a
+                          href={`https://search.naver.com/search.naver?query=${encodeURIComponent(displayKw)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-normal text-blue-700 underline"
+                        >
+                          네이버에서 직접 확인
+                        </a>
                       </td>
                       <td className="py-2.5 text-center">
                         <span className={`inline-block px-2 py-1 text-sm sm:text-sm rounded ${pc.cls}`}>
@@ -475,7 +500,20 @@ export default function KeywordRankCard({
               const displayKw = data.search_query || kw;
               return (
                 <div key={kw} className="rounded-lg border border-gray-200 p-3">
-                  <p className="font-medium text-gray-800 text-sm mb-2 truncate">{displayKw}</p>
+                  <p className="font-medium text-gray-800 text-sm mb-1 truncate">
+                    {displayKw}
+                    {isBrandKeyword(kw, businessName) && (
+                      <span className="ml-1.5 text-sm font-normal text-gray-600 border border-gray-200 rounded px-1.5">가게 이름</span>
+                    )}
+                  </p>
+                  <a
+                    href={`https://m.search.naver.com/search.naver?query=${encodeURIComponent(displayKw)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block text-sm text-blue-700 underline mb-2"
+                  >
+                    네이버에서 직접 확인
+                  </a>
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
                       <p className="text-sm text-gray-600 mb-1">PC</p>
