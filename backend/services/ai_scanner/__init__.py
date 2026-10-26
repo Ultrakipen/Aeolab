@@ -277,6 +277,13 @@ def check_naver_playwright_quota(source: str = "") -> bool:
     return True
 
 
+def naver_playwright_quota_usage() -> tuple[int, int]:
+    """(오늘 사용 건수, 일일 상한). 카운트는 증가시키지 않는다 — 선택적 재확인 여부 판단·점검용."""
+    from datetime import date as _date
+    used = _naver_pw_quota_count if _naver_pw_quota_date == _date.today().isoformat() else 0
+    return used, _NAVER_PLAYWRIGHT_DAILY_CAP
+
+
 # ── 네이버 로그인쿠키 인증 실패 감지 (2026-08-08, 장기운영 안전망) ────────────
 # naver_scanner.py(AI브리핑)·naver_ai_tab_scanner.py(AI탭)가 같은 로그인쿠키를
 # 공유하므로 실패도 여기서 합산 카운트한다. check_naver_cookie_health_job(주1회)이

@@ -109,3 +109,18 @@ def test_gap_skips_unmeasured_rank_only():
     assert _is_unmeasured_dimension("keyword_search_rank", {"keyword_search_rank": 0.0}) is True
     assert _is_unmeasured_dimension("keyword_search_rank", {"keyword_search_rank": 60.0}) is False
     assert _is_unmeasured_dimension("review_quality", {}) is False
+
+
+def test_recheck_skipped_when_quota_nearly_exhausted(monkeypatch):
+    """일일 상한 임박 시 선택적 재확인(새로고침·대기)은 건너뛰고 필수 측정만 한다."""
+    monkeypatch.setattr(kr, "naver_playwright_quota_usage", lambda: (210, 250))  # 84% ≥ 80%
+    before = kr._recheck_stats["skipped"]
+    assert asyncio.run(kr._place_card_rank(_FakePage([]), "내가게", "222222")) is None
+    assert kr._recheck_stats["skipped"] == before + 1
+
+
+def test_recheck_runs_when_quota_has_room(monkeypatch):
+    monkeypatch.setattr(kr, "naver_playwright_quota_usage", lambda: (10, 250))
+    before = kr._recheck_stats["rechecks"]
+    asyncio.run(kr._place_card_rank(_FakePage([]), "내가게", "222222"))
+    assert kr._recheck_stats["rechecks"] == before + 1

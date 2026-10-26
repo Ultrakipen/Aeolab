@@ -39,7 +39,7 @@ from typing import Optional
 
 from playwright.async_api import async_playwright, Page, TimeoutError as PWTimeout
 from services.naver_visibility import _get as _naver_open_api_get, _name_matches as _nv_name_matches
-from services.ai_scanner import check_naver_playwright_quota
+from services.ai_scanner import check_naver_playwright_quota, naver_playwright_quota_usage
 
 _logger = logging.getLogger("aeolab")
 
@@ -48,6 +48,11 @@ PAGE_TIMEOUT_MS = int(os.getenv("KEYWORD_RANK_TIMEOUT_MS", "15000"))
 RESULT_LIMIT = int(os.getenv("KEYWORD_RANK_LIMIT", "20"))
 
 _semaphore = asyncio.Semaphore(MAX_CONCURRENCY)
+
+# 선택적 재확인(목록이 비었을 때 새로고침 등)은 일일 상한의 이 비율 안에서만 한다 — 필수 측정이 우선
+RECHECK_QUOTA_RATIO = float(os.getenv("KEYWORD_RANK_RECHECK_QUOTA_RATIO", "0.8"))
+# 재확인 사용량 집계(프로세스 단위) — 로그와 측정 결과 _context로 노출해 실제 증가량을 잰다
+_recheck_stats = {"rechecks": 0, "reloads": 0, "skipped": 0}
 
 UA_PC = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -182,8 +187,14 @@ async def _place_card_rank(
         # 간헐적 오판 방지: 네이버가 가끔 가게 목록 없이 광고 블록만 먼저 내려주거나(목록 0개),
         # 목록이 덜 그려진 채 읽힌다. 목록이 비었으면 새로고침 후, 아니면 2초 더 기다린 뒤 한 번 더 확인한다.
         # 실제 미노출이면 같은 결과이므로 비용은 몇 초뿐이다.
+        used, cap = naver_playwright_quota_usage()
+        if cap > 0 and used >= cap * RECHECK_QUOTA_RATIO:
+            _recheck_stats["skipped"] += 1  # 상한 임박 — 선택적 재확인은 건너뛴다(필수 측정 우선)
+            return rank
         try:
-            if not cards:
+            _recheck_stats["rechecks"] += 1
+            if not cards and check_naver_playwright_quota("naver_keyword_rank.reload"):
+                _recheck_stats["reloads"] += 1
                 await page.reload(wait_until="domcontentloaded", timeout=PAGE_TIMEOUT_MS)
                 try:
                     await page.wait_for_function(_PLACE_LINK_WAIT_JS, timeout=8000)
@@ -404,6 +415,7 @@ async def _run_with_browser(
         "scanned_at": _now_iso(),
         "errors": errors,
         "max_concurrency": MAX_CONCURRENCY,
+        "rechecks": dict(_recheck_stats),  # 누적(프로세스 시작 이후): 재확인·새로고침·상한 임박 스킵 횟수
     }
     return results
 
