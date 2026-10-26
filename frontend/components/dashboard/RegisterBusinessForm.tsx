@@ -23,6 +23,7 @@ import type { LucideIcon } from 'lucide-react'
 import { Search, ChevronLeft, Loader2, MapPin, Monitor, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react'
 import BusinessSearchDropdown, { mapKakaoCategory } from '@/components/dashboard/BusinessSearchDropdown'
 import type { BusinessSearchResult } from '@/types'
+import { isNaverPlaceUrl, resolveNaverPlace } from '@/lib/naverPlace'
 import { useBriefingCategories } from '@/lib/useBriefingCategories'
 import ChannelDifferentiationCard from '@/components/common/ChannelDifferentiationCard'
 
@@ -213,7 +214,8 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
       name: result.name,
       address: result.address || prev.address,
       phone: result.phone || prev.phone,
-      naver_place_url: result.naver_place_url || prev.naver_place_url,
+      // 지역검색 API의 link는 가게 홈페이지(예: onionkr.com)라 네이버 주소일 때만 사용 (2026-10-26)
+      naver_place_url: isNaverPlaceUrl(result.naver_place_url) ? (result.naver_place_url as string) : prev.naver_place_url,
       naver_place_id: result.naver_place_id || prev.naver_place_id,
       kakao_place_id: result.kakao_place_id || prev.kakao_place_id,
     }))
@@ -225,6 +227,24 @@ export function RegisterBusinessForm({ userId, onSuccess }: RegisterBusinessForm
     }
     setAutoFillMsg('가게 정보가 자동으로 입력되었습니다 ✓')
     setTimeout(() => setAutoFillMsg(''), 4000)
+
+    // 플레이스 ID가 없으면 네이버 검색 화면의 가게 카드에서 확정 — 서버가 이름이 일치하는 1곳일 때만 돌려준다 (2026-10-26)
+    if (!result.naver_place_id && result.name) {
+      void (async () => {
+        const session = await getSafeSession()
+        if (!session?.access_token) return
+        const resolved = await resolveNaverPlace(result.name, form.region, result.address || '', session.access_token)
+        if (resolved?.status === 'unique' && resolved.naver_place_id) {
+          setForm(prev => ({
+            ...prev,
+            naver_place_id: resolved.naver_place_id as string,
+            naver_place_url: resolved.naver_place_url || prev.naver_place_url,
+          }))
+          setAutoFillMsg(`네이버 스마트플레이스를 찾아 자동으로 입력했습니다 ✓${resolved.matched_name ? ` (${resolved.matched_name})` : ''}`)
+          setTimeout(() => setAutoFillMsg(''), 5000)
+        }
+      })()
+    }
   }
 
   // 드롭다운 외부 클릭 시 닫기

@@ -477,6 +477,17 @@ async def daily_scan_all():
                 _scan_queries = _build_ai_scan_queries(biz["region"], _scan_kw)
                 query = _scan_queries[0]  # 단일 쿼리 문자열 — naver·single_check·query_used 저장용
 
+                # 플레이스 ID가 없으면 자동 확정(이름 일치 1곳일 때만 저장) — 2026-10-26.
+                # 이 함수는 세마포어를 쥔 상태가 아니며(스캐너 호출 전), 실패·모호하면 아무것도 바꾸지 않는다.
+                if not (biz.get("naver_place_id") or "").strip():
+                    try:
+                        from services.naver_place_resolver import ensure_naver_place_id
+                        _pid_auto = await ensure_naver_place_id(biz)
+                        if _pid_auto:
+                            biz["naver_place_id"] = _pid_auto
+                    except Exception as _pr_e:
+                        logger.warning("[daily_scan_all] 플레이스 ID 자동 확정 실패(무시) biz=%s: %s", biz.get("id"), _pr_e)
+
                 # GitHub Actions prescan 결과 재사용 (naver_prescan 테이블, 있으면 네이버 재스캔 생략)
                 # github_naver_scan.py가 01:00 KST에 실행 → 이 함수(02:00 KST) 도달 시 이미 저장됨
                 _prescan_naver: dict = {}

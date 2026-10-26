@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient, getSafeSession } from "@/lib/supabase/client";
+import { isNaverPlaceUrl, resolveNaverPlace } from "@/lib/naverPlace";
 import { createBusiness } from "@/lib/api";
 import { resolveActivePlan } from "@/lib/subscriptionPlan";
 import {
@@ -192,7 +193,8 @@ export default function OnboardingPage() {
   const handleBusinessSelect = async (result: BusinessSearchResult) => {
     const extractedRegion = result.region || extractRegion(result.address || "");
     let naverPlaceId = result.naver_place_id || "";
-    let naverPlaceUrl = result.naver_place_url || "";
+    // 지역검색 API의 link는 가게 홈페이지(예: onionkr.com)라 네이버 주소일 때만 사용 (2026-10-26)
+    let naverPlaceUrl = isNaverPlaceUrl(result.naver_place_url) ? (result.naver_place_url || "") : "";
 
     setForm(prev => ({
       ...prev,
@@ -213,6 +215,26 @@ export default function OnboardingPage() {
     if (!naverPlaceId && result.name) {
       setNaverSearching(true);
       setNaverSearchMsg("");
+      // 지역검색 API는 플레이스 ID를 주지 않는다 → 네이버 검색 화면의 가게 카드에서 확정 (2026-10-26).
+      // 서버가 카드 이름이 입력한 이름과 일치하는 1곳일 때만 돌려주며, 모호하면 추측으로 채우지 않는다.
+      const resolveFromSearchCard = async () => {
+        const session = await getSafeSession();
+        const resolved = session?.access_token
+          ? await resolveNaverPlace(result.name, extractedRegion, result.address || "", session.access_token)
+          : null;
+        if (resolved?.status === "unique" && resolved.naver_place_id) {
+          setForm(prev => ({
+            ...prev,
+            naver_place_id: resolved.naver_place_id as string,
+            naver_place_url: resolved.naver_place_url || prev.naver_place_url,
+          }));
+          setNaverSearchMsg(`✓ 네이버 스마트플레이스를 찾아 자동으로 입력했습니다${resolved.matched_name ? ` (${resolved.matched_name})` : ""}`);
+        } else if (resolved?.status === "ambiguous") {
+          setNaverSearchMsg("이름이 같거나 비슷한 가게가 여러 곳이라 자동으로 고르지 못했습니다. 아래 안내를 참고해 네이버 지도에서 직접 복사해 주세요.");
+        } else {
+          setNaverSearchMsg("네이버 ID는 자동 입력이 어렵습니다. 아래 안내를 참고해 네이버 지도에서 직접 복사해 주세요.");
+        }
+      };
       try {
         const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "";
         const q = encodeURIComponent(result.name.trim());
@@ -230,14 +252,14 @@ export default function OnboardingPage() {
             setForm(prev => ({
               ...prev,
               naver_place_id: match.naver_place_id,
-              naver_place_url: match.naver_place_url || prev.naver_place_url,
+              naver_place_url: isNaverPlaceUrl(match.naver_place_url) ? match.naver_place_url : prev.naver_place_url,
             }));
             setNaverSearchMsg("✓ 네이버 스마트플레이스 ID가 자동으로 입력되었습니다");
           } else {
-            setNaverSearchMsg("네이버 ID는 자동 입력이 어렵습니다. 아래 안내를 참고해 네이버 지도에서 직접 복사해 주세요.");
+            await resolveFromSearchCard();
           }
         } else {
-          setNaverSearchMsg("");
+          await resolveFromSearchCard();
         }
       } catch {
         setNaverSearchMsg("");

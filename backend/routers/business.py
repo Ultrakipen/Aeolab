@@ -101,6 +101,35 @@ async def search_address(name: str = Query(...), region: str = Query("")):
     ]
 
 
+_resolve_place_calls: dict = {}  # user_id -> 최근 1시간 호출 시각 (Playwright 페이지를 쓰므로 사용자당 제한)
+
+
+@router.get("/resolve-place")
+async def resolve_place(
+    name: str = Query(..., min_length=1, max_length=100),
+    region: str = Query("", max_length=60),
+    address: str = Query("", max_length=200),
+    user=Depends(get_current_user),
+):
+    """등록 화면용: 가게 이름으로 네이버 플레이스 ID를 자동 확정 (2026-10-26).
+
+    네이버 지역검색 API는 플레이스 ID를 주지 않아 유명한 가게도 ID 없이 등록되고, 그러면 리뷰·소식·순위가
+    수집되지 않아 저평가된다. 검색 결과의 가게 카드 이름이 입력한 이름과 일치할 때만 확정(status=unique)하고,
+    모호하거나 없으면 채우지 않는다. 로그인 필요 + 사용자당 시간당 10회.
+    """
+    import time as _time
+    uid = str(user["id"])
+    now = _time.time()
+    calls = [t for t in _resolve_place_calls.get(uid, []) if now - t < 3600]
+    if len(calls) >= 10:
+        raise HTTPException(status_code=429, detail="잠시 후 다시 시도해 주세요. (시간당 10회)")
+    calls.append(now)
+    _resolve_place_calls[uid] = calls
+
+    from services.naver_place_resolver import resolve_naver_place
+    return await resolve_naver_place(name, region, address)
+
+
 @router.get("/lookup")
 async def lookup_business_registration(reg_no: str = Query(..., description="사업자등록번호 (숫자만 10자리)"), user=Depends(get_current_user)):
     """국세청 API로 사업자등록번호 유효성 및 상태 조회"""
@@ -172,6 +201,14 @@ async def create_business(req: BusinessCreate, user=Depends(get_current_user)):
     except Exception as e:
         logger.warning(f"Geocoding skipped for business '{req.name}': {e}")
 
+    # 네이버 플레이스: ID가 없어도 URL(네이버 주소일 때만)에서 ID를 뽑고, 가게 홈페이지 등 네이버가 아닌 주소는 버린다.
+    # 이전엔 create가 naver_place_url을 저장하지 않고 URL→ID 추출도 PATCH에만 있어, 등록 중 URL만 붙이면 ID가 저장되지 않았다(2026-10-26).
+    from services.naver_place_resolver import extract_place_id, is_naver_place_url, canonical_place_url
+    _pid = (req.naver_place_id or "").strip() or extract_place_id(req.naver_place_url) or None
+    _purl = req.naver_place_url if is_naver_place_url(req.naver_place_url) else None
+    if _pid and not _purl:
+        _purl = canonical_place_url(_pid)
+
     insert_payload: dict = {
         "user_id": x_user_id,
         "name": req.name,
@@ -179,7 +216,8 @@ async def create_business(req: BusinessCreate, user=Depends(get_current_user)):
         "region": req.region or "",
         "address": req.address,
         "phone": req.phone,
-        "naver_place_id": req.naver_place_id,
+        "naver_place_id": _pid,
+        "naver_place_url": _purl,
         "google_place_id": req.google_place_id,
         "kakao_place_id": req.kakao_place_id,
         "website_url": req.website_url,

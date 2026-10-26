@@ -3106,6 +3106,22 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         query = _scan_queries[0]  # Playwright·네이버 단일 쿼리용 (짧은 쿼리 유지)
         naver_place_url = (biz or {}).get("naver_place_url", "") or ""
         naver_place_id_biz = (biz or {}).get("naver_place_id", "") or ""
+        # 플레이스 ID가 없으면 검색 화면에서 자동 확정(이름 일치 1곳일 때만, businesses에 저장) — 2026-10-26.
+        # ID가 없으면 리뷰·소식·소개글·키워드 순위가 수집되지 않아 유명한 가게도 저평가된다.
+        # scan_all() 호출 전이라 PLAYWRIGHT_SEMAPHORE를 쥔 상태가 아님(중첩 획득 없음).
+        if not naver_place_id_biz and biz:
+            try:
+                from services.naver_place_resolver import ensure_naver_place_id, is_naver_place_url, canonical_place_url
+                naver_place_id_biz = await ensure_naver_place_id(biz) or ""
+                if naver_place_id_biz:
+                    biz = {**biz, "naver_place_id": naver_place_id_biz}
+                    if not is_naver_place_url(naver_place_url):
+                        naver_place_url = canonical_place_url(naver_place_id_biz)
+            except Exception as _pr_e:
+                _logger.warning(f"[scan/full] 플레이스 ID 자동 확정 실패(무시) biz={req.business_id}: {_pr_e}")
+        from services.naver_place_resolver import is_naver_place_url as _is_np_url
+        if naver_place_url and not _is_np_url(naver_place_url):
+            naver_place_url = ""  # 가게 홈페이지 등 네이버가 아닌 주소로는 스마트플레이스 점검을 하지 않는다
         if not naver_place_url and naver_place_id_biz:
             naver_place_url = f"https://map.naver.com/p/entry/place/{naver_place_id_biz}"
         from services.naver_place_stats import check_smart_place_completeness, sync_naver_place_stats as _sync_place_stats
