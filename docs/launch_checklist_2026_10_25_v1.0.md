@@ -16,6 +16,7 @@
 | 4 | **가입 → 인증 메일 도착 → 로그인 → 첫 스캔 전체 테스트** | 사용자(메일 주소 제공)+Claude | 실제 메일함에서 인증 메일 수신, 첫 스캔 결과 화면 확인 | ❌ 한 번도 끝까지 못 함. 가입 완료 *화면*만 가짜 API 응답으로 확인함 |
 | 5 | **Gemini 결제 연결 후 성공률 확인** — 무료 티어 한도로 하루 100회 중 92~97회 실패 중(`ResourceExhausted`, 10-16~24 `ai_usage_log`), 결과의 `sample_size`가 4~8 | 사용자(결제)+Claude(확인) | 결제 연결 후 스캔 1회 → `ai_usage_log`에서 gemini 성공이 100에 가까운지, `scan_results.gemini_result.failed_count` 확인. 결제는 `GEMINI_API_KEY`가 속한 Google Cloud 프로젝트에 연결 | ⏳ 사용자가 서비스 개선 후 직접 하기로 함 |
 | 6 | **10-25 밤 스캔(KST 02:00경) 정상 확인** — 프록시 제거·접속실패 표시 수정·쿠키·Serper 키 교체 후 첫 실전 스캔 | Claude | 저장된 `naver_result`에 `error`/`page_load_failed` 없음, 구글 측정 정상, 백엔드 로그 새 오류 없음 | ⏳ 사용자가 10-26 오전에 요청하면 확인 |
+| 7 | **`@aeolab.co.kr` 수신 정상화 + 운영 알림 수신** — 루트 MX에 SES 반송 서버(`feedback-smtp…amazonses.com`)가 iwinv와 같은 우선순위로 중복돼 수신 메일 약 절반이 `550 Mailbox does not exist!`로 반송됨(6/20 `test@`, 7/11 `contact@`, 10/26 시험). 이 때문에 Resend가 `contact@`를 차단(Suppressed)해 **운영 알림(NID_SES 만료·Gemini 실패 등)이 전부 미도착** | 사용자+Claude | Cloudflare 루트 MX 삭제 → `dig`로 반영 확인 → 외부 메일로 `contact@`·`support@` 수신 확인 → Resend Suppressions에서 `contact@` 삭제 → 시험 메일 도착 | 🔶 **MX 정리 완료, `support@`·외부 메일 수신 확인(10-26)**. 남은 것: Resend Suppressions에서 `contact@` 삭제 + 도착 시험 |
 
 ---
 
