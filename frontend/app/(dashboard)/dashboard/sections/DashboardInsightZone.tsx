@@ -25,14 +25,14 @@ function summarizeKeywordRanks(
   keywords.forEach((kw) => {
     const r = ranks?.[kw];
     if (r && typeof r === "object" && !Array.isArray(r)) {
-      const d = r as { pc_rank?: number | null; mobile_rank?: number | null; place_rank?: number | null };
+      const d = r as { pc_rank?: number | null; mobile_rank?: number | null; place_rank?: number | null; error?: string };
+      // 측정 실패 행은 "측정됨"으로 세지 않고, 20위 밖(순위 없음)은 측정은 됐으나 1페이지가 아닌 것으로 센다
+      if (d.error) return;
       const vals = [d.pc_rank, d.mobile_rank, d.place_rank].filter(
         (v): v is number => typeof v === "number" && v > 0
       );
-      if (vals.length > 0) {
-        measured += 1;
-        if (vals.some((v) => v <= 10)) onFirstPage += 1;
-      }
+      measured += 1;
+      if (vals.some((v) => v <= 10)) onFirstPage += 1;
     }
   });
   return { total: keywords.length, measured, onFirstPage };

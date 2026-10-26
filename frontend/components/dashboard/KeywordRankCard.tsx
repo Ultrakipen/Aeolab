@@ -352,9 +352,9 @@ export default function KeywordRankCard({
       <div className="mb-3 rounded-lg bg-blue-50 border border-blue-100 px-3 py-2.5 text-sm text-blue-800 space-y-1">
         <p className="font-semibold text-blue-900">측정 조건</p>
         <ul className="space-y-0.5 text-blue-700">
-          <li>· <span className="font-medium">검색어</span>: 지역명 + 등록 키워드 자동 조합{keywords.length > 0 ? ` (등록된 키워드 ${keywords.length}개 각각 측정)` : ""} — 아래 표에 실제 검색어 표시</li>
+          <li>· <span className="font-medium">검색어</span>: 등록 키워드{keywords.length > 0 ? ` ${keywords.length}개` : ""} 각각 측정 — 키워드에 지역명이 없으면 사업장 지역을 앞에 붙입니다. 아래 표에 실제 검색어 표시</li>
           <li>· <span className="font-medium">검색 위치</span>: 서울 기준 서버 IP (비로그인, 개인화 없음)</li>
-          <li>· <span className="font-medium">순위 범위</span>: 각 탭 상위 20위 이내 — 20위 밖이면 &apos;미노출&apos; 표시</li>
+          <li>· <span className="font-medium">순위 범위</span>: 검색 결과에 나온 가게 카드 순서 기준 상위 20위 이내 — 20위 밖이면 &apos;미노출&apos; 표시</li>
           <li>· <span className="font-medium">PC</span> = 네이버 PC 통합검색 &nbsp;·&nbsp; <span className="font-medium">모바일</span> = 네이버 모바일 통합검색 &nbsp;·&nbsp; <span className="font-medium">플레이스</span> = 네이버 플레이스 탭</li>
         </ul>
       </div>
@@ -382,6 +382,38 @@ export default function KeywordRankCard({
       {/* 결과 표 — PC와 모바일 분리 표시 */}
       {hasData && (
         <>
+          {/* 요약 — 측정 성공한 키워드만 센다(측정 실패는 미노출로 세지 않음) */}
+          {(() => {
+            const rows = Object.values(ranks);
+            const failed = rows.filter((d) => d.error).length;
+            const ok = rows.filter((d) => !d.error);
+            const bestOf = (d: KeywordRankData) =>
+              [d.pc_rank, d.mobile_rank, d.place_rank].filter(
+                (v): v is number => typeof v === "number" && v > 0
+              );
+            const onFirstPage = ok.filter((d) => bestOf(d).some((v) => v <= 10)).length;
+            const outOfRange = ok.length - ok.filter((d) => bestOf(d).length > 0).length;
+            if (ok.length === 0 && failed === 0) return null;
+            return (
+              <div className="mb-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 text-sm text-green-900 space-y-1">
+                {ok.length > 0 && (
+                  <p className="font-semibold break-keep">
+                    측정된 키워드 {ok.length}개 중 {onFirstPage}개가 네이버 1페이지(10위 이내)에 노출 중입니다
+                  </p>
+                )}
+                {outOfRange > 0 && (
+                  <p className="text-green-800 break-keep">
+                    {outOfRange}개 키워드는 20위 안에서 찾지 못했습니다. 스마트플레이스 소개글·소식·리뷰에 이 키워드를 자연스럽게 담으면 노출을 늘릴 여지가 있습니다.
+                  </p>
+                )}
+                {failed > 0 && (
+                  <p className="text-gray-700 break-keep">
+                    {failed}개 키워드는 측정에 실패해 순위를 알 수 없습니다(미노출이 아닙니다). &apos;다시 측정&apos;을 눌러 주세요.
+                  </p>
+                )}
+              </div>
+            );
+          })()}
           {/* PC 화면 (md+): 표 형태 */}
           <div className="hidden md:block overflow-x-auto" tabIndex={0}>
             <table className="w-full text-sm">
