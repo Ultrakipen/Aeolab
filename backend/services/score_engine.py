@@ -1353,7 +1353,9 @@ def calc_keyword_search_rank_score(scan_result: dict) -> tuple[float, bool]:
 
     scores = []
     for _kw, data in keyword_ranks.items():
-        if not isinstance(data, dict):
+        # `_context` 같은 메타 키는 키워드가 아니다 — 세면 순위가 없는 0점 키워드가 하나 늘어
+        # 평균이 깎이고, 메타만 있어도 "측정됨"이 된다(2026-10-26 발견)
+        if str(_kw).startswith("_") or not isinstance(data, dict):
             continue
         # 측정 자체가 실패한 키워드는 "미노출 0점"이 아니라 미측정 — 평균에서 제외
         if data.get("error"):

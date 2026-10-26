@@ -124,3 +124,13 @@ def test_recheck_runs_when_quota_has_room(monkeypatch):
     before = kr._recheck_stats["rechecks"]
     asyncio.run(kr._place_card_rank(_FakePage([]), "내가게", "222222"))
     assert kr._recheck_stats["rechecks"] == before + 1
+
+
+def test_score_ignores_underscore_meta_keys():
+    """`_context` 메타 키가 0점 키워드로 세어져 평균을 깎거나 '측정됨'으로 만들면 안 된다."""
+    ranks = {
+        "a": {"pc_rank": 1, "mobile_rank": 1, "place_rank": 1},
+        "_context": {"scanned_at": "x", "errors": []},
+    }
+    assert calc_keyword_search_rank_score({"keyword_ranks": ranks}) == (100.0, True)
+    assert calc_keyword_search_rank_score({"keyword_ranks": {"_context": {"scanned_at": "x"}}}) == (0.0, False)
