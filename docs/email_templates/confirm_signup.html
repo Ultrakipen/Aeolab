@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light only">
+<title>AEOlab 이메일 인증</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f1f5f9; -webkit-text-size-adjust:100%;">
+<!-- 받은편지함 미리보기 문구 -->
+<div style="display:none; max-height:0; overflow:hidden; opacity:0; color:#f1f5f9; font-size:1px; line-height:1px;">
+  아래 버튼을 눌러 이메일 인증을 완료하면 AEOlab 사용을 시작할 수 있어요.
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f1f5f9;">
+  <tr>
+    <td align="center" style="padding:24px 12px;">
+
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;">
+        <!-- 로고 -->
+        <tr>
+          <td align="center" style="padding:8px 0 20px 0; font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',Arial,sans-serif; font-size:26px; font-weight:700; color:#2563eb; letter-spacing:-0.5px;">
+            AEOlab
+          </td>
+        </tr>
+
+        <!-- 본문 카드 -->
+        <tr>
+          <td style="background-color:#ffffff; border-radius:14px; border:1px solid #e2e8f0; padding:32px 28px; font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',Arial,sans-serif; color:#1e293b; word-break:keep-all;">
+
+            <p style="margin:0 0 6px 0; font-size:14px; font-weight:600; color:#2563eb;">회원가입을 환영합니다</p>
+            <h1 style="margin:0 0 16px 0; font-size:24px; line-height:1.4; font-weight:700; color:#0f172a;">이메일 인증을 완료해 주세요</h1>
+
+            <p style="margin:0 0 8px 0; font-size:16px; line-height:1.7; color:#334155;">
+              <strong style="color:#0f172a; word-break:break-all;">{{ .Email }}</strong> 주소로 AEOlab 가입을 신청하셨습니다.
+            </p>
+            <p style="margin:0 0 24px 0; font-size:16px; line-height:1.7; color:#334155;">
+              아래 버튼을 누르면 인증이 끝나고, 바로 사업장을 등록할 수 있어요.
+            </p>
+
+            <!-- 버튼 -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" style="padding:0 0 24px 0;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+                    <tr>
+                      <td align="center" bgcolor="#2563eb" style="background-color:#2563eb; border-radius:10px;">
+                        <a href="{{ .ConfirmationURL }}" target="_blank"
+                           style="display:block; padding:16px 24px; font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',Arial,sans-serif; font-size:17px; font-weight:700; color:#ffffff; text-decoration:none; border-radius:10px;">
+                          이메일 인증하고 시작하기
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- 인증 후 순서 -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f8fafc; border-radius:10px; margin:0 0 24px 0;">
+              <tr>
+                <td style="padding:18px 18px 8px 18px; font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',Arial,sans-serif; font-size:15px; font-weight:700; color:#0f172a;">
+                  인증이 끝나면 이렇게 진행돼요
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:0 18px 4px 18px; font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',Arial,sans-serif; font-size:15px; line-height:1.7; color:#334155;">
+                  <strong style="color:#2563eb;">1.</strong> 내 가게(사업장) 이름과 지역을 등록해요<br>
+                  <strong style="color:#2563eb;">2.</strong> AI 검색에서 내 가게가 어떻게 보이는지 진단을 받아요<br>
+                  <strong style="color:#2563eb;">3.</strong> 진단 결과에 따라 개선할 점을 확인해요
+                </td>
+              </tr>
+              <tr><td style="height:14px; line-height:14px; font-size:1px;">&nbsp;</td></tr>
+            </table>
+
+            <!-- 버튼이 안 눌릴 때 -->
+            <p style="margin:0 0 6px 0; font-size:14px; line-height:1.6; color:#475569;">
+              버튼이 눌리지 않으면 아래 주소를 복사해서 브라우저 주소창에 붙여넣어 주세요.
+            </p>
+            <p style="margin:0 0 24px 0; font-size:13px; line-height:1.6; color:#2563eb; word-break:break-all;">
+              <a href="{{ .ConfirmationURL }}" target="_blank" style="color:#2563eb; text-decoration:underline;">{{ .ConfirmationURL }}</a>
+            </p>
+
+            <!-- 안내 -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e2e8f0;">
+              <tr>
+                <td style="padding:18px 0 0 0; font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',Arial,sans-serif; font-size:14px; line-height:1.7; color:#475569;">
+                  · 인증 링크는 보안을 위해 일정 시간이 지나면 만료돼요. 만료되었다면 가입 화면에서 <strong>‘인증 메일 재발송’</strong>을 눌러 주세요.<br>
+                  · 본인이 가입을 신청하지 않으셨다면 이 메일은 무시하셔도 됩니다. 아무 일도 일어나지 않아요.
+                </td>
+              </tr>
+            </table>
+
+          </td>
+        </tr>
+
+        <!-- 푸터 -->
+        <tr>
+          <td align="center" style="padding:20px 8px 8px 8px; font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',Arial,sans-serif; font-size:13px; line-height:1.7; color:#64748b; word-break:keep-all;">
+            궁금한 점이 있으시면 <a href="mailto:support@aeolab.co.kr" style="color:#2563eb; text-decoration:underline;">support@aeolab.co.kr</a> 로 문의해 주세요.<br>
+            이 메일은 발신 전용입니다. AEOlab · AI 검색 노출 관리 서비스
+          </td>
+        </tr>
+      </table>
+
+    </td>
+  </tr>
+</table>
+</body>
+</html>
