@@ -5231,12 +5231,17 @@ async def _measure_keyword_rank_for_biz(biz: dict) -> bool:
     rank_values = []
     for kw in keywords:
         data = rank_result.get(kw) if isinstance(rank_result.get(kw), dict) else None
-        if not data:
-            continue
+        if not data or data.get("error"):
+            continue  # 측정 실패는 미노출(99)이 아니라 미측정 — 평균에서 제외
         ranks = [data.get("pc_rank"), data.get("mobile_rank"), data.get("place_rank")]
         ranks = [r for r in ranks if isinstance(r, (int, float)) and r > 0]
         rank_values.append(min(ranks) if ranks else 99.0)
     avg_rank = round(sum(rank_values) / len(rank_values), 2) if rank_values else None
+
+    # 전부 측정 실패면 이전 정상 기록을 오류 결과로 덮어쓰지 않고 실패로 보고
+    if avg_rank is None:
+        logger.warning(f"[keyword_rank] biz={biz_id} 모든 키워드 측정 실패 — 저장 생략")
+        return False
 
     supabase = get_client()
     # 가장 최근 scan_results 갱신

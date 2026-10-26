@@ -186,7 +186,7 @@ async def _measure_place_api(
     place_id가 검색결과 link에 포함되면 그걸 우선 신뢰(가장 정확), 없으면 상호명 매칭.
     """
     data = await _naver_open_api_get(
-        "local.json", {"query": keyword, "display": RESULT_LIMIT, "sort": "sim"}
+        "local", {"query": keyword, "display": RESULT_LIMIT, "sort": "sim"}
     )
     if not isinstance(data, dict):
         return None
@@ -298,7 +298,14 @@ async def _run_with_browser(
                             await _measure_pc(pc_page, search_query, biz_name_norm, place_id)
                             if check_naver_playwright_quota("naver_keyword_rank.pc") else None
                         )
-                        place_rank = await _measure_place_api(search_query, biz_name, place_id)
+                        # 장소 API 실패가 PC·모바일 결과까지 버리지 않도록 채널별로 격리
+                        # (2026-10-26: kind "local.json" ValueError가 전 채널을 None으로 만든 사고)
+                        try:
+                            place_rank = await _measure_place_api(search_query, biz_name, place_id)
+                        except Exception as pe:
+                            _logger.warning(f"keyword_rank place API 실패 ({search_query}): {pe}")
+                            errors.append(f"{kw}: place:{type(pe).__name__}")
+                            place_rank = None
                         mobile_rank = (
                             await _measure_mobile(mobile_page, search_query, biz_name_norm, place_id)
                             if check_naver_playwright_quota("naver_keyword_rank.mobile") else None

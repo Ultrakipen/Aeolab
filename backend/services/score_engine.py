@@ -1352,6 +1352,9 @@ def calc_keyword_search_rank_score(scan_result: dict) -> tuple[float, bool]:
     for _kw, data in keyword_ranks.items():
         if not isinstance(data, dict):
             continue
+        # 측정 자체가 실패한 키워드는 "미노출 0점"이 아니라 미측정 — 평균에서 제외
+        if data.get("error"):
+            continue
         ranks = [
             data.get("pc_rank"),
             data.get("mobile_rank"),

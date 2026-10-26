@@ -68,10 +68,12 @@ function isKeywordRankData(v: unknown): v is KeywordRankData {
 }
 
 /** 순위에 따라 점수·색상 매핑 (작업 지침 #7: 임의 수치 금지 — 측정 데이터만 표시) */
-function rankBadge(rank: number | null | undefined): {
+function rankBadge(rank: number | null | undefined, failed?: string): {
   text: string;
   cls: string;
 } {
+  // 측정 자체가 실패한 행은 "미노출"이 아니라 "측정 실패"로 구분 (실패≠순위권 밖)
+  if (failed) return { text: "측정 실패", cls: "text-gray-600 bg-gray-50" };
   if (!rank || rank <= 0) return { text: "미노출", cls: "text-gray-600 bg-gray-50" };
   if (rank === 1) return { text: "1위", cls: "text-emerald-700 bg-emerald-100 font-bold" };
   if (rank <= 3) return { text: `${rank}위`, cls: "text-emerald-700 bg-emerald-50" };
@@ -393,9 +395,9 @@ export default function KeywordRankCard({
               </thead>
               <tbody>
                 {Object.entries(ranks).map(([kw, data]) => {
-                  const pc = rankBadge(data.pc_rank);
-                  const mob = rankBadge(data.mobile_rank);
-                  const pl = rankBadge(data.place_rank);
+                  const pc = rankBadge(data.pc_rank, data.error);
+                  const mob = rankBadge(data.mobile_rank, data.error);
+                  const pl = rankBadge(data.place_rank, data.error);
                   const displayKw = data.search_query || kw;
                   return (
                     <tr key={kw} className="border-b border-gray-100 last:border-0">
@@ -427,9 +429,9 @@ export default function KeywordRankCard({
           {/* 모바일 화면: 카드 형태 */}
           <div className="md:hidden space-y-2">
             {Object.entries(ranks).map(([kw, data]) => {
-              const pc = rankBadge(data.pc_rank);
-              const mob = rankBadge(data.mobile_rank);
-              const pl = rankBadge(data.place_rank);
+              const pc = rankBadge(data.pc_rank, data.error);
+              const mob = rankBadge(data.mobile_rank, data.error);
+              const pl = rankBadge(data.place_rank, data.error);
               const displayKw = data.search_query || kw;
               return (
                 <div key={kw} className="rounded-lg border border-gray-200 p-3">

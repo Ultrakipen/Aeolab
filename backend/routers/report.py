@@ -907,13 +907,15 @@ async def export_csv(biz_id: str, user=Depends(get_current_user)):
             ranks = scan_row.get("keyword_ranks") or {}
             if isinstance(ranks, dict):
                 for kw, rank_data in ranks.items():
-                    if isinstance(rank_data, dict):
-                        kw_stats[kw].append({
-                            "date": scan_date,
-                            "pc": rank_data.get("pc"),
-                            "mobile": rank_data.get("mobile"),
-                            "place": rank_data.get("place"),
-                        })
+                    # `_context` 등 메타 키와 측정 실패 행은 순위 통계에서 제외 (실패≠미노출)
+                    if kw.startswith("_") or not isinstance(rank_data, dict) or rank_data.get("error"):
+                        continue
+                    kw_stats[kw].append({
+                        "date": scan_date,
+                        "pc": rank_data.get("pc_rank"),
+                        "mobile": rank_data.get("mobile_rank"),
+                        "place": rank_data.get("place_rank"),
+                    })
 
         def _fmt_rank(v) -> str:
             if v is None:
@@ -1204,11 +1206,17 @@ async def export_keyword_rank_csv(biz_id: str, user=Depends(get_current_user)):
             if not isinstance(ranks, dict):
                 continue
             for kw, rank_data in sorted(ranks.items()):
-                if not isinstance(rank_data, dict):
+                if kw.startswith("_") or not isinstance(rank_data, dict):
                     continue
-                pc    = rank_data.get("pc")
-                mob   = rank_data.get("mobile")
-                place = rank_data.get("place")
+                if rank_data.get("error"):
+                    writer.writerow([
+                        _csv_safe(scan_date), _csv_safe(kw),
+                        "측정 실패", "측정 실패", "측정 실패", "", "", "",
+                    ])
+                    continue
+                pc    = rank_data.get("pc_rank")
+                mob   = rank_data.get("mobile_rank")
+                place = rank_data.get("place_rank")
                 writer.writerow([
                     _csv_safe(scan_date), _csv_safe(kw),
                     _display(pc), _display(mob), _display(place),

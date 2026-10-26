@@ -3837,8 +3837,8 @@ async def keyword_rank_scan(
     rank_values = []
     for kw in keywords[:10]:
         data = rank_result.get(kw) if isinstance(rank_result.get(kw), dict) else None
-        if not data:
-            continue
+        if not data or data.get("error"):
+            continue  # 측정 실패는 미노출(99)이 아니라 미측정 — 평균에서 제외
         ranks = [data.get("pc_rank"), data.get("mobile_rank"), data.get("place_rank")]
         ranks = [r for r in ranks if isinstance(r, (int, float)) and r > 0]
         rank_values.append(min(ranks) if ranks else 99.0)
