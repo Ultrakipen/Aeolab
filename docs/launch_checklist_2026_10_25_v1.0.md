@@ -12,7 +12,7 @@
 |---|---|---|---|---|
 | 1 | **크렙 결제 심사 통과** | 사용자 | 크렙 심사 결과 통보 | ⏳ 심사 중. 통과 전 심사용 계정(`creb-review@`) 삭제 금지 |
 | 2 | **크렙 라이브 키 전환** (§5 절차) | 사용자+Claude | 라이브 키로 결제창 1건 시험 | ⏳ 1번 통과 후 |
-| 3 | **Supabase Auth SMTP 확인** — 이메일 인증이 필수(`mailer_autoconfirm=False`)라, 인증 메일이 기본 발송 서버(한도 매우 낮음)로 나가면 출시 직후 가입이 막힘 | 사용자 | Supabase 대시보드 → Auth → SMTP Settings에서 자체 SMTP 설정 여부 확인 | ❌ 미확인 (Claude는 접근 불가) |
+| 3 | **Supabase Auth SMTP 확인** — 이메일 인증이 필수(`mailer_autoconfirm=False`)라, 인증 메일이 기본 발송 서버(한도 매우 낮음)로 나가면 출시 직후 가입이 막힘 | 사용자 | Supabase 대시보드 → Auth → SMTP Settings에서 자체 SMTP 설정 여부 확인 | 🔶 **연결 확인(2026-10-26)** — 커스텀 SMTP 켜짐(`smtp.resend.com:465`, 발신 `contact@aeolab.co.kr`), 시험 주소 가입 시 Supabase 응답 200·`confirmation_sent_at` 기록·Resend Emails에 "Confirm Your Signup" 발송 기록(존재하지 않는 주소라 bounced=정상). **남은 것: 실제 외부 메일 주소로 가입해 도착·스팸함·본문·인증 링크 확인**. 인증 메일 제목이 영어 기본값("Confirm Your Signup") — Authentication → Email Templates 한국어화 필요 |
 | 4 | **가입 → 인증 메일 도착 → 로그인 → 첫 스캔 전체 테스트** | 사용자(메일 주소 제공)+Claude | 실제 메일함에서 인증 메일 수신, 첫 스캔 결과 화면 확인 | ❌ 한 번도 끝까지 못 함. 가입 완료 *화면*만 가짜 API 응답으로 확인함 |
 | 5 | **Gemini 결제 연결 후 성공률 확인** — 무료 티어 한도로 하루 100회 중 92~97회 실패 중(`ResourceExhausted`, 10-16~24 `ai_usage_log`), 결과의 `sample_size`가 4~8 | 사용자(결제)+Claude(확인) | 결제 연결 후 스캔 1회 → `ai_usage_log`에서 gemini 성공이 100에 가까운지, `scan_results.gemini_result.failed_count` 확인. 결제는 `GEMINI_API_KEY`가 속한 Google Cloud 프로젝트에 연결 | ⏳ 사용자가 서비스 개선 후 직접 하기로 함 |
 | 6 | **10-25 밤 스캔(KST 02:00경) 정상 확인** — 프록시 제거·접속실패 표시 수정·쿠키·Serper 키 교체 후 첫 실전 스캔 | Claude | 저장된 `naver_result`에 `error`/`page_load_failed` 없음, 구글 측정 정상, 백엔드 로그 새 오류 없음 | ⏳ 사용자가 10-26 오전에 요청하면 확인 |
