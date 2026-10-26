@@ -61,6 +61,8 @@ interface KeywordRankCardProps {
   plan?: string;
   /** 사업장 지역 — 측정 조건 예시 동적 생성용 */
   region?: string;
+  /** 사업장 네이버 리뷰 수(측정·입력값, 0/없음이면 표시 안 함) */
+  reviewCount?: number;
 }
 
 function isKeywordRankData(v: unknown): v is KeywordRankData {
@@ -120,6 +122,7 @@ export default function KeywordRankCard({
   userGroup,
   plan,
   region,
+  reviewCount,
 }: KeywordRankCardProps) {
   const [ranks, setRanks] = useState<KeywordRanksMap>(() => {
     if (!initialKeywordRanks || typeof initialKeywordRanks !== "object") return {};
@@ -404,6 +407,11 @@ export default function KeywordRankCard({
                 {outOfRange > 0 && (
                   <p className="text-green-800 break-keep">
                     {outOfRange}개 키워드는 검색 첫 화면에서 찾지 못했습니다. 스마트플레이스 소개글·소식·리뷰에 이 키워드를 자연스럽게 담으면 노출을 늘릴 여지가 있습니다.
+                  </p>
+                )}
+                {outOfRange > 0 && typeof reviewCount === "number" && reviewCount > 0 && (
+                  <p className="text-green-800 break-keep">
+                    참고: 이 가게의 네이버 리뷰는 {reviewCount.toLocaleString("ko-KR")}건입니다. 순위는 키워드마다 크게 달라, 넓은 키워드보다 메뉴·서비스명처럼 구체적인 키워드에서 더 잘 노출되는 경우가 있습니다.
                   </p>
                 )}
                 {failed > 0 && (

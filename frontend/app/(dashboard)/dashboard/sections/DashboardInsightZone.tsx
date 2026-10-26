@@ -232,6 +232,7 @@ export default function DashboardInsightZone({
               initialKeywordRanks={initialKeywordRanks ?? null}
               userGroup={userGroup ?? "INACTIVE"}
               region={region}
+              reviewCount={reviewCount}
             />
           </CollapsibleSub>
         </div>
