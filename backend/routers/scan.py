@@ -109,6 +109,17 @@ _PLATFORM_LABELS = {
     "naver": "Naver AI 브리핑", "google": "Google 검색",
 }
 
+
+def _int_or_none(v):
+    """scan_analytics.smart_place_score 는 INTEGER 컬럼 — 소수(예: 23.5)를 넣으면 22P02로 행 전체가 저장 실패한다
+    (2026-10-26 첫 분석 시험에서 발견, trial_scans 의 INTEGER 실수 저장 실패와 같은 유형). 반올림한 정수로 변환."""
+    if v is None:
+        return None
+    try:
+        return int(round(float(v)))
+    except (TypeError, ValueError):
+        return None
+
 router = APIRouter()
 
 # ── 무료 체험 IP 레이트 리밋 설정 ─────────────────────────────────────────
@@ -1136,7 +1147,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
                 "top_missing_keywords": score.get("top_missing_keywords") or [],
                 "keyword_coverage": score.get("breakdown", {}).get("keyword_gap_score", 0.0) / 100,
                 "platform_mentioned": platform_mentioned,
-                "smart_place_score": score.get("breakdown", {}).get("smart_place_completeness"),
+                "smart_place_score": _int_or_none(score.get("breakdown", {}).get("smart_place_completeness")),
             }))
         except Exception as e:
             _logger.warning(f"scan_analytics insert failed (trial): {e}")
@@ -2881,7 +2892,7 @@ async def _enrich_scan_background(
             "top_missing_keywords": score.get("top_missing_keywords") or [],
             "keyword_coverage": score.get("breakdown", {}).get("keyword_gap_score", 0.0) / 100,
             "platform_mentioned": platform_mentioned,
-            "smart_place_score": score.get("breakdown", {}).get("smart_place_completeness"),
+            "smart_place_score": _int_or_none(score.get("breakdown", {}).get("smart_place_completeness")),
             "competitor_count": len(comp_list),
             "competitor_mentioned_count": len(comp_mentioned),
             "competitor_avg_score": comp_avg,
@@ -3554,7 +3565,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                 "top_missing_keywords": score.get("top_missing_keywords") or [],
                 "keyword_coverage": score.get("breakdown", {}).get("keyword_gap_score", 0.0) / 100,
                 "platform_mentioned": platform_mentioned_full,
-                "smart_place_score": score.get("breakdown", {}).get("smart_place_completeness"),
+                "smart_place_score": _int_or_none(score.get("breakdown", {}).get("smart_place_completeness")),
                 "competitor_count": len(comp_list_full),
                 "competitor_mentioned_count": len(comp_mentioned_full),
                 "competitor_avg_score": comp_avg_full,
