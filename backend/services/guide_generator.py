@@ -823,6 +823,10 @@ class GuideGenerator:
         if _is_v3_1:
             user_group = breakdown.get("user_group", "ACTIVE").upper()
             kw_rank_score  = breakdown.get("keyword_search_rank")
+            # 순위 점수는 아직 점수에 연결되지 않아(미측정은 항목 생략) 과거 기록의 0.0은 "측정 못 함"이지
+            # 실제 0점이 아니다 — 0.0을 "0.0점"으로 가이드에 쓰지 않는다. (순위를 점수에 연결할 때 이 줄 재검토)
+            if kw_rank_score is not None and not kw_rank_score:
+                kw_rank_score = None
             blog_cr_score  = breakdown.get("blog_crank")
             local_map_sc   = breakdown.get("local_map_score")
             ai_brief_sc    = breakdown.get("ai_briefing_score")
