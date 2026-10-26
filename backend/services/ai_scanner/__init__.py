@@ -237,6 +237,11 @@ _NAVER_PLAYWRIGHT_DAILY_CAP = int(os.getenv("NAVER_PLAYWRIGHT_DAILY_CAP", "250")
 _naver_pw_quota_date: str = ""
 _naver_pw_quota_count: int = 0
 _naver_pw_quota_alert_sent_date: str = ""
+# 사용량 가시화(2026-10-26): 출처별 일일 사용 건수 + 상한 70%·90% 사전 경고(하루 각 1회).
+# 프로세스 메모리라 재시작하면 그날 누적이 0부터 다시 시작한다(배포 직후 과소 집계 가능).
+_naver_pw_quota_by_source: dict = {}
+_naver_pw_quota_warn_sent: set = set()
+_QUOTA_WARN_PERCENTS = (70, 90)
 
 
 def check_naver_playwright_quota(source: str = "") -> bool:
@@ -251,6 +256,8 @@ def check_naver_playwright_quota(source: str = "") -> bool:
     if _naver_pw_quota_date != today:
         _naver_pw_quota_date = today
         _naver_pw_quota_count = 0
+        _naver_pw_quota_by_source.clear()
+        _naver_pw_quota_warn_sent.clear()
     if _naver_pw_quota_count >= _NAVER_PLAYWRIGHT_DAILY_CAP:
         if _naver_pw_quota_alert_sent_date != today:
             _naver_pw_quota_alert_sent_date = today
@@ -271,10 +278,68 @@ def check_naver_playwright_quota(source: str = "") -> bool:
                 except Exception as _e:
                     _logger.warning("[naver_quota] 알림 발송 실패: %s", _e)
 
-            asyncio.create_task(_alert())
+            try:
+                asyncio.create_task(_alert())
+            except RuntimeError:
+                # 이벤트 루프 밖(동기 호출)에서는 알림만 건너뛴다 — 상한 판단 자체는 예외 없이 False 반환
+                _logger.warning("[naver_quota] 이벤트 루프 없음 — 상한 도달 알림 메일 생략")
         return False
     _naver_pw_quota_count += 1
+    _src = source or "unknown"
+    _naver_pw_quota_by_source[_src] = _naver_pw_quota_by_source.get(_src, 0) + 1
+    _warn_quota_usage(today, _naver_pw_quota_count, _src)
     return True
+
+
+def naver_playwright_quota_snapshot() -> dict:
+    """오늘 네이버 Playwright 사용량 스냅샷 — 날짜·사용·상한·출처별(많은 순). 카운트는 증가시키지 않는다."""
+    from datetime import date as _date
+    if _naver_pw_quota_date != _date.today().isoformat():
+        return {"date": _date.today().isoformat(), "used": 0, "cap": _NAVER_PLAYWRIGHT_DAILY_CAP, "by_source": {}}
+    return {
+        "date": _naver_pw_quota_date,
+        "used": _naver_pw_quota_count,
+        "cap": _NAVER_PLAYWRIGHT_DAILY_CAP,
+        "by_source": dict(sorted(_naver_pw_quota_by_source.items(), key=lambda kv: -kv[1])),
+    }
+
+
+def _warn_quota_usage(today: str, count: int, source: str) -> None:
+    """상한의 70%·90% 도달 시 하루 1회씩 경고 로그 + 운영자 알림(100% 알림은 별도로 기존 경로가 처리).
+
+    동기 함수에서 호출되므로 이벤트 루프가 없으면 알림은 건너뛰고 로그만 남긴다.
+    알림 실패가 스캔을 막지 않도록 모든 예외를 삼킨다.
+    """
+    cap = _NAVER_PLAYWRIGHT_DAILY_CAP
+    if cap <= 0:
+        return
+    for pct in _QUOTA_WARN_PERCENTS:
+        key = (today, pct)
+        if count < cap * pct / 100 or key in _naver_pw_quota_warn_sent:
+            continue
+        _naver_pw_quota_warn_sent.add(key)
+        top = sorted(_naver_pw_quota_by_source.items(), key=lambda kv: -kv[1])[:5]
+        detail = ", ".join(f"{k}={v}" for k, v in top)
+        _logger.warning("[naver_quota] 일일 상한의 %d%% 도달 (%d/%d) 출처 상위: %s", pct, count, cap, detail)
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            continue
+
+        async def _send(_pct=pct, _count=count, _detail=detail):
+            try:
+                from services.email_sender import send_operator_alert
+                await send_operator_alert(
+                    f"네이버 Playwright 일일 상한 {_pct}% 도달",
+                    f"오늘 네이버 자동화 요청이 {_count}/{cap}건({_pct}% 이상)입니다. 출처 상위: {_detail}. "
+                    "상한(100%)에 도달하면 이후 요청은 오늘 건너뜁니다. 구독자 증가가 원인이면 "
+                    "docs/naver_request_load_spreading_design_v1.0.md의 요일 분산 구현을 검토하세요. "
+                    "(프로세스 시작 이후 누적이라 배포 직후엔 실제보다 적게 보일 수 있습니다.)",
+                )
+            except Exception as _e:
+                _logger.warning("[naver_quota] 사전 경고 알림 발송 실패: %s", _e)
+
+        loop.create_task(_send())
 
 
 def naver_playwright_quota_usage() -> tuple[int, int]:

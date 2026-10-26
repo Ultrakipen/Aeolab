@@ -221,6 +221,12 @@ def start_scheduler():
         id="keyword_rank_pro_daily", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
+    # 네이버 Playwright 일일 사용량 마감 로그 (매일 23:58 KST) — 요일 분산 설계의 트리거(월요일 150건 등) 판단 근거
+    scheduler.add_job(
+        naver_quota_daily_summary_job, "cron", hour=23, minute=58,
+        id="naver_quota_daily_summary", replace_existing=True,
+        max_instances=1, misfire_grace_time=300,
+    )
     # v1.1 §3.3 — 소식 14일 미작성 알림 (매일 09:10 KST)
     scheduler.add_job(
         inactive_post_alert_job, "cron", hour=9, minute=10,
@@ -5448,6 +5454,22 @@ async def keyword_rank_pro_daily_job() -> None:
         await _run_keyword_rank_for_plans(["pro", "biz", "enterprise", "startup"])
     except Exception as e:
         logger.error(f"[keyword_rank_pro_daily_job] 실패: {e}")
+
+
+async def naver_quota_daily_summary_job() -> None:
+    """하루 마감 직전 네이버 Playwright 사용량을 로그로 남긴다(매일 23:58 KST) — 구독자 증가 대비 추세 기록.
+
+    프로세스 메모리 기준이라 그날 재시작이 있었다면 실제보다 적을 수 있다.
+    """
+    try:
+        from services.ai_scanner import naver_playwright_quota_snapshot
+        snap = naver_playwright_quota_snapshot()
+        used, cap = snap["used"], snap["cap"]
+        pct = round(used / cap * 100) if cap else 0
+        detail = ", ".join(f"{k}={v}" for k, v in snap["by_source"].items()) or "없음"
+        logger.info("[naver_quota_summary] %s 사용 %d/%d건(%d%%) 출처별: %s", snap["date"], used, cap, pct, detail)
+    except Exception as e:
+        logger.warning(f"[naver_quota_daily_summary_job] 실패: {e}")
 
 
 # ─── 소식 14일 미작성 알림 잡 (v1.1 §3.3) ─────────────────────────────────────────
