@@ -25,6 +25,26 @@ def _get_playwright_sem():
         return _get_playwright_sem._fallback
 
 
+
+def _exact_count(patterns: list, text: str):
+    """패턴 순서대로 첫 '정확한' 개수를 돌려준다(없으면 None).
+
+    숫자 바로 뒤가 '만'이거나 '.숫자만'인 축약 표기("리뷰 1만", "리뷰 1.2만")는 정확한 값이 아니므로 건너뛴다.
+    이전에는 마지막 보조 패턴("리뷰" 뒤 공백+숫자)이 "리뷰 1만"에서 1만 읽어(2026-10-26 로그
+    mobile fallback review_count=1), 1만 건이 넘는 유명한 가게가 리뷰 1건으로 저장·점수 반영될 수 있었다.
+    """
+    for pat in patterns:
+        for m in re.finditer(pat, text):
+            rest = text[m.end(1): m.end(1) + 8]
+            if re.match(r"\s*(?:\.\d+)?\s*만", rest):
+                continue
+            try:
+                return int(m.group(1).replace(",", ""))
+            except ValueError:
+                continue
+    return None
+
+
 class NaverPlaceStatsService:
     async def fetch_stats(self, naver_place_id: str) -> dict:
         """네이버 플레이스 공개 페이지에서 기본 통계 파싱"""
@@ -79,7 +99,7 @@ class NaverPlaceStatsService:
                 body_text = await target.inner_text("body")
 
                 # 방문자 리뷰 수 파싱 — 다양한 네이버 플레이스 UI 포맷 지원
-                visitor_review_count = 0
+                visitor_review_count = None  # None = 정확한 수를 읽지 못함(측정 못 함). 0과 구분해 기존 값을 덮어쓰지 않는다
                 _review_patterns = [
                     r"방문자\s*리뷰\s*(\d[\d,]*)",          # "방문자 리뷰 16"
                     r"방문자리뷰\s*(\d[\d,]*)",              # 공백 없는 변형
@@ -91,24 +111,16 @@ class NaverPlaceStatsService:
                     r"리뷰(\d[\d,]+)",                       # 리뷰 탭 상단 "리뷰42"(공백 없음) — 클렌징 후 실제 노출 수, 최우선 신뢰
                     r"리뷰[ \t]+(\d[\d,]*)",                # "장소대여리뷰 22"(업종 카테고리 접두, 공백) — 클렌징 전 집계라 부정확할 수 있음, 최후 폴백
                 ]
-                for _pat in _review_patterns:
-                    _m = re.search(_pat, body_text)
-                    if _m:
-                        visitor_review_count = int(_m.group(1).replace(",", ""))
-                        break
+                visitor_review_count = _exact_count(_review_patterns, body_text)
 
                 # 데스크탑 아이프레임에서 미감지 시 모바일 URL로 재시도
-                if visitor_review_count == 0:
+                if visitor_review_count is None:
                     try:
                         mobile_url = f"https://m.place.naver.com/place/{naver_place_id}/home"
                         await page.goto(mobile_url, timeout=12000, wait_until="domcontentloaded")
                         await page.wait_for_timeout(2000)
                         mobile_body = await page.inner_text("body")
-                        for _pat in _review_patterns:
-                            _m = re.search(_pat, mobile_body)
-                            if _m:
-                                visitor_review_count = int(_m.group(1).replace(",", ""))
-                                break
+                        visitor_review_count = _exact_count(_review_patterns, mobile_body)
                         logger.info(f"[place_stats] mobile fallback review_count={visitor_review_count} for {naver_place_id}")
                     except Exception as _e:
                         logger.warning("review mobile fallback failed [%s]: %s", naver_place_id, _e)
@@ -124,18 +136,15 @@ class NaverPlaceStatsService:
                     await page.goto(pcmap_url, timeout=15000, wait_until="domcontentloaded")
                     await page.wait_for_timeout(5000)
                     pcmap_body = await page.inner_text("body")
-                    _pcmap_match = re.search(r"리뷰(\d[\d,]+)", pcmap_body)
-                    if _pcmap_match:
-                        visitor_review_count = int(_pcmap_match.group(1).replace(",", ""))
+                    _pcmap_exact = _exact_count([r"리뷰(\d[\d,]+)"], pcmap_body)
+                    if _pcmap_exact is not None:
+                        visitor_review_count = _pcmap_exact
                     logger.info(f"[place_stats] pcmap review-tab review_count={visitor_review_count} for {naver_place_id}")
                 except Exception as _e:
                     logger.warning("review pcmap fallback failed [%s]: %s", naver_place_id, _e)
 
                 # 영수증 리뷰 수 파싱
-                receipt_review_count = 0
-                receipt_match = re.search(r"영수증\s*리뷰\s*(\d[\d,]*)", body_text)
-                if receipt_match:
-                    receipt_review_count = int(receipt_match.group(1).replace(",", ""))
+                receipt_review_count = _exact_count([r"영수증\s*리뷰\s*(\d[\d,]*)"], body_text)
 
                 # 별점 파싱 — 1차: body_text 텍스트 / 2차: HTML JSON VisitorReviewStats
                 # 네이버는 2021.10 방문자 별점 기능 종료 → 대부분 0. 0이면 None 반환(DB 기존값 유지).

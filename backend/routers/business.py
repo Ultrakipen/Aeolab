@@ -500,6 +500,12 @@ async def sync_review_stats(biz_id: str, user=Depends(get_current_user)):
             "success": False,
             "error": stats["error"],
         }
+    if stats.get("visitor_review_count") is None:
+        # 정확한 리뷰 수를 읽지 못함(로딩 실패·"리뷰 1만" 같은 축약 표기만 노출 등) — 0건으로 성공 처리하지 않고 기존 값을 유지
+        return {
+            "success": False,
+            "error": "리뷰 수를 정확히 읽지 못했습니다. 잠시 후 다시 시도하거나 직접 입력해 주세요.",
+        }
 
     # 성공 시 쿨다운 설정 (관리자 제외)
     if not is_admin:
@@ -507,8 +513,8 @@ async def sync_review_stats(biz_id: str, user=Depends(get_current_user)):
 
     return {
         "success": True,
-        "visitor_review_count": stats.get("visitor_review_count", 0),
-        "receipt_review_count": stats.get("receipt_review_count", 0),
+        "visitor_review_count": stats.get("visitor_review_count") or 0,
+        "receipt_review_count": stats.get("receipt_review_count") or 0,
         "avg_rating": stats.get("avg_rating", 0.0),
         "place_name": stats.get("place_name", ""),
     }

@@ -231,6 +231,8 @@ export default function OnboardingPage() {
           setNaverSearchMsg(`✓ 네이버 스마트플레이스를 찾아 자동으로 입력했습니다${resolved.matched_name ? ` (${resolved.matched_name})` : ""}`);
         } else if (resolved?.status === "ambiguous") {
           setNaverSearchMsg("이름이 같거나 비슷한 가게가 여러 곳이라 자동으로 고르지 못했습니다. 아래 안내를 참고해 네이버 지도에서 직접 복사해 주세요.");
+        } else if (resolved?.status === "mismatch") {
+          setNaverSearchMsg("같은 이름의 가게는 찾았지만 주소가 달라 다른 지점일 수 있어 자동으로 입력하지 않았습니다. 아래 안내를 참고해 내 가게를 직접 확인해 주세요.");
         } else {
           setNaverSearchMsg("네이버 ID는 자동 입력이 어렵습니다. 아래 안내를 참고해 네이버 지도에서 직접 복사해 주세요.");
         }

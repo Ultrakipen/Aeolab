@@ -14,7 +14,7 @@ export function isNaverPlaceUrl(url?: string | null): boolean {
 }
 
 export interface ResolvedPlace {
-  status: "unique" | "ambiguous" | "none" | "quota" | "error";
+  status: "unique" | "ambiguous" | "mismatch" | "unverified" | "none" | "quota" | "error";
   naver_place_id: string | null;
   naver_place_url: string | null;
   matched_name: string | null;
