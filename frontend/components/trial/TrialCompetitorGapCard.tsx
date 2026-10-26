@@ -78,7 +78,7 @@ export default function TrialCompetitorGapCard({
                   {kr.exposed && kr.rank ? (
                     <span className="text-sm font-bold text-green-700 shrink-0 ml-2">{kr.rank}위 노출</span>
                   ) : (
-                    <span className="text-sm font-bold text-red-700 shrink-0 ml-2">20위 밖</span>
+                    <span className="text-sm font-bold text-red-700 shrink-0 ml-2">상위 5곳 밖</span>
                   )}
                 </div>
               );
@@ -130,7 +130,7 @@ export default function TrialCompetitorGapCard({
             );
           })}
           {!myRank && (
-            <p className="text-sm text-red-700 mt-1 px-1">내 가게가 상위 20위 안에 없습니다</p>
+            <p className="text-sm text-red-700 mt-1 px-1">내 가게가 지역 검색 상위 5곳에 없습니다</p>
           )}
         </div>
       )}

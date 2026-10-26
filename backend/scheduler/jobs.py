@@ -5310,6 +5310,9 @@ async def _measure_keyword_rank_for_biz(biz: dict) -> bool:
         return False
 
 
+_RANK_FAIL_ALERT_RATIO = 0.5  # 측정 대상 중 이 비율 이상 실패하면 운영자 알림
+
+
 async def _run_keyword_rank_for_plans(plans: list[str]) -> None:
     """지정된 플랜의 활성 구독자 사업장 전체에 대해 키워드 순위 측정.
 
@@ -5359,6 +5362,21 @@ async def _run_keyword_rank_for_plans(plans: list[str]) -> None:
 
     logger.info(f"[keyword_rank_job] 완료 — 성공={success}, 실패={failed}")
 
+    # 측정이 대량으로 실패하면 운영자에게 알린다 — 9월 초 API 이름 오류로 순위 측정이 두 달 가까이
+    # 조용히 실패한 채 화면엔 "미노출"로 보였던 사고(2026-10-26)의 재발 방지.
+    total = success + failed
+    if total and failed / total >= _RANK_FAIL_ALERT_RATIO:
+        try:
+            from services.email_sender import send_operator_alert
+            await send_operator_alert(
+                "키워드 순위 측정 다수 실패",
+                f"정기 키워드 순위 측정(plans={plans})에서 {total}곳 중 {failed}곳이 실패했습니다. "
+                "사용자 화면에는 '측정 실패'로 표시되고 점수에는 반영되지 않지만, 원인(네이버 접속·API 변경·"
+                "상한 도달 등)을 확인해 주세요. 상세는 backend 로그 '[keyword_rank]'를 보세요.",
+            )
+        except Exception as _e:
+            logger.warning(f"[keyword_rank_job] 대량 실패 알림 발송 실패: {_e}")
+
 
 async def _maybe_notify_keyword_change(biz: dict, prev: dict, curr: dict) -> None:
     """키워드 순위 변동 시 카카오 알림톡 발송 (AEOLAB_KW_01).
@@ -5381,6 +5399,12 @@ async def _maybe_notify_keyword_change(biz: dict, prev: dict, curr: dict) -> Non
     biggest_delta = 0
     for kw in (curr.keys() if isinstance(curr, dict) else []):
         if kw.startswith("_"):
+            continue
+        # 측정 실패(error)는 "미노출(99)"이 아니라 알 수 없음 — 양쪽 어느 쪽이든 실패면 비교하지 않는다
+        # (실패를 순위 이탈로 알리면 사용자에게 거짓 알림이 간다)
+        if (isinstance(prev.get(kw), dict) and prev[kw].get("error")) or (
+            isinstance(curr.get(kw), dict) and curr[kw].get("error")
+        ):
             continue
         prev_rank = _best_rank(prev.get(kw, {}))
         curr_rank = _best_rank(curr.get(kw, {}))

@@ -129,7 +129,7 @@ export default function NaverStatusSection({
       return "스마트플레이스에 등록하지 않으면 네이버 지역 검색에 나타나지 않습니다.";
     }
     if (!inTop20) {
-      return "이 키워드 검색 상위 20위에 없습니다 — 소개글·소식·리뷰를 보강하면 순위가 올라갑니다.";
+      return "네이버 지역 검색 상위 5곳에서 찾지 못했습니다(그 아래 순위는 확인하지 않습니다) — 소개글·소식·리뷰를 보강하면 노출에 도움이 됩니다.";
     }
     if (!inTop5) {
       return "소개글·소식·리뷰가 부족하면 순위가 밀립니다.";
@@ -277,7 +277,7 @@ export default function NaverStatusSection({
                     ?
                   </span>
                   <p className="text-sm font-semibold text-red-700">
-                    {businessName} — 상위 20위 밖
+                    {businessName} — 지역 검색 상위 5곳 밖
                   </p>
                 </li>
               )}
@@ -293,7 +293,7 @@ export default function NaverStatusSection({
             <div className="flex items-center gap-3 rounded-lg px-3 py-3 bg-amber-50 border border-amber-200">
               <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0" />
               <p className="text-sm font-semibold text-amber-700">
-                검색 결과 상위 20위 밖입니다
+                지역 검색 상위 5곳에서 찾지 못했습니다
               </p>
             </div>
           )}

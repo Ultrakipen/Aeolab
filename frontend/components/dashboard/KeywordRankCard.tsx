@@ -362,7 +362,7 @@ export default function KeywordRankCard({
           <li>· <span className="font-medium">검색어</span>: 등록 키워드{keywords.length > 0 ? ` ${keywords.length}개` : ""} 각각 측정 — 키워드에 지역명이 없으면 사업장 지역을 앞에 붙입니다. 아래 표에 실제 검색어 표시</li>
           <li>· <span className="font-medium">검색 위치</span>: 서울 기준 서버 IP (비로그인, 개인화 없음)</li>
           <li>· <span className="font-medium">순위 범위</span>: 검색 첫 화면에 나오는 가게 카드(보통 5~13곳) 순서, <span className="font-medium">광고 제외</span> 기준 — 첫 화면에 없으면 &apos;미노출&apos;로 표시하며 그 아래 순위는 확인하지 않습니다. 화면에서는 위에 광고가 몇 칸 있어 더 아래에 보일 수 있습니다</li>
-          <li>· <span className="font-medium">PC</span> = 네이버 PC 통합검색 &nbsp;·&nbsp; <span className="font-medium">모바일</span> = 네이버 모바일 통합검색 &nbsp;·&nbsp; <span className="font-medium">플레이스</span> = 네이버 플레이스 탭</li>
+          <li>· <span className="font-medium">PC</span> = 네이버 PC 통합검색 &nbsp;·&nbsp; <span className="font-medium">모바일</span> = 네이버 모바일 통합검색 &nbsp;·&nbsp; <span className="font-medium">플레이스</span> = 네이버 지역 검색 상위 5곳(그 아래는 확인하지 않음)</li>
         </ul>
       </div>
 

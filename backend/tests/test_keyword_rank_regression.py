@@ -134,3 +134,67 @@ def test_score_ignores_underscore_meta_keys():
     }
     assert calc_keyword_search_rank_score({"keyword_ranks": ranks}) == (100.0, True)
     assert calc_keyword_search_rank_score({"keyword_ranks": {"_context": {"scanned_at": "x"}}}) == (0.0, False)
+
+
+# ── 정기 순위 잡: 대량 실패 알림, 변동 알림의 측정 실패 처리 (2026-10-27) ──
+def test_rank_job_alerts_on_mass_failure(monkeypatch):
+    import scheduler.jobs as jobs
+    import db.supabase_client as dbc
+    import services.email_sender as es
+
+    class R:
+        def __init__(self, data):
+            self.data = data
+
+    async def fake_exec(q):
+        return R(getattr(q, "_fake", []))
+
+    class Q:
+        def __init__(self, data): self._fake = data
+        def select(self, *a, **k): return self
+        def eq(self, *a, **k): return self
+        def in_(self, *a, **k): return self
+
+    class C:
+        def table(self, name):
+            return Q([{"user_id": "u1", "plan": "pro", "status": "active"}] if name == "subscriptions"
+                     else [{"id": "b1", "user_id": "u1", "name": "n", "keywords": ["a"], "naver_place_id": "1", "region": "창원"},
+                           {"id": "b2", "user_id": "u1", "name": "m", "keywords": ["b"], "naver_place_id": "2", "region": "창원"}])
+
+    sent = []
+
+    async def fake_alert(subject, message):
+        sent.append(subject)
+        return True
+
+    async def failing(biz):
+        return False
+
+    async def no_sleep(*a, **k):
+        return None
+
+    monkeypatch.setattr(dbc, "get_client", lambda: C())
+    monkeypatch.setattr(dbc, "execute", fake_exec)
+    monkeypatch.setattr(es, "send_operator_alert", fake_alert)
+    monkeypatch.setattr(jobs, "_measure_keyword_rank_for_biz", failing)
+    monkeypatch.setattr(jobs.asyncio, "sleep", no_sleep)
+    asyncio.run(jobs._run_keyword_rank_for_plans(["pro"]))
+    assert sent == ["키워드 순위 측정 다수 실패"]
+
+
+def test_keyword_change_notification_skips_failed_rows(monkeypatch):
+    import scheduler.jobs as jobs
+    # 이전 3위 → 이번 측정 실패(error): 99(미노출)로 오인해 'TOP10 이탈' 알림을 만들면 안 된다
+    prev = {"성수 카페": {"pc_rank": 3, "mobile_rank": 3, "place_rank": 3}}
+    curr = {"성수 카페": {"pc_rank": None, "mobile_rank": None, "place_rank": None, "error": "ValueError"}}
+    touched = []
+
+    import db.supabase_client as dbc
+
+    def boom():
+        touched.append(1)  # 알림 대상 조회까지 갔다면 변화로 판정된 것
+        raise RuntimeError("should not reach profile lookup")
+
+    monkeypatch.setattr(dbc, "get_client", boom)
+    asyncio.run(jobs._maybe_notify_keyword_change({"user_id": "u", "name": "n"}, prev, curr))
+    assert touched == []
