@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient, getSafeSession } from "@/lib/supabase/client";
 import { updatePhone } from "@/lib/api";
 import { loadCreb } from "@/lib/creb";
+import { savePayContext } from "@/lib/payContext";
 
 interface Props {
   planName: string;
@@ -120,9 +121,11 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
       }
 
       // 크렙 카드등록창 — 완료 시 successUrl로 auth_key가 붙어 리다이렉트됨(카드 소유자는 서버가 로그인 토큰으로 확정)
+      // successUrl에는 쿼리를 붙이지 않는다 — 크렙이 항상 `?auth_key=`를 덧붙여 쿼리가 있으면 amount가 깨진다(lib/payContext.ts)
+      savePayContext(planName, chargeAmount);
       const creb = await loadCreb();
       await creb.requestBillingAuth({
-        successUrl: `${window.location.origin}/payment/success?plan=${encodeURIComponent(planName)}&amount=${chargeAmount}`,
+        successUrl: `${window.location.origin}/payment/success`,
         failUrl: `${window.location.origin}/payment/fail`,
       });
     } catch (e: unknown) {

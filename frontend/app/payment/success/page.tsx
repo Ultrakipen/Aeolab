@@ -9,6 +9,7 @@ import { issueBilling, ApiError } from "@/lib/api";
 import { createClient, getSafeSession } from "@/lib/supabase/client";
 import { XCircle, CheckCircle2 } from "lucide-react";
 import { trackSubscriptionActive } from "@/lib/analytics";
+import { loadPayContext, clearPayContext, parseCrebReturn } from "@/lib/payContext";
 
 type Status = "processing" | "billing" | "waiting" | "success" | "error";
 
@@ -43,9 +44,12 @@ function PaymentSuccessContent() {
     if (calledRef.current) return;
     calledRef.current = true;
 
-    const authKey = searchParams.get("auth_key");
-    const plan = searchParams.get("plan") ?? "Basic";
-    const amount = Number(searchParams.get("amount"));
+    // 주소의 값(과거 형태 포함)을 우선하고, 없으면 결제 직전에 저장해 둔 값을 쓴다
+    const ret = parseCrebReturn(searchParams);
+    const ctx = loadPayContext();
+    const authKey = ret.authKey;
+    const plan = ret.plan ?? ctx?.plan ?? "Basic";
+    const amount = ret.amount ?? ctx?.amount ?? 0;
 
     if (!authKey || !amount) {
       setStatus("error");
@@ -61,6 +65,7 @@ function PaymentSuccessContent() {
       const session = await getSafeSession();
       if (!session?.access_token) throw new Error("로그인 세션이 만료되었습니다.");
       await issueBilling({ authKey, plan, amount }, session.access_token);
+      clearPayContext();
     })()
       .then(async () => {
         // 웹훅 처리 지연을 고려해 Supabase 구독 상태 폴링
