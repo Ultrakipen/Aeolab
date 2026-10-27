@@ -116,6 +116,12 @@ async def auto_check_smart_place(naver_place_id: str) -> dict:
     if not _check_naver_quota("smart_place_auto_check.auto_check_smart_place", cost=(4 if _photo_on() else 3)):
         return _failed_result("quota_exceeded", place_id)
 
+    # 속도 기준(슬라이딩 윈도우) — 빈 자리가 날 때까지 기다린다. 세마포어를 잡기 전에 해야 다른 작업을 막지 않는다.
+    from services.naver_access_guard import reserve_place_pages
+    _rok, _rwhy, _ = await reserve_place_pages((4 if _photo_on() else 3), "smart_place_auto_check.auto_check_smart_place")
+    if not _rok:
+        return _failed_result(_rwhy, place_id)
+
     try:
         async with _get_playwright_sem():
             await place_pace()

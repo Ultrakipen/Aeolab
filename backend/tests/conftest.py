@@ -13,4 +13,8 @@ import pytest
 def _isolate_naver_state_files(tmp_path, monkeypatch):
     monkeypatch.setenv("NAVER_QUOTA_STATE_FILE", str(tmp_path / "quota_state.json"))
     monkeypatch.setenv("NAVER_PLACE_BREAKER_FILE", str(tmp_path / "place_breaker.json"))
+    monkeypatch.setenv("NAVER_RATE_WINDOW_FILE", str(tmp_path / "rate_window.json"))
+    from services import naver_access_guard as _g
+    _g.reset_rate_for_tests()
     yield
+    _g.reset_rate_for_tests()

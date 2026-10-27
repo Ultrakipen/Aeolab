@@ -3310,7 +3310,7 @@ async def competitor_place_sync_job():
                 total_synced += len(results) - len(errors)
                 total_errors += len(errors)
                 # 배치 내 ip_blocked/quota_exceeded 발생 시 남은 사업장 전체 중단
-                if any(r.get("error") in ("ip_blocked", "quota_exceeded", "naver_place_cooldown") for r in results):
+                if any(r.get("error") in ("ip_blocked", "quota_exceeded", "naver_place_cooldown", "naver_rate_limited") for r in results):
                     ip_banned = True
                     logger.warning("competitor_place_sync_job: IP차단/상한도달 감지, 전체 잡 조기 종료")
             except Exception as e:
@@ -3449,7 +3449,7 @@ async def enrich_competitor_details_job():
                     competitor_id, naver_place_id, supabase, region=region,
                     registered_name=row.get("name", ""),
                 )
-                if result.get("error") in ("ip_blocked", "quota_exceeded", "naver_place_cooldown"):
+                if result.get("error") in ("ip_blocked", "quota_exceeded", "naver_place_cooldown", "naver_rate_limited"):
                     logger.warning(f"enrich_competitor_details_job: {result['error']} 감지, 전체 잡 조기 종료")
                     ip_banned = True
                     total_err += 1

@@ -5197,7 +5197,7 @@ async def post_smartplace_check(
     if raw.get("error"):
         # 네이버 접속이 일시 제한되었거나 오늘 상한에 도달한 경우 — URL 문제가 아니므로 그렇게 안내하지 않는다.
         # 내부 오류 코드는 사용자에게 보이지 않게 한다(2026-10-27, services/naver_access_guard.py)
-        if raw["error"] in ("naver_place_cooldown", "quota_exceeded", "ip_blocked", "naver_blocked"):
+        if raw["error"] in ("naver_place_cooldown", "naver_rate_limited", "quota_exceeded", "ip_blocked", "naver_blocked"):
             raise HTTPException(
                 status_code=503,
                 detail="지금은 스마트플레이스를 점검할 수 없습니다. 잠시 후 다시 시도해 주세요.",

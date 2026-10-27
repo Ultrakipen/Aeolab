@@ -33,6 +33,11 @@ def _stub_crawl(monkeypatch, results):
 
     import services.naver_access_guard as g
     monkeypatch.setattr(g, "place_pace", no_pace)
+
+    async def no_rate(*a, **k):      # 속도 기준은 test_naver_rate_limit.py에서 따로 검증
+        return True, None, 0.0
+
+    monkeypatch.setattr(g, "reserve_place_pages", no_rate)
     return calls
 
 
@@ -116,7 +121,7 @@ def test_photo_tab_is_off_by_default_and_can_be_enabled(monkeypatch):
 def test_admin_naver_access_endpoint_reports_state_without_secrets():
     from routers.admin import get_naver_access
     out = asyncio.run(get_naver_access(_=None))
-    assert set(out) == {"quota", "place_breaker", "history", "settings"}
+    assert set(out) == {"quota", "place_breaker", "rate", "history", "settings"}
     assert {"used", "cap", "batch_used", "batch_cap", "by_source", "used_pct"} <= set(out["quota"])
     assert {"open", "remaining_sec", "strikes"} <= set(out["place_breaker"])
     assert set(out["settings"]) == {"slot_spread_enabled", "photo_tab_enabled"}

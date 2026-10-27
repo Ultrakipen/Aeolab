@@ -354,6 +354,10 @@ def check_naver_playwright_quota(source: str = "", cost: int = 1) -> bool:
         _naver_pw_quota_by_source.clear()
         _naver_pw_quota_warn_sent.clear()
     cost = max(1, int(cost))
+    # 플레이스 접속은 naver_access_guard.reserve_place_pages가 직접 기록한다. 그 밖의 네이버 접속(브리핑·AI탭·순위 등)은
+    # 속도 제한 없이 기록만 해 같은 IP의 총 요청량이 플레이스 접속 허용량에서 차감되게 한다. (아래 상한 판정과 별개)
+    _gate_src = (source or "")
+    _is_place_src = _gate_src.startswith(("naver_place_stats.", "smart_place_auto_check.", "competitor_place_crawler."))
     # 배치(정기 잡)는 상한의 일부까지만 — 나머지는 사용자가 직접 누른 스캔 몫으로 남긴다
     if _naver_batch_var.get() and _naver_pw_quota_batch_count + cost > int(_NAVER_PLAYWRIGHT_DAILY_CAP * _NAVER_BATCH_RATIO):
         if _naver_pw_batch_deny_logged_date != today:
@@ -398,6 +402,12 @@ def check_naver_playwright_quota(source: str = "", cost: int = 1) -> bool:
     _naver_pw_quota_by_source[_src] = _naver_pw_quota_by_source.get(_src, 0) + cost
     _save_quota_state()
     _warn_quota_usage(today, _naver_pw_quota_count, _src)
+    if not _is_place_src:
+        try:
+            from services.naver_access_guard import record_external
+            record_external(cost)
+        except Exception as _e:   # 기록 실패가 스캔을 막으면 안 된다
+            _logger.warning("[naver_quota] 속도 기록 실패(무시): %s", _e)
     return True
 
 

@@ -1491,6 +1491,7 @@ async def get_naver_access(_=Depends(verify_admin)):
     return {
         "quota": {**snap, "used_pct": round(snap["used"] / cap * 100, 1) if cap else None},
         "place_breaker": _guard.snapshot(),
+        "rate": _guard.rate_snapshot(),   # 속도 기준 윈도우별 현재 사용량(제안값, 차단 후 자동 절반)
         "history": naver_quota_history(30),
         "settings": {
             "slot_spread_enabled": slot_spread_enabled(),

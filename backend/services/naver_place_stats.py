@@ -58,6 +58,10 @@ class NaverPlaceStatsService:
         from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
         if not _check_naver_quota("naver_place_stats.fetch_stats", cost=2):  # 데스크톱 + 모바일 재시도 최대 2페이지
             return {"error": "quota_exceeded", "naver_place_id": naver_place_id}
+        from services.naver_access_guard import reserve_place_pages
+        _rok, _rwhy, _ = await reserve_place_pages(2, "naver_place_stats.fetch_stats")
+        if not _rok:
+            return {"error": _rwhy, "naver_place_id": naver_place_id}
         try:
             async with _get_playwright_sem():
                 await place_pace()
@@ -253,6 +257,12 @@ async def check_smart_place_completeness(naver_place_url: str) -> dict:
     from services.place_page_signals import photo_tab_enabled as _photo_on
     if not _check_naver_quota("naver_place_stats.check_smart_place_completeness", cost=(5 if _photo_on() else 4)):
         return {**default, "error": "quota_exceeded"}
+
+    # 속도 기준(슬라이딩 윈도우) — 빈 자리가 날 때까지 기다린다. 세마포어를 잡기 전에 해야 다른 작업을 막지 않는다.
+    from services.naver_access_guard import reserve_place_pages
+    _rok, _rwhy, _ = await reserve_place_pages((5 if _photo_on() else 4), "naver_place_stats.check_smart_place_completeness")
+    if not _rok:
+        return {**default, "error": _rwhy}
 
     try:
         async with _get_playwright_sem():

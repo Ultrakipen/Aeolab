@@ -145,6 +145,12 @@ async def fetch_competitor_place_data(naver_place_id: str) -> dict:
     if not _check_naver_quota("competitor_place_crawler.fetch_competitor_place_data", cost=10):
         return {**default, "error": "quota_exceeded"}
 
+    # 속도 기준(슬라이딩 윈도우) — 빈 자리가 날 때까지 기다린다. 세마포어를 잡기 전에 해야 다른 작업을 막지 않는다.
+    from services.naver_access_guard import reserve_place_pages
+    _rok, _rwhy, _ = await reserve_place_pages(10, "competitor_place_crawler.fetch_competitor_place_data")
+    if not _rok:
+        return {**default, "error": _rwhy}
+
     try:
         async with _get_playwright_sem():
             await place_pace()
@@ -570,6 +576,12 @@ async def fetch_competitor_faq_items(naver_place_id: str) -> dict:
     _ok, _why = begin_place_access("competitor_place_crawler.fetch_competitor_faq_items")
     if not _ok:
         return {**default, "error": _why}
+
+    # 속도 기준(슬라이딩 윈도우) — 빈 자리가 날 때까지 기다린다. 세마포어를 잡기 전에 해야 다른 작업을 막지 않는다.
+    from services.naver_access_guard import reserve_place_pages
+    _rok, _rwhy, _ = await reserve_place_pages(2, "competitor_place_crawler.fetch_competitor_faq_items")
+    if not _rok:
+        return {**default, "error": _rwhy}
 
     try:
         async with _get_playwright_sem():
