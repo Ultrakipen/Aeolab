@@ -73,3 +73,7 @@ _reconcile_backup_20260612/
 aeolab_predeploy_backups/
 scripts/_t
 *.bak_*
+
+# 네이버 플레이스 접속 회로 차단기 상태(서버 런타임 파일, 2026-10-27)
+backend/.naver_place_breaker.json
+backend/.naver_place_breaker.json.tmp

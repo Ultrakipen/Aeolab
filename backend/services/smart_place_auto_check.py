@@ -15,6 +15,7 @@ Playwright 인스턴스는 RAM 보호용 Semaphore(1)로 직렬화. 실패 시 �
 """
 import asyncio
 import logging
+import random
 import re
 from datetime import datetime, timedelta, timezone
 
@@ -103,12 +104,20 @@ async def auto_check_smart_place(naver_place_id: str) -> dict:
 
     place_id = str(naver_place_id).strip()
 
+    # 차단 중에는 네이버 요청 없이 즉시 건너뛴다(차단 연장 방지, services/naver_access_guard.py)
+    from services.naver_access_guard import begin_place_access, place_pace
+    _ok, _why = begin_place_access("smart_place_auto_check.auto_check_smart_place")
+    if not _ok:
+        return _failed_result(_why, place_id)
+
     from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
-    if not _check_naver_quota("smart_place_auto_check.auto_check_smart_place"):
+    # 홈·소식·정보·사진 4개 탭 — 페이지 수만큼 센다(기존엔 호출 1번=1건)
+    if not _check_naver_quota("smart_place_auto_check.auto_check_smart_place", cost=4):
         return _failed_result("quota_exceeded", place_id)
 
     try:
         async with _get_playwright_sem():
+            await place_pace()
             return await asyncio.wait_for(
                 _run_check(place_id),
                 timeout=_TOTAL_TIMEOUT_S,
@@ -216,6 +225,7 @@ async def _run_check(naver_place_id: str) -> dict:
         await _apply_stealth(page)
         try:
             from services.naver_block import is_naver_block_page  # 줄바꿈으로 나뉜 현재 차단 화면도 감지 (2026-10-27)
+            from services.naver_access_guard import report_place_block, report_place_ok
             # ── 1단계: 홈 탭 — 페이지 정상 로드 여부 + 예약 감지 + 사진 수 ──
             try:
                 await page.goto(
@@ -223,17 +233,19 @@ async def _run_check(naver_place_id: str) -> dict:
                     timeout=_PAGE_TIMEOUT_MS,
                     wait_until="domcontentloaded",
                 )
-                await page.wait_for_timeout(1500)
+                await page.wait_for_timeout(1500 + random.randint(0, 1500))  # 기본 대기는 유지하고 0~1.5초 무작위를 더함(2026-10-27)
                 home_text = (await page.inner_text("body"))[:15000] or ""
                 # IP 차단 감지 — 차단 시 photo/review 등 감지 불가이므로 early return
                 if is_naver_block_page(home_text):
                     _logger.warning(f"smart_place home tab blocked (IP restriction) [{naver_place_id}]")
+                    report_place_block("smart_place_auto_check.home")  # 이후 플레이스 접속 자동 중단
                     return {
                         **results,
                         "score_loss": _calc_score_loss(results),
                         "action_links": _build_action_links(naver_place_id, results),
                         "error": "ip_blocked",
                     }
+                report_place_ok()  # 정상 화면 — 시험 접속이었다면 회복 확인
                 # "삭제된 업체" / "존재하지 않는" 메시지 차단 — 그 외엔 등록된 것으로 판정
                 if home_text and not re.search(
                     r"(존재하지 않|삭제|찾을 수 없|페이지를 찾을 수 없)", home_text
@@ -263,10 +275,11 @@ async def _run_check(naver_place_id: str) -> dict:
                     timeout=_PAGE_TIMEOUT_MS,
                     wait_until="domcontentloaded",
                 )
-                await page.wait_for_timeout(1500)
+                await page.wait_for_timeout(1500 + random.randint(0, 1500))  # 기본 대기는 유지하고 0~1.5초 무작위를 더함(2026-10-27)
                 feed_text = (await page.inner_text("body")) or ""
                 if is_naver_block_page(feed_text):
                     _logger.warning(f"smart_place feed tab blocked (IP restriction) [{naver_place_id}]")
+                    report_place_block("smart_place_auto_check.feed")
                     results["recent_post_measured"] = False
                 else:
                     # 게시 시각은 단독 줄만 읽는다 — 글 본문 문장 속 "소식이 없어"·"1시간 전부터" 오판 방지(2026-10-27)
@@ -290,7 +303,7 @@ async def _run_check(naver_place_id: str) -> dict:
                     timeout=_PAGE_TIMEOUT_MS,
                     wait_until="domcontentloaded",
                 )
-                await page.wait_for_timeout(1500)
+                await page.wait_for_timeout(1500 + random.randint(0, 1500))  # 기본 대기는 유지하고 0~1.5초 무작위를 더함(2026-10-27)
                 info_text = (await page.inner_text("body")) or ""
                 results["has_intro"] = _detect_intro(info_text)
                 results["intro_text"] = _extract_intro_text(info_text)
@@ -306,9 +319,11 @@ async def _run_check(naver_place_id: str) -> dict:
                     timeout=_PAGE_TIMEOUT_MS,
                     wait_until="networkidle",
                 )
-                await page.wait_for_timeout(1500)
+                await page.wait_for_timeout(1500 + random.randint(0, 1500))  # 기본 대기는 유지하고 0~1.5초 무작위를 더함(2026-10-27)
                 photo_body = (await page.inner_text("body")) or ""
                 # 네트워크 오류·IP 차단 감지 — 오류 시 기존 값 유지 (잘못된 숫자 방지)
+                if is_naver_block_page(photo_body):
+                    report_place_block("smart_place_auto_check.photo")
                 if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류", photo_body) or is_naver_block_page(photo_body):
                     _logger.warning(f"[smart_place] photo tab network error [{naver_place_id}]")
                 else:

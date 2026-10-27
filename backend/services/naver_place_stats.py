@@ -50,11 +50,17 @@ class NaverPlaceStatsService:
         """네이버 플레이스 공개 페이지에서 기본 통계 파싱"""
         if not naver_place_id:
             return {"error": "naver_place_id required"}
+        # 차단 중에는 네이버 요청 없이 즉시 건너뛴다(차단 연장 방지, services/naver_access_guard.py)
+        from services.naver_access_guard import begin_place_access, place_pace
+        _ok, _why = begin_place_access("naver_place_stats.fetch_stats")
+        if not _ok:
+            return {"error": _why, "naver_place_id": naver_place_id}
         from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
-        if not _check_naver_quota("naver_place_stats.fetch_stats"):
+        if not _check_naver_quota("naver_place_stats.fetch_stats", cost=2):  # 데스크톱 + 모바일 재시도 최대 2페이지
             return {"error": "quota_exceeded", "naver_place_id": naver_place_id}
         try:
             async with _get_playwright_sem():
+                await place_pace()
                 return await asyncio.wait_for(self._run(naver_place_id), timeout=30)
         except asyncio.TimeoutError:
             logger.warning(f"NaverPlaceStats timeout: {naver_place_id}")
@@ -97,6 +103,14 @@ class NaverPlaceStatsService:
                 target = frame or page
 
                 body_text = await target.inner_text("body")
+
+                # 차단 화면이면 통계를 파싱하지 않고 자동 중단 회로를 연다(2026-10-27) — 이전엔 차단 화면을 정상 내용으로 읽었다
+                from services.naver_block import is_naver_block_page
+                from services.naver_access_guard import report_place_block, report_place_ok
+                if is_naver_block_page(body_text):
+                    report_place_block("naver_place_stats.fetch_stats")
+                    return {"error": "naver_blocked", "naver_place_id": naver_place_id}
+                report_place_ok()
 
                 # 방문자 리뷰 수 파싱 — 다양한 네이버 플레이스 UI 포맷 지원
                 visitor_review_count = None  # None = 정확한 수를 읽지 못함(측정 못 함). 0과 구분해 기존 값을 덮어쓰지 않는다
@@ -228,12 +242,20 @@ async def check_smart_place_completeness(naver_place_url: str) -> dict:
         "completeness_score": 0,
     }
 
+    # 차단 중에는 네이버 요청 없이 즉시 건너뛴다(차단 연장 방지, services/naver_access_guard.py)
+    from services.naver_access_guard import begin_place_access, place_pace
+    _ok, _why = begin_place_access("naver_place_stats.check_smart_place_completeness")
+    if not _ok:
+        return {**default, "error": _why}
+
     from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
-    if not _check_naver_quota("naver_place_stats.check_smart_place_completeness"):
+    # 홈·메뉴·소식·정보·사진 탭을 연다 — 페이지 수만큼 센다(기존엔 호출 1번=1건으로 과소 집계)
+    if not _check_naver_quota("naver_place_stats.check_smart_place_completeness", cost=5):
         return {**default, "error": "quota_exceeded"}
 
     try:
         async with _get_playwright_sem():
+            await place_pace()
             return await asyncio.wait_for(_check_completeness(naver_place_url), timeout=43)
     except asyncio.TimeoutError:
         logger.warning(f"check_smart_place_completeness timeout: {naver_place_url}")
@@ -279,7 +301,9 @@ async def _check_completeness(url: str) -> dict:
     from services.ai_scanner import apply_stealth as _as2, get_proxy_config as _gpc2, get_random_ua as _gua, block_heavy_resources as _bhr2, attach_bandwidth_counter as _abc2
     from services.ai_scanner.bandwidth_tracker import record_usage_mb as _rum2
     _TAB_TIMEOUT = 12000   # 탭당 타임아웃 (ms)
-    _TAB_WAIT   = 4000     # 탭당 JS 렌더 대기 (ms)
+    import random as _random
+    # 탭당 JS 렌더 대기 (ms) — 기본 4초에 0~1.5초 무작위를 더해 간격을 일정하게 두지 않는다(2026-10-27, 렌더 대기는 줄이지 않음)
+    _TAB_WAIT   = 4000 + _random.randint(0, 1500)
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(
@@ -306,8 +330,12 @@ async def _check_completeness(url: str) -> dict:
             body = await page.inner_text("body")
             logger.info(f"[sp_check] home body_len={len(body)} sample={body[:300]!r}")
             _home_blocked = is_naver_block_page(body)
+            from services.naver_access_guard import report_place_block, report_place_ok
             if _home_blocked:
                 logger.warning(f"[sp_check] home tab blocked (IP restriction) [{base_url}]")
+                report_place_block("naver_place_stats.check_completeness.home")  # 이후 플레이스 접속 자동 중단
+            else:
+                report_place_ok()  # 정상 화면 — 시험 접속이었다면 회복 확인
 
             # 사진 수 — 텍스트 패턴("사진 N") 우선
             # img.count() 폴백은 제거 — 내비게이션 아이콘 등 무관한 이미지까지 카운트해 오류 발생
@@ -366,6 +394,7 @@ async def _check_completeness(url: str) -> dict:
                     feed_body = await page.inner_text("body")
                     if is_naver_block_page(feed_body):
                         logger.warning(f"[sp_check] feed tab blocked (IP restriction) [{base_url}]")
+                        report_place_block("naver_place_stats.check_completeness.feed")
                     else:
                         # 게시 시각은 단독 줄만 읽는다(글 본문 문장 속 "소식이 없어"·"1시간 전부터" 오판 방지, 2026-10-27)
                         _fa = analyze_feed_posts(feed_body, page.url)
@@ -390,6 +419,7 @@ async def _check_completeness(url: str) -> dict:
                     logger.info(f"[sp_check] info body_len={len(info_body)} sample={info_body[:400]!r}")
                     if is_naver_block_page(info_body):
                         logger.warning(f"[sp_check] info tab blocked (IP restriction) [{base_url}]")
+                        report_place_block("naver_place_stats.check_completeness.info")
                     else:
                         # 정보 탭이 너무 짧으면 /info 경로 재시도
                         if len(info_body) < 200:
@@ -542,7 +572,11 @@ async def _parse_photo_categories(page) -> tuple[dict, int | None]:
         try:
             page_text = await page.inner_text("body")
             from services.naver_block import is_naver_block_page
-            if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류", page_text or "") or is_naver_block_page(page_text):
+            _photo_blocked = is_naver_block_page(page_text)
+            if _photo_blocked:
+                from services.naver_access_guard import report_place_block
+                report_place_block("naver_place_stats.photo_tab")
+            if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류", page_text or "") or _photo_blocked:
                 logger.warning("[photo_tab] network error or IP block detected — photo_count=None")
                 return {}, None
             # 사진 탭 JS 콘텐츠 미로딩 감지 — body가 너무 짧거나 "로딩중" 상태 (headless 감지)

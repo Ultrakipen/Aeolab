@@ -233,7 +233,11 @@ def _load_proxy_pool() -> list[dict]:
 # 기본값 250: 2026-08-08 기준 실측 추정 하루 요청량(~66~90건)의 약 3배 여유 —
 # BEP(20명) 근처까지는 상한에 걸리지 않고, 그 이상 성장 시 상한이 실제로 작동해
 # 트래픽을 완만하게 유지한다. 구독자 증가에 맞춰 NAVER_PLAYWRIGHT_DAILY_CAP로 조정 가능.
-_NAVER_PLAYWRIGHT_DAILY_CAP = int(os.getenv("NAVER_PLAYWRIGHT_DAILY_CAP", "250"))
+# (참고: 위 66~90건은 "6명 기준"이라 했으나 이후 테스트 데이터 기반 추정치로 정정됨 — 실제 런칭 트래픽 아님)
+# 2026-10-27: 단위를 "함수 호출 1번"에서 "페이지 로드 수"로 바꿨다. 플레이스 탭 점검은 한 번 호출이 페이지를 2~5개
+# 여는데 1건으로만 세어 실제 트래픽을 과소 집계했다(check_naver_playwright_quota의 cost). 같은 여유를 유지하려고 기본값을
+# 250→600으로 올림 — 실측 근거가 없는 제안값이므로 운영 사용량(naver_quota_daily_summary)을 보고 조정할 것.
+_NAVER_PLAYWRIGHT_DAILY_CAP = int(os.getenv("NAVER_PLAYWRIGHT_DAILY_CAP", "600"))
 _naver_pw_quota_date: str = ""
 _naver_pw_quota_count: int = 0
 _naver_pw_quota_alert_sent_date: str = ""
@@ -244,9 +248,11 @@ _naver_pw_quota_warn_sent: set = set()
 _QUOTA_WARN_PERCENTS = (70, 90)
 
 
-def check_naver_playwright_quota(source: str = "") -> bool:
+def check_naver_playwright_quota(source: str = "", cost: int = 1) -> bool:
     """오늘 네이버 Playwright 요청 상한 여유가 있으면 카운트 증가 후 True, 초과하면 False.
 
+    cost: 이 호출이 여는 페이지 수(기본 1). 여러 탭을 여는 플레이스 점검은 실제 페이지 수만큼 센다.
+          cost=1이면 기존 동작과 같다(카운트가 상한 이상이면 거부).
     호출자는 False를 받으면 해당 요청을 건너뛰어야 한다(스캔 스킵 — 예외 아님).
     날짜가 바뀌면(자정, 서버 로컬 타임존 기준) 자동 리셋.
     """
@@ -258,7 +264,8 @@ def check_naver_playwright_quota(source: str = "") -> bool:
         _naver_pw_quota_count = 0
         _naver_pw_quota_by_source.clear()
         _naver_pw_quota_warn_sent.clear()
-    if _naver_pw_quota_count >= _NAVER_PLAYWRIGHT_DAILY_CAP:
+    cost = max(1, int(cost))
+    if _naver_pw_quota_count + cost > _NAVER_PLAYWRIGHT_DAILY_CAP:
         if _naver_pw_quota_alert_sent_date != today:
             _naver_pw_quota_alert_sent_date = today
             _logger.error(
@@ -286,9 +293,9 @@ def check_naver_playwright_quota(source: str = "") -> bool:
                 # 이벤트 루프 밖(동기 호출)에서는 알림만 건너뛴다 — 상한 판단 자체는 예외 없이 False 반환
                 _logger.warning("[naver_quota] 이벤트 루프 없음 — 상한 도달 알림 메일 생략")
         return False
-    _naver_pw_quota_count += 1
+    _naver_pw_quota_count += cost
     _src = source or "unknown"
-    _naver_pw_quota_by_source[_src] = _naver_pw_quota_by_source.get(_src, 0) + 1
+    _naver_pw_quota_by_source[_src] = _naver_pw_quota_by_source.get(_src, 0) + cost
     _warn_quota_usage(today, _naver_pw_quota_count, _src)
     return True
 

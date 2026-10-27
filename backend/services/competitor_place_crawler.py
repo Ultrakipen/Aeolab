@@ -89,11 +89,20 @@ async def fetch_competitor_place_data(naver_place_id: str) -> dict:
     # 2026-08-08: 전역 일일 상한(check_naver_playwright_quota) 도달 시 크롤링 스킵 —
     # jobs.py의 competitor_place_sync_job·enrich_competitor_details_job·weekly_competitor_sync_job
     # 3개 잡이 전부 이 함수 하나를 거치므로 여기 한 곳만 고치면 전부 적용됨.
-    if not _check_naver_quota("competitor_place_crawler.fetch_competitor_place_data"):
+    # 2026-10-27: 차단 중에는 네이버 요청 없이 즉시 건너뛴다(차단 연장 방지, services/naver_access_guard.py).
+    # 경쟁사 수만큼 연달아 호출되므로 차단 화면을 받은 뒤 나머지 경쟁사 크롤링을 계속 보내지 않는 것이 특히 중요하다.
+    from services.naver_access_guard import begin_place_access, place_pace
+    _ok, _why = begin_place_access("competitor_place_crawler.fetch_competitor_place_data")
+    if not _ok:
+        return {**default, "error": _why}
+
+    # 홈·메뉴·소식·정보·사진 등 여러 탭을 연다 — 페이지 수만큼 센다(기존엔 호출 1번=1건)
+    if not _check_naver_quota("competitor_place_crawler.fetch_competitor_place_data", cost=5):
         return {**default, "error": "quota_exceeded"}
 
     try:
         async with _get_playwright_sem():
+            await place_pace()
             return await asyncio.wait_for(_run_place_crawl(naver_place_id), timeout=90)
     except asyncio.TimeoutError:
         _logger.warning(f"competitor_place_crawler timeout: {naver_place_id}")
@@ -158,9 +167,13 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
             # ── IP 차단 감지 ──────────────────────────────────────────
             if "서비스 이용이 제한되었습니다" in body_text or "과도한 접근 요청" in body_text:
                 _logger.warning(f"competitor_place_crawler IP blocked [{naver_place_id}]")
+                from services.naver_access_guard import report_place_block
+                report_place_block("competitor_place_crawler.home")  # 이후 플레이스 접속 자동 중단
                 await browser.close()
                 await _record_usage_mb(_bw_counter[0] / 1024 / 1024)
                 return {**default, "error": "ip_blocked"}
+            from services.naver_access_guard import report_place_ok
+            report_place_ok()  # 정상 화면 — 시험 접속이었다면 회복 확인
 
             # ── 사업장명 파싱 ─────────────────────────────────────────
             # 2026-07-14 실측 재확인: 네이버가 lines[1]에 접근성용 "페이지 닫기" 스킵링크를
@@ -504,8 +517,15 @@ async def fetch_competitor_faq_items(naver_place_id: str) -> dict:
     if not naver_place_id:
         return {**default, "error": "naver_place_id required"}
 
+    # 차단 중에는 네이버 요청 없이 즉시 건너뛴다(2026-10-27). 이 경로는 일일 상한도 거치지 않으므로 최소한의 보호만 둔다.
+    from services.naver_access_guard import begin_place_access, place_pace
+    _ok, _why = begin_place_access("competitor_place_crawler.fetch_competitor_faq_items")
+    if not _ok:
+        return {**default, "error": _why}
+
     try:
         async with _get_playwright_sem():
+            await place_pace()
             return await asyncio.wait_for(_run_faq_crawl(naver_place_id), timeout=25)
     except asyncio.TimeoutError:
         _logger.warning(f"competitor_faq_crawler timeout: {naver_place_id}")
