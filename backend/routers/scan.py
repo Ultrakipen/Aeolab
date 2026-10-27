@@ -310,6 +310,17 @@ def _josa(word: str, josa_pair: tuple) -> str:
 _TRIAL_TEST_NAME_RE = re.compile(r"테스트|_test_|_테스트_|test\d+", re.IGNORECASE)
 
 
+def trial_rows_since(rows: list, start) -> list:
+    """scanned_at 이 start(시간대 있는 datetime) 이후인 행. 문자열이 아니라 시각으로 비교한다(UTC·+09:00 혼용 안전)."""
+    from services.scan_scheduling import parse_ts
+    out = []
+    for r in rows or []:
+        ts = parse_ts(r.get("scanned_at"))
+        if ts is not None and ts >= start:
+            out.append(r)
+    return out
+
+
 def count_distinct_trial_places(rows: list) -> int:
     """체험 기록에서 서로 다른 가게(이름+지역) 수 — 테스트 이름과 이름 없는 행은 제외, 같은 가게 반복은 1곳."""
     seen: set = set()
@@ -342,8 +353,8 @@ async def get_trial_count(request: Request):
         return cached
     supabase = get_client()
     try:
-        from datetime import date
-        today_start = date.today().isoformat() + "T00:00:00+00:00"
+        # "오늘"은 한국 시간 0시 기준(서버 로컬 날짜를 UTC 0시로 취급하면 한국 0~9시 체험이 오늘에서 빠졌다)
+        today_start = datetime.now(timezone(timedelta(hours=9))).replace(hour=0, minute=0, second=0, microsecond=0)
         # 랜딩의 "N개 가게 분석 완료"는 체험 행 수가 아니라 서로 다른 가게 수여야 한다(2026-10-28):
         # 같은 가게를 69번 돌린 개발자 테스트까지 세면 실제보다 몇 배 부풀려 보인다(254행 중 서로 다른 가게 약 64곳).
         # Supabase는 한 번에 1000행까지만 돌려주므로 페이지를 나눠 읽는다.
@@ -357,7 +368,7 @@ async def get_trial_count(request: Request):
             if len(chunk) < 1000:
                 break
         count = count_distinct_trial_places(rows)
-        today_count = count_distinct_trial_places([r for r in rows if (r.get("scanned_at") or "") >= today_start])
+        today_count = count_distinct_trial_places(trial_rows_since(rows, today_start))
         result = {"count": count, "today": today_count}
         _cache.set("trial_count_public", result, ttl=300)
         return result

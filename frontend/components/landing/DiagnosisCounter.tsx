@@ -20,14 +20,8 @@ export default function DiagnosisCounter() {
 
   if (count === null && !failed) return null;
 
-  if (failed || count === 0) {
-    return (
-      <div className="inline-flex items-center gap-2 bg-green-50 border border-green-100 rounded-full px-4 py-2 text-sm text-green-700">
-        <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse shrink-0" />
-        <span>지금도 사업장 AI 노출 진단이 진행 중입니다</span>
-      </div>
-    );
-  }
+  // 집계를 못 가져왔거나 아직 0이면 아무것도 보여 주지 않는다 — "지금도 진행 중" 같은 확인되지 않은 활동 주장 금지
+  if (failed || count === 0) return null;
 
   return (
     <div className="inline-flex flex-wrap items-center justify-center gap-3">
@@ -40,7 +34,7 @@ export default function DiagnosisCounter() {
       {today !== null && today > 0 && (
         <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-100 rounded-full px-3 py-1.5 text-sm text-amber-700">
           <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse shrink-0" />
-          <span>오늘 <strong>{today}건</strong> 진행 중</span>
+          <span>오늘 <strong>{today}곳</strong> 진단</span>
         </div>
       )}
     </div>

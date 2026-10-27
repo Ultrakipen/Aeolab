@@ -7,7 +7,9 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from routers.scan import count_distinct_trial_places  # noqa: E402
+from datetime import datetime, timedelta, timezone  # noqa: E402
+
+from routers.scan import count_distinct_trial_places, trial_rows_since  # noqa: E402
 
 
 def _r(name, region="창원"):
@@ -39,3 +41,16 @@ def test_empty_and_none_are_zero():
 def test_raw_row_count_would_have_overstated():
     rows = [_r("A")] * 50 + [_r("B")] * 30 + [_r("테스트카페")] * 22
     assert len(rows) == 102 and count_distinct_trial_places(rows) == 2
+
+
+def test_today_filter_uses_kst_midnight_not_utc_string_compare():
+    kst = timezone(timedelta(hours=9))
+    start = datetime(2026, 10, 28, 0, 0, tzinfo=kst)                    # 한국 10-28 0시 = UTC 10-27 15:00
+    rows = [
+        {"business_name": "A", "scanned_at": "2026-10-27T15:30:00+00:00"},   # 한국 10-28 00:30 -> 오늘
+        {"business_name": "B", "scanned_at": "2026-10-27T14:59:00+00:00"},   # 한국 10-27 23:59 -> 어제
+        {"business_name": "C", "scanned_at": "2026-10-28T01:00:00.123456+00:00"},
+        {"business_name": "D", "scanned_at": None},
+        {"business_name": "E", "scanned_at": "garbage"},
+    ]
+    assert [r["business_name"] for r in trial_rows_since(rows, start)] == ["A", "C"]
