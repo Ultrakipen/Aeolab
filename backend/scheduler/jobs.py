@@ -3281,7 +3281,7 @@ async def competitor_place_sync_job():
         # naver_place_id가 있는 경쟁사의 business_id 목록 수집 (중복 제거)
         _cps_rows_res = await _db(
             supabase.table("competitors")
-            .select("business_id")
+            .select("business_id, naver_place_last_synced_at")
             .eq("is_active", True)
             .not_.is_("naver_place_id", "null")
         )
@@ -3290,10 +3290,27 @@ async def competitor_place_sync_job():
         # business_id 중복 제거
         business_ids = list({r["business_id"] for r in rows})
         try:
-            from services.scan_scheduling import competitor_job_due, rotate_for_fairness, slot_spread_enabled
-            _wd, _sp = date.today().weekday(), slot_spread_enabled()
-            business_ids = [b for b in business_ids if competitor_job_due("sync", _wd, str(b), _sp)]
-            business_ids = rotate_for_fairness(business_ids, key=lambda b: str(b), today=date.today())
+            from services.scan_scheduling import (
+                build_stale_items, competitor_daily_budget_ratio, competitor_job_due,
+                competitor_stale_first_enabled, rotate_for_fairness, select_stale_first, slot_spread_enabled,
+            )
+            if competitor_stale_first_enabled():
+                # 요일 대신 "마지막 관측이 오래된 사업장부터, 오늘 예산 안에서" — 건너뛰는 주 없이 스스로 분산(scan_scheduling 주석)
+                from datetime import datetime as _dt, timezone as _tz
+                from services.ai_scanner import naver_playwright_quota_snapshot
+                from services.competitor_place_crawler import _place_cache_ttl
+                _now = _dt.now(_tz.utc)
+                _snap = naver_playwright_quota_snapshot()
+                _bcap = int(_snap.get("batch_cap") or int((_snap.get("cap") or 0) * 0.7))
+                _used = sum(v for k, v in (_snap.get("by_source") or {}).items() if str(k).startswith("competitor"))
+                _budget = int(_bcap * competitor_daily_budget_ratio()) - _used
+                business_ids = select_stale_first(build_stale_items(rows, _now), _now, _place_cache_ttl(), _budget, date.today())
+                logger.info(f"competitor_place_sync_job: 오래된 순서 선택 — 후보 {len({r['business_id'] for r in rows})}곳 중 "
+                            f"{len(business_ids)}곳 (예산 {_budget}페이지)")
+            else:
+                _wd, _sp = date.today().weekday(), slot_spread_enabled()
+                business_ids = [b for b in business_ids if competitor_job_due("sync", _wd, str(b), _sp)]
+                business_ids = rotate_for_fairness(business_ids, key=lambda b: str(b), today=date.today())
         except Exception as _due_e:
             logger.warning(f"competitor_place_sync_job: 분산 판정 실패(전체 처리로 진행): {_due_e}")
         logger.info(f"competitor_place_sync_job: {len(business_ids)}개 사업장 동기화 시작")
@@ -3401,7 +3418,7 @@ async def enrich_competitor_details_job():
         rows = (
             await execute(
                 supabase.table("competitors")
-                .select("id, name, naver_place_id, business_id")
+                .select("id, name, naver_place_id, business_id, naver_place_last_synced_at")
                 .eq("is_active", True)
                 .not_.is_("naver_place_id", "null")
             )
@@ -3409,9 +3426,22 @@ async def enrich_competitor_details_job():
 
         # 오늘이 차례인 사업장의 경쟁사만(슬롯 분산 켜짐: 사업장 슬롯+2일, 꺼짐: 기존과 같이 목요일 전원) — 2026-10-27
         try:
-            from services.scan_scheduling import competitor_job_due, slot_spread_enabled
-            _wd, _sp = date.today().weekday(), slot_spread_enabled()
+            from services.scan_scheduling import (
+                cache_still_valid, competitor_job_due, competitor_stale_first_enabled, parse_ts, slot_spread_enabled,
+            )
+            _stale_first = competitor_stale_first_enabled()
+            # 오래된 순서 모드에서는 sync 가 요일에 묶이지 않으므로 enrich 는 기존 요일(목)을 유지한다(부하는 네이버가 아니라 블로그 검색 API·SEO)
+            _wd, _sp = date.today().weekday(), (slot_spread_enabled() and not _stale_first)
             rows = [r for r in rows if competitor_job_due("enrich", _wd, str(r.get("business_id")), _sp)]
+            if _stale_first and rows:
+                # 캐시가 만료된 경쟁사는 건너뛴다 — enrich 가 새 네이버 크롤을 시작하지 않게(다음 sync 가 처리)
+                from datetime import datetime as _dt, timezone as _tz
+                from services.competitor_place_crawler import _place_cache_ttl
+                _n0 = _dt.now(_tz.utc)
+                _before = len(rows)
+                rows = [r for r in rows if cache_still_valid(parse_ts(r.get("naver_place_last_synced_at")), _n0, _place_cache_ttl())]
+                if len(rows) != _before:
+                    logger.info(f"enrich_competitor_details_job: 캐시 만료 경쟁사 {_before - len(rows)}곳 건너뜀(네이버 새 접속 방지)")
         except Exception as _due_e:
             logger.warning(f"enrich_competitor_details_job: 분산 판정 실패(전체 처리로 진행): {_due_e}")
 

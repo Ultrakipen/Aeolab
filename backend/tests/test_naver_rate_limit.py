@@ -25,7 +25,8 @@ def test_one_minute_window_delays_second_crawl():
     assert ok and 59 < wait < 62                # 첫 기록이 윈도우 밖으로 빠진 직후
 
 
-def test_ten_minute_window_caps_total_pages():
+def test_ten_minute_window_caps_total_pages(monkeypatch):
+    monkeypatch.setenv("NAVER_BATCH_RATE_RATIO", "1.0")   # 전체 윈도우 한도 기준(기본 0.7은 아래 별도 테스트)
     t = 1000.0
     waits = []
     for _ in range(6):                           # 6 × 10 = 60페이지를 같은 순간에 요청
@@ -37,7 +38,8 @@ def test_ten_minute_window_caps_total_pages():
     assert waits == sorted(waits)                # 예약은 시각 순서
 
 
-def test_never_exceeds_any_window_limit():
+def test_never_exceeds_any_window_limit(monkeypatch):
+    monkeypatch.setenv("NAVER_BATCH_RATE_RATIO", "1.0")   # 전체 윈도우 한도 기준
     t0 = 5000.0
     times = []
     for _ in range(15):          # 75페이지 — 10분 한도 30 기준 약 25분 안에 소화되는 양
@@ -103,3 +105,19 @@ def test_quota_function_records_non_place_sources_only(monkeypatch):
     assert len(g._rate["entries"]) == n0 + 1
     sc.check_naver_playwright_quota("naver_place_stats.fetch_stats", cost=2)   # 플레이스는 reserve가 기록
     assert len(g._rate["entries"]) == n0 + 1
+
+
+def test_batch_default_leaves_room_for_users(monkeypatch):
+    """기본(배치 0.7): 정기 잡은 10분 윈도우 30의 70%(21)만 쓴다 — 20페이지까지만 즉시, 3번째는 10분 뒤로 밀린다."""
+    monkeypatch.delenv("NAVER_BATCH_RATE_RATIO", raising=False)
+    monkeypatch.setenv("NAVER_BATCH_CAP_RATIO", "0.7")
+    t = 1000.0
+    waits = [_reserve(10, t)[2] for _ in range(3)]
+    assert waits[1] < 600 and waits[2] > 590
+    # 같은 사용량에서 사용자 몫이 남는지는 아래에서 직접 확인한다
+    g.reset_rate_for_tests()
+    g._rate_load()
+    now = 9_000_000.0
+    g._rate["entries"].extend([[now - 400, 10], [now - 300, 10]])    # 10분 안에 20페이지 사용 중(1분 윈도우는 비어 있음)
+    assert g._earliest_slot(10, now, 0.7) > now          # 배치: 20+10 > 21 이므로 대기
+    assert g._earliest_slot(10, now, 1.0) == now         # 사용자: 20+10 <= 30 이므로 즉시

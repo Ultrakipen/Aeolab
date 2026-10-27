@@ -278,10 +278,27 @@ def _prune(now: float) -> None:
     _rate["entries"] = [e for e in _rate["entries"] if e[0] > horizon]
 
 
-def _earliest_slot(cost: int, now: float) -> float:
-    """cost 페이지를 넣어도 모든 윈도우 한도를 넘지 않는 가장 이른 시각(이전 예약보다 앞서지 않음)."""
+def batch_rate_ratio() -> float:
+    """정기 잡(batch)이 각 속도 윈도우에서 쓸 수 있는 비율. 나머지는 사용자 요청 몫으로 항상 비워 둔다.
+
+    배경: 윈도우 한도를 배치와 사용자 요청이 똑같이 나눠 쓰면, 배치가 윈도우를 가득 채운 동안 사용자 요청은
+    대기 한도(15초)를 넘겨 `naver_rate_limited`로 거절된다. 일일 상한의 배치 몫(NAVER_BATCH_CAP_RATIO, 기본 0.7)과
+    같은 비율을 기본으로 맞췄다 — 근거 없는 제안값이며 NAVER_BATCH_RATE_RATIO로 조정한다.
+    """
+    try:
+        default = os.getenv("NAVER_BATCH_CAP_RATIO", "0.7")
+        return max(0.1, min(1.0, float(os.getenv("NAVER_BATCH_RATE_RATIO", default))))
+    except ValueError:
+        return 0.7
+
+
+def _earliest_slot(cost: int, now: float, scale: float = 1.0) -> float:
+    """cost 페이지를 넣어도 모든 윈도우 한도를 넘지 않는 가장 이른 시각(이전 예약보다 앞서지 않음).
+
+    scale<1이면 각 윈도우 한도의 그 비율만 쓴다(정기 잡용). 사용량 집계는 배치·사용자 요청·외부 기록 전체를 센다.
+    """
     entries = _rate["entries"]
-    limits = rate_limits(now)
+    limits = tuple((w, max(1, int(m * scale))) for w, m in rate_limits(now))
     start = max(now, entries[-1][0] if entries else now)
     # 후보: 지금 또는 어떤 기록이 윈도우 밖으로 빠지는 순간
     cands = {start}
@@ -332,7 +349,7 @@ async def reserve_place_pages(cost: int, source: str = "", *, batch: Optional[bo
     async with _rate_lock:
         t0 = now if now is not None else time.time()
         _prune(t0)
-        t = _earliest_slot(max(1, int(cost)), t0)
+        t = _earliest_slot(max(1, int(cost)), t0, batch_rate_ratio() if batch else 1.0)
         wait = max(0.0, t - t0)
         if wait > max_wait:
             _logger.warning("[naver_guard] 속도 기준 초과 — %.0f초 대기 필요(허용 %.0f초), 접속 거절 (source=%s, batch=%s)",
@@ -361,7 +378,7 @@ def rate_snapshot(now: Optional[float] = None) -> dict:
     out = []
     for w, m in rate_limits(t):
         used = sum(c for ts, c in _rate["entries"] if t - w < ts <= t)
-        out.append({"window_sec": w, "max": m, "used": used})
+        out.append({"window_sec": w, "max": m, "batch_max": max(1, int(m * batch_rate_ratio())), "used": used})
     return {"windows": out, "tightened": _rate["tight_until"] > t, "tight_until": _rate["tight_until"]}
 
 

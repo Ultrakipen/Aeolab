@@ -110,3 +110,104 @@ def competitor_job_due(job: str, weekday: int, biz_id: str, spread: bool) -> boo
         sync_day = scan_slot(biz_id)
         return weekday == (sync_day if job == "sync" else (sync_day + 2) % 7)
     return weekday == (1 if job == "sync" else 3)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 경쟁사 크롤 "오래된 순서 + 하루 예산" 선택 (2026-10-28)
+#
+# 요일 슬롯 방식(`competitor_job_due`)의 한계 — 두 가지를 실측(시뮬레이션)·코드로 확인했다:
+#  1) md5 % 7 해시 배정은 사업장이 적을 때 크게 치우친다. 사업장 20곳이면 최대일이 균등(3곳)보다 평균 5.3곳으로
+#     용량의 약 44%를 잃고, 10~50곳 구간에서 27~38%를 잃는다(하필 일일 상한에 걸리는 구간).
+#  2) 요일을 매일 다시 계산하는 균형 배정은 사업장이 추가·삭제되면 배정이 바뀌어 한 주를 건너뛸 수 있다.
+# 그래서 요일 대신 "마지막 관측이 오래된 사업장부터, 하루 예산 안에서" 고른다:
+#  - 건너뛸 수 없다: 예산에서 밀린 사업장은 다음 날 더 오래된 상태로 맨 앞에 선다(굶음 없음, 순서 회전도 불필요).
+#  - 스스로 분산된다: 처음 며칠은 예산만큼만 처리하고 나머지는 다음 날로 넘어가 이후 요일이 자연히 엇갈린다.
+#  - 사업장·경쟁사 수가 바뀌어도, 일일 상한이 줄어도 그대로 동작한다. 사용자에게 보이는 요일 약속이 없다.
+# 기준 시각은 경쟁사 행의 naver_place_last_synced_at(다른 사업장 크롤을 재사용했어도 실제 관측 시각)이다.
+# ─────────────────────────────────────────────────────────────────────────────
+from datetime import datetime, timezone
+from typing import Optional
+
+COMPETITOR_PAGE_COST = 10    # competitor_place_crawler.fetch_competitor_place_data 의 cost 와 같아야 한다
+
+
+def competitor_stale_first_enabled() -> bool:
+    """기본 꺼짐 — 켜면 competitor_place_sync_job·enrich_competitor_details_job 이 요일 대신 오래된 순서로 고른다.
+    NAVER_SCAN_SLOT_SPREAD 와 별개다(요일 문구와 무관해서 약관·요금제 점검이 필요 없다)."""
+    return os.getenv("NAVER_COMPETITOR_STALE_FIRST", "false").strip().lower() == "true"
+
+
+def competitor_daily_budget_ratio() -> float:
+    """정기 잡 일일 상한 중 경쟁사 크롤이 쓸 비율 — 나머지는 스캔·순위·통계 몫. 근거 없는 제안값."""
+    try:
+        return max(0.1, min(1.0, float(os.getenv("NAVER_COMPETITOR_DAILY_RATIO", "0.6"))))
+    except ValueError:
+        return 0.6
+
+
+def parse_ts(v) -> Optional[datetime]:
+    """ISO 문자열/datetime → 시간대 있는 UTC datetime. 비었거나 해석 불가면 None(관측 없음으로 취급)."""
+    if v is None or v == "":
+        return None
+    try:
+        dt = v if isinstance(v, datetime) else datetime.fromisoformat(str(v).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+
+
+def select_stale_first(items: list[dict], now: datetime, min_age_sec: float, budget_pages: int, today: date,
+                       pace_days: float = 6.0) -> list[str]:
+    """오늘 크롤할 사업장 id 목록(오래된 순서).
+
+    items: [{"id": str, "last": datetime|None, "pages": int}] — last 는 그 사업장 경쟁사 중 **가장 오래된** 관측 시각
+    (한 곳이라도 관측이 없으면 None), pages 는 크롤 예상 페이지 수.
+    - min_age_sec 이상 지난(또는 관측 없는) 사업장만 대상. 캐시 TTL과 같게 두면 캐시에 막혀 헛도는 선택이 없다.
+    - 가장 오래된 순서(관측 없음이 맨 앞). 같은 시각이면 날짜 시드 해시로 결정적 순서.
+    - 예산을 넘기 직전까지만. 맨 앞(가장 오래된) 사업장은 예산보다 커도 반드시 포함 — 큰 사업장이 영영 안 밀리게.
+      예산 안에 못 드는 사업장을 건너뛰고 뒤의 작은 사업장을 먼저 처리하지 않는다(굶음 방지, 엄격한 오래된 순서).
+    - budget_pages <= 0 이면 아무것도 고르지 않는다(상한을 이미 썼다).
+    - pace_days: 하루 처리량을 "전체 사업장 페이지 합 ÷ pace_days"로도 제한한다. 이 제한이 없으면 예산이 주간 평균보다 클 때
+      대상이 된 날 예산을 전부 쓰고 나머지 날은 쉬는 식으로 3일에 몰린다(시뮬레이션으로 확인: 일별 240·240·120·0·0·0…).
+      6일로 나누면 한 주 안에 한 바퀴를 돌면서 하루 부하가 고르다. 예산이 더 작으면 예산이 우선한다.
+    """
+    if budget_pages <= 0:
+        return []
+    total_pages = sum(max(1, int(it["pages"])) for it in items)
+    # pacing 한도는 "부드러운" 한도 — 한도에 닿을 때까지 담되 마지막 한 곳은 넘을 수 있다. 엄격하게 자르면 한도가 한 곳
+    # 크기의 1.x배일 때 한 곳씩만 들어가 주간 처리 능력이 대상보다 작아진다(8곳+사업장 변경 시 간격 13일 — 시뮬레이션으로 확인).
+    pace_cap = max(1, int(-(-total_pages // pace_days))) if (pace_days and pace_days > 0 and total_pages) else None
+    due = [it for it in items if it["last"] is None or (now - it["last"]).total_seconds() >= min_age_sec]
+    due.sort(key=lambda it: (it["last"] is not None, it["last"] or now,
+                             hashlib.md5(f"{today.isoformat()}:{it['id']}".encode("utf-8")).hexdigest()))
+    out: list[str] = []
+    used = 0
+    for it in due:
+        pages = max(1, int(it["pages"]))
+        if out and (used + pages > budget_pages or (pace_cap is not None and used >= pace_cap)):
+            break
+        out.append(str(it["id"]))
+        used += pages
+    return out
+
+
+def cache_still_valid(last: Optional[datetime], now: datetime, ttl_sec: float, margin_sec: float = 6 * 3600) -> bool:
+    """경쟁사 크롤 캐시가 아직 유효해 enrich 가 네이버 접속 없이 끝낼 수 있는가.
+    관측이 없거나 TTL 직전이면 False — enrich 가 캐시 만료로 새 크롤을 시작하지 않게 건너뛴다(다음 sync 가 처리)."""
+    return last is not None and (now - last).total_seconds() < ttl_sec - margin_sec
+
+
+def build_stale_items(rows: list[dict], now: datetime) -> list[dict]:
+    """competitors 행들(business_id, naver_place_last_synced_at)을 사업장 단위 select_stale_first 입력으로 묶는다.
+    한 곳이라도 관측이 없으면 그 사업장은 last=None(가장 우선), 아니면 가장 오래된 관측 시각. pages 는 경쟁사 수 × 크롤 비용(캐시 적중 시 실제는 더 적다)."""
+    groups: dict[str, dict] = {}
+    for r in rows:
+        biz = str(r["business_id"])
+        g = groups.setdefault(biz, {"id": biz, "last": now, "pages": 0, "unobserved": False})
+        g["pages"] += COMPETITOR_PAGE_COST
+        ts = parse_ts(r.get("naver_place_last_synced_at"))
+        if ts is None:
+            g["unobserved"] = True
+        elif ts < g["last"]:
+            g["last"] = ts
+    return [{"id": g["id"], "last": None if g["unobserved"] else g["last"], "pages": g["pages"]} for g in groups.values()]
