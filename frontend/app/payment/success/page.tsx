@@ -170,6 +170,11 @@ function PaymentSuccessContent() {
               오늘 <span className="font-semibold">{chargedAmount.toLocaleString()}원</span>이 결제되었습니다.
             </p>
           )}
+          {chargedAmount > 0 && (
+            <p className="text-gray-600 text-sm mb-2 break-keep">
+              결제 문자와 카드 명세서에는 가맹점명이 <span className="font-semibold text-gray-800">(주)온프</span>로 표시될 수 있습니다.
+            </p>
+          )}
           <p className="text-gray-600 text-sm mb-2">
             이제 {GEMINI_LIVE ? "네이버·Gemini·ChatGPT 3곳" : "네이버·ChatGPT 2곳(Gemini는 준비 중)"} 자동 측정과 개선 가이드를 이용할 수 있습니다.
           </p>
