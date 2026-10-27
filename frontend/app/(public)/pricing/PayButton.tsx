@@ -18,6 +18,19 @@ interface Props {
 // 카카오 알림톡 발송에 필요한 최소 형식 — 엄격한 통신사 검증은 아님(가입폼과 동일 수준)
 const PHONE_PATTERN = /^01[016789]-?\d{3,4}-?\d{4}$/;
 
+// 저장된 번호가 숫자만(01012345678)이어도 입력 예시와 같은 하이픈 형태로 보여 줌
+function formatPhone(raw: string): string {
+  const d = raw.replace(/\D/g, "");
+  const m = d.match(/^(01[016789])(\d{3,4})(\d{4})$/);
+  return m ? `${m[1]}-${m[2]}-${m[3]}` : raw;
+}
+
+// 첫 달 할인 후 정상가가 청구되는 날(결제일 + 30일) — 서버가 first_month_discount_until=오늘+30으로 기록
+function nextChargeLabel(): string {
+  const d = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+}
+
 export function PayButton({ planName, amount, highlight, signupHref, firstMonthAmount, ctaText }: Props) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -72,16 +85,18 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
         .select("phone")
         .eq("user_id", user.id)
         .maybeSingle();
-      if (data?.phone) setPhone(data.phone);
+      if (data?.phone) setPhone(formatPhone(data.phone));
     })();
   }, [showConfirm]);
 
   const displayCta = isLoggedIn && ctaText === "무료 회원가입" ? "결제하기" : (ctaText ?? "시작하기");
 
   const chargeAmount = firstMonthAmount && isFirstTime ? firstMonthAmount : amount;
+  // 구독 이력 확인 전에는 정상가가 잠깐 보였다가 할인가로 바뀌지 않도록 금액을 확정하지 않는다
+  const priceChecking = !!firstMonthAmount && isFirstTime === null;
 
   const handleConfirm = async () => {
-    if (!agreed) return;
+    if (!agreed || priceChecking) return;
     setPhoneError("");
     setLoading(true);
     // 전화번호 검증 실패 시에는 모달을 닫지 않고 그대로 두어 사용자가 바로 고칠 수 있게 함
@@ -153,7 +168,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
 
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 break-keep">
             <h2 className="text-lg font-bold text-gray-900 mb-1">결제 확인</h2>
             <p className="text-sm text-gray-600 mb-5">아래 내용을 확인하고 결제를 진행해주세요.</p>
 
@@ -162,7 +177,12 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
                 <span className="text-gray-600">상품</span>
                 <span className="font-medium text-gray-900">AEOlab {planName} 구독</span>
               </div>
-              {firstMonthAmount && isFirstTime ? (
+              {priceChecking ? (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">결제 금액</span>
+                  <span className="text-gray-600">확인 중...</span>
+                </div>
+              ) : firstMonthAmount && isFirstTime ? (
                 <>
                   <div className="flex justify-between">
                     <span className="text-gray-600">오늘 결제 (첫 달 50%)</span>
@@ -171,7 +191,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">다음 달부터</span>
+                    <span className="text-gray-600">{nextChargeLabel()}부터</span>
                     <span className="text-gray-700">
                       {amount.toLocaleString()}원 / 월
                     </span>
@@ -192,14 +212,16 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
             </div>
 
             <p className="text-sm text-gray-600 mb-3">
-              {firstMonthAmount && isFirstTime
+              {priceChecking
+                ? "결제 금액을 확인하는 중입니다."
+                : firstMonthAmount && isFirstTime
                 ? `첫 달 ${firstMonthAmount.toLocaleString()}원 결제 후, 30일 뒤부터 매월 ${amount.toLocaleString()}원이 자동으로 결제됩니다. 언제든지 설정에서 해지할 수 있습니다.`
                 : "카드를 등록하면 매월 자동으로 결제됩니다. 언제든지 설정에서 해지할 수 있습니다."}
             </p>
 
             <div className="mb-5">
               <label htmlFor="pay-confirm-phone" className="block text-sm font-medium text-gray-700 mb-1.5">
-                카카오 알림 받을 전화번호
+                카카오 알림 받을 전화번호 <span className="text-red-600">(필수)</span>
               </label>
               <input
                 id="pay-confirm-phone"
@@ -219,7 +241,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
             </div>
 
             <p className="text-sm text-gray-600 mb-3">
-              구독 시작일로부터 7일 이내 청약철회 신청 가능 (단, 서비스 이용 시 제한됩니다)
+              구독 시작일로부터 7일 이내 청약철회를 신청할 수 있습니다. 단, 스캔·가이드 생성 등 서비스를 이용한 경우에는 청약철회가 제한될 수 있습니다.
             </p>
 
             <label className="flex items-start gap-2 mb-5 cursor-pointer">
@@ -247,7 +269,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
               </button>
               <button
                 onClick={handleConfirm}
-                disabled={loading || !agreed}
+                disabled={loading || !agreed || priceChecking}
                 className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "처리 중..." : "카드 등록 및 결제"}
