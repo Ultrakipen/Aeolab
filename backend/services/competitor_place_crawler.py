@@ -96,8 +96,10 @@ async def fetch_competitor_place_data(naver_place_id: str) -> dict:
     if not _ok:
         return {**default, "error": _why}
 
-    # 홈·메뉴·소식·정보·사진 등 여러 탭을 연다 — 페이지 수만큼 센다(기존엔 호출 1번=1건)
-    if not _check_naver_quota("competitor_place_crawler.fetch_competitor_place_data", cost=5):
+    # 홈·방문자리뷰·소식·메뉴·정보·사진 탭을 열고 탭마다 홈으로 돌아온다 — _run_place_crawl의 goto가 최대 12회라
+    # 페이지 수만큼 센다(기존엔 호출 1번=1건). 처음엔 5로 잡았으나 코드의 goto 수를 세어 보니 과소였다(2026-10-27).
+    # 정상 경로 기준 약 8~10, 폴백 포함 최대 12 — 실측이 아니라 코드 기준이므로 운영 사용량으로 재조정할 것.
+    if not _check_naver_quota("competitor_place_crawler.fetch_competitor_place_data", cost=10):
         return {**default, "error": "quota_exceeded"}
 
     try:
