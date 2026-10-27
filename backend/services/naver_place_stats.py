@@ -297,7 +297,7 @@ async def _check_completeness(url: str) -> dict:
         _bw_counter2 = _abc2(ctx)
         page = await ctx.new_page()
         await _as2(page)
-        _NAVER_BLOCK = "플레이스 서비스 이용이 제한"
+        from services.naver_block import is_naver_block_page  # 줄바꿈으로 나뉜 현재 차단 화면도 감지 (2026-10-27)
         try:
             # ── 1단계: 홈 탭 — 사진·메뉴·is_smart_place ─────────────────
             home_url = f"{base_url}/home" if base_url else url
@@ -305,7 +305,7 @@ async def _check_completeness(url: str) -> dict:
             await page.wait_for_timeout(_TAB_WAIT)
             body = await page.inner_text("body")
             logger.info(f"[sp_check] home body_len={len(body)} sample={body[:300]!r}")
-            _home_blocked = _NAVER_BLOCK in body
+            _home_blocked = is_naver_block_page(body)
             if _home_blocked:
                 logger.warning(f"[sp_check] home tab blocked (IP restriction) [{base_url}]")
 
@@ -354,21 +354,26 @@ async def _check_completeness(url: str) -> dict:
                     logger.warning(f"check_completeness menu tab skipped: {e}")
 
             # ── 2단계: 소식 탭 — 최근 90일 내 게시물 ───────────────────────
-            has_recent_post: bool | None = None  # None = 측정 불가(차단)
+            has_recent_post: bool | None = None  # None = 측정 불가(차단·로딩 미완료·구조 변경)
             recent_post_date = None
+            recent_post_state: str | None = None  # recent/old/none/no_tab/unmeasured (feed_post_parser)
             if base_url:
                 try:
+                    from services.feed_post_parser import analyze_feed_posts, to_has_recent_post
                     await page.goto(f"{base_url}/feed", timeout=_TAB_TIMEOUT, wait_until="domcontentloaded")
                     await page.wait_for_timeout(_TAB_WAIT)
                     feed_body = await page.inner_text("body")
-                    if _NAVER_BLOCK in feed_body:
+                    if is_naver_block_page(feed_body):
                         logger.warning(f"[sp_check] feed tab blocked (IP restriction) [{base_url}]")
                     else:
-                        has_recent_post, recent_post_date = _detect_recent_post_stats(feed_body)
+                        # 게시 시각은 단독 줄만 읽는다(글 본문 문장 속 "소식이 없어"·"1시간 전부터" 오판 방지, 2026-10-27)
+                        _fa = analyze_feed_posts(feed_body, page.url)
+                        has_recent_post = to_has_recent_post(_fa)
+                        recent_post_date = _fa.get("latest_date")
+                        recent_post_state = _fa.get("state")
                 except Exception as e:
                     logger.warning(f"check_completeness feed tab skipped: {e}")
-            else:
-                has_recent_post, recent_post_date = _detect_recent_post_stats(body)
+            # base_url이 없으면 소식 탭에 접근하지 못한 것이므로 홈 본문으로 추정하지 않고 측정 불가로 둔다
 
             # ── 3단계: 정보 탭 — 소개글·영업시간·FAQ ────────────────────
             has_intro: bool | None = None  # None = 측정 불가(차단)
@@ -382,7 +387,7 @@ async def _check_completeness(url: str) -> dict:
                     await page.wait_for_timeout(_TAB_WAIT)
                     info_body = await page.inner_text("body")
                     logger.info(f"[sp_check] info body_len={len(info_body)} sample={info_body[:400]!r}")
-                    if _NAVER_BLOCK in info_body:
+                    if is_naver_block_page(info_body):
                         logger.warning(f"[sp_check] info tab blocked (IP restriction) [{base_url}]")
                     else:
                         # 정보 탭이 너무 짧으면 /info 경로 재시도
@@ -443,6 +448,7 @@ async def _check_completeness(url: str) -> dict:
                 "has_recent_post": _has_rp,            # bool (차단 시 False)
                 "recent_post_measured": has_recent_post is not None,  # 실제 측정 여부
                 "recent_post_date": recent_post_date,
+                "recent_post_state": recent_post_state,  # no_tab = 소식 탭 자체가 없는 가게
                 "has_intro": _has_intro,               # bool (차단 시 False)
                 "intro_measured": has_intro is not None,              # 실제 측정 여부
                 "intro_char_count": intro_char_count,
@@ -532,7 +538,8 @@ async def _parse_photo_categories(page) -> tuple[dict, int | None]:
         # 네트워크 오류 감지: 사진 탭이 서버 차단/오류 시 None 반환 (잘못된 숫자 방지)
         try:
             page_text = await page.inner_text("body")
-            if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류|플레이스 서비스 이용이 제한", page_text or ""):
+            from services.naver_block import is_naver_block_page
+            if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류", page_text or "") or is_naver_block_page(page_text):
                 logger.warning("[photo_tab] network error or IP block detected — photo_count=None")
                 return {}, None
             # 사진 탭 JS 콘텐츠 미로딩 감지 — body가 너무 짧거나 "로딩중" 상태 (headless 감지)
@@ -594,41 +601,15 @@ async def _parse_photo_categories(page) -> tuple[dict, int | None]:
 _RECENT_POST_DAYS = 90  # 소식 유효 기간 (30일→90일: 소식 있어도 30일 초과 시 미감지 방지)
 
 
-def _detect_recent_post_stats(feed_body: str) -> tuple[bool, str | None]:
-    """소식 탭에서 최근 90일 게시물 여부와 날짜 반환."""
-    from datetime import datetime, timedelta, timezone
-    if not feed_body:
-        return False, None
-    if re.search(r"(등록된\s*소식이\s*없|소식이\s*없|게시물이\s*없)", feed_body):
-        return False, None
+def _detect_recent_post_stats(feed_body: str, page_url: str | None = None) -> tuple[bool | None, str | None]:
+    """소식 탭에서 최근 90일 게시물 여부와 최신 게시일 반환 — 하위 호환 래퍼.
 
-    # "오늘 영업시간" 같은 영업시간 문구 오탐 방지 — 날짜 상대 표현만 허용
-    if re.search(r"(\d+\s*시간\s*전|\d+\s*분\s*전|방금)", feed_body):
-        return True, None
-    if re.search(r"오늘|어제", feed_body) and not re.search(
-        r"오늘\s*(영업|운영|휴무|휴일|오픈|닫|쉬)", feed_body
-    ):
-        return True, None
-    days = [int(d) for d in re.findall(r"(\d+)\s*일\s*전", feed_body)]
-    if days:
-        return any(d <= _RECENT_POST_DAYS for d in days), None
-    # "N개월 전" — 1개월=30일, 2개월=60일, 3개월=90일 이내 → True
-    months = [int(m) for m in re.findall(r"(\d+)\s*개월\s*전", feed_body)]
-    if months:
-        return any(m * 30 <= _RECENT_POST_DAYS for m in months), None
-
-    today = datetime.now(timezone.utc).date()
-    for m in re.finditer(r"(20\d{2})[./\-](\d{1,2})[./\-](\d{1,2})", feed_body):
-        try:
-            from datetime import datetime as dt
-            d = dt(int(m.group(1)), int(m.group(2)), int(m.group(3)), tzinfo=timezone.utc).date()
-            if (today - d).days <= _RECENT_POST_DAYS:
-                date_str = f"{m.group(1)}-{m.group(2).zfill(2)}-{m.group(3).zfill(2)}"
-                return True, date_str
-        except (ValueError, OverflowError):
-            continue
-
-    return False, None
+    판정은 services/feed_post_parser.py가 한다(게시 시각을 단독 줄에서만 읽음). 측정 불가면 (None, None).
+    2026-10-27: 본문 전체 정규식이 글 속 문장을 "소식 없음"/"N시간 전"으로 오판하던 문제 수정.
+    """
+    from services.feed_post_parser import analyze_feed_posts, to_has_recent_post
+    a = analyze_feed_posts(feed_body, page_url)
+    return to_has_recent_post(a), a.get("latest_date")
 
 
 async def sync_naver_place_stats(business_id: str, naver_place_id: str):

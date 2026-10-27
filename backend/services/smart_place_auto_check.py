@@ -215,7 +215,7 @@ async def _run_check(naver_place_id: str) -> dict:
         page = await ctx.new_page()
         await _apply_stealth(page)
         try:
-            _NAVER_IP_BLOCK = "플레이스 서비스 이용이 제한"
+            from services.naver_block import is_naver_block_page  # 줄바꿈으로 나뉜 현재 차단 화면도 감지 (2026-10-27)
             # ── 1단계: 홈 탭 — 페이지 정상 로드 여부 + 예약 감지 + 사진 수 ──
             try:
                 await page.goto(
@@ -226,7 +226,7 @@ async def _run_check(naver_place_id: str) -> dict:
                 await page.wait_for_timeout(1500)
                 home_text = (await page.inner_text("body"))[:15000] or ""
                 # IP 차단 감지 — 차단 시 photo/review 등 감지 불가이므로 early return
-                if _NAVER_IP_BLOCK in home_text:
+                if is_naver_block_page(home_text):
                     _logger.warning(f"smart_place home tab blocked (IP restriction) [{naver_place_id}]")
                     return {
                         **results,
@@ -265,11 +265,19 @@ async def _run_check(naver_place_id: str) -> dict:
                 )
                 await page.wait_for_timeout(1500)
                 feed_text = (await page.inner_text("body")) or ""
-                if _NAVER_IP_BLOCK in feed_text:
+                if is_naver_block_page(feed_text):
                     _logger.warning(f"smart_place feed tab blocked (IP restriction) [{naver_place_id}]")
                     results["recent_post_measured"] = False
                 else:
-                    results["has_recent_post"] = _detect_recent_post(feed_text)
+                    # 게시 시각은 단독 줄만 읽는다 — 글 본문 문장 속 "소식이 없어"·"1시간 전부터" 오판 방지(2026-10-27)
+                    from services.feed_post_parser import analyze_feed_posts, to_has_recent_post
+                    _fa = analyze_feed_posts(feed_text, page.url)
+                    _rp = to_has_recent_post(_fa)
+                    results["recent_post_state"] = _fa.get("state")
+                    if _rp is None:
+                        results["recent_post_measured"] = False  # 읽지 못함 — "없음"으로 단정하지 않는다
+                    else:
+                        results["has_recent_post"] = _rp
             except Exception as e:
                 _logger.warning(f"smart_place feed tab skipped [{naver_place_id}]: {e}")
 
@@ -301,7 +309,7 @@ async def _run_check(naver_place_id: str) -> dict:
                 await page.wait_for_timeout(1500)
                 photo_body = (await page.inner_text("body")) or ""
                 # 네트워크 오류·IP 차단 감지 — 오류 시 기존 값 유지 (잘못된 숫자 방지)
-                if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류", photo_body) or _NAVER_IP_BLOCK in photo_body:
+                if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류", photo_body) or is_naver_block_page(photo_body):
                     _logger.warning(f"[smart_place] photo tab network error [{naver_place_id}]")
                 else:
                     # "전체 N" 패턴 (사진 탭 필터 버튼)
@@ -350,47 +358,13 @@ _RECENT_POST_DAYS = 90  # naver_place_stats.py와 동일 기준
 
 
 def _detect_recent_post(feed_body: str) -> bool:
-    """소식 탭 본문에서 최근 90일 내 게시물 존재 여부 추정.
+    """소식 탭 본문에서 최근 90일 내 게시물 존재 여부 — 하위 호환 래퍼.
 
-    - "N일 전" / "N시간 전" 표시: 최근 = True
-    - "N개월 전": N*30 <= 90이면 True (1·2·3개월 전 포함), "N년 전": 오래됨 = False
-    - 절대 날짜(YYYY.MM.DD): 90일 이내 판정
-    - "등록된 소식이 없습니다" / "최근 소식이 없습니다": False
+    판정은 services/feed_post_parser.py가 한다(게시 시각을 단독 줄에서만 읽음). 측정 불가는 False로 접는다
+    (자세한 상태는 analyze_feed_posts 사용). 2026-10-27: 글 본문 문장 속 "소식이 없어"·"1시간 전부터" 오판 수정.
     """
-    if not feed_body:
-        return False
-    if re.search(r"(등록된 소식이 없|소식이 없|게시물이 없)", feed_body):
-        return False
-
-    # "N시간 전" / "N분 전" / "방금" → 무조건 최근
-    if re.search(r"(\d+\s*시간\s*전|\d+\s*분\s*전|방금)", feed_body):
-        return True
-    # "오늘" / "어제" — 영업시간 문구 오탐 방지
-    if re.search(r"오늘|어제", feed_body) and not re.search(
-        r"오늘\s*(영업|운영|휴무|휴일|오픈|닫|쉬)", feed_body
-    ):
-        return True
-    days = [int(d) for d in re.findall(r"(\d+)\s*일\s*전", feed_body)]
-    if days:
-        return any(d <= _RECENT_POST_DAYS for d in days)
-    # "N개월 전" — 1개월=30일, 2개월=60일, 3개월=90일 이내 → True
-    months = [int(m) for m in re.findall(r"(\d+)\s*개월\s*전", feed_body)]
-    if months:
-        return any(m * 30 <= _RECENT_POST_DAYS for m in months)
-
-    # 절대 날짜 (YYYY.MM.DD 또는 YYYY-MM-DD) — 90일 이내면 최근
-    today = datetime.now(timezone.utc).date()
-    for m in re.finditer(r"(20\d{2})[./\-](\d{1,2})[./\-](\d{1,2})", feed_body):
-        try:
-            d = datetime(
-                int(m.group(1)), int(m.group(2)), int(m.group(3)), tzinfo=timezone.utc
-            ).date()
-            if (today - d) <= timedelta(days=_RECENT_POST_DAYS):
-                return True
-        except (ValueError, OverflowError):
-            continue
-
-    return False
+    from services.feed_post_parser import analyze_feed_posts, to_has_recent_post
+    return bool(to_has_recent_post(analyze_feed_posts(feed_body)))
 
 
 def _detect_intro(info_body: str) -> bool:
