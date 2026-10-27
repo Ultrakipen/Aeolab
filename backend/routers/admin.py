@@ -1486,6 +1486,7 @@ async def get_naver_access(_=Depends(verify_admin)):
     from services.scan_scheduling import slot_spread_enabled
     from services.place_page_signals import photo_tab_enabled
     from services.competitor_place_crawler import place_cache_snapshot
+    from services.naver_keyword_rank import card_cache_snapshot
 
     snap = naver_playwright_quota_snapshot()
     cap = snap.get("cap") or 0
@@ -1493,6 +1494,7 @@ async def get_naver_access(_=Depends(verify_admin)):
         "quota": {**snap, "used_pct": round(snap["used"] / cap * 100, 1) if cap else None},
         "place_breaker": _guard.snapshot(),
         "competitor_cache": place_cache_snapshot(),   # 경쟁사 공유 캐시 적중률 = 실측 중복 제거율
+        "rank_card_cache": card_cache_snapshot(),   # 키워드 순위 검색 화면 공유 캐시 적중률(프로세스 시작 이후)
         "rate": _guard.rate_snapshot(),   # 속도 기준 윈도우별 현재 사용량(제안값, 차단 후 자동 절반)
         "history": naver_quota_history(30),
         "settings": {

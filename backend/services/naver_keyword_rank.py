@@ -128,6 +128,67 @@ async def _find_rank_in_elements(
     return None
 
 
+# ── 검색 화면 카드 목록 공유 캐시 (2026-10-27, 사용자 증가 대비) ─────────────────────────────
+# PC·모바일 순위는 "검색어 한 번 열어서 읽은 가게 카드 목록"에서 내 가게 위치를 찾는 것이다. 목록은 검색어와 기기만으로
+# 정해지므로(비로그인, 같은 서버 위치) 같은 검색어를 쓰는 다른 사업장(같은 지역·업종의 기본 키워드 등)은 페이지를 다시 열지
+# 않고 같은 목록에서 자기 순위를 구할 수 있다. 정기 잡이 한 시간 안에 여러 사업장을 순차 처리하는 경우를 겨냥한 짧은 캐시다.
+# 프로세스 메모리, TTL 기본 6시간(제안값, KEYWORD_RANK_CARD_CACHE_TTL_SEC=0이면 끔). 빈 목록은 저장하지 않는다
+# (네이버가 목록 없이 내려준 일시 오류일 수 있어 "미노출"을 퍼뜨리지 않기 위해). 적중/실패는 card_cache_snapshot()으로 본다.
+import time as _time
+
+_CARD_CACHE: dict = {}                 # (device, query) -> (epoch, cards)
+_CARD_CACHE_MAX = 500
+_card_cache_stats = {"hit": 0, "miss": 0}
+
+
+def _card_cache_ttl() -> float:
+    try:
+        return float(os.getenv("KEYWORD_RANK_CARD_CACHE_TTL_SEC", "21600"))
+    except ValueError:
+        return 21600.0
+
+
+def _card_cache_get(device: str, query: str) -> Optional[list]:
+    ttl = _card_cache_ttl()
+    if ttl <= 0:
+        return None
+    hit = _CARD_CACHE.get((device, _norm(query)))
+    if hit and (_time.time() - hit[0]) <= ttl:
+        _card_cache_stats["hit"] += 1
+        return list(hit[1])
+    _card_cache_stats["miss"] += 1
+    return None
+
+
+def _card_cache_put(device: str, query: str, cards: Optional[list]) -> None:
+    if _card_cache_ttl() <= 0 or not cards:
+        return
+    if len(_CARD_CACHE) >= _CARD_CACHE_MAX:
+        _CARD_CACHE.pop(min(_CARD_CACHE, key=lambda k: _CARD_CACHE[k][0]), None)
+    _CARD_CACHE[(device, _norm(query))] = (_time.time(), list(cards))
+
+
+def card_cache_snapshot() -> dict:
+    h, m = _card_cache_stats["hit"], _card_cache_stats["miss"]
+    return {"entries": len(_CARD_CACHE), "ttl_sec": _card_cache_ttl(), "hit": h, "miss": m,
+            "hit_rate_pct": round(h / (h + m) * 100, 1) if (h + m) else None, "since": "프로세스 시작 이후"}
+
+
+def reset_card_cache_for_tests() -> None:
+    _CARD_CACHE.clear()
+    _card_cache_stats.update({"hit": 0, "miss": 0})
+
+
+def rank_from_cards(cards: list, biz_name_norm: str, place_id: Optional[str]) -> Optional[int]:
+    """카드 목록(화면 순서)에서 내 가게 순위. 광고 카드는 목록에 없으므로 광고 제외 순위다."""
+    for idx, c in enumerate(cards[:RESULT_LIMIT], start=1):
+        if place_id and c.get("id") == str(place_id):
+            return idx
+        if not place_id and _is_match(biz_name_norm, c.get("text", "")):
+            return idx
+    return None
+
+
 _PLACE_CARD_JS = r"""
 () => {
   const re = /(?:\/place\/|place\.naver\.com\/[a-z]+\/)(\d{6,})/;
@@ -152,6 +213,7 @@ async def _place_card_rank(
     page: Page,
     biz_name_norm: str,
     place_id: Optional[str],
+    cards_out: Optional[dict] = None,
 ) -> Optional[int]:
     """검색 결과 화면의 가게(플레이스) 카드 노출 순서에서 내 가게 순위를 구한다.
 
@@ -175,13 +237,10 @@ async def _place_card_rank(
         _logger.warning(f"keyword_rank 카드 수집 실패: {e}")
         return None
     def _find(cards_: list) -> Optional[int]:
-        for idx, c in enumerate(cards_[:RESULT_LIMIT], start=1):
-            if place_id and c.get("id") == str(place_id):
-                return idx
-            if not place_id and _is_match(biz_name_norm, c.get("text", "")):
-                return idx
-        return None
+        return rank_from_cards(cards_, biz_name_norm, place_id)
 
+    if cards_out is not None:
+        cards_out["cards"] = cards      # 호출자가 공유 캐시에 넣을 수 있게 마지막으로 읽은 목록을 돌려준다
     rank = _find(cards)
     if rank is None:
         # 간헐적 오판 방지: 네이버가 가끔 가게 목록 없이 광고 블록만 먼저 내려주거나(목록 0개),
@@ -201,7 +260,10 @@ async def _place_card_rank(
                 except Exception:
                     pass
             await page.wait_for_timeout(2000)
-            rank = _find(await page.evaluate(_PLACE_CARD_JS))
+            cards = await page.evaluate(_PLACE_CARD_JS)
+            if cards_out is not None:
+                cards_out["cards"] = cards
+            rank = _find(cards)
         except Exception as e:
             _logger.warning(f"keyword_rank 카드 재확인 실패: {e}")
     return rank
@@ -246,7 +308,10 @@ async def _measure_pc(
         _logger.warning(f"keyword_rank PC nav 실패 ({keyword}): {e}")
         return None
 
-    return await _place_card_rank(page, biz_name_norm, place_id)
+    _out: dict = {}
+    rank = await _place_card_rank(page, biz_name_norm, place_id, _out)
+    _card_cache_put("pc", keyword, _out.get("cards"))
+    return rank
 
 
 async def _measure_place_api(
@@ -294,7 +359,10 @@ async def _measure_mobile(
         _logger.warning(f"keyword_rank mobile nav 실패 ({keyword}): {e}")
         return None
 
-    return await _place_card_rank(page, biz_name_norm, place_id)
+    _out: dict = {}
+    rank = await _place_card_rank(page, biz_name_norm, place_id, _out)
+    _card_cache_put("mobile", keyword, _out.get("cards"))
+    return rank
 
 
 async def measure_keywords(
@@ -365,10 +433,14 @@ async def _run_with_browser(
                         # place_rank만 Playwright→공식API로 교체, PC/모바일 순서·간격은 그대로.
                         # 전역 일일 상한(check_naver_playwright_quota) 도달 시 해당 채널은 None
                         # (미측정) — 임의 수치 대체 없음, 다음 사이클에 재시도.
-                        pc_rank = (
-                            await _measure_pc(pc_page, search_query, biz_name_norm, place_id)
-                            if check_naver_playwright_quota("naver_keyword_rank.pc") else None
-                        )
+                        _pc_cards = _card_cache_get("pc", search_query)
+                        if _pc_cards is not None:     # 같은 검색어를 최근에 읽었다 — 네이버 접속 없이 목록에서 순위만 구한다
+                            pc_rank = rank_from_cards(_pc_cards, biz_name_norm, place_id)
+                        else:
+                            pc_rank = (
+                                await _measure_pc(pc_page, search_query, biz_name_norm, place_id)
+                                if check_naver_playwright_quota("naver_keyword_rank.pc") else None
+                            )
                         # 장소 API 실패가 PC·모바일 결과까지 버리지 않도록 채널별로 격리
                         # (2026-10-26: kind "local.json" ValueError가 전 채널을 None으로 만든 사고)
                         try:
@@ -377,10 +449,14 @@ async def _run_with_browser(
                             _logger.warning(f"keyword_rank place API 실패 ({search_query}): {pe}")
                             errors.append(f"{kw}: place:{type(pe).__name__}")
                             place_rank = None
-                        mobile_rank = (
-                            await _measure_mobile(mobile_page, search_query, biz_name_norm, place_id)
-                            if check_naver_playwright_quota("naver_keyword_rank.mobile") else None
-                        )
+                        _mob_cards = _card_cache_get("mobile", search_query)
+                        if _mob_cards is not None:
+                            mobile_rank = rank_from_cards(_mob_cards, biz_name_norm, place_id)
+                        else:
+                            mobile_rank = (
+                                await _measure_mobile(mobile_page, search_query, biz_name_norm, place_id)
+                                if check_naver_playwright_quota("naver_keyword_rank.mobile") else None
+                            )
                         _logger.info(
                             f"keyword_rank '{search_query}': "
                             f"PC={pc_rank} Place={place_rank} Mobile={mobile_rank}"
