@@ -337,19 +337,20 @@ async def _check_completeness(url: str) -> dict:
                     except Exception as e:
                         logger.debug("[naver_place_stats] reservation selector check failed: %s", e)
 
-            # 메뉴·서비스 — 홈탭 또는 메뉴탭에서 감지
-            has_menu = bool(
-                re.search(r"메뉴|서비스\s*가격|레슨\s*요금|수업\s*요금|강의\s*요금|프로그램\s*안내|가격표|메뉴·서비스", body)
-            )
-            # 홈 탭에서 못 찾으면 /menu 탭 시도
-            if not has_menu and base_url:
+            # 메뉴·서비스 — 홈 화면의 단독 줄 근거(메뉴 탭·메뉴N 섹션·가격표)로만 판정한다.
+            # 2026-10-27: 기존엔 본문 어디든 "메뉴"가 있으면 통과라 메뉴 탭이 없는 사진관도 "등록됨"이었다.
+            # 근거를 못 찾았다고 "없음"으로 단정하지 않는다(업종별 라벨 차이) — 찾으면 True, 못 찾으면 None(확인 안 됨).
+            from services.place_page_signals import detect_menu_evidence, detect_menu_tab_content
+            has_menu: bool | None = True if detect_menu_evidence(body) else None
+            # 홈에서 근거가 없으면 /menu 탭을 본다 — 메뉴 탭이 없는 가게는 /menu가 홈으로 이동하므로 주소를 확인한다
+            if has_menu is None and base_url:
                 try:
                     await page.goto(f"{base_url}/menu", timeout=_TAB_TIMEOUT, wait_until="domcontentloaded")
                     await page.wait_for_timeout(_TAB_WAIT)
                     menu_body = await page.inner_text("body")
                     logger.info(f"[sp_check] menu body_len={len(menu_body)} sample={menu_body[:200]!r}")
-                    no_menu_msg = bool(re.search(r"등록된\s*메뉴|메뉴가\s*없|등록된\s*서비스가\s*없", menu_body))
-                    has_menu = len(menu_body) > 200 and not no_menu_msg
+                    if "/menu" in page.url and not is_naver_block_page(menu_body):
+                        has_menu = detect_menu_tab_content(menu_body)
                 except Exception as e:
                     logger.warning(f"check_completeness menu tab skipped: {e}")
 
@@ -433,12 +434,13 @@ async def _check_completeness(url: str) -> dict:
             _pc_for_score = photo_count or 0  # None → 0 (점수 계산용)
             _has_rp = bool(has_recent_post)   # None(차단) = False
             _has_intro = bool(has_intro)       # None(차단) = False
+            _has_menu = bool(has_menu)         # None(확인 안 됨) = False — 표시는 menu_measured로 구분
             score = sum([
                 0,                            # has_faq 25점 → 0 (Q&A 탭 폐기, score_engine과 일치)
                 _has_rp * 25,                 # 소식 15→25점 재배분 (score_engine v4.1 일치)
                 _has_intro * 20,
                 min(_pc_for_score, 5) * 2,
-                has_menu * 15,
+                _has_menu * 15,
                 has_hours * 5,
             ])
 
@@ -453,7 +455,8 @@ async def _check_completeness(url: str) -> dict:
                 "intro_measured": has_intro is not None,              # 실제 측정 여부
                 "intro_char_count": intro_char_count,
                 "photo_count": photo_count,
-                "has_menu": has_menu,
+                "has_menu": _has_menu,                  # bool (근거 없으면 False)
+                "menu_measured": has_menu is not None,  # False = 근거를 못 찾아 확인 안 됨("없음"이 아님)
                 "has_hours": has_hours,
                 "has_reservation": has_reservation,     # None=측정 불가(홈 탭 차단), bool=실측
                 "completeness_score": min(score, 100),
@@ -546,9 +549,9 @@ async def _parse_photo_categories(page) -> tuple[dict, int | None]:
             if len(page_text or "") < 200 or (page_text and "로딩중" in page_text and len(page_text) < 300):
                 logger.warning("[photo_tab] photo tab not rendered (loading state) — photo_count=None")
                 return {}, None
-            m_text = re.search(r"전체\s*([\d,]+)", page_text)
-            if m_text:
-                total_from_text = int(m_text.group(1).replace(",", ""))
+            # 쉼표만 있어도 매칭돼 int('') 오류가 나던 정규식 수정(2026-10-27) — 숫자로 시작하는 경우만
+            from services.place_page_signals import parse_count
+            total_from_text = parse_count(re.search(r"전체\s*(\d[\d,]*)", page_text)) or 0
         except Exception as e:
             logger.debug("[naver_place_stats] photo tab text parse failed: %s", e)
 

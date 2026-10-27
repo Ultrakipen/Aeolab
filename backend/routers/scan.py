@@ -3179,11 +3179,13 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                 biz = {**biz, "avg_rating": place_stats_fresh["avg_rating"]}
         # SmartPlace 체크 결과를 biz에 즉시 반영 — DB 업데이트(하단) 전에 점수 계산이 먼저 실행되므로
         # has_recent_post/has_intro를 여기서 병합해야 스캔 시점 실측값이 점수에 반영된다
+        # 2026-10-27: 측정하지 못한 항목(*_measured=False: 차단·로딩 미완료)은 병합하지 않는다 — 측정 불가(None→False)가
+        # 사용자가 직접 체크해 둔 값을 덮어써 점수를 깎지 않게 한다.
         if isinstance(smart_place_check, dict) and not smart_place_check.get("error"):
-            if "has_recent_post" in smart_place_check:
+            if "has_recent_post" in smart_place_check and smart_place_check.get("recent_post_measured", True) is not False:
                 biz = {**(biz or {}), "has_recent_post": smart_place_check["has_recent_post"]}
-            if "has_intro" in smart_place_check:
-                biz = {**biz, "has_intro": smart_place_check["has_intro"]}
+            if "has_intro" in smart_place_check and smart_place_check.get("intro_measured", True) is not False:
+                biz = {**(biz or {}), "has_intro": smart_place_check["has_intro"]}
 
         # AI탭 결과 — scan_all() 내부에서 이미 스캔 완료(_scan_queries[:4], multi_scanner.py 참고).
         # 2026-07-14 수정: 기존엔 이 result를 버리고 별도로 scan_batch()를 다시 호출해

@@ -8,7 +8,10 @@ const CACHE_TTL_MS = 24 * 60 * 60 * 1000 // 24시간
 
 interface CheckItem {
   label: string
-  passed: boolean
+  /** null = 측정하지 못한 항목(measured=false) — "미통과"가 아니라 "확인 전"으로 보여준다 */
+  passed: boolean | null
+  /** false면 이번 점검에서 확인하지 못함. 키가 없는 옛 캐시 결과는 측정된 것으로 본다 */
+  measured?: boolean
   score_impact: number
   action_url: string | null
 }
@@ -122,8 +125,11 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
     </div>
   )
 
-  const failedItems = result?.items.filter((item) => !item.passed) ?? []
-  const passedItems = result?.items.filter((item) => item.passed) ?? []
+  // 측정하지 못한 항목은 미통과로 세지 않는다 — 사진을 못 읽었을 뿐인데 "개선 필요"로 나가던 문제(2026-10-27)
+  const isMeasured = (item: CheckItem) => item.measured !== false && item.passed !== null
+  const unmeasuredItems = result?.items.filter((item) => !isMeasured(item)) ?? []
+  const failedItems = result?.items.filter((item) => isMeasured(item) && !item.passed) ?? []
+  const passedItems = result?.items.filter((item) => isMeasured(item) && item.passed) ?? []
   const scorePct =
     result && result.max_score > 0
       ? Math.round((result.total_score / result.max_score) * 100)
@@ -234,6 +240,7 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
                 )}
                 <span className="text-sm text-gray-600">
                   {passedItems.length}/{failedItems.length + passedItems.length}항목 완료
+                  {unmeasuredItems.length > 0 ? ` (확인 전 ${unmeasuredItems.length}개 제외)` : ''}
                 </span>
               </div>
             </div>
@@ -306,9 +313,42 @@ export default function SmartplaceAutoCheck({ bizId, naverPlaceUrl, accessToken 
             </div>
           )}
 
-          {failedItems.length === 0 && (
+          {/* 확인 전 항목 — 측정하지 못한 것이지 부족하다는 뜻이 아니다. 네이버에서 직접 확인할 링크만 준다 */}
+          {unmeasuredItems.length > 0 && (
+            <div className="mt-4">
+              <p className="text-sm font-semibold text-gray-700 mb-2">
+                확인 전 ({unmeasuredItems.length}개)
+              </p>
+              <div className="space-y-2">
+                {unmeasuredItems.map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl p-3"
+                  >
+                    <AlertCircle className="w-5 h-5 text-gray-500 shrink-0" aria-hidden="true" />
+                    <p className="text-sm font-medium text-gray-800 flex-1">{item.label}</p>
+                    {item.action_url ? (
+                      <a
+                        href={item.action_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:underline"
+                      >
+                        직접 확인하기
+                        <ExternalLink className="w-3 h-3" aria-hidden="true" />
+                      </a>
+                    ) : (
+                      <span className="text-sm text-gray-600 shrink-0">결과 없음</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {failedItems.length === 0 && unmeasuredItems.length === 0 && (
             <p className="text-sm text-emerald-700 text-center py-2 font-medium">
-              모든 항목을 완료했습니다. AI 브리핑 노출 가능성이 높습니다.
+              점검한 모든 항목이 완료돼 있습니다.
             </p>
           )}
         </>

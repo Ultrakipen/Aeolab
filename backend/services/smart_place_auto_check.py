@@ -312,25 +312,17 @@ async def _run_check(naver_place_id: str) -> dict:
                 if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류", photo_body) or is_naver_block_page(photo_body):
                     _logger.warning(f"[smart_place] photo tab network error [{naver_place_id}]")
                 else:
-                    # "전체 N" 패턴 (사진 탭 필터 버튼)
-                    m_total = re.search(r"전체\s*([\d,]+)", photo_body)
-                    if m_total:
-                        tab_total = int(m_total.group(1).replace(",", ""))
-                        if tab_total > 0:
-                            results["photo_count"] = tab_total
-                            _logger.info(
-                                f"[smart_place] photo_count updated from photo tab: {tab_total} [{naver_place_id}]"
-                            )
-                    elif not results["photo_count"]:
-                        # "사진 N" 패턴 fallback
-                        m_photo = re.search(r"사진\s*([\d,]+)", photo_body)
-                        if m_photo:
-                            tab_total = int(m_photo.group(1).replace(",", ""))
-                            if tab_total > 0:
-                                results["photo_count"] = tab_total
-                                _logger.info(
-                                    f"[smart_place] photo_count from photo tab text: {tab_total} [{naver_place_id}]"
-                                )
+                    # "전체 N"(사진 탭 필터 버튼) 우선, 없으면 "사진 N". 쉼표만 있어도 매칭돼 int('') 오류로
+                    # 사진 측정이 통째로 건너뛰어지던 정규식 수정(2026-10-27, services/place_page_signals.py)
+                    from services.place_page_signals import parse_count, _PHOTO_TOTAL_RE, _PHOTO_WORD_RE
+                    tab_total = parse_count(_PHOTO_TOTAL_RE.search(photo_body))
+                    if tab_total is None and not results["photo_count"]:
+                        tab_total = parse_count(_PHOTO_WORD_RE.search(photo_body))
+                    if tab_total:
+                        results["photo_count"] = tab_total
+                        _logger.info(
+                            f"[smart_place] photo_count updated from photo tab: {tab_total} [{naver_place_id}]"
+                        )
             except Exception as e:
                 _logger.warning(f"smart_place photo tab skipped [{naver_place_id}]: {e}")
 

@@ -5202,56 +5202,23 @@ async def post_smartplace_check(
 
     # 항목별 결과 구성 (label / passed / score_impact / action_url)
     # [2026-05-01] Q&A 탭 폐기 — FAQ 항목 제거. 소개글·소식·사진·메뉴·영업시간 5개 항목만 유지.
-    items = [
-        {
-            "label": "최근 소식 업데이트",
-            "passed": bool(raw.get("has_recent_post")),
-            "score_impact": 25,
-            "detail": raw.get("recent_post_date"),
-            "action_url": _sp_url("posts"),
-        },
-        {
-            "label": "소개글 작성",
-            "passed": bool(raw.get("has_intro")),
-            "score_impact": 20,
-            "detail": f"약 {raw.get('intro_char_count', 0)}자" if raw.get("intro_char_count") else None,
-            "action_url": _sp_url("info"),
-        },
-        {
-            "label": "사진 5장 이상",
-            "passed": (raw.get("photo_count") or 0) >= 5,
-            "score_impact": 10,
-            "detail": f"{raw.get('photo_count', 0)}장 등록됨",
-            "action_url": _sp_url("photo") if place_id else None,
-        },
-        {
-            "label": "메뉴·서비스 등록",
-            "passed": bool(raw.get("has_menu")),
-            "score_impact": 15,
-            "detail": None,
-            "action_url": _sp_url("menu") if place_id else None,
-        },
-        {
-            "label": "영업시간 등록",
-            "passed": bool(raw.get("has_hours")),
-            "score_impact": 5,
-            "detail": None,
-            "action_url": _sp_url("info"),
-        },
-    ]
+    # 2026-10-27: 항목 구성은 services/smartplace_items.py — 측정하지 못한 항목은 passed=None·measured=False로 내려
+    # 화면이 "개선 필요"가 아닌 "확인 전"으로 보여주고, 점수는 측정된 항목만 센다(D2·D3).
+    from services.smartplace_items import build_check_items
+    _built = build_check_items(raw, _sp_url, place_id)
+    items = _built["items"]
+    total_score = _built["total_score"]
+    max_score = _built["max_score"]
 
-    total_score = sum(i["score_impact"] for i in items if i["passed"])
-    max_score = sum(i["score_impact"] for i in items)
-
-    # businesses 테이블 동기화 — 스마트플레이스 체크 결과를 DB에 반영
+    # businesses 테이블 동기화 — 스마트플레이스 체크 결과를 DB에 반영.
+    # 측정된 항목만 저장한다: 측정 불가(None→False)를 그대로 쓰면 사용자가 직접 체크해 둔 값을 차단·미측정 때 지워버린다.
     try:
-        await execute(
-            supabase.table("businesses").update({
-                "has_faq":         bool(raw.get("has_faq")),
-                "has_intro":       bool(raw.get("has_intro")),
-                "has_recent_post": bool(raw.get("has_recent_post")),
-            }).eq("id", biz_id)
-        )
+        _sync: dict = {"has_faq": bool(raw.get("has_faq"))}
+        if raw.get("intro_measured", True) is not False:
+            _sync["has_intro"] = bool(raw.get("has_intro"))
+        if raw.get("recent_post_measured", True) is not False:
+            _sync["has_recent_post"] = bool(raw.get("has_recent_post"))
+        await execute(supabase.table("businesses").update(_sync).eq("id", biz_id))
     except Exception as e:
         _logger.warning("smartplace_check businesses 업데이트 실패 [%s]: %s", biz_id, e)
 
