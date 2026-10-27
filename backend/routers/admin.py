@@ -1485,12 +1485,14 @@ async def get_naver_access(_=Depends(verify_admin)):
     from services.ai_scanner import naver_playwright_quota_snapshot, naver_quota_history
     from services.scan_scheduling import slot_spread_enabled
     from services.place_page_signals import photo_tab_enabled
+    from services.competitor_place_crawler import place_cache_snapshot
 
     snap = naver_playwright_quota_snapshot()
     cap = snap.get("cap") or 0
     return {
         "quota": {**snap, "used_pct": round(snap["used"] / cap * 100, 1) if cap else None},
         "place_breaker": _guard.snapshot(),
+        "competitor_cache": place_cache_snapshot(),   # 경쟁사 공유 캐시 적중률 = 실측 중복 제거율
         "rate": _guard.rate_snapshot(),   # 속도 기준 윈도우별 현재 사용량(제안값, 차단 후 자동 절반)
         "history": naver_quota_history(30),
         "settings": {

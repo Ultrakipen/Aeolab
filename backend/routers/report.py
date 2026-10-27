@@ -2968,7 +2968,7 @@ async def _sync_my_place_completeness(biz_id: str, naver_place_id: str, supabase
     """내 가게 스마트플레이스 완성도를 크롤링해 최신 scan_results에 저장."""
     try:
         from services.competitor_place_crawler import fetch_competitor_place_data
-        data = await fetch_competitor_place_data(naver_place_id)
+        data = await fetch_competitor_place_data(naver_place_id, max_age_sec=3600)
         if data.get("error"):
             _logger.warning(f"_sync_my_place_completeness 크롤링 실패 [{biz_id}]: {data['error']}")
             return

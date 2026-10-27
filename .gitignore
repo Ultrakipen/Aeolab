@@ -80,3 +80,4 @@ backend/.naver_place_breaker.json.tmp
 backend/.naver_quota_state.json
 backend/.naver_quota_state.json.tmp
 backend/.naver_quota_state_history.jsonl
+backend/.competitor_place_cache.json*

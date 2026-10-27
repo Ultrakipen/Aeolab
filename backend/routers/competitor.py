@@ -1195,6 +1195,7 @@ async def sync_competitor_place_endpoint(competitor_id: str, user=Depends(get_cu
         result = await sync_competitor_place(
             competitor_id, naver_place_id, supabase, biz.data.get("region", ""),
             registered_name=comp.data.get("name", ""),
+            max_age_sec=3600,   # 사용자가 직접 누른 동기화: 1시간 안의 공유 결과만 재사용
         )
     except TypeError:
         # sync_competitor_place 시그니처가 region 파라미터 없는 구버전인 경우 fallback

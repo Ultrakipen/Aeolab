@@ -13,10 +13,10 @@ from services.place_page_signals import photo_tab_enabled  # noqa: E402
 
 @pytest.fixture(autouse=True)
 def _clean_cache(monkeypatch):
-    cc._PLACE_CACHE.clear()
+    cc.reset_cache_for_tests()
     monkeypatch.delenv("COMPETITOR_PLACE_CACHE_TTL_SEC", raising=False)
     yield
-    cc._PLACE_CACHE.clear()
+    cc.reset_cache_for_tests()
 
 
 def _stub_crawl(monkeypatch, results):
@@ -85,7 +85,7 @@ def test_expired_entry_is_recrawled(monkeypatch):
     calls = _stub_crawl(monkeypatch, [])
     asyncio.run(cc.fetch_competitor_place_data("111"))
     t, data = cc._PLACE_CACHE["111"]
-    cc._PLACE_CACHE["111"] = (t - 260000, data)               # 기본 TTL 72시간(259200초) 경과
+    cc._PLACE_CACHE["111"] = (t - 570000, data)               # 기본 TTL 6.5일(561600초) 경과
     asyncio.run(cc.fetch_competitor_place_data("111"))
     assert calls == ["111", "111"]
 
@@ -98,8 +98,8 @@ def test_cache_is_bounded(monkeypatch):
     assert len(cc._PLACE_CACHE) <= 3
 
 
-def test_default_ttl_covers_tuesday_sync_to_thursday_enrich():
-    assert cc._place_cache_ttl() >= 48 * 3600     # 화 03:30 크롤 → 목 03:00 보강까지(약 47.5시간) 재사용
+def test_default_ttl_covers_slot_weekday_spread():
+    assert cc._place_cache_ttl() >= 6 * 86400     # 사업장 슬롯 요일이 최대 6일 차이 나도 한 주기에 한 번만 크롤
 
 
 def test_cache_hit_does_not_consume_quota_or_touch_circuit(monkeypatch):
@@ -121,8 +121,54 @@ def test_photo_tab_is_off_by_default_and_can_be_enabled(monkeypatch):
 def test_admin_naver_access_endpoint_reports_state_without_secrets():
     from routers.admin import get_naver_access
     out = asyncio.run(get_naver_access(_=None))
-    assert set(out) == {"quota", "place_breaker", "rate", "history", "settings"}
+    assert set(out) == {"quota", "place_breaker", "rate", "competitor_cache", "history", "settings"}
     assert {"used", "cap", "batch_used", "batch_cap", "by_source", "used_pct"} <= set(out["quota"])
     assert {"open", "remaining_sec", "strikes"} <= set(out["place_breaker"])
     assert set(out["settings"]) == {"slot_spread_enabled", "photo_tab_enabled"}
     assert "cookie" not in str(out).lower() and "token" not in str(out).lower()
+
+
+# ── 공유 캐시 강화 (2026-10-27): 파일 저장·max_age·관측 시각·적중률 ─────────────────────────
+def test_cache_survives_restart(monkeypatch):
+    calls = _stub_crawl(monkeypatch, [{"naver_place_id": "111", "review_count": 50, "error": None}])
+    asyncio.run(cc.fetch_competitor_place_data("111"))
+    cc._PLACE_CACHE.clear()
+    cc._place_cache_loaded = False                 # 서버 재시작 흉내 — 메모리는 비고 파일만 남음
+    b = asyncio.run(cc.fetch_competitor_place_data("111"))
+    assert calls == ["111"] and b["review_count"] == 50
+
+
+def test_max_age_forces_recrawl_for_manual_refresh(monkeypatch):
+    calls = _stub_crawl(monkeypatch, [])
+    asyncio.run(cc.fetch_competitor_place_data("111"))
+    t, data = cc._PLACE_CACHE["111"]
+    cc._PLACE_CACHE["111"] = (t - 7200, data)       # 2시간 전 결과
+    asyncio.run(cc.fetch_competitor_place_data("111", max_age_sec=3600))   # 수동 동기화는 1시간 이내만 재사용
+    asyncio.run(cc.fetch_competitor_place_data("111"))                      # 정기 잡은 6.5일 이내면 재사용
+    assert calls == ["111", "111"]
+
+
+def test_result_carries_observation_time_through_cache(monkeypatch):
+    _stub_crawl(monkeypatch, [])
+    a = asyncio.run(cc.fetch_competitor_place_data("111"))
+    b = asyncio.run(cc.fetch_competitor_place_data("111"))
+    assert a["crawled_at"] and a["crawled_at"] == b["crawled_at"]   # 재사용해도 관측 시각은 최초 크롤 시각
+
+
+def test_hit_rate_is_recorded_for_admin_view(monkeypatch):
+    _stub_crawl(monkeypatch, [])
+    asyncio.run(cc.fetch_competitor_place_data("111"))   # miss
+    asyncio.run(cc.fetch_competitor_place_data("111"))   # hit
+    asyncio.run(cc.fetch_competitor_place_data("111"))   # hit
+    snap = cc.place_cache_snapshot()
+    assert snap["entries"] == 1
+    assert snap["days"][-1]["hit"] == 2 and snap["days"][-1]["miss"] == 1
+    assert snap["days"][-1]["hit_rate_pct"] == 66.7
+
+
+def test_corrupt_cache_file_is_ignored(monkeypatch, tmp_path):
+    (tmp_path / "competitor_cache.json").write_text("{not json", encoding="utf-8")
+    cc.reset_cache_for_tests()
+    calls = _stub_crawl(monkeypatch, [])
+    asyncio.run(cc.fetch_competitor_place_data("111"))
+    assert calls == ["111"]

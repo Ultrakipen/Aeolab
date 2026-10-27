@@ -18,43 +18,117 @@ from services.ai_scanner.bandwidth_tracker import record_usage_mb as _record_usa
 
 _logger = logging.getLogger(__name__)
 
-# ── 같은 장소 재사용 캐시 (2026-10-27, 사용자 증가 대비) ─────────────────────────────────
+# ── 같은 장소 공유 캐시 (2026-10-27, 사용자 증가 대비) ─────────────────────────────────
 # 경쟁사는 사업장별로 등록되므로 사용자가 늘면 같은 가게(예: 동네 대표 맛집)를 여러 사업장이 경쟁사로 등록한다.
-# 정기 잡은 등록 행마다 크롤하므로 같은 장소를 같은 날 여러 번 여는데, 최근에 성공한 결과를 잠시 재사용해
-# 사용자 수가 아니라 "고유한 경쟁 장소 수"에 비례하게 만든다. 프로세스 메모리 캐시(재시작하면 비움),
-# 성공한 결과만 저장, TTL 기본 72시간(제안값, COMPETITOR_PLACE_CACHE_TTL_SEC로 조정).
-# 72시간인 이유: 화요일 competitor_place_sync_job이 크롤한 장소를 목요일 enrich_competitor_details_job(블로그·SEO 보강이
-# 목적인데 모든 경쟁사의 플레이스를 다시 크롤하고 있었음)이 네이버 요청 없이 재사용하게 한다. 경쟁사 데이터는 며칠 단위로 천천히 바뀐다.
+# 정기 잡은 등록 행마다 크롤하므로, 최근에 성공한 같은 장소 결과를 재사용해 네이버 요청 수를 사업장 수가 아니라
+# "고유한 경쟁 장소 수"에 비례하게 만든다.
+#   - 파일에 저장(.competitor_place_cache.json): 서버 재시작·배포로 비워지지 않는다(이전 인메모리 캐시는 비워졌음).
+#   - 실제 시각(epoch) 기준 TTL 기본 6.5일(제안값, COMPETITOR_PLACE_CACHE_TTL_SEC): 경쟁사 잡이 사업장 슬롯에 따라
+#     요일이 달라져도(최대 6일 차이) 한 주기(7일)에 같은 장소를 한 번만 크롤한다. 경쟁사 데이터는 며칠 단위로 천천히 바뀐다.
+#   - 성공한 결과만 저장. 호출처가 더 신선한 값을 원하면 max_age_sec로 좁힌다(수동 동기화·내 가게 점검은 1시간).
+#   - 결과에 crawled_at(실제 관측 시각)을 넣어, 화면의 "동기화 시각"이 캐시 재사용 시각이 아니라 관측 시각을 보이게 한다.
+#   - 적중/실패를 날짜별로 기록해 실제 중복 제거율을 관리자 화면(/admin/naver-access)에서 본다. 실측 전에는 추정만 가능했다.
+import json as _json
 import time as _time
 
-_PLACE_CACHE: dict = {}
-_PLACE_CACHE_MAX = 500
+_PLACE_CACHE: dict = {}          # place_id -> (epoch, data)
+_PLACE_CACHE_STATS: dict = {}    # "YYYY-MM-DD" -> {"hit": n, "miss": n}
+_PLACE_CACHE_MAX = 1500
+_place_cache_loaded = False
 
 
 def _place_cache_ttl() -> float:
     try:
-        return float(os.getenv("COMPETITOR_PLACE_CACHE_TTL_SEC", "259200"))
+        return float(os.getenv("COMPETITOR_PLACE_CACHE_TTL_SEC", "561600"))
     except ValueError:
-        return 259200.0
+        return 561600.0
 
 
-def _place_cache_get(place_id: str) -> Optional[dict]:
+def _place_cache_path() -> str:
+    default = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".competitor_place_cache.json")
+    return os.getenv("COMPETITOR_PLACE_CACHE_FILE", default)
+
+
+def _place_cache_load() -> None:
+    global _place_cache_loaded
+    if _place_cache_loaded:
+        return
+    _place_cache_loaded = True
+    try:
+        with open(_place_cache_path(), "r", encoding="utf-8") as f:
+            raw = _json.load(f)
+        for pid, (t, data) in (raw.get("entries") or {}).items():
+            _PLACE_CACHE.setdefault(str(pid), (float(t), dict(data)))
+        for day, v in (raw.get("stats") or {}).items():
+            _PLACE_CACHE_STATS.setdefault(day, {"hit": int(v.get("hit", 0)), "miss": int(v.get("miss", 0))})
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        _logger.warning("[competitor_cache] 캐시 파일 읽기 실패(무시, 빈 캐시로 시작): %s", e)
+
+
+def _place_cache_save() -> None:
+    try:
+        days = sorted(_PLACE_CACHE_STATS)[-30:]
+        payload = {"entries": {k: [t, d] for k, (t, d) in _PLACE_CACHE.items()},
+                   "stats": {d: _PLACE_CACHE_STATS[d] for d in days}}
+        tmp = _place_cache_path() + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            _json.dump(payload, f, ensure_ascii=False)
+        os.replace(tmp, _place_cache_path())
+    except Exception as e:
+        _logger.warning("[competitor_cache] 캐시 파일 저장 실패(메모리 캐시는 유지): %s", e)
+
+
+def _count(kind: str) -> None:
+    from datetime import date as _d
+    day = _d.today().isoformat()
+    st = _PLACE_CACHE_STATS.setdefault(day, {"hit": 0, "miss": 0})
+    st[kind] += 1
+
+
+def _place_cache_get(place_id: str, max_age_sec: Optional[float] = None) -> Optional[dict]:
     ttl = _place_cache_ttl()
     if ttl <= 0:
         return None
+    _place_cache_load()
+    if max_age_sec is not None:
+        ttl = min(ttl, float(max_age_sec))
     hit = _PLACE_CACHE.get(str(place_id))
-    if hit and (_time.monotonic() - hit[0]) <= ttl:
+    if hit and (_time.time() - hit[0]) <= ttl:
+        _count("hit")
+        _place_cache_save()
         return dict(hit[1])     # 호출자가 수정해도 캐시가 바뀌지 않게 복사
+    _count("miss")
     return None
 
 
 def _place_cache_put(place_id: str, data: dict) -> None:
     if _place_cache_ttl() <= 0:
         return
+    _place_cache_load()
     if len(_PLACE_CACHE) >= _PLACE_CACHE_MAX:
         oldest = min(_PLACE_CACHE, key=lambda k: _PLACE_CACHE[k][0])
         _PLACE_CACHE.pop(oldest, None)
-    _PLACE_CACHE[str(place_id)] = (_time.monotonic(), dict(data))
+    _PLACE_CACHE[str(place_id)] = (_time.time(), dict(data))
+    _place_cache_save()
+
+
+def place_cache_snapshot(days: int = 14) -> dict:
+    """관리자 화면용 — 캐시 크기와 날짜별 적중률(= 실측 중복 제거율)."""
+    _place_cache_load()
+    rows = []
+    for day in sorted(_PLACE_CACHE_STATS)[-days:]:
+        h, m = _PLACE_CACHE_STATS[day]["hit"], _PLACE_CACHE_STATS[day]["miss"]
+        rows.append({"date": day, "hit": h, "miss": m, "hit_rate_pct": round(h / (h + m) * 100, 1) if (h + m) else None})
+    return {"entries": len(_PLACE_CACHE), "ttl_sec": _place_cache_ttl(), "days": rows}
+
+
+def reset_cache_for_tests() -> None:
+    global _place_cache_loaded
+    _place_cache_loaded = False
+    _PLACE_CACHE.clear()
+    _PLACE_CACHE_STATS.clear()
 
 # Playwright 세마포어: multi_scanner.PLAYWRIGHT_SEMAPHORE 공유 (동시 Playwright 전역 1개 보장)
 # naver_place_stats.py와 동일한 lazy import 패턴 — 순환 import 방지
@@ -91,7 +165,7 @@ _CRAWL_DELAY_MIN = 7
 _CRAWL_DELAY_MAX = 15
 
 
-async def fetch_competitor_place_data(naver_place_id: str) -> dict:
+async def fetch_competitor_place_data(naver_place_id: str, max_age_sec: Optional[float] = None) -> dict:
     """
     네이버 플레이스 공개 페이지에서 경쟁사 데이터 크롤링.
 
@@ -128,7 +202,7 @@ async def fetch_competitor_place_data(naver_place_id: str) -> dict:
     # jobs.py의 competitor_place_sync_job·enrich_competitor_details_job·weekly_competitor_sync_job
     # 3개 잡이 전부 이 함수 하나를 거치므로 여기 한 곳만 고치면 전부 적용됨.
     # 최근에 성공한 같은 장소 결과가 있으면 네이버 요청 없이 재사용(상한·차단 보호보다 먼저 확인)
-    _cached = _place_cache_get(naver_place_id)
+    _cached = _place_cache_get(naver_place_id, max_age_sec)
     if _cached is not None:
         return _cached
 
@@ -156,6 +230,7 @@ async def fetch_competitor_place_data(naver_place_id: str) -> dict:
             await place_pace()
             _res = await asyncio.wait_for(_run_place_crawl(naver_place_id), timeout=90)
             if isinstance(_res, dict) and not _res.get("error"):
+                _res["crawled_at"] = datetime.now(timezone.utc).isoformat()   # 실제 관측 시각(캐시 재사용 시에도 유지)
                 _place_cache_put(naver_place_id, _res)
             return _res
     except asyncio.TimeoutError:
@@ -746,6 +821,7 @@ async def sync_competitor_place(
     supabase,
     region: str = "",
     registered_name: str = "",
+    max_age_sec: Optional[float] = None,
 ) -> dict:
     """
     경쟁사 네이버 플레이스 크롤링 후 competitors 테이블 업데이트.
@@ -782,7 +858,7 @@ async def sync_competitor_place(
     except Exception as e:
         _logger.warning(f"sync_competitor_place region/category 조회 실패 [{competitor_id}]: {e}")
 
-    data = await fetch_competitor_place_data(naver_place_id)
+    data = await fetch_competitor_place_data(naver_place_id, max_age_sec)
     if data.get("error"):
         _logger.warning(
             f"sync_competitor_place [{competitor_id}] 실패: {data['error']}"
@@ -844,7 +920,7 @@ async def sync_competitor_place(
         "has_recent_post": data["has_recent_post"],
         "has_menu": data["has_menu"],
         "naver_photo_count": data["photo_count"],
-        "naver_place_last_synced_at": now_iso,
+        "naver_place_last_synced_at": data.get("crawled_at") or now_iso,   # 다른 사업장 크롤을 재사용했다면 그 관측 시각
         "blog_mention_count": int(blog_count) if blog_count else 0,
         "website_seo_score": seo_score,
         "detail_synced_at": now_iso,
