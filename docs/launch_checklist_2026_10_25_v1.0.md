@@ -68,7 +68,7 @@
 
 ## 5. 실결제 전환 절차 (크렙 심사 통과 후)
 
-1. 크렙에서 라이브 `CREB_SID`·`CREB_SECRET_KEY`·클라이언트 키 수령.
+1. ✅ (2026-10-27) 심사 승인 — 키는 **교체하지 않고 그대로 사용**(사용자 확인; `CREB_SID`는 공개 테스트 ID `test_api`가 아닌 가맹점 발급값임을 서버에서 확인).
 2. 서버 `backend/.env`: `CREB_SID`·`CREB_SECRET_KEY` 교체, **`CREB_TEST_PRICE_USER_ID`·`CREB_TEST_PRICE_AMOUNT` 삭제**(지정 계정에 임시 금액이 적용되는 QA용 변수 — 남기면 해당 UID 결제 금액이 바뀜, `delivery.py:369-374`).
 3. 서버 `frontend/.env.local`: `NEXT_PUBLIC_CREB_CLIENT_KEY` 교체 → `npm run build`(공개 변수는 빌드에 박힘).
 4. `pm2 restart aeolab-backend aeolab-frontend`, `/health` 200 확인.

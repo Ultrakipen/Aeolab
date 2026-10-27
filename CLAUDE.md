@@ -306,7 +306,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 ### 환경변수 요약 (`.env.example`)
 - Supabase: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 - AI: `GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`
-- 결제: `NEXT_PUBLIC_CREB_CLIENT_KEY`(프론트), `CREB_SID`, `CREB_SECRET_KEY`(백엔드) — 현재 테스트 키. 심사 QA용 `CREB_TEST_PRICE_USER_ID`·`CREB_TEST_PRICE_AMOUNT`는 실결제 전환 시 삭제. (토스 키는 2026-10-25 서버에서 삭제)
+- 결제: `NEXT_PUBLIC_CREB_CLIENT_KEY`(프론트), `CREB_SID`, `CREB_SECRET_KEY`(백엔드) — 현재 테스트 키. 크렙 심사 승인(2026-10-27) — 키는 그대로 사용, QA용 `CREB_TEST_PRICE_*`는 서버 `.env`에서 삭제 완료(백업 `/root/backend_env_backup_20261027_creb_live`). ⚠️ 라이브 결제는 테스트와 달리 자동 취소가 없음 — 시험 결제는 직접 취소(`docs/launch_checklist_2026_10_25_v1.0.md` §5-1). (토스 키는 2026-10-25 서버에서 삭제)
 - 알림: `KAKAO_APP_KEY`, `KAKAO_SENDER_KEY`, `KAKAO_REST_API_KEY`
 - 검색: `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` (Open API, DataLab 겸용) / `NAVER_SEARCHAD_API_KEY`, `NAVER_SEARCHAD_SECRET_KEY`, `NAVER_SEARCHAD_CUSTOMER_ID` (검색광고 키워드도구 API, searchad.naver.com 별도 발급 — 미설정 시 graceful degradation)
 - 기타: `BACKEND_URL`, `SECRET_KEY`
@@ -669,7 +669,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ### 사용자가 직접 해야 할 것
 - ⏳ **베타 후기 1~3개 확보** → `frontend/lib/testimonials.ts` `isPlaceholder: false`로 교체 (Phase 0 인터뷰 후)
-- **실결제 전환 시**: 크렙 심사 통과 후 `CREB_SID`·`CREB_SECRET_KEY`·`NEXT_PUBLIC_CREB_CLIENT_KEY`를 라이브 키로 교체(프론트는 재빌드) + `CREB_TEST_PRICE_*` 삭제 + pm2 restart. 토스 키는 이미 삭제됨
+- ✅ **크렙 심사 승인·`CREB_TEST_PRICE_*` 삭제 완료(2026-10-27)** — 키 교체 불필요(사용자 확인). 남은 것: 빌키(정기결제) 심사 포함 여부 크렙에 확인 → 실결제 시험 1건(직접 취소) → 심사용 계정(`creb-review@`·`toss-review@`) 삭제
 - ✅ **NAVER API Hub 키 발급·전환 완료** (2026-09-02) — 마이그레이션 실질 완료, 재작업 불필요
 - ✅ **카카오 비즈센터 승인내역 확인 완료** (2026-09-02, 스크린샷 제공) — `AEOLAB_SCAN_01`/`AEOLAB_COMP_02` 승인 확인 후 `send_scan_complete()`/`send_competitor_overtake()` 연결 완료(git `50ab946`). 재작업 불필요
 - ✅ **네이버 서치어드바이저 사이트 등록 + 사이트맵 제출 완료** (2026-08-07) — HTML 파일 방식으로 소유확인(`frontend/public/naver90ab854379ebb072c6795b390f874ac8.html`, git `b45b952`, 라이브 200 확인) 후 사이트맵 제출까지 사용자 완료. 색인 반영은 네이버 측 처리 시간 소요 — 재작업 불필요
