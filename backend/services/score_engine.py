@@ -1356,12 +1356,34 @@ def calc_blog_crank_score(naver_data: dict, biz: dict) -> float:
     return min(100.0, score)
 
 
+_SP_MAX_WITHOUT_RANK = 70.0  # 등록 25 + 소식 25 + 소개글 15 + Q&A 5 (순위 30점 제외)
+
+
+def _smart_place_base_rank_aware(naver_data: dict, biz: dict) -> tuple[float, bool]:
+    """v3.1/v3.2 Track1용 스마트플레이스 기본 점수 + 순위 확인 여부.
+
+    순위를 못 구했으면(None) 순위 30점을 0점으로 세지 않고 나머지 70점 만점으로 환산한다.
+    calc_smart_place_completeness() 자체는 그대로 둔다 — report.py 사진 완료 추정(score>=70) 등
+    다른 호출처가 "순위 없으면 최대 70점"이라는 기존 값에 기대고 있다.
+    """
+    sp = calc_smart_place_completeness(naver_data, biz)
+    if naver_data.get("my_rank") or naver_data.get("naver_place_rank"):
+        return sp, True
+    return min(100.0, sp / _SP_MAX_WITHOUT_RANK * 100.0), False
+
+
 def calc_local_map_score(scan_result: dict, biz: dict, naver_data: dict) -> float:
     """
     지도/플레이스 + 카카오맵 통합 점수 (0~100).
     네이버 지도 순위 50% + 카카오맵 완성도 50%.
+
+    2026-10-27: 네이버 순위를 못 구했으면(None) 순위 절반을 0점으로 세지 않고 카카오맵 점수만 쓴다.
+    지역검색 API는 20곳을 요청해도 상위 5곳만 돌려줘서, 경쟁이 센 상권의 인기 가게는 5곳 밖이라
+    None이 된다 — 이 None은 "미노출"이 아니라 "순위를 알 수 없음"이다.
     """
     naver_rank = naver_data.get("my_rank") or naver_data.get("naver_place_rank")
+    if not naver_rank:
+        return calc_kakao_completeness(scan_result, biz)
     naver_map_score = (
         100.0 if naver_rank == 1 else
         80.0  if (naver_rank and naver_rank <= 3) else
@@ -1479,7 +1501,7 @@ def calc_track1_score_v3_1(
     # 6항목 점수
     kw_search, kw_measured = calc_keyword_search_rank_score(scan_result)
     rv_qual = calc_review_quality(biz)
-    sp_base = calc_smart_place_completeness(naver_data, biz)
+    sp_base, _rank_known = _smart_place_base_rank_aware(naver_data, biz)
     kw_gap, kw_is_est = _resolve_keyword_gap_score(
         keyword_coverage_rate, naver_data, biz, _eff_category
     )
@@ -1528,9 +1550,9 @@ def calc_track1_score_v3_1(
         "items": {
             "keyword_search_rank":      {"score": round(kw_search, 1),  "measured": kw_measured},
             "review_quality":           {"score": round(rv_qual, 1)},
-            "smart_place_completeness": {"score": round(sp_comp, 1),    "kw_gap_absorbed": round(kw_gap, 1), "kw_gap_estimated": kw_is_est},
+            "smart_place_completeness": {"score": round(sp_comp, 1),    "kw_gap_absorbed": round(kw_gap, 1), "kw_gap_estimated": kw_is_est, "rank_measured": _rank_known},
             "blog_crank":               {"score": round(blog_crank, 1), "is_estimated": True},
-            "local_map_score":          {"score": round(local_map, 1)},
+            "local_map_score":          {"score": round(local_map, 1), "rank_measured": _rank_known},
             "ai_briefing_score":        {"score": round(ai_brief, 1)},
         },
     }
@@ -1618,7 +1640,7 @@ def calc_track1_score_v3_2(
 
     kw_search, kw_measured = calc_keyword_search_rank_score(scan_result)
     rv_qual = calc_review_quality(biz)
-    sp_base = calc_smart_place_completeness(naver_data, biz)
+    sp_base, _rank_known = _smart_place_base_rank_aware(naver_data, biz)
     kw_gap, kw_is_est = _resolve_keyword_gap_score(
         keyword_coverage_rate, naver_data, biz, _eff_category
     )
@@ -1664,9 +1686,9 @@ def calc_track1_score_v3_2(
         "items": {
             "keyword_search_rank":      {"score": round(kw_search, 1),  "measured": kw_measured},
             "review_quality":           {"score": round(rv_qual, 1)},
-            "smart_place_completeness": {"score": round(sp_comp, 1),    "kw_gap_absorbed": round(kw_gap, 1), "kw_gap_estimated": kw_is_est},
+            "smart_place_completeness": {"score": round(sp_comp, 1),    "kw_gap_absorbed": round(kw_gap, 1), "kw_gap_estimated": kw_is_est, "rank_measured": _rank_known},
             "blog_crank":               {"score": round(blog_crank, 1), "is_estimated": True},
-            "local_map_score":          {"score": round(local_map, 1)},
+            "local_map_score":          {"score": round(local_map, 1), "rank_measured": _rank_known},
             "ai_briefing_score":        {"score": round(ai_brief, 1)},
             "naver_ai_tab_visible":     {"score": round(ai_tab_visible, 1)},
         },

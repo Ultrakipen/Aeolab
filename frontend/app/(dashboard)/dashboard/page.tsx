@@ -31,6 +31,7 @@ import DashboardEvidencePreview from "@/components/dashboard/DashboardEvidencePr
 import BasicTrialBanner from "@/components/dashboard/BasicTrialBanner";
 import { IneligibleBusinessNotice } from "@/components/dashboard/IneligibleBusinessNotice";
 import { CATEGORY_LABEL } from "@/lib/categories";
+import { isNaverUnmeasured, type NaverResultLike } from "@/lib/naverMeasure";
 import {
   SCAN_DAILY_LIMITS,
   nextScanLabel,
@@ -468,7 +469,8 @@ export default async function DashboardPage({
                     keywords: bizBase.keywords, is_franchise: isFranchise,
                   }}
                   latestScan={{
-                    naver_result: (latestScan.naver_result as { in_briefing?: boolean; captcha_detected?: boolean; error?: string; ad_only?: boolean } | null) ?? null,
+                    scanned_at: (latestScan.scanned_at as string | null) ?? null,
+                    naver_result: (latestScan.naver_result as { in_briefing?: boolean; captcha_detected?: boolean; error?: string; quota_skipped?: boolean; ad_only?: boolean } | null) ?? null,
                     chatgpt_result: (latestScan.chatgpt_result as { mentioned?: boolean; exposure_freq?: number; sample_size?: number } | null) ?? null,
                     gemini_result: (latestScan.gemini_result as { exposure_freq?: number; sample_size?: number } | null) ?? null,
                     google_result: (latestScan.google_result as { mentioned?: boolean; exposure_freq?: number; sample_size?: number } | null) ?? null,
@@ -554,9 +556,7 @@ export default async function DashboardPage({
                     naverInBriefing={
                       (latestScan.naver_result as { in_briefing?: boolean } | null)?.in_briefing ?? false
                     }
-                    naverCaptchaBlocked={
-                      (latestScan.naver_result as { captcha_detected?: boolean } | null)?.captcha_detected ?? false
-                    }
+                    naverCaptchaBlocked={isNaverUnmeasured(latestScan.naver_result as NaverResultLike | null)}
                     myRankInList={myRankInList}
                     totalCompetitors={rankingItems.length}
                     topMissingKeywordCount={topMissingKeywords.length}

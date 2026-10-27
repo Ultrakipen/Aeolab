@@ -9,7 +9,10 @@ interface DashboardHeroCardProps {
   topMissingKeywordCount: number;
   lastScannedLabel?: string | null;
   naverInBriefing?: boolean;
+  /** 네이버 AI 브리핑·AI탭 측정이 안 된 경우(캡차·접속 실패·대기열 초과 등) — lib/naverMeasure.isNaverUnmeasured */
   naverCaptchaBlocked?: boolean;
+  /** 순위 측정에서 네이버 첫 화면(광고 제외) 노출이 확인된 키워드 — lib/keywordExposure.getFirstScreenKeywords */
+  firstScreenKeywords?: { count: number; names: string[] } | null;
   latestAdOnly?: boolean;
   briefingEligibility?: "active" | "likely" | "inactive";
   isFranchise?: boolean;
@@ -37,6 +40,7 @@ export default function DashboardHeroCard({
   lastScannedLabel,
   naverInBriefing,
   naverCaptchaBlocked,
+  firstScreenKeywords,
   latestAdOnly,
   briefingEligibility,
   isFranchise,
@@ -82,7 +86,11 @@ export default function DashboardHeroCard({
     return parts.join(" · ");
   })();
 
-  const naverSeoCard = naverCaptchaBlocked
+  // 순위 측정(별도 파이프라인)에서 첫 화면 노출이 확인되면 그 사실을 먼저 보여준다 — AI 브리핑 스캔이
+  // 실패했더라도 순위 측정은 독립이므로 유효하다. 키워드 보강 안내는 헤더 근거 줄에 이미 있다.
+  const naverSeoCard = firstScreenKeywords && firstScreenKeywords.count > 0
+    ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "첫 화면 노출 확인", statusClass: "text-emerald-700", detail: `키워드 ${firstScreenKeywords.count}개 · 광고 제외` }
+    : naverCaptchaBlocked
     ? { icon: "?", iconClass: "bg-gray-200 text-gray-600", status: "측정 불가",       statusClass: "text-gray-600",    detail: "일시적으로 확인 어려움" }
     : (latestAdOnly ?? false)
     ? { icon: "!", iconClass: "bg-amber-700 text-white",   status: "광고만 노출",      statusClass: "text-amber-700",   detail: "유료광고 결과만 노출" }
@@ -95,7 +103,7 @@ export default function DashboardHeroCard({
     : naverAiTabVisible === true
     ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "노출 중",    statusClass: "text-emerald-700", detail: "AI탭 답변 있음" }
     : naverAiTabVisible === false
-    ? { icon: "!", iconClass: "bg-amber-700 text-white",   status: "아직 미노출", statusClass: "text-amber-700",   detail: "설정 보강하면 가능" }
+    ? { icon: "!", iconClass: "bg-amber-700 text-white",   status: "이번 측정 미노출", statusClass: "text-amber-700", detail: "측정 시점 기준 · 노출 기준 미공개" }
     : { icon: "i", iconClass: "bg-blue-100 text-blue-700 font-black", status: "준비 가능",   statusClass: "text-blue-700",    detail: "가이드로 설정하기" };
 
   const naverBriefingCard = naverCaptchaBlocked
@@ -110,7 +118,7 @@ export default function DashboardHeroCard({
     ? { icon: "△", iconClass: "bg-yellow-400 text-white",  status: "확대 예정",        statusClass: "text-yellow-700",  detail: "지금 준비 중" }
     : (naverInBriefing ?? false)
     ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "노출 중",          statusClass: "text-emerald-700", detail: "브리핑 노출 확인됨" }
-    : { icon: "!", iconClass: "bg-amber-700 text-white",   status: "아직 미노출",       statusClass: "text-amber-700",   detail: "소개글 보강하면 가능" };
+    : { icon: "!", iconClass: "bg-amber-700 text-white",   status: "이번 측정 미노출",  statusClass: "text-amber-700",   detail: "측정 시점 기준 · 노출 기준 미공개" };
 
   // INACTIVE/프랜차이즈는 AI 브리핑 비대상 → 경쟁순위 카드 대체 표시.
   // 단, 정보형 AI 브리핑에 실측 노출(naverInBriefing=True) 시 브리핑 카드로 교체 — 사용자에게 긍정 신호.
@@ -153,6 +161,11 @@ export default function DashboardHeroCard({
             )}
             {evidenceText && (
               <p className="text-sm font-bold text-gray-800 mt-1 break-keep">{evidenceText}</p>
+            )}
+            {naverCaptchaBlocked && (
+              <p className="text-sm text-gray-700 mt-1 break-keep">
+                이번 스캔에서는 네이버 AI 브리핑·AI탭을 측정하지 못했습니다. &lsquo;미노출&rsquo;이 아니라 확인하지 못한 것이며, 다시 측정하면 확인할 수 있습니다.
+              </p>
             )}
             {(lastScannedLabel || staleRescan) && (
               <p className="text-xs text-gray-600 mt-0.5 flex items-center gap-1.5 flex-wrap">
@@ -200,6 +213,17 @@ export default function DashboardHeroCard({
             </a>
           ))}
         </div>
+        {/* 조사 방법 공개 — 사장님이 결과의 근거를 직접 판단할 수 있게 한다 */}
+        <details className="mt-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+          <summary className="cursor-pointer text-sm font-semibold text-blue-700">어떻게 조사했나요?</summary>
+          <ul className="mt-2 space-y-1.5 text-sm text-gray-700 leading-relaxed break-keep list-disc pl-5">
+            <li><strong>네이버 검색</strong> — 등록한 키워드로 네이버를 검색해, 첫 화면(광고 제외)에 내 가게가 나오는지 PC·모바일에서 확인합니다. 가게 이름으로 검색한 결과는 제외합니다.</li>
+            <li><strong>AI탭</strong> — 등록한 키워드 기반 검색어로 네이버 AI탭 답변에 내 가게가 포함되는지 확인합니다.</li>
+            <li><strong>AI 브리핑</strong> — 검색 결과 화면에 AI 브리핑이 뜨는지, 뜬다면 내 가게가 포함되는지 확인합니다. 브리핑이 아예 뜨지 않는 검색어도 있습니다.</li>
+            <li>&lsquo;측정 불가&rsquo;는 노출되지 않았다는 뜻이 아니라 이번에 확인하지 못했다는 뜻입니다.</li>
+            <li>측정 시점·기기·로그인 상태에 따라 결과가 달라질 수 있고, 네이버는 노출 기준을 공개하지 않습니다. 변화는 2~4주(추정) 뒤 다시 측정해 확인하세요.</li>
+          </ul>
+        </details>
       </div>
 
       {/* ── 오늘 할 일 앵커 CTA — 동일 텍스트 중복 방지: 실제 내용은 아래 ActionZone에만 표시 ── */}

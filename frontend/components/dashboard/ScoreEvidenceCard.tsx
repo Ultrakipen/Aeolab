@@ -6,6 +6,7 @@ import { CheckCircle2, XCircle, AlertTriangle, AlertOctagon, Lock, Info, Search 
 import type { MissingItem } from "@/types/diagnosis";
 import MissingKeywordBadges from "@/components/dashboard/MissingKeywordBadges";
 import { SCORE_LABELS } from "@/lib/score-labels";
+import { isNaverUnmeasured } from "@/lib/naverMeasure";
 
 void SCORE_LABELS; // 향후 dynamic rendering 시 활용
 
@@ -57,6 +58,8 @@ interface NaverResult {
   mentioned?: boolean;
   in_briefing?: boolean;
   captcha_detected?: boolean;
+  error?: string | null;
+  quota_skipped?: boolean | null;
   excerpt?: string | null;
   top_blogs?: Array<{ title?: string; description?: string }>;
   is_smart_place?: boolean;
@@ -220,8 +223,8 @@ function V31SixItems({
 
   const finalReviewCount = kakaoResult?.review_count ?? reviewCount ?? naverResult?.review_count ?? 0;
   const finalAvgRating   = kakaoResult?.avg_rating   ?? avgRating   ?? naverResult?.avg_rating   ?? 0;
-  // null = 측정 불가(naver_result 없음 or captcha 차단) / false = 실측 미노출 / true = 실측 노출
-  const _naverMeasured = naverResult != null && !naverResult.captcha_detected;
+  // null = 측정 불가(naver_result 없음·캡차·접속 실패·대기열 초과 등) / false = 실측 미노출 / true = 실측 노출
+  const _naverMeasured = !isNaverUnmeasured(naverResult);
   const inBriefing: boolean | null = _naverMeasured ? (naverResult!.in_briefing ?? false) : null;
   const naverMentioned: boolean | null = _naverMeasured ? (naverResult!.mentioned ?? false) : null;
 

@@ -105,7 +105,7 @@ export function naverSeoTile(args: {
 /** 네이버 AI탭 타일 (DashboardHeroCard naverAiTabCard) */
 export function aiTabTile(visible: boolean | null | undefined): ChannelTile {
   if (visible === true)  return makeTile("naver-aitab", "네이버 AI탭", "good", "노출 중", "AI탭 답변 있음");
-  if (visible === false) return makeTile("naver-aitab", "네이버 AI탭", "warn", "아직 미노출", "설정 보강하면 가능");
+  if (visible === false) return makeTile("naver-aitab", "네이버 AI탭", "warn", "이번 측정 미노출", "측정 시점 기준 · 노출 기준 미공개");
   return makeTile("naver-aitab", "네이버 AI탭", "pending", "준비 가능", "가이드로 설정하기");
 }
 
@@ -130,7 +130,7 @@ export function briefingTile(args: {
   }
   if (inBriefing)
     return makeTile("naver-briefing", "AI 브리핑", "good", "노출 중", "검색 첫화면에 내 가게 추천 중");
-  return makeTile("naver-briefing", "AI 브리핑", "warn", "아직 미노출", "보강 시 검색 첫화면 노출 가능");
+  return makeTile("naver-briefing", "AI 브리핑", "warn", "이번 측정 미노출", "측정 시점 기준 · 노출 기준 미공개");
 }
 
 /** 경쟁 순위 타일 — INACTIVE 그룹에서 AI 브리핑 대신 노출 (DashboardHeroCard rankCard) */

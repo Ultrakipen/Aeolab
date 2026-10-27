@@ -34,6 +34,7 @@ import { calcScoreVariation } from "@/lib/scoreVariation";
 import { isIndependentWebsite, type SmartPlaceStatus } from "./pageHelpers";
 import type { MissingItem } from "@/types/diagnosis";
 import type { WebsiteCheckResult } from "@/types";
+import { isNaverUnmeasured } from "@/lib/naverMeasure";
 
 interface ActionLog {
   action_type: string;
@@ -247,6 +248,8 @@ export default function DashboardDetailZone({
     in_briefing?: boolean;
     mentioned?: boolean;
     captcha_detected?: boolean;
+    error?: string | null;
+    quota_skipped?: boolean | null;
     is_smart_place?: boolean;
     blog_mentions?: number;
     keyword_blog_comparison?: Array<{
@@ -343,7 +346,7 @@ export default function DashboardDetailZone({
             isOnKakao={!!(kakaoResult as { is_on_kakao?: boolean } | null)?.is_on_kakao}
             kakaoRank={(kakaoResult as { my_rank?: number | null } | null)?.my_rank ?? null}
             naverMentioned={
-              naverResult == null || naverResult.captcha_detected
+              naverResult == null || isNaverUnmeasured(naverResult)
                 ? undefined
                 : (naverResult.in_briefing ?? false)
             }

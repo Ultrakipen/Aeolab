@@ -1,6 +1,8 @@
 "use client";
 
 import DashboardHeroCard from "@/components/dashboard/DashboardHeroCard";
+import { isNaverUnmeasured } from "@/lib/naverMeasure";
+import { getFirstScreenKeywords } from "@/lib/keywordExposure";
 
 interface BusinessShape {
   id: string;
@@ -12,10 +14,12 @@ interface BusinessShape {
 }
 
 interface ScanShape {
+  scanned_at?: string | null;
   naver_result?: {
     in_briefing?: boolean;
     captcha_detected?: boolean;
     error?: string;
+    quota_skipped?: boolean;
     ad_only?: boolean;
   } | null;
   chatgpt_result?: { mentioned?: boolean; exposure_freq?: number; sample_size?: number } | null;
@@ -59,9 +63,14 @@ export default function DashboardScoreZone({
 
   const naverResult = latestScan?.naver_result ?? null;
   const naverInBriefing = naverResult?.in_briefing ?? false;
-  const naverCaptchaBlocked =
-    naverResult?.captcha_detected === true || naverResult?.error === "captcha_or_blocked";
+  // 캡차뿐 아니라 접속 실패·대기열 초과·일일 상한 등 "측정이 안 된" 모든 경우 — 미노출로 보이면 안 된다
+  const naverCaptchaBlocked = isNaverUnmeasured(naverResult);
   const latestAdOnly = naverResult?.ad_only ?? false;
+  const firstScreenKeywords = getFirstScreenKeywords(
+    latestScan?.keyword_ranks,
+    business.name,
+    latestScan?.scanned_at,
+  );
 
   /* ── HeroCard 채널 데이터 ── */
   const naverAiTabVisible = latestScan?.naver_ai_tab_visible ?? null;
@@ -83,6 +92,7 @@ export default function DashboardScoreZone({
             lastScannedLabel={lastScannedLabel}
             naverInBriefing={naverInBriefing}
             naverCaptchaBlocked={naverCaptchaBlocked}
+            firstScreenKeywords={firstScreenKeywords}
             latestAdOnly={latestAdOnly}
             briefingEligibility={briefingEligibility}
             isFranchise={business.is_franchise}
