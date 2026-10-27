@@ -79,6 +79,15 @@
 
 ---
 
+### 작업 진행 시 공통 필수 — 오판·오탐·누락 재확인 (2026-10-27 신설)
+
+> 모든 작업(수정·점검·보고·문서화)은 **완료 선언 직전에 아래 3종을 재확인**한다. 위 검증 의무 3개 절(문제 분류·개선 과제·에이전트 보고)의 공통 마감 절차.
+
+- **오판 재확인** — 있는 문제를 없다/작다고, 또는 없는 문제를 있다고 단정하지 않았는가? 단정 근거 `file:line` + 반증 시도 `file:line` 각 1개 이상. 옛 주석·CLAUDE.md 수치는 실제 코드로 대조.
+- **오탐 재확인** — 정상 동작을 버그/위반으로 잡지 않았는가? 호출처 grep·실제 반환값·라이브 재현으로 확인(grep만으론 UI 기능 검증 불충분). 에이전트 보고의 오탐은 기각하고 기각 사유를 기록.
+- **누락 재확인** — 같은 패턴의 다른 파일·PC/모바일 양쪽·백엔드↔프론트 쌍(`score_engine.py`↔`userGroup.ts` 등)·서버 반영(md5/grep/빌드/pm2)·git 커밋·문서 갱신을 빠뜨리지 않았는가? "완료했는지" 재질문 시 진짜 누락이 나온 전례 있음.
+- **보고 형식** — 최종 보고 끝에 "오판/오탐/누락 재확인: 확인 항목 · 결과(없음 또는 정정 내역)" 1~3줄을 반드시 포함.
+
 ## 토큰 효율 작업 지침 (Claude Max 5x) — 요약 (전문은 `docs/token_efficiency_guide.md`)
 
 - 디폴트 모델은 Sonnet. Opus는 계획·설계·어려운 디버깅만, 단순 검색·명칭 변경은 Haiku. 계획(Opus)+구현(Sonnet) 분리가 가장 큰 절감.
@@ -88,66 +97,19 @@
 
 ## 작업 참고 문서 (`C:/app_build/aeolab/docs/`)
 
-| 파일 | 내용 |
-|------|------|
-| **`docs/naver_scraping_legal_risk_assessment_v1.0.md`** ⭐ | **네이버 AI브리핑 스캔의 로그인우회·CAPTCHA우회 기법(NID_AUT/NID_SES 쿠키 주입+stealth+IP로테이션)에 대한 정보통신망법 제48조·판례(대법원 2021도1533, 부산지법 2017노4344) 기반 법적 리스크 평가. 결론: 회색지대, 변호사 자문 필요 — 핵심 사업가치라 코드 임의 축소 금지 (2026-07-13)** |
-| **`docs/naver_scraping_legal_risk_resolution_plan_v1.0.md`** ⭐ | **위 문서의 후속 실행계획 — Phase 0(법률자문요청서+약관원문대조, 사용자액션)~4(계정정지 감지 알림) 단계별 방안. stealth는 이미 제거됨, "CAPTCHA우회"는 실제론 능동 풀이 코드 없는 "회피+감지"임을 재확인·정정. 구조적 해법은 Phase 2(사용자 본인계정+크롬익스텐션) 제안, 코드 변경은 전부 사용자 승인 대기 (2026-08-08)** |
-| **`docs/commercial_launch_inspection_status_v1.0.md`** ⭐ | **상업 서비스 점검 이력·비중분석·잔여과제 마스터 요약 — L1~L4(페이지단위)+A~D(서비스전체) 두 축 정리, 어디에 비중을 뒀는지·어디가 공백이었는지(A/D축 3개월 무점검이 최대 공백) 분석. §6에 실제 미해결 잔여과제 전체 정리(개인정보방침 문구 2건·PG우대등급확인·pip-audit 등). 신규 배포마다 L1+A 스팟체크 반복 필요 원칙 명시 (2026-07-13)** |
-| **`docs/inspection_request_full.md`** ⭐ | **새 대화창 1줄 트리거용 종합 점검 문서 (§3.1~§3.10 영역)** |
-| **`docs/naver_ai_prelaunch_inspection_v1.0.md`** ⭐ | **상업 서비스 전 AI 브리핑·AI탭·ChatGPT 차별화 14개 체크포인트 점검 (2026-05-19 재검토 확정본)** |
-| **`docs/agency_service_and_iboss_improvements_v1.0.md`** ⭐ | **대행 서비스(3종) + Q&A 게시판 + 아이보스 착안 개선안 — 5 Sprint 구현 기획. 새 대화창에서 §0 트리거 명령으로 즉시 작업 시작 가능** |
-| **`docs/naver_gpt_work_standard_v1.0.md`** ⭐ | **네이버·GPT 관련 기능 작업 전 필수 — 업종 분류·점수 가중치·스캐너·콘텐츠 구조·UI 분기 전 영역** |
-| **`docs/ai_exposure_standard_and_naver_seo_v1.0.md`** ⭐ | **5채널 AI 노출 판정 기준 단일 소스 + 네이버 일반 검색 개선 안내 설계 — 스캔 엔진·갭 분석·가이드·UI 수정 전 필수** |
-| `docs/model_engine_v3.0.md` | 듀얼트랙 모델 엔진 설계 (단일 참조 문서) |
-| `docs/next_features_v1.0.md` | 다음 구현할 추천 기능 목록 |
-| `docs/service_unification_v1.0.md` | 서비스 통합 재편 기획서 — 점수 모델 v3.1, 그룹 분기, KPI |
-| `docs/phase_a_completion_report.md` | Phase A 완료 보고서 — 17건 작업 + 검증 결과 |
-| `docs/changelog_archive.md` | v1.2~v3.5 완료 내역 아카이브 |
-| **`docs/remaining_tasks_v1.0.md`** ⭐ | **잔여 작업 런북 — DB 테이블 생성 SQL·대행 서비스 체크리스트·git 커밋·P2/P3 트리거 명령 전체 정리 (2026-05-18)** |
-| **`docs/inspection_fixes_runbook_v1.0.md`** ⭐ | **출시 전 점검 수정 런북 — §1~§15 전 영역 점검 결과 기반. P0 except 42건·content_validator 게이트·Claude 호출 상한·세마포어 등 §A~§I 수정 순서 정리 (2026-05-19)** |
-| **`docs/scan_result_screens_inspection_v1.0.md`** ⭐ | **스캔 결과 화면 종합 점검 — 무료 체험·대시보드 5채널 인식·AI탭 measured 파이프 3중 단절·LockedScoreCard 더미·ScoreBreakdownBox 레이블·LIKELY 단정 분리. P0 4건·P1 6건·P2 4건·P3 1건 (2026-05-22, 5단계 메타 점검)** |
-| **`docs/dashboard_top_redesign_handoff_v1.0.md`** ⭐ | **대시보드 상단 임팩트 개선 핸드오프 (2026-06-11) — 리뷰 P1버그·카피 수정 완료(scp 라이브). 남은 C(hero 45%→상단 레이아웃 재배치) 트리거. ⚠️§1 git push 금지(deploy reset --hard·서버 미커밋 46개)** |
-| **`docs/naver_briefing_block_countermeasure_handoff_v1.0.md`** ⭐ | **네이버 3종(AI 브리핑/정보형/AI탭) 차단 대응 핸드오프 (2026-06-30, §9 2026-07-01 추가) — 정보형 ✅완료·AI탭 ✅우회운영·플레이스형 AI 브리핑 ✅차단우회 완료(git 3314fdf). §4-A 이식 완료: Chrome레시피+NID_AUT+NID_SES 2쿠키 주입, captcha_detected=False 실측 확인. NID_SES ~30일 만료 → 월 1회 교체 필요. §9: 월간 모니터 잡 오탐버그 수정+Slack무동작 발견→이메일알림 신설** |
-| **`docs/session_2026_07_01_naver_recheck_and_usergroup_fix_v1.0.md`** ⭐ | **2026-07-01 세션 종합 정리 — 네이버 재검증(오판아님)·모니터잡 P0 버그·Slack무동작→이메일알림·NID_SES추적 신설·monthly_market_news_job PGRST200 수정·getUserGroup/getBriefingEligibility 정적호출 15곳 동적 override 전수 연결(git f7326bf). 잔여: NID_AUT/SES 자동 재로그인 여부(사용자 결정 대기)** |
-| **`docs/naver_briefing_infotype_caveat_standard_v1.0.md`** ⭐ | **네이버 AI 브리핑 "정보형" 캐비엇 점검 표준 — 플레이스형(업종제한)/정보형(전업종) 구분·반복 버그 3유형(LIKELY만 누락/문법변형/암묵적배타)·점검 절차·정당한 예외·수정완료 파일 목록. 11차 스윕(2026-07-01) 종합** |
-| **`docs/nine_pages_measurement_inspection_v1.0.md`** ⭐ | **9개 페이지(경쟁사 관리·변화 기록·성장 리포트·개선 가이드·소개글 콘텐츠·블로그 진단·리뷰 답변·AI 광고 대비·창업 시장 분석) 실측 점검 작업 문서 — 2단 레이어(프론트 UI 하드코딩 + 백엔드 측정 파이프라인 무결성) 방법론, 페이지·컴포넌트·API 매핑, 검증 절차 (2026-07-02)** |
-| `docs/blog_analysis_improvement_v2.0.md` | 블로그 관리 페이지 개선 v2.0 — 전체 결론남(2026-07-17). 재점검 불필요 |
-| *(완료된 점검 문서·트리거 15건)* | 재점검 불필요로 종결된 문서 행과 이어가기 트리거는 `docs/claude_md_completed_refs_archive.md`로 이관(2026-10-10). 필요할 때만 참조 |
-| `docs/subscription_lifecycle_inspection_v1.0.md` | 구독 생애주기(갱신·카드변경·해지) 점검 — §1~4(git `df4f55f`~`3ee38fb`) + §6 P0/P1/FK조인버그 + §5 7일 자동환불 전체 배포완료(git `170b002`). 잔여 없음 |
-| **`docs/eight_pages_commercial_professionalism_recheck_v1.0.md`** ⭐ | **8개 페이지 상업적 전문성 재점검 — P0 2건(FAQ한도·SearchGPT)+P1 8건 + 심층개선 6건(DataLab연동 등) + 실API호출로 발견한 최고심각도 2건(가이드 max_tokens 침묵실패, 소개글 허위수치 지어내기) + intro_draft CHECK 제약 사전존재 버그 + keyword_taxonomy law/미술 별칭 버그(전수검증). §13에 잔여 작업 5건 정리(max_tokens 타업종 점검·타업종 소개글 종단테스트·경쟁사 AI언급 추정치 한계·git push 결정 등) (git `258dff7`~`89afa5e`, 2026-07-08)** |
-| **`docs/external_benchmark_commercial_quality_v1.0.md`** ⭐ | **외부 벤치마크(Nielsen 10휴리스틱·WCAG 2.1 AA·상업 SaaS 도구·감사이력 UX 관행) 기반 상업적 수준 점검 방법론 — 7단계 절차(과거이력→코드재검증→라이브접속→외부조사→반증→수정→드리프트확인). 경쟁사관리 3건·변화기록 2건·성장리포트 2건+P1·개선가이드 6건(1라운드 정보구조4건+2라운드 WCAG접근성2건) 수정 완료. 미점검 6개 페이지는 `docs/six_pages_external_benchmark_inspection_plan_v1.0.md`로 이관 (2026-07-09)** |
-| **`docs/master_inspection_plan_v1.0.md`** ⭐ | **8개 파편화 점검 문서를 4-레이어(L1사실정확성·L2기능정합성·L3외부벤치마크·L4실측재현)로 통합 + 영역×레이어 매트릭스. 핵심 발견: 전환 퍼널(랜딩·요금제·trial·온보딩)은 L3 미적용. §5.1: 랜딩 실측으로 text-gray-400 대비율 위반 800+건(161개 파일) 발견, 8건만 수정(git `00bbcff`), 잔여 대량 작업 다음 세션 트리거 (2026-07-11)** |
-| `docs/dashboard_external_benchmark_inspection_plan_v1.0.md` | 대시보드 외부벤치마크 점검 계획 — 이 축(Nielsen/WCAG)에서 유일하게 남은 대상. §1 필수 참고(소상공인은 네이버 100% 신뢰·대행업체 의뢰 실증 → 네이버 정보 최상단 배치·"AI노출개선→네이버SEO상위노출" 정방향 메시징·AI채널별 노출기간 정확 안내 3대 원칙), §3에 과거 점검 이력 전수 정리("닫힌 이슈 재점검 금지"), §2에 편집 지뢰(DualTrackCard 고아파일 경로) 경고, §5에 27개+ 컴포넌트 구역별 분할 진행 순서 (2026-07-09)** |
-| **`docs/admin_panel_complete_documentation_v1.0.md`** ⭐ | **관리자 페이지 종합 문서(as-built) — 접속정보·인증구조 3단계·페이지 13개 전체 인벤토리·신규 DB테이블 5개·신규 엔드포인트 13개·git커밋 이력·알려진 제약 6건. 관리자 기능 추가/수정 작업 전 필수 참조 (2026-07-11)** |
-| **`docs/session_2026_07_11_next_steps_handoff_v1.0.md`** ⭐ | **마스터 점검 계획 전체 완료 후 다음 단계 핸드오프 — A(정리: origin 대비 51커밋 push·스크린샷93개 정리·stale 문서 정리)와 B(신규 기능: next-feature 에이전트로 스코프 재기획) 2트랙. A 먼저 권장 (2026-07-11)** |
-| **`docs/legal_compliance_and_infra_resilience_audit_v1.0.md`** ⭐ | **B(법적)+D(인프라) 점검 결과 — D축 P0(DB 백업 생성 이래 0회 성공, pg_dump 아웃바운드 차단+비밀번호 미설정 이중원인) 발견 즉시 수정(REST API 전환, 43개 테이블, 실패알림, git `3ab9545`). B축 P1(정기결제 요금인상 사전고지, 법률자문 권장)+P2 3건은 문서화만(사용자 결정 대기). 잔여: 외부 업타임 모니터링·day-30 알림 구현 (2026-07-12)** |
-| **`docs/business_viability_audit_v1.0.md`** ⭐ | **C(사업성) 점검 결과 — Gemini SDK(0.8.3) thinking_config 미지원+AI 호출 텔레메트리 전무 발견(ai_usage_logger.py 신설·배포·SQL실행·실측검증 완료), 마진율 계산에서 PG수수료 누락 발견·재계산 — **2026-07-16 재확인으로 브랜드페이(4.3%)→표준카드(3.4%) 카테고리 정정 + 영세등급(0.40%) 사용자 확인 + 현재가 반영, 최종 Basic 83.8%/창업 83.9%/Pro 86.4%/Biz 91.4%**, 경쟁사가격비교 "없음" 주장은 오판(TalkB 비교표 기존재), trial→가입→유료전환 선행지표 실제공백 확인→`/admin/growth-funnel` 신설. **§1-A: 실측검증 도중 OpenAI 결제수단 미등록으로 ChatGPT 스캔 전면실패(insufficient_quota) P0 우연 발견·사용자 카드등록으로 해결**. 후속과제 잔여: max_tokens 등 (2026-07-12, PG 우대등급 항목은 2026-07-16 해소)** |
-| **`docs/chargeback_response_checklist_v1.0.md`** ⭐ | **카드 분쟁(차지백) 대응 체크리스트 — 결제 라이브 키 승인 전 점검에서 발견한 누락(코드·문서 0건). 이미 있는 증빙 소스(payment_events·subscriptions 등) 정리 + 통보받았을 때 절차만 문서화, 코드 변경 없음 (2026-07-16)** |
-| **`docs/blog_diagnosis_session_2026_07_18_handoff_v1.0.md`** ⭐ | **블로그 진단 페이지 종합 핸드오프 — 목적 확정(①내블로그현황 ②AI노출개선, 경쟁사대비는 방식A(comp_keywords 재사용, 부하없음)로 포함/방식B(실시간블로그크롤링)는 비채택)·20개상한 키워드누락 P0(git `a8f76ec`)·자기추세 upsert 누락(git `dc59ae4`)·comp_keywords 오판 2회 정정 상세. **재점검 발견**: `showDetail`(기본값 false) 단일 토글이 키워드커버리지·자기추세·경쟁사대비 3축을 전부 기본 숨김 처리 중 — §6-1 토글 재설계가 최우선 (2026-07-18)** |
-| **`docs/trial_experience_persuasiveness_and_growth_v1.0.md`** ⭐ | **무료체험/가입후1회체험 설득력 검토 — 시나리오 5개 라이브 실측 + P0(FAQ·리뷰답변 자동생성 카피가 "미보유 추정" 키워드를 "전문으로 합니다/운영하고 있습니다"로 단정 서술, `smartplace-faq` 등 3곳) 발견 즉시 수정·배포(git `bd379c0`). §3 잔여(채널강점 vs 총점라벨 불일치·죽은 3단계비교박스 정리·프랜차이즈 메시징 재확인) + §5 사업성장 방안(결제심사 대기 중 체험 최적화 우선순위) (2026-08-22)** |
-| **`docs/dashboard_load_test_and_capacity_v1.0.md`** ⭐ | **대시보드 페이지 부하테스트 실측 — QA임시계정+`@supabase/ssr` 쿠키 리버스엔지니어링으로 실제 로그인 세션 확보해 라이브 `/dashboard` 동시성 5~80 램프. 동시 30명은 3~9초, 50명 부근에서 34초로 급붕괴하나 그 순간 서버 CPU/RAM은 완전 유휴 — **병목이 vCPU2 서버가 아니라 대시보드 1회 로드당 약10개 Supabase 병렬쿼리의 Supabase Cloud 큐잉**임을 확인. vCPU/RAM 업그레이드로 해결 안 되는 별도 축(기존 Playwright 세마포어/워커=1 이슈와 무관). 페이지 동시접속 실질 안전선 약 30명 (2026-08-23)** |
-| **`docs/guide_sibling_pages_inspection_v1.0.md`** ⭐ | **`/guide/chatgpt-search` 점검(사실정확성·논리모순·PC/모바일 디자인, git `dd58c2b`·`09ff1ac`) 완료 후 형제 페이지 `/guide/channels/[category]` 점검용 트리거 문서 — 동일 방법론 재사용 절차 + "오픈 전 트래픽 낮은 건 문제 아님" 주의사항 포함 (2026-09-02)** |
-| **`docs/dashboard_load_delay_investigation_v1.0.md`** ⭐ | **대시보드 로딩 지연 조사 — 5가지 원인 순차 발견·수정(SSR공개도메인경유·Cloudflare해외우회·서버DNS정체·RLS정책중복·gap무캐시), 최댓값 106s→10.7s. **미완료**: 격리테스트로 남은 지연이 Supabase측 확률적 정체임을 확정, 다음 후보(Suspense 스트리밍 / Supabase 유료플랜) 미착수. §0에 재현용 벤치마크 스크립트 포함 (git `4211000`~`4ff0b4d`, 2026-09-22)** |
-| **`docs/popular_shop_trust_improvement_handoff_v1.0.md`** ⭐ | **인기·유명 가게(예: 어니언 성수) 사장님이 스캔 결과를 보고 신뢰를 잃는 문제 — 사례·원인 6유형(A~F)·이미 구현된 방어선(ID 자동확정·미측정 재정규화·강점 신호 등)·남은 약점 8개·보완 과제 우선순위·오판 방지 규칙. 새 대화창 트리거 §0 포함 (2026-10-27)** |
-| **`docs/next_session_handoff_trust_block_scale_v1.0.md`** ⭐ | **다음 세션 핸드오프 — 과제 01(인기/비인기 가게 스캔 결과 신뢰 정보)·02(네이버 차단 방지 전 축 체크리스트)·02-1(유료 IP 우회: 기술적으로 가능·과거 Decodo 가동 실측 있으나 차단 방지 근거 없고 법적 결합 쟁점, 현재 미적용)·03(300~500명 대응: 모델상 현 구조 약 50곳 한계, 500곳은 전부 적용해도 평균 3,500/일로 속도 기준 초과 → 구조 변경 필요). 현재 상태 스냅샷·미검증 목록·사용자 결정 대기 목록 포함 (2026-10-27)** |
-| **`docs/trial_improvement_2026_09_28_v1.0.md`** ⭐ | **무료 체험 개선 작업 기록 — P0(체험 결과 DB 저장 실패: INTEGER 컬럼에 실수, 7/15~ 0건·즉시이메일 미발송)·Gemini 무료티어 한도(하루20회)·ChatGPT 유도형 프롬프트 오탐(표본 50회에서 가짜 가게 노출 판정)→비유도형 `sample_recommend` 교체·미측정→미노출 오표기 정정·탭 구조 재구성(5탭)·경쟁 5곳 블로그 막대·키워드 월검색량·AI 추천 가게+네이버 실존 대조. 잔여: Gemini 결제 연결(사용자 작업)·유료 스캔 ChatGPT 유도형 프로브·Google AI Overview 실체 재검토 (2026-09-28)** |
+> 전체 원본 표(행별 상세 설명 + 이어가기 트리거 15건)는 `docs/claude_md_reference_docs_archive_2026_10_27.md`. 아래는 주제별 그룹 색인 — 파일명만 보고 필요한 문서를 골라 열 것. **이어가기 트리거 형식**: `docs/<파일> 기준으로 <§N> 이어서 진행`.
 
-> **신뢰 정보·차단 방지·300~500명 대응 이어가기**: `docs/next_session_handoff_trust_block_scale_v1.0.md 기준으로 작업을 이어가줘. 진행할 과제: [01/02/02-1/03]`
-> **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
-> **가이드 형제 페이지 점검**: `docs/guide_sibling_pages_inspection_v1.0.md 기준으로 /guide/channels/[category] 점검 진행`
-> **대시보드 로딩 지연 이어가기**: `docs/dashboard_load_delay_investigation_v1.0.md 기준으로 §6 다음 후보(Suspense 스트리밍 또는 Supabase 유료플랜) 진행할지 알려줘`
-> **관리자 기능 작업**: `docs/admin_panel_complete_documentation_v1.0.md 기준으로 관리자 페이지 현황 확인 후 진행`
-> **대시보드 상단 디자인 이어가기**: `docs/dashboard_top_redesign_handoff_v1.0.md 기준으로 C(상단 디자인) 이어서 진행`
-> **네이버 차단 대응 이어가기**: `docs/naver_briefing_block_countermeasure_handoff_v1.0.md 기준으로 작업 시작. 먼저 §3 선결 검증부터 실측한 뒤 §4 진행`
-> **이번 세션 이어가기**: `docs/session_2026_07_01_naver_recheck_and_usergroup_fix_v1.0.md 기준으로 §7 NID_AUT/NID_SES 자동 재로그인 여부를 결정하고 진행할지 알려줘`
-> **정보형 캐비엇 재점검**: `docs/naver_briefing_infotype_caveat_standard_v1.0.md 기준으로 정보형 캐비엇 재점검 진행`
-> **9개 페이지 실측 점검**: `docs/nine_pages_measurement_inspection_v1.0.md 기준으로 실측 점검 진행`
-> **블로그 진단 페이지 잔여작업**: `docs/blog_analysis_improvement_v2.0.md §4 기준으로 CI테스트게이트·비동기테스트·git reconcile 중 진행할 것 선택`
-> **8개 페이지 상업적 전문성 재점검 잔여작업**: `docs/eight_pages_commercial_professionalism_recheck_v1.0.md 기준으로 §13 남은 작업 이어서 진행`
-> **대시보드 외부벤치마크 점검**: `docs/dashboard_external_benchmark_inspection_plan_v1.0.md 기준으로 대시보드 점검 진행`
-> **마스터 점검 종료 후 다음 단계(정리 또는 신규 기획)**: `docs/session_2026_07_11_next_steps_handoff_v1.0.md 기준으로 A(정리) 먼저 진행 후 B(신규 기능 기획)로 넘어가줘`
-> **상업 서비스 점검 현황 파악/이어가기**: `docs/commercial_launch_inspection_status_v1.0.md 기준으로 §6-1(즉시 가치) 항목부터 진행`
-> **블로그 진단 페이지 잔여작업 이어가기**: `docs/blog_diagnosis_session_2026_07_18_handoff_v1.0.md 기준으로 §6-1(showDetail 토글 재설계)부터 진행`
+| 그룹 | 문서 (`docs/`) | 용도 |
+|------|---------------|------|
+| **① 필수 선독 표준** ⭐ | `naver_gpt_work_standard_v1.0.md` · `ai_exposure_standard_and_naver_seo_v1.0.md` · `naver_briefing_infotype_caveat_standard_v1.0.md` · `model_engine_v3.0.md` · `plan_limits_v1.0.md` | 네이버·GPT 기능 작업 전: 업종분류·점수 가중치·5채널 판정·플레이스형/정보형 구분·요금제 한도 |
+| **② 네이버 차단·접속 보호·법적** ⭐ | `naver_scraping_legal_risk_assessment_v1.0.md`(회색지대, 코드 임의 축소 금지) · `naver_scraping_legal_risk_resolution_plan_v1.0.md` · `naver_briefing_block_countermeasure_handoff_v1.0.md`(NID_SES 월 1회 교체) · `naver_place_access_protection_2026_10_27.md` · `naver_request_load_spreading_design_v1.0.md` · `next_session_handoff_trust_block_scale_v1.0.md` · `popular_shop_trust_improvement_handoff_v1.0.md` | 차단 대응·속도 기준·공유 캐시·인기 가게 신뢰도·300~500명 대응(과제 01/02/02-1/03) |
+| **③ 점검 마스터·방법론** ⭐ | `commercial_launch_inspection_status_v1.0.md` · `master_inspection_plan_v1.0.md` · `inspection_request_full.md`(1줄 트리거 §3.X) · `external_benchmark_commercial_quality_v1.0.md` · `inspection_fixes_runbook_v1.0.md` · `naver_ai_prelaunch_inspection_v1.0.md` · `scan_result_screens_inspection_v1.0.md` | 4-레이어(사실·기능·외부벤치마크·실측) 점검 절차, 점검 이력·잔여과제 |
+| **④ 페이지별 점검·개선** | `nine_pages_measurement_inspection_v1.0.md` · `eight_pages_commercial_professionalism_recheck_v1.0.md`(§13 잔여) · `dashboard_external_benchmark_inspection_plan_v1.0.md` · `guide_sibling_pages_inspection_v1.0.md`(`/guide/channels/[category]`) · `blog_analysis_improvement_v2.0.md`(종결) · `blog_diagnosis_session_2026_07_18_handoff_v1.0.md` | 9/8개 페이지 실측·대시보드·가이드·블로그 진단 |
+| **⑤ 대시보드·체험 성능/UX** | `dashboard_top_redesign_handoff_v1.0.md` · `dashboard_load_delay_investigation_v1.0.md`(§6 Suspense/유료플랜 미착수) · `dashboard_load_test_and_capacity_v1.0.md`(안전선 약 30명, 병목=Supabase) · `trial_experience_persuasiveness_and_growth_v1.0.md` · `trial_improvement_2026_09_28_v1.0.md` | 로딩 지연·부하·무료 체험 설득력·저장 P0 |
+| **⑥ 결제·구독·사업성·법적·인프라** | `subscription_lifecycle_inspection_v1.0.md`(종결) · `business_viability_audit_v1.0.md` · `legal_compliance_and_infra_resilience_audit_v1.0.md` · `chargeback_response_checklist_v1.0.md` · `launch_checklist_2026_10_25_v1.0.md` · `prelaunch_inspection_2026_10_25_v1.0.md` | 마진·PG수수료·AI 비용 텔레메트리·차지백·출시 체크리스트·백업 |
+| **⑦ 관리자·대행서비스·기획** | `admin_panel_complete_documentation_v1.0.md` · `agency_service_and_iboss_improvements_v1.0.md` · `next_features_v1.0.md` · `remaining_tasks_v1.0.md` · `service_unification_v1.0.md` · `session_2026_07_11_next_steps_handoff_v1.0.md` · `session_2026_07_01_naver_recheck_and_usergroup_fix_v1.0.md` | 관리자 기능·대행 3종·다음 기능·잔여 런북 |
+| **⑧ 아카이브** | `changelog_archive.md` · `claude_md_completed_refs_archive.md` · `phase_a_completion_report.md` · `claude_md_reference_docs_archive_2026_10_27.md` | 완료 내역·종결 문서 (재점검 불필요) |
+
 
 ## 작업 중요 지침
 1. PC화면과 모바일 화면이 별개의 페이지로 구현되어야 함 (PC/모바일에 알맞은 화면 구성)
@@ -574,6 +536,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 - `text-sm` 이상 가독성 준수
 
 ### Step 4 — 검증 (수정 후)
+- **오판·오탐·누락 재확인 필수** — §"작업 진행 시 공통 필수" 3종을 완료 선언 전 수행하고 보고에 결과 명시
 - §"에이전트 보고 검증 의무" 절차와 동일하게 적용 (SSH grep 확인 · pm2 error.log 확인 · 에이전트 보고 신뢰 금지)
 
 #### 프론트엔드 파일 변경 시 추가 필수 3단계 (2026-06-04 신설)
@@ -656,21 +619,16 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ---
 
-## 최근 업데이트 (2026-10-10 이전 상세 내역은 `docs/changelog_archive.md` "CLAUDE.md 최근 업데이트 이관(2026-10-10)"로 이관)
+## 최근 업데이트 (2026-10-10 이전 상세 내역은 `docs/changelog_archive.md` "CLAUDE.md 최근 업데이트 이관(2026-10-10 / 10-27)"로 이관)
 
-- **2026-10-27 사용자 증가 대비 네이버 접속 보호(커밋 b48d3b4·7ae1a39·06f6dda·4be733c, 서버 배포 완료, push 미실행)**: ①상한 카운터 파일 영속화·정기 잡 배치 몫 70%(`@naver_batch_job`) ②플레이스 접속 **속도 기준**(슬라이딩 윈도우 1분12·10분30·1시간120, 차단·회복 후 48h 절반, `naver_access_guard.reserve_place_pages`) — 임계는 네이버 비공개라 **보수적 제안값이며 검증된 안전선 아님**(확인된 사실은 65~70페이지 연속 요청에 차단된 1건뿐) ③경쟁사 공유 캐시(파일 저장·6.5일·수동 동기화 1시간) ④키워드 순위 카드 목록 공유 캐시(6h) ⑤스캔·경쟁사 잡 요일 분산(`NAVER_SCAN_SLOT_SPREAD` 기본 **꺼짐** — 요금제·약관 요일 표기 점검 후 켤 것) ⑥`GET /admin/naver-access`(quota·rate·competitor_cache·rank_card_cache). **용량은 코드 기준 모델(실측 아님)로 약 40~50곳 한계, 300곳은 현 구조로 불가**(`scripts/naver_load_model.py`) — 구조적 해법은 Phase 2(사용자 본인 환경 수집) 검토. **IP 우회는 현재 미적용**(`backend/.env` `NAVER_PROXY_LIST` 비어 직접 접속; 루트 `.env`의 같은 이름은 백엔드가 읽지 않음). 검색 화면(브리핑·AI탭·순위)·플레이스 ID 확정에는 회로 차단기·속도 제한 미적용(속도 기록만). 상세 `docs/naver_place_access_protection_2026_10_27.md`, `docs/naver_request_load_spreading_design_v1.0.md`.
-
-- **2026-10-27 네이버 플레이스 IP 일시 차단 + 접속 보호**: 소식 오탐 수정 검증 중 서버에서 점검 함수를 연속 호출해(운영 세마포어·무작위 대기 우회) 서버 IP가 "과도한 접근 요청…" 화면을 받음(19:03 확인, 해제 여부 미확인). 기존 차단 감지는 줄바꿈 때문에 현재 화면과 안 맞았음(`services/naver_block.is_naver_block_page`로 교체). **회로 차단기**(`services/naver_access_guard.py`, 차단 시 3h→24h 자동 중단·시험 접속 1회·파일 저장), 상한을 호출 수가 아닌 **페이지 수(cost)**로 세고 기본 250→600(제안값), 플레이스 접속 5개 함수에 무작위 대기. **네이버 페이지 구조 확인은 로컬 Playwright로**, 서버에서 점검 함수를 연속 호출 금지. 같은 날 소식 판정 오탐(글 본문 "소식이 없어"·"1시간 전부터"를 게시 시각으로 오판, `services/feed_post_parser.py`), 사진·메뉴 판정(`place_page_signals`, `smartplace_items`) 수정. 상세 `docs/naver_place_access_protection_2026_10_27.md`, `docs/improvement_item_catalog_v1.0.md` §7-8.
-
-- **2026-10-27 인기 가게 신뢰도(측정 실패·순위 미확인이 미노출/0점으로 보이던 문제)**: 지역검색 API는 20곳을 요청해도 **5곳만 반환**해 경쟁 센 상권의 인기 가게는 순위 None → 점수에서 0점 처리됐음. v3.1/v3.2에서 None을 제외·환산(`score_engine._smart_place_base_rank_aware`, `calc_local_map_score`; `calc_smart_place_completeness` 자체는 report.py 사진 추정 때문에 불변). 화면의 측정 실패 판정이 `captcha_detected`만 봐서 `PLAYWRIGHT_QUEUE_TIMEOUT` 등이 "아직 미노출"로 나가던 것을 `lib/naverMeasure.ts`로 통일(백엔드 `_is_naver_unmeasured`와 동일 규칙). 네이버 검색 칸은 순위 실측 우선(`lib/keywordExposure.ts`, 서버 `strength_signals`와 동일 규칙 — 한쪽 변경 시 양쪽). 라벨 "AI 검색 노출 미흡"→"AI 검색 준비도 · 보강 단계"(프론트 2곳+백엔드 이미지 카드 2곳 동시). 상단 카드에 "어떻게 조사했나요?"·인과 문구 제거. 홈페이지 "URL 없음" 0점은 의도적 보류. 실사용자 반응 미확인. 상세 `docs/popular_shop_trust_cases_2026_10_27.md`.
-
-- **2026-10-26 네이버 플레이스 ID 자동 확정 + 측정 신뢰성 수정**: 지역검색 API는 플레이스 ID를 주지 않고 `link`=가게 홈페이지라 유명한 가게(어니언 성수)도 ID 없이 등록 → 리뷰·소식·키워드순위 미수집 → 점수 0 → survival로 저평가. `services/naver_place_resolver.py`가 검색 결과 가게 카드에서 **이름 일치 1곳일 때만** ID 확정(모호·없음은 저장 안 함), `GET /api/businesses/resolve-place`(로그인, 시간당 10회), 온보딩·사업장추가 폼 연결, `_run_full_scan`·`daily_scan_all`에서 ID 없으면 확정·저장, `create_business`가 URL→ID 추출·네이버 URL만 저장. 재분석 결과 네이버 영역 9.4→34.6, 종합 21→39.6(survival→stability), 리뷰 2,283건 자동 수집. **스캐너**: `briefing_present/type`, 머리글 기반 인식(PC·모바일), 인식 실패는 `briefing_unrecognized`(측정 불가) — 정기 스캔의 GitHub 사전스캔(`github_naver_scan.py`)은 **push된 코드**로 돌아 미반영. **서버 설정**: `PLAYWRIGHT_QUEUE_TIMEOUT_SEC` 15→60(ID 있는 분석에서 스마트플레이스 점검·통계와 네이버 측정이 겹쳐 대기 초과). ✅ **2026-10-26 해소**: 순위 측정 복구(`local.json`→`local`)·PC/모바일 순위를 가게 카드 노출 순서 기준으로 재구현, `keyword_search_rank` 미측정은 0점이 아니라 **제외 후 재정규화**(`score_engine._renormalized_track1`, v3.1·v3.2, `detail.excluded`), 미측정을 0점 격차로 말하던 `gap_analyzer` 제외·`ScoreEvidenceCard` 비중 재표시. 서버 전 사업장 시뮬레이션: 점수 +25~60%, 7곳 중 4곳 성장 단계 상승(기존 기록은 다음 스캔부터 반영). 순위의 점수 연결(3단계)은 화면 대조 후 별도 승인. 상세 메모리 `project_naver_proxy_407_and_cookie_2026_10_25`.
-
-- **2026-10-25 네이버 프록시·쿠키 복구**: Webshare 프록시 5개가 `407 not in your list`로 8일+ 거절(무료 플랜 전환, KR 프록시 없음 — 무료는 해외 데이터센터뿐) → `NAVER_PROXY_LIST` 비워 **직접 접속**(서버 한국 IP, 200 확인; 원본은 서버 `.env.bak_proxy_*`). `NID_SES`/`NID_AUT` 새 값으로 교체(로그인 상태 확인, 다음 교체 ~11-24). **접속 실패가 `mentioned:false`(미노출)로 저장되던 결함 수정**: `naver_scanner.py` 접속 실패 시 `error:"page_load_failed"` 반환(→ `score_engine._is_naver_unmeasured`가 미측정 처리), `scan.py:2154` 덮어쓰기 가드, 회로차단기 시그니처에 `ERR_HTTP_RESPONSE_CODE_FAILURE` 추가(`__init__.py:146`). ⚠️ 이전에 저장된 네이버 결과 중 접속 실패분은 `error` 표시가 없어 구분 불가(10-17 이전~ 미노출 오표기 가능). 미해결: Gemini 무료 티어 한도(100회 중 92~97 실패, 결제 연결은 개선 후 사용자 작업), 프록시 재도입은 네이버 차단 발생 시 유료 KR 프록시로. **출시 직전 체크리스트(필수 6·권장 7·실결제 전환 절차·월 1회 쿠키 교체): `docs/launch_checklist_2026_10_25_v1.0.md`**.
-
-- **2026-10-25 상업 서비스 직전 종합 점검(5영역 에이전트 + 메인 재검증)**: FAQ DB 토스페이먼츠 문구 2건→크렙, 체험 화면 흐린 글자(slate-400) 상향, 체험 안내문 4곳에 구글 지도 추가, 체험 스캔 이탈 이벤트 `trial_scan_abort` 신설, Pretendard 폰트 서브셋(1.4MB→360KB, load 이벤트 −5초·전송량 −54%이나 **버튼·입력 동작 시점·LCP는 불변** — 처음 "JS 4.5초 지연"이라 한 건 `route.fulfill`이 네트워크 제한을 우회한 측정 오류였고 정정함). 에이전트 오판 6건 기각(랜딩 gray-400 57건·폰트 CLS·가입완료 혼선 등). **미해결(사용자)**: Supabase Auth SMTP 설정 확인(이메일 인증 필수), 후기 확보, 실결제 전환 시 `.env`의 `CREB_TEST_PRICE_*` 삭제(`TOSS_SECRET_KEY`·`NEXT_PUBLIC_TOSS_CLIENT_KEY`는 코드 미사용이라 서버 `.env`와 백업 파일에서 삭제 완료. 루트 `.env.example` 등 예시 파일의 토스 줄은 권한 설정상 편집이 막혀 미정리). 상세 `docs/prelaunch_inspection_2026_10_25_v1.0.md`.
-
-- **2026-10-10 무료 체험 입력·결과 개편 + 측정 정확도 수정**: 가게 이름만 입력하는 2화면 경로, 결과 "손님이 찾는 5개 길", ChatGPT 질문을 구 이름·동네 이름 두 가지로 나란히 측정(동네 칸은 직접 입력 경로에도 있음), 구글 지도 노출·평점·리뷰 수 카드(Serper `/places`, 체험당 최대 2크레딧). **카카오 측정 수정**: 지역 첫 단어만 쓰고 상위 5곳에 없으면 "미등록"으로 단정하던 것을 시·군·구 단위·상위 15곳·이름 재조회로 바꿈(조회 실패는 알 수 없음). **점수 결함 수정**: `calc_kakao_completeness`가 `mentioned`만 읽어 카카오 등록 가게도 0점이던 것을 `is_on_kakao` 인식으로 수정(`score_engine.py:566`). ⚠️ `scan.py`의 `businesses.kakao_score` 자동 저장 블록(`kakao_data.get("mentioned")` 등)은 같은 이유로 죽은 코드이며 **살리면 안 됨** — 저장값이 사용자 체크리스트 점수보다 우선해 덮어씀. 랜딩·공개 페이지·대시보드의 "1분/30초" 등 시간 표현 삭제, 무료 진단 범위를 "네이버 지도·검색, ChatGPT, 구글 지도(직접 측정) / AI 브리핑·AI탭·제미나이·구글 AI·검색(가입 후)"로 정정. 공용 `names_match`는 "점"만 붙은 지점 표기까지 인정하도록 수정(알려진 한계: 한 글자+점은 구별 불가). 미해결: `app/` 안 `.bak` 파일 20여 개 정리(보류 결정), 이번 세션 커밋 push 여부. 상세 `docs/trial_improvement_2026_09_28_v1.0.md` §17~§24.
+- **2026-10-25~27 네이버 접속·측정 신뢰성 묶음 (git b48d3b4·7ae1a39·06f6dda·4be733c·48cdc56 등, 서버 배포 완료, push 미실행)**
+  - **접속 보호**: 상한을 페이지 수(cost)로 계산·정기 잡 배치 몫 70%·속도 기준(1분12/10분30/1시간120 — 네이버 비공개라 **보수적 제안값, 검증된 안전선 아님**)·회로 차단기(`services/naver_access_guard.py`, 차단 시 3h→24h)·경쟁사/키워드 순위 공유 캐시·`GET /admin/naver-access`·슬롯 분산 `NAVER_SCAN_SLOT_SPREAD` 기본 꺼짐. 용량은 **코드 기준 모델(실측 아님)로 약 40~50곳 한계**. IP 우회 미적용(`backend/.env` `NAVER_PROXY_LIST` 비움 — 루트 `.env`는 백엔드가 안 읽음). 상세 `docs/naver_place_access_protection_2026_10_27.md`.
+  - **서버 IP 일시 차단 사고(10-27)**: 서버에서 점검 함수를 연속 호출(세마포어·무작위 대기 우회)해 발생. **네이버 페이지 구조 확인은 로컬 Playwright로, 서버에서 점검 함수 연속 호출 금지.** 차단 감지는 `services/naver_block.is_naver_block_page`.
+  - **프록시·쿠키(10-25)**: Webshare 407 → 직접 접속 전환, `NID_SES`/`NID_AUT` 교체(다음 ~11-24). 접속 실패가 `mentioned:false`로 저장되던 결함 수정(`error:"page_load_failed"`, `scan.py:2154` 가드). ⚠️ 이전 저장분은 구분 불가. 미해결: Gemini 무료 티어 한도.
+  - **측정 정확도(10-26~27)**: 플레이스 ID 자동 확정(`naver_place_resolver.py`, 이름 일치 1곳일 때만)·순위 미측정은 0점이 아니라 제외 후 재정규화(`score_engine._renormalized_track1`)·지역검색 API 5곳 한계 None 처리·`lib/naverMeasure.ts`로 측정실패 판정 통일·소식/사진/메뉴 판정 오탐 수정(`feed_post_parser.py`)·라벨 "AI 검색 준비도 · 보강 단계". 상세 `docs/popular_shop_trust_cases_2026_10_27.md`.
+- **2026-10-25 상업 서비스 직전 종합 점검**: FAQ 토스 문구→크렙, 체험 화면 대비 상향, `trial_scan_abort` 이벤트, Pretendard 서브셋. 에이전트 오판 6건 기각. **미해결(사용자)**: Supabase Auth SMTP 확인·후기 확보. 상세 `docs/prelaunch_inspection_2026_10_25_v1.0.md`, 출시 체크리스트 `docs/launch_checklist_2026_10_25_v1.0.md`.
+- **2026-10-10 무료 체험 개편 + 측정 정확도**: 가게 이름만 입력 2화면·"5개 길" 결과·카카오 측정 수정·`calc_kakao_completeness` `is_on_kakao` 인식(`score_engine.py:566`). ⚠️ `scan.py`의 `businesses.kakao_score` 자동 저장 블록은 죽은 코드이며 **살리면 안 됨**(사용자 체크리스트 점수를 덮어씀). 상세 `docs/trial_improvement_2026_09_28_v1.0.md` §17~§24.
+- 위 항목의 원문 상세는 `docs/changelog_archive.md` "CLAUDE.md 최근 업데이트 이관(2026-10-27)" 참조.
 
 - 2026-08-23~09-29 항목(대시보드 로딩 지연 조사·창업 시장 분석 종합 개편·폐업율·알림톡·AI 광고 대비·전체 UX 점검·체험 개선 등 31건)은 위 아카이브 참조. 다음 압축은 이 항목이 1개월 지난 시점에.
 
