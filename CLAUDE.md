@@ -129,8 +129,10 @@
 | **`docs/guide_sibling_pages_inspection_v1.0.md`** ⭐ | **`/guide/chatgpt-search` 점검(사실정확성·논리모순·PC/모바일 디자인, git `dd58c2b`·`09ff1ac`) 완료 후 형제 페이지 `/guide/channels/[category]` 점검용 트리거 문서 — 동일 방법론 재사용 절차 + "오픈 전 트래픽 낮은 건 문제 아님" 주의사항 포함 (2026-09-02)** |
 | **`docs/dashboard_load_delay_investigation_v1.0.md`** ⭐ | **대시보드 로딩 지연 조사 — 5가지 원인 순차 발견·수정(SSR공개도메인경유·Cloudflare해외우회·서버DNS정체·RLS정책중복·gap무캐시), 최댓값 106s→10.7s. **미완료**: 격리테스트로 남은 지연이 Supabase측 확률적 정체임을 확정, 다음 후보(Suspense 스트리밍 / Supabase 유료플랜) 미착수. §0에 재현용 벤치마크 스크립트 포함 (git `4211000`~`4ff0b4d`, 2026-09-22)** |
 | **`docs/popular_shop_trust_improvement_handoff_v1.0.md`** ⭐ | **인기·유명 가게(예: 어니언 성수) 사장님이 스캔 결과를 보고 신뢰를 잃는 문제 — 사례·원인 6유형(A~F)·이미 구현된 방어선(ID 자동확정·미측정 재정규화·강점 신호 등)·남은 약점 8개·보완 과제 우선순위·오판 방지 규칙. 새 대화창 트리거 §0 포함 (2026-10-27)** |
+| **`docs/next_session_handoff_trust_block_scale_v1.0.md`** ⭐ | **다음 세션 핸드오프 — 과제 01(인기/비인기 가게 스캔 결과 신뢰 정보)·02(네이버 차단 방지 전 축 체크리스트)·02-1(유료 IP 우회: 기술적으로 가능·과거 Decodo 가동 실측 있으나 차단 방지 근거 없고 법적 결합 쟁점, 현재 미적용)·03(300~500명 대응: 모델상 현 구조 약 50곳 한계, 500곳은 전부 적용해도 평균 3,500/일로 속도 기준 초과 → 구조 변경 필요). 현재 상태 스냅샷·미검증 목록·사용자 결정 대기 목록 포함 (2026-10-27)** |
 | **`docs/trial_improvement_2026_09_28_v1.0.md`** ⭐ | **무료 체험 개선 작업 기록 — P0(체험 결과 DB 저장 실패: INTEGER 컬럼에 실수, 7/15~ 0건·즉시이메일 미발송)·Gemini 무료티어 한도(하루20회)·ChatGPT 유도형 프롬프트 오탐(표본 50회에서 가짜 가게 노출 판정)→비유도형 `sample_recommend` 교체·미측정→미노출 오표기 정정·탭 구조 재구성(5탭)·경쟁 5곳 블로그 막대·키워드 월검색량·AI 추천 가게+네이버 실존 대조. 잔여: Gemini 결제 연결(사용자 작업)·유료 스캔 ChatGPT 유도형 프로브·Google AI Overview 실체 재검토 (2026-09-28)** |
 
+> **신뢰 정보·차단 방지·300~500명 대응 이어가기**: `docs/next_session_handoff_trust_block_scale_v1.0.md 기준으로 작업을 이어가줘. 진행할 과제: [01/02/02-1/03]`
 > **새 대화창 시작 시 우선 트리거**: `docs/inspection_request_full.md` 1줄 명령으로 전체 시스템 점검·수정·배포 자동 진행. 부분 점검은 `§3.X`만 지정.
 > **가이드 형제 페이지 점검**: `docs/guide_sibling_pages_inspection_v1.0.md 기준으로 /guide/channels/[category] 점검 진행`
 > **대시보드 로딩 지연 이어가기**: `docs/dashboard_load_delay_investigation_v1.0.md 기준으로 §6 다음 후보(Suspense 스트리밍 또는 Supabase 유료플랜) 진행할지 알려줘`
