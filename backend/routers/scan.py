@@ -2200,6 +2200,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
         await execute(
             supabase.table("score_history")
             .select("total_score, score_date")
+            .not_.is_("total_score", "null")  # 순위 측정만 기록한 행(total_score NULL)은 비교 대상 아님
             .eq("business_id", business_id)
             .order("score_date", desc=True)
             .limit(1)
@@ -2971,6 +2972,7 @@ async def _run_quick_scan(scan_id: str, req: ScanRequest):
             await execute(
                 supabase.table("score_history")
                 .select("total_score, score_date")
+                .not_.is_("total_score", "null")  # 순위 측정만 기록한 행(total_score NULL)은 비교 대상 아님
                 .eq("business_id", req.business_id)
                 .order("score_date", desc=True)
                 .limit(1)
@@ -3234,6 +3236,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
             await execute(
                 supabase.table("score_history")
                 .select("total_score, score_date")
+                .not_.is_("total_score", "null")  # 순위 측정만 기록한 행(total_score NULL)은 비교 대상 아님
                 .eq("business_id", req.business_id)
                 .order("score_date", desc=True)
                 .limit(1)

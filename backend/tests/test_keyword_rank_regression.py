@@ -351,3 +351,17 @@ def test_kakao_notify_ignores_null_score_history_rows(monkeypatch):
     monkeypatch.setattr(jobs, "_db", fake_db)
     user = {"businesses": [{"id": "b", "name": "n"}], "profiles": {"phone": "010", "kakao_scan_notify": True, "kakao_competitor_notify": True}}
     asyncio.run(jobs._send_kakao_notifications(C(), N(), user))   # 예외 없이 끝나야 한다
+
+
+def test_prev_history_queries_skip_null_total_score_rows():
+    """score_history에는 순위 측정만 기록한 행(total_score NULL, context=keyword_rank)이 매일 쌓인다 —
+    직전 점수와 비교하는 모든 조회가 그 행을 건너뛰어야 한다(안 그러면 `점수 - None`으로 스캔·알림이 죽는다)."""
+    import re, pathlib
+    root = pathlib.Path(__file__).resolve().parent.parent
+    for rel, marker in (("routers/scan.py", '.select("total_score, score_date")'),
+                        ("scheduler/jobs.py", '.select("total_score, track1_score, score_date")'),
+                        ("services/monthly_report.py", '.select("total_score")')):
+        src = (root / rel).read_text(encoding="utf-8")
+        for m in re.finditer(re.escape(marker), src):
+            nxt = src[m.end(): m.end() + 200]
+            assert '.not_.is_("total_score", "null")' in nxt, (rel, "NULL 행 제외 누락")

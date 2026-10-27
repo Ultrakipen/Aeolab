@@ -933,6 +933,7 @@ async def daily_scan_all():
                 _prev_res = await _db(
                     supabase.table("score_history")
                     .select("total_score, track1_score, score_date")
+                    .not_.is_("total_score", "null")  # 순위 측정만 기록한 행(total_score NULL)은 비교 대상 아님
                     .eq("business_id", biz["id"])
                     .order("score_date", desc=True)
                     .limit(1)

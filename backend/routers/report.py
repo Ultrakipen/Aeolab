@@ -2693,7 +2693,8 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
     next_goal = _next_goal(current_score, latest_bd_for_goal)
 
     # ── 8. days_active ────────────────────────────────────────────────
-    from datetime import datetime, timezone
+    # (함수 안 `from datetime import datetime` 제거 — 지역 변수로 가려져 위쪽 headline_elapsed_days 계산이
+    #  UnboundLocalError로 조용히 실패하던 것을 수정. datetime·timezone은 모듈 상단에서 import)
     today      = datetime.now(timezone.utc).date()
     days_active = 0
     anchor_at  = (

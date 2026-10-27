@@ -20,6 +20,7 @@ async def collect_monthly_stats(supabase, business_id: str, year: int, month: in
     first_score_row = (
         supabase.table("score_history")
         .select("total_score")
+        .not_.is_("total_score", "null")  # 순위 측정만 기록한 행(total_score NULL)은 비교 대상 아님
         .eq("business_id", business_id)
         .gte("score_date", first_day)
         .lte("score_date", last_day)
@@ -31,6 +32,7 @@ async def collect_monthly_stats(supabase, business_id: str, year: int, month: in
     last_score_row = (
         supabase.table("score_history")
         .select("total_score")
+        .not_.is_("total_score", "null")  # 순위 측정만 기록한 행(total_score NULL)은 비교 대상 아님
         .eq("business_id", business_id)
         .gte("score_date", first_day)
         .lte("score_date", last_day)
