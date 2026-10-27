@@ -26,10 +26,12 @@ interface DashboardHeroCardProps {
 }
 
 function getStage(score: number): { label: string; labelColor: string; bg: string; cardBorder: string } {
-  if (score >= 75) return { label: "AI 검색 노출 양호",    labelColor: "text-emerald-700", bg: "bg-emerald-50", cardBorder: "border-emerald-300" };
-  if (score >= 55) return { label: "AI 검색 노출 개선 중", labelColor: "text-blue-700",    bg: "bg-blue-50",    cardBorder: "border-blue-300"    };
-  if (score >= 30) return { label: "AI 검색 노출 미흡",    labelColor: "text-amber-700",   bg: "bg-amber-50",   cardBorder: "border-amber-300"   };
-  return                   { label: "AI 검색 노출 시작 전", labelColor: "text-slate-600",   bg: "bg-slate-50",   cardBorder: "border-slate-300"   };
+  // 이 점수는 네이버 인기가 아니라 "AI 검색에 얼마나 준비돼 있는가"를 잰다 — 이름을 그에 맞추고,
+  // 30~55 구간은 등급("미흡")이 아니라 할 일의 방향("보강 단계")으로 표현한다. lib/scoreLabels.ts getStageView와 동일하게 유지.
+  if (score >= 75) return { label: "AI 검색 준비도 · 양호",      labelColor: "text-emerald-700", bg: "bg-emerald-50", cardBorder: "border-emerald-300" };
+  if (score >= 55) return { label: "AI 검색 준비도 · 개선 중",   labelColor: "text-blue-700",    bg: "bg-blue-50",    cardBorder: "border-blue-300"    };
+  if (score >= 30) return { label: "AI 검색 준비도 · 보강 단계", labelColor: "text-amber-700",   bg: "bg-amber-50",   cardBorder: "border-amber-300"   };
+  return                   { label: "AI 검색 준비도 · 시작 전",   labelColor: "text-slate-600",   bg: "bg-slate-50",   cardBorder: "border-slate-300"   };
 }
 
 export default function DashboardHeroCard({
@@ -72,6 +74,9 @@ export default function DashboardHeroCard({
           ? "네이버 검색·플레이스·AI탭 집중 전략 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다"
           : "네이버 검색·플레이스·AI탭이 주요 노출 경로 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다",
       }
+    : naverCaptchaBlocked
+    // 네이버 측정이 일부 실패했으면 그 점수로 단계 라벨(등급)을 붙이지 않는다 — 아래 안내 줄이 이유를 설명
+    ? { label: "AI 검색 준비도 · 일부 항목 측정 전", labelColor: "text-slate-700", bg: "bg-slate-50", cardBorder: "border-slate-300", sub: null as string | null }
     : { label: stage.label, labelColor: stage.labelColor, bg: stage.bg, cardBorder: stage.cardBorder, sub: null as string | null };
 
   // 점수 숫자 대신 실측 근거(경쟁사 순위·키워드 보강 수)로 단계 레이블을 뒷받침 — 신뢰도 확보

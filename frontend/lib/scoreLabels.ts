@@ -40,10 +40,11 @@ export function getStageView(
     };
   }
 
-  if (score >= 75) return { label: "AI 검색 노출 양호",    labelColor: "text-emerald-700", bg: "bg-emerald-50", cardBorder: "border-emerald-300", sub: null };
-  if (score >= 55) return { label: "AI 검색 노출 개선 중", labelColor: "text-blue-700",    bg: "bg-blue-50",    cardBorder: "border-blue-300",    sub: null };
-  if (score >= 30) return { label: "AI 검색 노출 미흡",    labelColor: "text-amber-700",   bg: "bg-amber-50",   cardBorder: "border-amber-300",   sub: null };
-  return                   { label: "AI 검색 노출 시작 전", labelColor: "text-slate-600",   bg: "bg-slate-50",   cardBorder: "border-slate-300",   sub: null };
+  // DashboardHeroCard.getStage()와 동일 문구 — 점수가 재는 것(AI 검색 준비도)에 이름을 맞추고 "미흡" 등급 표현은 쓰지 않는다
+  if (score >= 75) return { label: "AI 검색 준비도 · 양호",      labelColor: "text-emerald-700", bg: "bg-emerald-50", cardBorder: "border-emerald-300", sub: null };
+  if (score >= 55) return { label: "AI 검색 준비도 · 개선 중",   labelColor: "text-blue-700",    bg: "bg-blue-50",    cardBorder: "border-blue-300",    sub: null };
+  if (score >= 30) return { label: "AI 검색 준비도 · 보강 단계", labelColor: "text-amber-700",   bg: "bg-amber-50",   cardBorder: "border-amber-300",   sub: null };
+  return                   { label: "AI 검색 준비도 · 시작 전",   labelColor: "text-slate-600",   bg: "bg-slate-50",   cardBorder: "border-slate-300",   sub: null };
 }
 
 /** 컴팩트 점수 텍스트 레이블 — 숫자 대신 표시 (표·카드 등 좁은 공간용) */

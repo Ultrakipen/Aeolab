@@ -35,13 +35,14 @@ def _score_stage_label(score: float) -> str:
     (75/55/30) 유지 — 드리프트 시 두 파일 함께 갱신할 것. CLAUDE.md 점수 표시
     원칙(숫자 노출 금지) — 카카오 알림으로 자동 발송되는 이미지라 특히 엄격 적용."""
     s = score or 0
+    # 2026-10-27: share_card.py·프론트와 동일 문구 — "미흡" 등급 표현 대신 "보강 단계"
     if s >= 75:
-        return "AI 검색 노출 양호"
+        return "AI 검색 준비도 · 양호"
     if s >= 55:
-        return "AI 검색 노출 개선 중"
+        return "AI 검색 준비도 · 개선 중"
     if s >= 30:
-        return "AI 검색 노출 미흡"
-    return "AI 검색 노출 시작 전"
+        return "AI 검색 준비도 · 보강 단계"
+    return "AI 검색 준비도 · 시작 전"
 
 
 async def generate_comparison_card(
