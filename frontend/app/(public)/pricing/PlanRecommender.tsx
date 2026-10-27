@@ -1,5 +1,6 @@
 "use client";
 
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import { useEffect, useState } from "react";
 import { trackPlanRecommend, trackEvent } from "@/lib/analytics";
 import { PayButton } from "./PayButton";
@@ -147,7 +148,7 @@ export default function PlanRecommender() {
 
           {picked === "global" && (
             <p className="text-sm text-blue-700 mt-2 mb-3 leading-relaxed">
-              Basic은 ChatGPT·Gemini·Google AI 노출을 일주일에 2번 자동으로 확인합니다.
+              Basic은 {GEMINI_LIVE ? "ChatGPT·Gemini·Google AI" : "ChatGPT·Google AI"} 노출을 일주일에 2번 자동으로 확인합니다.
             </p>
           )}
 

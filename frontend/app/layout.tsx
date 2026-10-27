@@ -1,3 +1,4 @@
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -116,7 +117,7 @@ export default function RootLayout({
                   serviceType: "AI 검색 노출 관리 (AI Engine Optimization)",
                   provider: { "@id": "https://aeolab.co.kr/#organization" },
                   areaServed: { "@type": "Country", name: "South Korea" },
-                  description: "네이버 AI 브리핑·ChatGPT·Gemini·Google 검색 4곳에서 사업장 노출을 자동 진단하고 개선 가이드를 제공",
+                  description: GEMINI_LIVE ? "네이버 AI 브리핑·ChatGPT·Gemini·Google 검색 4곳에서 사업장 노출을 자동 진단하고 개선 가이드를 제공" : "네이버 AI 브리핑·ChatGPT·Google 검색에서 사업장 노출을 자동 진단하고 개선 가이드를 제공",
                   offers: {
                     "@type": "AggregateOffer",
                     priceCurrency: "KRW",

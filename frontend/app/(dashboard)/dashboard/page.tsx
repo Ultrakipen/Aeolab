@@ -1,3 +1,4 @@
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import { Search, Bot, BarChart2, CheckCircle2, Calendar } from "lucide-react";
 import { createClient, getCachedUser, getCachedActivePlan } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -496,7 +497,7 @@ export default async function DashboardPage({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {([
                       { icon: Search, title: "네이버 3곳 실측", desc: "AI 브리핑·AI탭·일반검색 노출 여부" },
-                      { icon: Bot, title: "ChatGPT·Gemini 측정", desc: "최대 100회 질문 중 내 가게 언급 횟수" },
+                      { icon: Bot, title: GEMINI_LIVE ? "ChatGPT·Gemini 측정" : "ChatGPT 측정", desc: "최대 100회 질문 중 내 가게 언급 횟수" },
                       { icon: BarChart2, title: "경쟁사 순위 비교", desc: "동네 경쟁 가게 대비 내 위치" },
                       { icon: CheckCircle2, title: "오늘 할 일 안내", desc: "AI 노출 높이는 구체적 액션" },
                     ]).map(({ icon: Icon, title, desc }) => (

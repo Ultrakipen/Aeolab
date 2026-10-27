@@ -1,3 +1,4 @@
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import Link from "next/link";
 import {
   Check, Lock, CreditCard, Clock, Search, Bot, MessageCircle, Camera, X, CheckCircle2, TrendingUp,
@@ -129,7 +130,7 @@ export default function LandingPage() {
           <span className="hidden sm:block text-gray-600">·</span>
           <span className="whitespace-nowrap inline-flex items-center gap-1.5"><Bot className="w-4 h-4 text-purple-600" aria-hidden="true" /><strong className="text-purple-700">AI 브리핑·AI탭</strong> 노출 가능성 ↑</span>
           <span className="hidden sm:block text-gray-600">·</span>
-          <span className="whitespace-nowrap inline-flex items-center gap-1.5"><MessageCircle className="w-4 h-4 text-green-700" aria-hidden="true" /><strong className="text-green-700">ChatGPT·Gemini·Google AI</strong> 노출 현황 측정·추적</span>
+          <span className="whitespace-nowrap inline-flex items-center gap-1.5"><MessageCircle className="w-4 h-4 text-green-700" aria-hidden="true" /><strong className="text-green-700">{GEMINI_LIVE ? "ChatGPT·Gemini·Google AI" : "ChatGPT·Google AI"}</strong> 노출 현황 측정·추적</span>
           <span className="hidden sm:block text-gray-600">·</span>
           <Link href="/showcase" className="whitespace-nowrap font-semibold text-blue-600 hover:underline inline-flex items-center gap-1.5">
             <Camera className="w-4 h-4" aria-hidden="true" /> 실제 구독 사업장 화면 보기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -253,7 +254,7 @@ export default function LandingPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={3} aria-hidden="true" />
-                    ChatGPT·Gemini·Google AI 현황 정기 측정 — 모든 업종
+                    {GEMINI_LIVE ? "ChatGPT·Gemini·Google AI" : "ChatGPT·Google AI"} 현황 정기 측정 — 모든 업종
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={3} aria-hidden="true" />
@@ -857,7 +858,7 @@ export default function LandingPage() {
                 <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3 w-full text-left">
                   <p className="text-sm font-semibold text-indigo-700 mb-1.5">자동 진단 내용</p>
                   <div className="space-y-1">
-                    {["항목별 노출 상태 진단 (양호·보통·주의)", "경쟁사 대비 부족한 부분 파악", "ChatGPT·Gemini 실제 언급 횟수", "키워드 노출 현황 분석", "개선 우선순위 자동 제시"].map(item => (
+                    {["항목별 노출 상태 진단 (양호·보통·주의)", "경쟁사 대비 부족한 부분 파악", GEMINI_LIVE ? "ChatGPT·Gemini 실제 언급 횟수" : "ChatGPT 실제 언급 횟수", "키워드 노출 현황 분석", "개선 우선순위 자동 제시"].map(item => (
                       <div key={item} className="flex items-center gap-1.5">
                         <span className="text-indigo-700 text-sm flex-shrink-0">▸</span>
                         <span className="text-sm text-gray-700 break-keep">{item}</span>
@@ -880,7 +881,7 @@ export default function LandingPage() {
                 <div className="rounded-xl border border-green-100 bg-green-50 p-3 w-full text-left">
                   <p className="text-sm font-semibold text-green-700 mb-1.5">개선 후 결과</p>
                   <div className="space-y-1">
-                    {["네이버 AI 브리핑 상단 노출 (음식점·카페 등)", "네이버 AI탭 답변에 내 가게 등장", "ChatGPT·Gemini 현황 정기 모니터링", "매주 자동 점검으로 노출 지속 유지", "경쟁사 대비 AI 노출 준비도 우위 확보"].map(item => (
+                    {["네이버 AI 브리핑 상단 노출 (음식점·카페 등)", "네이버 AI탭 답변에 내 가게 등장", GEMINI_LIVE ? "ChatGPT·Gemini 현황 정기 모니터링" : "ChatGPT 현황 정기 모니터링", "매주 자동 점검으로 노출 지속 유지", "경쟁사 대비 AI 노출 준비도 우위 확보"].map(item => (
                       <div key={item} className="flex items-center gap-1.5">
                         <Check className="w-4 h-4 flex-shrink-0 text-green-700" strokeWidth={3} aria-hidden="true" />
                         <span className="text-sm text-gray-700 break-keep">{item}</span>
@@ -942,7 +943,7 @@ export default function LandingPage() {
               {
                 Icon: Search,
                 title: "AI 노출 자동 점검",
-                desc: "네이버 AI·ChatGPT·Gemini·Google AI 4곳에서 내 가게가 실제로 몇 번 언급되는지 자동 측정",
+                desc: GEMINI_LIVE ? "네이버 AI·ChatGPT·Gemini·Google AI 4곳에서 내 가게가 실제로 몇 번 언급되는지 자동 측정" : "네이버 AI·ChatGPT·Google AI에서 내 가게가 실제로 몇 번 언급되는지 자동 측정 (Gemini 측정은 준비 중)",
                 badge: "핵심",
                 badgeColor: "#2563EB",
               },

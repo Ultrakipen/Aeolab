@@ -1,4 +1,5 @@
 import { TESTIMONIALS } from "@/lib/testimonials";
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import DiagnosisCounter from "@/components/landing/DiagnosisCounter";
 
 /**
@@ -25,17 +26,17 @@ export default function Testimonials() {
           {/* 신뢰 프록시 통계 4종 */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mt-6">
             <div className="bg-white rounded-xl border border-gray-200 p-3 md:p-4 shadow-sm">
-              <p className="text-2xl md:text-3xl font-bold text-blue-600">4종</p>
+              <p className="text-2xl md:text-3xl font-bold text-blue-600">{GEMINI_LIVE ? "4종" : "3종"}</p>
               <p className="text-sm text-gray-700 mt-1 leading-snug break-keep">
                 AI 측정<br />
-                <span className="text-sm text-gray-600">Gemini · ChatGPT<br />네이버 · Google</span>
+                <span className="text-sm text-gray-600">{GEMINI_LIVE ? "Gemini · ChatGPT" : "ChatGPT"}<br />네이버 · Google</span>
               </p>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-3 md:p-4 shadow-sm">
               <p className="text-2xl md:text-3xl font-bold text-blue-600">100회</p>
               <p className="text-sm text-gray-700 mt-1 leading-snug break-keep">
                 자동 정밀 측정<br />
-                <span className="text-sm text-gray-600">Gemini·ChatGPT<br />각 100회 자동 측정</span>
+                <span className="text-sm text-gray-600">{GEMINI_LIVE ? "Gemini·ChatGPT" : "ChatGPT"}<br />{GEMINI_LIVE ? "각 100회" : "100회"} 자동 측정</span>
               </p>
             </div>
             <div className="bg-white rounded-xl border border-gray-200 p-3 md:p-4 shadow-sm">

@@ -1,5 +1,6 @@
 "use client";
 
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import { Suspense, useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -165,7 +166,7 @@ function PaymentSuccessContent() {
             </p>
           )}
           <p className="text-gray-600 text-sm mb-2">
-            이제 네이버·Gemini·ChatGPT 3곳 자동 측정과 개선 가이드를 이용할 수 있습니다.
+            이제 {GEMINI_LIVE ? "네이버·Gemini·ChatGPT 3곳" : "네이버·ChatGPT 2곳(Gemini는 준비 중)"} 자동 측정과 개선 가이드를 이용할 수 있습니다.
           </p>
           <p className="text-gray-600 text-sm mb-4">
             {countdown}초 후 대시보드로 이동합니다...

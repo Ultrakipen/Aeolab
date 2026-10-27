@@ -1,3 +1,4 @@
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import { createClient, getCachedUser } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -288,11 +289,11 @@ export default async function SettingsPage({
               ) : (
                 <div className="space-y-4">
                   <p className="text-sm md:text-base text-gray-600">
-                    유료 플랜으로 업그레이드하면 Gemini·ChatGPT 각 100회(총 200번 질문) 실측, 경쟁사 분석, 자동 개선 가이드를 이용할 수 있습니다.
+                    유료 플랜으로 업그레이드하면 {GEMINI_LIVE ? "Gemini·ChatGPT 각 100회(총 200번 질문)" : "ChatGPT 100회 질문(Gemini는 준비 중)"} 실측, 경쟁사 분석, 자동 개선 가이드를 이용할 수 있습니다.
                   </p>
                   <div className="grid grid-cols-3 gap-2 md:gap-3">
                     {[
-                      { label: "AI 측정",    value: "200회", desc: "Gemini·ChatGPT 각 100회" },
+                      { label: "AI 측정",    value: GEMINI_LIVE ? "200회" : "100회", desc: GEMINI_LIVE ? "Gemini·ChatGPT 각 100회" : "ChatGPT 100회" },
                       { label: "경쟁사",     value: "3개",   desc: "비교 분석" },
                       { label: "개선 가이드", value: "매월",  desc: "Claude AI 생성" },
                     ].map(({ label, value, desc }) => (

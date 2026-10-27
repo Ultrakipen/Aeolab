@@ -1,5 +1,6 @@
 "use client";
 
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import { useEffect, useRef, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -129,7 +130,7 @@ function ClaimedContent() {
           </div>
 
           <p className="mt-4 text-sm text-gray-600 text-center">
-            가입 후에는 Gemini·ChatGPT 각 50회+네이버 AI 브리핑+구글 AI까지 전체 AI 서비스를 무료로 1회 다시 분석해 드립니다.
+            가입 후에는 {GEMINI_LIVE ? "Gemini·ChatGPT 각 50회" : "ChatGPT 50회"}+네이버 AI 브리핑+구글 AI까지 AI 서비스를 무료로 1회 다시 분석해 드립니다.
           </p>
         </div>
 

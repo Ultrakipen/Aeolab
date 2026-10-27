@@ -1,0 +1,17 @@
+/**
+ * Gemini 측정 정상 가동 여부 (2026-10-27).
+ *
+ * Gemini 무료 티어 한도로 100회 측정 중 90회 이상이 실패하는 동안(AI 호출 성공 표본 4~9회)
+ * "Gemini·ChatGPT 각 100회 자동 측정"이라는 안내는 사실과 다르다. false인 동안 공개·가입·결제 화면의
+ * 측정 횟수 문구는 ChatGPT 기준으로만 쓴다.
+ *
+ * 결제 연결 후 대시보드에서 Gemini 표본이 정상(100회 근처)으로 쌓이는 것을 확인하고 true로 바꾼 뒤 재빌드한다.
+ * (개별 기능 설명·반영 기간 같은 교육용 문구는 이 플래그와 무관하게 그대로 둔다.)
+ */
+export const GEMINI_MEASUREMENT_LIVE = false;
+
+const G = GEMINI_MEASUREMENT_LIVE;
+/** "ChatGPT·Gemini" 또는 "ChatGPT" */
+export const AI_NAMES = G ? "ChatGPT·Gemini" : "ChatGPT";
+/** 측정 서비스 수(네이버·ChatGPT·구글 + Gemini) */
+export const AI_COUNT_LABEL = G ? "4곳" : "3곳";

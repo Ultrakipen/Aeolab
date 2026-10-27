@@ -1,5 +1,6 @@
 "use client";
 
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import { Suspense, useState } from "react";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { createClient } from "@/lib/supabase/client";
@@ -162,7 +163,7 @@ function SignupForm() {
                   <p className="font-semibold mb-1">가입 축하 혜택</p>
                   <p className="text-sm leading-relaxed">
                     사업장을 등록하시면 <strong>전체 AI 분석을 1회 무료</strong>로 체험할 수 있습니다.
-                    ChatGPT · 네이버 AI 브리핑 · 구글 AI · Gemini 4곳 모두 확인해 보세요.
+                    {GEMINI_LIVE ? "ChatGPT · 네이버 AI 브리핑 · 구글 AI · Gemini 4곳" : "ChatGPT · 네이버 AI 브리핑 · 구글 AI 3곳"} 모두 확인해 보세요.
                   </p>
                 </div>
                 <ol className="text-sm text-gray-600 space-y-2 mt-4 mb-5 text-left">

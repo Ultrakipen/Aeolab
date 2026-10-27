@@ -1,3 +1,4 @@
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import { Check, X } from "lucide-react";
 const COMPARE_ROWS = [
   {
@@ -13,7 +14,7 @@ const COMPARE_ROWS = [
   {
     label: "신뢰도",
     manual: "같은 질문, 매번 다른 답",
-    auto: "Gemini·ChatGPT 각 50~100회 통계 (자동 100회·수동 50회, Basic 기준)",
+    auto: GEMINI_LIVE ? "Gemini·ChatGPT 각 50~100회 통계 (자동 100회·수동 50회, Basic 기준)" : "ChatGPT 50~100회 통계 (자동 100회·수동 50회, Basic 기준)",
   },
   {
     label: "객관성",

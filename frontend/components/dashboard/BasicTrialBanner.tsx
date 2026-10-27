@@ -1,5 +1,6 @@
 "use client";
 
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import { useEffect, useState } from "react";
 import { Gift, Sparkles, Loader2, Lock, PartyPopper } from "lucide-react";
 import { getBasicTrialStatus, runBasicTrial, ApiError, type BasicTrialStatus } from "@/lib/api";
@@ -106,7 +107,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
               어떻게 소개하는지 확인할 수 있습니다.
             </p>
             <ul className="text-sm text-emerald-700 mt-2 space-y-0.5 leading-relaxed">
-              <li>• Gemini·ChatGPT 각 50회 여러 번 물어봐서 AI 노출 빈도 측정</li>
+              <li>• {GEMINI_LIVE ? "Gemini·ChatGPT 각 50회" : "ChatGPT 50회"} 여러 번 물어봐서 AI 노출 빈도 측정</li>
               <li>• AI 개선 가이드 1회 자동 생성</li>
               <li>• 평생 1회 무료</li>
               <li className="text-emerald-700">• Basic 구독 시 각 100회로 정확도 상승 + 주 2회 자동 반복 측정</li>

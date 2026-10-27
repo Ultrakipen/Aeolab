@@ -1,3 +1,4 @@
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { type LucideIcon, BarChart3, Radar, Search, PenLine, Bell, CheckCircle2, Trophy, MessageSquare, MapPin, Lightbulb } from "lucide-react";
@@ -490,7 +491,7 @@ export default function PricingPage() {
                   {
                     Icon: BarChart3,
                     title: "내 가게가 AI에 몇 % 확률로 나오는지",
-                    why: "같은 질문을 100번씩 물어 몇 번 나오는지 측정합니다(Gemini·ChatGPT 각 100회, 총 200회, ± 오차 범위 표시). ChatGPT에 한 번만 물어본 결과는 오차 범위를 보여줄 수 없습니다.",
+                    why: GEMINI_LIVE ? "같은 질문을 100번씩 물어 몇 번 나오는지 측정합니다(Gemini·ChatGPT 각 100회, 총 200회, ± 오차 범위 표시). ChatGPT에 한 번만 물어본 결과는 오차 범위를 보여줄 수 없습니다." : "같은 질문을 100번 물어 몇 번 나오는지 측정합니다(ChatGPT 100회, ± 오차 범위 표시. Gemini 측정은 준비 중입니다). ChatGPT에 한 번만 물어본 결과는 오차 범위를 보여줄 수 없습니다.",
                   },
                   {
                     Icon: Radar,
