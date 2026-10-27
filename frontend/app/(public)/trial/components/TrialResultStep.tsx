@@ -827,15 +827,15 @@ export default function TrialResultStep(props: TrialResultProps) {
     chatgptMentioned === undefined && !naverMeasured
       ? "지금 확인된 실측 결과가 부족합니다"
       : aiWeak && naverWeak
-        ? "지금은 손님이 검색해도 내 가게가 잘 보이지 않습니다"
+        ? "이번에 측정한 검색어로는 내 가게가 잘 보이지 않습니다"
         : aiWeak && naverMeasured
           ? "네이버 검색에서는 보이지만 AI(ChatGPT)에서는 아직 잘 보이지 않습니다"
           : naverWeak && chatgptMentioned !== undefined
-            ? "ChatGPT에는 나오지만 네이버 검색에서는 아직 보이지 않습니다"
+            ? "ChatGPT에는 나오지만, 측정한 네이버 검색어의 상위 5곳에서는 찾지 못했습니다"
             : aiWeak
               ? "AI(ChatGPT)에서는 아직 잘 보이지 않습니다"
               : naverWeak
-                ? "네이버 검색에서는 아직 보이지 않습니다"
+                ? "측정한 네이버 검색어의 상위 5곳에서는 찾지 못했습니다"
                 : "검색에서 내 가게가 보이고 있습니다 — 유지·강화할 점을 확인하세요";
   const verdictBullets: VerdictBullet[] = [];
   const _vq = chatgptDisplayQueries[0] ?? "";
@@ -872,8 +872,8 @@ export default function TrialResultStep(props: TrialResultProps) {
       text: bestNaverRank
         ? `내 가게는 네이버 지역검색 ${bestNaverRank}위입니다.`
         : _kr.length > 1
-          ? `${_kr.length}개 검색어 모두에서 내 가게가 네이버 지역검색 상위 결과에 나오지 않았습니다.`
-          : "내 가게가 네이버 지역검색 상위 결과에 나오지 않았습니다.",
+          ? `${_kr.length}개 검색어 모두에서 내 가게가 네이버 지역검색 상위 5곳에 나오지 않았습니다. 손님이 업종·동네로 찾을 때를 본 것이며, 가게 이름으로 직접 검색하면 나올 수 있어요.`
+          : "내 가게가 네이버 지역검색 상위 5곳에 나오지 않았습니다. 손님이 업종·동네로 찾을 때를 본 것이며, 가게 이름으로 직접 검색하면 나올 수 있어요.",
       tone: naverWeak ? "warn" : "ok",
     });
     const _topName = (naver as { top_competitor_name?: string | null } | null)?.top_competitor_name;

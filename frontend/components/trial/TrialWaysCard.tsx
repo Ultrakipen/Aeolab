@@ -549,7 +549,15 @@ export function GoogleMapCard({ businessName, data }: { businessName: string; da
   } else if (data.is_on_google === true) {
     verdict = `구글 지도에는 등록돼 있지만, “${data.search_query}” 검색 상위 10곳에는 보이지 않아요.`;
   } else if (data.is_on_google === false) {
-    verdict = `구글 지도에서 “${businessName}”을(를) 찾지 못했어요. 구글 비즈니스 프로필에 가게를 등록하면 구글 지도에 나올 수 있어요.`;
+    // 이름이 완전히 같지는 않아도 비슷한 이름(예: "어니언 성수" ↔ "어니언 성수점")이 상위 목록에 있으면 "없다"고 단정하지 않는다
+    const _n = (s: string) => (s || "").toLowerCase().replace(/[^0-9a-z가-힣]/g, "");
+    const _mine = _n(businessName);
+    const similar = _mine.length >= 3
+      ? data.top.find((p) => { const x = _n(p.name); return x.length >= 3 && (x.includes(_mine) || _mine.includes(x)); })
+      : undefined;
+    verdict = similar
+      ? `구글 지도에서 이름이 완전히 같은 가게는 찾지 못했지만, 비슷한 이름의 ‘${similar.name}’이(가) ${similar.rank}번째에 나와요. 같은 가게라면 이미 구글 지도에 등록돼 있는 거예요.`
+      : `구글 지도에서 “${businessName}”을(를) 찾지 못했어요. 구글 비즈니스 프로필에 가게를 등록하면 구글 지도에 나올 수 있어요.`;
   } else {
     verdict = "이번에는 구글 지도에서 내 가게를 확인하지 못했어요.";
   }
