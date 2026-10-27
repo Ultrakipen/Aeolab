@@ -154,6 +154,8 @@ class NaverAIBriefingScanner:
             ):
                 logger.warning(f"[naver_scanner] captcha/block detected for query: {query}")
                 note_naver_auth_result(False, "naver_scanner(AI브리핑)")
+                from services.naver_access_guard import report_search_block
+                report_search_block("naver_scanner._check_single_page")   # 이후 검색 화면 접속을 쿨다운 동안 건너뜀
                 return {
                     "platform": "naver", "mentioned": False, "in_briefing": False,
                     "rank": None, "excerpt": "", "captcha_detected": True,
@@ -164,6 +166,8 @@ class NaverAIBriefingScanner:
                 }
 
             note_naver_auth_result(True, "naver_scanner(AI브리핑)")
+            from services.naver_access_guard import report_search_ok
+            report_search_ok()   # 캡챠/차단이 아닌 정상 화면 — 직전 차단에서 회복했는지 확인
 
             # ── AI 브리핑 "펼쳐서 더보기" 확장 ─────────────────────
             # 정보형 AI 브리핑은 기본 텍스트가 잘려 있어 사업장명이 숨겨질 수 있음.
@@ -421,7 +425,17 @@ class NaverAIBriefingScanner:
             "source_urls": [], "source_blog_ids": [], "source_image_map": {},
         }
 
+    @staticmethod
+    def _search_cooldown_result(query: str) -> dict:
+        """검색 화면 차단 쿨다운 중 — 네이버 요청 없이 측정 불가로 반환(미노출 아님)."""
+        r = NaverAIBriefingScanner._quota_skipped_result(query)
+        r["error"] = "naver_search_cooldown"
+        return r
+
     async def check_mention(self, query: str, target: str, category: str = "") -> dict:
+        from services.naver_access_guard import begin_search_access, SEARCH_COOLDOWN_ERROR
+        if not begin_search_access("naver_scanner.check_mention")[0]:
+            return self._search_cooldown_result(query)
         if not check_naver_playwright_quota("naver_scanner.check_mention"):
             return self._quota_skipped_result(query)
         proxy = get_proxy_config()
@@ -497,7 +511,11 @@ class NaverAIBriefingScanner:
             await ctx.route("**/*", block_heavy_resources)
             _bw_counter = attach_bandwidth_counter(ctx)
             keyword_results = []
+            from services.naver_access_guard import begin_search_access
             for q in queries:
+                if not begin_search_access("naver_scanner.check_mention_multi")[0]:
+                    keyword_results.append(self._search_cooldown_result(q))
+                    break
                 if not check_naver_playwright_quota("naver_scanner.check_mention_multi"):
                     keyword_results.append(self._quota_skipped_result(q))
                     break

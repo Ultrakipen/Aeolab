@@ -344,3 +344,98 @@ def _rate_clear_on_block(now: float) -> None:
     _rate_load()
     _rate["tight_until"] = now + _TIGHTEN_HOURS * 3600
     _rate_save()
+
+
+# ───────────────────────────────────────────────────────────────────────────
+# 검색 화면(search.naver.com: AI 브리핑·AI탭·PC/모바일 순위) 회로 차단기 (2026-10-27)
+#
+# 플레이스 차단과 별개로 둔다. 플레이스 차단 화면이 검색 화면에도 같이 적용되는지는 확인되지 않았다(미확인).
+# 검색 화면에서 CAPTCHA·차단 화면을 감지하면 일정 시간 검색 화면 접속을 모두 건너뛴다(네이버 요청 없음).
+# 건너뛴 측정은 "미노출"이 아니라 측정 불가(error)로 저장된다. 플레이스용과 달리 시험 접속 1회 제한은 두지 않는다
+# (검색 화면 접속은 Playwright 세마포어로 이미 순차 실행되고, 쿨다운 뒤 첫 성공이 회복 확인이다).
+# ───────────────────────────────────────────────────────────────────────────
+SEARCH_COOLDOWN_ERROR = "naver_search_cooldown"
+SEARCH_COOLDOWN_STEPS_MIN = (60, 180, 360, 1440)   # 제안값, 실측 근거 없음
+_search: dict = {"strikes": 0, "open_until": 0.0, "last_block_at": 0.0, "last_source": ""}
+_search_loaded = False
+
+
+def _search_path() -> str:
+    default = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".naver_search_breaker.json")
+    return os.getenv("NAVER_SEARCH_BREAKER_FILE", default)
+
+
+def _search_load() -> None:
+    global _search_loaded
+    if _search_loaded:
+        return
+    _search_loaded = True
+    try:
+        with open(_search_path(), "r", encoding="utf-8") as f:
+            data = json.load(f)
+        for k in _search:
+            if k in data:
+                _search[k] = data[k]
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        _logger.warning("[naver_guard] 검색 차단 상태 파일 읽기 실패(무시): %s", e)
+
+
+def _search_save() -> None:
+    try:
+        tmp = _search_path() + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(_search, f)
+        os.replace(tmp, _search_path())
+    except Exception as e:
+        _logger.warning("[naver_guard] 검색 차단 상태 파일 저장 실패(메모리 상태는 유지): %s", e)
+
+
+def begin_search_access(source: str, now: Optional[float] = None) -> tuple[bool, Optional[str]]:
+    """검색 화면 접속 직전에 호출. 쿨다운 중이면 (False, 오류코드) — 네이버 요청을 보내면 안 된다."""
+    _search_load()
+    t = now if now is not None else time.time()
+    if _search["open_until"] and t < _search["open_until"]:
+        return False, SEARCH_COOLDOWN_ERROR
+    return True, None
+
+
+def report_search_ok() -> None:
+    """검색 화면에서 정상 내용을 읽었을 때 호출 — 직전에 차단을 당했다면 회복으로 본다."""
+    _search_load()
+    if _search["strikes"] or _search["open_until"]:
+        _logger.warning("[naver_guard] 검색 화면 접속 회복 확인 — 차단 단계 초기화")
+        _search.update({"strikes": 0, "open_until": 0.0})
+        _search_save()
+        tighten_rate(time.time())
+
+
+def report_search_block(source: str, now: Optional[float] = None) -> int:
+    """검색 화면 CAPTCHA·차단을 감지했을 때 호출 — 쿨다운 분(minute)을 반환."""
+    _search_load()
+    t = now if now is not None else time.time()
+    if _search["open_until"] and t < _search["open_until"]:
+        return int((_search["open_until"] - t) // 60)   # 진행 중이던 호출의 늦은 보고 — 단계를 올리지 않는다
+    strikes = int(_search["strikes"]) + 1
+    minutes = SEARCH_COOLDOWN_STEPS_MIN[min(strikes - 1, len(SEARCH_COOLDOWN_STEPS_MIN) - 1)]
+    _search.update({"strikes": strikes, "open_until": t + minutes * 60, "last_block_at": t, "last_source": source})
+    _search_save()
+    _rate_clear_on_block(t)
+    _logger.error("[naver_guard] 네이버 검색 화면 차단/CAPTCHA 감지 — 검색 화면 접속 %d분 중단 (연속 %d회, source=%s)",
+                  minutes, strikes, source)
+    _alert_operator("검색화면:" + source, strikes, minutes)
+    return minutes
+
+
+def search_snapshot(now: Optional[float] = None) -> dict:
+    _search_load()
+    t = now if now is not None else time.time()
+    remaining = max(0, int(_search["open_until"] - t)) if _search["open_until"] else 0
+    return {**_search, "open": remaining > 0, "remaining_sec": remaining}
+
+
+def reset_search_for_tests() -> None:
+    global _search_loaded
+    _search_loaded = False
+    _search.update({"strikes": 0, "open_until": 0.0, "last_block_at": 0.0, "last_source": ""})

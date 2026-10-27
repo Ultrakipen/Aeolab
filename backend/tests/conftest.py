@@ -15,10 +15,14 @@ def _isolate_naver_state_files(tmp_path, monkeypatch):
     monkeypatch.setenv("NAVER_PLACE_BREAKER_FILE", str(tmp_path / "place_breaker.json"))
     monkeypatch.setenv("NAVER_RATE_WINDOW_FILE", str(tmp_path / "rate_window.json"))
     monkeypatch.setenv("COMPETITOR_PLACE_CACHE_FILE", str(tmp_path / "competitor_cache.json"))
+    monkeypatch.setenv("NAVER_SEARCH_BREAKER_FILE", str(tmp_path / "search_breaker.json"))
     from services import naver_access_guard as _g
     from services import competitor_place_crawler as _cc
     _cc.reset_cache_for_tests()
     _g.reset_rate_for_tests()
+    _g.reset_search_for_tests()
+    _g.reset_for_tests()
     yield
     _g.reset_rate_for_tests()
+    _g.reset_search_for_tests()
     _cc.reset_cache_for_tests()

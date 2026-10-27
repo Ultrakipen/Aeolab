@@ -168,6 +168,10 @@ def _card_cache_put(device: str, query: str, cards: Optional[list]) -> None:
     _CARD_CACHE[(device, _norm(query))] = (_time.time(), list(cards))
 
 
+def _card_seen(device: str, query: str) -> bool:
+    return (device, _norm(query)) in _CARD_CACHE
+
+
 def card_cache_snapshot() -> dict:
     h, m = _card_cache_stats["hit"], _card_cache_stats["miss"]
     return {"entries": len(_CARD_CACHE), "ttl_sec": _card_cache_ttl(), "hit": h, "miss": m,
@@ -187,6 +191,32 @@ def rank_from_cards(cards: list, biz_name_norm: str, place_id: Optional[str]) ->
         if not place_id and _is_match(biz_name_norm, c.get("text", "")):
             return idx
     return None
+
+
+class NaverSearchBlocked(Exception):
+    """검색 화면이 CAPTCHA·차단 화면으로 내려왔다 — 가게가 없는 것(미노출)이 아니라 측정 불가."""
+
+
+_BLOCK_URL_KW = ("captcha", "nid.naver.com", "login.naver.com")
+_BLOCK_TITLE_KW = ("로봇", "자동화", "captcha", "CAPTCHA", "보안문자")
+_BLOCK_TEXT_RE = re.compile(r"로봇이 아님|자동화된 요청|비정상적인 접근|보안 문자")
+
+
+async def _is_search_blocked(page: Page) -> bool:
+    """가게 카드가 하나도 없을 때만 호출한다(정상 화면에는 비용이 없다). 네트워크 요청 없이 현재 화면만 읽는다."""
+    try:
+        from services.naver_block import is_naver_block_page
+        url = page.url or ""
+        title = await page.title() or ""
+        body = await page.evaluate("() => (document.body && document.body.innerText) || ''") or ""
+        return (
+            any(k in url for k in _BLOCK_URL_KW)
+            or any(k in title for k in _BLOCK_TITLE_KW)
+            or bool(_BLOCK_TEXT_RE.search(body[:500]))
+            or is_naver_block_page(body)
+        )
+    except Exception:
+        return False
 
 
 _PLACE_CARD_JS = r"""
@@ -241,6 +271,8 @@ async def _place_card_rank(
 
     if cards_out is not None:
         cards_out["cards"] = cards      # 호출자가 공유 캐시에 넣을 수 있게 마지막으로 읽은 목록을 돌려준다
+    if not cards and await _is_search_blocked(page):
+        raise NaverSearchBlocked()          # 차단 화면은 새로고침하지 않는다(요청을 더 쌓지 않는다)
     rank = _find(cards)
     if rank is None:
         # 간헐적 오판 방지: 네이버가 가끔 가게 목록 없이 광고 블록만 먼저 내려주거나(목록 0개),
@@ -428,6 +460,13 @@ async def _run_with_browser(
                     else:
                         search_query = kw
 
+                    from services.naver_access_guard import begin_search_access, report_search_block, report_search_ok
+                    if not begin_search_access("naver_keyword_rank")[0]:
+                        # 검색 화면 차단 쿨다운 중 — 네이버 요청 없이 측정 불가로 남긴다(미노출 0점 아님)
+                        results[kw] = {"pc_rank": None, "mobile_rank": None, "place_rank": None,
+                                       "measured_at": _now_iso(), "search_query": search_query,
+                                       "error": "naver_search_cooldown"}
+                        continue
                     try:
                         # 2026-08-08: 기존 순차 실행 타이밍 패턴 유지(봇탐지 회피 목적 변경 없음) —
                         # place_rank만 Playwright→공식API로 교체, PC/모바일 순서·간격은 그대로.
@@ -468,6 +507,15 @@ async def _run_with_browser(
                             "measured_at": _now_iso(),
                             "search_query": search_query,
                         }
+                        if _card_seen("pc", search_query) or _card_seen("mobile", search_query):
+                            report_search_ok()      # 가게 카드가 있는 정상 화면을 읽었다 — 차단 회복 확인
+                    except NaverSearchBlocked:
+                        report_search_block("naver_keyword_rank")
+                        errors.append(f"{kw}: search_blocked")
+                        results[kw] = {"pc_rank": None, "mobile_rank": None, "place_rank": None,
+                                       "measured_at": _now_iso(), "search_query": search_query,
+                                       "error": "naver_search_blocked"}
+                        continue          # 다음 키워드는 위 쿨다운 검사에서 건너뛴다
                     except Exception as e:
                         _logger.warning(f"keyword_rank '{kw}' 실패: {e}")
                         errors.append(f"{kw}: {type(e).__name__}")

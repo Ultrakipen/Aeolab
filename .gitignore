@@ -81,3 +81,5 @@ backend/.naver_quota_state.json
 backend/.naver_quota_state.json.tmp
 backend/.naver_quota_state_history.jsonl
 backend/.competitor_place_cache.json*
+backend/.naver_search_breaker.json*
+backend/.naver_rate_window.json*

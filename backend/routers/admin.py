@@ -1493,6 +1493,7 @@ async def get_naver_access(_=Depends(verify_admin)):
     return {
         "quota": {**snap, "used_pct": round(snap["used"] / cap * 100, 1) if cap else None},
         "place_breaker": _guard.snapshot(),
+        "search_breaker": _guard.search_snapshot(),   # 검색 화면(브리핑·AI탭·순위) 차단 쿨다운
         "competitor_cache": place_cache_snapshot(),   # 경쟁사 공유 캐시 적중률 = 실측 중복 제거율
         "rank_card_cache": card_cache_snapshot(),   # 키워드 순위 검색 화면 공유 캐시 적중률(프로세스 시작 이후)
         "rate": _guard.rate_snapshot(),   # 속도 기준 윈도우별 현재 사용량(제안값, 차단 후 자동 절반)

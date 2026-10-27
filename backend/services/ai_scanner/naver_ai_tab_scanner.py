@@ -170,6 +170,11 @@ async def scan(query: str, business_name: str) -> Optional[dict]:
         _logger.debug(f"[naver_ai_tab] scan skip — ai_tab_enabled=false (query={query!r})")
         return None
 
+    from services.naver_access_guard import begin_search_access
+    if not begin_search_access("naver_ai_tab_scanner.scan")[0]:
+        _logger.info(f"[naver_ai_tab] scan skip — 검색 화면 차단 쿨다운 (query={query!r})")
+        return None
+
     if not check_naver_playwright_quota("naver_ai_tab_scanner.scan"):
         _logger.info(f"[naver_ai_tab] scan skip — 일일 상한 도달 (query={query!r})")
         return None
