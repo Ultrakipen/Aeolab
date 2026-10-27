@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Search, ChevronLeft, ChevronDown, ChevronUp, CheckCircle2, MapPin, Phone, Store, Info } from "lucide-react";
 import { FLAT_CATEGORY_GROUPS } from "@/lib/categories";
@@ -25,6 +25,8 @@ export interface TrialFindStepProps {
   done: boolean;
   onSelect: (c: TrialBusinessCandidate) => void;
   onManual: (kind: ManualKind) => void;
+  /** 동네·가게 이름을 따로 알려준다(수동 입력 경로에서 가게 이름에 동네가 섞이지 않게) */
+  onParts?: (parts: { area: string; name: string }) => void;
   // confirm
   candidate: TrialBusinessCandidate | null;
   form: TrialFormState;
@@ -64,13 +66,32 @@ export default function TrialFindStep(props: TrialFindStepProps) {
 }
 
 // ── 1) 가게 찾기 ─────────────────────────────────────────────────────────
-function FindView({ query, setQuery, results, loading, done, onSelect, onManual, cooldownMs }: TrialFindStepProps) {
+function FindView({ query, setQuery, onParts, results, loading, done, onSelect, onManual, cooldownMs }: TrialFindStepProps) {
   const q = query.trim();
+  // 동네 + 가게 이름을 따로 받아 "동네 가게이름"으로 합쳐 검색한다 — 이름만 검색하면 다른 지역의 같은 이름 가게가 먼저 나온다
+  const [area, setArea] = useState("");
+  const [name, setName] = useState(query);
+  // 링크로 이미 채워져 들어온 검색어는 동네가 포함돼 있을 수 있어 안내를 띄우지 않는다
+  const prefilled = useRef(query.trim().length > 0);
+  useEffect(() => {
+    if (query === "") {
+      setArea("");
+      setName("");
+    }
+  }, [query]);
+  const update = (a: string, n: string) => {
+    setArea(a);
+    setName(n);
+    prefilled.current = false;
+    onParts?.({ area: a.trim(), name: n.trim() });
+    setQuery(`${a.trim()} ${n.trim()}`.trim().slice(0, 50));
+  };
+  const noArea = !prefilled.current && !area.trim();
   return (
     <div className="mx-auto max-w-2xl px-4 pt-8 pb-12 md:pt-12">
       <div className="text-center mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 break-keep">
-          내 가게 이름을 알려주세요
+          내 가게의 동네와 이름을 알려주세요
         </h1>
         <p className="text-base text-gray-600 leading-relaxed break-keep">
           네이버에서 찾아 업종과 지역을 자동으로 채워 드려요.{" "}
@@ -90,29 +111,50 @@ function FindView({ query, setQuery, results, loading, done, onSelect, onManual,
         </div>
       )}
 
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" aria-hidden="true" />
-        <input
-          id="trial-find-query"
-          type="text"
-          inputMode="search"
-          autoComplete="off"
-          autoFocus
-          aria-label="가게 이름"
-          placeholder="가게 이름 (예: 어니언 성수)"
-          value={query}
-          onChange={(e) => setQuery(e.target.value.slice(0, 50))}
-          className="w-full rounded-2xl border-2 border-slate-300 bg-white pl-12 pr-12 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        />
-        {loading && (
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-            <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+      <div className="grid gap-3 sm:grid-cols-[1fr_2fr]">
+        <div>
+          <label htmlFor="trial-find-area" className="block text-base font-semibold text-slate-700 mb-1">동네</label>
+          <input
+            id="trial-find-area"
+            type="text"
+            autoComplete="off"
+            autoFocus
+            placeholder="예: 창원, 성수, 강남역"
+            value={area}
+            onChange={(e) => update(e.target.value.slice(0, 20), name)}
+            className="w-full rounded-2xl border-2 border-slate-300 bg-white px-4 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <label htmlFor="trial-find-query" className="block text-base font-semibold text-slate-700 mb-1">가게 이름</label>
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" aria-hidden="true" />
+            <input
+              id="trial-find-query"
+              type="text"
+              inputMode="search"
+              autoComplete="off"
+              placeholder="예: 홍스튜디오"
+              value={name}
+              onChange={(e) => update(area, e.target.value.slice(0, 40))}
+              className="w-full rounded-2xl border-2 border-slate-300 bg-white pl-12 pr-12 py-4 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            {loading && (
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
-      <p className="mt-2 text-sm text-slate-500 break-keep">
-        동네 이름을 함께 써도 됩니다 (예: 성수 어니언). 잘 안 나오면 가게 이름만 써 보세요.
+      <p className="mt-2 text-sm text-slate-600 break-keep">
+        동네와 가게 이름을 함께 넣어야 정확하게 찾아요. 같은 이름의 가게가 다른 지역에도 많거든요.
       </p>
+      {noArea && done && !loading && q.length >= 2 && (
+        <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 leading-relaxed break-keep">
+          동네를 비워 두면 다른 지역의 같은 이름 가게가 먼저 나올 수 있어요. 위 &lsquo;동네&rsquo; 칸에 시·구·동네·역 이름 중 하나를 넣어 보세요.
+        </p>
+      )}
 
       {/* 후보 목록 */}
       {results.length > 0 && (
@@ -160,7 +202,7 @@ function FindView({ query, setQuery, results, loading, done, onSelect, onManual,
       {done && !loading && results.length === 0 && q.length >= 2 && (
         <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
           <p className="text-sm text-slate-700 leading-relaxed break-keep">
-            네이버에서 &lsquo;{q}&rsquo;을(를) 찾지 못했어요. 가게 이름만 다시 써 보시거나, 아래에서 직접 입력해 진단할 수 있어요.
+            네이버에서 &lsquo;{q}&rsquo;을(를) 찾지 못했어요. {area.trim() ? "동네를 더 넓게(예: 시·구 이름) 바꾸거나 가게 이름을 다시 확인해 보세요." : "동네를 넣어 다시 찾아 보세요."} 아래에서 직접 입력해 진단할 수도 있어요.
           </p>
         </div>
       )}

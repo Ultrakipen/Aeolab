@@ -197,6 +197,8 @@ export default function TrialPage() {
 
   // ── "가게 이름만 입력" 빠른 경로(find → confirm) state ──────────────────
   const [findQuery, setFindQuery] = useState("");
+  // 가게 찾기 단계에서 사용자가 따로 입력한 동네·가게 이름(수동 입력 경로에서 가게 이름에 동네가 섞이지 않게)
+  const [findParts, setFindParts] = useState({ area: "", name: "" });
   const [findResults, setFindResults] = useState<TrialBusinessCandidate[]>([]);
   const [findLoading, setFindLoading] = useState(false);
   const [findDone, setFindDone] = useState(false);
@@ -562,12 +564,12 @@ export default function TrialPage() {
   const handleManual = (kind: ManualKind) => {
     setFastPath(false);
     setConfirmCandidate(null);
-    setNeighborhood("");
+    setNeighborhood(findParts.area);
     setNeighborhoodAuto("");
     if (kind === "online") setBusinessType("non_location");
     if (kind === "startup") setIsStartupMode(true);
-    else if (findQuery.trim()) {
-      setForm((prev) => ({ ...prev, business_name: findQuery.trim() }));
+    else if (findParts.name || findQuery.trim()) {
+      setForm((prev) => ({ ...prev, business_name: findParts.name || findQuery.trim() }));
     }
     setStep("category");
     if (typeof window !== "undefined") window.scrollTo({ top: 0 });
@@ -696,6 +698,7 @@ export default function TrialPage() {
     setRestoreBanner("hidden");
     setStep("find");
     setFindQuery("");
+    setFindParts({ area: "", name: "" });
     setFindResults([]);
     setFindLoading(false);
     setFindDone(false);
@@ -795,6 +798,7 @@ export default function TrialPage() {
           step={step}
           query={findQuery}
           setQuery={setFindQuery}
+          onParts={setFindParts}
           results={findResults}
           loading={findLoading}
           done={findDone}
