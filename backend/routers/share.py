@@ -122,7 +122,8 @@ async def _resolve_category_avg(
             for r in rows
             if r.get("total_score") is not None
         ]
-        if not scores:
+        # report.py /benchmark와 같은 기준 — 표본이 너무 적으면(테스트·1~2건) 평균이라 부르지 않고 비교 줄을 생략한다
+        if len(scores) < 5:
             return None
         return round(sum(scores) / len(scores), 1)
     except Exception as e:

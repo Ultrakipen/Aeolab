@@ -73,3 +73,50 @@ def test_track1_review_measured_matches_old_behavior():
     # 구독자 경로(review_count가 정수)는 계산이 바뀌지 않는다
     score, d = _t1(calc_track1_score_v3_1, {"review_count": 80, "avg_rating": 4.5})
     assert "review_quality" not in d["excluded"]
+
+
+def test_share_card_category_avg_needs_min_sample():
+    """공유 카드 업종 평균은 report.py /benchmark와 같이 5건 미만이면 None (비교 줄 생략)."""
+    import asyncio
+    from unittest.mock import patch
+
+    import importlib
+
+    # 다른 테스트가 services.share_card를 가짜 모듈로 등록해 두는 경우가 있어, 가져오는 동안만 진짜 모듈을 쓴다
+    with patch.dict(sys.modules):
+        _m = sys.modules.get("services.share_card")
+        if _m is not None and getattr(_m, "__file__", None) is None:
+            sys.modules.pop("services.share_card")
+        sys.modules.pop("routers.share", None)
+        share = importlib.import_module("routers.share")
+
+    class _Res:
+        def __init__(self, n):
+            self.data = [{"total_score": 10.0 + i} for i in range(n)]
+
+    class _Q:
+        def __init__(self, n):
+            self.n = n
+
+        # supabase 체인의 `.not_.is_(...)`는 속성 접근 뒤 호출이라 not_은 호출 가능 값이 아니라 self여야 한다
+        not_ = property(lambda self: self)
+
+        def __getattr__(self, _):
+            return lambda *a, **k: self
+
+    class _SB:
+        def __init__(self, n):
+            self.n = n
+
+        def table(self, _):
+            return _Q(self.n)
+
+    async def _run(n):
+        async def _exec(_q):
+            return _Res(n)
+
+        with patch.object(share, "execute", _exec):
+            return await share._resolve_category_avg(_SB(n), "cafe", "서울 성동구")
+
+    assert asyncio.run(_run(4)) is None
+    assert asyncio.run(_run(5)) is not None
