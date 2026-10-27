@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { SiteFooter } from "@/components/common/SiteFooter";
@@ -199,6 +199,8 @@ export default function TrialPage() {
   const [findQuery, setFindQuery] = useState("");
   // 가게 찾기 단계에서 사용자가 따로 입력한 동네·가게 이름(수동 입력 경로에서 가게 이름에 동네가 섞이지 않게)
   const [findParts, setFindParts] = useState({ area: "", name: "" });
+  // 링크(랜딩 히어로)로 받은 동네 — 수동 입력으로 넘어갈 때 지우지 않는다. 앞서 고른 다른 가게의 동네 제안값은 계속 지운다.
+  const urlNeighborhoodRef = useRef("");
   const [findResults, setFindResults] = useState<TrialBusinessCandidate[]>([]);
   const [findLoading, setFindLoading] = useState(false);
   const [findDone, setFindDone] = useState(false);
@@ -269,7 +271,10 @@ export default function TrialPage() {
     // 랜딩 히어로에서 입력한 동네 — 동네·역 이름(ChatGPT에 구 이름과 별도로 묻는 값)으로 쓴다.
     // 플레이스 ID가 없는 후보(지역검색 결과에는 ID가 없는 경우가 흔하다)도 아래 어느 분기로든 받아야 한다.
     const paramNeighborhood = searchParams.get("neighborhood");
-    if (paramNeighborhood) setNeighborhood(paramNeighborhood.trim().slice(0, 20));
+    if (paramNeighborhood) {
+      urlNeighborhoodRef.current = paramNeighborhood.trim().slice(0, 20);
+      setNeighborhood(urlNeighborhoodRef.current);
+    }
 
     // naver_place_id 있으면: 이름/지역 채우고 info 단계로 바로 이동
     if (paramPlaceId && paramName) {
@@ -568,7 +573,7 @@ export default function TrialPage() {
   const handleManual = (kind: ManualKind) => {
     setFastPath(false);
     setConfirmCandidate(null);
-    setNeighborhood(findParts.area);
+    setNeighborhood(findParts.area || urlNeighborhoodRef.current);
     setNeighborhoodAuto("");
     if (kind === "online") setBusinessType("non_location");
     if (kind === "startup") setIsStartupMode(true);
