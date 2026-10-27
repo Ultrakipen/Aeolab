@@ -67,6 +67,20 @@ async def analyze_blog_search(
             "error": "quota_exceeded",
         }
 
+    # 검색 화면 차단 쿨다운 중에는 네이버로 보내지 않는다 — 측정 불가(미노출 아님)
+    from services.naver_access_guard import begin_search_access, report_search_block
+    if not begin_search_access("blog_search_analyzer")[0]:
+        return {
+            "keyword": keyword,
+            "total_found": 0,
+            "my_rank": None,
+            "posts": [],
+            "analyzed_at": datetime.now(timezone.utc).isoformat(),
+            "blog_id_registered": bool(naver_blog_id.strip()),
+            "captcha_detected": False,
+            "error": "naver_search_cooldown",
+        }
+
     browser = None
     try:
         async with _get_playwright_sem():
@@ -107,6 +121,7 @@ async def analyze_blog_search(
                         bool(_re_captcha.search(_page_text[:500]))
                     ):
                         _logger.warning(f"blog_search captcha/block detected | kw={keyword!r}")
+                        report_search_block("blog_search_analyzer")
                         await page.close()
                         await ctx.close()
                         await browser.close()

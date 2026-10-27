@@ -173,6 +173,9 @@ async def capture_naver_results(
     from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
     if not _check_naver_quota("ai_search_screenshot.capture_naver_results"):
         return _degraded_results()
+    from services.naver_access_guard import begin_search_access
+    if not begin_search_access("ai_search_screenshot")[0]:
+        return _degraded_results()   # 검색 화면 차단 쿨다운 중 — 네이버로 보내지 않는다
 
     try:
         from playwright.async_api import async_playwright

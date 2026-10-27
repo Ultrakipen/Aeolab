@@ -220,6 +220,9 @@ async def capture_ai_result(
         from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
         if not _check_naver_quota(f"screenshot.capture_ai_result:{platform}"):
             return None
+        from services.naver_access_guard import begin_search_access
+        if not begin_search_access(f"screenshot.{platform}")[0]:
+            return None   # 검색 화면 차단 쿨다운 중 — 시각 증거는 다음 기회에
 
     async with _get_playwright_sem():
         async with async_playwright() as p:
@@ -573,6 +576,9 @@ async def capture_naver_blog_screenshot(keyword: str, biz_id: str, region: str =
     from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
     if not _check_naver_quota("screenshot.capture_naver_blog_screenshot"):
         return None
+    from services.naver_access_guard import begin_search_access
+    if not begin_search_access("screenshot.naver_blog")[0]:
+        return None   # 검색 화면 차단 쿨다운 중 — 네이버로 보내지 않는다
 
     async with _get_playwright_sem():
         async with async_playwright() as p:

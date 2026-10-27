@@ -117,6 +117,11 @@ async def _collect_cards(query: str) -> list:
     from services.ai_scanner.bandwidth_tracker import record_usage_mb
     from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE, PLAYWRIGHT_QUEUE_TIMEOUT_SEC
     from playwright.async_api import async_playwright
+    from services.naver_access_guard import begin_search_access
+
+    # 검색 화면 차단 쿨다운 중에는 접속하지 않는다 — 호출처가 "확정하지 못함(error)"으로 처리한다
+    if not begin_search_access("naver_place_resolver")[0]:
+        raise RuntimeError("naver_search_cooldown")
 
     await asyncio.wait_for(PLAYWRIGHT_SEMAPHORE.acquire(), timeout=PLAYWRIGHT_QUEUE_TIMEOUT_SEC)
     try:
