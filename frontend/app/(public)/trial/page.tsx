@@ -276,6 +276,9 @@ export default function TrialPage() {
         ...(paramRegion ? { region: paramRegion } : {}),
       }));
       setSelectedCategory(effectiveCategory);
+      // 랜딩 히어로에서 입력한 동네 — 동네·역 이름(ChatGPT에 구 이름과 별도로 묻는 값)으로 쓴다
+      const paramNeighborhood = searchParams.get("neighborhood");
+      if (paramNeighborhood) setNeighborhood(paramNeighborhood.trim().slice(0, 20));
       // "서비스(태그)" 단계를 건너뛰므로 primaryKeyword가 비어 있으면 분석 기준
       // 키워드 입력창이 placeholder만 채워진 채(실제 값은 빈 문자열) 제출 검증에
       // 걸린다 — 업종 한글명으로 최소 기본값을 채워둔다 (2026-07-20 발견 버그 수정).

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { mapNaverCategory } from "@/lib/categories";
+import { shortRegionFromAddress } from "@/lib/trialAutofill";
 
 interface Candidate {
   title: string;
@@ -33,7 +34,8 @@ export default function HeroSection() {
   }, []);
 
   const handleSearch = async () => {
-    if (!bizName.trim()) return;
+    // 이름만 검색하면 다른 지역의 같은 이름 가게가 먼저 나온다 — 동네와 가게 이름을 함께 받는다
+    if (!bizName.trim() || !region.trim()) return;
     setSearching(true);
     setSearchError("");
     setCandidates(null);
@@ -46,7 +48,7 @@ export default function HeroSection() {
       setCandidates(list);
       if (list.length === 0) {
         setSearchError(
-          "검색 결과가 없습니다. 지역을 추가하거나 직접 진단을 선택하세요.",
+          "검색 결과가 없습니다. 동네를 시·구 이름처럼 더 넓게 바꾸거나 직접 진단을 선택하세요.",
         );
       }
     } catch {
@@ -60,7 +62,10 @@ export default function HeroSection() {
     const params = new URLSearchParams();
     params.set("business_name", c.title);
     if (c.naver_place_id) params.set("naver_place_id", c.naver_place_id);
-    if (region.trim()) params.set("region", region.trim());
+    // 지역은 선택한 가게의 주소에서(가게 찾기 단계와 같은 방식), 입력한 동네는 동네·역 이름으로 넘긴다
+    const addrRegion = shortRegionFromAddress(c.address);
+    if (addrRegion || region.trim()) params.set("region", addrRegion || region.trim());
+    if (region.trim()) params.set("neighborhood", region.trim());
     params.set("category", mapNaverCategory(c.category));
     window.location.href = `/trial?${params.toString()}`;
   };
@@ -402,8 +407,46 @@ export default function HeroSection() {
 
               {/* 폼 영역 */}
               <div className="px-6 py-5">
-                {/* 가게 이름 입력 */}
+                {/* 동네 입력 — 가게 이름보다 먼저 */}
                 <div className="mb-4">
+                  <label
+                    className="text-sm font-semibold mb-2 block"
+                    style={{ color: "rgba(255,255,255,0.92)" }}
+                  >
+                    동네
+                  </label>
+                  <input
+                    type="text"
+                    value={region}
+                    onChange={(e) => {
+                      setRegion(e.target.value);
+                      setCandidates(null);
+                      setSearchError("");
+                    }}
+                    onKeyDown={handleKeyDown}
+                    placeholder="예: 창원, 성수, 강남역"
+                    className="hero-form-input w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
+                    style={{
+                      background: "rgba(255,255,255,0.07)",
+                      border: "1px solid rgba(255,255,255,0.25)",
+                      color: "#FFFFFF",
+                      minHeight: "48px",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = "#60A5FA";
+                      e.currentTarget.style.background = "rgba(255,255,255,0.12)";
+                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(96,165,250,0.18)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)";
+                      e.currentTarget.style.background = "rgba(255,255,255,0.07)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                  />
+                </div>
+
+                {/* 가게 이름 입력 */}
+                <div className="mb-5">
                   <label
                     className="text-sm font-semibold mb-2 block"
                     style={{ color: "rgba(255,255,255,0.92)" }}
@@ -440,51 +483,11 @@ export default function HeroSection() {
                   />
                 </div>
 
-                {/* 지역 입력 */}
-                <div className="mb-5">
-                  <label
-                    className="text-sm font-semibold mb-2 block"
-                    style={{ color: "rgba(255,255,255,0.92)" }}
-                  >
-                    지역{" "}
-                    <span
-                      className="font-normal"
-                      style={{ color: "rgba(255,255,255,0.42)" }}
-                    >
-                      (선택)
-                    </span>
-                  </label>
-                  <input
-                    type="text"
-                    value={region}
-                    onChange={(e) => setRegion(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="예: 강남구, 홍대"
-                    className="hero-form-input w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
-                    style={{
-                      background: "rgba(255,255,255,0.07)",
-                      border: "1px solid rgba(255,255,255,0.25)",
-                      color: "#FFFFFF",
-                      minHeight: "48px",
-                    }}
-                    onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#60A5FA";
-                      e.currentTarget.style.background = "rgba(255,255,255,0.12)";
-                      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(96,165,250,0.18)";
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)";
-                      e.currentTarget.style.background = "rgba(255,255,255,0.07)";
-                      e.currentTarget.style.boxShadow = "none";
-                    }}
-                  />
-                </div>
-
                 {/* CTA 버튼 */}
                 <button
                   type="button"
                   onClick={handleSearch}
-                  disabled={searching || !bizName.trim()}
+                  disabled={searching || !bizName.trim() || !region.trim()}
                   className="w-full rounded-xl font-bold text-white transition-all"
                   style={{
                     background: "linear-gradient(135deg, #2563EB 0%, #4F46E5 100%)",
@@ -492,8 +495,8 @@ export default function HeroSection() {
                     fontSize: "15px",
                     letterSpacing: "0.01em",
                     boxShadow: "0 6px 22px rgba(37,99,235,0.55)",
-                    opacity: searching || !bizName.trim() ? 0.55 : 1,
-                    cursor: searching || !bizName.trim() ? "not-allowed" : "pointer",
+                    opacity: searching || !bizName.trim() || !region.trim() ? 0.55 : 1,
+                    cursor: searching || !bizName.trim() || !region.trim() ? "not-allowed" : "pointer",
                   }}
                 >
                   {searching ? "찾는 중…" : <span className="inline-flex items-center gap-1">내 가게 찾기 <ArrowRight className="w-4 h-4" aria-hidden="true" /></span>}

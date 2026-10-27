@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -306,6 +307,20 @@ def _josa(word: str, josa_pair: tuple) -> str:
 
 
 
+_TRIAL_TEST_NAME_RE = re.compile(r"테스트|_test_|_테스트_|test\d+", re.IGNORECASE)
+
+
+def count_distinct_trial_places(rows: list) -> int:
+    """체험 기록에서 서로 다른 가게(이름+지역) 수 — 테스트 이름과 이름 없는 행은 제외, 같은 가게 반복은 1곳."""
+    seen: set = set()
+    for r in rows or []:
+        name = re.sub(r"\s+", "", str(r.get("business_name") or "")).lower()
+        if not name or _TRIAL_TEST_NAME_RE.search(name):
+            continue
+        seen.add((name, re.sub(r"\s+", "", str(r.get("region") or "")).lower()))
+    return len(seen)
+
+
 @router.get("/trial-count")
 async def get_trial_count(request: Request):
     """무료 체험 누적 건수 (공개, 캐시 5분) — 랜딩 페이지 소셜 프루프용.
@@ -329,15 +344,20 @@ async def get_trial_count(request: Request):
     try:
         from datetime import date
         today_start = date.today().isoformat() + "T00:00:00+00:00"
-        r, today_r = await asyncio.gather(
-            execute(supabase.table("trial_scans").select("id", count="exact").limit(1)),
-            execute(
-                supabase.table("trial_scans").select("id", count="exact")
-                .gte("scanned_at", today_start).limit(1)
-            ),
-        )
-        count = r.count if hasattr(r, "count") and r.count else 0
-        today_count = today_r.count if hasattr(today_r, "count") and today_r.count else 0
+        # 랜딩의 "N개 가게 분석 완료"는 체험 행 수가 아니라 서로 다른 가게 수여야 한다(2026-10-28):
+        # 같은 가게를 69번 돌린 개발자 테스트까지 세면 실제보다 몇 배 부풀려 보인다(254행 중 서로 다른 가게 약 64곳).
+        # Supabase는 한 번에 1000행까지만 돌려주므로 페이지를 나눠 읽는다.
+        rows: list = []
+        for page in range(20):
+            chunk = (await execute(
+                supabase.table("trial_scans").select("business_name, region, scanned_at")
+                .order("scanned_at", desc=True).range(page * 1000, page * 1000 + 999)
+            )).data or []
+            rows.extend(chunk)
+            if len(chunk) < 1000:
+                break
+        count = count_distinct_trial_places(rows)
+        today_count = count_distinct_trial_places([r for r in rows if (r.get("scanned_at") or "") >= today_start])
         result = {"count": count, "today": today_count}
         _cache.set("trial_count_public", result, ttl=300)
         return result
