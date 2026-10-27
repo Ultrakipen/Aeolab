@@ -219,6 +219,10 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
                 : "카드를 등록하면 매월 자동으로 결제됩니다. 언제든지 설정에서 해지할 수 있습니다."}
             </p>
 
+            <p className="text-sm text-gray-600 mb-5 break-keep">
+              결제 문자와 카드 명세서에는 가맹점명이 <strong className="font-semibold text-gray-800">(주)온프</strong>로 표시될 수 있습니다.
+            </p>
+
             <div className="mb-5">
               <label htmlFor="pay-confirm-phone" className="block text-sm font-medium text-gray-700 mb-1.5">
                 카카오 알림 받을 전화번호 <span className="text-red-600">(필수)</span>
