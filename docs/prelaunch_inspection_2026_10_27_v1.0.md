@@ -38,3 +38,10 @@
 - 조치: `frontend/lib/featureFlags.ts`의 `GEMINI_MEASUREMENT_LIVE=false` 플래그를 두고, 랜딩 통계(4종→3종, 100회는 ChatGPT 기준)·기능 설명·요금제 설명·추천기·가입·결제완료·설정·체험 안내·대시보드 측정 타일·메타 설명 문구를 플래그에 따라 바꿈. 교육용 설명(Gemini 반영 원리·기간)은 그대로 유지.
 - **되돌리는 법**: Gemini 결제 연결 후 대시보드에서 Gemini 표본이 정상(100회 근처)으로 쌓이는 것을 확인하고 플래그를 `true`로 바꾼 뒤 프론트를 재빌드·재시작한다.
 - 남은 곳(미변경): 데모 페이지의 샘플 문구(데모 표시됨), `how-it-works`·`faq`·가이드의 교육용 설명, 랭킹 페이지·OG 이미지의 "4곳" 문구, 대시보드 내부 카드 일부의 Gemini 표본 표시(실제 표본 수를 그대로 보여주므로 사실과 일치).
+
+## 5. 결제·크레딧 연결 가정으로 전환 (2026-10-27)
+- 사용자 지시: Claude 크레딧 충전과 Gemini 결제를 곧 연결하므로 연결된 상태를 가정해 구현한다 → `GEMINI_MEASUREMENT_LIVE=true`로 되돌려 재배포(문구는 원래의 "Gemini·ChatGPT 각 100회").
+- 연결 직후 확인: `ssh root@115.68.231.57 "cd /var/www/aeolab/backend && /var/www/aeolab/venv/bin/python ../scripts/check_ai_providers.py"` — Claude·OpenAI 각 1건, Gemini 10회(스캐너와 같은 경로) 호출 결과를 출력.
+  현재(연결 전) 결과: Claude `credit balance is too low`, OpenAI OK, Gemini 10회 중 성공 3회.
+- Gemini 10회 중 9회 미만 성공이면 플래그를 false로 되돌리고 재빌드(안내 문구가 사실과 어긋나므로).
+- 비용 확인 필요(미확정): 스캐너가 Gemini 2.5 Flash에 Google Search 그라운딩을 켜고 호출한다(`gemini_scanner.py:39-42`). 그라운딩 요금(일일 무료 한도 초과분)은 검색 결과가 모델·시점별로 상충해 확인하지 못했으므로 결제 연결 후 `ai_usage_log`와 Google 청구서로 실측할 것.
