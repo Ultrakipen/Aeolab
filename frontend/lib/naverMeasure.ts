@@ -18,3 +18,43 @@ export function isNaverUnmeasured(result: NaverResultLike | null | undefined): b
   if (!result) return true;
   return result.captcha_detected === true || !!result.error || result.quota_skipped === true;
 }
+
+/** 이전 스캔 중 네이버 측정이 성공했던 가장 최근 결과 — 이번 측정이 실패했을 때 날짜와 함께 보여준다 */
+export interface LastGoodNaver {
+  measuredAt: string;
+  inBriefing: boolean;
+  aiTabVisible: boolean | null;
+}
+
+export const LAST_GOOD_MAX_AGE_DAYS = 30;
+
+interface ScanRowLike {
+  scanned_at?: string | null;
+  naver_result?: (NaverResultLike & { in_briefing?: boolean | null }) | null;
+  naver_ai_tab_visible?: boolean | null;
+}
+
+/** rows는 최신순. 측정에 성공한 첫 행을 30일 이내일 때만 돌려준다 (오래된 결과를 "현재"처럼 보이지 않게) */
+export function pickLastGoodNaver(
+  rows: ScanRowLike[] | null | undefined,
+  now: Date = new Date(),
+): LastGoodNaver | null {
+  for (const r of rows ?? []) {
+    if (!r?.scanned_at || isNaverUnmeasured(r.naver_result ?? null)) continue;
+    const t = new Date(r.scanned_at).getTime();
+    if (Number.isNaN(t) || now.getTime() - t > LAST_GOOD_MAX_AGE_DAYS * 86_400_000) return null;
+    return {
+      measuredAt: r.scanned_at,
+      inBriefing: r.naver_result?.in_briefing === true,
+      aiTabVisible: r.naver_ai_tab_visible ?? null,
+    };
+  }
+  return null;
+}
+
+/** "10월 26일" 형식 */
+export function fmtMonthDay(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : `${d.getMonth() + 1}월 ${d.getDate()}일`;
+}

@@ -19,6 +19,51 @@ export interface FirstScreenKeywords {
 
 const posNum = (v: unknown): boolean => typeof v === "number" && Number.isFinite(v) && v > 0;
 
+/**
+ * 순위 측정 상태 — "네이버 검색" 칸용.
+ *  hit        : 첫 화면(광고 제외)에 노출이 확인된 키워드가 있다
+ *  none       : 순위를 측정했고(오류·이름 키워드 제외) 첫 화면에서 확인된 키워드가 없다
+ *  unmeasured : 측정 결과가 없거나 오래됐거나 전부 오류다 — 어떤 쪽으로도 말하지 않는다
+ */
+export interface KeywordRankState {
+  state: "hit" | "none" | "unmeasured";
+  count: number;
+  names: string[];
+  measuredAt: string | null;
+}
+
+export function getKeywordRankState(
+  keywordRanks: Record<string, unknown> | null | undefined,
+  businessName: string | null | undefined,
+  scannedAt: string | null | undefined,
+  now: Date = new Date(),
+): KeywordRankState {
+  const unmeasured: KeywordRankState = { state: "unmeasured", count: 0, names: [], measuredAt: null };
+  if (!keywordRanks || typeof keywordRanks !== "object") return unmeasured;
+
+  const ctx = keywordRanks["_context"];
+  const ctxAt = ctx && typeof ctx === "object" ? (ctx as { scanned_at?: unknown }).scanned_at : null;
+  const stamp = (typeof ctxAt === "string" && ctxAt) || scannedAt || null;
+  if (!stamp) return unmeasured;
+  const ts = new Date(stamp);
+  if (Number.isNaN(ts.getTime()) || now.getTime() - ts.getTime() > FIRST_SCREEN_MAX_AGE_DAYS * 86_400_000) {
+    return unmeasured;
+  }
+
+  const hit: string[] = [];
+  let valid = 0;
+  for (const [kw, d] of Object.entries(keywordRanks)) {
+    if (kw.startsWith("_") || !d || typeof d !== "object") continue;
+    const row = d as Record<string, unknown>;
+    if (row.error || isBrandKeyword(kw, businessName)) continue;
+    valid += 1;
+    if (posNum(row.pc_rank) || posNum(row.mobile_rank) || posNum(row.place_rank)) hit.push(kw);
+  }
+  if (hit.length > 0) return { state: "hit", count: hit.length, names: hit, measuredAt: stamp };
+  if (valid > 0) return { state: "none", count: 0, names: [], measuredAt: stamp };
+  return unmeasured;
+}
+
 export function getFirstScreenKeywords(
   keywordRanks: Record<string, unknown> | null | undefined,
   businessName: string | null | undefined,

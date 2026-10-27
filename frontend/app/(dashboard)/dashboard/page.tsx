@@ -31,7 +31,8 @@ import DashboardEvidencePreview from "@/components/dashboard/DashboardEvidencePr
 import BasicTrialBanner from "@/components/dashboard/BasicTrialBanner";
 import { IneligibleBusinessNotice } from "@/components/dashboard/IneligibleBusinessNotice";
 import { CATEGORY_LABEL } from "@/lib/categories";
-import { isNaverUnmeasured, type NaverResultLike } from "@/lib/naverMeasure";
+import { isNaverUnmeasured, pickLastGoodNaver, type LastGoodNaver, type NaverResultLike } from "@/lib/naverMeasure";
+import { getKeywordRankState } from "@/lib/keywordExposure";
 import {
   SCAN_DAILY_LIMITS,
   nextScanLabel,
@@ -180,6 +181,15 @@ export default async function DashboardPage({
     score_before: number | null; score_after: number | null;
   }>);
   const latestScan = scanResults?.[0] as Record<string, unknown> | undefined;
+  // 이번 네이버 측정이 실패한 드문 경우에만(최근 30일 스캔의 약 3%) 직전 성공 측정을 한 번 더 조회한다 —
+  // 대시보드는 병렬 쿼리 수가 응답시간에 직결되므로 평소에는 추가 쿼리를 하지 않는다.
+  let lastGoodNaver: LastGoodNaver | null = null;
+  if (business && latestScan && isNaverUnmeasured(latestScan.naver_result as NaverResultLike | null)) {
+    const { data: recentNaver } = await supabase.from("scan_results")
+      .select("scanned_at, naver_result, naver_ai_tab_visible")
+      .eq("business_id", business.id).order("scanned_at", { ascending: false }).limit(8);
+    lastGoodNaver = pickLastGoodNaver((recentNaver ?? []) as Parameters<typeof pickLastGoodNaver>[0]);
+  }
   const competitorKeywordSourcesP = gapP.then((res) => ((res as { keyword_gap?: { competitor_keyword_sources?: Record<string, string[]> } } | null)
     ?.keyword_gap?.competitor_keyword_sources ?? {}) as Record<string, string[]>);
 
@@ -219,26 +229,19 @@ export default async function DashboardPage({
     latestScan?.score_breakdown as Record<string, number> | null ?? null,
     !!(business?.has_intro), !!(business?.has_faq),
   );
-  const actionCardWeek = topMissingKeywords[1]
-    ? `소개글·포스트에 '${topMissingKeywords[1]}' 키워드를 자연스럽게 포함하세요`
-    : topMissingKeywords[0]
-    ? `소개글·포스트에 '${topMissingKeywords[0]}' 키워드를 자연스럽게 포함하세요`
-    : guideData?.tools_json?.naver_post_template ? "스마트플레이스 '소식' 탭에 새 공지를 등록하세요" : null;
+  // 키워드 기반 "이번 주" 과제는 쓰지 않는다 — 업종 표준 키워드를 사장님 입력 텍스트와 비교한 값이라 근거가 약하다(2026-10-27)
+  const actionCardWeek = guideData?.tools_json?.naver_post_template ? "스마트플레이스 '소식' 탭에 새 공지를 등록하세요" : null;
   const actionCardMonth = guideData?.next_month_goal ?? null;
 
   const todayTasks: { no: number; title: string; desc: string; time: string; link: string }[] = [];
   if (todayActionText) todayTasks.push({ no: 1, title: "오늘 바로", desc: todayActionText, time: "5분", link: "/guide" });
   if (actionCardWeek) todayTasks.push({ no: 2, title: "이번 주", desc: actionCardWeek, time: "15분", link: "/guide" });
   if (actionCardMonth) todayTasks.push({ no: 3, title: "이번 달 목표", desc: actionCardMonth, time: "꾸준히", link: "/guide" });
-  if (todayTasks.length === 0 && topMissingKeywords.length > 0)
-    todayTasks.push({ no: 1, title: "오늘 바로", desc: `'${topMissingKeywords[0]}' 키워드를 소개글·톡톡 채팅방 메뉴에 추가하세요`, time: "5분", link: "/guide" });
-
   const actionCopyText = (() => {
     if (todayActionText) return todayActionText;
     if (briefingPathLabel) return `오늘 스마트플레이스에서 '${briefingPathLabel}'을 실행하세요`;
     if (faqQuestion) return `소개글 하단에 '${faqQuestion}' Q&A를 추가하세요`;
-    const kw = topMissingKeywords[0] ?? null;
-    return kw ? `소개글·톡톡 채팅방 메뉴에 '${kw}' 관련 Q&A를 1개 추가하세요 (AI 브리핑 노출 효과)` : null;
+    return null;
   })();
 
   // ── 점수 계산 ────────────────────────────────────────────────
@@ -488,6 +491,7 @@ export default async function DashboardPage({
                   totalCompetitors={rankingItems.length}
                   benchmarkAvg={benchmark?.fallback ? undefined : benchmark?.avg_score}
                   showStaleRescan={showRescanIsStale}
+                  lastGoodNaver={lastGoodNaver}
                 />
               ) : (
                 /* 첫 스캔 온보딩 — 스캔 후 나타날 정보 미리보기 */
@@ -553,17 +557,26 @@ export default async function DashboardPage({
                 <div className="mb-4">
                   <ScanResultNavBar
                     eligibility={briefingEligibility}
+                    // 이번 측정이 실패했으면 직전 성공 측정(있으면)을 쓴다 — 상단 카드와 같은 기준
                     naverInBriefing={
-                      (latestScan.naver_result as { in_briefing?: boolean } | null)?.in_briefing ?? false
+                      lastGoodNaver
+                        ? lastGoodNaver.inBriefing
+                        : ((latestScan.naver_result as { in_briefing?: boolean } | null)?.in_briefing ?? false)
                     }
-                    naverCaptchaBlocked={isNaverUnmeasured(latestScan.naver_result as NaverResultLike | null)}
+                    naverCaptchaBlocked={!lastGoodNaver && isNaverUnmeasured(latestScan.naver_result as NaverResultLike | null)}
                     myRankInList={myRankInList}
                     totalCompetitors={rankingItems.length}
-                    topMissingKeywordCount={topMissingKeywords.length}
+                    keywordRankState={getKeywordRankState(
+                      latestScan.keyword_ranks as Record<string, unknown> | null,
+                      bizBase?.name as string | undefined,
+                      latestScan.scanned_at as string | null,
+                    ).state}
                     latestAdOnly={
                       (latestScan.naver_result as { ad_only?: boolean } | null)?.ad_only ?? false
                     }
-                    naverAiTabVisible={latestScan.naver_ai_tab_visible as boolean | null ?? null}
+                    naverAiTabVisible={
+                      lastGoodNaver ? lastGoodNaver.aiTabVisible : ((latestScan.naver_ai_tab_visible as boolean | null) ?? null)
+                    }
                     isFranchise={isFranchise}
                   />
                 </div>

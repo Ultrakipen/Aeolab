@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, Info, ExternalLink } from "lucide-react";
+import { CheckCircle2, ExternalLink } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "";
@@ -109,14 +109,7 @@ export default function StrengthSignalsCard({ bizId, accessToken }: { bizId: str
         </p>
       )}
 
-      {data.unmeasured.length > 0 && (
-        <p className="mt-2 flex items-start gap-1.5 text-sm text-gray-700 break-keep">
-          <Info className="w-4 h-4 text-gray-500 shrink-0 mt-0.5" aria-hidden="true" />
-          <span>
-            이번에 확인하지 못한 항목: {data.unmeasured.join(", ")}. 다음 측정 때 다시 시도합니다(노출 여부와는 무관합니다).
-          </span>
-        </p>
-      )}
+      {/* 측정 못 한 항목 안내는 상단 진단 카드("확인 전"/직전 확인 날짜)가 단일 소스 — 여기서 따로 해명하면 서로 어긋난다(2026-10-27) */}
 
       <p className="mt-2 text-sm text-gray-600 break-keep">
         {data.disclaimer ?? "측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다."}

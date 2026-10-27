@@ -1,18 +1,28 @@
 "use client";
 
 import { RefreshCw, CheckCircle2 } from "lucide-react";
+import { fmtMonthDay, type LastGoodNaver } from "@/lib/naverMeasure";
+import type { KeywordRankState } from "@/lib/keywordExposure";
 
 interface DashboardHeroCardProps {
   unifiedScore: number;
   track1Score?: number;
   scoreChangeDiff: number | null;
-  topMissingKeywordCount: number;
+  /**
+   * @deprecated 상태 판단에 쓰지 않는다(2026-10-27). 업종 표준 키워드를 사장님 입력 텍스트와 비교한 값이라
+   * 리뷰가 많은 가게도 거의 전부 "누락"으로 나오고, 정기 스캔은 이 값을 계산하지 않아 0("모두 포함")으로 보였다.
+   */
+  topMissingKeywordCount?: number;
   lastScannedLabel?: string | null;
+  /** 이번 스캔 시각(ISO) — 칸에 측정일을 표시하는 데 쓴다 */
+  scannedAt?: string | null;
   naverInBriefing?: boolean;
   /** 네이버 AI 브리핑·AI탭 측정이 안 된 경우(캡차·접속 실패·대기열 초과 등) — lib/naverMeasure.isNaverUnmeasured */
   naverCaptchaBlocked?: boolean;
-  /** 순위 측정에서 네이버 첫 화면(광고 제외) 노출이 확인된 키워드 — lib/keywordExposure.getFirstScreenKeywords */
-  firstScreenKeywords?: { count: number; names: string[] } | null;
+  /** 이번 측정이 실패했을 때 보여줄 직전 성공 측정(30일 이내) — lib/naverMeasure.pickLastGoodNaver */
+  lastGoodNaver?: LastGoodNaver | null;
+  /** 순위 측정 상태(첫 화면 노출 확인/미확인/측정 전) — lib/keywordExposure.getKeywordRankState */
+  keywordRank?: KeywordRankState | null;
   latestAdOnly?: boolean;
   briefingEligibility?: "active" | "likely" | "inactive";
   isFranchise?: boolean;
@@ -38,15 +48,16 @@ export default function DashboardHeroCard({
   unifiedScore,
   track1Score,
   scoreChangeDiff,
-  topMissingKeywordCount,
   lastScannedLabel,
-  naverInBriefing,
+  scannedAt,
+  naverInBriefing: naverInBriefingProp,
   naverCaptchaBlocked,
-  firstScreenKeywords,
+  lastGoodNaver,
+  keywordRank,
   latestAdOnly,
   briefingEligibility,
   isFranchise,
-  naverAiTabVisible,
+  naverAiTabVisible: naverAiTabVisibleProp,
   todayAction,
   todayActionLink,
   myRankInList,
@@ -57,11 +68,26 @@ export default function DashboardHeroCard({
   const stage = getStage(track1Score ?? unifiedScore);
   const isInactiveOrFranchise = briefingEligibility === "inactive" || !!isFranchise;
 
+  // 이번 네이버 측정이 실패했어도 30일 이내 성공한 직전 결과가 있으면 날짜와 함께 그것을 보여준다.
+  // 직전 결과도 없을 때만 "확인 전"(unmeasured) — 실패를 미노출처럼 보이게 하지 않는다.
+  const useLast = !!naverCaptchaBlocked && !!lastGoodNaver;
+  const unmeasured = !!naverCaptchaBlocked && !lastGoodNaver;
+  const naverInBriefing = useLast ? lastGoodNaver!.inBriefing : (naverInBriefingProp ?? false);
+  const naverAiTabVisible = useLast ? lastGoodNaver!.aiTabVisible : naverAiTabVisibleProp;
+  // 측정일은 항상 보여준다. 스캔이 7일 이상 지났으면 "노출 중" 같은 긍정 문구도 날짜 표기로 바꿔 오래된 결과를 현재처럼 보이지 않게 한다.
+  const scanMd = fmtMonthDay(scannedAt);
+  const scanAgeDays = scannedAt ? Math.floor((Date.now() - new Date(scannedAt).getTime()) / 86_400_000) : 0;
+  const oldScan = scanAgeDays >= 7;
+  const measuredDetail = useLast
+    ? `${fmtMonthDay(lastGoodNaver!.measuredAt) ?? "직전"} 확인`
+    : scanMd ? `${scanMd} 측정` : "측정 결과";
+  const positiveDetail = (text: string) => (useLast || oldScan ? measuredDetail : text);
+
   // INACTIVE/프랜차이즈는 네이버 AI 브리핑 비대상 — 부정 점수 레이블("노출 미흡") 대신
   // 네이버 검색·플레이스가 핵심 무기임을 긍정 리드로. 실제 채널 상태는 아래 3채널 그리드가 정직하게 표시.
   // 단, in_briefing 실측이 true면 "가능합니다"(가정형) 대신 "노출 중입니다"(확정형)로 — 실측과 문구가
   // 어긋나 보이지 않도록 통일(2026-07-14, 그리드는 이미 "정보형 노출 중"으로 실측 분기하고 있었음).
-  const infoBriefingExposed = isInactiveOrFranchise && (naverInBriefing ?? false);
+  const infoBriefingExposed = isInactiveOrFranchise && naverInBriefing;
   const headerView = isInactiveOrFranchise
     ? {
         label: "네이버 검색·플레이스가 핵심 무기",
@@ -74,56 +100,58 @@ export default function DashboardHeroCard({
           ? "네이버 검색·플레이스·AI탭 집중 전략 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다"
           : "네이버 검색·플레이스·AI탭이 주요 노출 경로 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다",
       }
-    : naverCaptchaBlocked
-    // 네이버 측정이 일부 실패했으면 그 점수로 단계 라벨(등급)을 붙이지 않는다 — 아래 안내 줄이 이유를 설명
-    ? { label: "AI 검색 준비도 · 일부 항목 측정 전", labelColor: "text-slate-700", bg: "bg-slate-50", cardBorder: "border-slate-300", sub: null as string | null }
+    : unmeasured
+    // 네이버 측정이 실패했고 직전 성공 결과도 없으면 그 점수로 단계 라벨(등급)을 붙이지 않는다
+    ? { label: "AI 검색 준비도 · 일부 항목 확인 전", labelColor: "text-slate-700", bg: "bg-slate-50", cardBorder: "border-slate-300", sub: null as string | null }
     : { label: stage.label, labelColor: stage.labelColor, bg: stage.bg, cardBorder: stage.cardBorder, sub: null as string | null };
 
-  // 점수 숫자 대신 실측 근거(경쟁사 순위·키워드 보강 수)로 단계 레이블을 뒷받침 — 신뢰도 확보
+  // 점수 숫자 대신 실측 근거(경쟁사 순위)로 단계 레이블을 뒷받침 — 신뢰도 확보.
+  // 키워드 "N개 보강 필요/모두 포함"은 근거가 약해 쓰지 않는다(topMissingKeywordCount 주석 참조).
   const evidenceText = (() => {
-    const parts: string[] = [];
     if (myRankInList && totalCompetitors && totalCompetitors > 1) {
-      parts.push(`경쟁사 ${totalCompetitors}곳 중 ${myRankInList}위`);
-    } else if (benchmarkAvg != null) {
-      parts.push(unifiedScore >= benchmarkAvg ? "업종 평균 이상" : "업종 평균 미달");
+      return `경쟁사 ${totalCompetitors}곳 중 ${myRankInList}위`;
     }
-    parts.push(topMissingKeywordCount === 0 ? "키워드 모두 포함" : `키워드 ${topMissingKeywordCount}개 보강 필요`);
-    return parts.join(" · ");
+    if (benchmarkAvg != null) {
+      return unifiedScore >= benchmarkAvg ? "업종 평균 이상" : "업종 평균 미달";
+    }
+    return "";
   })();
 
-  // 순위 측정(별도 파이프라인)에서 첫 화면 노출이 확인되면 그 사실을 먼저 보여준다 — AI 브리핑 스캔이
-  // 실패했더라도 순위 측정은 독립이므로 유효하다. 키워드 보강 안내는 헤더 근거 줄에 이미 있다.
-  const naverSeoCard = firstScreenKeywords && firstScreenKeywords.count > 0
-    ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "첫 화면 노출 확인", statusClass: "text-emerald-700", detail: `키워드 ${firstScreenKeywords.count}개 · 광고 제외` }
-    : naverCaptchaBlocked
-    ? { icon: "?", iconClass: "bg-gray-200 text-gray-600", status: "측정 불가",       statusClass: "text-gray-600",    detail: "일시적으로 확인 어려움" }
-    : (latestAdOnly ?? false)
+  // "네이버 검색" 칸은 순위 측정(별도 파이프라인)의 사실만 말한다 — AI 브리핑 스캔 실패와 무관하다.
+  // 업종 표준 키워드 누락 여부는 상태로 쓰지 않는다(근거가 약하고 정기 스캔은 계산하지 않아 0으로 보임).
+  const rankAsOf = fmtMonthDay(keywordRank?.measuredAt ?? null);
+  const naverSeoCard = keywordRank?.state === "hit"
+    ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "첫 화면 노출 확인", statusClass: "text-emerald-700", detail: `키워드 ${keywordRank.count}개 · 광고 제외` }
+    : !naverCaptchaBlocked && (latestAdOnly ?? false)
     ? { icon: "!", iconClass: "bg-amber-700 text-white",   status: "광고만 노출",      statusClass: "text-amber-700",   detail: "유료광고 결과만 노출" }
-    : topMissingKeywordCount === 0
-    ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "노출 양호",       statusClass: "text-emerald-700", detail: "키워드 모두 포함됨" }
-    : { icon: "!", iconClass: "bg-amber-700 text-white",   status: "키워드 보강 필요", statusClass: "text-amber-700",   detail: `${topMissingKeywordCount}개 키워드 추가 필요` };
+    : keywordRank?.state === "none"
+    ? { icon: "–", iconClass: "bg-gray-200 text-gray-600", status: "첫 화면 노출 미확인", statusClass: "text-gray-700", detail: rankAsOf ? `순위 측정 ${rankAsOf}` : "순위 측정 결과" }
+    : { icon: "?", iconClass: "bg-gray-200 text-gray-600", status: "순위 측정 전",     statusClass: "text-gray-700",    detail: "아직 결과 없음" };
 
-  const naverAiTabCard = naverCaptchaBlocked
-    ? { icon: "?", iconClass: "bg-gray-200 text-gray-600", status: "측정 불가",   statusClass: "text-gray-600",    detail: "일시적으로 확인 어려움" }
+  // AI탭·AI 브리핑: 이번 측정이 실패하면 직전 성공 결과를 날짜와 함께, 그것도 없으면 "확인 전"만 말한다.
+  const unknownCard = { icon: "?", iconClass: "bg-gray-200 text-gray-600", status: "확인 전", statusClass: "text-gray-700", detail: "아직 결과 없음" };
+
+  const naverAiTabCard = unmeasured
+    ? unknownCard
     : naverAiTabVisible === true
-    ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "노출 중",    statusClass: "text-emerald-700", detail: "AI탭 답변 있음" }
+    ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "노출 중",    statusClass: "text-emerald-700", detail: positiveDetail("AI탭 답변 있음") }
     : naverAiTabVisible === false
-    ? { icon: "!", iconClass: "bg-amber-700 text-white",   status: "이번 측정 미노출", statusClass: "text-amber-700", detail: "측정 시점 기준 · 노출 기준 미공개" }
+    ? { icon: "!", iconClass: "bg-amber-700 text-white",   status: "미노출",      statusClass: "text-amber-700",   detail: measuredDetail }
     : { icon: "i", iconClass: "bg-blue-100 text-blue-700 font-black", status: "준비 가능",   statusClass: "text-blue-700",    detail: "가이드로 설정하기" };
 
-  const naverBriefingCard = naverCaptchaBlocked
-    ? { icon: "?", iconClass: "bg-gray-200 text-gray-600", status: "측정 불가",        statusClass: "text-gray-600",    detail: "일시적으로 확인 어려움" }
-    : isInactiveOrFranchise && (naverInBriefing ?? false)
+  const naverBriefingCard = unmeasured
+    ? unknownCard
+    : isInactiveOrFranchise && naverInBriefing
     ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "정보형 노출 중",   statusClass: "text-emerald-700", detail: "콘텐츠 기반 AI 브리핑 노출" }
     : isInactiveOrFranchise
     ? { icon: "–", iconClass: "bg-gray-200 text-gray-600", status: "이 업종 해당 없음", statusClass: "text-gray-600",    detail: "네이버 검색·AI탭으로 노출 가능" }
-    : briefingEligibility === "likely" && (naverInBriefing ?? false)
+    : briefingEligibility === "likely" && naverInBriefing
     ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "정보형 노출 중",   statusClass: "text-emerald-700", detail: "콘텐츠 기반 AI 브리핑 노출" }
     : briefingEligibility === "likely"
     ? { icon: "△", iconClass: "bg-yellow-400 text-white",  status: "확대 예정",        statusClass: "text-yellow-700",  detail: "지금 준비 중" }
-    : (naverInBriefing ?? false)
-    ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "노출 중",          statusClass: "text-emerald-700", detail: "브리핑 노출 확인됨" }
-    : { icon: "!", iconClass: "bg-amber-700 text-white",   status: "이번 측정 미노출",  statusClass: "text-amber-700",   detail: "측정 시점 기준 · 노출 기준 미공개" };
+    : naverInBriefing
+    ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "노출 중",          statusClass: "text-emerald-700", detail: positiveDetail("브리핑 노출 확인됨") }
+    : { icon: "!", iconClass: "bg-amber-700 text-white",   status: "미노출",           statusClass: "text-amber-700",   detail: measuredDetail };
 
   // INACTIVE/프랜차이즈는 AI 브리핑 비대상 → 경쟁순위 카드 대체 표시.
   // 단, 정보형 AI 브리핑에 실측 노출(naverInBriefing=True) 시 브리핑 카드로 교체 — 사용자에게 긍정 신호.
@@ -141,7 +169,7 @@ export default function DashboardHeroCard({
     "naver-rank":     "#section-detail",
   };
   // INACTIVE+in_briefing=True: 정보형 노출 확인 → 브리핑 카드 표시 (경쟁순위 대신)
-  const naverChannels = isInactiveOrFranchise && !(naverInBriefing ?? false)
+  const naverChannels = isInactiveOrFranchise && !naverInBriefing
     ? [
         { id: "naver-seo",   platform: "네이버 검색", ...naverSeoCard },
         { id: "naver-aitab", platform: "네이버 AI탭", ...naverAiTabCard },
@@ -166,11 +194,6 @@ export default function DashboardHeroCard({
             )}
             {evidenceText && (
               <p className="text-sm font-bold text-gray-800 mt-1 break-keep">{evidenceText}</p>
-            )}
-            {naverCaptchaBlocked && (
-              <p className="text-sm text-gray-700 mt-1 break-keep">
-                이번 스캔에서는 네이버 AI 브리핑·AI탭을 측정하지 못했습니다. &lsquo;미노출&rsquo;이 아니라 확인하지 못한 것이며, 다시 측정하면 확인할 수 있습니다.
-              </p>
             )}
             {(lastScannedLabel || staleRescan) && (
               <p className="text-xs text-gray-600 mt-0.5 flex items-center gap-1.5 flex-wrap">
@@ -222,11 +245,11 @@ export default function DashboardHeroCard({
         <details className="mt-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
           <summary className="cursor-pointer text-sm font-semibold text-blue-700">어떻게 조사했나요?</summary>
           <ul className="mt-2 space-y-1.5 text-sm text-gray-700 leading-relaxed break-keep list-disc pl-5">
-            <li><strong>네이버 검색</strong> — 등록한 키워드로 네이버를 검색해, 첫 화면(광고 제외)에 내 가게가 나오는지 PC·모바일에서 확인합니다. 가게 이름으로 검색한 결과는 제외합니다.</li>
+            <li><strong>네이버 검색</strong> — 등록한 키워드로 네이버를 검색해, 첫 화면(광고 제외)에 내 가게가 나오는지 PC·모바일에서 확인합니다. 가게 이름으로 검색한 결과는 제외합니다. 첫 화면에는 몇 곳만 보여서, 가게가 많은 지역에서는 잘 되는 가게도 첫 화면에 안 잡힐 수 있습니다.</li>
             <li><strong>AI탭</strong> — 등록한 키워드 기반 검색어로 네이버 AI탭 답변에 내 가게가 포함되는지 확인합니다.</li>
             <li><strong>AI 브리핑</strong> — 검색 결과 화면에 AI 브리핑이 뜨는지, 뜬다면 내 가게가 포함되는지 확인합니다. 브리핑이 아예 뜨지 않는 검색어도 있습니다.</li>
-            <li>&lsquo;측정 불가&rsquo;는 노출되지 않았다는 뜻이 아니라 이번에 확인하지 못했다는 뜻입니다.</li>
-            <li>측정 시점·기기·로그인 상태에 따라 결과가 달라질 수 있고, 네이버는 노출 기준을 공개하지 않습니다. 변화는 2~4주(추정) 뒤 다시 측정해 확인하세요.</li>
+            <li>&lsquo;확인 전&rsquo;은 아직 측정 결과가 없는 항목입니다. 결과가 있으면 측정한 날짜를 함께 보여 드립니다.</li>
+            <li>측정 시점·기기·로그인 상태에 따라 결과가 달라질 수 있습니다. 변화는 2~4주(추정) 뒤 다시 측정해 확인하세요.</li>
           </ul>
         </details>
       </div>

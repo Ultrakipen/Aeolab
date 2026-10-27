@@ -97,7 +97,7 @@ export function naverSeoTile(args: {
   missingKeywordCount: number;
 }): ChannelTile {
   const { captchaBlocked, adOnly, missingKeywordCount } = args;
-  if (captchaBlocked) return makeTile("naver-seo", "네이버 검색", "unknown", "측정 불가", "일시적으로 확인 어려움");
+  if (captchaBlocked) return makeTile("naver-seo", "네이버 검색", "unknown", "확인 전", "아직 결과 없음");
   if (adOnly)         return makeTile("naver-seo", "네이버 검색", "warn", "광고만 노출", "유료광고 결과만 노출");
   if (missingKeywordCount === 0) return makeTile("naver-seo", "네이버 검색", "good", "노출 양호", "경쟁가게보다 키워드 풍부");
   return makeTile("naver-seo", "네이버 검색", "warn", "키워드 보강 필요", `${missingKeywordCount}개 없음 · 경쟁가게가 먼저 추천`);
@@ -106,7 +106,7 @@ export function naverSeoTile(args: {
 /** 네이버 AI탭 타일 (DashboardHeroCard naverAiTabCard) */
 export function aiTabTile(visible: boolean | null | undefined): ChannelTile {
   if (visible === true)  return makeTile("naver-aitab", "네이버 AI탭", "good", "노출 중", "AI탭 답변 있음");
-  if (visible === false) return makeTile("naver-aitab", "네이버 AI탭", "warn", "이번 측정 미노출", "측정 시점 기준 · 노출 기준 미공개");
+  if (visible === false) return makeTile("naver-aitab", "네이버 AI탭", "warn", "미노출", "이번 측정 결과");
   return makeTile("naver-aitab", "네이버 AI탭", "pending", "준비 가능", "가이드로 설정하기");
 }
 
@@ -118,7 +118,7 @@ export function briefingTile(args: {
   inBriefing?: boolean | null;
 }): ChannelTile {
   const { captchaBlocked, eligibility, isFranchise, inBriefing } = args;
-  if (captchaBlocked) return makeTile("naver-briefing", "AI 브리핑", "unknown", "측정 불가", "일시적으로 확인 어려움");
+  if (captchaBlocked) return makeTile("naver-briefing", "AI 브리핑", "unknown", "확인 전", "아직 결과 없음");
   if (eligibility === "inactive" || isFranchise) {
     if (inBriefing)
       return makeTile("naver-briefing", "AI 브리핑", "good", "정보형 노출 중", "블로그·콘텐츠 기반 정보형 AI 브리핑에 노출 중");
@@ -131,7 +131,7 @@ export function briefingTile(args: {
   }
   if (inBriefing)
     return makeTile("naver-briefing", "AI 브리핑", "good", "노출 중", "검색 첫화면에 내 가게 추천 중");
-  return makeTile("naver-briefing", "AI 브리핑", "warn", "이번 측정 미노출", "측정 시점 기준 · 노출 기준 미공개");
+  return makeTile("naver-briefing", "AI 브리핑", "warn", "미노출", "이번 측정 결과");
 }
 
 /** 경쟁 순위 타일 — INACTIVE 그룹에서 AI 브리핑 대신 노출 (DashboardHeroCard rankCard) */

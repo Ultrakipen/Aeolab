@@ -6,7 +6,8 @@ interface Props {
   naverCaptchaBlocked: boolean;
   myRankInList: number;
   totalCompetitors: number;
-  topMissingKeywordCount: number;
+  /** 순위 측정 상태 — 업종 표준 키워드 누락 수는 신호등에 쓰지 않는다(근거가 약함, 2026-10-27) */
+  keywordRankState?: "hit" | "none" | "unmeasured" | null;
   todayAction?: string | null;
   latestAdOnly?: boolean;
   naverAiTabVisible?: boolean | null;
@@ -62,7 +63,7 @@ export default function ScanResultNavBar({
   naverCaptchaBlocked,
   myRankInList,
   totalCompetitors,
-  topMissingKeywordCount,
+  keywordRankState,
   latestAdOnly = false,
   naverAiTabVisible,
   isFranchise,
@@ -74,13 +75,12 @@ export default function ScanResultNavBar({
   const AMBER = "bg-amber-400";
   const GRAY = "bg-gray-300";
 
-  const searchDot = naverCaptchaBlocked
-    ? GRAY
-    : latestAdOnly
-    ? AMBER
-    : topMissingKeywordCount === 0
+  // 순위 측정에서 첫 화면 노출이 확인되면 초록, 광고만 노출이면 주황, 그 외(미확인·측정 전)는 회색
+  const searchDot = keywordRankState === "hit"
     ? GREEN
-    : AMBER;
+    : !naverCaptchaBlocked && latestAdOnly
+    ? AMBER
+    : GRAY;
 
   const aiTabDot = naverCaptchaBlocked
     ? GRAY
