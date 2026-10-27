@@ -919,7 +919,20 @@ def _is_google_unmeasured(scan_result: dict) -> bool:
     """Google 스캐너가 CAPTCHA 차단이든 API 오류(키 만료·네트워크 실패 등)든
     측정 자체에 실패했는지 확인 — 실패를 "노출 안 됨"(0점)으로 오집계하지 않기 위함"""
     google = scan_result.get("google") or scan_result.get("google_result") or {}
+    if not google:
+        # 구글 측정을 아예 돌리지 않은 스캔(무료 체험·Quick) — "노출 안 됨"이 아니라 "측정 안 함"
+        return True
     return bool(google.get("captcha_detected")) or bool(google.get("error"))
+
+
+def _is_review_unmeasured(biz: dict) -> bool:
+    """리뷰 수·평점·영수증 리뷰 어느 것도 수집되지 않은 경우(None) — 무료 체험·플레이스 ID 미확정 사업장.
+    0건은 실측 값이므로 여기에 해당하지 않는다(None과 0을 구분)."""
+    return (
+        biz.get("review_count") is None
+        and not biz.get("avg_rating")
+        and not biz.get("receipt_review_count")
+    )
 
 
 def calc_google_presence(scan_result: dict) -> float:
@@ -1524,6 +1537,9 @@ def calc_track1_score_v3_1(
         _excluded.add("ai_briefing_score")
     if not kw_measured:
         _excluded.add("keyword_search_rank")
+    rv_measured = not _is_review_unmeasured(biz)
+    if not rv_measured:
+        _excluded.add("review_quality")
     score = _renormalized_track1(
         {
             "keyword_search_rank":      kw_search,
@@ -1549,7 +1565,7 @@ def calc_track1_score_v3_1(
         "missing":       missing,
         "items": {
             "keyword_search_rank":      {"score": round(kw_search, 1),  "measured": kw_measured},
-            "review_quality":           {"score": round(rv_qual, 1)},
+            "review_quality":           {"score": round(rv_qual, 1), "measured": rv_measured},
             "smart_place_completeness": {"score": round(sp_comp, 1),    "kw_gap_absorbed": round(kw_gap, 1), "kw_gap_estimated": kw_is_est, "rank_measured": _rank_known},
             "blog_crank":               {"score": round(blog_crank, 1), "is_estimated": True},
             "local_map_score":          {"score": round(local_map, 1), "rank_measured": _rank_known},
@@ -1658,6 +1674,9 @@ def calc_track1_score_v3_2(
         _excluded.add("ai_briefing_score")
     if not kw_measured:
         _excluded.add("keyword_search_rank")
+    rv_measured = not _is_review_unmeasured(biz)
+    if not rv_measured:
+        _excluded.add("review_quality")
     score = _renormalized_track1(
         {
             "keyword_search_rank":      kw_search,
@@ -1685,7 +1704,7 @@ def calc_track1_score_v3_2(
         "missing":       missing,
         "items": {
             "keyword_search_rank":      {"score": round(kw_search, 1),  "measured": kw_measured},
-            "review_quality":           {"score": round(rv_qual, 1)},
+            "review_quality":           {"score": round(rv_qual, 1), "measured": rv_measured},
             "smart_place_completeness": {"score": round(sp_comp, 1),    "kw_gap_absorbed": round(kw_gap, 1), "kw_gap_estimated": kw_is_est, "rank_measured": _rank_known},
             "blog_crank":               {"score": round(blog_crank, 1), "is_estimated": True},
             "local_map_score":          {"score": round(local_map, 1), "rank_measured": _rank_known},

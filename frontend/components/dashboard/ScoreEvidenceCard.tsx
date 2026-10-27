@@ -210,16 +210,23 @@ function V31SixItems({
   const ug = detail.user_group in weightsTable ? detail.user_group : "ACTIVE";
   const baseWeights = weightsTable[ug];
   const items = detail.items;
-  // 키워드 순위가 점수에서 제외된 기록(excluded 표시 있음)은 남은 항목 비중을 100%로 다시 맞춰 표시
-  const rankExcluded = (detail.excluded ?? []).includes("keyword_search_rank");
-  const weights: Record<string, number> = rankExcluded
-    ? Object.fromEntries(
-        Object.entries(baseWeights).map(([k, v]) => [
-          k,
-          k === "keyword_search_rank" ? 0 : Math.round((v / (100 - baseWeights["keyword_search_rank"])) * 100),
-        ])
-      )
-    : baseWeights;
+  // 점수에서 제외된 항목(excluded 표시 있음: 키워드 순위·리뷰 품질)은 남은 항목 비중을 100%로 다시 맞춰 표시
+  const excludedKeys = new Set(detail.excluded ?? []);
+  const rankExcluded = excludedKeys.has("keyword_search_rank");
+  const rvExcluded = excludedKeys.has("review_quality");
+  const excludedBase = Object.entries(baseWeights).reduce(
+    (sum, [k, v]) => (excludedKeys.has(k) ? sum + v : sum),
+    0,
+  );
+  const weights: Record<string, number> =
+    excludedKeys.size > 0 && excludedBase < 100
+      ? Object.fromEntries(
+          Object.entries(baseWeights).map(([k, v]) => [
+            k,
+            excludedKeys.has(k) ? 0 : Math.round((v / (100 - excludedBase)) * 100),
+          ])
+        )
+      : baseWeights;
 
   const finalReviewCount = kakaoResult?.review_count ?? reviewCount ?? naverResult?.review_count ?? 0;
   const finalAvgRating   = kakaoResult?.avg_rating   ?? avgRating   ?? naverResult?.avg_rating   ?? 0;
@@ -302,11 +309,17 @@ function V31SixItems({
               <span className="text-sm md:text-base font-semibold text-gray-800">
                 ② 리뷰 품질
               </span>
-              <WeightBadge pct={weights["review_quality"]} color="text-blue-700 bg-blue-50 border-blue-200" />
+              {rvExcluded ? (
+                <span className="text-sm border px-2 py-0.5 rounded-full font-medium text-gray-600 bg-gray-100 border-gray-200">
+                  아직 수집 전 · 점수 미반영
+                </span>
+              ) : (
+                <WeightBadge pct={weights["review_quality"]} color="text-blue-700 bg-blue-50 border-blue-200" />
+              )}
             </div>
             <p className="text-sm text-gray-600">리뷰 수 × 평균 별점 × 키워드 다양성으로 계산합니다</p>
           </div>
-          <ScoreBadge value={rvItem?.score ?? 0} />
+          {!rvExcluded && <ScoreBadge value={rvItem?.score ?? 0} />}
         </div>
         <div className="flex items-center gap-2 mb-2">
           <ScoreBar value={rvItem?.score ?? 0} color={barColor(rvItem?.score ?? 0)} />
