@@ -308,3 +308,46 @@ def test_multi_ai_exposure_ignores_failed_side():
     assert f({"gemini": {"exposure_freq": 5, "sample_size": 10, "failed_count": 0}, "chatgpt": chat}) == 50.0
     # Gemini를 아예 안 돌린 스캔(빈 dict)은 기존 동작 유지(실패로 보지 않음)
     assert f({"gemini": {}, "chatgpt": chat}) == round(22.5 * 100 / 90, 2)
+
+
+def test_kakao_notify_ignores_null_score_history_rows(monkeypatch):
+    """순위 측정만 기록한 score_history 행(total_score=NULL)이 있어도 점수 변화 알림 계산이 죽지 않는다 (2026-10-27 실제 오류)."""
+    import scheduler.jobs as jobs
+
+    class R:
+        def __init__(self, data): self.data = data
+
+    calls = []
+
+    async def fake_db(q):
+        calls.append(q)
+        return R(getattr(q, "_rows", []))
+
+    class Q:
+        def __init__(self, rows): self._rows = rows
+        def select(self, *a, **k): return self
+        def eq(self, *a, **k): return self
+        def order(self, *a, **k): return self
+        def limit(self, *a, **k): return self
+        def gte(self, *a, **k): return self
+        def in_(self, *a, **k): return self
+        @property
+        def not_(self): return self
+        def is_(self, *a, **k): return self
+
+    class C:
+        def table(self, name):
+            if name == "score_history":
+                return Q([{"total_score": None, "score_date": "2026-10-27"}, {"total_score": None, "score_date": "2026-10-26"}])
+            if name == "scan_results":
+                return Q([{"competitor_scores": {"c1": {"score": None, "name": "a"}}}, {"competitor_scores": {"c1": {"score": None}}}])
+            return Q([])
+
+    class N:
+        async def send_score_change(self, *a, **k): raise AssertionError("값이 없는데 점수 변화 알림이 나가면 안 된다")
+        async def send_competitor_change(self, *a, **k): raise AssertionError("값이 없는데 경쟁사 알림이 나가면 안 된다")
+        async def send_ai_citation(self, *a, **k): return None
+
+    monkeypatch.setattr(jobs, "_db", fake_db)
+    user = {"businesses": [{"id": "b", "name": "n"}], "profiles": {"phone": "010", "kakao_scan_notify": True, "kakao_competitor_notify": True}}
+    asyncio.run(jobs._send_kakao_notifications(C(), N(), user))   # 예외 없이 끝나야 한다

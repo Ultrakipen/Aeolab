@@ -1165,10 +1165,11 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
         supabase.table("score_history")
         .select("total_score, score_date, rank_in_category")
         .eq("business_id", biz_id)
+        .not_.is_("total_score", "null")  # 순위 측정만 기록한 행(context=keyword_rank)은 total_score가 NULL — 비교 대상 아님
         .order("score_date", desc=True)
         .limit(2)
     )
-    history = _hist_res.data or []
+    history = [h for h in (_hist_res.data or []) if isinstance(h.get("total_score"), (int, float))]
     if len(history) >= 2 and phone and scan_notify_on:
         curr_h = history[0]
         prev_h = history[1]
@@ -1217,8 +1218,9 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
             prev_scores = latest_scan[1].get("competitor_scores") or {}
             for comp_id, curr_data in curr_scores.items():
                 prev_data = prev_scores.get(comp_id, {})
-                prev_s = prev_data.get("score", 0)
-                curr_s = curr_data.get("score", 0)
+                # 키가 있어도 값이 None일 수 있다(.get 기본값은 키 부재에만 적용) — `or 0`
+                prev_s = prev_data.get("score") or 0
+                curr_s = curr_data.get("score") or 0
                 delta = curr_s - prev_s
                 if abs(delta) >= 5:
                     comp_name_str = curr_data.get("name", "경쟁사")
