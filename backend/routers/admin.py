@@ -1490,7 +1490,17 @@ async def get_naver_access(_=Depends(verify_admin)):
 
     snap = naver_playwright_quota_snapshot()
     cap = snap.get("cap") or 0
+    # 차단·회복 사건 기록(최근 30건) — naver_block_events 테이블 생성 전이면 table_ready=false
+    block_events: dict = {"table_ready": False, "items": []}
+    try:
+        from db.supabase_client import get_client as _gc, execute as _ex
+        _r = await _ex(_gc().table("naver_block_events").select("occurred_at, surface, event, source, strikes, cooldown_min")
+                       .order("occurred_at", desc=True).limit(30))
+        block_events = {"table_ready": True, "items": (_r.data if _r and _r.data else [])}
+    except Exception as _e:
+        _logger.warning("naver_block_events 조회 실패(테이블 미생성 가능): %s", _e)
     return {
+        "block_events": block_events,
         "quota": {**snap, "used_pct": round(snap["used"] / cap * 100, 1) if cap else None},
         "place_breaker": _guard.snapshot(),
         "search_breaker": _guard.search_snapshot(),   # 검색 화면(브리핑·AI탭·순위) 차단 쿨다운

@@ -23,6 +23,7 @@ import json
 import logging
 import os
 import random
+import threading
 import time
 from typing import Optional
 
@@ -96,6 +97,7 @@ def report_place_ok() -> None:
     _load()
     if _state["strikes"] or _state["open_until"] or _state["probing_since"]:
         _logger.warning("[naver_guard] 플레이스 접속 회복 확인 — 회로 닫음")
+        _record_event("place", "recover", "", int(_state["strikes"]), 0)
         _state.update({"strikes": 0, "open_until": 0.0, "probing_since": 0.0})
         _save()
         tighten_rate(time.time())   # 회복 직후 48시간은 속도 기준을 절반으로
@@ -119,11 +121,42 @@ def report_place_block(source: str, now: Optional[float] = None) -> int:
         "last_source": source,
     })
     _save()
+    _record_event("place", "block", source, strikes, minutes)
     _logger.error(
         "[naver_guard] 네이버 플레이스 차단 화면 감지 — 접속 %d분 중단 (연속 %d회, source=%s)", minutes, strikes, source
     )
     _alert_operator(source, strikes, minutes)
     return minutes
+
+
+_event_table_warned = False
+
+
+def _record_event(surface: str, event: str, source: str, strikes: int = 0, minutes: int = 0) -> None:
+    """차단·회복 사건을 naver_block_events 테이블에 남긴다(사후 분석용: 언제·어느 화면·어느 경로·몇 번째·몇 분 중단).
+
+    best-effort — 테이블이 없거나 DB 오류여도 차단 처리 자체는 영향받지 않는다. 호출 스레드를 막지 않도록 데몬 스레드로 보낸다.
+    테스트(pytest)·NAVER_BLOCK_EVENT_LOG=0 에서는 기록하지 않는다.
+    """
+    if os.getenv("PYTEST_CURRENT_TEST") or os.getenv("NAVER_BLOCK_EVENT_LOG", "1") == "0":
+        return
+    row = {"surface": surface, "event": event, "source": (source or "")[:80],
+           "strikes": int(strikes), "cooldown_min": int(minutes)}
+
+    def _send() -> None:
+        global _event_table_warned
+        try:
+            from db.supabase_client import get_client
+            get_client().table("naver_block_events").insert(row).execute()
+        except Exception as e:
+            if not _event_table_warned:     # 같은 오류가 반복돼 로그가 넘치지 않게 첫 1회만
+                _event_table_warned = True
+                _logger.warning("[naver_guard] 차단 사건 기록 실패(naver_block_events 테이블 생성 여부 확인): %s", e)
+
+    try:
+        threading.Thread(target=_send, daemon=True, name="naver-block-event").start()
+    except Exception as e:
+        _logger.warning("[naver_guard] 차단 사건 기록 스레드 시작 실패: %s", e)
 
 
 def _alert_operator(source: str, strikes: int, minutes: int) -> None:
@@ -406,6 +439,7 @@ def report_search_ok() -> None:
     _search_load()
     if _search["strikes"] or _search["open_until"]:
         _logger.warning("[naver_guard] 검색 화면 접속 회복 확인 — 차단 단계 초기화")
+        _record_event("search", "recover", "", int(_search["strikes"]), 0)
         _search.update({"strikes": 0, "open_until": 0.0})
         _search_save()
         tighten_rate(time.time())
@@ -421,6 +455,7 @@ def report_search_block(source: str, now: Optional[float] = None) -> int:
     minutes = SEARCH_COOLDOWN_STEPS_MIN[min(strikes - 1, len(SEARCH_COOLDOWN_STEPS_MIN) - 1)]
     _search.update({"strikes": strikes, "open_until": t + minutes * 60, "last_block_at": t, "last_source": source})
     _search_save()
+    _record_event("search", "block", source, strikes, minutes)
     _rate_clear_on_block(t)
     _logger.error("[naver_guard] 네이버 검색 화면 차단/CAPTCHA 감지 — 검색 화면 접속 %d분 중단 (연속 %d회, source=%s)",
                   minutes, strikes, source)

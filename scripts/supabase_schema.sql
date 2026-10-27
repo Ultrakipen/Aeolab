@@ -3144,3 +3144,23 @@ CREATE TABLE IF NOT EXISTS public_posts (
 CREATE INDEX IF NOT EXISTS idx_public_posts_list ON public_posts (is_hidden, is_notice, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_public_posts_status ON public_posts (status, created_at DESC);
 ALTER TABLE public_posts ENABLE ROW LEVEL SECURITY;
+
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- 네이버 접속 차단·회복 사건 기록 (2026-10-27)
+-- 용도: 언제·어느 화면(place/search)·어느 경로(source)에서 차단됐고 몇 분 중단됐는지, 언제 회복됐는지 사후 분석.
+--       임계값(속도 기준·상한·쿨다운)을 추측이 아니라 실제 차단 이력으로 보정하기 위한 근거 데이터.
+-- 백엔드: backend/services/naver_access_guard.py _record_event (best-effort, 테이블 없으면 경고 1회)
+-- ⚠️ Supabase SQL Editor에서 수동 실행 필요. RLS 정책 없이 활성화 = 서비스 롤 백엔드만 접근.
+-- ═══════════════════════════════════════════════════════════════════════
+CREATE TABLE IF NOT EXISTS naver_block_events (
+  id            BIGSERIAL PRIMARY KEY,
+  occurred_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  surface       TEXT NOT NULL CHECK (surface IN ('place','search')),
+  event         TEXT NOT NULL CHECK (event IN ('block','recover')),
+  source        TEXT,
+  strikes       INTEGER NOT NULL DEFAULT 0,
+  cooldown_min  INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_naver_block_events_time ON naver_block_events (occurred_at DESC);
+ALTER TABLE naver_block_events ENABLE ROW LEVEL SECURITY;
