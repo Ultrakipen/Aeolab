@@ -1472,3 +1472,28 @@ async def email_test_send(
     if not sent:
         raise HTTPException(status_code=500, detail="발송 실패 — RESEND_API_KEY 확인 또는 서버 로그 점검")
     return {"ok": True, "sent_to": to_email, "type": email_type, "name": name}
+
+
+@router.get("/naver-access")
+async def get_naver_access(_=Depends(verify_admin)):
+    """네이버 접속 보호 상태(2026-10-27) — 플레이스 접속 회로 차단기, 오늘 상한 사용량(배치 몫 포함), 일별 이력.
+
+    차단 중이면 place_breaker.open=true와 남은 시간이 보인다. 수동 해제는 backend/.naver_place_breaker.json 삭제 후
+    재시작(차단이 풀린 것을 확인한 뒤에만). 계정·쿠키 등 비밀 값은 포함하지 않는다.
+    """
+    from services import naver_access_guard as _guard
+    from services.ai_scanner import naver_playwright_quota_snapshot, naver_quota_history
+    from services.scan_scheduling import slot_spread_enabled
+    from services.place_page_signals import photo_tab_enabled
+
+    snap = naver_playwright_quota_snapshot()
+    cap = snap.get("cap") or 0
+    return {
+        "quota": {**snap, "used_pct": round(snap["used"] / cap * 100, 1) if cap else None},
+        "place_breaker": _guard.snapshot(),
+        "history": naver_quota_history(30),
+        "settings": {
+            "slot_spread_enabled": slot_spread_enabled(),
+            "photo_tab_enabled": photo_tab_enabled(),
+        },
+    }

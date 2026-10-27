@@ -16,6 +16,7 @@ docs/improvement_item_catalog_v1.0.md D2(사진)·D3(메뉴) 수정.
 """
 from __future__ import annotations
 
+import os
 import re
 from typing import Optional
 
@@ -62,3 +63,13 @@ def parse_count(match: Optional["re.Match[str]"]) -> Optional[int]:
 def parse_photo_total(text: Optional[str]) -> Optional[int]:
     """사진 탭 본문에서 전체 사진 수. "전체 N" 우선, 없으면 "사진 N". 못 읽으면 None."""
     return parse_count(_PHOTO_TOTAL_RE.search(text or "")) or parse_count(_PHOTO_WORD_RE.search(text or ""))
+
+
+def photo_tab_enabled() -> bool:
+    """자기 가게 점검에서 사진 탭을 열지 여부(기본 꺼짐).
+
+    2026-10-27: 서버 헤드리스에서 사진 탭이 렌더링되지 않아 photo_count가 전 가게 None이었다(6월부터). 얻는 것 없이
+    페이지를 여는 호출이라 기본으로 열지 않는다. 사진 측정을 고친 뒤 PLACE_PHOTO_TAB_ENABLED=true로 켠다.
+    경쟁사 크롤러의 사진 탭(이미지 수 세기)은 값이 나오므로 이 설정과 무관하다.
+    """
+    return os.getenv("PLACE_PHOTO_TAB_ENABLED", "false").strip().lower() == "true"

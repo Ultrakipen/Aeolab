@@ -6,6 +6,7 @@ from apscheduler.events import EVENT_JOB_ERROR
 from datetime import date, datetime, timedelta
 from utils.alert import send_slack_alert
 from db.supabase_client import execute as _db
+from services.ai_scanner import naver_batch_job as _naver_batch_job  # 정기 잡은 네이버 상한의 배치 비율까지만 사용(2026-10-27)
 from services.keyword_taxonomy import build_ai_scan_queries as _build_ai_scan_queries
 from services.ai_usage_logger import log_ai_usage
 
@@ -133,12 +134,12 @@ def start_scheduler():
     #     id="competitor_faq_sync", replace_existing=True, misfire_grace_time=3600,
     # )
     scheduler.add_job(
-        competitor_place_sync_job, "cron", day_of_week="tue", hour=3, minute=30,
+        competitor_place_sync_job, "cron", hour=3, minute=30,   # 매일 — 차례인 사업장만 처리(competitor_job_due)
         id="competitor_place_sync", replace_existing=True, max_instances=1, misfire_grace_time=600,
     )
     # 경쟁사 상세 정보 보강 — 블로그 언급 수·웹사이트 SEO (매주 목요일 03:00)
     scheduler.add_job(
-        enrich_competitor_details_job, "cron", day_of_week="thu", hour=3, minute=0,
+        enrich_competitor_details_job, "cron", hour=3, minute=0,   # 매일 — 차례인 사업장만 처리(competitor_job_due)
         id="enrich_competitor_details", replace_existing=True, max_instances=1, misfire_grace_time=600,
     )
     # 업종 트렌드 갱신 (매주 월요일 03:00)
@@ -414,6 +415,7 @@ async def _cleanup_memory_stores():
         logger.warning(f"Memory cleanup failed: {e}")
 
 
+@_naver_batch_job
 async def daily_scan_all():
     """활성 구독자 사업장 자동 AI 스캔 (새벽 2시)
 
@@ -476,6 +478,24 @@ async def daily_scan_all():
 
         _naver_captcha_count = 0  # 연속 캡챠 감지 카운터 — 2회 이상 시 당일 네이버 스캔 중단
 
+        # 2026-10-27 사용자 증가 대비(docs/naver_request_load_spreading_design_v1.0.md §3 A·D):
+        #  - 처리 순서를 날짜 시드로 회전 — 상한에 도달해도 DB 순서상 뒤쪽 사업장이 매일 굶지 않게 한다(사용자에게 보이지 않음)
+        #  - 요일 슬롯 분산은 NAVER_SCAN_SLOT_SPREAD=true일 때만 적용(기본 꺼짐: 요금제·약관의 요일 표기 점검 후 켠다)
+        #  - 켜기 전에 예상 요일별 풀스캔 수를 로그로 비교해 효과를 확인한다(DRY 점검)
+        _spread_slots = False
+        try:
+            from services.scan_scheduling import predict_weekday_load, rotate_for_fairness, slot_spread_enabled
+            businesses = rotate_for_fairness(businesses, key=lambda b: str(b.get("id")), today=today)
+            _spread_slots = slot_spread_enabled()
+            _plist = [{"id": str(b.get("id")), "plan": (b.get("subscriptions") or {}).get("plan", "basic")} for b in businesses]
+            logger.info(
+                "[daily_scan_all] 요일별(월~일) 풀스캔 예상 — 현재 정책=%s / 슬롯 분산 시=%s / 적용=%s",
+                predict_weekday_load(_plist, spread=False), predict_weekday_load(_plist, spread=True),
+                "슬롯 분산" if _spread_slots else "현재 정책",
+            )
+        except Exception as _sch_e:
+            logger.warning("[daily_scan_all] 스캔 분산 모듈 적용 실패(기존 방식으로 진행): %s", _sch_e)
+
         for i, biz in enumerate(businesses):
             try:
                 plan = (biz.get("subscriptions") or {}).get("plan", "basic")
@@ -519,17 +539,26 @@ async def daily_scan_all():
                 # basic:   월·목 풀스캔 (주 2회 — 창업패키지 대비 차별화, 2026-07-15)
                 # pro:     월·수·금 → 풀스캔 / 나머지 → 경량 스캔 (주 3회 풀스캔)
                 # biz: 매일 풀스캔
-                is_thursday = today.weekday() == 3
-                if plan == "startup" and not is_monday:
-                    logger.debug("[daily_scan_all] startup 비월요일 스킵 biz=%s", biz.get("id"))
+                # 오늘 스캔 방식 판정 — 고정 요일 규칙(기본) 또는 슬롯 분산(NAVER_SCAN_SLOT_SPREAD=true).
+                # 판정 로직은 services/scan_scheduling.decide_scan_mode(기존 규칙과 같음을 전수 비교 테스트로 고정)
+                from services.scan_scheduling import decide_scan_mode
+                _scan_mode = decide_scan_mode(plan, today.weekday(), str(biz.get("id")), _spread_slots)
+
+                # 사전 스캔 결과가 쓸 만하면 서버의 중복 네이버 브리핑 접속을 생략한다(설계 문서 §3 B).
+                # 캡챠·오류·상한 건너뜀으로 끝난 사전 스캔은 쓸 수 없으므로 서버가 직접 측정한다.
+                _skip_naver_brief = bool(
+                    _prescan_naver
+                    and not _prescan_naver.get("captcha_detected")
+                    and not _prescan_naver.get("error")
+                    and not _prescan_naver.get("quota_skipped")
+                )
+                if _scan_mode == "skip":
+                    logger.debug("[daily_scan_all] %s 스캔일 아님 스킵 biz=%s", plan, biz.get("id"))
                     continue
-                elif plan == "basic" and not (is_monday or is_thursday):
-                    logger.debug("[daily_scan_all] basic 비월/목 스킵 biz=%s", biz.get("id"))
-                    continue
-                elif plan == "pro" and not is_pro_scan_day:
-                    result = await basic_scanner.scan_basic(_scan_queries, biz["name"])
+                elif _scan_mode == "basic":
+                    result = await basic_scanner.scan_basic(_scan_queries, biz["name"], skip_naver=_skip_naver_brief)
                 else:
-                    result = await full_scanner.scan_all(_scan_queries, biz["name"])
+                    result = await full_scanner.scan_all(_scan_queries, biz["name"], skip_naver=_skip_naver_brief)
 
                 # GitHub Actions prescan 결과가 있으면 서버 스캔 결과를 덮어쓰기
                 if _prescan_naver:
@@ -3235,8 +3264,14 @@ async def quarterly_index_job():
             logger.warning(f"[quarterly_index_job] slack alert 실패: {_se}")
 
 
+@_naver_batch_job
 async def competitor_place_sync_job():
-    """매주 월요일 03:30 — naver_place_id가 있는 모든 경쟁사 플레이스 데이터 동기화"""
+    """매일 03:30 — 오늘이 차례인 사업장의 경쟁사 플레이스 데이터 동기화.
+
+    기존: 화요일에 전 사업장 일괄(스케줄은 cron day_of_week="tue"). 2026-10-27: 매일 실행하되 services/scan_scheduling.
+    competitor_job_due로 차례인 사업장만 처리한다. NAVER_SCAN_SLOT_SPREAD=false(기본)면 화요일에만 전원이 차례라 기존과 같고,
+    true면 사업장 슬롯 요일로 분산해 하루 최대 네이버 부하를 줄인다.
+    """
     from db.supabase_client import get_client
     from services.competitor_place_crawler import sync_all_competitor_places
 
@@ -3254,6 +3289,13 @@ async def competitor_place_sync_job():
 
         # business_id 중복 제거
         business_ids = list({r["business_id"] for r in rows})
+        try:
+            from services.scan_scheduling import competitor_job_due, rotate_for_fairness, slot_spread_enabled
+            _wd, _sp = date.today().weekday(), slot_spread_enabled()
+            business_ids = [b for b in business_ids if competitor_job_due("sync", _wd, str(b), _sp)]
+            business_ids = rotate_for_fairness(business_ids, key=lambda b: str(b), today=date.today())
+        except Exception as _due_e:
+            logger.warning(f"competitor_place_sync_job: 분산 판정 실패(전체 처리로 진행): {_due_e}")
         logger.info(f"competitor_place_sync_job: {len(business_ids)}개 사업장 동기화 시작")
 
         total_synced = 0
@@ -3268,7 +3310,7 @@ async def competitor_place_sync_job():
                 total_synced += len(results) - len(errors)
                 total_errors += len(errors)
                 # 배치 내 ip_blocked/quota_exceeded 발생 시 남은 사업장 전체 중단
-                if any(r.get("error") in ("ip_blocked", "quota_exceeded") for r in results):
+                if any(r.get("error") in ("ip_blocked", "quota_exceeded", "naver_place_cooldown") for r in results):
                     ip_banned = True
                     logger.warning("competitor_place_sync_job: IP차단/상한도달 감지, 전체 잡 조기 종료")
             except Exception as e:
@@ -3342,6 +3384,7 @@ async def competitor_faq_sync_job():
         logger.error(f"[competitor_faq_sync_job] 실패: {e}")
 
 
+@_naver_batch_job
 async def enrich_competitor_details_job():
     """매주 목요일 03:00 — 경쟁사 블로그 언급 수 + 웹사이트 SEO + 상세 정보 보강.
 
@@ -3363,6 +3406,14 @@ async def enrich_competitor_details_job():
                 .not_.is_("naver_place_id", "null")
             )
         ).data or []
+
+        # 오늘이 차례인 사업장의 경쟁사만(슬롯 분산 켜짐: 사업장 슬롯+2일, 꺼짐: 기존과 같이 목요일 전원) — 2026-10-27
+        try:
+            from services.scan_scheduling import competitor_job_due, slot_spread_enabled
+            _wd, _sp = date.today().weekday(), slot_spread_enabled()
+            rows = [r for r in rows if competitor_job_due("enrich", _wd, str(r.get("business_id")), _sp)]
+        except Exception as _due_e:
+            logger.warning(f"enrich_competitor_details_job: 분산 판정 실패(전체 처리로 진행): {_due_e}")
 
         if not rows:
             logger.info("enrich_competitor_details_job: 대상 경쟁사 없음")
@@ -3398,7 +3449,7 @@ async def enrich_competitor_details_job():
                     competitor_id, naver_place_id, supabase, region=region,
                     registered_name=row.get("name", ""),
                 )
-                if result.get("error") in ("ip_blocked", "quota_exceeded"):
+                if result.get("error") in ("ip_blocked", "quota_exceeded", "naver_place_cooldown"):
                     logger.warning(f"enrich_competitor_details_job: {result['error']} 감지, 전체 잡 조기 종료")
                     ip_banned = True
                     total_err += 1
@@ -5097,6 +5148,7 @@ async def weekly_digest_job():
         await send_slack_alert("weekly_digest_job 실패", str(e), level="warning")
 
 
+@_naver_batch_job
 async def weekly_competitor_sync_job():
     """매주 화요일 03:00 KST — 7일 이상 미갱신 경쟁사 네이버 플레이스 데이터 동기화.
 
@@ -5357,6 +5409,11 @@ async def _run_keyword_rank_for_plans(plans: list[str]) -> None:
         return
 
     targets = [b for b in (biz_res.data or []) if b.get("keywords")]
+    try:  # 상한 도달 시 같은 사업장이 매일 뒤로 밀려 굶지 않게 날짜 시드로 순서 회전(2026-10-27)
+        from services.scan_scheduling import rotate_for_fairness
+        targets = rotate_for_fairness(targets, key=lambda b: str(b.get("id")), today=date.today())
+    except Exception as _rot_e:
+        logger.warning(f"[keyword_rank_job] 순서 회전 실패(기존 순서 유지): {_rot_e}")
     logger.info(f"[keyword_rank_job] plans={plans} 대상={len(targets)}건")
 
     success = 0
@@ -5472,6 +5529,7 @@ async def _maybe_notify_keyword_change(biz: dict, prev: dict, curr: dict) -> Non
         logger.warning(f"[keyword_change_notify] 발송 실패: {e}")
 
 
+@_naver_batch_job
 async def keyword_rank_basic_weekly_job() -> None:
     """Basic 플랜 주 1회 키워드 순위 측정 (매주 월요일 04:00 KST)."""
     try:
@@ -5481,6 +5539,7 @@ async def keyword_rank_basic_weekly_job() -> None:
         await send_slack_alert("keyword_rank_basic_weekly_job 실패", str(e), level="error")
 
 
+@_naver_batch_job
 async def keyword_rank_pro_daily_job() -> None:
     """Pro/Biz/Enterprise 플랜 일 1회 키워드 순위 측정 (매일 04:30 KST)."""
     try:
@@ -6395,6 +6454,7 @@ async def ai_tab_trigger_check_job():
         _logger.info(f"[P2-MONITOR] AI탭 노출률 {rate*100:.0f}% — 확산 중, 추가 관찰 필요")
 
 
+@_naver_batch_job
 async def briefing_category_expansion_monitor_job():
     """M3-4: 월 1회(1일 09:00 KST) 의료·법무·헬스케어 AI 브리핑 업종 확대 감지.
 

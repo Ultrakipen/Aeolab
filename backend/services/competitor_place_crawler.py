@@ -18,6 +18,44 @@ from services.ai_scanner.bandwidth_tracker import record_usage_mb as _record_usa
 
 _logger = logging.getLogger(__name__)
 
+# ── 같은 장소 재사용 캐시 (2026-10-27, 사용자 증가 대비) ─────────────────────────────────
+# 경쟁사는 사업장별로 등록되므로 사용자가 늘면 같은 가게(예: 동네 대표 맛집)를 여러 사업장이 경쟁사로 등록한다.
+# 정기 잡은 등록 행마다 크롤하므로 같은 장소를 같은 날 여러 번 여는데, 최근에 성공한 결과를 잠시 재사용해
+# 사용자 수가 아니라 "고유한 경쟁 장소 수"에 비례하게 만든다. 프로세스 메모리 캐시(재시작하면 비움),
+# 성공한 결과만 저장, TTL 기본 72시간(제안값, COMPETITOR_PLACE_CACHE_TTL_SEC로 조정).
+# 72시간인 이유: 화요일 competitor_place_sync_job이 크롤한 장소를 목요일 enrich_competitor_details_job(블로그·SEO 보강이
+# 목적인데 모든 경쟁사의 플레이스를 다시 크롤하고 있었음)이 네이버 요청 없이 재사용하게 한다. 경쟁사 데이터는 며칠 단위로 천천히 바뀐다.
+import time as _time
+
+_PLACE_CACHE: dict = {}
+_PLACE_CACHE_MAX = 500
+
+
+def _place_cache_ttl() -> float:
+    try:
+        return float(os.getenv("COMPETITOR_PLACE_CACHE_TTL_SEC", "259200"))
+    except ValueError:
+        return 259200.0
+
+
+def _place_cache_get(place_id: str) -> Optional[dict]:
+    ttl = _place_cache_ttl()
+    if ttl <= 0:
+        return None
+    hit = _PLACE_CACHE.get(str(place_id))
+    if hit and (_time.monotonic() - hit[0]) <= ttl:
+        return dict(hit[1])     # 호출자가 수정해도 캐시가 바뀌지 않게 복사
+    return None
+
+
+def _place_cache_put(place_id: str, data: dict) -> None:
+    if _place_cache_ttl() <= 0:
+        return
+    if len(_PLACE_CACHE) >= _PLACE_CACHE_MAX:
+        oldest = min(_PLACE_CACHE, key=lambda k: _PLACE_CACHE[k][0])
+        _PLACE_CACHE.pop(oldest, None)
+    _PLACE_CACHE[str(place_id)] = (_time.monotonic(), dict(data))
+
 # Playwright 세마포어: multi_scanner.PLAYWRIGHT_SEMAPHORE 공유 (동시 Playwright 전역 1개 보장)
 # naver_place_stats.py와 동일한 lazy import 패턴 — 순환 import 방지
 def _get_playwright_sem():
@@ -89,6 +127,11 @@ async def fetch_competitor_place_data(naver_place_id: str) -> dict:
     # 2026-08-08: 전역 일일 상한(check_naver_playwright_quota) 도달 시 크롤링 스킵 —
     # jobs.py의 competitor_place_sync_job·enrich_competitor_details_job·weekly_competitor_sync_job
     # 3개 잡이 전부 이 함수 하나를 거치므로 여기 한 곳만 고치면 전부 적용됨.
+    # 최근에 성공한 같은 장소 결과가 있으면 네이버 요청 없이 재사용(상한·차단 보호보다 먼저 확인)
+    _cached = _place_cache_get(naver_place_id)
+    if _cached is not None:
+        return _cached
+
     # 2026-10-27: 차단 중에는 네이버 요청 없이 즉시 건너뛴다(차단 연장 방지, services/naver_access_guard.py).
     # 경쟁사 수만큼 연달아 호출되므로 차단 화면을 받은 뒤 나머지 경쟁사 크롤링을 계속 보내지 않는 것이 특히 중요하다.
     from services.naver_access_guard import begin_place_access, place_pace
@@ -105,7 +148,10 @@ async def fetch_competitor_place_data(naver_place_id: str) -> dict:
     try:
         async with _get_playwright_sem():
             await place_pace()
-            return await asyncio.wait_for(_run_place_crawl(naver_place_id), timeout=90)
+            _res = await asyncio.wait_for(_run_place_crawl(naver_place_id), timeout=90)
+            if isinstance(_res, dict) and not _res.get("error"):
+                _place_cache_put(naver_place_id, _res)
+            return _res
     except asyncio.TimeoutError:
         _logger.warning(f"competitor_place_crawler timeout: {naver_place_id}")
         return {**default, "error": "timeout"}

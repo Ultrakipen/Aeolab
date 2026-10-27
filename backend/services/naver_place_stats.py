@@ -249,8 +249,9 @@ async def check_smart_place_completeness(naver_place_url: str) -> dict:
         return {**default, "error": _why}
 
     from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
-    # 홈·메뉴·소식·정보·사진 탭을 연다 — 페이지 수만큼 센다(기존엔 호출 1번=1건으로 과소 집계)
-    if not _check_naver_quota("naver_place_stats.check_smart_place_completeness", cost=5):
+    # 홈·메뉴·소식·정보(+사진 탭이 켜져 있으면 사진) 탭을 연다 — 페이지 수만큼 센다(기존엔 호출 1번=1건으로 과소 집계)
+    from services.place_page_signals import photo_tab_enabled as _photo_on
+    if not _check_naver_quota("naver_place_stats.check_smart_place_completeness", cost=(5 if _photo_on() else 4)):
         return {**default, "error": "quota_exceeded"}
 
     try:
@@ -448,18 +449,25 @@ async def _check_completeness(url: str) -> dict:
 
             # ── 4단계: 사진 탭 — AI 이미지 필터 카테고리 파싱 ──────────────
             photo_categories: dict = {}
-            try:
-                photo_categories, photo_tab_total = await _parse_photo_categories(page)
-                if photo_tab_total is None:
-                    # 사진 탭 네트워크 오류 — 측정 불가, 홈 텍스트 추정값도 0이면 None 유지
-                    if not photo_count:
-                        photo_count = None
-                    logger.warning(f"[sp_check] photo tab unavailable, photo_count={photo_count}")
-                elif photo_tab_total > 0:
-                    photo_count = photo_tab_total
-                    logger.info(f"[sp_check] photo_count updated from tab total: {photo_count}")
-            except Exception as e:
-                logger.warning(f"_parse_photo_categories call failed: {e}")
+            # 2026-10-27: 사진 탭은 서버 헤드리스에서 렌더링되지 않아 전 가게 photo_count=None이었다(6월부터).
+            # 얻는 것 없이 페이지만 여는 호출이라 기본으로 열지 않는다(PLACE_PHOTO_TAB_ENABLED=true로 다시 켠다).
+            # 끄면 기존 실패 경로와 같은 결과(측정 불가 None)를 낸다 — 미측정을 0으로 세지 않는다.
+            from services.place_page_signals import photo_tab_enabled
+            if photo_tab_enabled():
+                try:
+                    photo_categories, photo_tab_total = await _parse_photo_categories(page)
+                    if photo_tab_total is None:
+                        # 사진 탭 네트워크 오류 — 측정 불가, 홈 텍스트 추정값도 0이면 None 유지
+                        if not photo_count:
+                            photo_count = None
+                        logger.warning(f"[sp_check] photo tab unavailable, photo_count={photo_count}")
+                    elif photo_tab_total > 0:
+                        photo_count = photo_tab_total
+                        logger.info(f"[sp_check] photo_count updated from tab total: {photo_count}")
+                except Exception as e:
+                    logger.warning(f"_parse_photo_categories call failed: {e}")
+            elif not photo_count:
+                photo_count = None
 
             _pc_for_score = photo_count or 0  # None → 0 (점수 계산용)
             _has_rp = bool(has_recent_post)   # None(차단) = False

@@ -1,5 +1,8 @@
 """AI 스캐너 공통 유틸리티 — UA 풀, stealth, 프록시 로테이션"""
 import asyncio
+import contextvars
+import functools
+import json
 import logging
 import os
 import random
@@ -247,6 +250,88 @@ _naver_pw_quota_by_source: dict = {}
 _naver_pw_quota_warn_sent: set = set()
 _QUOTA_WARN_PERCENTS = (70, 90)
 
+# ── 배치/사용자 요청 예약 용량 + 재시작 방지 영속화 (2026-10-27, 설계 문서 naver_request_load_spreading §3 D·E) ──
+# 정기 잡(배치)이 하루 상한을 다 써 버리면 사용자가 직접 누른 스캔이 막힌다. 배치는 상한의 일정 비율까지만 쓰고
+# 나머지는 사용자 요청 몫으로 남긴다. 비율 0.7은 근거 없는 제안값(NAVER_BATCH_CAP_RATIO로 조정).
+_NAVER_BATCH_RATIO = max(0.1, min(1.0, float(os.getenv("NAVER_BATCH_CAP_RATIO", "0.7"))))
+_naver_batch_var: "contextvars.ContextVar[bool]" = contextvars.ContextVar("naver_batch", default=False)
+_naver_pw_quota_batch_count: int = 0
+_naver_pw_batch_deny_logged_date: str = ""
+
+
+def naver_batch_job(fn):
+    """정기 잡(배치) 데코레이터 — 이 잡 안에서 일어나는 네이버 접속은 상한의 배치 비율까지만 쓴다.
+
+    contextvar라 잡이 만드는 하위 태스크(asyncio.gather 등)에도 전파되고, 잡이 끝나면 원복된다.
+    """
+    @functools.wraps(fn)
+    async def _wrapper(*args, **kwargs):
+        token = _naver_batch_var.set(True)
+        try:
+            return await fn(*args, **kwargs)
+        finally:
+            _naver_batch_var.reset(token)
+    return _wrapper
+
+
+def is_naver_batch() -> bool:
+    return _naver_batch_var.get()
+
+
+def _quota_state_path() -> str:
+    default = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".naver_quota_state.json")
+    return os.getenv("NAVER_QUOTA_STATE_FILE", default)
+
+
+def _quota_history_path() -> str:
+    return _quota_state_path().replace(".json", "_history.jsonl")
+
+
+def _save_quota_state() -> None:
+    """카운터를 파일에 저장 — 프로세스 메모리 값이라 배포·재시작 때마다 그날 누적이 0부터 다시 시작해
+    과소 집계되던 문제(설계 문서 §6 한계)를 없앤다. 저장 실패가 접속을 막지 않는다."""
+    try:
+        tmp = _quota_state_path() + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump({
+                "date": _naver_pw_quota_date, "count": _naver_pw_quota_count,
+                "batch_count": _naver_pw_quota_batch_count, "by_source": _naver_pw_quota_by_source,
+            }, f)
+        os.replace(tmp, _quota_state_path())
+    except Exception as e:
+        _logger.warning("[naver_quota] 상태 파일 저장 실패(메모리 값은 유지): %s", e)
+
+
+def _load_quota_state() -> None:
+    """오늘 날짜의 저장된 카운터가 있으면 복원한다(다른 날짜면 무시)."""
+    global _naver_pw_quota_date, _naver_pw_quota_count, _naver_pw_quota_batch_count
+    from datetime import date as _date
+    try:
+        with open(_quota_state_path(), "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if data.get("date") == _date.today().isoformat():
+            _naver_pw_quota_date = data["date"]
+            _naver_pw_quota_count = int(data.get("count", 0))
+            _naver_pw_quota_batch_count = int(data.get("batch_count", 0))
+            _naver_pw_quota_by_source.clear()
+            _naver_pw_quota_by_source.update({k: int(v) for k, v in (data.get("by_source") or {}).items()})
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        _logger.warning("[naver_quota] 상태 파일 읽기 실패(무시, 0부터 시작): %s", e)
+
+
+def _append_quota_history(day: str, count: int, batch_count: int, by_source: dict) -> None:
+    """하루가 끝날 때 그날 사용량을 한 줄(JSON)로 남긴다 — 구독자 데이터가 쌓이기 전 부하 모델을 실측으로 보정하는 근거."""
+    if not day or count <= 0:
+        return
+    try:
+        with open(_quota_history_path(), "a", encoding="utf-8") as f:
+            f.write(json.dumps({"date": day, "used": count, "batch_used": batch_count,
+                                "by_source": by_source}, ensure_ascii=False) + "\n")
+    except Exception as e:
+        _logger.warning("[naver_quota] 일별 이력 기록 실패(무시): %s", e)
+
 
 def check_naver_playwright_quota(source: str = "", cost: int = 1) -> bool:
     """오늘 네이버 Playwright 요청 상한 여유가 있으면 카운트 증가 후 True, 초과하면 False.
@@ -257,14 +342,27 @@ def check_naver_playwright_quota(source: str = "", cost: int = 1) -> bool:
     날짜가 바뀌면(자정, 서버 로컬 타임존 기준) 자동 리셋.
     """
     global _naver_pw_quota_date, _naver_pw_quota_count, _naver_pw_quota_alert_sent_date
+    global _naver_pw_quota_batch_count, _naver_pw_batch_deny_logged_date
     from datetime import date as _date
     today = _date.today().isoformat()
     if _naver_pw_quota_date != today:
+        _append_quota_history(_naver_pw_quota_date, _naver_pw_quota_count, _naver_pw_quota_batch_count,
+                              dict(_naver_pw_quota_by_source))
         _naver_pw_quota_date = today
         _naver_pw_quota_count = 0
+        _naver_pw_quota_batch_count = 0
         _naver_pw_quota_by_source.clear()
         _naver_pw_quota_warn_sent.clear()
     cost = max(1, int(cost))
+    # 배치(정기 잡)는 상한의 일부까지만 — 나머지는 사용자가 직접 누른 스캔 몫으로 남긴다
+    if _naver_batch_var.get() and _naver_pw_quota_batch_count + cost > int(_NAVER_PLAYWRIGHT_DAILY_CAP * _NAVER_BATCH_RATIO):
+        if _naver_pw_batch_deny_logged_date != today:
+            _naver_pw_batch_deny_logged_date = today
+            _logger.warning(
+                "[naver_quota] 배치 상한(%d건=상한의 %d%%) 도달 — 정기 잡의 이후 요청은 오늘 건너뜀, 사용자 요청 몫은 남겨 둠 (source=%s)",
+                int(_NAVER_PLAYWRIGHT_DAILY_CAP * _NAVER_BATCH_RATIO), int(_NAVER_BATCH_RATIO * 100), source,
+            )
+        return False
     if _naver_pw_quota_count + cost > _NAVER_PLAYWRIGHT_DAILY_CAP:
         if _naver_pw_quota_alert_sent_date != today:
             _naver_pw_quota_alert_sent_date = today
@@ -294,8 +392,11 @@ def check_naver_playwright_quota(source: str = "", cost: int = 1) -> bool:
                 _logger.warning("[naver_quota] 이벤트 루프 없음 — 상한 도달 알림 메일 생략")
         return False
     _naver_pw_quota_count += cost
+    if _naver_batch_var.get():
+        _naver_pw_quota_batch_count += cost
     _src = source or "unknown"
     _naver_pw_quota_by_source[_src] = _naver_pw_quota_by_source.get(_src, 0) + cost
+    _save_quota_state()
     _warn_quota_usage(today, _naver_pw_quota_count, _src)
     return True
 
@@ -309,8 +410,33 @@ def naver_playwright_quota_snapshot() -> dict:
         "date": _naver_pw_quota_date,
         "used": _naver_pw_quota_count,
         "cap": _NAVER_PLAYWRIGHT_DAILY_CAP,
+        "batch_used": _naver_pw_quota_batch_count,
+        "batch_cap": int(_NAVER_PLAYWRIGHT_DAILY_CAP * _NAVER_BATCH_RATIO),
         "by_source": dict(sorted(_naver_pw_quota_by_source.items(), key=lambda kv: -kv[1])),
     }
+
+
+def naver_quota_history(limit: int = 30) -> list:
+    """최근 일별 사용량 이력(오래된 순) — 부하 모델을 실측으로 보정하는 근거. 파일이 없으면 빈 목록."""
+    rows: list = []
+    try:
+        with open(_quota_history_path(), "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    try:
+                        rows.append(json.loads(line))
+                    except ValueError:
+                        continue
+    except FileNotFoundError:
+        return []
+    except Exception as e:
+        _logger.warning("[naver_quota] 이력 읽기 실패: %s", e)
+        return []
+    return rows[-max(1, int(limit)):]
+
+
+_load_quota_state()  # 모듈 로드 시 오늘 날짜의 저장된 카운터 복원(재시작해도 이어서 센다)
 
 
 def _warn_quota_usage(today: str, count: int, source: str) -> None:

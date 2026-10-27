@@ -111,8 +111,9 @@ async def auto_check_smart_place(naver_place_id: str) -> dict:
         return _failed_result(_why, place_id)
 
     from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
-    # 홈·소식·정보·사진 4개 탭 — 페이지 수만큼 센다(기존엔 호출 1번=1건)
-    if not _check_naver_quota("smart_place_auto_check.auto_check_smart_place", cost=4):
+    # 홈·소식·정보(+사진 탭이 켜져 있으면 사진) — 페이지 수만큼 센다(기존엔 호출 1번=1건)
+    from services.place_page_signals import photo_tab_enabled as _photo_on
+    if not _check_naver_quota("smart_place_auto_check.auto_check_smart_place", cost=(4 if _photo_on() else 3)):
         return _failed_result("quota_exceeded", place_id)
 
     try:
@@ -312,34 +313,38 @@ async def _run_check(naver_place_id: str) -> dict:
                 _logger.warning(f"smart_place information tab skipped [{naver_place_id}]: {e}")
 
             # ── 4단계: 사진 탭 — 전체 사진 수 정확 파악 ────────────────────────
-            # 사진 탭은 JS 비동기 로딩. networkidle 대기 후 숫자 패턴 추출.
-            try:
-                await page.goto(
-                    f"{base_url}/photo",
-                    timeout=_PAGE_TIMEOUT_MS,
-                    wait_until="networkidle",
-                )
-                await page.wait_for_timeout(1500 + random.randint(0, 1500))  # 기본 대기는 유지하고 0~1.5초 무작위를 더함(2026-10-27)
-                photo_body = (await page.inner_text("body")) or ""
-                # 네트워크 오류·IP 차단 감지 — 오류 시 기존 값 유지 (잘못된 숫자 방지)
-                if is_naver_block_page(photo_body):
-                    report_place_block("smart_place_auto_check.photo")
-                if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류", photo_body) or is_naver_block_page(photo_body):
-                    _logger.warning(f"[smart_place] photo tab network error [{naver_place_id}]")
-                else:
-                    # "전체 N"(사진 탭 필터 버튼) 우선, 없으면 "사진 N". 쉼표만 있어도 매칭돼 int('') 오류로
-                    # 사진 측정이 통째로 건너뛰어지던 정규식 수정(2026-10-27, services/place_page_signals.py)
-                    from services.place_page_signals import parse_count, _PHOTO_TOTAL_RE, _PHOTO_WORD_RE
-                    tab_total = parse_count(_PHOTO_TOTAL_RE.search(photo_body))
-                    if tab_total is None and not results["photo_count"]:
-                        tab_total = parse_count(_PHOTO_WORD_RE.search(photo_body))
-                    if tab_total:
-                        results["photo_count"] = tab_total
-                        _logger.info(
-                            f"[smart_place] photo_count updated from photo tab: {tab_total} [{naver_place_id}]"
-                        )
-            except Exception as e:
-                _logger.warning(f"smart_place photo tab skipped [{naver_place_id}]: {e}")
+            # 2026-10-27: 사진 탭은 서버 헤드리스에서 렌더링되지 않아 전 가게 측정 불가였다 — 기본으로 열지 않는다
+            # (PLACE_PHOTO_TAB_ENABLED=true로 다시 켠다). 끄면 photo_count는 홈 텍스트 추정값 또는 None.
+            from services.place_page_signals import photo_tab_enabled
+            if photo_tab_enabled():
+                # 사진 탭은 JS 비동기 로딩. networkidle 대기 후 숫자 패턴 추출.
+                try:
+                    await page.goto(
+                        f"{base_url}/photo",
+                        timeout=_PAGE_TIMEOUT_MS,
+                        wait_until="networkidle",
+                    )
+                    await page.wait_for_timeout(1500 + random.randint(0, 1500))  # 기본 대기는 유지하고 0~1.5초 무작위를 더함(2026-10-27)
+                    photo_body = (await page.inner_text("body")) or ""
+                    # 네트워크 오류·IP 차단 감지 — 오류 시 기존 값 유지 (잘못된 숫자 방지)
+                    if is_naver_block_page(photo_body):
+                        report_place_block("smart_place_auto_check.photo")
+                    if re.search(r"네트워크 오류|Failed to fetch|일시적인.*오류", photo_body) or is_naver_block_page(photo_body):
+                        _logger.warning(f"[smart_place] photo tab network error [{naver_place_id}]")
+                    else:
+                        # "전체 N"(사진 탭 필터 버튼) 우선, 없으면 "사진 N". 쉼표만 있어도 매칭돼 int('') 오류로
+                        # 사진 측정이 통째로 건너뛰어지던 정규식 수정(2026-10-27, services/place_page_signals.py)
+                        from services.place_page_signals import parse_count, _PHOTO_TOTAL_RE, _PHOTO_WORD_RE
+                        tab_total = parse_count(_PHOTO_TOTAL_RE.search(photo_body))
+                        if tab_total is None and not results["photo_count"]:
+                            tab_total = parse_count(_PHOTO_WORD_RE.search(photo_body))
+                        if tab_total:
+                            results["photo_count"] = tab_total
+                            _logger.info(
+                                f"[smart_place] photo_count updated from photo tab: {tab_total} [{naver_place_id}]"
+                            )
+                except Exception as e:
+                    _logger.warning(f"smart_place photo tab skipped [{naver_place_id}]: {e}")
 
         finally:
             try:

@@ -123,7 +123,8 @@ class MultiAIScanner:
         finally:
             PLAYWRIGHT_SEMAPHORE.release()
 
-    async def scan_all(self, queries: "str | list[str]", target: str, sample_size: int = 100) -> dict:
+    async def scan_all(self, queries: "str | list[str]", target: str, sample_size: int = 100,
+                       skip_naver: bool = False) -> dict:
         """전체 4개 AI 병렬 스캔 — Gemini·ChatGPT·Naver·Google
 
         API 기반 스캐너는 동시 실행, Playwright 기반은 세마포어 제한 직렬 실행.
@@ -132,6 +133,9 @@ class MultiAIScanner:
         sample_size: Gemini·ChatGPT 샘플링 횟수 (기본 100 — 구독자 정기 스캔).
         가입 후 1회 무료체험(run_basic_trial)은 50으로 낮춰 호출해 구독과
         차별화 — 채널 수(4~5개, AI탭 포함)는 동일하게 유지된다(2026-08-06).
+
+        skip_naver: True면 서버의 네이버 AI 브리핑 접속을 생략한다(2026-10-27). 호출자가 GitHub 사전 스캔 결과로
+        result["naver"]를 채울 때만 쓴다 — 서버가 같은 접속을 또 보내는 중복 제거(설계 문서 §3 B).
         """
         primary_query = queries if isinstance(queries, str) else (queries[0] if queries else "")
         # API 기반 스캐너: 동시 실행 (다중 쿼리 분산 샘플링)
@@ -152,6 +156,9 @@ class MultiAIScanner:
             (self.naver.check_mention, primary_query, target),
             (self.google.check_mention, primary_query, target),
         ]
+        if skip_naver:
+            playwright_keys = ["google"]
+            playwright_fns = playwright_fns[1:]
         for fn, *args in playwright_fns:
             try:
                 result = await self._run_playwright(fn, *args)
@@ -215,7 +222,7 @@ class MultiAIScanner:
             for k, v in zip(all_keys, all_results)
         }
 
-    async def scan_basic(self, queries: "str | list[str]", target: str) -> dict:
+    async def scan_basic(self, queries: "str | list[str]", target: str, skip_naver: bool = False) -> dict:
         """A안 50/50 분할: Gemini 50회 + ChatGPT 50회 + 네이버 AI 브리핑 + Google AI Overview.
 
         비용: ~25원/회 (Gemini 50회 ~5원 + ChatGPT 50회 ~10원 + 네이버 0원 + Google DataForSEO ~0.3원)
@@ -227,7 +234,7 @@ class MultiAIScanner:
         gemini_result, chatgpt_result, naver_result, google_result = await asyncio.gather(
             self.gemini.sample_50(queries, target),
             self.chatgpt.sample_recommend(queries, target, n=50),
-            self._run_playwright(self.naver.check_mention, primary_query, target),
+            (asyncio.sleep(0) if skip_naver else self._run_playwright(self.naver.check_mention, primary_query, target)),
             self.google.check_mention(primary_query, target),
             return_exceptions=True,
         )
