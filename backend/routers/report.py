@@ -356,6 +356,7 @@ async def get_industry_ranking(category: str, region: str, user=Depends(get_curr
                 supabase.table("score_history")
                 .select("total_score, exposure_freq, score_date")
                 .eq("business_id", bid)
+                .not_.is_("total_score", "null")
                 .order("score_date", desc=True)
                 .limit(1)
             )
@@ -485,6 +486,7 @@ async def get_public_industry_ranking(category: str, region: str, request: Reque
                 supabase.table("score_history")
                 .select("total_score")
                 .eq("business_id", bid)
+                .not_.is_("total_score", "null")
                 .order("score_date", desc=True)
                 .limit(1)
             )
@@ -704,6 +706,7 @@ async def get_market(biz_id: str, user=Depends(get_current_user)):
             supabase.table("score_history")
             .select("total_score, rank_in_category, total_in_category, score_date")
             .eq("business_id", biz_id)
+            .not_.is_("total_score", "null")
             .order("score_date", desc=True)
             .limit(1)
         ),
@@ -1246,8 +1249,9 @@ async def get_share_page_data(biz_id: str):
         execute(supabase.table("businesses").select("name, category, region").eq("id", biz_id).single()),
         execute(
             supabase.table("score_history")
-            .select("total_score, exposure_freq, score_date")
+            .select("total_score, track1_score, exposure_freq, score_date")
             .eq("business_id", biz_id)
+            .not_.is_("total_score", "null")
             .order("score_date", desc=True)
             .limit(1)
         ),
@@ -1262,11 +1266,16 @@ async def get_share_page_data(biz_id: str):
     s = score_data[0]
     score = s["total_score"] or 0
     grade = "A" if score >= 80 else "B" if score >= 60 else "C" if score >= 40 else "D"
+    # 성장 단계는 대시보드와 같은 점수(track1)로 정한다 — 통합 점수(total)로 정하면 같은 가게가 대시보드와 공유 페이지에서 다른 단계로 보인다.
+    # track1이 비었거나 0이면 통합 점수로 대체한다: 특정 기록 경로가 total만 채우고 track1·track2·unified를 0으로 남긴 행이 있다
+    # (2026-10-28 실측, 어니언 성수 10-26 행 — 그대로 쓰면 "시작 전"이 된다). jobs.py의 단계 변화 감지도 같은 `or` 대체를 쓴다.
+    _t1 = s.get("track1_score")
     return {
         "business_name": biz["name"],
         "category": biz["category"],
         "region": biz["region"],
         "score": score,
+        "stage_score": _t1 if _t1 else score,
         "grade": grade,
         "gemini_frequency": s.get("exposure_freq", 0),
         "scanned_at": s.get("score_date", ""),
@@ -1281,8 +1290,9 @@ async def generate_share_card(biz_id: str):
         execute(supabase.table("businesses").select("name, category, region").eq("id", biz_id).single()),
         execute(
             supabase.table("score_history")
-            .select("total_score, exposure_freq")
+            .select("total_score, track1_score, exposure_freq")
             .eq("business_id", biz_id)
+            .not_.is_("total_score", "null")
             .order("score_date", desc=True)
             .limit(1)
         ),
@@ -1295,8 +1305,20 @@ async def generate_share_card(biz_id: str):
         raise HTTPException(status_code=404, detail="측정 결과가 없습니다")
 
     score = score_data[0]["total_score"] or 0
-    grade = "A" if score >= 80 else "B" if score >= 60 else "C" if score >= 40 else "D"
+    # 공개 이미지에는 점수 숫자·등급 문자(A~D)를 그리지 않는다(점수 숫자 비노출 원칙) — 대시보드와 같은 단계 이름(track1 기준)을 쓴다
+    from services.stage_names import stage_code_for_score, stage_long_name
+    _t1 = score_data[0].get("track1_score")
+    stage_code = stage_code_for_score(_t1 if _t1 else score)       # track1이 비었거나 0이면 통합 점수로 대체(위 get_share_page_data 주석 참조)
+    stage_text = stage_long_name(stage_code)
     freq = score_data[0].get("exposure_freq") or 0
+    freq_text = str(int(freq)) if float(freq).is_integer() else f"{float(freq):g}"     # "9.0회" 방지
+    # 업종은 영문 코드("restaurant")가 아니라 한글 이름으로 — 체험 공유 카드가 쓰는 같은 헬퍼
+    try:
+        from services.share_card import _category_label as _cat_label
+        category_text = _cat_label(biz["category"] or "")
+    except Exception as _e:
+        _logger.warning("share-card 업종 한글화 실패 — 원문 사용: %s", _e)
+        category_text = biz["category"] or ""
 
     def _build_share_card_png() -> bytes:
         from PIL import Image, ImageDraw, ImageFont
@@ -1316,16 +1338,18 @@ async def generate_share_card(biz_id: str):
             font_medium = font_large
             font_small = font_large
 
-        grade_colors = {"A": "#22c55e", "B": "#3b82f6", "C": "#eab308", "D": "#f97316"}
-        grade_color = grade_colors.get(grade, "#94a3b8")
+        stage_colors = {"survival": "#94a3b8", "stability": "#eab308", "growth": "#3b82f6", "dominance": "#22c55e"}
+        stage_color = stage_colors.get(stage_code, "#94a3b8")
 
-        draw.text((80, 80), "AEOlab AI 성적표", fill="#60a5fa", font=font_small)
+        draw.text((80, 80), "AEOlab AI 검색 현황", fill="#60a5fa", font=font_small)
         draw.text((80, 160), biz["name"][:12], fill="#ffffff", font=font_medium)
-        draw.text((80, 230), f"{biz['category']} · {biz['region']}", fill="#94a3b8", font=font_small)
-        draw.text((80, 380), str(int(score)), fill=grade_color, font=font_large)
-        draw.text((300, 470), "/100점", fill="#64748b", font=font_medium)
-        draw.text((80, 560), f"{grade}등급", fill=grade_color, font=font_medium)
-        draw.text((80, 640), f"AI 100회 검색 중 {freq}회 언급", fill="#94a3b8", font=font_small)
+        draw.text((80, 230), f"{category_text} · {biz['region']}", fill="#94a3b8", font=font_small)
+        # 단계 이름(예: "AI 검색 준비도 · 보강 단계") — 점수 숫자·등급 문자는 그리지 않는다
+        draw.text((80, 380), stage_text, fill=stage_color, font=font_medium)
+        # 언급 횟수는 분모(측정 표본 수)를 이 테이블이 저장하지 않아 "100회 중"이라고 단정할 수 없다 — 0회일 때는 줄을 그리지 않는다
+        if freq:
+            draw.text((80, 560), f"AI 검색 측정에서 {freq_text}회 언급", fill="#94a3b8", font=font_small)
+        draw.text((80, 900), "측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다", fill="#64748b", font=font_small)
         draw.text((80, 980), "aeolab.co.kr", fill="#475569", font=font_small)
 
         buf = _io.BytesIO()
@@ -1361,6 +1385,7 @@ async def get_badge(biz_id: str, user=Depends(get_current_user)):
             supabase.table("score_history")
             .select("total_score")
             .eq("business_id", biz_id)
+            .not_.is_("total_score", "null")
             .order("score_date", desc=True)
             .limit(1)
         )
@@ -1399,6 +1424,7 @@ async def get_badge_svg(biz_id: str):
             supabase.table("score_history")
             .select("total_score")
             .eq("business_id", biz_id)
+            .not_.is_("total_score", "null")
             .order("score_date", desc=True)
             .limit(1)
         )
@@ -3608,6 +3634,7 @@ async def log_business_action(
             supabase.table("score_history")
             .select("unified_score, total_score")
             .eq("business_id", biz_id)
+            .not_.is_("total_score", "null")
             .order("score_date", desc=True)
             .limit(1)
             .maybe_single()
@@ -5460,6 +5487,7 @@ async def get_visit_delta(
             .select("unified_score, total_score, score_date")
             .eq("business_id", biz_id)
             .lt("score_date", last_visit_iso[:10])
+            .not_.is_("total_score", "null")
             .order("score_date", desc=True)
             .limit(1)
         )

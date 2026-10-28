@@ -1,4 +1,4 @@
-import { STAGE_NAME } from "@/lib/scoreLabels";
+import { STAGE_NAME, stageCodeForScore } from "@/lib/scoreLabels";
 import { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -15,6 +15,8 @@ interface ShareData {
   category: string;
   region: string;
   score: number;
+  /** 성장 단계를 정하는 점수(track1) — 대시보드와 같은 단계로 보이게 한다. 없으면(구버전 응답) score */
+  stage_score?: number;
   grade: string;
   gemini_frequency: number;
   scanned_at: string;
@@ -25,7 +27,9 @@ interface Props {
 }
 
 function getStage(score: number): { label: string; tagBg: string; bar: string; bg: string; message: string; borderColor: string } {
-  if (score >= 70) return {
+  // 구간(75/55/30)은 lib/scoreLabels.ts 단일 소스 — 이전에는 이 페이지만 70/50/30을 따로 써서 같은 가게가 대시보드와 다른 단계로 보였다
+  const code = stageCodeForScore(score);
+  if (code === "dominance") return {
     label: STAGE_NAME.dominance,
     tagBg: "bg-blue-100 text-blue-700",
     bar: "bg-blue-500",
@@ -33,7 +37,7 @@ function getStage(score: number): { label: string; tagBg: string; bar: string; b
     borderColor: "border-blue-200",
     message: "경쟁 가게 대비 AI 검색 노출이 잘 되어 있습니다.",
   };
-  if (score >= 50) return {
+  if (code === "growth") return {
     label: STAGE_NAME.growth,
     tagBg: "bg-blue-100 text-blue-700",
     bar: "bg-blue-500",
@@ -41,7 +45,7 @@ function getStage(score: number): { label: string; tagBg: string; bar: string; b
     borderColor: "border-blue-200",
     message: "기반이 갖춰져 있습니다. 개선 항목 2~3가지 보완으로 노출을 더 늘릴 수 있습니다.",
   };
-  if (score >= 30) return {
+  if (code === "stability") return {
     label: STAGE_NAME.stability,
     tagBg: "bg-amber-100 text-amber-700",
     bar: "bg-amber-400",
@@ -65,7 +69,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const res = await fetch(`${BACKEND}/api/report/share/${bizId}`, { cache: "no-store" });
     if (res.ok) {
       const d: ShareData = await res.json();
-      const stage = getStage(d.score);
+      const stage = getStage(d.stage_score ?? d.score);
       return {
         title: `${d.business_name} AI 검색 — ${stage.label} — AEOlab`,
         description: `${d.region} ${d.business_name}의 AI 검색 노출 현황: ${stage.label}. ${stage.message}`,
@@ -106,7 +110,8 @@ export default async function SharePage({ params }: Props) {
     );
   }
 
-  const stage = getStage(data.score);
+  const stageScore = data.stage_score ?? data.score;
+  const stage = getStage(stageScore);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-blue-950 flex items-start justify-center p-4 py-6">
@@ -131,7 +136,7 @@ export default async function SharePage({ params }: Props) {
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
                   className={`h-2 rounded-full ${stage.bar} transition-all duration-700`}
-                  style={{ width: `${Math.min(data.score, 100)}%` }}
+                  style={{ width: `${Math.min(stageScore, 100)}%` }}
                 />
               </div>
               <p className="text-sm text-gray-600 mt-1 text-right">{stage.label} 기준</p>
