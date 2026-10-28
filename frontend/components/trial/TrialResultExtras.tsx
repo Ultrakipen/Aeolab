@@ -25,11 +25,14 @@ export function TrialVerdictCard({
   headline,
   bullets,
   confirmed = [],
+  reported = "",
 }: {
   headline: string;
   bullets: VerdictBullet[];
   /** 측정으로 확인된 사실 — 경고가 첫 화면에 보일 때 함께 보여 준다(값이 있는 실측만) */
   confirmed?: string[];
+  /** 사장님이 직접 입력한 값(측정 아님) — 확인된 것과 섞지 않고 따로 표시 */
+  reported?: string;
 }) {
   // 헤드라인 하나만 남기고 근거는 기본 접는다 — "한 줄 진단"인데 근거 3~4개가 항상 펼쳐져 있어
   // 핵심 메시지가 흐려진다는 지적(2026-09-29)에 따른 개선. 근거 문장(사업장명·검색어 인용 등)은
@@ -77,6 +80,12 @@ export function TrialVerdictCard({
             ))}
           </ul>
         </div>
+      )}
+      {reported && (
+        <p className="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm md:text-base text-slate-800 leading-snug break-keep">
+          <span className="font-bold">입력하신 값</span> · {reported}{" "}
+          <span className="text-slate-600">(AEOlab이 확인한 값이 아니에요)</span>
+        </p>
       )}
       {rest.length > 0 && (
         <>

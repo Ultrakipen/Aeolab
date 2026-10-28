@@ -22,6 +22,7 @@ import { getUserGroup, GROUP_MESSAGES } from "@/lib/userGroup";
 import BusinessSearchDropdown from "@/components/dashboard/BusinessSearchDropdown";
 import { mapNaverCategory as mapKakaoCategory } from "@/lib/categories";
 import type { BusinessSearchResult } from "@/types";
+import { clearTrialReviewInput, describeTrialReviewInput, loadTrialReviewInput, type TrialReviewInput } from "@/lib/trialReviewInput";
 
 const STEPS = [
   { id: 1, label: "사업장 등록",  desc: "내 가게 정보 입력" },
@@ -146,6 +147,11 @@ export default function OnboardingPage() {
     is_franchise: false,
   });
   const [autoFillMsg, setAutoFillMsg] = useState("");
+  // 무료 체험에서 사장님이 직접 입력한 리뷰 수·평점 — 사업장 등록 때 함께 저장한다(측정값이 생기면 그쪽이 우선)
+  const [trialReview, setTrialReview] = useState<TrialReviewInput | null>(null);
+  useEffect(() => {
+    setTrialReview(loadTrialReviewInput());
+  }, []);
   const [showManualInput, setShowManualInput] = useState(false);
   const [naverSearching, setNaverSearching] = useState(false);
   const [naverSearchMsg, setNaverSearchMsg] = useState("");
@@ -300,8 +306,13 @@ export default function OnboardingPage() {
         kakao_place_id: form.kakao_place_id || undefined,
         keywords: form.keywords ? form.keywords.split(",").map(k => k.trim()).filter(Boolean) : [],
         is_franchise: form.is_franchise,
+        ...(trialReview?.review_count != null ? { review_count: trialReview.review_count } : {}),
+        ...(trialReview?.avg_rating != null ? { avg_rating: trialReview.avg_rating } : {}),
       }, session.user.id, session.access_token) as { id?: string } | null;
-      if (biz?.id) setRegisteredBizId(biz.id);
+      if (biz?.id) {
+        setRegisteredBizId(biz.id);
+        if (trialReview) clearTrialReviewInput();
+      }
       trackOnboardingAction("business_registered", { category: form.category });
       setStep(2);
       trackOnboardingAction("scan_guide_viewed");
@@ -553,6 +564,11 @@ export default function OnboardingPage() {
                   <p className="text-sm text-green-700 font-semibold mt-2 flex items-center gap-1">
                     <CheckCircle2 className="w-4 h-4 shrink-0" />
                     {autoFillMsg}
+                  </p>
+                )}
+                {trialReview && (
+                  <p className="text-sm text-slate-700 mt-2 leading-snug">
+                    무료 체험에서 입력하신 값({describeTrialReviewInput(trialReview)})을 가게 정보에 함께 저장해요. 네이버 플레이스에서 실제 값을 읽으면 그 값으로 바뀌어요.
                   </p>
                 )}
               </div>

@@ -205,6 +205,7 @@ export async function createBusiness(
     naver_place_id?: string; naver_place_url?: string;
     google_place_id?: string; kakao_place_id?: string;
     business_type?: string; is_franchise?: boolean;
+    review_count?: number; avg_rating?: number;
   },
   userId: string,
   token?: string,

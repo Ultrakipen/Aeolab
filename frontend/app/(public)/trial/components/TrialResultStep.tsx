@@ -48,6 +48,8 @@ import type {
 } from "@/types";
 import type { TrialResultProps } from "./TrialSharedTypes";
 import { trackTrialComplete, trackEvent } from "@/lib/analytics";
+import TrialReviewInputCard from "@/components/trial/TrialReviewInputCard";
+import { describeTrialReviewInput, loadTrialReviewInput, saveTrialReviewInput, type TrialReviewInput } from "@/lib/trialReviewInput";
 import type { LucideIcon } from "lucide-react";
 import {
   Info,
@@ -457,6 +459,11 @@ export default function TrialResultStep(props: TrialResultProps) {
   // 소개글·소식을 AEOlab이 직접 못 본 경우, 사장님이 눌러서 바로잡는 답(null = 아직 답 안 함)
   const [introAnswer, setIntroAnswer] = useState<boolean | null>(null);
   const [postAnswer, setPostAnswer] = useState<boolean | null>(null);
+  // 리뷰 수·평점을 AEOlab이 못 읽었을 때 사장님이 직접 입력한 값(측정 아님 — 항상 "입력하신 값"으로 구분 표시)
+  const [reviewInput, setReviewInput] = useState<TrialReviewInput | null>(null);
+  useEffect(() => {
+    setReviewInput(loadTrialReviewInput());
+  }, []);
   // "오늘 할 일 보기 ↓" 등 #today-action 링크·버튼 → 할 일 탭으로 전환 후 해당 위치로 스크롤
   // 탭 전환 계측 — 어떤 구역까지 보는지 알아야 다음 개선의 근거가 생긴다(2026-09-28)
   const changeTab = (k: TrialTabKey) => {
@@ -893,6 +900,12 @@ export default function TrialResultStep(props: TrialResultProps) {
     }
   }
 
+  // 방문자 리뷰 수를 AEOlab이 실제로 읽었는지 — 읽었으면 입력 카드를 숨긴다(측정값이 우선)
+  const reviewMeasured = (() => {
+    const sp = result.smart_place_check as { visitor_review_count?: number; error?: string } | null | undefined;
+    return !!sp && !sp.error && (sp.visitor_review_count ?? 0) > 0;
+  })();
+
   // 첫 화면에 함께 보여 줄 "측정으로 확인된 것" — 경고 하나만 먼저 보이면 유명 가게도 "찾지 못했다"만 읽는다(2026-10-28 어니언 성수).
   // 값이 있는 실측만 담고(0·미측정은 제외), 새로 계산하지 않고 위에서 이미 만든 값을 재사용한다.
   const confirmedFacts: string[] = [];
@@ -1095,6 +1108,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           headline={verdictHeadline}
           bullets={verdictBullets}
           confirmed={aiWeak || naverWeak ? confirmedFacts : []}
+          reported={reviewMeasured ? "" : describeTrialReviewInput(reviewInput)}
         />
 
         {/* ── 손님이 가게를 찾는 5개 길 — 어디를 직접 재 봤고 어디가 남았는지 (2026-10-10) ── */}
@@ -1126,6 +1140,23 @@ export default function TrialResultStep(props: TrialResultProps) {
             setPost={(v) => {
               setPostAnswer(v);
               trackEvent("trial_diag_fix_answer", { field: "post", value: v, trial_id: (result as { trial_id?: string }).trial_id });
+            }}
+          />
+        )}
+
+        {/* 리뷰 수·평점을 못 읽은 경우에만 — 사장님이 알려 주면 "입력하신 값"으로 표시하고 가입 시 이어받는다 */}
+        {!reviewMeasured && !isNonLocationTrial && (
+          <TrialReviewInputCard
+            value={reviewInput}
+            onChange={(v) => {
+              setReviewInput(v);
+              saveTrialReviewInput(v);
+              trackEvent("trial_review_input", {
+                action: v ? "save" : "clear",
+                has_count: v?.review_count != null,
+                has_rating: v?.avg_rating != null,
+                trial_id: (result as { trial_id?: string }).trial_id,
+              });
             }}
           />
         )}
