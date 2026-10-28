@@ -3168,7 +3168,7 @@ async def competitor_place_sync_job():
         # naver_place_id가 있는 경쟁사의 business_id 목록 수집 (중복 제거)
         _cps_rows_res = await _db(
             supabase.table("competitors")
-            .select("business_id, naver_place_last_synced_at")
+            .select("business_id, naver_place_id, naver_place_last_synced_at")
             .eq("is_active", True)
             .not_.is_("naver_place_id", "null")
         )
@@ -3185,13 +3185,14 @@ async def competitor_place_sync_job():
                 # 요일 대신 "마지막 관측이 오래된 사업장부터, 오늘 예산 안에서" — 건너뛰는 주 없이 스스로 분산(scan_scheduling 주석)
                 from datetime import datetime as _dt, timezone as _tz
                 from services.ai_scanner import naver_playwright_quota_snapshot
-                from services.competitor_place_crawler import _place_cache_ttl
+                from services.competitor_place_crawler import _place_cache_ttl, place_cache_fresh_ids
                 _now = _dt.now(_tz.utc)
+                _cached_ids = place_cache_fresh_ids({str(r["naver_place_id"]) for r in rows if r.get("naver_place_id")})
                 _snap = naver_playwright_quota_snapshot()
                 _bcap = int(_snap.get("batch_cap") or int((_snap.get("cap") or 0) * 0.7))
                 _used = sum(v for k, v in (_snap.get("by_source") or {}).items() if str(k).startswith("competitor"))
                 _budget = int(_bcap * competitor_daily_budget_ratio()) - _used
-                business_ids = select_stale_first(build_stale_items(rows, _now), _now, _place_cache_ttl(), _budget, date.today())
+                business_ids = select_stale_first(build_stale_items(rows, _now, _cached_ids), _now, _place_cache_ttl(), _budget, date.today())
                 logger.info(f"competitor_place_sync_job: 오래된 순서 선택 — 후보 {len({r['business_id'] for r in rows})}곳 중 "
                             f"{len(business_ids)}곳 (예산 {_budget}페이지)")
             else:

@@ -227,3 +227,105 @@ def test_registration_and_startup_paths_bound_cache_age():
     assert comp.count("max_age_sec=INTERACTIVE_MAX_AGE_SEC") == 2          # 번호가 있는 등록 + 자동 탐색 등록
     start = open(os.path.join(root, "services", "startup_competitor_readiness.py"), encoding="utf-8").read()
     assert "fetch_competitor_place_data(place_id, max_age_sec=INTERACTIVE_MAX_AGE_SEC)" in start
+
+
+# ── 캐시 적중을 예산에 반영 (2026-10-28) ────────────────────────────────────────────────
+# 사업장끼리 같은 경쟁사를 공유하면 한쪽이 크롤한 뒤 다른 쪽은 네이버 접속 없이 캐시로 끝난다(fetch_competitor_place_data 첫 줄 캐시 확인).
+# 예산을 그 행까지 6페이지로 세면 실제보다 크게 잡아 하루 처리 사업장이 줄고 간격이 늘어난다.
+def _row(biz, pid, ts=None):
+    return {"business_id": biz, "naver_place_id": pid, "naver_place_last_synced_at": ts}
+
+
+def test_build_stale_items_counts_cached_places_as_free_but_keeps_full_total():
+    rows = [_row("a", "p1"), _row("a", "p2"), _row("b", "p1")]
+    items = {i["id"]: i for i in ss.build_stale_items(rows, T0, {"p1"})}
+    assert items["a"]["pages"] == ss.COMPETITOR_PAGE_COST            # p1 은 캐시라 무료, p2 만 비용
+    assert items["b"]["pages"] == 0
+    assert items["a"]["pages_full"] == 2 * ss.COMPETITOR_PAGE_COST   # pacing 기준은 할인 전 작업량
+    assert items["b"]["pages_full"] == ss.COMPETITOR_PAGE_COST
+
+
+def test_build_stale_items_without_cache_info_is_unchanged():
+    rows = [_row("a", "p1"), _row("a", "p2"), _row("b", "p1")]
+    for cached in (None, set()):
+        items = {i["id"]: i for i in ss.build_stale_items(rows, T0, cached)}
+        assert items["a"]["pages"] == items["a"]["pages_full"] == 2 * ss.COMPETITOR_PAGE_COST
+        assert items["b"]["pages"] == items["b"]["pages_full"] == ss.COMPETITOR_PAGE_COST
+
+
+def test_pacing_uses_full_total_not_discounted_total():
+    # 경쟁사 3곳 중 1곳만 비용(pages 6, 나머지는 캐시)인 사업장 26곳: pacing 한도는 할인 전 합(26x18/13 -> 36)이어야 6곳이 담긴다.
+    # 할인 후 합(26x6/13 -> 12)으로 한도를 잡으면 2곳만 담겨 처리량이 막힌다(실측: 간격 중앙값 21일 -> 8~14일 차이의 원인)
+    items = [{"id": str(i), "last": T0 - timedelta(days=15), "pages": 6, "pages_full": 18} for i in range(26)]
+    assert len(ss.select_stale_first(items, T0, TTL, 1000, date(2026, 11, 2))) == 6
+    legacy = [{"id": str(i), "last": T0 - timedelta(days=15), "pages": 6} for i in range(26)]    # pages_full 없음 = 이전 입력 형식
+    assert len(ss.select_stale_first(legacy, T0, TTL, 1000, date(2026, 11, 2))) == 2
+
+
+def test_place_cache_fresh_ids_reads_without_touching_stats(tmp_path, monkeypatch):
+    import services.competitor_place_crawler as cc
+    monkeypatch.setenv("COMPETITOR_PLACE_CACHE_FILE", str(tmp_path / "c.json"))
+    cc.reset_cache_for_tests()
+    cc._place_cache_put("fresh", {"review_count": 1})
+    cc._PLACE_CACHE["old"] = (cc._time.time() - (cc._place_cache_ttl() - 3600), {"review_count": 2})   # TTL 1시간 전
+    before = dict(cc._PLACE_CACHE_STATS)
+    assert cc.place_cache_fresh_ids(["fresh", "old", "none"]) == {"fresh"}      # 마진(6시간) 안쪽인 old 는 크롤 시점에 만료될 수 있어 제외
+    assert cc.place_cache_fresh_ids(["old"], margin_sec=0) == {"old"}
+    assert cc._PLACE_CACHE_STATS == before                                       # 적중·실패 통계를 건드리지 않는다
+    cc.reset_cache_for_tests()
+
+
+def _simulate_overlap(n_biz, pool, days, budget, use_cache, comps=3):
+    import hashlib
+    pid = lambda b, k: str(int(hashlib.md5(f"{b}:{k}".encode()).hexdigest(), 16) % pool)
+    biz_comps = {f"b{b}": [pid(b, k) for k in range(comps)] for b in range(n_biz)}
+    row_ts = {(b, p): None for b, ps in biz_comps.items() for p in ps}
+    cache, synced, real_daily = {}, {b: [] for b in biz_comps}, []
+    for d in range(days):
+        now = T0 + timedelta(days=d)
+        rows = [_row(b, p, row_ts[(b, p)].isoformat() if row_ts[(b, p)] else None) for b, ps in biz_comps.items() for p in ps]
+        cached = {p for p, t in cache.items() if (now - t).total_seconds() <= TTL - 6 * 3600} if use_cache else None
+        real = 0
+        for b in ss.select_stale_first(ss.build_stale_items(rows, now, cached), now, TTL, budget, now.date()):
+            for p in biz_comps[b]:
+                t = cache.get(p)
+                if t is not None and (now - t).total_seconds() <= TTL:
+                    row_ts[(b, p)] = t
+                else:
+                    cache[p] = now
+                    row_ts[(b, p)] = now
+                    real += ss.COMPETITOR_PAGE_COST
+            synced[b].append(d)
+        real_daily.append(real)
+    return real_daily, synced
+
+
+def _gap_stats(synced, start):
+    gaps = sorted(y - x for ds in synced.values() for x, y in zip(ds, ds[1:]) if y >= start)
+    return gaps[-1], round(100 * sum(g > 14 for g in gaps) / len(gaps))
+
+
+def test_overlap_simulation_cache_aware_budget_shortens_gaps_within_budget():
+    # 300곳·경쟁사 3곳·서로 다른 경쟁사 540곳(약 40% 겹침) — 예산 252(상한 600 x 0.7 x 0.6)
+    on_daily, on_sy = _simulate_overlap(300, 540, 120, 252, True)
+    off_daily, off_sy = _simulate_overlap(300, 540, 120, 252, False)
+    on_max, on_over = _gap_stats(on_sy, 60)
+    off_max, off_over = _gap_stats(off_sy, 60)
+    assert on_max <= 19 and on_over <= 30, (on_max, on_over)        # 실측 17일·16%
+    assert off_max >= 25 and off_over >= 90, (off_max, off_over)    # 반영 전 29일·99% — 이 개선이 필요했던 이유
+    assert max(on_daily[60:]) <= 252 + 18                            # 실제 접속은 일일 예산(+맨 앞 1곳 초과분) 이내
+
+
+def test_no_overlap_behaves_like_before():
+    # 경쟁사가 하나도 안 겹치면(풀이 매우 큼) 반영 여부와 무관하게 같은 결과
+    a_daily, a_sy = _simulate_overlap(40, 10_000_000, 60, 252, True)
+    b_daily, b_sy = _simulate_overlap(40, 10_000_000, 60, 252, False)
+    assert a_daily == b_daily and a_sy == b_sy
+
+
+def test_sync_job_passes_cache_info_to_scheduler():
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    src = open(os.path.join(root, "scheduler", "jobs.py"), encoding="utf-8").read()
+    assert "build_stale_items(rows, _now, _cached_ids)" in src
+    assert "place_cache_fresh_ids(" in src
+    assert '.select("business_id, naver_place_id, naver_place_last_synced_at")' in src

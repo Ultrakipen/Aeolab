@@ -119,6 +119,22 @@ def _place_cache_put(place_id: str, data: dict) -> None:
     _place_cache_save()
 
 
+def place_cache_fresh_ids(place_ids, margin_sec: float = 6 * 3600) -> set:
+    """지금 캐시가 유효하고 크롤 시점까지 유효할(TTL - margin) 플레이스 ID. 적중·실패 통계나 파일 저장 없이 읽기만 한다.
+    정기 잡이 오늘 처리할 사업장을 고를 때 "네이버 접속 없이 끝날 경쟁사"를 예산에서 뺄 때 쓴다."""
+    ttl = _place_cache_ttl()
+    if ttl <= 0:
+        return set()
+    _place_cache_load()
+    now = _time.time()
+    out = set()
+    for pid in place_ids:
+        hit = _PLACE_CACHE.get(str(pid))
+        if hit and (now - hit[0]) <= ttl - margin_sec:
+            out.add(str(pid))
+    return out
+
+
 def place_cache_snapshot(days: int = 14) -> dict:
     """관리자 화면용 — 캐시 크기와 날짜별 적중률(= 실측 중복 제거율)."""
     _place_cache_load()

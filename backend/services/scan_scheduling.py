@@ -178,7 +178,8 @@ def select_stale_first(items: list[dict], now: datetime, min_age_sec: float, bud
     """
     if budget_pages <= 0:
         return []
-    total_pages = sum(max(1, int(it["pages"])) for it in items)
+    # pacing 기준은 "캐시 할인 전" 전체 작업량 — 지금 캐시가 유효한 경쟁사를 0으로 세면 한도가 같이 줄어 처리량이 오히려 막힌다
+    total_pages = sum(max(1, int(it.get("pages_full", it["pages"]))) for it in items)
     # pacing 한도는 "부드러운" 한도 — 한도에 닿을 때까지 담되 마지막 한 곳은 넘을 수 있다. 엄격하게 자르면 한도가 한 곳
     # 크기의 1.x배일 때 한 곳씩만 들어가 주간 처리 능력이 대상보다 작아진다(8곳+사업장 변경 시 간격 13일 — 시뮬레이션으로 확인).
     pace_cap = max(1, int(-(-total_pages // pace_days))) if (pace_days and pace_days > 0 and total_pages) else None
@@ -202,17 +203,22 @@ def cache_still_valid(last: Optional[datetime], now: datetime, ttl_sec: float, m
     return last is not None and (now - last).total_seconds() < ttl_sec - margin_sec
 
 
-def build_stale_items(rows: list[dict], now: datetime) -> list[dict]:
+def build_stale_items(rows: list[dict], now: datetime, cached_ids: Optional[set] = None) -> list[dict]:
     """competitors 행들(business_id, naver_place_last_synced_at)을 사업장 단위 select_stale_first 입력으로 묶는다.
-    한 곳이라도 관측이 없으면 그 사업장은 last=None(가장 우선), 아니면 가장 오래된 관측 시각. pages 는 경쟁사 수 × 크롤 비용(캐시 적중 시 실제는 더 적다)."""
+    한 곳이라도 관측이 없으면 그 사업장은 last=None(가장 우선), 아니면 가장 오래된 관측 시각. pages 는 경쟁사 수 × 크롤 비용.
+    cached_ids: 지금 캐시가 유효해 네이버 접속 없이 끝날 플레이스 ID(다른 사업장이 최근 크롤한 같은 경쟁사). 그 행은 0페이지로 센다 —
+    안 그러면 겹치는 경쟁사가 많을수록 예산을 실제보다 크게 잡아 하루 처리 사업장이 줄고 간격이 늘어난다. 없으면(None) 전부 비용으로 센다."""
     groups: dict[str, dict] = {}
     for r in rows:
         biz = str(r["business_id"])
-        g = groups.setdefault(biz, {"id": biz, "last": now, "pages": 0, "unobserved": False})
-        g["pages"] += COMPETITOR_PAGE_COST
+        g = groups.setdefault(biz, {"id": biz, "last": now, "pages": 0, "pages_full": 0, "unobserved": False})
+        g["pages_full"] += COMPETITOR_PAGE_COST
+        if not (cached_ids and r.get("naver_place_id") is not None and str(r["naver_place_id"]) in cached_ids):
+            g["pages"] += COMPETITOR_PAGE_COST
         ts = parse_ts(r.get("naver_place_last_synced_at"))
         if ts is None:
             g["unobserved"] = True
         elif ts < g["last"]:
             g["last"] = ts
-    return [{"id": g["id"], "last": None if g["unobserved"] else g["last"], "pages": g["pages"]} for g in groups.values()]
+    return [{"id": g["id"], "last": None if g["unobserved"] else g["last"], "pages": g["pages"], "pages_full": g["pages_full"]}
+            for g in groups.values()]
