@@ -210,7 +210,7 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
     encoded_q = urllib.parse.quote(query)
     search_url = f"https://search.naver.com/search.naver?query={encoded_q}"
 
-    proxy = get_proxy_config()
+    proxy = get_proxy_config("search")
     # Chrome UA: 설치된 Chrome 버전에 맞게 동적 감지 (HeadlessChrome → Chrome)
     ua = await _get_chrome_ua()
 

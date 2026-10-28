@@ -83,7 +83,7 @@ class NaverPlaceStatsService:
             browser = await p.chromium.launch(
                 headless=True,
                 args=["--no-sandbox", "--disable-setuid-sandbox"],
-                proxy=_gpc(),
+                proxy=_gpc("place"),
             )
             ctx = await browser.new_context(
                 locale="ko-KR",
@@ -320,7 +320,7 @@ async def _check_completeness(url: str) -> dict:
         browser = await p.chromium.launch(
             headless=True,
             args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-            proxy=_gpc2(),
+            proxy=_gpc2("place"),
         )
         ctx = await browser.new_context(
             locale="ko-KR",
@@ -747,7 +747,7 @@ async def _fetch_low_rating_reviews(
         browser = await p.chromium.launch(
             headless=True,
             args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-            proxy=_gpc3(),
+            proxy=_gpc3("place"),
         )
         ctx = await browser.new_context(
             locale="ko-KR",

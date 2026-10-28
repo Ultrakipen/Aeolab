@@ -654,8 +654,59 @@ def build_chrome_ua() -> str:
     return _chrome_ua_cache
 
 
-def get_proxy_config() -> Optional[dict]:
+# ── 프록시 사용 범위·사용 기록 (2026-10-28) ──────────────────────────────────
+# 프록시를 사면 NAVER_PROXY_LIST 하나로 11개 호출 지점이 전부 프록시를 타므로, 처음부터 전체에 켜지 않고
+# 접속 구분별로 좁혀 켜고(되돌리기는 환경변수 한 줄) 실제로 어느 경로가 프록시를 탔는지 기록해 둔다.
+#  - "place": 플레이스 페이지(가게 점검·통계·경쟁사 크롤·가게 상세 확인) — 10-27 차단이 난 쪽
+#  - "search": 검색 화면(AI 브리핑·AI탭·가게 카드 검색·월간 모니터)
+# NAVER_PROXY_SCOPE="place" / "search" / "place,search" / "all". 미설정·빈 값이면 "place,search"(기존 동작과 같음).
+# 알 수 없는 값만 있으면(오타) 어느 쪽에도 쓰지 않는다 — 오타로 의도치 않게 전체에 켜지는 것을 막는 안전 쪽 선택.
+# 키워드 순위 측정(naver_keyword_rank)은 프록시 인자 자체가 없어 항상 서버 IP로 직접 나간다(이 범위 설정과 무관).
+_PROXY_SCOPES = ("place", "search")
+_proxy_usage: dict = {}   # 접속 구분 -> {"proxy": n, "direct": n, "reasons": {사유: n}} — 프로세스 시작 이후, 재시작하면 0
+
+
+def proxy_scope() -> set:
+    raw = os.getenv("NAVER_PROXY_SCOPE", "").strip().lower()
+    if not raw:
+        return set(_PROXY_SCOPES)
+    toks = {t.strip() for t in raw.split(",") if t.strip()}
+    if "all" in toks:
+        return set(_PROXY_SCOPES)
+    valid = {t for t in toks if t in _PROXY_SCOPES}
+    if not valid:
+        _logger.warning("[proxy] NAVER_PROXY_SCOPE=%r 에 유효한 값이 없어 프록시를 어디에도 쓰지 않습니다(유효: place, search, all)", raw)
+    return valid
+
+
+def _note_proxy_usage(scope: str, used: bool, reason: str = "") -> None:
+    u = _proxy_usage.setdefault(scope or "unclassified", {"proxy": 0, "direct": 0, "reasons": {}})
+    if used:
+        u["proxy"] += 1
+    else:
+        u["direct"] += 1
+        u["reasons"][reason] = u["reasons"].get(reason, 0) + 1
+
+
+def proxy_usage_snapshot() -> dict:
+    """관리자 조회용 — 프록시 설정 여부·범위·회로 상태·접속 구분별 사용 횟수. 주소·계정·비밀번호는 포함하지 않는다."""
+    import time as _time
+    pool = _load_proxy_pool()
+    return {
+        "configured": bool(pool),
+        "pool_size": len(pool),
+        "scope": sorted(proxy_scope()),
+        "circuit_open": bool(_proxy_circuit_open_until and _time.time() < _proxy_circuit_open_until),
+        "counted_since_restart": True,
+        "usage": {k: {"proxy": v["proxy"], "direct": v["direct"], "reasons": dict(v["reasons"])} for k, v in _proxy_usage.items()},
+    }
+
+
+def get_proxy_config(scope: str = "") -> Optional[dict]:
     """프록시 풀에서 배치 로테이션으로 선택. NAVER_PROXY_LIST 미설정 시 None (직접 연결).
+
+    scope: 호출하는 접속 구분("place"/"search"). NAVER_PROXY_SCOPE 밖이면 None(직접 연결)이며 로테이션 카운터도
+    소비하지 않는다. scope="" 는 구분 없는 옛 호출 — 범위 설정과 무관하게 허용(하위 호환).
 
     같은 IP로 NAVER_PROXY_ROTATION_BATCH(기본 5)회 호출을 처리한 뒤 다음 IP로 교체 —
     풀 전체는 여전히 균등 소진하되(장기 대역폭 분산 목적 유지), 매 호출 단위로 IP를
@@ -668,16 +719,22 @@ def get_proxy_config() -> Optional[dict]:
     if _proxy_circuit_open_until:
         import time as _time
         if _time.time() < _proxy_circuit_open_until:
+            _note_proxy_usage(scope, False, "circuit_open")
             return None
         _logger.info("[proxy] 회로차단 쿨다운 종료 — 프록시 재사용 재개")
         _proxy_circuit_open_until = 0.0
         _proxy_circuit_fail_count = 0
     pool = _load_proxy_pool()
     if not pool:
+        _note_proxy_usage(scope, False, "no_pool")
+        return None
+    if scope and scope not in proxy_scope():
+        _note_proxy_usage(scope, False, "out_of_scope")
         return None
     proxy = pool[_proxy_index % len(pool)]
     _proxy_call_count += 1
     if _proxy_call_count >= _PROXY_ROTATION_BATCH:
         _proxy_call_count = 0
         _proxy_index += 1
+    _note_proxy_usage(scope, True)
     return proxy

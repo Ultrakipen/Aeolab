@@ -1499,8 +1499,10 @@ async def get_naver_access(_=Depends(verify_admin)):
         block_events = {"table_ready": True, "items": (_r.data if _r and _r.data else [])}
     except Exception as _e:
         _logger.warning("naver_block_events 조회 실패(테이블 미생성 가능): %s", _e)
+    from services.ai_scanner import proxy_usage_snapshot
     return {
         "block_events": block_events,
+        "proxy": proxy_usage_snapshot(),   # 프록시 설정 여부·범위·회로·접속 구분별 사용 횟수(주소·계정 미포함)
         "quota": {**snap, "used_pct": round(snap["used"] / cap * 100, 1) if cap else None},
         "place_breaker": _guard.snapshot(),
         "search_breaker": _guard.search_snapshot(),   # 검색 화면(브리핑·AI탭·순위) 차단 쿨다운

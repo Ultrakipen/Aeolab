@@ -128,7 +128,7 @@ async def _collect_cards(query: str) -> list:
         async def _run() -> list:
             async with async_playwright() as pw:
                 browser = await pw.chromium.launch(
-                    headless=True, channel="chrome", proxy=get_proxy_config(),
+                    headless=True, channel="chrome", proxy=get_proxy_config("search"),
                     args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage",
                           "--disable-blink-features=AutomationControlled"],
                 )
@@ -173,7 +173,7 @@ async def _fetch_place_page_text(place_id: str) -> str:
         async def _run() -> str:
             async with async_playwright() as pw:
                 browser = await pw.chromium.launch(
-                    headless=True, channel="chrome", proxy=get_proxy_config(),
+                    headless=True, channel="chrome", proxy=get_proxy_config("place"),
                     args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
                 )
                 counter = [0]

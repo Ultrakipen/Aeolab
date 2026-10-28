@@ -438,7 +438,7 @@ class NaverAIBriefingScanner:
             return self._search_cooldown_result(query)
         if not check_naver_playwright_quota("naver_scanner.check_mention"):
             return self._quota_skipped_result(query)
-        proxy = get_proxy_config()
+        proxy = get_proxy_config("search")
         ua = build_chrome_ua()
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(
@@ -485,7 +485,7 @@ class NaverAIBriefingScanner:
                 "queries_used": [], "source_urls": [], "source_blog_ids": [], "source_image_map": {},
             }
 
-        proxy = get_proxy_config()
+        proxy = get_proxy_config("search")
         ua = build_chrome_ua()
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(

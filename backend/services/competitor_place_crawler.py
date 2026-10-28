@@ -274,7 +274,7 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
         browser = await p.chromium.launch(
             headless=True,
             args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-            proxy=_get_proxy_config(),
+            proxy=_get_proxy_config("place"),
         )
         ctx = await browser.new_context(
             locale="ko-KR",

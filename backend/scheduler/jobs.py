@@ -6537,7 +6537,7 @@ async def briefing_category_expansion_monitor_job():
                 channel="chrome",
                 args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage",
                       "--disable-blink-features=AutomationControlled"],
-                proxy=get_proxy_config(),
+                proxy=get_proxy_config("search"),
             )
             ctx = await browser.new_context(locale="ko-KR", user_agent=build_chrome_ua())
             naver_cookies = get_naver_cookies()
