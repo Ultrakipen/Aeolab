@@ -177,21 +177,21 @@ export default function HeroSection() {
               {[
                 {
                   num: "+27.4%",
-                  label: "AI브리핑 후 가게 클릭",
+                  label: "AI브리핑 적용 후 클릭률",
                   highlight: true,
-                  source: "네이버 플레이스 분석 기준",
+                  source: "네이버 발표 2025.8",
                 },
                 {
                   num: "+10.4%",
-                  label: "가게 페이지 체류시간",
+                  label: "플레이스 체류시간",
                   highlight: false,
-                  source: "네이버 플레이스 분석 기준",
+                  source: "네이버 발표 2025.8",
                 },
                 {
                   num: "+8%",
                   label: "예약·주문 증가",
                   highlight: false,
-                  source: "네이버 플레이스 분석 기준",
+                  source: "네이버 발표 2025.8",
                 },
                 {
                   num: "17,900원",
@@ -236,10 +236,10 @@ export default function HeroSection() {
               ))}
             </div>
             <p
-              className="text-sm mb-5 -mt-3"
+              className="text-sm mb-5 -mt-3 break-keep"
               style={{ color: "rgba(255,255,255,0.65)" }}
             >
-              음식점 업종 기준 · 업종·지역·경쟁 환경에 따라 다를 수 있습니다
+              식당·카페 등 AI 브리핑 적용 업체의 네이버 발표 수치(적용 전후 비교)이며 AEOlab 이용 효과가 아닙니다 · 업종·지역에 따라 다를 수 있습니다
             </p>
 
             {/* 서브텍스트 */}

@@ -227,8 +227,8 @@ export default function HowItWorksPage() {
             </div>
             <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-3 md:p-4 text-center">
               <div className="text-xl md:text-3xl font-bold text-emerald-700 mb-1">+27.4%</div>
-              <div className="text-sm md:text-sm text-emerald-800 font-medium leading-tight">음식점 클릭률</div>
-              <div className="text-sm text-gray-400 mt-1 hidden md:block">한국경제 2025.08.21</div>
+              <div className="text-sm md:text-sm text-emerald-800 font-medium leading-tight">식당·카페 클릭률</div>
+              <div className="text-sm text-gray-400 mt-1 hidden md:block">네이버 2025.08.21</div>
             </div>
             <div className="rounded-2xl bg-purple-50 border border-purple-100 p-3 md:p-4 text-center">
               <div className="text-xl md:text-3xl font-bold text-purple-700 mb-1">1.5만+</div>
@@ -246,8 +246,8 @@ export default function HowItWorksPage() {
               </li>
               <li className="flex gap-2">
                 <span className="shrink-0 text-blue-600 font-bold">•</span>
-                <span>음식점 적용 후 — 체류시간 <strong>+10.4%</strong> / 클릭률 <strong>+27.4%</strong> / 예약 <strong>+8%</strong>{" "}
-                  <a href="https://www.hankyung.com/article/202508212669g" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">[출처: 한국경제 2025.08.21]</a>
+                <span>식당·카페 등 적용 후(적용 전후 비교) — 체류시간 <strong>+10.4%</strong> / 클릭률 <strong>+27.4%</strong> / 예약 <strong>+8%</strong>{" "}
+                  <a href="https://navercorp.com/media/pressReleasesDetail?seq=33232" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">[출처: 네이버 보도자료 2025.08.21]</a>
                 </span>
               </li>
               <li className="flex gap-2">

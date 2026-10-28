@@ -302,16 +302,16 @@ export default function LandingPage() {
                 aria-hidden="true"
               />
               <div className="relative">
-                <p className="text-sm font-bold mb-1.5" style={{ color: "rgba(255,255,255,0.95)" }}>음식점 적용 후 클릭률 변화</p>
+                <p className="text-sm font-bold mb-1.5" style={{ color: "rgba(255,255,255,0.95)" }}>식당·카페 등 적용 후 클릭률 변화</p>
                 <p className="stat-number-xl text-white mb-1.5">
                   +27.4%
-                  <span className="text-sm font-bold ml-2 px-2 py-0.5 rounded-full align-middle" style={{ background: "rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.95)" }}>음식점 기준</span>
+                  <span className="text-sm font-bold ml-2 px-2 py-0.5 rounded-full align-middle" style={{ background: "rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.95)" }}>네이버 발표</span>
                 </p>
                 <p className="text-sm md:text-base break-keep mb-1" style={{ color: "rgba(255,255,255,0.88)" }}>
-                  AI 브리핑에 노출되면 손님 클릭이 늘어납니다
+                  네이버 발표: AI 브리핑 적용 업체의 클릭률이 늘었습니다
                 </p>
                 <p className="text-sm mt-3" style={{ color: "rgba(255,255,255,0.75)" }}>
-                  네이버 2025년 8월 공식 발표 · 음식점 카테고리 기준
+                  네이버 2025년 8월 공식 발표 · 식당·카페 등 · 적용 전후 비교
                 </p>
                 <a
                   href="https://www.hankyung.com/article/202508212669g"
@@ -600,8 +600,8 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
-              <p className="text-sm font-bold" style={{ color: "#2563EB" }}>1위 노출 시 클릭 +27.4%</p>
-              <p className="text-sm" style={{ color: "#45556C" }}>네이버 공식 발표 · 음식점 기준 · 업종·지역에 따라 다를 수 있음</p>
+              <p className="text-sm font-bold" style={{ color: "#2563EB" }}>AI 브리핑 적용 후 클릭률 +27.4%</p>
+              <p className="text-sm" style={{ color: "#45556C" }}>네이버 발표(2025.8.21) · 식당·카페 등 · 적용 전후 비교 · 업종·지역에 따라 다를 수 있음</p>
             </div>
 
             {/* ③ 손님 방문 */}
