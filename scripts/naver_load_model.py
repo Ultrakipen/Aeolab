@@ -22,7 +22,7 @@ AI_TAB_PER_FULL = 4       # 코드: multi_scanner.scan_all이 질의 최대 4개
 LIGHT_SCAN_NAVER = 1      # 코드: scan_basic은 브리핑 1회
 RANK_PER_KEYWORD = 2      # 코드: naver_keyword_rank PC + 모바일(place_rank는 공식 API라 제외)
 PLACE_STATS_COST = 2      # 코드: fetch_stats cost=2 (주 1회 월요일 02:00 직전 잡, jobs.py)
-COMPETITOR_CRAWL_COST = 10  # 코드: _run_place_crawl goto 최대 12회, 정상 8~10 → cost=10
+COMPETITOR_CRAWL_COST = 6   # 코드: _run_place_crawl goto 최대 6회(홈 복귀·메뉴 중복 제거, 2026-10-28; 이전 최대 12·정상 8~10 → cost=10)
 COMPETITOR_JOBS_PER_WEEK = 2  # 코드: competitor_place_sync_job(화) + enrich_competitor_details_job(목)
 USER_SCAN_PLACE_CHECK = 4   # 코드: 사용자 직접 풀스캔의 점검 cost(사진 탭 끄면 4)
 USER_SCANS_PER_BIZ_PER_DAY = 0.2   # 가정: 사업장당 하루 평균 사용자 수동 스캔 횟수 (실제 데이터 없음)

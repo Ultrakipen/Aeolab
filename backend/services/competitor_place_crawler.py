@@ -213,15 +213,15 @@ async def fetch_competitor_place_data(naver_place_id: str, max_age_sec: Optional
     if not _ok:
         return {**default, "error": _why}
 
-    # 홈·방문자리뷰·소식·메뉴·정보·사진 탭을 열고 탭마다 홈으로 돌아온다 — _run_place_crawl의 goto가 최대 12회라
-    # 페이지 수만큼 센다(기존엔 호출 1번=1건). 처음엔 5로 잡았으나 코드의 goto 수를 세어 보니 과소였다(2026-10-27).
-    # 정상 경로 기준 약 8~10, 폴백 포함 최대 12 — 실측이 아니라 코드 기준이므로 운영 사용량으로 재조정할 것.
-    if not _check_naver_quota("competitor_place_crawler.fetch_competitor_place_data", cost=10):
+    # 홈·방문자리뷰·소식·메뉴·정보·사진 탭을 한 번씩만 연다 — _run_place_crawl의 goto가 최대 6회(2026-10-28, 탭마다 홈으로
+    # 돌아오던 최대 12회에서 축소; tests/test_competitor_crawl_navigation.py가 반환값 동일성·이동 횟수 상한을 고정).
+    # 값은 scan_scheduling.COMPETITOR_PAGE_COST 와 같아야 한다(테스트가 비교). 실측이 아니라 코드 기준이다.
+    if not _check_naver_quota("competitor_place_crawler.fetch_competitor_place_data", cost=6):
         return {**default, "error": "quota_exceeded"}
 
     # 속도 기준(슬라이딩 윈도우) — 빈 자리가 날 때까지 기다린다. 세마포어를 잡기 전에 해야 다른 작업을 막지 않는다.
     from services.naver_access_guard import reserve_place_pages
-    _rok, _rwhy, _ = await reserve_place_pages(10, "competitor_place_crawler.fetch_competitor_place_data")
+    _rok, _rwhy, _ = await reserve_place_pages(6, "competitor_place_crawler.fetch_competitor_place_data")
     if not _rok:
         return {**default, "error": _rwhy}
 
@@ -393,6 +393,31 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     except Exception as e:
                         _logger.warning("avg_rating CSS selector [%s] failed [%s]: %s", sel, naver_place_id, e)
 
+            # ── 홈 화면 DOM에서만 얻는 정보는 홈을 떠나기 전에 한 번에 뽑는다 (2026-10-28) ──
+            # 예전엔 탭을 하나 열 때마다 홈으로 돌아와(최대 5회) 같은 홈을 다시 읽었다. 정보는 늘지 않고 네이버 요청만 늘었다.
+            # 홈 텍스트(body_text/lines)는 첫 방문 것을 계속 쓰고, 메뉴 탭 링크·외부 웹사이트 링크는 여기서 확인한다.
+            home_menu_link = False
+            home_menu_link_failed = False
+            try:
+                menu_tab = page.locator(
+                    "a[href*='/menu'], a[href*='/product'], a[href*='/price']"
+                ).first
+                if await menu_tab.is_visible(timeout=2000):
+                    home_menu_link = True
+            except Exception as e:
+                _logger.warning("menu CSS selector check failed [%s]: %s", naver_place_id, e)
+                home_menu_link_failed = True
+
+            website_url = None
+            try:
+                ext_link = page.locator("a[href^='http']:not([href*='naver.com']):not([href*='kakao.com']):not([href*='google.com'])").first
+                if await ext_link.is_visible(timeout=2000):
+                    href = await ext_link.get_attribute("href")
+                    if href:
+                        website_url = href
+            except Exception as e:
+                _logger.warning("website URL extraction failed [%s]: %s", naver_place_id, e)
+
             # 3) 리뷰 탭 이동 — 별점 재시도 + 리뷰 수 정정(항상 실행)
             # 2026-07-14 실측 발견: 홈 탭의 "카테고리+리뷰+공백+숫자"(예: "장소대여리뷰 22")는
             # 네이버 리뷰 클렌징 시스템 적용 전 집계로, 실제 리뷰 탭 상단의 "리뷰NN"(공백 없음,
@@ -417,10 +442,6 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                 _rc_match = re.search(r"리뷰(\d[\d,]+)", review_body)
                 if _rc_match:
                     review_count = int(_rc_match.group(1).replace(",", ""))
-                await page.goto(f"{base_url}/home", timeout=12000, wait_until="domcontentloaded")
-                await page.wait_for_timeout(2000)
-                body_text = await page.inner_text("body")
-                lines = [l.strip() for l in body_text.split("\n") if l.strip()]
             except Exception as e:
                 _logger.warning("avg_rating/review_count review tab retry failed [%s]: %s", naver_place_id, e)
                 partial_failures.append("review_tab")
@@ -448,13 +469,6 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                 except Exception as e:
                     _logger.warning("feed tab load failed [%s]: %s", naver_place_id, e)
                     partial_failures.append("recent_post")
-                # 홈으로 복귀
-                try:
-                    await page.goto(f"{base_url}/home", timeout=15000, wait_until="domcontentloaded")
-                    await page.wait_for_timeout(3000)
-                    body_text = await page.inner_text("body")
-                except Exception as e:
-                    _logger.warning("home recovery after feed failed [%s]: %s", naver_place_id, e)
 
             # ── 메뉴/가격표/상품 등록 여부 ──────────────────────────────
             # 탐지 전략:
@@ -465,42 +479,15 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
             has_menu = False
             menu_text = ""
 
-            # 0) CSS selector: 메뉴·상품·가격 탭 링크 (href 패턴)
-            try:
-                menu_tab = page.locator(
-                    "a[href*='/menu'], a[href*='/product'], a[href*='/price']"
-                ).first
-                if await menu_tab.is_visible(timeout=2000):
-                    has_menu = True
-            except Exception as e:
-                _logger.warning("menu CSS selector check failed [%s]: %s", naver_place_id, e)
+            # 0) CSS selector: 메뉴·상품·가격 탭 링크 — 홈 DOM에서만 보이므로 위(홈 방문 직후)에서 이미 확인했다
+            if home_menu_link:
+                has_menu = True
+            if home_menu_link_failed:
                 partial_failures.append("menu")
 
-            # nav_area 범위를 lines[5:35]로 확장 (탭이 8:20 범위 밖에 있는 케이스 대응)
-            nav_area_extended = (
-                "\n".join(lines[5:35]) if len(lines) > 35 else "\n".join(lines)
-            )
-
-            # 1) nav_area_extended에서 "메뉴" 탭 텍스트 확인 후 /menu 이동
-            if not has_menu and re.search(r"^메뉴$|^메뉴·?가격$|^메뉴/가격$", nav_area_extended, re.MULTILINE):
-                try:
-                    await page.goto(f"{base_url}/menu", timeout=15000, wait_until="domcontentloaded")
-                    await page.wait_for_timeout(3000)
-                    menu_text = await page.inner_text("body")
-                    menu_lines = [l.strip() for l in menu_text.split("\n") if l.strip()]
-                    has_menu = len(menu_lines) > 20 and len(menu_text.strip()) > 400
-                except Exception as e:
-                    _logger.warning("menu tab navigation (nav_area_extended) failed [%s]: %s", naver_place_id, e)
-                    if "menu" not in partial_failures:
-                        partial_failures.append("menu")
-                try:
-                    await page.goto(f"{base_url}/home", timeout=15000, wait_until="domcontentloaded")
-                    await page.wait_for_timeout(2000)
-                    body_text = await page.inner_text("body")
-                except Exception as e:
-                    _logger.warning("home recovery after menu nav (extended) failed [%s]: %s", naver_place_id, e)
-
-            # 기존 nav_area("메뉴" in nav_area)도 fallback으로 유지
+            # 1) 탐색줄에 "메뉴"가 있으면 /menu 를 한 번만 방문한다.
+            # 예전엔 정규식 조건(^메뉴$ 등)과 `"메뉴" in nav_area` 두 블록이 같은 범위(lines[5:35])를 보고 연달아 /menu 를 방문했다 —
+            # 앞 조건은 뒤 조건의 부분집합이라 앞에서 못 정한 경우 같은 페이지를 한 번 더 읽었을 뿐이다(결과 동일, 접속만 2배).
             if not has_menu and "메뉴" in nav_area:
                 try:
                     await page.goto(f"{base_url}/menu", timeout=15000, wait_until="domcontentloaded")
@@ -509,15 +496,9 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                     menu_lines = [l.strip() for l in menu_text.split("\n") if l.strip()]
                     has_menu = len(menu_lines) > 20 and len(menu_text.strip()) > 400
                 except Exception as e:
-                    _logger.warning("menu tab navigation (nav_area fallback) failed [%s]: %s", naver_place_id, e)
+                    _logger.warning("menu tab navigation failed [%s]: %s", naver_place_id, e)
                     if "menu" not in partial_failures:
                         partial_failures.append("menu")
-                try:
-                    await page.goto(f"{base_url}/home", timeout=15000, wait_until="domcontentloaded")
-                    await page.wait_for_timeout(2000)
-                    body_text = await page.inner_text("body")
-                except Exception as e:
-                    _logger.warning("home recovery after menu nav (fallback) failed [%s]: %s", naver_place_id, e)
 
             # 2) 홈 body에 "가격표" 직접 등장 (스튜디오/서비스 업종)
             if not has_menu:
@@ -588,19 +569,7 @@ async def _run_place_crawl(naver_place_id: str) -> dict:
                         place_intro_text = info_text[idx + 2:idx + 500].strip()
             place_menu_sample = menu_text.strip()[:500] if menu_text else ""
 
-            # ── 외부 웹사이트 URL 추출 ───────────────────────────────
-            website_url = None
-            try:
-                # 홈으로 복귀 후 외부 링크 확인
-                await page.goto(f"{base_url}/home", timeout=15000, wait_until="domcontentloaded")
-                await page.wait_for_timeout(2000)
-                ext_link = page.locator("a[href^='http']:not([href*='naver.com']):not([href*='kakao.com']):not([href*='google.com'])").first
-                if await ext_link.is_visible(timeout=2000):
-                    href = await ext_link.get_attribute("href")
-                    if href:
-                        website_url = href
-            except Exception as e:
-                _logger.warning("website URL extraction failed [%s]: %s", naver_place_id, e)
+            # 외부 웹사이트 URL(website_url)은 홈 방문 직후에 이미 추출했다(홈으로 다시 오지 않는다).
 
             return {
                 "naver_place_id": naver_place_id,

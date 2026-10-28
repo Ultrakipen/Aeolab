@@ -128,7 +128,7 @@ def competitor_job_due(job: str, weekday: int, biz_id: str, spread: bool) -> boo
 from datetime import datetime, timezone
 from typing import Optional
 
-COMPETITOR_PAGE_COST = 10    # competitor_place_crawler.fetch_competitor_place_data 의 cost 와 같아야 한다
+COMPETITOR_PAGE_COST = 6     # competitor_place_crawler.fetch_competitor_place_data 의 cost 와 같아야 한다
 
 
 def competitor_stale_first_enabled() -> bool:

@@ -71,7 +71,7 @@ def test_build_items_uses_oldest_observation_and_unobserved_wins():
         {"business_id": "b2", "naver_place_last_synced_at": None},
     ]
     items = {i["id"]: i for i in ss.build_stale_items(rows, T0)}
-    assert items["b1"]["last"] == datetime(2026, 10, 20, tzinfo=timezone.utc) and items["b1"]["pages"] == 20
+    assert items["b1"]["last"] == datetime(2026, 10, 20, tzinfo=timezone.utc) and items["b1"]["pages"] == 2 * ss.COMPETITOR_PAGE_COST
     assert items["b2"]["last"] is None            # 한 곳이라도 관측이 없으면 가장 우선
 
 

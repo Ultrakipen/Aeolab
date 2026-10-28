@@ -1,0 +1,141 @@
+{
+ "full": {
+  "old_goto_count": 8,
+  "result": {
+   "avg_rating": 4.4,
+   "error": null,
+   "has_faq": true,
+   "has_intro": true,
+   "has_menu": true,
+   "has_recent_post": true,
+   "naver_place_id": "123",
+   "partial_failures": [],
+   "photo_count": 7,
+   "place_intro_text": "우리 가게는 오랜 전통의 맛집으로 정성껏 준비한 음식을 제공합니다 감사합니다",
+   "place_menu_sample": "",
+   "place_name": "테스트식당",
+   "review_count": 128,
+   "website_url": "https://shop.example.com"
+  }
+ },
+ "menu_css_error": {
+  "old_goto_count": 10,
+  "result": {
+   "avg_rating": 4.0,
+   "error": null,
+   "has_faq": false,
+   "has_intro": false,
+   "has_menu": true,
+   "has_recent_post": false,
+   "naver_place_id": "123",
+   "partial_failures": [
+    "menu"
+   ],
+   "photo_count": 1,
+   "place_intro_text": "",
+   "place_menu_sample": "본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄",
+   "place_name": "테스트식당",
+   "review_count": 30,
+   "website_url": null
+  }
+ },
+ "menu_fail": {
+  "old_goto_count": 12,
+  "result": {
+   "avg_rating": 4.0,
+   "error": null,
+   "has_faq": false,
+   "has_intro": false,
+   "has_menu": false,
+   "has_recent_post": false,
+   "naver_place_id": "123",
+   "partial_failures": [
+    "menu"
+   ],
+   "photo_count": 1,
+   "place_intro_text": "",
+   "place_menu_sample": "",
+   "place_name": "테스트식당",
+   "review_count": 30,
+   "website_url": null
+  }
+ },
+ "menu_short": {
+  "old_goto_count": 12,
+  "result": {
+   "avg_rating": 3.8,
+   "error": null,
+   "has_faq": false,
+   "has_intro": false,
+   "has_menu": false,
+   "has_recent_post": true,
+   "naver_place_id": "123",
+   "partial_failures": [],
+   "photo_count": 2,
+   "place_intro_text": "",
+   "place_menu_sample": "짧은 메뉴",
+   "place_name": "테스트식당",
+   "review_count": 30,
+   "website_url": null
+  }
+ },
+ "menu_visit": {
+  "old_goto_count": 10,
+  "result": {
+   "avg_rating": 0.0,
+   "error": null,
+   "has_faq": false,
+   "has_intro": false,
+   "has_menu": true,
+   "has_recent_post": false,
+   "naver_place_id": "123",
+   "partial_failures": [],
+   "photo_count": 4,
+   "place_intro_text": "짧다",
+   "place_menu_sample": "본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄",
+   "place_name": "테스트식당",
+   "review_count": 128,
+   "website_url": null
+  }
+ },
+ "no_tabs": {
+  "old_goto_count": 6,
+  "result": {
+   "avg_rating": 4.9,
+   "error": null,
+   "has_faq": false,
+   "has_intro": false,
+   "has_menu": true,
+   "has_recent_post": false,
+   "naver_place_id": "123",
+   "partial_failures": [],
+   "photo_count": 3,
+   "place_intro_text": "",
+   "place_menu_sample": "",
+   "place_name": "테스트식당",
+   "review_count": 30,
+   "website_url": "https://studio.example.com"
+  }
+ },
+ "review_fail": {
+  "old_goto_count": 9,
+  "result": {
+   "avg_rating": 4.0,
+   "error": null,
+   "has_faq": false,
+   "has_intro": false,
+   "has_menu": true,
+   "has_recent_post": true,
+   "naver_place_id": "123",
+   "partial_failures": [
+    "review_tab"
+   ],
+   "photo_count": 1,
+   "place_intro_text": "",
+   "place_menu_sample": "본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄입니다\n본문 줄",
+   "place_name": "테스트식당",
+   "review_count": 30,
+   "website_url": null
+  }
+ }
+}
