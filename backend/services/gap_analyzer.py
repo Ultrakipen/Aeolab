@@ -296,10 +296,12 @@ def _build_keyword_gap(
 
 
 # 성장 단계별 설정 (score_engine._GROWTH_THRESHOLDS 기준과 동기화)
+from services.stage_names import STAGE_NAME  # 성장 단계 이름 단일 소스(2026-10-28)
+
 _GROWTH_STAGES = [
     {
         "stage": "survival",
-        "stage_label": "생존기",
+        "stage_label": STAGE_NAME["survival"],
         "score_range": "0~30점",
         "focus_message": "지금은 스마트플레이스 기본 완성이 최우선입니다. AI가 내 가게를 인식할 수 있도록 기본 정보를 채워야 합니다.",
         "this_week_action": "스마트플레이스에서 사진 5장·영업시간·전화번호 완성하기",
@@ -308,7 +310,7 @@ _GROWTH_STAGES = [
     },
     {
         "stage": "stability",
-        "stage_label": "안정기",
+        "stage_label": STAGE_NAME["stability"],
         "score_range": "30~55점",
         "focus_message": "기본은 갖췄습니다. 이제 소개글 Q&A 섹션 작성과 리뷰로 AI 브리핑 노출을 늘릴 차례입니다.",
         "this_week_action": "소개글 하단에 자주 묻는 질문 3개와 답변 작성하기",
@@ -317,7 +319,7 @@ _GROWTH_STAGES = [
     },
     {
         "stage": "growth",
-        "stage_label": "성장기",
+        "stage_label": STAGE_NAME["growth"],
         "score_range": "55~75점",
         "focus_message": "경쟁사보다 앞서기 시작했습니다. 키워드 다양화와 소식 업로드로 격차를 벌리세요.",
         "this_week_action": "소식 탭에 최근 작업 사진 1~2장 + 짧은 글 올리기",
@@ -326,9 +328,9 @@ _GROWTH_STAGES = [
     },
     {
         "stage": "dominance",
-        "stage_label": "지배기",
+        "stage_label": STAGE_NAME["dominance"],
         "score_range": "75~100점",
-        "focus_message": "지역 상위권입니다. 지금은 현상 유지와 리뷰 꾸준히 받기가 핵심입니다.",
+        "focus_message": "AI 검색 준비도가 높은 단계입니다. 지금은 현상 유지와 리뷰 꾸준히 받기가 핵심입니다.",
         "this_week_action": "신규 리뷰에 키워드 포함 답글 달기 (3분이면 충분)",
         "do_not_do": "급격한 카테고리 변경, 스마트플레이스 정보 대량 수정",
         "estimated_weeks_to_next": None,
@@ -358,7 +360,7 @@ def _build_growth_stage(
 
     # 스마트플레이스 미등록: 등록이 최우선 — score/단계 무관하게 조기 반환
     if biz_data and not is_smart_place:
-        cfg = _GROWTH_STAGES[0]  # 생존기
+        cfg = _GROWTH_STAGES[0]  # survival
         return GrowthStage(
             stage=cfg["stage"],
             stage_label=cfg["stage_label"],
@@ -369,7 +371,7 @@ def _build_growth_stage(
             estimated_weeks_to_next=cfg["estimated_weeks_to_next"],
         )
 
-    # 스마트플레이스 등록 + 리뷰가 있으면 최소 "안정기"로 보정 (생존기 안내 오진단 방지)
+    # 스마트플레이스 등록 + 리뷰가 있으면 최소 stability(보강 단계)로 보정 (survival 안내 오진단 방지)
     if is_smart_place and review_count > 0 and score < 30:
         score = 30.0
 

@@ -448,7 +448,7 @@ export default function TrialResultStep(props: TrialResultProps) {
     Math.round(totalScore * 0.4);
   const unified = result.score?.unified_score ?? result.score?.total_score;
   const gs = result.growth_stage;
-  const gsLabel = result.growth_stage_label ?? gs?.stage_label ?? "성장 중";
+  const gsLabel = result.growth_stage_label ?? gs?.stage_label ?? "보강 단계";
   const missingKws = result.top_missing_keywords ?? [];
   const pioneerKws = result.pioneer_keywords ?? [];
   const faqText = result.faq_copy_text ?? null;

@@ -60,7 +60,7 @@ class GrowthStage(BaseModel):
     추상적인 점수 대신 "지금 어느 단계이고 뭘 해야 하는가"를 명확히 합니다.
     """
     stage: str                           # "survival" | "stability" | "growth" | "dominance"
-    stage_label: str                     # "생존기" | "안정기" | "성장기" | "지배기"
+    stage_label: str                     # "시작 전" | "보강 단계" | "개선 중" | "양호" (services/stage_names.STAGE_NAME)
     score_range: str                     # "0~30점" | "30~55점" | "55~75점" | "75~100점"
     focus_message: str                   # "지금은 스마트플레이스 기본 완성이 최우선입니다"
     this_week_action: str                # "오늘 할 일 1가지" — 가장 중요한 단일 행동

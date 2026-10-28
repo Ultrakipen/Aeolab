@@ -23,10 +23,9 @@ _CATEGORY_KO: dict[str, str] = {
     "other": "사업장",
 }
 
-_GROWTH_STAGE_KO: dict[str, str] = {
-    "survival": "생존기", "stability": "안정기",
-    "growth": "성장기", "dominance": "지배기",
-}
+from services.stage_names import STAGE_NAME as _STAGE_NAME  # 성장 단계 이름 단일 소스(2026-10-28)
+
+_GROWTH_STAGE_KO: dict[str, str] = dict(_STAGE_NAME)
 
 _TRIAL_CHATGPT_SAMPLE_N = 5  # Trial scan ChatGPT sample size
 
@@ -719,10 +718,10 @@ async def send_trial_claim_link(
     # score_engine 저장값: "survival"(track1<30) / "stability"(30~55) /
     #                       "growth"(55~75) / "dominance"(75+)
     _STAGE_META = {
-        "survival":  ("#fef2f2", "#fecaca", "#991b1b", "생존기",  "0~30점", "사진 5장·영업시간·전화번호를 스마트플레이스에서 완성하기"),
-        "stability": ("#fefce8", "#fde047", "#713f12", "안정기",  "30~55점", "소개글에 업종명·지역·서비스 특징 300자 이상 작성"),
-        "growth":    ("#eff6ff", "#bfdbfe", "#1e3a8a", "성장기",  "55~75점", "소식 탭에 최근 사진 1~2장 + 짧은 글 올리기"),
-        "dominance": ("#f0fdf4", "#86efac", "#14532d", "지배기",  "75~100점", "신규 리뷰에 키워드 포함 답글 달기"),
+        "survival":  ("#fef2f2", "#fecaca", "#991b1b", _STAGE_NAME["survival"],  "0~30점", "사진 5장·영업시간·전화번호를 스마트플레이스에서 완성하기"),
+        "stability": ("#fefce8", "#fde047", "#713f12", _STAGE_NAME["stability"],  "30~55점", "소개글에 업종명·지역·서비스 특징 300자 이상 작성"),
+        "growth":    ("#eff6ff", "#bfdbfe", "#1e3a8a", _STAGE_NAME["growth"],  "55~75점", "소식 탭에 최근 사진 1~2장 + 짧은 글 올리기"),
+        "dominance": ("#f0fdf4", "#86efac", "#14532d", _STAGE_NAME["dominance"],  "75~100점", "신규 리뷰에 키워드 포함 답글 달기"),
     }
     growth_section = ""
     if growth_stage and growth_stage in _STAGE_META:

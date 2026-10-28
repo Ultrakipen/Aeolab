@@ -1,4 +1,5 @@
 'use client'
+import { STAGE_NAME } from "@/lib/scoreLabels"
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -193,10 +194,10 @@ function getScoreBadgeCls(score: number): string {
 
 // GrowthStage 텍스트 헬퍼 (score_engine.py 기준)
 function getGrowthStageText(score: number): { label: string; cls: string } {
-  if (score >= 75) return { label: '지역 1등', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' }
-  if (score >= 55) return { label: '빠른 성장', cls: 'bg-blue-50 text-blue-700 border-blue-200' }
-  if (score >= 30) return { label: '성장 중',  cls: 'bg-amber-50 text-amber-700 border-amber-200' }
-  return { label: '시작 단계', cls: 'bg-gray-100 text-gray-600 border-gray-200' }
+  if (score >= 75) return { label: STAGE_NAME.dominance, cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' }
+  if (score >= 55) return { label: STAGE_NAME.growth, cls: 'bg-blue-50 text-blue-700 border-blue-200' }
+  if (score >= 30) return { label: STAGE_NAME.stability,  cls: 'bg-amber-50 text-amber-700 border-amber-200' }
+  return { label: STAGE_NAME.survival, cls: 'bg-gray-100 text-gray-600 border-gray-200' }
 }
 
 // 순위 배지
@@ -316,7 +317,7 @@ function FreePlanPreview() {
                 ))}
               </div>
               <div className="bg-gray-50 rounded-lg p-2 text-sm text-gray-600">
-                성장 단계: <span className="font-semibold text-amber-700">성장 중</span> → <span className="font-semibold text-emerald-700">빠른 성장</span> 진입 가능
+                성장 단계: <span className="font-semibold text-amber-700">보강 단계</span> → <span className="font-semibold text-emerald-700">개선 중</span> 진입 가능
               </div>
             </div>
             <a href="/pricing" className="mt-4 block w-full text-center bg-purple-600 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-purple-700 transition-colors">
@@ -825,7 +826,7 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
   // "내 가게"는 브랜드 블루로 고정해 항상 한눈에 구분되도록 함(경쟁사는 이 파랑을 쓰지 않음).
   // 과거 이력: ①무지개 순환(1위=빨강 오신호) → ②성장단계 색 재사용(같은 단계 경쟁사끼리
   // 막대가 똑같아져 순위 구분 불가, "내 가게"도 우연히 같은 파랑이라 더 혼동) → 이번이 3차 수정.
-  // 단계 의미는 이미 옆 배지(빠른 성장/성장 중 등)가 전담하므로, 막대는 순수히 "순위 강도"만 표현.
+  // 단계 의미는 이미 옆 배지(개선 중/보강 단계 등)가 전담하므로, 막대는 순수히 "순위 강도"만 표현.
   const RANK_SHADES = ['#4338ca', '#4f46e5', '#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff']
 
   const latestDate = new Date(latest.scanned_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
@@ -1320,7 +1321,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                     ? `내 가게가 ${getGrowthStageText(myStageTotal).label} 단계로 앞서 있습니다`
                     : '두 가게 같은 성장 단계'}
                 </div>
-                <p className="text-sm text-gray-600 mt-1.5">{`* '지역 1등'·'빠른 성장'·'성장 중'은 변화 기록·성장 리포트의 '양호'·'보통'·'주의 필요'와 같은 구간입니다`}</p>
+                <p className="text-sm text-gray-600 mt-1.5">{`* '양호'·'개선 중'·'보강 단계'는 변화 기록·성장 리포트의 '양호'·'보통'·'주의 필요'와 같은 구간입니다`}</p>
               </div>
 
               {/* 수치 비교 */}
@@ -1617,7 +1618,7 @@ export function CompetitorsClient({
   gapAnalysis = null,
 }: Props) {
   const router = useRouter()
-  // "성장 단계" 라벨(지역 1등 등)은 track1_score 기준 — myScore(unified)는 순위·막대 비교에만 사용
+  // "성장 단계" 라벨(양호·개선 중 등)은 track1_score 기준 — myScore(unified)는 순위·막대 비교에만 사용
   const myStageScore = myTrack1Score ?? myScore
   const [competitors, setCompetitors] = useState(initial)
   const [expandedId, setExpandedId] = useState<string | null>(null)

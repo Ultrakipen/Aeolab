@@ -1,3 +1,4 @@
+import { normalizeStageLabel } from "@/lib/scoreLabels";
 import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import { Search, Bot, BarChart2, CheckCircle2, Calendar } from "lucide-react";
 import { createClient, getCachedUser, getCachedActivePlan } from "@/lib/supabase/server";
@@ -255,7 +256,7 @@ export default async function DashboardPage({
   const globalWeight = (latestScan?.global_weight as number | null)
     ?? getDefaultGlobalWeight((business?.category as string | null | undefined) ?? "other");
   const growthStage = (latestScan?.growth_stage as string | null) ?? "stability";
-  const growthStageLabel = (latestScan?.growth_stage_label as string | null) ?? "성장 중";
+  const growthStageLabel = normalizeStageLabel(latestScan?.growth_stage_label as string | null, growthStage) || "보강 단계";
   const isKeywordEstimated = (latestScan?.is_keyword_estimated as boolean | null) ?? false;
 
   const scoreChangeDiff = history && history.length >= 2

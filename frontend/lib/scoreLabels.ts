@@ -12,6 +12,46 @@
 
 import type { BriefingEligibility } from "./userGroup";
 
+// ── 성장 단계 이름 단일 소스 (2026-10-28) ─────────────────────────────────────
+// backend/services/stage_names.py STAGE_NAME 과 같아야 한다(backend/tests/test_stage_names.py 가 검사).
+// 점수가 재는 것(AI 검색 준비도)에 이름을 맞춘다 — "지역 1등"처럼 순위를 주장하거나 "생존기"처럼 낮게 단정하는 이름은 쓰지 않는다.
+export const STAGE_NAME = {
+  survival: "시작 전",
+  stability: "보강 단계",
+  growth: "개선 중",
+  dominance: "양호",
+} as const;
+export type StageCode = keyof typeof STAGE_NAME;
+export const READINESS_PREFIX = "AI 검색 준비도 · ";
+
+/** 점수(track1 기준, 75/55/30) → 단계 코드 */
+export function stageCodeForScore(score: number): StageCode {
+  if (score >= 75) return "dominance";
+  if (score >= 55) return "growth";
+  if (score >= 30) return "stability";
+  return "survival";
+}
+
+export function stageNameForScore(score: number): string {
+  return STAGE_NAME[stageCodeForScore(score)];
+}
+
+// DB·AI 텍스트에 이미 저장된 옛 라벨 → 코드 (새 화면에 쓰지 말 것)
+const LEGACY_STAGE_LABELS: Record<string, StageCode> = {
+  "시작 단계": "survival", "성장 중": "stability", "빠른 성장": "growth", "지역 1등": "dominance",
+  "생존기": "survival", "안정기": "stability", "성장기": "growth", "지배기": "dominance", "선도기": "dominance",
+  "성장 준비 중": "stability", "성장 진행 중": "growth", "안정 궤도": "dominance",
+};
+
+/** 화면에 보일 단계 이름 — 코드가 있으면 코드 기준, 없으면 옛 라벨을 새 이름으로, 그 외는 그대로 */
+export function normalizeStageLabel(label?: string | null, code?: string | null): string {
+  if (code && code in STAGE_NAME) return STAGE_NAME[code as StageCode];
+  if (!label) return "";
+  if ((Object.values(STAGE_NAME) as string[]).includes(label)) return label;
+  const legacy = LEGACY_STAGE_LABELS[label];
+  return legacy ? STAGE_NAME[legacy] : label;
+}
+
 // ── 종합 성장단계 레이블 (DashboardHeroCard getStage + INACTIVE headerView 복제) ──
 export interface StageView {
   label: string;
@@ -41,10 +81,10 @@ export function getStageView(
   }
 
   // DashboardHeroCard.getStage()와 동일 문구 — 점수가 재는 것(AI 검색 준비도)에 이름을 맞추고 "미흡" 등급 표현은 쓰지 않는다
-  if (score >= 75) return { label: "AI 검색 준비도 · 양호",      labelColor: "text-emerald-700", bg: "bg-emerald-50", cardBorder: "border-emerald-300", sub: null };
-  if (score >= 55) return { label: "AI 검색 준비도 · 개선 중",   labelColor: "text-blue-700",    bg: "bg-blue-50",    cardBorder: "border-blue-300",    sub: null };
-  if (score >= 30) return { label: "AI 검색 준비도 · 보강 단계", labelColor: "text-amber-700",   bg: "bg-amber-50",   cardBorder: "border-amber-300",   sub: null };
-  return                   { label: "AI 검색 준비도 · 시작 전",   labelColor: "text-slate-600",   bg: "bg-slate-50",   cardBorder: "border-slate-300",   sub: null };
+  if (score >= 75) return { label: `${READINESS_PREFIX}${STAGE_NAME.dominance}`,      labelColor: "text-emerald-700", bg: "bg-emerald-50", cardBorder: "border-emerald-300", sub: null };
+  if (score >= 55) return { label: `${READINESS_PREFIX}${STAGE_NAME.growth}`,   labelColor: "text-blue-700",    bg: "bg-blue-50",    cardBorder: "border-blue-300",    sub: null };
+  if (score >= 30) return { label: `${READINESS_PREFIX}${STAGE_NAME.stability}`, labelColor: "text-amber-700",   bg: "bg-amber-50",   cardBorder: "border-amber-300",   sub: null };
+  return                   { label: `${READINESS_PREFIX}${STAGE_NAME.survival}`,   labelColor: "text-slate-600",   bg: "bg-slate-50",   cardBorder: "border-slate-300",   sub: null };
 }
 
 /** 컴팩트 점수 텍스트 레이블 — 숫자 대신 표시 (표·카드 등 좁은 공간용) */

@@ -8,6 +8,7 @@ from fastapi.responses import StreamingResponse, Response
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
 from utils import cache as _cache
+from services.stage_names import STAGE_NAME as _STAGE_NAME, normalize_stage_label as _norm_stage  # 성장 단계 이름 단일 소스(2026-10-28)
 
 _logger = logging.getLogger(__name__)
 
@@ -2542,7 +2543,7 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
             "unified_score":   s,
             "track1_score":    _safe_float(scan.get("track1_score")),
             "track2_score":    _safe_float(scan.get("track2_score")),
-            "growth_stage":    scan.get("growth_stage_label") or scan.get("growth_stage") or "생존기",
+            "growth_stage":    _norm_stage(scan.get("growth_stage_label"), scan.get("growth_stage")) or _STAGE_NAME["survival"],
             "score_breakdown": scan.get("score_breakdown") or {},
             "delta":           delta,
         })
@@ -2670,7 +2671,7 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
     start_stage = (
         (trial_raw or {}).get("growth_stage")
         or (scans_raw[0].get("growth_stage") if scans_raw else None)
-        or "생존기"
+        or _STAGE_NAME["survival"]
     )
     current_stage = (
         (scans_raw[-1].get("growth_stage") if scans_raw else None)
@@ -2716,7 +2717,7 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
             "scanned_at":      trial_raw.get("scanned_at"),
             "unified_score":   _safe_float(trial_raw.get("unified_score")),
             "track1_score":    _safe_float(trial_raw.get("track1_score")),
-            "growth_stage":    trial_raw.get("growth_stage") or "생존기",
+            "growth_stage":    trial_raw.get("growth_stage") or _STAGE_NAME["survival"],
             "score_breakdown": trial_raw.get("score_breakdown") or {},
         }
 

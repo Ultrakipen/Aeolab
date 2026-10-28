@@ -1,4 +1,5 @@
 'use client'
+import { stageNameForScore } from "@/lib/scoreLabels"
 
 import { useState, useEffect, useCallback } from 'react'
 import {
@@ -148,7 +149,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
       // 막대 높이·순위는 unified(total_score) 기준 — CompetitorTrendChart·heroCard와 동일 기준으로
       // 맞춰 "내 가게 몇 위" 숫자가 위젯마다 달라지는 모순 방지 (2026-08-09 발견)
       내가게: Math.round(s.total_score ?? s.unified_score ?? s.track1_score ?? 0),
-      // 성장 단계 라벨(지역 1등 등)은 track1_score 기준 유지 (CLAUDE.md 표준) — 위치와 라벨의
+      // 성장 단계 라벨(양호·개선 중 등)은 track1_score 기준 유지 (CLAUDE.md 표준) — 위치와 라벨의
       // 기준을 분리해 둘 다 만족
       '내가게__stage': Math.round(s.track1_score ?? s.unified_score ?? s.total_score ?? 0),
     }
@@ -327,7 +328,7 @@ export default function CompetitorTimeline({ bizId, accessToken, plan, bizName =
                   // "내가게"는 성장 단계 라벨용 track1 기준 값(__stage)을 별도로 참조
                   const raw = name === '내가게' ? payload?.['내가게__stage'] : payload?.[`${String(name)}__raw`]
                   const v = Math.round(Number(raw ?? value))
-                  const label = v >= 75 ? '지역 1등' : v >= 55 ? '빠른 성장' : v >= 30 ? '성장 중' : '시작 단계'
+                  const label = stageNameForScore(v)
                   return [label, undefined]
                 }}
               />

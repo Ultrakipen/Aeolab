@@ -171,7 +171,7 @@ function getMock(category: string, region: string) {
     ],
     growthStage: {
       stage: "stability",
-      stage_label: "안정기",
+      stage_label: "보강 단계",
       score_range: "30~55점",
       focus_message: "기본 등록은 됐습니다. 이제 리뷰 키워드 다양성을 확보할 때입니다. 경쟁사가 보유한 키워드를 내 리뷰에도 받아야 AI 브리핑에 나옵니다.",
       this_week_action: "이번 주 가장 부족한 키워드 1개를 정해 QR 카드를 테이블에 올려두세요",
@@ -235,7 +235,7 @@ function getMock(category: string, region: string) {
       },
       growthStage: {
         stage: "stability",
-        stage_label: "안정기",
+        stage_label: "보강 단계",
         score_range: "30~50점",
         focus_message: "기본 등록은 잘 되어 있습니다. 이제 소개글에 Q&A 섹션 추가가 최우선입니다. AI는 Q&A 형식 정보를 추천 후보로 선호하는 경향이 있어, 소개글에 Q&A 섹션을 추가하면 AI 브리핑 노출에 도움이 될 수 있습니다.",
         this_week_action: "소개글 끝에 '자주 묻는 질문' Q&A 3개를 오늘 추가하세요 — \"가격은?\", \"예약 방법은?\", \"위치는?\"",
@@ -297,7 +297,7 @@ function getMock(category: string, region: string) {
       },
       growthStage: {
         stage: "stability",
-        stage_label: "안정기",
+        stage_label: "보강 단계",
         score_range: "30~50점",
         focus_message: "기본 등록은 잘 되어 있습니다. 이제 소개글에 Q&A 섹션 추가가 최우선입니다. AI는 Q&A 형식 정보를 추천 후보로 선호하는 경향이 있어, Q&A 섹션을 추가하면 AI 브리핑 노출에 도움이 될 수 있습니다.",
         this_week_action: "소개글 끝에 '자주 묻는 질문' Q&A 3개를 오늘 추가하세요 — \"수강 가격은?\", \"초보도 가능한가요?\", \"녹음실 이용 방법은?\"",

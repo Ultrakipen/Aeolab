@@ -1,4 +1,5 @@
 "use client";
+import { normalizeStageLabel, STAGE_NAME } from "@/lib/scoreLabels";
 
 import { useState, useEffect } from "react";
 import { Sprout, TrendingUp, Flame, Trophy, MapPin, Globe, Zap, Lightbulb, Info, Target, CheckCircle2, FileEdit, Bell, Bot, AlertTriangle } from "lucide-react";
@@ -16,7 +17,7 @@ const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
  *
  * Track 1: 네이버 AI 채널 준비도 — 브리핑·AI탭·일반검색·카카오 종합 (업종별 비중: 40~70%)
  * Track 2: 글로벌 AI 가시성       — ChatGPT·Gemini·Google AI (업종별 비중: 30~90%)
- * 성장 단계: track1_score 기준 (시작/성장 중/두각/선도)
+ * 성장 단계: track1_score 기준 (시작 전/보강 단계/개선 중/양호 — lib/scoreLabels.ts STAGE_NAME)
  */
 
 interface DualTrackCardProps {
@@ -336,9 +337,9 @@ function FocusRecommendation({
 // 성장 단계 진행률 계산
 // 백엔드 _GROWTH_THRESHOLDS 와 일치: survival<30 / stability<55 / growth<75 / dominance>=75
 const STAGE_RANGES: Record<string, { min: number; max: number; next: string }> = {
-  survival:  { min: 0,  max: 29,  next: "성장 준비 중" },
-  stability: { min: 30, max: 54,  next: "성장 진행 중" },
-  growth:    { min: 55, max: 74,  next: "안정 궤도" },
+  survival:  { min: 0,  max: 29,  next: STAGE_NAME.stability },
+  stability: { min: 30, max: 54,  next: STAGE_NAME.growth },
+  growth:    { min: 55, max: 74,  next: STAGE_NAME.dominance },
   dominance: { min: 75, max: 100, next: "" },
 };
 
@@ -522,7 +523,7 @@ export default function DualTrackCard({
           <span className={`inline-flex items-center gap-1 text-sm font-semibold rounded-full px-2 py-0.5 ${
             STAGE_COLORS[growthStage] || STAGE_COLORS.stability
           }`}>
-            {STAGE_ICONS[growthStage]} {growthStageLabel}
+            {STAGE_ICONS[growthStage]} {normalizeStageLabel(growthStageLabel, growthStage)}
             {isKeywordEstimated && (
               <span className="text-gray-600 font-normal ml-1">(추정)</span>
             )}

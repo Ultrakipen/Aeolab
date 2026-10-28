@@ -648,7 +648,7 @@ class KakaoNotifier:
     ):
         """성장 단계 업그레이드 알림 (템플릿 코드: AEOLAB_GROWTH_01)
 
-        prev_stage/curr_stage: 호출측(jobs.py)에서 이미 한글 레이블(생존기/안정기/성장기/지배기)로 전달됨.
+        prev_stage/curr_stage: 호출측(jobs.py)에서 이미 한글 레이블(시작 전/보강 단계/개선 중/양호 — services/stage_names.STAGE_NAME)로 전달됨.
         this_week_action: 이번 주 추천 액션(gap_analyzer._build_growth_stage 반환값) — 숫자 아님.
         """
         await self._send(

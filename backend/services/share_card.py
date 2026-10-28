@@ -74,16 +74,10 @@ def _category_label(category: str) -> str:
 def _score_stage_label(score: float) -> str:
     """점수 → 텍스트 레이블. frontend lib/scoreLabels.ts의 getStageView()와
     동일 임계값(75/55/30) 유지 — 드리프트 시 두 파일 함께 갱신할 것."""
-    s = score or 0
-    # 2026-10-27: 점수가 재는 것(AI 검색 준비도)에 이름을 맞추고 "미흡" 등급 표현은 쓰지 않는다
-    # (프론트 DashboardHeroCard.getStage / lib/scoreLabels.ts와 동일 문구 유지)
-    if s >= 75:
-        return "AI 검색 준비도 · 양호"
-    if s >= 55:
-        return "AI 검색 준비도 · 개선 중"
-    if s >= 30:
-        return "AI 검색 준비도 · 보강 단계"
-    return "AI 검색 준비도 · 시작 전"
+    # 2026-10-27: 점수가 재는 것(AI 검색 준비도)에 이름을 맞추고 "미흡" 등급 표현은 쓰지 않는다.
+    # 2026-10-28: 문구는 services/stage_names.py 단일 소스(프론트 lib/scoreLabels.ts 와 같은지 테스트가 검사)
+    from services.stage_names import stage_code_for_score, stage_long_name
+    return stage_long_name(stage_code_for_score(score))
 
 
 def _region_label(region: Optional[str]) -> str:

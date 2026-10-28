@@ -1,3 +1,4 @@
+import { STAGE_NAME } from "@/lib/scoreLabels";
 import { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -25,7 +26,7 @@ interface Props {
 
 function getStage(score: number): { label: string; tagBg: string; bar: string; bg: string; message: string; borderColor: string } {
   if (score >= 70) return {
-    label: "안정 궤도",
+    label: STAGE_NAME.dominance,
     tagBg: "bg-blue-100 text-blue-700",
     bar: "bg-blue-500",
     bg: "bg-blue-50",
@@ -33,7 +34,7 @@ function getStage(score: number): { label: string; tagBg: string; bar: string; b
     message: "경쟁 가게 대비 AI 검색 노출이 잘 되어 있습니다.",
   };
   if (score >= 50) return {
-    label: "성장 진행 중",
+    label: STAGE_NAME.growth,
     tagBg: "bg-blue-100 text-blue-700",
     bar: "bg-blue-500",
     bg: "bg-blue-50",
@@ -41,7 +42,7 @@ function getStage(score: number): { label: string; tagBg: string; bar: string; b
     message: "기반이 갖춰져 있습니다. 개선 항목 2~3가지 보완으로 노출을 더 늘릴 수 있습니다.",
   };
   if (score >= 30) return {
-    label: "성장 준비 중",
+    label: STAGE_NAME.stability,
     tagBg: "bg-amber-100 text-amber-700",
     bar: "bg-amber-400",
     bg: "bg-amber-50",
@@ -49,7 +50,7 @@ function getStage(score: number): { label: string; tagBg: string; bar: string; b
     message: "핵심 항목 몇 가지를 보완하면 AI 검색 노출이 빠르게 늘어납니다.",
   };
   return {
-    label: "시작 단계",
+    label: STAGE_NAME.survival,
     tagBg: "bg-slate-100 text-slate-600",
     bar: "bg-slate-400",
     bg: "bg-slate-50",
@@ -160,10 +161,10 @@ export default async function SharePage({ params }: Props) {
               </summary>
               <div className="mt-3 space-y-2">
                 {([
-                  { label: "안정 궤도",    range: "최상위 구간", desc: "경쟁 가게 대비 AI 노출 우위", bg: "bg-blue-50 border-blue-200" },
-                  { label: "성장 진행 중", range: "상위 구간",   desc: "기반 갖춤, 보완으로 노출 확대 가능", bg: "bg-blue-50 border-blue-100" },
-                  { label: "성장 준비 중", range: "중위 구간",   desc: "핵심 항목 보완 시 빠른 개선 가능", bg: "bg-amber-50 border-amber-200" },
-                  { label: "시작 단계",    range: "하위 구간",    desc: "AI 검색 개선을 시작할 때입니다", bg: "bg-slate-50 border-slate-200" },
+                  { label: STAGE_NAME.dominance,    range: "최상위 구간", desc: "경쟁 가게 대비 AI 노출 우위", bg: "bg-blue-50 border-blue-200" },
+                  { label: STAGE_NAME.growth, range: "상위 구간",   desc: "기반 갖춤, 보완으로 노출 확대 가능", bg: "bg-blue-50 border-blue-100" },
+                  { label: STAGE_NAME.stability, range: "중위 구간",   desc: "핵심 항목 보완 시 빠른 개선 가능", bg: "bg-amber-50 border-amber-200" },
+                  { label: STAGE_NAME.survival,    range: "하위 구간",    desc: "AI 검색 개선을 시작할 때입니다", bg: "bg-slate-50 border-slate-200" },
                 ]).map((item) => (
                   <div
                     key={item.label}

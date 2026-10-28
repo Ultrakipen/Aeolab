@@ -72,13 +72,8 @@ def _stage_label(score: float) -> str:
     """점수 → 성장 단계 텍스트 레이블. CLAUDE.md 점수 표시 원칙(숫자 노출 금지) —
     프론트 getGrowthStageText()와 동일한 구간(75/55/30) 사용, 카카오톡·SNS
     공유용 이미지라 숫자 대신 반드시 레이블만 노출해야 함."""
-    if score >= 75:
-        return "지역 1등"
-    if score >= 55:
-        return "빠른 성장"
-    if score >= 30:
-        return "성장 중"
-    return "시작 단계"
+    from services.stage_names import stage_code_for_score, stage_name
+    return stage_name(stage_code_for_score(score))
 
 
 def generate_gap_card(

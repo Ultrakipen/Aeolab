@@ -1,3 +1,4 @@
+import { stageNameForScore } from "@/lib/scoreLabels";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -6,10 +7,7 @@ import GrowthShareClient from "./GrowthShareClient";
 
 // 임계값은 lib/scoreLabels.ts의 getScoreTextLabel과 동일(75/55/30) — 드리프트 시 함께 갱신할 것
 function getStageLabel(score: number): string {
-  if (score >= 75) return "안정 궤도";
-  if (score >= 55) return "성장 진행 중";
-  if (score >= 30) return "성장 준비 중";
-  return "시작 단계";
+  return stageNameForScore(score);
 }
 
 interface Props {

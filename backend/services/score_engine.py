@@ -311,11 +311,12 @@ GLOBAL_TRACK_WEIGHTS: dict[str, float] = {
 }
 
 # 성장 단계 기준 (track1_score 기준 — 업종별 unified 비율 차이 오판 방지)
+from services.stage_names import STAGE_NAME as _STAGE_NAME  # 성장 단계 이름 단일 소스(2026-10-28)
 _GROWTH_THRESHOLDS = [
-    (30,  "survival",  "시작 단계"),
-    (55,  "stability", "성장 중"),
-    (75,  "growth",    "빠른 성장"),
-    (101, "dominance", "지역 1등"),
+    (30,  "survival",  _STAGE_NAME["survival"]),
+    (55,  "stability", _STAGE_NAME["stability"]),
+    (75,  "growth",    _STAGE_NAME["growth"]),
+    (101, "dominance", _STAGE_NAME["dominance"]),
 ]
 
 
@@ -332,7 +333,7 @@ def determine_growth_stage_label(track1_score: float) -> str:
     for threshold, _, label in _GROWTH_THRESHOLDS:
         if track1_score < threshold:
             return label
-    return "지역 1등"
+    return _STAGE_NAME["dominance"]
 
 
 # ────────────────────────────────────────────────────────────────

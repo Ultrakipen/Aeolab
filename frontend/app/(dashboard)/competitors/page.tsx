@@ -98,7 +98,7 @@ export default async function CompetitorsPage({
       .eq('business_id', business.id)
       .eq('is_active', true),
     // competitor_scores가 있는 최신 스캔 결과 (경쟁사 점수 표시용)
-    // track1_score: "성장 단계" 라벨(지역 1등 등)은 track1_score 기준이어야 함(CLAUDE.md 표준,
+    // track1_score: "성장 단계" 라벨(양호·개선 중 등)은 track1_score 기준이어야 함(CLAUDE.md 표준,
     // 업종별 naver/global 비율 차이로 인한 오판 방지) — unified인 total_score는 순위·막대용으로만 사용
     supabase
       .from('scan_results')

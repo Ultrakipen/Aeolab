@@ -1,3 +1,4 @@
+import { STAGE_NAME } from "@/lib/scoreLabels";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowRight, Zap } from "lucide-react";
@@ -58,7 +59,7 @@ export default function ScoreGuidePage() {
           <div className="flex items-start gap-3">
             <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">2</span>
             <p className="text-sm md:text-base text-gray-800 leading-relaxed">
-              <strong>성장 단계(시작/성장 중/빠른 성장/지역 1등)는 네이버 점수만으로 결정</strong><br />
+              <strong>성장 단계(시작 전/보강 단계/개선 중/양호)는 네이버 점수만으로 결정</strong><br />
               <span className="text-gray-600">통합 점수와 다를 수 있음 — 업종별 비율 차이를 보정하기 위해</span>
             </p>
           </div>
@@ -590,7 +591,7 @@ export default function ScoreGuidePage() {
         <div className="space-y-3">
           {[
             {
-              stage: "시작 단계",
+              stage: STAGE_NAME.survival,
               range: "30점 미만",
               desc: "네이버 AI 검색 노출을 위한 기본 정보 등록이 필요합니다",
               color: "bg-red-100",
@@ -599,7 +600,7 @@ export default function ScoreGuidePage() {
               barColor: "bg-red-400",
             },
             {
-              stage: "성장 중",
+              stage: STAGE_NAME.stability,
               range: "30~54점",
               desc: "기본 정보 등록이 시작됐습니다. 키워드와 리뷰를 강화하세요",
               color: "bg-amber-100",
@@ -608,7 +609,7 @@ export default function ScoreGuidePage() {
               barColor: "bg-amber-400",
             },
             {
-              stage: "빠른 성장",
+              stage: STAGE_NAME.growth,
               range: "55~74점",
               desc: "AI 검색 노출이 효과를 내기 시작하는 구간입니다. 음식점·카페 등 AI 브리핑 대상 업종은 이 구간부터 노출 기회가 높아집니다.",
               color: "bg-blue-100",
@@ -617,9 +618,9 @@ export default function ScoreGuidePage() {
               barColor: "bg-blue-500",
             },
             {
-              stage: "지역 1등",
+              stage: STAGE_NAME.dominance,
               range: "75점 이상",
-              desc: "지역 내 AI 검색 상위권입니다. 경쟁사와의 격차를 유지하세요",
+              desc: "AI 검색 준비도가 높은 구간입니다. 현재 수준을 유지하며 경쟁사와의 격차를 지키세요",
               color: "bg-emerald-100",
               textColor: "text-emerald-700",
               pct: 100,

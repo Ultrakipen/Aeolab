@@ -925,7 +925,7 @@ export default function OnboardingPage() {
                 {[
                   { icon: Bot,        bg: "bg-blue-100",   color: "text-blue-600",   label: "3곳 노출 신호",         detail: "네이버 AI 브리핑·카카오맵·ChatGPT에서 내 가게 검색 결과" },
                   { icon: BarChart3,  bg: "bg-indigo-100", color: "text-indigo-600", label: "AI 노출 종합 진단",      detail: "양호·보통·주의 상태 + 네이버 서비스 / 글로벌 AI 서비스 분리 진단" },
-                  { icon: TrendingUp, bg: "bg-amber-100",  color: "text-amber-700",  label: "성장 단계 진단",         detail: "시작→성장→빠른 성장→지역 1등 중 내 가게의 현재 단계 판정" },
+                  { icon: TrendingUp, bg: "bg-amber-100",  color: "text-amber-700",  label: "성장 단계 진단",         detail: "시작 전→보강 단계→개선 중→양호 중 내 가게의 현재 단계 판정" },
                   { icon: KeyRound,   bg: "bg-red-100",    color: "text-red-700",    label: "없는 키워드 TOP 3",     detail: "경쟁사는 있고 내 가게에 없는 핵심 키워드 — 지금 당장 추가해야 할 단어" },
                   { icon: Camera,     bg: "bg-purple-100", color: "text-purple-600", label: "Before 스크린샷",       detail: "현재 AI 검색 노출 화면 자동 캡처 — 개선 전후 비교의 기준점" },
                   { icon: Lightbulb,  bg: "bg-green-100",  color: "text-green-700",  label: "즉시 활용 가이드",       detail: "소개글 Q&A 문구·리뷰 답변 초안·소식 업데이트 문구 자동 생성" },

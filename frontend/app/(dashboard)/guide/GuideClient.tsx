@@ -28,11 +28,11 @@ function simplify(text: string | undefined | null): string {
     .replace(/Schema\.org/gi, '검색 노출 개선')
     .replace(/LocalBusiness/gi, '사업장 정보')
     .replace(/Open Graph/gi, 'SNS 미리보기 코드')
-    .replace(/생존기/g, '시작 단계')
-    .replace(/안정기/g, '성장 중')
-    .replace(/성장기/g, '빠른 성장')
-    .replace(/선도기/g, '지역 1등')
-    .replace(/지배기/g, '지역 1등')
+    .replace(/생존기/g, '시작 전')
+    .replace(/안정기/g, '보강 단계')
+    .replace(/성장기/g, '개선 중')
+    .replace(/선도기/g, '양호')
+    .replace(/지배기/g, '양호')
     .replace(/키워드\s*커버리지/g, '키워드 충족률')
     .replace(/커버리지/g, '충족률')
     .replace(/AI 브리핑 직접 관리 경로/g, 'AI가 내 가게 얘기하게 만드는 방법')
@@ -175,10 +175,10 @@ const STAGE_INDEX: Record<string, number> = {
   survival: 0, stability: 1, growth: 2, dominance: 3,
 }
 const STAGE_LABELS: { key: string; label: string; icon: LucideIcon }[] = [
-  { key: 'survival',  label: '생존기 (처음 시작)',     icon: Leaf },
-  { key: 'stability', label: '안정기 (기본 탄탄)',     icon: Sparkles },
-  { key: 'growth',    label: '성장기 (경쟁력 높음)',   icon: TrendingUp },
-  { key: 'dominance', label: '지배기 (업계 최상위)',   icon: Trophy },
+  { key: 'survival',  label: '시작 전 (기본 정보부터)',     icon: Leaf },
+  { key: 'stability', label: '보강 단계 (기본은 갖춤)',     icon: Sparkles },
+  { key: 'growth',    label: '개선 중 (경쟁력이 올라가는 중)',   icon: TrendingUp },
+  { key: 'dominance', label: '양호 (AI 검색 준비가 잘 된 상태)',   icon: Trophy },
 ]
 
 const PLAN_HIERARCHY: Record<string, number> = {
@@ -985,22 +985,22 @@ function ChecklistProgress({
 
 // ── 2주 실행 타임라인 ────────────────────────────────────────────────────────
 const WEEK1_TASKS: Record<string, string[]> = {
-  '생존기': [
+  survival: [
     '{region} {category} 소개글에 {keyword1} 포함하여 스마트플레이스 수정',
     '소개글 하단에 Q&A 3개 추가 (가이드에서 문구 복사)',
     '최근 리뷰 3개에 키워드 포함 답변 달기',
   ],
-  '안정기': [
+  stability: [
     '소개글 하단에 Q&A 2개 추가 ({keyword1} 포함)',
     '리뷰 10개 이상이면 — 구글 지도·카카오맵 등록 확인',
     '스마트플레이스 소식 1개 업로드 ({keyword1} 포함)',
   ],
-  '성장기': [
+  growth: [
     '소개글 하단에 Q&A 3개 추가 ({keyword1} 질문 형식)',
     '최근 리뷰 5개 키워드 포함 답변',
     '구글 지도·카카오맵 리뷰 답변 달기',
   ],
-  '지배기': [
+  dominance: [
     '스마트플레이스 소식 주 1회 유지',
     '네이버 지식인 답변 2회 이상 (내 가게 자연 언급)',
     '경쟁사 동향 주 1회 확인',
@@ -1008,22 +1008,22 @@ const WEEK1_TASKS: Record<string, string[]> = {
 }
 
 const WEEK2_TASKS: Record<string, string[]> = {
-  '생존기': [
+  survival: [
     '리뷰 유도 문구 QR 카드 출력 → 계산대 앞 비치',
     '소식 1개 업로드 ({keyword2} 포함)',
     '카카오맵 등록 완료',
   ],
-  '안정기': [
+  stability: [
     '리뷰 답변 2개 키워드 포함 재작성',
     '스마트플레이스 사진 5장 교체·추가 (최신 사진)',
     'FAQ 2개 추가 등록',
   ],
-  '성장기': [
+  growth: [
     '내가 놓친 키워드 2개 FAQ에 추가',
     '네이버 AI 브리핑 노출 확인 (수동 측정)',
     '경쟁사 리뷰 분석 — 없는 키워드 파악',
   ],
-  '지배기': [
+  dominance: [
     '업종 대표 키워드 선점 유지',
     '신규 경쟁사 모니터링',
     '월 리포트 확인 및 전략 조정',
@@ -1031,10 +1031,10 @@ const WEEK2_TASKS: Record<string, string[]> = {
 }
 
 const STAGE_KEY_MAP: Record<string, string> = {
-  survival: '생존기',
-  stability: '안정기',
-  growth: '성장기',
-  dominance: '지배기',
+  survival: 'survival',
+  stability: 'stability',
+  growth: 'growth',
+  dominance: 'dominance',
 }
 
 function TwoWeekPlanSection({
@@ -1052,7 +1052,7 @@ function TwoWeekPlanSection({
   region?: string
   category?: string
 }) {
-  const stageKey = STAGE_KEY_MAP[growthStage.stage] ?? '생존기'
+  const stageKey = STAGE_KEY_MAP[growthStage.stage] ?? 'survival'
   const kw1 = missingKeywords[0] ?? '주요 키워드'
   const kw2 = missingKeywords[1] ?? kw1
   const regionStr = region ?? ''
@@ -1066,8 +1066,8 @@ function TwoWeekPlanSection({
       .replace('{keyword2}', kw2)
       .replace('{bizName}', bizName)
 
-  const week1Tasks = (WEEK1_TASKS[stageKey] ?? WEEK1_TASKS['생존기']).map(interpolate)
-  const week2Tasks = (WEEK2_TASKS[stageKey] ?? WEEK2_TASKS['생존기']).map(interpolate)
+  const week1Tasks = (WEEK1_TASKS[stageKey] ?? WEEK1_TASKS['survival']).map(interpolate)
+  const week2Tasks = (WEEK2_TASKS[stageKey] ?? WEEK2_TASKS['survival']).map(interpolate)
   const totalTasks = week1Tasks.length + week2Tasks.length
 
   const STORAGE_KEY_W1 = `aeolab_2week_plan_${bizId}_1`
