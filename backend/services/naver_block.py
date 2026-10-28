@@ -26,3 +26,20 @@ def is_naver_block_page(text: Optional[str]) -> bool:
     if not text or not _BLOCK_RE.search(text):
         return False
     return len(text) < _SHORT_PAGE_LEN or bool(_COMPANION_RE.search(text))
+
+
+_SEARCH_BLOCK_TEXT_RE = re.compile(r"로봇이 아님|자동화된 요청|비정상적인 접근|보안 문자")
+
+
+def is_naver_search_block(url: Optional[str], title: Optional[str], text: Optional[str]) -> bool:
+    """네이버 검색 화면의 CAPTCHA·로그인 리다이렉트·비정상 접근 안내 감지 (2026-10-28 공용화).
+
+    services/ai_scanner/naver_scanner._check_single_page 의 감지 규칙과 같다 — URL(captcha·nid·login), 제목(로봇 등),
+    본문 앞 500자(안내 문구). 정상 검색 결과 본문 깊은 곳의 우연한 문구는 보지 않는다.
+    """
+    url, title, text = url or "", title or "", text or ""
+    return (
+        any(k in url for k in ("captcha", "nid.naver.com", "login.naver.com"))
+        or any(k in title for k in ("로봇", "자동화", "captcha", "CAPTCHA", "보안문자"))
+        or bool(_SEARCH_BLOCK_TEXT_RE.search(text[:500]))
+    )

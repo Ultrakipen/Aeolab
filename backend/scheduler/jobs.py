@@ -6378,6 +6378,7 @@ async def _check_data_wiring_readiness_job():
         _logger.warning(f"[DATA-WIRING-READY] subscriber check failed: {e}")
 
 
+@_naver_batch_job
 async def ai_tab_trigger_check_job():
     """M3-1: 주 2회(월·목 09:00 KST) AI탭 전체 공개 여부 자동 감지.
 
@@ -6404,7 +6405,24 @@ async def ai_tab_trigger_check_job():
     queries = ["강남역 맛집", "홍대 카페", "신사동 미용실", "분당 학원"]
     hit_count = 0
 
+    # 검색 화면 차단 쿨다운 중에는 접속하지 않고, 일일 상한(쿼리 수만큼)과 Playwright 세마포어를 다른 네이버 작업과 같이 따른다.
+    # 2026-10-28 함수 단위 감사에서 회로·쿼터·세마포어가 모두 없던 것을 발견.
+    from services.naver_access_guard import begin_search_access, report_search_block, report_search_ok
+    from services.ai_scanner import check_naver_playwright_quota
+    from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE, PLAYWRIGHT_QUEUE_TIMEOUT_SEC
+    from services.naver_block import is_naver_search_block
+    if not begin_search_access("ai_tab_trigger_check_job")[0]:
+        _logger.info("[ai_tab_trigger] 검색 화면 차단 쿨다운 중 — 건너뜀")
+        return
+    if not check_naver_playwright_quota("ai_tab_trigger_check_job", cost=len(queries)):
+        _logger.info("[ai_tab_trigger] 일일 상한 — 건너뜀")
+        return
+
+    _sem_taken = False
+    _blocked = False
     try:
+        await asyncio.wait_for(PLAYWRIGHT_SEMAPHORE.acquire(), timeout=PLAYWRIGHT_QUEUE_TIMEOUT_SEC)
+        _sem_taken = True
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(
                 headless=True,
@@ -6426,6 +6444,17 @@ async def ai_tab_trigger_check_job():
                         wait_until="domcontentloaded", timeout=30000,
                     )
                     await page.wait_for_timeout(3000)
+                    # 차단·CAPTCHA 화면이면 회로에 보고하고 중단 — 일부만 측정한 비율로 AI탭 설정을 바꾸면 안 된다
+                    try:
+                        _body = await page.inner_text("body")
+                    except Exception:
+                        _body = ""
+                    if is_naver_search_block(page.url, await page.title(), _body):
+                        report_search_block("ai_tab_trigger_check_job")
+                        _logger.warning("[ai_tab_trigger] 검색 화면 차단/CAPTCHA 감지 — 나머지 쿼리 중단")
+                        _blocked = True
+                        break
+                    report_search_ok()
                     text = ""
                     for sel in AI_TAB_SELECTORS:
                         el = await page.query_selector(sel)
@@ -6446,6 +6475,11 @@ async def ai_tab_trigger_check_job():
     except Exception as e:
         _logger.warning(f"ai_tab_trigger_check_job playwright failed: {e}")
         return
+    finally:
+        if _sem_taken:
+            PLAYWRIGHT_SEMAPHORE.release()
+    if _blocked:
+        return   # 차단으로 일부만 측정 — 노출률 판단·자동 설정 변경 불가
 
     rate = hit_count / len(queries)
     _logger.info(f"[ai_tab_trigger_check] hit={hit_count}/{len(queries)} rate={rate:.0%}")
@@ -6529,7 +6563,19 @@ async def briefing_category_expansion_monitor_job():
     newly_detected_place: list[str] = []
     info_only_detected: list[str] = []
 
+    # 검색 화면 차단 쿨다운 중에는 접속하지 않고 Playwright 세마포어를 다른 네이버 작업과 같이 따른다(2026-10-28 함수 단위 감사)
+    from services.naver_access_guard import begin_search_access, report_search_block, report_search_ok
+    from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE, PLAYWRIGHT_QUEUE_TIMEOUT_SEC
+    from services.naver_block import is_naver_search_block
+    if not begin_search_access("briefing_category_expansion_monitor_job")[0]:
+        _logger.info("[briefing_expansion] 검색 화면 차단 쿨다운 중 — 건너뜀")
+        return
+
+    _sem_taken = False
+    _blocked = False
     try:
+        await asyncio.wait_for(PLAYWRIGHT_SEMAPHORE.acquire(), timeout=PLAYWRIGHT_QUEUE_TIMEOUT_SEC)
+        _sem_taken = True
         async with async_playwright() as pw:
             # §4-A 승격 레시피(2026-06-30 검증): channel=chrome + 쿠키 주입 + 프록시, apply_stealth 미사용
             browser = await pw.chromium.launch(
@@ -6559,6 +6605,18 @@ async def briefing_category_expansion_monitor_job():
                         )
                         await page.wait_for_timeout(random.randint(2800, 4800))
 
+                        # 차단·CAPTCHA 화면이면 회로에 보고하고 전체 중단 — 일부만 측정한 결과로 업종 확대 알림을 내면 안 된다
+                        try:
+                            _body = await page.inner_text("body")
+                        except Exception:
+                            _body = ""
+                        if is_naver_search_block(page.url, await page.title(), _body):
+                            report_search_block("briefing_category_expansion_monitor_job")
+                            _logger.warning("[briefing_expansion] 검색 화면 차단/CAPTCHA 감지 — 모니터 중단")
+                            _blocked = True
+                            break
+                        report_search_ok()
+
                         text = ""
                         for sel in BRIEFING_SELECTORS:
                             el = await page.query_selector(sel)
@@ -6587,6 +6645,8 @@ async def briefing_category_expansion_monitor_job():
                         await page.close()
                     await asyncio.sleep(1.0)
 
+                if _blocked:
+                    break
                 if place_hit >= len(queries):
                     newly_detected_place.append(cat)
                     _logger.warning(f"[briefing_expansion] {cat} 업종 플레이스형 AI 브리핑 노출 감지!")
@@ -6597,6 +6657,11 @@ async def briefing_category_expansion_monitor_job():
     except Exception as e:
         _logger.warning(f"briefing_category_expansion_monitor_job playwright failed: {e}")
         return
+    finally:
+        if _sem_taken:
+            PLAYWRIGHT_SEMAPHORE.release()
+    if _blocked:
+        return   # 차단으로 일부만 측정 — 업종 확대 판단 불가
 
     if newly_detected_place:
         cats_str = ", ".join(newly_detected_place)
