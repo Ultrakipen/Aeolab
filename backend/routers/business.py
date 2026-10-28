@@ -352,6 +352,23 @@ async def delete_business(biz_id: str, user=Depends(get_current_user)):
     return {"ok": True}
 
 
+_REVIEW_COUNT_FIELDS = ("receipt_review_count", "visitor_review_count", "review_count")
+_REVIEW_COUNT_MAX = 1_000_000
+
+
+def _validate_review_inputs(filtered: dict) -> None:
+    """avg_rating 0~5, 리뷰 수 0~100만 정수. 위반 시 400 (None은 '값 없음'으로 허용)."""
+    if "avg_rating" in filtered and filtered["avg_rating"] is not None:
+        v = filtered["avg_rating"]
+        if isinstance(v, bool) or not isinstance(v, (int, float)) or not (0 <= v <= 5):
+            raise HTTPException(status_code=400, detail="평균 별점은 0~5 사이 숫자여야 합니다")
+    for f in _REVIEW_COUNT_FIELDS:
+        if f in filtered and filtered[f] is not None:
+            v = filtered[f]
+            if isinstance(v, bool) or not isinstance(v, int) or not (0 <= v <= _REVIEW_COUNT_MAX):
+                raise HTTPException(status_code=400, detail="리뷰 수는 0 이상의 정수여야 합니다")
+
+
 @router.patch("/{biz_id}")
 async def update_business(biz_id: str, updates: dict, user=Depends(get_current_user)):
     import asyncio
@@ -362,6 +379,10 @@ async def update_business(biz_id: str, updates: dict, user=Depends(get_current_u
     filtered = {k: v for k, v in updates.items() if k in allowed}
     if not filtered:
         raise HTTPException(status_code=400, detail="변경할 필드가 없습니다")
+
+    # 사용자 입력 리뷰 수치 범위 검증 — 생성 스키마(schemas.py)는 0~5 검증이 있으나 이 경로는 dict라 없었음.
+    # 별점 500 입력 시 calc_review_quality가 100점으로 부풀려지는 것 방지
+    _validate_review_inputs(filtered)
 
     # 네이버 플레이스 URL 저장 시 place_id 자동 추출 — 리뷰 통계 동기화 활성화
     # (빠른수정 패널은 naver_place_url만 전송 → place_id 미추출 시 sync_naver_place_stats가
