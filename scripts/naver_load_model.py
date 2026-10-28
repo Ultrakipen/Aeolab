@@ -1,6 +1,6 @@
 """네이버 접속 부하 용량 모델 (2026-10-27) — 사업장 수가 늘 때 요일별 하루 페이지 로드와 상한 대비를 계산한다.
 
-사용: python scripts/naver_load_model.py [--cap 600] [--batch-ratio 0.7] [--keywords 3] [--competitors 3]
+사용: python scripts/naver_load_model.py [--cap 600] [--batch-ratio 0.7] [--keywords 4] [--competitors 3]
 
 **실측이 아니라 코드 기준 모델이다.** 구독자가 0명이라 실제 트래픽 데이터가 없다. 각 상수에 출처(코드에서 확인) 또는
 "가정"을 표시했고, 운영이 시작되면 `.naver_quota_state_history.jsonl`(일별 출처별 실측)로 보정해야 한다.
@@ -91,7 +91,8 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--cap", type=int, default=600)
     ap.add_argument("--batch-ratio", type=float, default=0.7)
-    ap.add_argument("--keywords", type=int, default=3)
+    # 기본 4 — 2026-10-28 실측: 활성 사업장 6곳의 키워드 수 2·3·3·4·5·6(평균 3.8), 04:30 순위 잡이 4곳에서 16개를 측정(기존 가정 3)
+    ap.add_argument("--keywords", type=int, default=4)
     ap.add_argument("--competitors", type=int, default=3)
     a = ap.parse_args()
     batch_cap = int(a.cap * a.batch_ratio)
