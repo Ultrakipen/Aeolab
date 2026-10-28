@@ -168,6 +168,20 @@ async def _fetch_place_page_text(place_id: str) -> str:
 
     mobile_ua = ("Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 "
                  "(KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1")
+
+    # 가게 상세는 플레이스 페이지 — 플레이스 회로 차단기·일일 상한·속도 기준을 거친다(2026-10-28 함수 단위 감사에서 누락 발견).
+    # 거부·차단은 예외로 알려 호출처가 "확정하지 못함(error)"으로 처리하게 한다(주소 불일치로 오판하지 않게).
+    from services.naver_access_guard import begin_place_access, reserve_place_pages, report_place_block, report_place_ok
+    from services.naver_block import is_naver_block_page
+    from services.ai_scanner import check_naver_playwright_quota
+    if not begin_place_access("naver_place_resolver.place_page")[0]:
+        raise RuntimeError("naver_place_cooldown")
+    if not check_naver_playwright_quota("naver_place_resolver.place_page"):
+        raise RuntimeError("quota_exceeded")
+    _rok, _rwhy, _ = await reserve_place_pages(1, "naver_place_resolver.place_page")
+    if not _rok:
+        raise RuntimeError(_rwhy or "naver_rate_limited")
+
     await asyncio.wait_for(PLAYWRIGHT_SEMAPHORE.acquire(), timeout=PLAYWRIGHT_QUEUE_TIMEOUT_SEC)
     try:
         async def _run() -> str:
@@ -189,7 +203,12 @@ async def _fetch_place_page_text(place_id: str) -> str:
                                     wait_until="domcontentloaded", timeout=30000)
                     note_proxy_result(None)
                     await page.wait_for_timeout(4000)
-                    return await page.inner_text("body")
+                    body = await page.inner_text("body")
+                    if is_naver_block_page(body):
+                        report_place_block("naver_place_resolver.place_page")
+                        raise RuntimeError("naver_place_blocked")   # 차단 화면의 글자로 주소를 대조하면 안 된다
+                    report_place_ok()
+                    return body
                 except Exception as e:
                     note_proxy_result(e)
                     raise

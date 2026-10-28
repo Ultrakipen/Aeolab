@@ -716,12 +716,24 @@ async def get_recent_low_rating_reviews(
     if not naver_place_id:
         return []
 
+    # 플레이스 회로 차단기·속도 기준 — 다른 플레이스 진입점과 같은 방식. 2026-10-28 점검에서 이 함수만 빠져 있어
+    # 쿨다운 중에도 접속하던 것을 발견(함수 단위 감사). 차단 중에는 네이버 요청 없이 건너뛴다.
+    from services.naver_access_guard import begin_place_access, place_pace, reserve_place_pages
+    _ok, _why = begin_place_access("naver_place_stats.get_recent_low_rating_reviews")
+    if not _ok:
+        return []
+
     from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
-    if not _check_naver_quota("naver_place_stats.get_recent_low_rating_reviews"):
+    # 가게 페이지를 열고 리뷰 탭까지 누르므로 2페이지로 센다
+    if not _check_naver_quota("naver_place_stats.get_recent_low_rating_reviews", cost=2):
+        return []
+    _rok, _rwhy, _ = await reserve_place_pages(2, "naver_place_stats.get_recent_low_rating_reviews")
+    if not _rok:
         return []
 
     try:
         async with _get_playwright_sem():
+            await place_pace()
             return await asyncio.wait_for(
                 _fetch_low_rating_reviews(naver_place_id, min_rating, max_reviews),
                 timeout=35,
@@ -789,6 +801,14 @@ async def _fetch_low_rating_reviews(
 
             # body 텍스트에서 별점+내용 파싱 (정규식 기반)
             body = await target.inner_text("body")
+
+            # 차단 화면은 "낮은 별점 리뷰 없음"이 아니다 — 회로에 보고하고 빈 결과로 끝낸다(알림 판단 불가)
+            from services.naver_block import is_naver_block_page
+            from services.naver_access_guard import report_place_block, report_place_ok
+            if is_naver_block_page(body):
+                report_place_block("naver_place_stats.get_recent_low_rating_reviews")
+                return low_reviews
+            report_place_ok()
 
             # 별점 패턴: 숫자 별점이 포함된 리뷰 블록 파싱
             # 네이버 리뷰는 별 모양 렌더링이어서 텍스트로는 "x점" 형식 또는 aria-label로 노출
