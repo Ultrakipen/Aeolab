@@ -38,14 +38,13 @@ class _Q:
 def env(monkeypatch, tmp_path):
     import scheduler.jobs as jobs
     import db.supabase_client as dbc
-    import services.kakao_notify as kn
     import services.naver_place_stats as ps
 
     monkeypatch.setenv("NAVER_LOW_RATING_STATE_FILE", str(tmp_path / "state.json"))
     ctx = {
         "biz": [], "phones": {}, "calls": [], "sent": [], "inserted": [], "slack": [], "batch_flags": [],
         "script": {}, "default": {"checked": True, "reviews": [], "markers": 3, "reason": None},
-        "dup_count": 0, "state_file": tmp_path / "state.json",
+        "dup_count": 0, "state_file": tmp_path / "state.json", "send_ok": True, "attempts": [],
     }
 
     class C:
@@ -65,7 +64,10 @@ def env(monkeypatch, tmp_path):
 
     class N:
         async def send_low_rating_alert(self, **k):
-            ctx["sent"].append(k)
+            ctx["attempts"].append(k)
+            if ctx["send_ok"]:
+                ctx["sent"].append(k)
+            return ctx["send_ok"]
 
     async def fake_check(naver_place_id, min_rating=2, max_reviews=10):
         from services.ai_scanner import is_naver_batch
@@ -79,7 +81,12 @@ def env(monkeypatch, tmp_path):
     monkeypatch.setattr(jobs, "_db", fake_db)
     monkeypatch.setattr(jobs, "send_slack_alert", fake_slack)
     monkeypatch.setattr(dbc, "get_client", lambda: C())
-    monkeypatch.setattr(kn, "KakaoNotifier", N)
+    # 잡은 함수 안에서 `from services.kakao_notify import KakaoNotifier`를 하므로 sys.modules 항목을 직접 교체한다. 속성 패치는
+    # 다른 테스트가 가짜 모듈을 등록하거나 진짜 모듈을 격리 import 해 두면 잡이 읽는 객체와 달라질 수 있다(전체 실행에서만 실패).
+    import types
+    fake_kn = types.ModuleType("services.kakao_notify")
+    fake_kn.KakaoNotifier = N
+    monkeypatch.setitem(sys.modules, "services.kakao_notify", fake_kn)
     monkeypatch.setattr(ps, "check_low_rating_reviews_for", fake_check)
     ctx["jobs"] = jobs
     return ctx
@@ -177,6 +184,30 @@ def test_first_check_records_baseline_without_alert_then_only_new_reviews_alert(
     env["default"] = {"checked": True, "reviews": [new, old], "markers": 5, "reason": None}
     _run(env)
     assert len(env["sent"]) == 1 and env["sent"][0]["review_excerpt"] == "새로 달린 불만 리뷰"   # 새 리뷰만
+
+
+def test_failed_send_is_not_recorded_as_sent_and_is_retried_next_run(env):
+    """이전에는 발송 결과를 확인하지 않고 항상 '발송됨'으로 기록해, 실패한 알림이 중복 방지에 걸려 영영 재시도되지 않았다."""
+    env["biz"] = _biz(1)
+    env["phones"] = {"u1": "010"}
+    env["state_file"].write_text(json.dumps({"last": {"b1": 1.0}, "seen": {}}))   # 기준선 있음
+    new = {"rating": 1, "excerpt": "새로 달린 불만 리뷰", "review_id": "p1_new"}
+    env["default"] = {"checked": True, "reviews": [new], "markers": 5, "reason": None}
+
+    env["send_ok"] = False                                    # 카카오 발송 실패(템플릿 불일치·키 미설정 등)
+    _run(env)
+    assert len(env["attempts"]) == 1 and env["sent"] == []
+    assert env["inserted"] == []                              # '발송됨' 이력을 남기지 않는다
+    assert "p1_new" not in json.loads(env["state_file"].read_text())["seen"].get("b1", [])   # 이미 본 것으로도 남기지 않는다
+    assert len(env["slack"]) == 1 and "알림 발송 실패" in env["slack"][0][0]
+
+    env["send_ok"] = True                                     # 다음 실행에서 복구되면 같은 리뷰를 다시 알린다
+    env["slack"].clear()
+    _run(env)
+    assert len(env["sent"]) == 1 and env["sent"][0]["review_excerpt"] == "새로 달린 불만 리뷰"
+    assert env["inserted"] and env["slack"] == []
+    _run(env)
+    assert len(env["sent"]) == 1                              # 성공 뒤에는 다시 보내지 않는다
 
 
 def test_sort_failure_everywhere_alerts(env):

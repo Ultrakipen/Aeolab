@@ -3016,6 +3016,7 @@ async def check_low_rating_reviews():
         failed = 0
         no_marker = 0
         sort_failed = 0
+        send_failed = 0
         stop_reason = None
 
         for biz_id in order:
@@ -3071,14 +3072,22 @@ async def check_low_rating_reviews():
                         if (already.count or 0) > 0:
                             continue
 
-                    # 카카오 알림 발송
-                    await notifier.send_low_rating_alert(
+                    # 카카오 알림 발송 — 실패·미설정이면 "발송됨"으로 기록하지 않는다. 이전에는 결과를 확인하지 않고 항상 기록해, 실패한
+                    # 알림이 중복 방지에 걸려 영영 재시도되지 않았다. 이번 실행에서 새로 본 리뷰를 "이미 본 것"에서 되돌려 다음 실행에서 재시도한다.
+                    sent_ok = await notifier.send_low_rating_alert(
                         phone=phone,
                         biz_name=biz["name"],
                         rating=rating,
                         review_excerpt=excerpt,
                         review_url=f"https://smartplace.naver.com/places/{naver_place_id}/review",
                     )
+                    if not sent_ok:
+                        send_failed += 1
+                        for _r in new_reviews:
+                            if _r["review_id"] in known:
+                                known.remove(_r["review_id"])
+                        logger.warning(f"low_rating_alert 발송 실패 — 다음 실행에서 재시도: {biz['name']} review_id={review_id}")
+                        break
 
                     # 발송 이력 저장
                     await _db(
@@ -3113,6 +3122,13 @@ async def check_low_rating_reviews():
             logger.info(msg)
         # 조회는 됐는데 별점 표식이 전부 0이면 리뷰가 없는 게 아니라 네이버 화면 구조가 바뀐 것일 가능성이 크다(2026-10-28 파서가
         # 실제 화면과 어긋나 알림이 한 번도 안 나간 채 방치됐던 사고의 재발 방지) — 조용히 두지 않고 알린다.
+        if send_failed:
+            await send_slack_alert(
+                "별점 낮은 리뷰: 알림 발송 실패",
+                f"{send_failed}곳에서 카카오 알림 발송에 실패했습니다(다음 실행에서 재시도). 템플릿 AEOLAB_ALERT_01 본문 일치·변수 길이·"
+                "KAKAO_APP_KEY/KAKAO_SENDER_KEY 설정을 확인하세요(services/kakao_notify.send_low_rating_alert).",
+                level="warning",
+            )
         if sort_failed and checked == 0 and failed == sort_failed:
             await send_slack_alert(
                 "별점 낮은 리뷰: 최신순 정렬 실패",

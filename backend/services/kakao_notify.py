@@ -390,13 +390,13 @@ class KakaoNotifier:
 
     async def send_low_rating_alert(
         self, phone: str, biz_name: str, rating: int, review_excerpt: str, review_url: str = ""
-    ):
-        """별점 2점 이하 리뷰 긴급 알림 (템플릿 코드: AEOLAB_ALERT_01)"""
+    ) -> bool:
+        """별점 2점 이하 리뷰 긴급 알림 (템플릿 코드: AEOLAB_ALERT_01). 발송 성공이면 True — 호출한 쪽이 '발송됨' 기록 여부를 정한다."""
         app_key = os.getenv("KAKAO_APP_KEY", "")
         if not app_key:
             masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
             logger.warning(f"send_low_rating_alert skipped (KAKAO_APP_KEY 미설정): {masked}")
-            return
+            return False
         excerpt_short = review_excerpt[:50] if review_excerpt else "(내용 없음)"
         link = review_url or "https://smartplace.naver.com"
         message = (
@@ -406,7 +406,7 @@ class KakaoNotifier:
             f"빠른 답변으로 신뢰를 지키세요.\n"
             f"스마트플레이스에서 답변하기 → {link}"
         )
-        await self._send_raw(phone, message, template_code="AEOLAB_ALERT_01")
+        return await self._send_raw(phone, message, template_code="AEOLAB_ALERT_01")
 
     async def send_monthly_report(
         self, phone: str, biz_name: str, score_change: float,
@@ -662,18 +662,20 @@ class KakaoNotifier:
             },
         )
 
-    async def _send_raw(self, phone: str, text: str, template_code: str = "AEOLAB_NOTICE_01"):
-        """알림톡 자유 메시지 발송 (SMS fallback 포함)
+    async def _send_raw(self, phone: str, text: str, template_code: str = "AEOLAB_NOTICE_01") -> bool:
+        """알림톡 자유 메시지 발송 (SMS fallback 포함). 발송 성공이면 True, 실패·미설정(skipped)이면 False.
 
         NHN Cloud 알림톡 API v2.3: resendType=SMS로 템플릿 미승인 시에도 SMS 대체 발송.
         KAKAO_APP_KEY 미설정 시 skipped 처리 (graceful degradation).
+        반환값(2026-10-28): 이전에는 아무것도 돌려주지 않아 호출한 쪽이 실패를 성공으로 기록했다(별점 알림 잡이 실패한 알림을 '발송됨'으로
+        남기고 영영 재시도하지 않음). 기존 호출처는 반환값을 쓰지 않으므로 동작은 그대로다.
         """
         app_key = os.getenv("KAKAO_APP_KEY", "")
         if not app_key:
             masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
             logger.warning(f"_send_raw skipped: KAKAO_APP_KEY 미설정 ({masked})")
             self._log_notification(None, "notice", {"text": text[:200]}, "skipped")
-            return
+            return False
         masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
         status = "sent"
         try:
@@ -708,6 +710,7 @@ class KakaoNotifier:
             logger.warning(f"Kakao _send_raw error: {e}")
         finally:
             self._log_notification(None, "notice", {"phone": masked, "text": text[:200]}, status)
+        return status == "sent"
 
     async def _send(self, phone: str, ttype: str, params: dict, user_id: str | None = None):
         """알림톡 발송. AEOLAB_SCORE_01 실패 시 이메일 fallback 자동 실행.
