@@ -2309,51 +2309,16 @@ async def detect_new_competitors():
 
                 new_names_str = ", ".join(new_places[:3])
 
-                # FAQ 유무 확인 — 기존 등록 경쟁사 중 naver_place_id 있는 최대 3개 순차 체크
-                # (RAM 주의: Playwright 순차 처리, 동시 실행 금지)
-                has_faq_count = 0
-                try:
-                    from services.naver_place_stats import check_smart_place_completeness
-                    _faq_comp_res = await _db(
-                        supabase.table("competitors")
-                        .select("name, naver_place_id")
-                        .eq("business_id", biz["id"])
-                        .eq("is_active", True)
-                        .not_.is_("naver_place_id", "null")
-                        .limit(3)
-                    )
-                    faq_check_targets = _faq_comp_res.data or []
-                    for comp_row in faq_check_targets:
-                        pid = comp_row.get("naver_place_id", "")
-                        if not pid:
-                            continue
-                        try:
-                            naver_url = f"https://map.naver.com/p/entry/place/{pid}"
-                            faq_stats = await check_smart_place_completeness(naver_url)
-                            if faq_stats and faq_stats.get("has_faq"):
-                                has_faq_count += 1
-                        except Exception as _faq_err:
-                            logger.debug(f"FAQ check skip (place_id={pid}): {_faq_err}")
-                except Exception as _faq_import_err:
-                    logger.debug(f"FAQ check skipped: {_faq_import_err}")
+                # 2026-10-29: 경쟁사 FAQ 확인 제거 — has_faq는 Q&A 탭 폐기 이후 항상 False(naver_place_stats.py)라
+                #   '경쟁사 Q&A 추가' 문구 분기가 실행된 적 없고, 사업장마다 플레이스 점검(곳당 4~5페이지)만 낭비했다.
 
-                if has_faq_count > 0:
-                    alert_msg = (
-                        f"[AEOlab] {biz['name']} 알림\n\n"
-                        f"이번 주 {region_prefix} {cat_ko} 검색에 새로운 사업장 {len(new_places)}곳이 발견됐습니다.\n\n"
-                        f"새 경쟁 후보: {new_names_str}\n\n"
-                        f"⚠️ 기존 경쟁사 {has_faq_count}곳이 소개글 안 Q&A 섹션을 추가해\n"
-                        f"AI 브리핑 노출 경쟁이 높아지고 있습니다.\n\n"
-                        f"내 FAQ 확인하기: https://aeolab.co.kr/guide"
-                    )
-                else:
-                    alert_msg = (
-                        f"[AEOlab] {biz['name']} 알림\n\n"
-                        f"이번 주 {region_prefix} {cat_ko} 검색에 새로운 사업장 {len(new_places)}곳이 발견됐습니다.\n\n"
-                        f"새 경쟁 후보: {new_names_str}\n\n"
-                        f"경쟁사로 등록하고 AI 노출 순위를 비교해보세요.\n"
-                        f"https://aeolab.co.kr/competitors"
-                    )
+                alert_msg = (
+                    f"[AEOlab] {biz['name']} 알림\n\n"
+                    f"이번 주 {region_prefix} {cat_ko} 검색에 새로운 사업장 {len(new_places)}곳이 발견됐습니다.\n\n"
+                    f"새 경쟁 후보: {new_names_str}\n\n"
+                    f"경쟁사로 등록하고 AI 노출 순위를 비교해보세요.\n"
+                    f"https://aeolab.co.kr/competitors"
+                )
 
                 await notifier.send_text(phone=phone, message=alert_msg)
                 # 알림 이력 저장
