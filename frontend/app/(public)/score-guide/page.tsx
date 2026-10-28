@@ -78,8 +78,9 @@ export default function ScoreGuidePage() {
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
         <p className="text-sm md:text-base text-gray-700 leading-relaxed">
           AI가 가게를 추천할 때 얼마나 잘 준비돼 있는지를{" "}
-          <strong>A~D 4단계 등급</strong>으로 진단합니다. 등급이 높을수록 네이버 AI
-          브리핑·AI탭·ChatGPT·Gemini·Google AI에 가게 이름이 더 자주 노출됩니다.
+          <strong>시작 전 · 보강 단계 · 개선 중 · 양호 4단계</strong>로 진단합니다. 단계가 올라갈수록 네이버 AI
+          브리핑·AI탭·ChatGPT·Gemini·Google AI에 가게 이름이 노출될 가능성이 높아지는 방향입니다.
+          네이버에서 유명한 것과 AI 검색에 잘 나오는 것은 같지 않아서, 유명한 가게도 소개글·소식·지도 정보가 비어 있으면 &lsquo;보강 단계&rsquo;로 나올 수 있어요.
         </p>
       </div>
 

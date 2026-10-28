@@ -181,7 +181,7 @@ export default async function SharePage({ params }: Props) {
                   </div>
                 ))}
                 <p className="text-sm text-gray-600 pt-1 leading-relaxed">
-                  지역에서 &apos;{data.category} 추천&apos; 같은 질문을 AI에 100번 물었을 때 노출 빈도 + 리뷰·정보 완성도로 계산합니다.
+                  지역에서 &apos;{data.category} 추천&apos; 같은 질문을 AI에 여러 번 물었을 때 노출 빈도 + 리뷰·정보 완성도로 계산합니다(측정 횟수는 스캔 종류에 따라 다릅니다).
                 </p>
               </div>
             </details>

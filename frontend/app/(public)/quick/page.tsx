@@ -79,20 +79,6 @@ function scoreBg(score: number): string {
   return "bg-red-50 border-red-200";
 }
 
-function scoreGrade(score: number): string {
-  if (score >= 80) return "A";
-  if (score >= 60) return "B";
-  if (score >= 40) return "C";
-  return "D";
-}
-
-function gradeColor(grade: string): string {
-  if (grade === "A") return "bg-emerald-100 text-emerald-700";
-  if (grade === "B") return "bg-yellow-100 text-yellow-700";
-  if (grade === "C") return "bg-orange-100 text-orange-700";
-  return "bg-red-100 text-red-700";
-}
-
 // 진단 문제 도출
 function buildIssues(result: TrialScanResult, track1: number, track2: number, category: string): Array<{ icon: LucideIcon; title: string; desc: string }> {
   const issues: Array<{ icon: LucideIcon; title: string; desc: string }> = [];
@@ -256,7 +242,6 @@ export default function QuickPage() {
   const track1 = result ? (result.track1_score ?? result.score?.track1_score ?? result.score?.total_score ?? 0) : 0;
   const track2 = result ? (result.track2_score ?? result.score?.track2_score ?? result.score?.total_score ?? 0) : 0;
   const score  = result ? Math.round(result.score?.total_score ?? 0) : 0;
-  const grade  = result ? (result.score?.grade ?? scoreGrade(score)) : "D";
   const issues = result ? buildIssues(result, track1, track2, category) : [];
 
   return (
@@ -489,17 +474,19 @@ export default function QuickPage() {
                 <span className={`text-4xl font-black leading-none ${scoreColor(score)}`}>
                   {getScoreTextLabel(score)}
                 </span>
-                <span className={`text-base font-bold px-3 py-1 rounded-full ${gradeColor(grade)}`}>
-                  {grade}등급
-                </span>
               </div>
 
-              <p className={`text-base font-semibold mb-3 ${scoreColor(score)}`}>
+              {/* 등급 문자(A~D)는 쓰지 않는다(점수 숫자·등급 비노출 원칙). 이 빠른 측정은 ChatGPT 5회 + 네이버라 표본이 작다 —
+                  "거의 보이지 않습니다"처럼 AI 검색 전체를 단정하지 않고 이번 측정의 범위와 한계를 말한다(유명 가게가 5회에 안 나올 수 있음). */}
+              <p className={`text-base font-semibold mb-1 ${scoreColor(score)}`}>
                 {score >= 70
-                  ? "네이버 AI에 비교적 잘 노출되고 있습니다."
+                  ? "이번 빠른 측정에서는 비교적 잘 나왔습니다."
                   : score >= 40
-                  ? "일부 키워드에서 노출되나 개선이 필요합니다."
-                  : "지금 AI 검색에서 내 가게가 거의 보이지 않습니다."}
+                  ? "이번 빠른 측정에서는 일부만 나왔습니다."
+                  : "이번 빠른 측정(ChatGPT 5회)에서는 내 가게가 확인되지 않았습니다."}
+              </p>
+              <p className="text-sm text-gray-600 mb-3 leading-snug">
+                5회는 표본이 작아 정밀 측정과 다를 수 있어요. 네이버에서 유명한 가게도 AI 검색 결과가 다르게 나올 수 있습니다.
               </p>
 
               {/* 트랙 점수 */}
