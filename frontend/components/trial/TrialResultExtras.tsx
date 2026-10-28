@@ -24,9 +24,12 @@ export interface VerdictBullet {
 export function TrialVerdictCard({
   headline,
   bullets,
+  confirmed = [],
 }: {
   headline: string;
   bullets: VerdictBullet[];
+  /** 측정으로 확인된 사실 — 경고가 첫 화면에 보일 때 함께 보여 준다(값이 있는 실측만) */
+  confirmed?: string[];
 }) {
   // 헤드라인 하나만 남기고 근거는 기본 접는다 — "한 줄 진단"인데 근거 3~4개가 항상 펼쳐져 있어
   // 핵심 메시지가 흐려진다는 지적(2026-09-29)에 따른 개선. 근거 문장(사업장명·검색어 인용 등)은
@@ -62,6 +65,19 @@ export function TrialVerdictCard({
       <p className="text-sm font-bold text-slate-600 mb-1">한 줄 진단</p>
       <p className="text-xl md:text-2xl font-extrabold text-slate-900 leading-snug break-keep mb-3">{headline}</p>
       {first && <ul className="space-y-2">{renderBullet(first)}</ul>}
+      {confirmed.length > 0 && (
+        <div className="mt-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5">
+          <p className="text-sm md:text-base font-bold text-green-800 mb-1">측정으로 확인된 것</p>
+          <ul className="space-y-1">
+            {confirmed.map((t) => (
+              <li key={t} className="flex items-start gap-2 text-sm md:text-base text-green-900 leading-snug break-keep">
+                <Check className="w-4 h-4 mt-0.5 shrink-0 text-green-700" aria-hidden="true" />
+                <span>{t}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {rest.length > 0 && (
         <>
           {open && <ul className="space-y-2 mt-2">{rest.map(renderBullet)}</ul>}

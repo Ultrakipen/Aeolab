@@ -872,8 +872,8 @@ export default function TrialResultStep(props: TrialResultProps) {
       text: bestNaverRank
         ? `내 가게는 네이버 지역검색 ${bestNaverRank}위입니다.`
         : _kr.length > 1
-          ? `${_kr.length}개 검색어 모두에서 내 가게가 네이버 지역검색 상위 5곳에 나오지 않았습니다. 손님이 업종·동네로 찾을 때를 본 것이며, 가게 이름으로 직접 검색하면 나올 수 있어요.`
-          : "내 가게가 네이버 지역검색 상위 5곳에 나오지 않았습니다. 손님이 업종·동네로 찾을 때를 본 것이며, 가게 이름으로 직접 검색하면 나올 수 있어요.",
+          ? `${_kr.length}개 검색어 모두에서 내 가게가 네이버 지역검색 상위 5곳에 나오지 않았습니다. 손님이 업종·동네로 찾을 때를 본 것이며, 이 측정은 상위 5곳까지만 볼 수 있어 그 아래 순위는 알 수 없습니다. 가게 이름으로 직접 검색하면 나올 수 있어요.`
+          : "내 가게가 네이버 지역검색 상위 5곳에 나오지 않았습니다. 손님이 업종·동네로 찾을 때를 본 것이며, 이 측정은 상위 5곳까지만 볼 수 있어 그 아래 순위는 알 수 없습니다. 가게 이름으로 직접 검색하면 나올 수 있어요.",
       tone: naverWeak ? "warn" : "ok",
     });
     const _topName = (naver as { top_competitor_name?: string | null } | null)?.top_competitor_name;
@@ -890,6 +890,34 @@ export default function TrialResultStep(props: TrialResultProps) {
       } else {
         verdictBullets.push({ label: "블로그", text: `가게 이름이 나온 글 ${blogCount.toLocaleString()}건입니다(블로그 검색 상위 100건 기준).`, tone: "neutral" });
       }
+    }
+  }
+
+  // 첫 화면에 함께 보여 줄 "측정으로 확인된 것" — 경고 하나만 먼저 보이면 유명 가게도 "찾지 못했다"만 읽는다(2026-10-28 어니언 성수).
+  // 값이 있는 실측만 담고(0·미측정은 제외), 새로 계산하지 않고 위에서 이미 만든 값을 재사용한다.
+  const confirmedFacts: string[] = [];
+  {
+    const _sp = result.smart_place_check as { is_smart_place?: boolean; visitor_review_count?: number; error?: string } | null | undefined;
+    if (
+      result.place_match?.naver_place_url ||
+      _sp?.is_smart_place ||
+      (naver as { is_smart_place?: boolean } | null)?.is_smart_place ||
+      form.is_smart_place
+    ) {
+      confirmedFacts.push("네이버 스마트플레이스에 등록돼 있어요");
+    }
+    if (bestNaverRank) confirmedFacts.push(`네이버 지역검색 ${bestNaverRank}위`);
+    if (chatgptMentioned && _freq && chatgptSampleSize > 0) {
+      confirmedFacts.push(
+        `ChatGPT 추천 목록에 구 이름 ${chatgptSampleSize}회 중 ${_freq}회${hasNb && nbFreq > 0 ? `, 동네 이름(${nbName}) ${nbSample}회 중 ${nbFreq}회` : ""} 나왔어요`,
+      );
+    }
+    if (blogCount > 0) confirmedFacts.push(`가게 이름이 나온 블로그 글 ${blogCount.toLocaleString()}건 (제목·요약 기준)`);
+    const _kakaoRank = (result as { kakao?: { my_rank?: number | null } }).kakao?.my_rank ?? null;
+    if (_kakaoRank !== null && _kakaoRank <= 10) confirmedFacts.push(`카카오 검색 ${_kakaoRank}위`);
+    if (googlePlaces?.is_on_google === true) confirmedFacts.push("구글 지도에 등록돼 있어요");
+    if (_sp && !_sp.error && (_sp.visitor_review_count ?? 0) > 0) {
+      confirmedFacts.push(`방문자 리뷰 ${(_sp.visitor_review_count ?? 0).toLocaleString()}건`);
     }
   }
 
@@ -1063,7 +1091,11 @@ export default function TrialResultStep(props: TrialResultProps) {
         )}
 
         {/* ── 첫 화면: 한 줄 진단 + 먼저 고칠 것 3가지 (5초 안에 "그래서 지금 어떤가/무엇부터"에 답한다) ── */}
-        <TrialVerdictCard headline={verdictHeadline} bullets={verdictBullets} />
+        <TrialVerdictCard
+          headline={verdictHeadline}
+          bullets={verdictBullets}
+          confirmed={aiWeak || naverWeak ? confirmedFacts : []}
+        />
 
         {/* ── 손님이 가게를 찾는 5개 길 — 어디를 직접 재 봤고 어디가 남았는지 (2026-10-10) ── */}
         <ChannelWaysCard

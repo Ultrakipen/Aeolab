@@ -110,7 +110,7 @@ export function ChannelWaysCard({
           state: "measured",
           now: myRank
             ? `지역 검색 ${competitorCount > 0 ? `${topWord} 중 ` : ""}${myRank}위예요.`
-            : `지역 검색 ${topWord} 안에 내 가게가 없어요.`,
+            : `지역 검색 ${topWord} 안에 내 가게가 없어요.${competitorCount > 0 ? ` 이 측정은 ${topWord}까지만 볼 수 있어, 그 아래 순위는 알 수 없어요.` : ""}`,
           nowTone: myRank ? "ok" : "warn",
           affects: "소개글·리뷰·소식",
           duration: durationOf("네이버 일반검색"),
