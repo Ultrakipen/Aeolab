@@ -31,6 +31,33 @@ def test_review_zero_is_measured():
     assert _is_review_unmeasured({"review_count": None, "receipt_review_count": 3}) is False
 
 
+def test_registered_business_without_place_id_and_default_zero_is_unmeasured():
+    """등록 사업장의 DB 기본값 0(DEFAULT 0, 생성 시 `or 0`)은 측정이 아니다 — 플레이스 ID가 없으면 수집할 길이 없다."""
+    zero = {"review_count": 0, "avg_rating": 0, "receipt_review_count": 0, "visitor_review_count": 0}
+    assert _is_review_unmeasured({**zero, "naver_place_id": None}) is True
+    assert _is_review_unmeasured({**zero, "naver_place_id": ""}) is True
+    assert _is_review_unmeasured({**zero, "naver_place_id": "  "}) is True
+
+
+def test_registered_business_with_place_id_or_any_value_keeps_zero_as_measured():
+    zero = {"review_count": 0, "avg_rating": 0, "receipt_review_count": 0, "visitor_review_count": 0}
+    assert _is_review_unmeasured({**zero, "naver_place_id": "38561949"}) is False       # ID가 있으면 스캔이 수집한다 — 0은 실측
+    assert _is_review_unmeasured({**zero, "naver_place_id": None, "review_count": 12}) is False   # 사용자가 직접 입력
+    assert _is_review_unmeasured({**zero, "naver_place_id": None, "avg_rating": 4.2}) is False
+    assert _is_review_unmeasured({**zero, "naver_place_id": None, "visitor_review_count": 3}) is False
+    assert _is_review_unmeasured({"review_count": 0}) is False                           # 키가 없는 dict는 기존 동작 유지
+
+
+def test_track1_default_zero_without_place_id_is_excluded_not_zero_scored():
+    for fn in (calc_track1_score_v3_1, calc_track1_score_v3_2):
+        zero = {"review_count": 0, "avg_rating": 0, "receipt_review_count": 0, "visitor_review_count": 0}
+        s_noid, d_noid = _t1(fn, {**zero, "naver_place_id": None})
+        s_id, d_id = _t1(fn, {**zero, "naver_place_id": "123"})
+        assert "review_quality" in d_noid["excluded"] and d_noid["items"]["review_quality"]["measured"] is False
+        assert "review_quality" not in d_id["excluded"]
+        assert s_noid > s_id                       # ID 없는 기본값 0이 실측 0건보다 불리하면 안 된다
+
+
 def test_google_empty_result_is_unmeasured():
     assert _is_google_unmeasured({}) is True
     assert _is_google_unmeasured({"google": {}}) is True

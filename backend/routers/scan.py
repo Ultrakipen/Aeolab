@@ -2951,7 +2951,7 @@ async def _run_quick_scan(scan_id: str, req: ScanRequest):
         supabase = get_client()
         biz = (await execute(
             supabase.table("businesses")
-            .select("id, name, category, region, business_type, website_url, naver_place_url, keywords, review_count, avg_rating, keyword_diversity")
+            .select("id, name, category, region, business_type, website_url, naver_place_url, naver_place_id, keywords, review_count, avg_rating, keyword_diversity")
             .eq("id", req.business_id)
             .single()
         )).data

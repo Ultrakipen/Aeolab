@@ -929,11 +929,25 @@ def _is_google_unmeasured(scan_result: dict) -> bool:
 def _is_review_unmeasured(biz: dict) -> bool:
     """리뷰 수·평점·영수증 리뷰 어느 것도 수집되지 않은 경우(None) — 무료 체험·플레이스 ID 미확정 사업장.
     0건은 실측 값이므로 여기에 해당하지 않는다(None과 0을 구분)."""
-    return (
+    if (
         biz.get("review_count") is None
         and not biz.get("avg_rating")
         and not biz.get("receipt_review_count")
-    )
+    ):
+        return True
+    # 등록 사업장: DB 기본값(review_count DEFAULT 0, 생성 시 `or 0`)은 측정이 아니다. 플레이스 ID가 없으면 수집할 길이 없으므로
+    # 리뷰 값이 전부 0인 것은 "리뷰 0건 실측"이 아니라 미수집이다(2026-10-28). 플레이스 ID가 있으면 스캔 때 수집되므로 0은 실측으로 둔다.
+    # 키가 없는 dict(naver_place_id를 조회하지 않은 호출처)는 기존 동작을 유지한다.
+    if (
+        "naver_place_id" in biz
+        and not str(biz.get("naver_place_id") or "").strip()
+        and not (
+            biz.get("review_count") or biz.get("avg_rating")
+            or biz.get("receipt_review_count") or biz.get("visitor_review_count")
+        )
+    ):
+        return True
+    return False
 
 
 def calc_google_presence(scan_result: dict) -> float:
