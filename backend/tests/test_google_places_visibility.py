@@ -56,6 +56,21 @@ def test_other_branch_and_other_district_do_not_match(monkeypatch):
     assert r["is_on_google"] is False
 
 
+def test_street_only_address_still_matches_by_name(monkeypatch):
+    # 실측: Serper가 구 이름 없이 "아차산로9길 8"만 돌려준 어니언 성수점이 "미등록"으로 판정되던 결함
+    street_only = {"title": "어니언 성수점", "address": "아차산로9길 8", "rating": 4.2, "ratingCount": 4}
+    _patch(monkeypatch, [[_place("다른가게")], [street_only]])
+    r = _run(gp.get_google_places_visibility("어니언 성수", "카페", "서울 성동구"))
+    assert r["is_on_google"] is True and r["my_place"]["rating_count"] == 4
+
+
+def test_street_only_address_other_branch_still_rejected(monkeypatch):
+    other = {"title": "준오헤어 성수역점", "address": "아차산로 1", "rating": 4.0, "ratingCount": 10}
+    _patch(monkeypatch, [[other], [other]])
+    r = _run(gp.get_google_places_visibility("준오헤어 왕십리역점", "미용실", "서울 성동구"))
+    assert r["is_on_google"] is False
+
+
 def test_search_failures_are_unknown(monkeypatch):
     _patch(monkeypatch, [None])
     r = _run(gp.get_google_places_visibility("가게", "미용실", "서울 성동구"))

@@ -9,6 +9,7 @@
 상위 10곳에 없으면 가게 이름으로 한 번 더 찾아 등록 여부와 평점·리뷰 수를 확인한다(체험 1건당 최대 2크레딧).
 """
 import os
+import re
 import logging
 import aiohttp
 
@@ -28,7 +29,10 @@ def _is_my_place(target: str, place: dict, district: str) -> bool:
     t = _norm(target)
     if not t or not name or not _same_name(t, name):
         return False
-    if district and district not in (place.get("address") or ""):
+    addr = place.get("address") or ""
+    # Serper의 한국 주소는 "아차산로9길 8"처럼 구 이름 없이 도로명만 오는 경우가 많다(2026-10-28 어니언 성수 실측).
+    # 구·군·시가 적혀 있을 때만 다른 지역 같은 이름을 걸러 내고, 도로명만이면 이름 비교로만 판단한다.
+    if district and re.search(r"(?:^|\s)[가-힣]+(?:구|군|시)(?=\s|$)", addr) and district not in addr:
         return False
     return True
 
