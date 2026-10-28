@@ -1329,7 +1329,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                 <p className="text-sm font-bold text-gray-700 mb-1 flex items-center gap-1.5">
                   <Star className="w-4 h-4 text-gray-600" />주요 수치 비교
                 </p>
-                <p className="text-sm text-gray-600 mb-3">* 마지막 동기화 시점 기준 — 실시간 값과 다를 수 있습니다</p>
+                <p className="text-sm text-gray-600 mb-3">* 마지막 동기화 시점 기준 (2주마다 자동 갱신, 경쟁사 카드의 새로고침 버튼으로 직접 갱신 가능) — 실시간 값과 다를 수 있습니다</p>
                 <div className="overflow-x-auto" tabIndex={0}>
                 <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-100 min-w-[280px]">
                   <div className="grid grid-cols-3 text-sm font-semibold text-gray-600 px-4 py-2.5 border-b border-gray-200 bg-gray-100">

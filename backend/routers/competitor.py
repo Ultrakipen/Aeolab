@@ -515,9 +515,10 @@ async def add_competitor(req: CompetitorCreate, user=Depends(get_current_user)):
         biz_region = biz_region_row.data.get("region", "") if biz_region_row.data else ""
         if req.naver_place_id:
             try:
-                from services.competitor_place_crawler import sync_competitor_place
+                from services.competitor_place_crawler import sync_competitor_place, INTERACTIVE_MAX_AGE_SEC
                 asyncio.create_task(
-                    sync_competitor_place(row["id"], req.naver_place_id, supabase, registered_name=req.name)
+                    sync_competitor_place(row["id"], req.naver_place_id, supabase, registered_name=req.name,
+                                          max_age_sec=INTERACTIVE_MAX_AGE_SEC)
                 )
             except Exception as e:
                 _logger.warning(f"competitor place sync 백그라운드 실행 실패: {e}")
@@ -527,8 +528,9 @@ async def add_competitor(req: CompetitorCreate, user=Depends(get_current_user)):
                 if found_id:
                     try:
                         await execute(sb.table("competitors").update({"naver_place_id": found_id}).eq("id", comp_id))
-                        from services.competitor_place_crawler import sync_competitor_place
-                        await sync_competitor_place(comp_id, found_id, sb, registered_name=comp_name)
+                        from services.competitor_place_crawler import sync_competitor_place, INTERACTIVE_MAX_AGE_SEC
+                        await sync_competitor_place(comp_id, found_id, sb, registered_name=comp_name,
+                                                    max_age_sec=INTERACTIVE_MAX_AGE_SEC)
                         _logger.info(f"[auto_find] naver_place_id 자동 설정 완료 — comp={comp_name}, place_id={found_id}")
                     except Exception as e:
                         _logger.warning(f"[auto_find] sync 실패 — comp={comp_name}: {e}")

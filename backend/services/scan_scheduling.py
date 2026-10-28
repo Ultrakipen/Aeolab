@@ -129,6 +129,10 @@ from datetime import datetime, timezone
 from typing import Optional
 
 COMPETITOR_PAGE_COST = 6     # competitor_place_crawler.fetch_competitor_place_data 의 cost 와 같아야 한다
+# 경쟁사 플레이스 정보 갱신 주기 — 2주(2026-10-28 사용자 결정, 공개 문구도 "2주마다"). 캐시 TTL(13.5일)과 pacing(13일)을 함께 둔다:
+# TTL이 14일이면 14일째 아침에 아슬아슬하게 못 들어와 하루씩 밀린다. 기본값 변경 시 crawler의 기본 TTL·테스트도 같이 바꿀 것.
+COMPETITOR_REFRESH_TTL_SEC = 13.5 * 86400   # competitor_place_crawler._place_cache_ttl 기본값과 같아야 한다
+COMPETITOR_PACE_DAYS = 13.0
 
 
 def competitor_stale_first_enabled() -> bool:
@@ -157,7 +161,7 @@ def parse_ts(v) -> Optional[datetime]:
 
 
 def select_stale_first(items: list[dict], now: datetime, min_age_sec: float, budget_pages: int, today: date,
-                       pace_days: float = 6.0) -> list[str]:
+                       pace_days: float = COMPETITOR_PACE_DAYS) -> list[str]:
     """오늘 크롤할 사업장 id 목록(오래된 순서).
 
     items: [{"id": str, "last": datetime|None, "pages": int}] — last 는 그 사업장 경쟁사 중 **가장 오래된** 관측 시각
@@ -169,7 +173,8 @@ def select_stale_first(items: list[dict], now: datetime, min_age_sec: float, bud
     - budget_pages <= 0 이면 아무것도 고르지 않는다(상한을 이미 썼다).
     - pace_days: 하루 처리량을 "전체 사업장 페이지 합 ÷ pace_days"로도 제한한다. 이 제한이 없으면 예산이 주간 평균보다 클 때
       대상이 된 날 예산을 전부 쓰고 나머지 날은 쉬는 식으로 3일에 몰린다(시뮬레이션으로 확인: 일별 240·240·120·0·0·0…).
-      6일로 나누면 한 주 안에 한 바퀴를 돌면서 하루 부하가 고르다. 예산이 더 작으면 예산이 우선한다.
+      13일(COMPETITOR_PACE_DAYS, 갱신 주기 2주)로 나누면 2주 안에 한 바퀴를 돌면서 하루 부하가 고르다. 예산이 더 작으면 예산이 우선한다.
+      (위 시뮬레이션 수치는 주기 1주·pace 6일 때의 값이다. 2주 주기의 값은 tests/test_competitor_stale_first.py가 확인한다.)
     """
     if budget_pages <= 0:
         return []

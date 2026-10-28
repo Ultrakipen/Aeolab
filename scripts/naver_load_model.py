@@ -23,6 +23,7 @@ LIGHT_SCAN_NAVER = 1      # 코드: scan_basic은 브리핑 1회
 RANK_PER_KEYWORD = 2      # 코드: naver_keyword_rank PC + 모바일(place_rank는 공식 API라 제외)
 PLACE_STATS_COST = 2      # 코드: fetch_stats cost=2 (주 1회 월요일 02:00 직전 잡, jobs.py)
 COMPETITOR_CRAWL_COST = 6   # 코드: _run_place_crawl goto 최대 6회(홈 복귀·메뉴 중복 제거, 2026-10-28; 이전 최대 12·정상 8~10 → cost=10)
+COMPETITOR_REFRESH_WEEKS = 2   # 코드: 경쟁사 정보 갱신 주기 2주(scan_scheduling.COMPETITOR_REFRESH_TTL_SEC, 2026-10-28). 요일 분산(오래된 순서) 시나리오의 평균 부하에만 적용
 COMPETITOR_JOBS_PER_WEEK = 2  # 코드: competitor_place_sync_job(화) + enrich_competitor_details_job(목)
 USER_SCAN_PLACE_CHECK = 4   # 코드: 사용자 직접 풀스캔의 점검 cost(사진 탭 끄면 4)
 USER_SCANS_PER_BIZ_PER_DAY = 0.2   # 가정: 사업장당 하루 평균 사용자 수동 스캔 횟수 (실제 데이터 없음)
@@ -72,7 +73,7 @@ def daily_loads(n: int, *, spread: bool, keywords: int, competitors: int, dedupe
             sync_day = scan_slot(biz_id) if comp_spread else 1
             enrich_day = (sync_day + 2) % 7 if comp_spread else 3
             if wd == sync_day or (wd == enrich_day and not comp_cache):
-                c = competitors * COMPETITOR_CRAWL_COST * (1 - dedupe)
+                c = competitors * COMPETITOR_CRAWL_COST * (1 - dedupe) / (COMPETITOR_REFRESH_WEEKS if comp_spread else 1)
                 batch += c
                 if comps is not None:
                     comps["경쟁사 크롤"] = comps.get("경쟁사 크롤", 0) + c
@@ -116,10 +117,10 @@ def main() -> None:
             cells.append(f"배치{max(x['batch'] for x in d):>5.0f}/전체{max(x['total'] for x in d):>5.0f}")
         print(f"{n:>8} | " + " | ".join(f"{c:<16}" for c in cells))
     print()
-    print("주간 합계 구성요소(사업장 20곳, 슬롯+사전스캔+캐시 시나리오):")
+    print("주간 합계 구성요소(사업장 20곳, 슬롯+사전스캔+캐시+경쟁사 분산 = 서버의 오래된 순서 크롤, 경쟁사 2주 갱신 평균):")
     _c: dict = {}
     daily_loads(20, keywords=a.keywords, competitors=a.competitors, spread=True, dedupe=0.0, prescan_reuse=True,
-                comp_cache=True, comps=_c)
+                comp_cache=True, comp_spread=True, comps=_c)
     _tot = sum(_c.values()) or 1
     for _k, _v in sorted(_c.items(), key=lambda kv: -kv[1]):
         print(f"  {_k}: {_v:.0f}건/주 ({_v / _tot * 100:.0f}%)")

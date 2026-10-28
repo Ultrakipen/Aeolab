@@ -139,11 +139,11 @@ async def _check_one(s: dict, region: str) -> dict | None:
     if result is None:
         if _check_isolated_quota():
             from services.local_search import find_naver_place_id
-            from services.competitor_place_crawler import fetch_competitor_place_data
+            from services.competitor_place_crawler import fetch_competitor_place_data, INTERACTIVE_MAX_AGE_SEC
 
             place_id = await find_naver_place_id(name, address, region)
             if place_id:
-                data = await fetch_competitor_place_data(place_id)
+                data = await fetch_competitor_place_data(place_id, max_age_sec=INTERACTIVE_MAX_AGE_SEC)
                 if not data.get("error"):
                     result = {
                         "name": name,

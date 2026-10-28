@@ -85,7 +85,7 @@ def test_expired_entry_is_recrawled(monkeypatch):
     calls = _stub_crawl(monkeypatch, [])
     asyncio.run(cc.fetch_competitor_place_data("111"))
     t, data = cc._PLACE_CACHE["111"]
-    cc._PLACE_CACHE["111"] = (t - 570000, data)               # 기본 TTL 6.5일(561600초) 경과
+    cc._PLACE_CACHE["111"] = (t - 1170000, data)              # 기본 TTL 13.5일(1166400초) 경과
     asyncio.run(cc.fetch_competitor_place_data("111"))
     assert calls == ["111", "111"]
 
@@ -99,7 +99,7 @@ def test_cache_is_bounded(monkeypatch):
 
 
 def test_default_ttl_covers_slot_weekday_spread():
-    assert cc._place_cache_ttl() >= 6 * 86400     # 사업장 슬롯 요일이 최대 6일 차이 나도 한 주기에 한 번만 크롤
+    assert cc._place_cache_ttl() >= 13 * 86400    # 사업장 슬롯 요일이 달라도 갱신 주기(2주)에 한 번만 크롤
 
 
 def test_cache_hit_does_not_consume_quota_or_touch_circuit(monkeypatch):

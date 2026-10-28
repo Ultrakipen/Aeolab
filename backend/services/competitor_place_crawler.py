@@ -23,8 +23,10 @@ _logger = logging.getLogger(__name__)
 # 정기 잡은 등록 행마다 크롤하므로, 최근에 성공한 같은 장소 결과를 재사용해 네이버 요청 수를 사업장 수가 아니라
 # "고유한 경쟁 장소 수"에 비례하게 만든다.
 #   - 파일에 저장(.competitor_place_cache.json): 서버 재시작·배포로 비워지지 않는다(이전 인메모리 캐시는 비워졌음).
-#   - 실제 시각(epoch) 기준 TTL 기본 6.5일(제안값, COMPETITOR_PLACE_CACHE_TTL_SEC): 경쟁사 잡이 사업장 슬롯에 따라
-#     요일이 달라져도(최대 6일 차이) 한 주기(7일)에 같은 장소를 한 번만 크롤한다. 경쟁사 데이터는 며칠 단위로 천천히 바뀐다.
+#   - 실제 시각(epoch) 기준 TTL 기본 13.5일(2026-10-28 사용자 결정으로 6.5일에서 변경, COMPETITOR_PLACE_CACHE_TTL_SEC):
+#     경쟁사 정보는 2주마다 갱신한다(공개 문구도 "2주마다"로 고쳤다). 요일이 달라져도 한 주기(14일)에 같은 장소를 한 번만 크롤한다.
+#     scan_scheduling.COMPETITOR_REFRESH_TTL_SEC·COMPETITOR_PACE_DAYS와 함께 움직여야 한다(테스트가 일치를 확인).
+#     사용자가 직접 기다리는 경로(신규 경쟁사 등록·창업 리포트)는 INTERACTIVE_MAX_AGE_SEC(6.5일)로 좁혀 옛 값을 보이지 않는다.
 #   - 성공한 결과만 저장. 호출처가 더 신선한 값을 원하면 max_age_sec로 좁힌다(수동 동기화·내 가게 점검은 1시간).
 #   - 결과에 crawled_at(실제 관측 시각)을 넣어, 화면의 "동기화 시각"이 캐시 재사용 시각이 아니라 관측 시각을 보이게 한다.
 #   - 적중/실패를 날짜별로 기록해 실제 중복 제거율을 관리자 화면(/admin/naver-access)에서 본다. 실측 전에는 추정만 가능했다.
@@ -37,11 +39,14 @@ _PLACE_CACHE_MAX = 1500
 _place_cache_loaded = False
 
 
+INTERACTIVE_MAX_AGE_SEC = 561600   # 6.5일 — 사용자가 방금 등록한 경쟁사·창업 리포트는 이보다 오래된 공유 결과를 쓰지 않는다
+
+
 def _place_cache_ttl() -> float:
     try:
-        return float(os.getenv("COMPETITOR_PLACE_CACHE_TTL_SEC", "561600"))
+        return float(os.getenv("COMPETITOR_PLACE_CACHE_TTL_SEC", "1166400"))
     except ValueError:
-        return 561600.0
+        return 1166400.0
 
 
 def _place_cache_path() -> str:

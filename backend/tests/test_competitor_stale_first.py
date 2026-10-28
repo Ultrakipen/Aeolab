@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from services import naver_access_guard as g  # noqa: E402
 from services import scan_scheduling as ss  # noqa: E402
 
-TTL = 6.5 * 86400
+TTL = ss.COMPETITOR_REFRESH_TTL_SEC                              # 갱신 주기 2주(13.5일)
 T0 = datetime(2026, 11, 2, 3, 30, tzinfo=timezone.utc)
 
 
@@ -23,23 +23,23 @@ def _it(i, last, pages=30):
 
 # ── 선택 규칙 ─────────────────────────────────────────────────────────────
 def test_oldest_first_and_unobserved_first():
-    items = [_it("a", T0 - timedelta(days=8)), _it("b", None), _it("c", T0 - timedelta(days=10))]
+    items = [_it("a", T0 - timedelta(days=15)), _it("b", None), _it("c", T0 - timedelta(days=17))]
     assert ss.select_stale_first(items, T0, TTL, 1000, date(2026, 11, 2), pace_days=None) == ["b", "c", "a"]
 
 
 def test_not_yet_stale_is_skipped():
-    items = [_it("fresh", T0 - timedelta(days=2)), _it("edge", T0 - timedelta(days=6.4)), _it("due", T0 - timedelta(days=6.6))]
+    items = [_it("fresh", T0 - timedelta(days=9)), _it("edge", T0 - timedelta(days=13.4)), _it("due", T0 - timedelta(days=13.6))]
     assert ss.select_stale_first(items, T0, TTL, 1000, date(2026, 11, 2), pace_days=None) == ["due"]
 
 
 def test_budget_cut_keeps_strict_oldest_first_and_never_skips_ahead():
-    items = [_it("old_big", T0 - timedelta(days=9), 100), _it("mid_small", T0 - timedelta(days=8), 10), _it("new_small", T0 - timedelta(days=7), 10)]
+    items = [_it("old_big", T0 - timedelta(days=16), 100), _it("mid_small", T0 - timedelta(days=15), 10), _it("new_small", T0 - timedelta(days=14), 10)]
     # 예산 105: old_big(100) 포함 후 mid_small(10)은 넘으므로 중단 — 작은 것을 건너뛰고 뒤 것을 먼저 하지 않는다
     assert ss.select_stale_first(items, T0, TTL, 105, date(2026, 11, 2), pace_days=None) == ["old_big"]
 
 
 def test_oldest_is_always_included_even_if_over_budget():
-    items = [_it("huge", T0 - timedelta(days=9), 500)]
+    items = [_it("huge", T0 - timedelta(days=16), 500)]
     assert ss.select_stale_first(items, T0, TTL, 50, date(2026, 11, 2), pace_days=None) == ["huge"]
 
 
@@ -50,7 +50,7 @@ def test_zero_or_negative_budget_selects_nothing():
 
 
 def test_ties_are_deterministic_within_a_day_and_vary_across_days():
-    items = [_it(str(i), T0 - timedelta(days=8)) for i in range(20)]
+    items = [_it(str(i), T0 - timedelta(days=15)) for i in range(20)]
     a = ss.select_stale_first(items, T0, TTL, 1000, date(2026, 11, 2), pace_days=None)
     assert a == ss.select_stale_first(items, T0, TTL, 1000, date(2026, 11, 2), pace_days=None)
     assert a != ss.select_stale_first(items, T0, TTL, 1000, date(2026, 11, 3), pace_days=None)
@@ -76,8 +76,8 @@ def test_build_items_uses_oldest_observation_and_unobserved_wins():
 
 
 def test_cache_still_valid_guards_enrich_from_new_crawls():
-    assert ss.cache_still_valid(T0 - timedelta(days=2), T0, TTL) is True
-    assert ss.cache_still_valid(T0 - timedelta(days=6.4), T0, TTL) is False   # TTL 직전은 건너뜀
+    assert ss.cache_still_valid(T0 - timedelta(days=9), T0, TTL) is True
+    assert ss.cache_still_valid(T0 - timedelta(days=13.4), T0, TTL) is False   # TTL 직전은 건너뜀
     assert ss.cache_still_valid(None, T0, TTL) is False
 
 
@@ -123,45 +123,47 @@ def test_simulation_20_businesses_never_skip_and_stay_in_budget():
     budget = 252                                                  # 상한 600 x 배치 0.7 x 경쟁사 0.6
     daily, synced = _simulate(20, 90, budget)
     assert all(synced.values()), "한 번도 동기화되지 않은 사업장이 있다"
-    assert _max_gap(synced) <= 8                                  # 캐시 TTL 6.5일 + 하루 처리 지연 이내
-    assert max(daily) <= budget + 30                              # 맨 앞 1곳은 예산을 넘겨도 포함(최대 1곳 초과)
+    assert _max_gap(synced) <= 15                                 # 캐시 TTL 13.5일 + 하루 처리 지연 이내(실측 시뮬레이션 14일)
+    assert max(daily) <= budget + 18                              # 맨 앞 1곳은 예산을 넘겨도 포함(최대 1곳 초과, 1곳=3경쟁사x6페이지)
 
 
 def test_simulation_load_is_smoother_than_fixed_tuesday_and_hash_slots():
-    daily, _ = _simulate(20, 60, 252)
-    steady = daily[14:]                                           # 처음 며칠(예산만큼 처리하며 엇갈리는 구간) 이후
-    fixed_tuesday_peak = 20 * 3 * ss.COMPETITOR_PAGE_COST         # 전원 같은 날 = 600
+    daily, _ = _simulate(20, 90, 252)
+    steady = daily[28:]                                           # 처음 2주(예산만큼 처리하며 엇갈리는 구간) 이후
+    one_biz = 3 * ss.COMPETITOR_PAGE_COST
+    fixed_tuesday_peak = 20 * one_biz                             # 전원 같은 날 = 360
     assert max(steady) < fixed_tuesday_peak * 0.5
-    # pacing 한도(600/6 = 100) + 마지막 한 곳(30) 이내 — 해시 슬롯 시뮬레이션의 평균 최대일(20곳 5.3곳 = 159페이지)보다 낮다
-    assert max(steady) <= 100 + 30
-    assert max(steady) < 5.3 * 3 * ss.COMPETITOR_PAGE_COST
+    # pacing 한도(360/13 = 28) + 마지막 한 곳(18) 이내 — 해시 슬롯 시뮬레이션의 평균 최대일(20곳 5.3곳)보다 낮다
+    assert max(steady) <= fixed_tuesday_peak / ss.COMPETITOR_PACE_DAYS + one_biz
+    assert max(steady) < 5.3 * one_biz
 
 
 def test_simulation_churn_does_not_cause_skipped_week():
     _, synced = _simulate(20, 90, 252, churn=True)
-    assert _max_gap(synced) <= 8
+    assert _max_gap(synced) <= 20      # 신규 5곳이 먼저 처리되는 동안 기존 곳이 며칠 밀린다(실측 17). 한 주기를 통째로 건너뛰면 27일 이상
 
 
 def test_simulation_small_population_with_churn_keeps_weekly_cadence():
-    # 회귀: pacing 한도를 엄격하게 자르면 한도(50)가 한 곳 크기(30)의 1.67배라 한 곳씩만 들어가 간격이 13일까지 벌어졌다
-    # 사업장 5곳이 한꺼번에 추가되면 관측 없는 새 곳이 먼저라 기존 곳이 며칠 밀린다 — 핵심은 한 주(14일)를 건너뛰지 않는 것
+    # 회귀: pacing 한도를 엄격하게 자르면 한 곳씩만 들어가 간격이 한 주기 가까이 더 벌어졌다
+    # 사업장 5곳이 한꺼번에 추가되면 관측 없는 새 곳이 먼저라 기존 곳이 며칠 밀린다 — 핵심은 한 주기(2주)를 통째로 건너뛰지 않는 것
     for n in (3, 8, 20):
         for seed in ("a", "b", "c", "d"):
             _, synced = _simulate(n, 90, 252, churn=True, seed=seed)
-            assert _max_gap(synced) <= 10, f"N={n} seed={seed}"
+            assert _max_gap(synced) <= 20, f"N={n} seed={seed}"
 
 
 def test_pace_days_none_restores_plain_budget_selection():
-    items = [_it(str(i), T0 - timedelta(days=9 + i), 30) for i in range(10)]
+    items = [_it(str(i), T0 - timedelta(days=15 + i), 30) for i in range(10)]
     assert len(ss.select_stale_first(items, T0, TTL, 1000, date(2026, 11, 2), pace_days=None)) == 10
     assert len(ss.select_stale_first(items, T0, TTL, 1000, date(2026, 11, 2))) < 10     # 기본은 pacing 으로 나눈다
 
 
 def test_simulation_budget_shortage_degrades_gracefully_not_starves():
-    # 예산이 부족한 큰 규모(100곳, 예산 252) — 모두 7일에 못 돌지만 가장 오래된 순서라 한 곳도 굶지 않고 순환한다
-    _, synced = _simulate(100, 120, 252)
+    # 예산이 부족한 큰 규모 — 한 바퀴(총 페이지 / 일일 예산)가 갱신 주기보다 길어지는 규모(예산 80)에서 확인한다.
+    # 모두 제때 못 돌지만 가장 오래된 순서라 한 곳도 굶지 않고 순환한다
+    _, synced = _simulate(100, 150, 80)
     assert all(synced.values())
-    assert _max_gap(synced) <= 100 * 3 * 10 / 252 + 3             # 한 바퀴 = 총 페이지 / 일일 예산(+여유)
+    assert _max_gap(synced) <= 100 * 3 * ss.COMPETITOR_PAGE_COST / 80 + 3     # 한 바퀴 = 총 페이지 / 일일 예산(+여유)
 
 
 # ── 속도 제한: 정기 잡이 윈도우를 다 채워도 사용자 요청 몫이 남는다 ───────────────────
@@ -205,3 +207,23 @@ def test_flags_default_off(monkeypatch):
     assert ss.competitor_stale_first_enabled() is False
     monkeypatch.setenv("NAVER_COMPETITOR_STALE_FIRST", "true")
     assert ss.competitor_stale_first_enabled() is True
+
+
+# ── 갱신 주기 상수의 일관성 (2026-10-28 경쟁사 정보 2주 갱신) ──────────────────────────
+def test_refresh_constants_agree_across_modules(monkeypatch):
+    """크롤러의 캐시 TTL 기본값·스케줄러의 pacing·공개 문구가 같은 2주를 가리켜야 한다."""
+    import services.competitor_place_crawler as cc
+    monkeypatch.delenv("COMPETITOR_PLACE_CACHE_TTL_SEC", raising=False)
+    assert cc._place_cache_ttl() == ss.COMPETITOR_REFRESH_TTL_SEC
+    assert 13 * 86400 <= ss.COMPETITOR_REFRESH_TTL_SEC < 14 * 86400      # 14일이면 14일째 아침에 하루씩 밀린다
+    assert ss.COMPETITOR_PACE_DAYS == 13.0
+    assert cc.INTERACTIVE_MAX_AGE_SEC < ss.COMPETITOR_REFRESH_TTL_SEC     # 방금 등록한 경쟁사는 공유 캐시를 더 짧게 본다
+
+
+def test_registration_and_startup_paths_bound_cache_age():
+    """신규 경쟁사 등록·창업 리포트는 기본 TTL(13.5일)을 쓰면 최대 2주 옛 값을 보이므로 max_age_sec로 좁혀야 한다."""
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    comp = open(os.path.join(root, "routers", "competitor.py"), encoding="utf-8").read()
+    assert comp.count("max_age_sec=INTERACTIVE_MAX_AGE_SEC") == 2          # 번호가 있는 등록 + 자동 탐색 등록
+    start = open(os.path.join(root, "services", "startup_competitor_readiness.py"), encoding="utf-8").read()
+    assert "fetch_competitor_place_data(place_id, max_age_sec=INTERACTIVE_MAX_AGE_SEC)" in start
