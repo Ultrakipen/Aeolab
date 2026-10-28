@@ -97,10 +97,13 @@ def report_place_ok() -> None:
     _load()
     if _state["strikes"] or _state["open_until"] or _state["probing_since"]:
         _logger.warning("[naver_guard] 플레이스 접속 회복 확인 — 회로 닫음")
-        _record_event("place", "recover", "", int(_state["strikes"]), 0)
+        prev_strikes = int(_state["strikes"])
+        _record_event("place", "recover", "", prev_strikes, 0)
         _state.update({"strikes": 0, "open_until": 0.0, "probing_since": 0.0})
         _save()
         tighten_rate(time.time())   # 회복 직후 48시간은 속도 기준을 절반으로
+        if prev_strikes > 0:
+            _alert_recovery("플레이스", prev_strikes)
 
 
 def report_place_block(source: str, now: Optional[float] = None) -> int:
@@ -159,16 +162,12 @@ def _record_event(surface: str, event: str, source: str, strikes: int = 0, minut
         _logger.warning("[naver_guard] 차단 사건 기록 스레드 시작 실패: %s", e)
 
 
-def _alert_operator(source: str, strikes: int, minutes: int) -> None:
+def _fire_operator_mail(subject: str, message: str) -> None:
+    """운영자 메일을 이벤트 루프에 얹는다(차단 보고·회복 확인은 동기 함수라 직접 await 할 수 없다). 루프 밖이면 알림만 생략."""
     async def _send() -> None:
         try:
             from services.email_sender import send_operator_alert
-            await send_operator_alert(
-                "네이버 플레이스 접속 제한 감지 — 자동 중단",
-                f"서버 IP가 네이버 플레이스에서 접속 제한 화면을 받았습니다(source={source}). "
-                f"플레이스 접속을 {minutes}분간 자동 중단합니다(연속 {strikes}회). "
-                "중단 중에는 측정이 '확인 전'으로 표시되고 직전 성공 결과가 날짜와 함께 보입니다.",
-            )
+            await send_operator_alert(subject, message)
         except Exception as e:
             _logger.warning("[naver_guard] 운영자 알림 발송 실패: %s", e)
 
@@ -177,6 +176,26 @@ def _alert_operator(source: str, strikes: int, minutes: int) -> None:
         asyncio.get_running_loop().create_task(coro)
     except RuntimeError:
         coro.close()  # 이벤트 루프 밖(동기 호출·테스트) — 알림만 생략
+
+
+def _alert_operator(source: str, strikes: int, minutes: int) -> None:
+    _fire_operator_mail(
+        "네이버 플레이스 접속 제한 감지 — 자동 중단",
+        f"서버 IP가 네이버 플레이스에서 접속 제한 화면을 받았습니다(source={source}). "
+        f"플레이스 접속을 {minutes}분간 자동 중단합니다(연속 {strikes}회). "
+        "중단 중에는 측정이 '확인 전'으로 표시되고 직전 성공 결과가 날짜와 함께 보입니다.",
+    )
+
+
+def _alert_recovery(surface_label: str, strikes: int) -> None:
+    """차단 뒤 시험 접속이 정상 화면을 받아 회로를 닫았을 때 — 로그·DB 기록만 있고 운영자가 알 길이 없었다(2026-10-28 첫 회복을 로그를 직접 읽어서야 알았다)."""
+    _fire_operator_mail(
+        f"네이버 {surface_label} 접속 회복 — 자동 재개",
+        f"시험 접속이 정상 화면을 받아 {surface_label} 접속 제한을 해제했습니다(직전 연속 차단 {strikes}회). "
+        "회복 직후 48시간은 속도 기준을 절반으로 낮춰 운영합니다. "
+        "같은 사건이 반복되면 관리자 화면 /admin/naver-access 의 block_events 를 확인하세요. "
+        "시험 접속 1회의 성공일 뿐 이후 계속 접속된다는 보장은 아닙니다.",
+    )
 
 
 def snapshot(now: Optional[float] = None) -> dict:
@@ -456,10 +475,13 @@ def report_search_ok() -> None:
     _search_load()
     if _search["strikes"] or _search["open_until"]:
         _logger.warning("[naver_guard] 검색 화면 접속 회복 확인 — 차단 단계 초기화")
-        _record_event("search", "recover", "", int(_search["strikes"]), 0)
+        prev_strikes = int(_search["strikes"])
+        _record_event("search", "recover", "", prev_strikes, 0)
         _search.update({"strikes": 0, "open_until": 0.0})
         _search_save()
         tighten_rate(time.time())
+        if prev_strikes > 0:
+            _alert_recovery("검색 화면", prev_strikes)
 
 
 def report_search_block(source: str, now: Optional[float] = None) -> int:
