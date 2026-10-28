@@ -203,12 +203,25 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
     # 블로그 언급 수는 API total 대신 "이름이 실제로 나오고 지역이 확인되는 글 수"(상위 100건)로 센다 —
     # 네이버 블로그 API는 따옴표를 무시해 무관한 글·같은 이름의 다른 지역 글이 섞인다(services/blog_mention_verifier.py).
     from services.blog_mention_verifier import fetch_verified_blog
-    local_data, blog_posts_data, blog_v = await asyncio.gather(
+    # 세 번째 지역검색은 "후기 많은 순"(sort=comment — 네이버 문서상 카페·블로그 후기 개수 순) 상위 5곳이다. 유사도순 상위 5곳에
+    # 없는 유명 가게도 여기엔 있는 경우가 있다(2026-10-28 실측: 어니언 성수 "성동구 베이커리" 2위, 홍대 육지 "마포구 음식점" 3위).
+    # 있을 때만 보여 주는 인기 신호다 — 없다고 낮게 평가하지 않는다(5곳 한계, 하라식당은 두 검색어 모두 없었음).
+    local_data, blog_posts_data, blog_v, local_comment_data = await asyncio.gather(
         _get("local", {"query": search_query,         "display": 20, "sort": "sim"}),
         _get("blog",  {"query": blog_query_region,    "display": 5, "sort": "date"}),
         fetch_verified_blog(business_name, region, _get, also_keywords=[_kw_first] if _kw_first else None),
+        _get("local", {"query": search_query,         "display": 5, "sort": "comment"}),
         return_exceptions=True,
     )
+
+    # ── 후기 많은 순 상위 5곳에서 내 가게 위치 (조회 실패는 "확인 못 함" — 없음으로 오판하지 않는다) ──
+    review_sort_rank = None
+    review_sort_checked = isinstance(local_comment_data, dict) and isinstance(local_comment_data.get("items"), list)
+    if review_sort_checked:
+        for i, item in enumerate(local_comment_data["items"]):
+            if _name_matches(business_name, _strip_html(item.get("title", ""))):
+                review_sort_rank = i + 1
+                break
 
     # ── 지역 검색 파싱 (상위 15개) ───────────────────────────────
     naver_competitors = []
@@ -383,6 +396,9 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
         "top_competitor_name":       top_competitor_name,
         "top_competitor_blog_count": top_competitor_blog_count,
         "competitor_kw_blog_count":  competitor_kw_blog_count,
+        "review_sort_rank":          review_sort_rank,        # 후기 많은 순 상위 5곳 중 내 순위(없으면 None — 감점 근거 아님)
+        "review_sort_checked":       review_sort_checked,
+        "review_sort_query":         search_query,
     }
 
 
@@ -438,6 +454,13 @@ async def get_naver_visibility_multi(business_name: str, keywords: list[str], re
     best["blog_mentions_capped"] = any(r.get("blog_mentions_capped") for r in valid)
     best["multi_query_count"] = len(valid)
     best["all_queries"] = [r.get("search_query", "") for r in valid]
+    # 후기 많은 순 순위는 키워드마다 다르다 — 가장 좋은(작은) 순위를 그 검색어와 함께 쓴다. 한 곳이라도 확인했으면 checked.
+    _rs = [r for r in valid if r.get("review_sort_rank") is not None]
+    if _rs:
+        _best_rs = min(_rs, key=lambda r: r["review_sort_rank"])
+        best["review_sort_rank"] = _best_rs["review_sort_rank"]
+        best["review_sort_query"] = _best_rs.get("review_sort_query", "")
+    best["review_sort_checked"] = any(r.get("review_sort_checked") for r in valid)
 
     # 경쟁사 오염 방지: category_ko 결과에서 경쟁사 + 순위 리스트를 가져와야 동일 업종 보장
     # 속성 키워드("단체 예약 가능")가 best로 선택된 경우 이종 업종이 경쟁사·순위 리스트에 표시됨

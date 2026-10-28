@@ -920,6 +920,11 @@ export default function TrialResultStep(props: TrialResultProps) {
       confirmedFacts.push("네이버 스마트플레이스에 등록돼 있어요");
     }
     if (bestNaverRank) confirmedFacts.push(`네이버 지역검색 ${bestNaverRank}위`);
+    // 후기 많은 순(블로그·카페 후기 기준) 상위 5곳 안에 있을 때만 — 유사도순 상위 5곳에 없는 유명 가게의 인기 신호. 없다고 감점하지 않는다.
+    const _rs = naver as { review_sort_rank?: number | null; review_sort_query?: string } | null;
+    if (_rs?.review_sort_rank) {
+      confirmedFacts.push(`네이버 지역검색 “${_rs.review_sort_query ?? ""}” 후기 많은 순(블로그·카페 후기 기준) ${_rs.review_sort_rank}위`);
+    }
     if (chatgptMentioned && _freq && chatgptSampleSize > 0) {
       confirmedFacts.push(
         `ChatGPT 추천 목록에 구 이름 ${chatgptSampleSize}회 중 ${_freq}회${hasNb && nbFreq > 0 ? `, 동네 이름(${nbName}) ${nbSample}회 중 ${nbFreq}회` : ""} 나왔어요`,
@@ -1116,6 +1121,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           isNonLocation={isNonLocationTrial}
           naverMeasured={naverMeasured}
           myRank={naver?.my_rank ?? null}
+          reviewSortRank={(naver as { review_sort_rank?: number | null } | null)?.review_sort_rank ?? null}
           competitorCount={naverCompetitorCount}
           searchQuery={naverSearchQuery ?? undefined}
           briefingCategory={briefingCategory}

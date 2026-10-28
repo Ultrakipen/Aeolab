@@ -61,6 +61,7 @@ export function ChannelWaysCard({
   isNonLocation,
   naverMeasured,
   myRank,
+  reviewSortRank,
   competitorCount,
   searchQuery,
   briefingCategory,
@@ -75,6 +76,8 @@ export function ChannelWaysCard({
   isNonLocation: boolean;
   naverMeasured: boolean;
   myRank: number | null;
+  /** 후기 많은 순(블로그·카페 후기 기준) 상위 5곳 중 내 순위 — 있을 때만 값이 있다(없다고 감점 근거가 아님) */
+  reviewSortRank?: number | null;
   competitorCount: number;
   searchQuery?: string;
   briefingCategory: "active" | "likely" | "inactive";
@@ -110,7 +113,7 @@ export function ChannelWaysCard({
           state: "measured",
           now: myRank
             ? `지역 검색 ${competitorCount > 0 ? `${topWord} 중 ` : ""}${myRank}위예요.`
-            : `지역 검색 ${topWord} 안에 내 가게가 없어요.${competitorCount > 0 ? ` 이 측정은 ${topWord}까지만 볼 수 있어, 그 아래 순위는 알 수 없어요.` : ""}`,
+            : `지역 검색 ${topWord} 안에 내 가게가 없어요.${competitorCount > 0 ? ` 이 측정은 ${topWord}까지만 볼 수 있어, 그 아래 순위는 알 수 없어요.` : ""}${reviewSortRank ? ` 다만 후기 많은 순(블로그·카페 후기 기준)으로는 ${reviewSortRank}위예요.` : ""}`,
           nowTone: myRank ? "ok" : "warn",
           affects: "소개글·리뷰·소식",
           duration: durationOf("네이버 일반검색"),
