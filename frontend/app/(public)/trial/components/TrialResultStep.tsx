@@ -49,6 +49,7 @@ import type {
 import type { TrialResultProps } from "./TrialSharedTypes";
 import { trackTrialComplete, trackEvent } from "@/lib/analytics";
 import TrialReviewInputCard from "@/components/trial/TrialReviewInputCard";
+import { isConfidentlyBelow } from "@/lib/sampling";
 import { describeTrialReviewInput, loadTrialReviewInput, saveTrialReviewInput, type TrialReviewInput } from "@/lib/trialReviewInput";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -820,8 +821,10 @@ export default function TrialResultStep(props: TrialResultProps) {
   // ── 첫 화면 한 줄 진단 (2026-09-28) — 실측·입력에서 계산한 문장만, 더미 없음 ──
   const _freq = chatgptResult?.exposure_freq;
   const verifiedPlaces = aiPlaces.filter((p) => p.on_naver === "exact" || p.on_naver === "similar").slice(0, 3);
-  const _guWeak = !chatgptMentioned || (_freq !== undefined && chatgptSampleSize > 0 && _freq / chatgptSampleSize < 0.3);
-  const _nbWeak = !hasNb || nbFreq / nbSample < 0.3; // 동네 이름 결과가 없으면 구 이름 결과만 본다
+  // "약하다"는 표본의 신뢰구간 상한이 30% 아래일 때만 단정한다(50회 중 8회 이하). 30% 고정 기준이면 같은 가게가 실행마다
+  // 18·16·28·12회로 흔들려 한 줄 진단이 뒤집혔다(2026-10-28 실측, lib/sampling.ts). 잡음 구간의 값으로 "잘 보이지 않습니다"라고 하지 않는다.
+  const _guWeak = !chatgptMentioned || (_freq !== undefined && chatgptSampleSize > 0 && isConfidentlyBelow(_freq, chatgptSampleSize, 0.3));
+  const _nbWeak = !hasNb || isConfidentlyBelow(nbFreq, nbSample, 0.3); // 동네 이름 결과가 없으면 구 이름 결과만 본다
   const aiWeak = chatgptMentioned !== undefined && _guWeak && _nbWeak;
   const _kr =
     (result as { keyword_ranks?: Array<{ query: string; rank: number | null; exposed: boolean }> }).keyword_ranks ?? [];
@@ -829,7 +832,10 @@ export default function TrialResultStep(props: TrialResultProps) {
     naver?.my_rank ??
     (_kr.map((k) => k.rank).filter((r): r is number => typeof r === "number").sort((a, b) => a - b)[0] ?? null);
   const naverMeasured = !!naver && (result as { business_type?: string }).business_type !== "non_location";
-  const naverWeak = naverMeasured && bestNaverRank === null;
+  // 후기 많은 순 상위 5곳에 들어 있으면(인기 신호) 유사도순 5곳에 없다는 이유만으로 "네이버 검색에서 약하다"고 하지 않는다 —
+  // 같은 카드에 "후기 많은 순 2위"를 보여 주면서 제목이 "잘 보이지 않습니다"라고 말하는 모순을 막는다.
+  const _reviewSortRank = (naver as { review_sort_rank?: number | null } | null)?.review_sort_rank ?? null;
+  const naverWeak = naverMeasured && bestNaverRank === null && !_reviewSortRank;
   const verdictHeadline =
     chatgptMentioned === undefined && !naverMeasured
       ? "지금 확인된 실측 결과가 부족합니다"

@@ -460,7 +460,7 @@ export default function QuickPage() {
             {/* 빠른 결과 안내 배너 */}
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-center">
               <p className="text-sm text-amber-700 font-medium">
-                빠른 체험 결과 (ChatGPT 5회 기준) — 정밀 분석은 구독 후 100회 측정
+                빠른 체험 결과 (ChatGPT 50회 기준) — 정밀 분석은 구독 후 100회 측정
               </p>
             </div>
 
@@ -476,17 +476,18 @@ export default function QuickPage() {
                 </span>
               </div>
 
-              {/* 등급 문자(A~D)는 쓰지 않는다(점수 숫자·등급 비노출 원칙). 이 빠른 측정은 ChatGPT 5회 + 네이버라 표본이 작다 —
-                  "거의 보이지 않습니다"처럼 AI 검색 전체를 단정하지 않고 이번 측정의 범위와 한계를 말한다(유명 가게가 5회에 안 나올 수 있음). */}
+              {/* 등급 문자(A~D)는 쓰지 않는다(점수 숫자·등급 비노출 원칙). 이 페이지는 체험과 같은 /api/scan/trial(ChatGPT 50회 비유도 + 네이버)을
+                  쓰며(2026-10-28 확인 — 이전 배너의 "5회"는 낡은 표기였다), 같은 가게도 실행마다 횟수가 10회 넘게 달라진다.
+                  "거의 보이지 않습니다"처럼 AI 검색 전체를 단정하지 않고 이번 측정의 범위와 한계를 말한다. */}
               <p className={`text-base font-semibold mb-1 ${scoreColor(score)}`}>
                 {score >= 70
                   ? "이번 빠른 측정에서는 비교적 잘 나왔습니다."
                   : score >= 40
                   ? "이번 빠른 측정에서는 일부만 나왔습니다."
-                  : "이번 빠른 측정(ChatGPT 5회)에서는 내 가게가 확인되지 않았습니다."}
+                  : "이번 빠른 측정에서는 내 가게가 낮게 확인됐습니다."}
               </p>
               <p className="text-sm text-gray-600 mb-3 leading-snug">
-                5회는 표본이 작아 정밀 측정과 다를 수 있어요. 네이버에서 유명한 가게도 AI 검색 결과가 다르게 나올 수 있습니다.
+                AI 답변은 같은 질문을 다시 해도 횟수가 달라질 수 있어요. 네이버에서 유명한 가게도 AI 검색 결과는 다르게 나올 수 있습니다.
               </p>
 
               {/* 트랙 점수 */}
