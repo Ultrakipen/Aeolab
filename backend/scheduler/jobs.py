@@ -206,14 +206,16 @@ def start_scheduler():
         max_instances=1, misfire_grace_time=600,
     )
     # 키워드 순위 측정 (Phase A-2 / service_unification_v1.0.md §6)
-    # Basic 주 1회(월 04:00) / Pro 일 1회(매일 04:30) — 시간 분산으로 RAM peak 회피
+    # Basic 주 1회(월 04:00) / Pro·창업·Biz 주 3회(월·수·금 04:30, 스캔 요일과 같다) — 시간 분산으로 RAM peak 회피
+    # 2026-10-28: 매일 → 월·수·금. 순위는 느리게 변하고 네이버 검색 화면 접속을 43%→약 30%로 줄인다(사업장 30%가 순위 부하의 75%였음).
+    # 잡 id·함수 이름의 "daily"는 호환을 위해 유지. 저장 순위를 읽는 쪽의 신선도 기준은 7일·30일이라 영향 없음.
     scheduler.add_job(
         keyword_rank_basic_weekly_job, "cron", day_of_week="mon", hour=4, minute=0,
         id="keyword_rank_basic_weekly", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
     scheduler.add_job(
-        keyword_rank_pro_daily_job, "cron", hour=4, minute=30,
+        keyword_rank_pro_daily_job, "cron", day_of_week="mon,wed,fri", hour=4, minute=30,
         id="keyword_rank_pro_daily", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
@@ -5459,7 +5461,7 @@ async def keyword_rank_basic_weekly_job() -> None:
 
 @_naver_batch_job
 async def keyword_rank_pro_daily_job() -> None:
-    """Pro/Biz/Enterprise 플랜 일 1회 키워드 순위 측정 (매일 04:30 KST)."""
+    """Pro/Biz/Enterprise/창업 플랜 키워드 순위 측정 (월·수·금 04:30 KST, 2026-10-28 매일에서 변경)."""
     try:
         await _run_keyword_rank_for_plans(["pro", "biz", "enterprise", "startup"])
     except Exception as e:

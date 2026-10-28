@@ -55,8 +55,9 @@ def daily_loads(n: int, *, spread: bool, keywords: int, competitors: int, dedupe
             batch += scan_cost
             if comps is not None:
                 comps["스캔(브리핑·AI탭)"] = comps.get("스캔(브리핑·AI탭)", 0) + scan_cost
-            # 순위 잡: basic 월 1회(04:00), 그 외 플랜 매일(04:30) — jobs.py:215-222
-            rank_cost = (RANK_PER_KEYWORD * keywords if wd == 0 else 0) if plan == "basic" else RANK_PER_KEYWORD * keywords
+            # 순위 잡: basic 주 1회 월(04:00), 그 외 플랜 월·수·금(04:30, 2026-10-28 매일에서 변경) — jobs.py 순위 잡 등록부
+            _rank_day = wd == 0 if plan == "basic" else wd in (0, 2, 4)
+            rank_cost = RANK_PER_KEYWORD * keywords if _rank_day else 0
             batch += rank_cost
             if comps is not None:
                 comps["키워드 순위(PC·모바일)"] = comps.get("키워드 순위(PC·모바일)", 0) + rank_cost
