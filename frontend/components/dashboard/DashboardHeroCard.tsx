@@ -3,6 +3,7 @@
 import { RefreshCw, CheckCircle2 } from "lucide-react";
 import { fmtMonthDay, type LastGoodNaver } from "@/lib/naverMeasure";
 import type { KeywordRankState } from "@/lib/keywordExposure";
+import { READINESS_NOTE } from "@/lib/scoreLabels";
 
 interface DashboardHeroCardProps {
   unifiedScore: number;
@@ -191,6 +192,13 @@ export default function DashboardHeroCard({
             <p className={`text-xl font-black leading-tight break-keep ${headerView.labelColor}`}>{headerView.label}</p>
             {headerView.sub && (
               <p className="text-sm font-semibold text-green-700 mt-1 break-keep">{headerView.sub}</p>
+            )}
+            {/* "AI 검색 준비도" 라벨이 보일 때만 — 이 단계가 인기가 아니라 준비 정도를 잰다는 기대 설정 */}
+            {!isInactiveOrFranchise && (
+              <p className="text-sm text-gray-700 mt-1 leading-snug break-keep">
+                {READINESS_NOTE}{" "}
+                <a href="/score-guide" className="font-semibold text-blue-700 hover:underline whitespace-nowrap">점수 보는 법 →</a>
+              </p>
             )}
             {evidenceText && (
               <p className="text-sm font-bold text-gray-800 mt-1 break-keep">{evidenceText}</p>

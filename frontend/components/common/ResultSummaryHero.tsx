@@ -10,7 +10,7 @@
  * 점수 숫자는 표시하지 않는다(텍스트 레이블 전용). 색·문구는 lib/scoreLabels.ts 단일 소스.
  */
 
-import { getStageView, type ChannelTile } from "@/lib/scoreLabels";
+import { getStageView, READINESS_NOTE, type ChannelTile } from "@/lib/scoreLabels";
 
 interface ResultSummaryHeroProps {
   /** 성장단계 산출 점수 (track1 기준 권장). 숫자 자체는 노출되지 않음 */
@@ -50,6 +50,13 @@ export default function ResultSummaryHero({
           <p className={`text-xl font-black leading-tight break-keep ${stage.labelColor}`}>{stage.label}</p>
           {stage.sub && (
             <p className="text-sm font-semibold text-green-700 mt-1 break-keep">{stage.sub}</p>
+          )}
+          {/* "AI 검색 준비도" 라벨이 보일 때만 — 대시보드 히어로 카드와 같은 기대 설정 문구 */}
+          {!isInactiveOrFranchise && (
+            <p className="text-sm text-gray-700 mt-1 leading-snug break-keep">
+              {READINESS_NOTE}{" "}
+              <a href="/score-guide" className="font-semibold text-blue-700 hover:underline whitespace-nowrap">점수 보는 법 →</a>
+            </p>
           )}
           {evidenceText && (
             <p className="text-sm font-bold text-gray-800 mt-1 break-keep">{evidenceText}</p>

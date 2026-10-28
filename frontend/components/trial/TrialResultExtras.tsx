@@ -12,6 +12,7 @@
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Lock, Copy, ExternalLink, ChevronDown, ChevronUp, Check } from "lucide-react";
+import { TRIAL_SCOPE_NOTE } from "@/lib/scoreLabels";
 
 // ── 첫 화면 한 줄 진단 (2026-09-28) ─────────────────────────────────────
 // 5초 안에 "그래서 내 가게는 지금 어떤가"를 답한다 — 전부 실측·입력에서 계산한 문장만 (더미 없음)
@@ -100,7 +101,8 @@ export function TrialVerdictCard({
           </button>
         </>
       )}
-      <p className="mt-3 text-sm text-slate-600 leading-snug">
+      <p className="mt-3 text-sm text-slate-600 leading-snug break-keep">{TRIAL_SCOPE_NOTE}</p>
+      <p className="mt-1 text-sm text-slate-600 leading-snug">
         측정 시점·기기·로그인 상태에 따라 결과가 달라질 수 있습니다.
       </p>
     </div>
