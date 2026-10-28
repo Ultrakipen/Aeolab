@@ -1088,6 +1088,7 @@ async def daily_scan_all():
                 # GrowthStage 변화 감지 — 단계 업그레이드 시 로그 + 카카오 알림
                 try:
                     from services.gap_analyzer import _build_growth_stage
+                    from services.stage_names import is_stage_upgrade
                     current_stage = _build_growth_stage(score.get("track1_score") or score["total_score"])
                     if prev_history:
                         prev_stage = _build_growth_stage(prev_history[0].get("track1_score") or prev_history[0]["total_score"])
@@ -1097,7 +1098,9 @@ async def daily_scan_all():
                                 f"{prev_stage.stage_label} → {current_stage.stage_label} "
                                 f"({prev_history[0]['total_score']:.1f}점 → {score['total_score']:.1f}점)"
                             )
-                            if _scan_notify_ok:
+                            # AEOLAB_GROWTH_01 은 "성장 단계 상승이 확인될 경우 발송"으로 승인된 템플릿이다 — 하락·그 외 변화에는 보내지 않는다
+                            # (이전에는 `!=`만 봐서 단계가 내려가도 "업그레이드 안내"가 나갔다)
+                            if _scan_notify_ok and is_stage_upgrade(prev_stage.stage, current_stage.stage):
                                 try:
                                     from services.kakao_notify import KakaoNotifier as _KN
                                     await _KN().send_growth_stage_upgrade(

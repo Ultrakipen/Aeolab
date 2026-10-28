@@ -34,6 +34,20 @@ LEGACY_STAGE_LABELS: dict[str, str] = {
 }
 
 
+# 낮은 단계 → 높은 단계 순서. 단계 "상승" 판정의 단일 소스(알림톡 AEOLAB_GROWTH_01 은 "상승이 확인될 경우 발송"으로 승인됨).
+STAGE_ORDER: tuple[str, ...] = ("survival", "stability", "growth", "dominance")
+
+
+def is_stage_upgrade(prev_code: Optional[str], curr_code: Optional[str]) -> bool:
+    """이전보다 **높은** 단계로 올라갔을 때만 True. 같은 단계·하락·알 수 없는 코드는 False.
+
+    2026-10-28: 호출부가 `prev != curr`만 보고 "성장 단계 업그레이드 안내"를 보내 하락도 업그레이드로 알렸다.
+    """
+    if prev_code not in STAGE_ORDER or curr_code not in STAGE_ORDER:
+        return False
+    return STAGE_ORDER.index(curr_code) > STAGE_ORDER.index(prev_code)
+
+
 def stage_code_for_score(score: Optional[float]) -> str:
     s = score or 0
     for upper, code in _UPPER_BOUNDS:
