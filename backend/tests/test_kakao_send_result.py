@@ -91,12 +91,3 @@ def test_missing_key_returns_false_and_is_skipped(monkeypatch):
     n, logs = _notifier(monkeypatch, _Resp(), app_key="")
     assert _run(n._send_raw("01012345678", "본문", "AEOLAB_ALERT_01")) is False
     assert logs[-1][-1] == "skipped"
-
-
-def test_low_rating_alert_propagates_result(monkeypatch):
-    n, _ = _notifier(monkeypatch, _Resp(status=500, body={}))
-    assert _run(n.send_low_rating_alert("01012345678", "가게", 1, "불만", "https://x")) is False
-    n2, _ = _notifier(monkeypatch, _Resp())
-    assert _run(n2.send_low_rating_alert("01012345678", "가게", 1, "불만", "https://x")) is True
-    n3, _ = _notifier(monkeypatch, _Resp(), app_key="")
-    assert _run(n3.send_low_rating_alert("01012345678", "가게", 1, "불만", "https://x")) is False

@@ -24,9 +24,6 @@ RANK_PER_KEYWORD = 2      # 코드: naver_keyword_rank PC + 모바일(place_rank
 PLACE_STATS_COST = 2      # 코드: fetch_stats cost=2 (주 1회 월요일 02:00 직전 잡, jobs.py)
 COMPETITOR_CRAWL_COST = 10  # 코드: _run_place_crawl goto 최대 12회, 정상 8~10 → cost=10
 COMPETITOR_JOBS_PER_WEEK = 2  # 코드: competitor_place_sync_job(화) + enrich_competitor_details_job(목)
-LOW_RATING_COST = 2         # 코드: check_low_rating_reviews_for cost=2 (가게 페이지 + 리뷰 탭)
-LOW_RATING_WEEKDAYS = (0, 3)  # 코드: jobs.py low_rating_check cron day_of_week="mon,thu" hour=10 (2026-10-28 6시간마다→주 2회로 변경; 이전 모델은 하루 4회=8페이지/일)
-LOW_RATING_PHONE_SHARE = 1.0  # 가정(보수적): 전화번호를 등록한 사용자 비율 — 실측 현재 활성 구독 사업장 3곳 중 1~2곳
 USER_SCAN_PLACE_CHECK = 4   # 코드: 사용자 직접 풀스캔의 점검 cost(사진 탭 끄면 4)
 USER_SCANS_PER_BIZ_PER_DAY = 0.2   # 가정: 사업장당 하루 평균 사용자 수동 스캔 횟수 (실제 데이터 없음)
 
@@ -63,11 +60,6 @@ def daily_loads(n: int, *, spread: bool, keywords: int, competitors: int, dedupe
             batch += rank_cost
             if comps is not None:
                 comps["키워드 순위(PC·모바일)"] = comps.get("키워드 순위(PC·모바일)", 0) + rank_cost
-            # 별점 낮은 리뷰 감지: 월·목 10시, 사업장당 플레이스 2페이지(전화번호 등록 사업장만)
-            low = LOW_RATING_COST * LOW_RATING_PHONE_SHARE if wd in LOW_RATING_WEEKDAYS else 0
-            batch += low
-            if comps is not None:
-                comps["별점 낮은 리뷰 감지"] = comps.get("별점 낮은 리뷰 감지", 0) + low
             # 장소 통계: 월요일 주 1회
             if wd == 0:
                 batch += PLACE_STATS_COST
