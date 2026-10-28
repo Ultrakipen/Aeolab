@@ -103,9 +103,11 @@ def start_scheduler():
         trial_followup_job, "cron", hour=10, minute=0, id="trial_followup",
         replace_existing=True,
     )
-    # 별점 2점 이하 리뷰 긴급 알림 (6시간마다)
+    # 별점 2점 이하 리뷰 알림 (매주 월·목 오전 10시 — 주 2회)
+    # 6시간마다(하루 4회, 사업장당 8페이지)였던 것을 줄였다(2026-10-28): 사용자에게 빈번한 알림은 신뢰를 깎고, 이 잡은 20곳 기준
+    # 주간 네이버 접속의 47%(최대 소비처)였다. 주 2회면 약 6%이고 알림 지연은 최대 3~4일. 월요일은 주말(금~일) 리뷰, 목요일은 월~수 리뷰를 본다.
     scheduler.add_job(
-        check_low_rating_reviews, "cron", hour="*/6", minute=0, id="low_rating_check",
+        check_low_rating_reviews, "cron", day_of_week="mon,thu", hour=10, minute=0, id="low_rating_check",
         replace_existing=True,
     )
     # 월간 성장 리포트 자동 발송 (매월 1일 오전 9시)
