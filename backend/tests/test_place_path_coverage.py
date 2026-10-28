@@ -24,21 +24,32 @@ OK_BODY = "2점 매우 불만\n서비스가 너무 느리고 음식이 차가웠
 
 # ── 가짜 브라우저 ─────────────────────────────────────────────────────────────
 class _Loc:
+    def __init__(self, visible=False, clicks=None):
+        self.visible = visible
+        self.clicks = clicks if clicks is not None else []
+
     @property
     def first(self):
         return self
 
     async def is_visible(self, timeout=0):
-        return False
+        return self.visible
 
     async def click(self):
+        self.clicks.append(1)
         return None
 
 
 class _Page:
+    sort_visible = True      # 리뷰 탭의 "최신순" 버튼이 보이는가 (테스트가 바꿔 끼운다)
+    sort_clicks: list = []
+
     def __init__(self, body):
         self.body = body
         self.frames = []
+
+    def get_by_text(self, text, exact=False):
+        return _Loc(_Page.sort_visible, _Page.sort_clicks) if text == "최신순" else _Loc()
 
     async def goto(self, *a, **k):
         return None
@@ -115,6 +126,7 @@ def fake_env(monkeypatch):
     monkeypatch.setattr(ai, "get_random_ua", lambda: "UA")
     monkeypatch.setattr(bt, "record_usage_mb", _noop)
     monkeypatch.setattr(g, "place_pace", _noop)          # 무작위 대기 제거(테스트 속도)
+    _Page.sort_visible, _Page.sort_clicks = True, []     # 테스트 간 정렬 버튼 상태 초기화
     return {"launches": []}
 
 
@@ -149,13 +161,61 @@ def test_low_rating_block_screen_opens_breaker_and_returns_empty(fake_env, monke
     assert g.snapshot()["open"] is True                          # 차단 화면이 회로를 열었다
 
 
+# 실제 화면 구조(별점 / 숫자 / 점이 세 줄) — 2026-10-28 실측. 예전 픽스처(OK_BODY의 "2점 …")는 실제에 없는 형식이었다.
+REAL_LOW_BODY = (
+    "방문자 리뷰\n블로그 리뷰\n가명\n리뷰 3사진 0팔로워 0\n팔로우\n별점\n2\n점\n"
+    "점심에 방문예약 없이 이용대기 시간 바로 입장나들이친구\n"
+    "서비스가 너무 느리고 음식이 차가웠습니다 다시는 가지 않을 것 같아요\n더보기\n"
+)
+
+
 def test_low_rating_normal_page_returns_reviews_and_keeps_breaker_closed(fake_env, monkeypatch):
     import services.naver_place_stats as ps
 
-    _install_playwright(monkeypatch, OK_BODY, fake_env["launches"])
-    out = asyncio.run(ps.get_recent_low_rating_reviews("123"))
-    assert out and out[0]["rating"] == 2
+    _install_playwright(monkeypatch, REAL_LOW_BODY, fake_env["launches"])
+    out = asyncio.run(ps.check_low_rating_reviews_for("123"))
+    assert out["checked"] is True and out["reason"] is None and out["markers"] == 1
+    assert out["reviews"] and out["reviews"][0]["rating"] == 2
+    assert out["reviews"][0]["excerpt"].startswith("서비스가 너무 느리고")
     assert g.snapshot()["open"] is False
+
+
+def test_low_rating_clicks_latest_sort(fake_env, monkeypatch):
+    """기본 정렬은 추천순이라(실측) 최신순을 눌러야 '최근에 달린' 리뷰를 본다."""
+    import services.naver_place_stats as ps
+
+    _Page.sort_visible, _Page.sort_clicks = True, []
+    _install_playwright(monkeypatch, REAL_LOW_BODY, fake_env["launches"])
+    out = asyncio.run(ps.check_low_rating_reviews_for("123"))
+    assert _Page.sort_clicks == [1] and out["checked"] is True
+
+
+def test_low_rating_without_latest_sort_is_not_trusted(fake_env, monkeypatch):
+    """리뷰는 읽었지만 최신순을 못 눌렀다면 추천순 목록이다 — '새 낮은 별점 없음'으로 판단하면 안 되므로 확인 못 함으로 돌려준다."""
+    import services.naver_place_stats as ps
+
+    _Page.sort_visible, _Page.sort_clicks = False, []
+    _install_playwright(monkeypatch, REAL_LOW_BODY, fake_env["launches"])
+    out = asyncio.run(ps.check_low_rating_reviews_for("123"))
+    assert out["checked"] is False and out["reason"] == "sort" and out["reviews"] == []
+    # 리뷰가 아예 없는 가게(별점 표식 0건)는 정렬 버튼이 없어도 정상 — 확인은 된 것이다
+    _install_playwright(monkeypatch, "방문자 리뷰\n아직 리뷰가 없어요\n", fake_env["launches"])
+    empty = asyncio.run(ps.check_low_rating_reviews_for("124"))
+    assert empty["checked"] is True and empty["markers"] == 0
+    _Page.sort_visible = True
+
+
+def test_low_rating_reports_why_it_was_not_checked(fake_env, monkeypatch):
+    """"낮은 별점이 없다"와 "확인하지 못했다"를 구분한다 — 이전에는 둘 다 [] 라 잡이 건너뛴 사업장을 알 수 없었다."""
+    import services.naver_place_stats as ps
+
+    _install_playwright(monkeypatch, BLOCK_BODY, fake_env["launches"])
+    blocked = asyncio.run(ps.check_low_rating_reviews_for("123"))
+    assert blocked["checked"] is False and blocked["reason"] == "blocked"
+    after = asyncio.run(ps.check_low_rating_reviews_for("123"))        # 회로가 열린 뒤
+    assert after["checked"] is False and after["reason"] == "cooldown"
+    assert fake_env["launches"] == [1]                                  # 두 번째는 브라우저를 열지 않았다
+    assert asyncio.run(ps.check_low_rating_reviews_for(""))["reason"] == "no_place_id"
 
 
 def test_low_rating_costs_two_pages_in_quota(fake_env, monkeypatch):

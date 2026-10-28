@@ -705,31 +705,78 @@ async def sync_naver_place_stats(business_id: str, naver_place_id: str):
     return stats
 
 
-async def get_recent_low_rating_reviews(
-    naver_place_id: str, min_rating: int = 2, max_reviews: int = 10
-) -> list[dict]:
-    """네이버 플레이스 최근 리뷰 중 별점 min_rating 이하 리뷰 목록 반환.
+def parse_low_rating_reviews(
+    body: str, naver_place_id: str, min_rating: int, max_reviews: int
+) -> tuple[int, list[dict]]:
+    """플레이스 리뷰 탭 본문 텍스트에서 별점 min_rating 이하 리뷰를 뽑는다. (별점 표식 수, 낮은 별점 리뷰 목록) 반환.
 
-    Returns:
-        [{rating: int, excerpt: str, review_id: str}, ...]
+    2026-10-28 실측(어니언 성수, 리뷰 2,283건): 별점은 "별점" / "5" / "점" 세 줄로 따로 렌더링된다. 이전 정규식 3종은 같은 줄의
+    "5점"을 전제해 실제 화면에서 한 번도 일치하지 않았고(별점 알림 누적 0건), 테스트 픽스처가 실제에 없는 형식이라 가려졌다.
+    리뷰 블록 = [작성자, "리뷰 N사진 N팔로워 N", "팔로우", "별점", 점수, "점", 방문 정보, 본문…]. 본문은 블록에서 가장 긴 줄로 잡는다.
+    review_id는 순번이 아니라 (플레이스, 작성자, 본문) 해시다 — 순번이면 한 번 알림이 나간 뒤 새 낮은 별점 리뷰도 같은 ID로 걸러진다.
     """
+    import hashlib
+
+    lines = [ln.strip() for ln in (body or "").split("\n")]
+    marks = [
+        i for i in range(len(lines) - 2)
+        if lines[i] == "별점" and re.fullmatch(r"[1-5]", lines[i + 1]) and lines[i + 2] == "점"
+    ]
+    out: list[dict] = []
+    seen: set[str] = set()
+    for k, i in enumerate(marks):
+        rating = int(lines[i + 1])
+        if rating > min_rating:
+            continue
+        end = (marks[k + 1] - 3) if k + 1 < len(marks) else len(lines)
+        block = [ln for ln in lines[i + 3:max(i + 3, end)] if ln and ln not in ("더보기", "팔로우")]
+        # "점" 다음 첫 줄은 방문 정보("점심에 방문예약 없이 이용대기 시간 바로 입장나들이친구")다 — 본문이 짧은 리뷰에서는 이 줄이
+        # 가장 길어 인용문으로 잡히므로(2026-10-28 실측) 본문 후보에서 뺀다. 줄이 하나뿐이면 그대로 쓴다.
+        if len(block) >= 2:
+            block = block[1:]
+        excerpt = max(block, key=len)[:200] if block else ""
+        author = lines[i - 3] if i >= 3 else ""
+        rid = hashlib.md5(f"{naver_place_id}|{author}|{excerpt}".encode("utf-8")).hexdigest()[:16]
+        if rid in seen:
+            continue
+        seen.add(rid)
+        out.append({"rating": rating, "excerpt": excerpt, "review_id": f"{naver_place_id}_{rid}"})
+        if len(out) >= max_reviews:
+            break
+    return len(marks), out
+
+
+async def check_low_rating_reviews_for(
+    naver_place_id: str, min_rating: int = 2, max_reviews: int = 10
+) -> dict:
+    """낮은 별점 리뷰 조회 — **조회했는지**를 함께 돌려준다.
+
+    Returns: {"checked": bool, "reviews": [...], "markers": int, "reason": str | None}
+      checked=False 는 "낮은 별점 리뷰가 없다"가 아니라 "확인하지 못했다"(회로·상한·속도 기준에 막힘, 차단 화면, 시간 초과, 오류)이다.
+      reason: no_place_id / cooldown / quota / rate / blocked / timeout / error. cooldown·quota·rate·blocked 는 같은 실행의 나머지
+      사업장도 막히므로 호출한 쪽이 실행을 멈추는 기준으로 쓴다.
+      markers 는 화면에서 읽은 별점 표식 수 — 조회는 됐는데 0이면 리뷰가 없거나 화면 구조가 바뀐 것이다.
+    """
+    def _res(checked: bool, reason=None, reviews=None, markers=0) -> dict:
+        return {"checked": checked, "reviews": reviews or [], "markers": markers, "reason": reason}
+
     if not naver_place_id:
-        return []
+        return _res(False, "no_place_id")
 
     # 플레이스 회로 차단기·속도 기준 — 다른 플레이스 진입점과 같은 방식. 2026-10-28 점검에서 이 함수만 빠져 있어
     # 쿨다운 중에도 접속하던 것을 발견(함수 단위 감사). 차단 중에는 네이버 요청 없이 건너뛴다.
     from services.naver_access_guard import begin_place_access, place_pace, reserve_place_pages
     _ok, _why = begin_place_access("naver_place_stats.get_recent_low_rating_reviews")
     if not _ok:
-        return []
+        return _res(False, "cooldown")
 
     from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
     # 가게 페이지를 열고 리뷰 탭까지 누르므로 2페이지로 센다
     if not _check_naver_quota("naver_place_stats.get_recent_low_rating_reviews", cost=2):
-        return []
+        return _res(False, "quota")
     _rok, _rwhy, _ = await reserve_place_pages(2, "naver_place_stats.get_recent_low_rating_reviews")
     if not _rok:
-        return []
+        return _res(False, "rate")
 
     try:
         async with _get_playwright_sem():
@@ -740,18 +787,29 @@ async def get_recent_low_rating_reviews(
             )
     except asyncio.TimeoutError:
         logger.warning(f"get_recent_low_rating_reviews timeout: {naver_place_id}")
-        return []
+        return _res(False, "timeout")
     except Exception as e:
         logger.warning(f"get_recent_low_rating_reviews error: {e}")
-        return []
+        return _res(False, "error")
+
+
+async def get_recent_low_rating_reviews(
+    naver_place_id: str, min_rating: int = 2, max_reviews: int = 10
+) -> list[dict]:
+    """네이버 플레이스 최근 리뷰 중 별점 min_rating 이하 리뷰 목록 반환(확인 못 한 경우도 빈 목록).
+
+    확인 여부가 필요하면 check_low_rating_reviews_for 를 쓴다.
+    Returns:
+        [{rating: int, excerpt: str, review_id: str}, ...]
+    """
+    return (await check_low_rating_reviews_for(naver_place_id, min_rating, max_reviews))["reviews"]
 
 
 async def _fetch_low_rating_reviews(
     naver_place_id: str, min_rating: int, max_reviews: int
-) -> list[dict]:
-    """Playwright로 네이버 플레이스 리뷰 탭 파싱 — 별점 min_rating 이하만 반환."""
+) -> dict:
+    """Playwright로 네이버 플레이스 리뷰 탭 파싱 — 별점 min_rating 이하만 반환(check_low_rating_reviews_for 와 같은 dict)."""
     url = f"https://map.naver.com/p/entry/place/{naver_place_id}"
-    low_reviews: list[dict] = []
 
     from services.ai_scanner import apply_stealth as _as3, get_proxy_config as _gpc3, get_random_ua as _gua3, block_heavy_resources as _bhr3, attach_bandwidth_counter as _abc3
     from services.ai_scanner.bandwidth_tracker import record_usage_mb as _rum3
@@ -799,6 +857,18 @@ async def _fetch_low_rating_reviews(
             except Exception as e:
                 logger.warning("review tab click failed [%s]: %s", naver_place_id, e)
 
+            # 리뷰 탭의 기본 정렬은 "추천순"이다(2026-10-28 실측: 날짜가 10.2·10.14·10.11·9.8로 뒤섞임). "최근에 달린" 낮은 별점
+            # 리뷰를 찾으려면 "최신순"을 눌러야 한다(클릭 후 10.14·10.11·10.2·10.1…로 내림차순 확인). 같은 페이지 안의 클릭이라 추가 로드는 없다.
+            sorted_latest = False
+            try:
+                sort_el = target.get_by_text("최신순", exact=True).first
+                if await sort_el.is_visible(timeout=2000):
+                    await sort_el.click()
+                    await page.wait_for_timeout(2500)
+                    sorted_latest = True
+            except Exception as e:
+                logger.warning("[low_rating] 최신순 정렬 클릭 실패 [%s]: %s", naver_place_id, e)
+
             # body 텍스트에서 별점+내용 파싱 (정규식 기반)
             body = await target.inner_text("body")
 
@@ -807,38 +877,19 @@ async def _fetch_low_rating_reviews(
             from services.naver_access_guard import report_place_block, report_place_ok
             if is_naver_block_page(body):
                 report_place_block("naver_place_stats.get_recent_low_rating_reviews")
-                return low_reviews
+                return {"checked": False, "reviews": [], "markers": 0, "reason": "blocked"}
             report_place_ok()
 
-            # 별점 패턴: 숫자 별점이 포함된 리뷰 블록 파싱
-            # 네이버 리뷰는 별 모양 렌더링이어서 텍스트로는 "x점" 형식 또는 aria-label로 노출
-            rating_patterns = [
-                r"(\d)점[^\n]*\n([^\n]{10,200})",  # "3점" + 내용
-                r"별점\s*(\d)[^\n]*\n([^\n]{10,200})",
-                r"★{1,5}[^\d]*(\d)[^\n]*\n([^\n]{10,200})",
-            ]
-            seen_excerpts: set[str] = set()
-            for pattern in rating_patterns:
-                for m in re.finditer(pattern, body):
-                    try:
-                        rating = int(m.group(1))
-                        excerpt = m.group(2).strip()
-                    except (IndexError, ValueError):
-                        continue
-                    if rating <= min_rating and excerpt and excerpt not in seen_excerpts:
-                        seen_excerpts.add(excerpt)
-                        low_reviews.append({
-                            "rating": rating,
-                            "excerpt": excerpt[:200],
-                            "review_id": f"{naver_place_id}_{len(low_reviews)}",
-                        })
-                        if len(low_reviews) >= max_reviews:
-                            break
-                if len(low_reviews) >= max_reviews:
-                    break
+            markers, low_reviews = parse_low_rating_reviews(body, naver_place_id, min_rating, max_reviews)
+            if markers == 0:
+                # 리뷰가 아직 없는 가게일 수도, 화면 구조가 바뀐 것일 수도 있다 — 조용히 넘기지 않고 남긴다(호출한 쪽이 집계).
+                logger.warning("[low_rating] 별점 표식 0건 — 리뷰 없는 가게이거나 화면 구조 변경 (place=%s, 본문 %d자)", naver_place_id, len(body or ""))
+            elif not sorted_latest:
+                # 리뷰는 읽었지만 추천순일 수 있다 — 최신 리뷰가 안 보이므로 "새 낮은 별점 없음"으로 판단하면 안 된다
+                logger.warning("[low_rating] 최신순을 확인하지 못해 결과를 쓰지 않음 (place=%s)", naver_place_id)
+                return {"checked": False, "reviews": [], "markers": markers, "reason": "sort"}
+            return {"checked": True, "reviews": low_reviews, "markers": markers, "reason": None}
 
         finally:
             await browser.close()
             await _rum3(_bw_counter3[0] / 1024 / 1024)
-
-    return low_reviews

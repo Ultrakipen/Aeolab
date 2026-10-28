@@ -191,6 +191,66 @@ def select_stale_first(items: list[dict], now: datetime, min_age_sec: float, bud
     return out
 
 
+# ── 별점 낮은 리뷰 잡: 오래된 순서 회전 (2026-10-28) ─────────────────────────────────
+# 이 잡(6시간마다, 사업장당 플레이스 2페이지)은 사업장을 항상 같은 순서로 돌았다. 배치 몫·일일 상한으로 중간에 막히면 앞 사업장만
+# 매번 확인되고 뒤 사업장은 영영 확인되지 않는다(시뮬레이션: 사업장 50곳 이상이면 15곳에서 멈춤). 마지막으로 **확인에 성공한** 시각을
+# 파일에 두고 오래된(또는 한 번도 안 한) 사업장부터 돈다 — 막히면 그 자리에서 멈추고, 다음 실행은 못 한 사업장부터 이어 간다.
+import json
+import tempfile
+
+
+def low_rating_state_path() -> str:
+    default = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".naver_low_rating_state.json")
+    return os.getenv("NAVER_LOW_RATING_STATE_FILE", default)
+
+
+LOW_RATING_SEEN_MAX = 100   # 사업장당 기억하는 "이미 본 낮은 별점 리뷰" 수 — 화면에 보이는 리뷰보다 충분히 크다
+
+
+def load_low_rating_state() -> dict:
+    """{"last": {사업장 id: 마지막 확인 성공 epoch 초}, "seen": {사업장 id: [이미 본 낮은 별점 review_id…]}}.
+    파일이 없거나 깨졌으면 빈 상태(전부 '한 번도 안 한' 것 — 첫 확인은 알림 없이 기준선만 기록한다)."""
+    empty: dict = {"last": {}, "seen": {}}
+    try:
+        with open(low_rating_state_path(), "r", encoding="utf-8") as f:
+            raw = json.load(f)
+        if not isinstance(raw, dict):
+            return empty
+        last_raw = raw["last"] if isinstance(raw.get("last"), dict) else {k: v for k, v in raw.items() if k != "seen"}
+        seen_raw = raw["seen"] if isinstance(raw.get("seen"), dict) else {}
+        return {
+            "last": {str(k): float(v) for k, v in last_raw.items() if isinstance(v, (int, float))},
+            "seen": {str(k): [str(x) for x in v] for k, v in seen_raw.items() if isinstance(v, list)},
+        }
+    except (OSError, ValueError, AttributeError):
+        return empty
+
+
+def save_low_rating_state(state: dict, keep_ids: Iterable[str]) -> None:
+    """현재 대상 사업장만 남겨 저장(삭제·비활성 사업장 정리). 원자적 교체 — 저장 실패는 다음 실행이 같은 순서로 다시 도는 것뿐이라 삼킨다."""
+    keep = {str(i) for i in keep_ids}
+    data = {
+        "last": {k: v for k, v in state.get("last", {}).items() if k in keep},
+        "seen": {k: v[-LOW_RATING_SEEN_MAX:] for k, v in state.get("seen", {}).items() if k in keep},
+    }
+    path = low_rating_state_path()
+    try:
+        fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path) or ".", prefix=".lowrating_", suffix=".tmp")
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f)
+        os.replace(tmp, path)
+    except OSError:
+        pass
+
+
+def order_stalest_first(ids: list[str], last: dict[str, float], today: date) -> list[str]:
+    """한 번도 확인 못 한 사업장이 맨 앞, 그다음 마지막 확인이 오래된 순. 같은 값이면 날짜 시드 해시로 결정적 순서."""
+    return sorted(
+        (str(i) for i in ids),
+        key=lambda i: (i in last, last.get(i, 0.0), hashlib.md5(f"{today.isoformat()}:{i}".encode("utf-8")).hexdigest()),
+    )
+
+
 def cache_still_valid(last: Optional[datetime], now: datetime, ttl_sec: float, margin_sec: float = 6 * 3600) -> bool:
     """경쟁사 크롤 캐시가 아직 유효해 enrich 가 네이버 접속 없이 끝낼 수 있는가.
     관측이 없거나 TTL 직전이면 False — enrich 가 캐시 만료로 새 크롤을 시작하지 않게 건너뛴다(다음 sync 가 처리)."""
