@@ -3164,3 +3164,10 @@ CREATE TABLE IF NOT EXISTS naver_block_events (
 );
 CREATE INDEX IF NOT EXISTS idx_naver_block_events_time ON naver_block_events (occurred_at DESC);
 ALTER TABLE naver_block_events ENABLE ROW LEVEL SECURITY;
+
+-- 2026-10-29: 별점·리뷰 수의 출처 표시 — 'user'(사용자 입력) / 'measured'(AEOlab이 네이버에서 확인). NULL = 출처 모름(기존 데이터).
+-- 코드는 이 컬럼이 없어도 동작한다(없으면 출처 표시만 생략). 실행 후 사용자 화면에 "입력하신 값"/"AEOlab이 확인한 값"이 표시된다.
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS review_stats_source TEXT;
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS review_stats_measured_at TIMESTAMPTZ;
+ALTER TABLE businesses DROP CONSTRAINT IF EXISTS businesses_review_stats_source_chk;
+ALTER TABLE businesses ADD CONSTRAINT businesses_review_stats_source_chk CHECK (review_stats_source IS NULL OR review_stats_source IN ('user', 'measured'));

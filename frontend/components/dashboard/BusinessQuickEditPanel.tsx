@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { X, RefreshCw, Plus, ExternalLink } from "lucide-react";
+import { fmtMonthDay } from "@/lib/naverMeasure";
 
 interface Props {
   isOpen: boolean;
@@ -45,6 +46,9 @@ export default function BusinessQuickEditPanel({
   const [receiptReviewCount, setReceiptReviewCount] = useState(initialData.receipt_review_count);
   const [avgRating, setAvgRating] = useState(initialData.avg_rating);
   const [naverPlaceUrl, setNaverPlaceUrl] = useState(initialData.naver_place_url);
+  // 별점·리뷰 수의 출처 — 'measured'=AEOlab이 네이버에서 확인, 'user'=사용자 입력, null=출처 모름(기존 데이터·컬럼 미생성)
+  const [statsSource, setStatsSource] = useState<"user" | "measured" | null>(null);
+  const [statsMeasuredAt, setStatsMeasuredAt] = useState<string | null>(null);
 
   // ui state
   const [saving, setSaving] = useState(false);
@@ -71,6 +75,25 @@ export default function BusinessQuickEditPanel({
       setNaverPlaceUrl(initialData.naver_place_url);
       setToast(null);
     }
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 출처 표시 조회 — 실패해도 입력·저장에는 영향 없다(표시만 생략)
+  async function loadStatsSource() {
+    try {
+      const res = await fetch(`${BACKEND}/api/businesses/${bizId}`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      if (!res.ok) return;
+      const d = (await res.json()) as { review_stats_source?: string | null; review_stats_measured_at?: string | null };
+      setStatsSource(d.review_stats_source === "user" || d.review_stats_source === "measured" ? d.review_stats_source : null);
+      setStatsMeasuredAt(d.review_stats_measured_at ?? null);
+    } catch {
+      /* 표시만 생략 */
+    }
+  }
+
+  useEffect(() => {
+    if (isOpen) void loadStatsSource();
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 쿨다운 체크
@@ -154,6 +177,7 @@ export default function BusinessQuickEditPanel({
       localStorage.setItem(`aeolab_sync_cooldown_${bizId}`, Date.now().toString());
       setSyncCooldown(true);
       showToast("success", "리뷰 현황을 불러왔습니다");
+      void loadStatsSource();
     } catch {
       showToast("error", "자동 불러오기에 실패했습니다. 직접 입력해 주세요.");
     } finally {
@@ -489,6 +513,17 @@ export default function BusinessQuickEditPanel({
                   </span>
                 </div>
               </div>
+              {statsSource === "measured" && (
+                <p className="text-sm text-gray-600">
+                  AEOlab이 네이버에서 확인한 값이에요{fmtMonthDay(statsMeasuredAt) ? ` (${fmtMonthDay(statsMeasuredAt)} 기준)` : ""}.
+                  측정 시점에 따라 달라질 수 있어요.
+                </p>
+              )}
+              {statsSource === "user" && (
+                <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  입력하신 값이에요. AEOlab이 확인한 값이 아니에요. 네이버에서 확인되면 확인한 값으로 바뀝니다.
+                </p>
+              )}
             </div>
           </section>
 

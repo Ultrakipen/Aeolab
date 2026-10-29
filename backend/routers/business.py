@@ -338,7 +338,18 @@ async def get_business(biz_id: str, user=Depends(get_current_user)):
             raise
     if not result.data:
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
-    return result.data
+    data = result.data
+    # 별점·리뷰 수 출처 표시 — 선택 컬럼 목록에 넣으면 컬럼이 없는 동안 조회 전체가 폴백돼 다른 선택 컬럼이 사라지므로 따로 읽는다.
+    try:
+        _src = await execute(
+            supabase.table("businesses").select("review_stats_source, review_stats_measured_at")
+            .eq("id", biz_id).eq("user_id", x_user_id).maybe_single()
+        )
+        if _src and isinstance(_src.data, dict):
+            data = {**data, **_src.data}
+    except Exception as e:
+        logger.debug(f"review_stats_source 조회 생략(컬럼 미생성 가능): {e}")
+    return data
 
 
 @router.delete("/{biz_id}")
@@ -353,6 +364,19 @@ async def delete_business(biz_id: str, user=Depends(get_current_user)):
 
 
 _REVIEW_COUNT_FIELDS = ("receipt_review_count", "visitor_review_count", "review_count")
+_REVIEW_STATS_FIELDS = ("avg_rating",) + _REVIEW_COUNT_FIELDS
+
+
+def review_stats_edited(current: dict | None, filtered: dict) -> bool:
+    """사용자가 별점·리뷰 수를 실제로 바꿨는가. 설정 화면은 저장할 때마다 이 값을 통째로 다시 보내므로
+    값이 같으면 '입력'으로 보지 않는다(AEOlab이 확인한 값 표시를 지우지 않기 위함). 비교할 수 없으면 False."""
+    if not isinstance(current, dict):
+        return False
+    for f in _REVIEW_STATS_FIELDS:
+        if f in filtered and filtered[f] is not None:
+            if current.get(f) is None or float(current[f]) != float(filtered[f]):
+                return True
+    return False
 _REVIEW_COUNT_MAX = 1_000_000
 
 
@@ -384,6 +408,20 @@ async def update_business(biz_id: str, updates: dict, user=Depends(get_current_u
     # 별점 500 입력 시 calc_review_quality가 100점으로 부풀려지는 것 방지
     _validate_review_inputs(filtered)
 
+    # 별점·리뷰 수를 사용자가 바꿨으면 출처를 '입력'으로 표시 — 이후 AEOlab 측정이 성공하면 '확인한 값'으로 바뀐다.
+    # 컬럼(review_stats_source)이 아직 없으면 아래 폴백이 이 키만 빼고 재시도한다.
+    if any(k in filtered for k in _REVIEW_STATS_FIELDS):
+        try:
+            _cur = await execute(
+                supabase.table("businesses")
+                .select(", ".join(_REVIEW_STATS_FIELDS))
+                .eq("id", biz_id).eq("user_id", x_user_id).maybe_single()
+            )
+            if review_stats_edited(_cur.data if _cur else None, filtered):
+                filtered["review_stats_source"] = "user"
+        except Exception as e:
+            logger.warning(f"review stats compare failed (출처 표시 생략) biz={biz_id}: {e}")
+
     # 네이버 플레이스 URL 저장 시 place_id 자동 추출 — 리뷰 통계 동기화 활성화
     # (빠른수정 패널은 naver_place_url만 전송 → place_id 미추출 시 sync_naver_place_stats가
     #  스킵되어 review_count가 영원히 0으로 남던 버그 방지. 2026-06-11 수정)
@@ -404,8 +442,10 @@ async def update_business(biz_id: str, updates: dict, user=Depends(get_current_u
         # last_post_at / awards_certifications / signature_points 컬럼 미존재 시 폴백 — 재시도
         # (2026-09-02 SQL 미실행 구간 보호 — scripts/supabase_schema.sql 참조)
         _err_msg = str(e).lower()
-        _optional_update_cols = ["last_post_at", "awards_certifications", "signature_points"]
-        _missing = [c for c in _optional_update_cols if c in filtered and (c.lower() in _err_msg or "column" in _err_msg or "does not exist" in _err_msg)]
+        _optional_update_cols = ["last_post_at", "awards_certifications", "signature_points", "review_stats_source"]
+        _named = [c for c in _optional_update_cols if c in filtered and c.lower() in _err_msg]
+        # 오류에 컬럼 이름이 나오면 그 컬럼만, 이름이 없는 일반 오류면 기존처럼 선택 컬럼 전체를 뺀다
+        _missing = _named or [c for c in _optional_update_cols if c in filtered and ("column" in _err_msg or "does not exist" in _err_msg)]
         if _missing:
             logger.warning(f"optional column(s) missing on business update — falling back without them {_missing}: {e}")
             for c in _missing:

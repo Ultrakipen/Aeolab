@@ -687,19 +687,27 @@ async def sync_naver_place_stats(business_id: str, naver_place_id: str):
         update_data["avg_rating"] = stats["avg_rating"]
 
     if update_data:
-        try:
-            update_data["is_smart_place"] = True  # 플레이스 ID로 데이터 조회 성공 = 스마트플레이스 등록됨
-            supabase.table("businesses").update(update_data).eq("id", business_id).execute()
-            logger.info(f"Naver place stats updated for {business_id}: {update_data}")
-        except Exception as e:
-            # is_smart_place 컬럼 없을 경우 fallback: review_count/avg_rating만 업데이트
-            if "is_smart_place" in str(e):
-                logger.warning(f"is_smart_place column missing, updating without it: {e}")
-                fallback = {k: v for k, v in update_data.items() if k != "is_smart_place"}
-                if fallback:
-                    supabase.table("businesses").update(fallback).eq("id", business_id).execute()
-                    logger.info(f"Fallback update done for {business_id}: {fallback}")
-            else:
-                raise
+        # 측정에 성공한 값 — 출처 표시('확인한 값')와 시각 기록. 컬럼이 없으면 아래 폴백이 이 두 키를 뺀다.
+        from datetime import datetime, timezone
+        update_data["review_stats_source"] = "measured"
+        update_data["review_stats_measured_at"] = datetime.now(timezone.utc).isoformat()
+        update_data["is_smart_place"] = True  # 플레이스 ID로 데이터 조회 성공 = 스마트플레이스 등록됨
+        # 선택 컬럼(is_smart_place·출처 표시)이 없으면 오류에 나온 컬럼만 빼고 다시 시도한다.
+        # Postgres는 없는 컬럼을 한 번에 하나씩만 알려 주므로 최대 3번까지 반복한다.
+        _optional = ("is_smart_place", "review_stats_source", "review_stats_measured_at")
+        payload = dict(update_data)
+        for _attempt in range(len(_optional) + 1):
+            try:
+                supabase.table("businesses").update(payload).eq("id", business_id).execute()
+                logger.info(f"Naver place stats updated for {business_id}: {payload}")
+                break
+            except Exception as e:
+                _named = [c for c in _optional if c in payload and c in str(e)]
+                if not _named:
+                    raise
+                logger.warning(f"optional column missing, updating without it {_named}: {e}")
+                payload = {k: v for k, v in payload.items() if k not in _named}
+                if not any(k in payload for k in ("review_count", "visitor_review_count", "receipt_review_count", "avg_rating")):
+                    break
 
     return stats
