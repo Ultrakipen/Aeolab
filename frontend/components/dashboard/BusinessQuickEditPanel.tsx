@@ -513,6 +513,12 @@ export default function BusinessQuickEditPanel({
                   </span>
                 </div>
               </div>
+              {avgRating <= 0 && statsSource !== "user" && (
+                <p className="text-sm text-gray-600">
+                  별점을 읽지 못했어요. 별점이 없어도 점수는 리뷰 수로 계산돼요. 네이버 플레이스에 보이는 평균 별점이 있다면
+                  입력해 주세요. 입력하신 값은 점수에 반영하고 &quot;입력하신 값&quot;으로 표시해요.
+                </p>
+              )}
               {statsSource === "measured" && (
                 <p className="text-sm text-gray-600">
                   AEOlab이 네이버에서 확인한 값이에요{fmtMonthDay(statsMeasuredAt) ? ` (${fmtMonthDay(statsMeasuredAt)} 기준)` : ""}.
