@@ -1500,7 +1500,14 @@ async def get_naver_access(_=Depends(verify_admin)):
     except Exception as _e:
         _logger.warning("naver_block_events 조회 실패(테이블 미생성 가능): %s", _e)
     from services.ai_scanner import proxy_usage_snapshot
+    try:
+        from services.naver_capacity import capacity_snapshot
+        capacity = await capacity_snapshot()
+    except Exception as _ce:
+        _logger.warning("용량 현황 조회 실패: %s", _ce)
+        capacity = {"error": "조회 실패"}
     return {
+        "capacity": capacity,   # 활성 사업장 수 / 모델 한도(실측 아님)
         "block_events": block_events,
         "proxy": proxy_usage_snapshot(),   # 프록시 설정 여부·범위·회로·접속 구분별 사용 횟수(주소·계정 미포함)
         "quota": {**snap, "used_pct": round(snap["used"] / cap * 100, 1) if cap else None},

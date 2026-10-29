@@ -358,6 +358,12 @@ def start_scheduler():
         id="alert_pipeline_heartbeat", replace_existing=True,
         max_instances=1, misfire_grace_time=3600,
     )
+    # 네이버 접속 용량 대비 활성 사업장 수 점검 — 70/90/100% 단계 도달 시 운영자 메일(결제는 막지 않음)
+    scheduler.add_job(
+        naver_capacity_check_job, "cron", hour=9, minute=40,
+        id="naver_capacity_check", replace_existing=True,
+        max_instances=1, misfire_grace_time=3600,
+    )
     scheduler.add_listener(_on_job_error, EVENT_JOB_ERROR)
     scheduler.start()
     logger.info("Scheduler started")
@@ -7220,6 +7226,48 @@ async def backend_scaling_trigger_check_job() -> None:
         + "\n\nRedis/DB 락 마이그레이션(uvicorn --workers 확장) 착수 여부를 검토하세요. "
         "자동 조치는 하지 않습니다 — 과거 세마포어 관련 데드락 사고 재발 방지를 위해 "
         "코드 확인 후 사람이 직접 결정할 것.",
+    )
+
+
+async def naver_capacity_check_job() -> None:
+    """활성 사업장 수가 네이버 접속 용량 모델 한도의 70/90/100%에 닿으면 운영자에게 알린다 — 매일 09:40 KST.
+
+    한도는 코드 기준 모델(실측 아님)이다. 같은 단계 알림은 14일 안에 다시 보내지 않는다. 결제·가입은 막지 않는다.
+    """
+    from db.supabase_client import get_client
+    from services.email_sender import send_operator_alert
+    from services.naver_capacity import capacity_snapshot
+
+    try:
+        snap = await capacity_snapshot(get_client())
+    except Exception as e:
+        _logger.warning(f"[naver_capacity] 점검 실패(스킵): {e}")
+        return
+    level = snap.get("level")
+    if not level:
+        return
+    subject = f"네이버 접속 용량 {level} 도달"
+    try:
+        recent = (
+            await _db(
+                get_client().table("system_alerts")
+                .select("id")
+                .ilike("subject", f"%{subject}%")
+                .gte("created_at", (datetime.utcnow() - timedelta(days=14)).isoformat())
+                .limit(1)
+            )
+        ).data or []
+    except Exception as e:
+        _logger.debug(f"[naver_capacity] dedup 조회 실패: {e}")
+        recent = []
+    if recent:
+        return
+    await send_operator_alert(
+        subject,
+        f"활성 사업장 {snap['active_businesses']}곳 / 모델 한도 {snap['limit']}곳 ({snap['used_pct']}%).\n\n"
+        "한도는 실측이 아니라 코드 기준 모델(scripts/naver_load_model.py)입니다. /admin/naver-access의 일별 사용량과 "
+        "차단 이력으로 실제 여유를 먼저 확인하세요. 결제·가입은 자동으로 막지 않습니다. 필요하면 플랜별 갱신 주기 차등·"
+        "신규 대기자 전환을 검토하세요(공개 문구 변경 수반).",
     )
 
 
