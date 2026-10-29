@@ -7269,8 +7269,12 @@ async def naver_capacity_check_job() -> None:
         subject,
         f"활성 사업장 {snap['active_businesses']}곳 / 모델 한도 {snap['limit']}곳 ({snap['used_pct']}%).\n\n"
         "한도는 실측이 아니라 코드 기준 모델(scripts/naver_load_model.py)입니다. /admin/naver-access의 일별 사용량과 "
-        "차단 이력으로 실제 여유를 먼저 확인하세요. 결제·가입은 자동으로 막지 않습니다. 필요하면 플랜별 갱신 주기 차등·"
-        "신규 대기자 전환을 검토하세요(공개 문구 변경 수반).",
+        "차단 이력으로 실제 여유를 먼저 확인하세요. 결제·가입은 자동으로 막지 않습니다.\n\n"
+        "지금 착수할 조치 (사용자 결정 필요 표시는 공개 약속·기능 범위가 바뀌는 항목):\n"
+        + "\n".join(
+            f"- {s['step']} → {s['effect']}" + (" [사용자 결정 필요]" if s["decide"] else "")
+            for s in snap.get("next_steps", [])
+        ),
     )
 
 

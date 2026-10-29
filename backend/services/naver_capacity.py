@@ -12,6 +12,32 @@ DEFAULT_CAPACITY_BUSINESSES = 50
 LEVELS = ((1.0, "100%"), (0.9, "90%"), (0.7, "70%"))
 
 
+# 단계별 대응표 — 활성 사업장 수가 늘 때 무엇을 어떤 순서로 하는지 (docs/naver_capacity_300_playbook_2026_10_29.md).
+# 효과 수치는 코드 기준 모델(scripts/naver_load_model.py --levers 300)이며 실측이 아니다.
+# decide=True는 공개 약속·기능 범위·법적 민감 항목이라 **사용자 결정 없이 실행하지 않는다**(CLAUDE.md 지침 8번).
+PLAYBOOK = (
+    {"from_pct": 70, "step": "AI탭 질의 수를 4→2로 낮춘다 (서버 .env NAVER_AI_TAB_MAX_QUERIES=2 후 백엔드 재시작)",
+     "effect": "100곳 기준 정기 잡 하루 최대 705→613 (몫 420 대비 168%→146%)", "decide": False},
+    {"from_pct": 70, "step": "스캔 슬롯 분산을 켠다 (NAVER_SCAN_SLOT_SPREAD) — 공개 문구의 요일 표기 5곳을 먼저 제거",
+     "effect": "요일 쏠림 완화 (100곳 기준 하루 최대 약 9% 감소)", "decide": True},
+    {"from_pct": 90, "step": "일일 사용량·캐시 적중률·수동 스캔 빈도를 /admin/naver-access에서 읽어 모델 가정(키워드 4개·경쟁사 3곳·수동 스캔 0.2회/일·경쟁사 겹침)을 실측으로 교체한다",
+     "effect": "한도 수치 자체를 보정 (이후 단계의 필요 시점이 바뀐다)", "decide": False},
+    {"from_pct": 100, "step": "신규 가입을 대기자 명단으로 전환할지 결정한다 (결제는 자동으로 막지 않는다)",
+     "effect": "더 이상 부하가 늘지 않음", "decide": True},
+    {"from_pct": 200, "step": "100곳 이상으로 가려면 아래를 사용자가 결정해야 한다: 플랜별 키워드·경쟁사 한도 축소, 순위 모바일만 측정, AI탭 끔, 경쟁사 갱신 4주 — 모두 공개 문구·점수 항목이 바뀐다",
+     "effect": "300곳 기준 정기 잡 몫 대비 229%→96% (python scripts/naver_load_model.py --levers 300)", "decide": True},
+    {"from_pct": 200, "step": "경쟁사 겹침 캐시와 사전 스캔 재사용은 아직 구현·실측되지 않은 가정이다 — 구현 후 실측으로 효과를 확인한다",
+     "effect": "300곳 기준 378%→289% (가정치)", "decide": False},
+    {"from_pct": 200, "step": "접속 경로 분산(서버·프록시 추가)은 변호사 자문 후 사용자가 결정한다",
+     "effect": "IP당 한도가 기준이면 대략 서버 수만큼 (네이버 기준 미확인)", "decide": True},
+)
+
+
+def next_steps(used_pct: float) -> list[dict]:
+    """현재 사용률에서 지금 착수해야 하는 조치(해당 단계 이하 전부)."""
+    return [s for s in PLAYBOOK if used_pct >= s["from_pct"]]
+
+
 def capacity_limit() -> int:
     try:
         v = int(os.getenv("NAVER_CAPACITY_BUSINESSES", str(DEFAULT_CAPACITY_BUSINESSES)))
@@ -52,5 +78,6 @@ async def capacity_snapshot(supabase=None) -> dict:
         "limit": limit,
         "used_pct": round(count / limit * 100, 1),
         "level": capacity_level(count, limit),
+        "next_steps": next_steps(count / limit * 100),
         "basis": "코드 기준 모델(실측 아님) — scripts/naver_load_model.py, NAVER_CAPACITY_BUSINESSES로 보정",
     }

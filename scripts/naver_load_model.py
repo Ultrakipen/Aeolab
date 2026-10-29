@@ -89,8 +89,40 @@ def first_n_over(limit: float, key: str, **kw) -> int | None:
     return None
 
 
+def lever_report(n: int, cap: int = 600, batch_ratio: float = 0.7) -> list[dict]:
+    """사업장 n곳에서 절감책을 누적 적용했을 때의 하루 최대 부하. "결정" 단계는 공개 약속·플랜 한도·점수 항목이 바뀌는 사용자 결정이다.
+
+    사용자 수동 스캔(가정 하루 0.2회/곳)은 '전체'에만 들어가며 아직 줄이는 방법이 모델에 없다 — 가장 큰 미확인 가정이다."""
+    global AI_TAB_PER_FULL, RANK_PER_KEYWORD, COMPETITOR_REFRESH_WEEKS
+    saved = (AI_TAB_PER_FULL, RANK_PER_KEYWORD, COMPETITOR_REFRESH_WEEKS)
+    base = dict(spread=True, dedupe=0.0, prescan_reuse=False, comp_cache=True, comp_spread=True)
+    full = {**base, "dedupe": 0.3, "prescan_reuse": True}
+    # kind: "" 약속 영향 없음 / "결정" 공개 약속·플랜 한도·점수 항목이 바뀜(사용자 결정) / "가정" 아직 구현·실측되지 않은 효과
+    steps = [   # (이름, kind, 키워드, 경쟁사, AI탭, 순위 단위, 경쟁사 주기(주), 시나리오)
+        ("A 슬롯 분산(공개 문구 요일 표기 제거 동반)", "결정", 4, 3, 4, 2, 2, base),
+        ("B A+AI탭 질의 2", "", 4, 3, 2, 2, 2, base),
+        ("C B+경쟁사 겹침 30%·사전스캔 재사용", "가정", 4, 3, 2, 2, 2, full),
+        ("D C+키워드 3·경쟁사 2(플랜 한도 축소)", "결정", 3, 2, 2, 2, 2, full),
+        ("E D+순위 모바일만(PC 제외)", "결정", 3, 2, 2, 1, 2, full),
+        ("F E+AI탭 끔", "결정", 3, 2, 0, 1, 2, full),
+        ("G F+경쟁사 4주 갱신", "결정", 3, 2, 0, 1, 4, full),
+        ("H G+경쟁사 겹침 60%", "가정", 3, 2, 0, 1, 4, {**full, "dedupe": 0.6}),
+    ]
+    out = []
+    try:
+        for name, kind, kw, comp, tab, rank_unit, weeks, sc in steps:
+            AI_TAB_PER_FULL, RANK_PER_KEYWORD, COMPETITOR_REFRESH_WEEKS = tab, rank_unit, weeks
+            d = daily_loads(n, keywords=kw, competitors=comp, **sc)
+            out.append({"name": name, "kind": kind, "batch_peak": max(x["batch"] for x in d),
+                        "total_peak": max(x["total"] for x in d), "batch_cap": cap * batch_ratio, "cap": cap})
+    finally:
+        AI_TAB_PER_FULL, RANK_PER_KEYWORD, COMPETITOR_REFRESH_WEEKS = saved
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--levers", type=int, default=0, help="사업장 수를 주면 절감책 누적 효과표만 출력")
     ap.add_argument("--cap", type=int, default=600)
     ap.add_argument("--batch-ratio", type=float, default=0.7)
     # 기본 4 — 2026-10-28 실측: 활성 사업장 6곳의 키워드 수 2·3·3·4·5·6(평균 3.8), 04:30 순위 잡이 4곳에서 16개를 측정(기존 가정 3)
@@ -98,6 +130,14 @@ def main() -> None:
     ap.add_argument("--competitors", type=int, default=3)
     a = ap.parse_args()
     batch_cap = int(a.cap * a.batch_ratio)
+    if a.levers:
+        print(f"사업장 {a.levers}곳 — 절감책 누적 효과 (코드 기준 모델, 실측 아님; 상한 {a.cap}, 정기 잡 몫 {batch_cap})")
+        for r in lever_report(a.levers, a.cap, a.batch_ratio):
+            tag = {"결정": "  [사용자 결정 필요]", "가정": "  [미구현·미실측 가정]"}.get(r["kind"], "")
+            print(f"  {r['name']:<52} 정기잡 최대 {r['batch_peak']:>5.0f} ({r['batch_peak'] / batch_cap * 100:>4.0f}%)"
+                  f" / 전체 최대 {r['total_peak']:>5.0f}{tag}")
+        print("  ※ '전체'에는 사용자 수동 스캔(가정 0.2회/곳/일)이 들어 있어 아직 줄이는 방법이 모델에 없다.")
+        return
 
     scenarios = {
         "현재(고정 요일, 중복 접속, 캐시 없음)": dict(spread=False, dedupe=0.0, prescan_reuse=False),
