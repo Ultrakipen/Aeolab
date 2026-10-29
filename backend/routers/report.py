@@ -1404,31 +1404,42 @@ async def generate_share_card(biz_id: str):
 
 # ── AEO 인증 배지 ────────────────────────────────────────────────────────────
 
+async def _badge_basis(supabase, biz_id: str) -> dict | None:
+    """인증 배지 자격 판정의 기준 스캔 — 네이버가 정상 측정된 가장 최근 점수 스캔(최근 10건 안).
+
+    측정이 실패한 스캔은 점수가 확인된 항목만으로 재계산돼 낮게 나온다. 그 점수로 자격을 판정하면 사장님 사이트에 삽입된
+    배지가 우리 측정 실패 때문에 깨질 수 있으므로(403) 마지막 정상 측정 스캔 기준으로 판정하고, 그 측정일을 배지에 표시한다.
+    """
+    from services.score_engine import naver_result_unmeasured
+    res = await execute(
+        supabase.table("scan_results")
+        .select("total_score, scanned_at, naver_result")
+        .eq("business_id", biz_id)
+        .not_.is_("total_score", "null")
+        .order("scanned_at", desc=True)
+        .limit(10)
+    )
+    for r in (res.data if res else None) or []:
+        if not naver_result_unmeasured(r.get("naver_result")):
+            return {"score": r.get("total_score") or 0, "measured_on": (r.get("scanned_at") or "")[:10]}
+    return None
+
+
 @router.get("/badge/{biz_id}")
 async def get_badge(biz_id: str, user=Depends(get_current_user)):
     """인증 배지 JSON + 삽입 코드 반환 (점수 70점 이상 조건, 소유자 전용)"""
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
-    score_data = (
-        await execute(
-            supabase.table("score_history")
-            .select("total_score")
-            .eq("business_id", biz_id)
-            .not_.is_("total_score", "null")
-            .order("score_date", desc=True)
-            .limit(1)
-        )
-    ).data
-    if not score_data:
+    basis = await _badge_basis(supabase, biz_id)
+    if not basis:
         raise HTTPException(status_code=404, detail="측정 결과가 없습니다")
 
-    score = score_data[0]["total_score"] or 0
+    score = basis["score"]
     if score < 70:
         raise HTTPException(status_code=403, detail="점수 70점 이상인 사업장만 배지를 받을 수 있습니다")
 
-    from datetime import datetime
-    grade = "A" if score >= 80 else "B"
-    issued_at = datetime.now().strftime("%Y.%m")
+    # 발급 표기는 요청 시점의 현재 월이 아니라 자격 판정에 쓴 측정일 — 매번 바뀌는 날짜를 "발급일"처럼 보이게 하지 않는다
+    issued_at = basis["measured_on"].replace("-", ".")
     embed_code = (
         f'<a href="https://aeolab.co.kr/share/{biz_id}">'
         f'<img src="https://aeolab.co.kr/api/report/badge/{biz_id}.svg" '
@@ -1436,7 +1447,6 @@ async def get_badge(biz_id: str, user=Depends(get_current_user)):
     )
     return {
         "eligible": True,
-        "grade": grade,
         "score": score,
         "issued_at": issued_at,
         "svg_url": f"/api/report/badge/{biz_id}.svg",
@@ -1448,28 +1458,17 @@ async def get_badge(biz_id: str, user=Depends(get_current_user)):
 async def get_badge_svg(biz_id: str):
     """배지 SVG 파일 직접 반환"""
     supabase = get_client()
-    score_data = (
-        await execute(
-            supabase.table("score_history")
-            .select("total_score")
-            .eq("business_id", biz_id)
-            .not_.is_("total_score", "null")
-            .order("score_date", desc=True)
-            .limit(1)
-        )
-    ).data
-    if not score_data or (score_data[0]["total_score"] or 0) < 70:
+    basis = await _badge_basis(supabase, biz_id)
+    if not basis or basis["score"] < 70:
         raise HTTPException(status_code=403, detail="배지 발급 조건 미충족 (70점 이상 필요)")
 
-    from datetime import datetime
-    score = score_data[0]["total_score"] or 0
-    grade = "A" if score >= 80 else "B"
-    issued_at = datetime.now().strftime("%Y.%m")
+    # 점수 숫자·등급 문자(A/B)는 그리지 않는다(점수 비노출 원칙). 날짜는 자격 판정에 쓴 측정일.
+    measured_on = basis["measured_on"].replace("-", ".")
     svg = f"""<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
   <rect width="200" height="60" rx="8" fill="#0f172a"/>
   <text x="10" y="22" fill="#60a5fa" font-size="11" font-family="sans-serif" font-weight="bold">AEOlab 인증</text>
-  <text x="10" y="42" fill="white" font-size="14" font-family="sans-serif" font-weight="bold">AI 검색 {grade}등급</text>
-  <text x="10" y="55" fill="#94a3b8" font-size="9" font-family="sans-serif">{issued_at} · aeolab.co.kr</text>
+  <text x="10" y="42" fill="white" font-size="14" font-family="sans-serif" font-weight="bold">AI 검색 노출 진단 통과</text>
+  <text x="10" y="55" fill="#94a3b8" font-size="9" font-family="sans-serif">{measured_on} 측정 · aeolab.co.kr</text>
 </svg>"""
     return Response(
         content=svg,

@@ -522,7 +522,6 @@ export interface MentionContext {
 
 export interface BadgeData {
   eligible: boolean;
-  grade: string;
   score: number;
   issued_at: string;
   svg_url: string;
