@@ -1,0 +1,123 @@
+Supabase SQL Editor 진단 쿼리 모음 (2026-10-29)
+================================================================================
+목적: 대시보드가 간헐적으로 멈추는 원인(2026-10-29 측정: 서버와 로컬 PC에서 동시에 8/8 겹침 → Supabase 쪽)을 찾는다.
+사용법: 아래 쿼리를 "한 번에 하나씩" 복사해 SQL Editor에 붙여 넣고 Run. 모두 읽기 전용이라 데이터를 바꾸지 않는다.
+참고: 이미 확인된 것 — cron.job 은 없다(pg_cron 미설치). 그 쿼리는 다시 실행하지 않아도 된다.
+
+
+--------------------------------------------------------------------------------
+[1] 설치된 확장 목록
+   무엇이 켜져 있는지 본다. [3]을 쓰려면 pg_stat_statements 가 있어야 한다.
+--------------------------------------------------------------------------------
+select extname, extversion
+from pg_extension
+order by extname;
+
+
+--------------------------------------------------------------------------------
+[2] 지금 실행 중인 쿼리
+   멈춤이 의심되는 시각(매 분 44~48초 부근)에 실행하면 그 순간 무엇이 DB를 붙잡는지 볼 수 있다.
+   결과가 비어 있으면(실행 중인 쿼리 없음) 정상이다.
+--------------------------------------------------------------------------------
+select pid,
+       usename,
+       state,
+       wait_event_type,
+       wait_event,
+       now() - query_start as running_for,
+       left(query, 80)     as query
+from pg_stat_activity
+where state <> 'idle'
+  and pid <> pg_backend_pid()
+order by query_start;
+
+
+--------------------------------------------------------------------------------
+[3] 가장 오래 걸린 쿼리 상위 10개
+   [1]에서 pg_stat_statements 가 보일 때만 실행된다. 없으면 "relation does not exist" 오류가 나는데 이상 없는 것이다.
+   max_ms 가 크게 튀는 쿼리가 있으면 그것이 멈춤 후보다.
+--------------------------------------------------------------------------------
+select calls,
+       round(mean_exec_time::numeric, 1) as mean_ms,
+       round(max_exec_time::numeric, 1)  as max_ms,
+       left(query, 80)                   as query
+from pg_stat_statements
+order by max_exec_time desc
+limit 10;
+
+
+--------------------------------------------------------------------------------
+[4] 연결 상태별 개수
+   idle in transaction 이 많거나 active 가 한계에 가깝다면 연결 부족이 원인일 수 있다.
+--------------------------------------------------------------------------------
+select state, count(*) as connections
+from pg_stat_activity
+group by state
+order by connections desc;
+
+
+--------------------------------------------------------------------------------
+[5] 최대 연결 수
+   [4]의 합계와 비교한다.
+--------------------------------------------------------------------------------
+show max_connections;
+
+
+--------------------------------------------------------------------------------
+[6] 데이터베이스 누적 통계
+   blks_read 는 디스크에서 읽은 블록, blks_hit 는 메모리 캐시에서 읽은 블록이다.
+   hit 비율이 99% 아래로 낮으면 메모리가 모자라 디스크를 자주 읽는다는 뜻이다(IO 한계로 이어질 수 있음).
+--------------------------------------------------------------------------------
+select datname,
+       numbackends,
+       xact_commit,
+       xact_rollback,
+       blks_read,
+       blks_hit,
+       round(100.0 * blks_hit / nullif(blks_hit + blks_read, 0), 2) as cache_hit_pct
+from pg_stat_database
+where datname = current_database();
+
+
+--------------------------------------------------------------------------------
+[7] 데이터베이스와 큰 테이블 크기
+   무료 티어는 용량·IO 예산이 작다. 어느 테이블이 큰지 본다.
+--------------------------------------------------------------------------------
+select pg_size_pretty(pg_database_size(current_database())) as database_size;
+
+select relname                                         as table_name,
+       pg_size_pretty(pg_total_relation_size(relid))  as total_size,
+       n_live_tup                                      as live_rows
+from pg_stat_user_tables
+order by pg_total_relation_size(relid) desc
+limit 15;
+
+
+================================================================================
+SQL 외에 대시보드에서 볼 것 (더 직접적인 증거)
+================================================================================
+1. Reports -> Database : CPU 사용률, Disk IO 예산(Disk IO Budget) 그래프. 날짜를 오늘로, 시각을 17:41~17:46 으로 맞춘다.
+   (2026-10-29 17:41~17:46 에 서버·로컬 동시 측정에서 멈춤이 8번 잡혔다.)
+2. Reports -> API / Auth : 같은 시각의 요청 수와 오류율.
+3. Settings -> Infrastructure : Compute 등급(현재 플랜).
+
+판정 가이드
+- CPU 또는 Disk IO 예산이 바닥/한계 근처 -> 컴퓨트 업그레이드가 직접 해법.
+- [2]에서 특정 쿼리가 오래 붙잡고 있음 -> 그 쿼리를 최적화/인덱스.
+- [4]의 연결 수가 [5]에 가까움 -> 연결 풀 설정 또는 컴퓨트 업그레이드.
+- 위가 모두 정상 -> Supabase 쪽 문제로 지원팀에 문의(측정 근거: docs/ 및 CLAUDE.md 2026-10-29 항목).
+
+
+================================================================================
+실행 결과 (2026-10-29, 사용자가 SQL Editor에서 실행)
+================================================================================
+[1] 확장: pg_stat_statements 1.11, pgcrypto 1.3, plpgsql 1.0, supabase_vault 0.3.1, uuid-ossp 1.1 (pg_cron·pg_net 없음)
+[3] 최대 실행 시간 상위: 모두 Supabase 관리 도구의 메타데이터 쿼리(pg_timezone_names 평균 904ms·최대 7.4초 등).
+    우리 앱 쿼리(PostgREST scan_results 조회)는 4,250회·평균 5.9ms·최대 4,558ms -> 평소엔 빠르고 최대치는 멈춤 순간에 걸린 것으로 추정.
+[4] 연결: idle 13, state null 8(내부 프로세스), active 1 -> 클라이언트 연결 약 14개
+[5] max_connections = 60 (가장 작은 컴퓨트 급에서 흔한 값, 실제 등급은 미확인)
+[6] 캐시 적중률 100.00% (blks_hit 2.2억 / blks_read 1,821), numbackends 16, 롤백 0.1%
+[7] 가장 큰 테이블 ai_usage_log 17MB(5만 행), 나머지 6MB 이하. DB 전체 크기는 미확인.
+
+판정(가설): DB 안쪽 지표(정기 작업·느린 쿼리·캐시·연결·크기)는 정상.
+남은 후보는 CPU 제한, 쓰기 IO, Supabase 앞단. 미확인: Reports 의 CPU·Disk IO Budget 그래프, Compute 등급.
