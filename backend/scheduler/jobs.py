@@ -474,13 +474,15 @@ async def daily_scan_all():
         # subscriptions!inner 조인은 FK 없어 PGRST200 에러 → 두 번 조회로 교체
         # grace_period(결제실패 유예)도 plan_gate.get_user_plan()이 유료로 취급하는 상태이므로
         # 자동 스캔 대상에 포함 — active만 필터하면 유예 중인 유료 구독자가 스캔에서 부당 제외됨
+        # 해지했어도 만료일(end_at)까지는 서비스를 유지한다는 안내(설정 화면)·get_user_plan과 같은 기준으로 대상을 정한다(2026-10-29).
+        from services.scan_scheduling import entitled_sub_rows
         _subs_res = await _db(
             supabase.table("subscriptions")
-            .select("user_id, plan, status")
-            .in_("status", ["active", "grace_period"])
+            .select("user_id, plan, status, end_at")
+            .in_("status", ["active", "grace_period", "cancelled"])
             .in_("plan", ["basic", "pro", "biz", "startup"])
         )
-        _active_subs = {s["user_id"]: s["plan"] for s in (_subs_res.data or [])}
+        _active_subs = {s["user_id"]: s["plan"] for s in entitled_sub_rows(_subs_res.data or [])}
         _biz_res = await _db(
             supabase.table("businesses")
             .select("*")
@@ -3546,12 +3548,13 @@ async def weekly_my_place_stats_job():
         businesses = _wps_biz_res.data or []
 
         # 활성 구독자만 필터 (구독 없는 사업장 스킵)
+        from services.scan_scheduling import entitled_sub_rows
         _wps_subs_res = await _db(
             supabase.table("subscriptions")
-            .select("user_id")
-            .eq("status", "active")
+            .select("user_id, status, end_at")
+            .in_("status", ["active", "grace_period", "cancelled"])
         )
-        subs = _wps_subs_res.data or []
+        subs = entitled_sub_rows(_wps_subs_res.data or [])
         active_user_ids = {s["user_id"] for s in subs}
         targets = [b for b in businesses if b.get("user_id") in active_user_ids]
         from services.scan_scheduling import place_stats_day, rotate_for_fairness
@@ -5379,21 +5382,23 @@ async def _run_keyword_rank_for_plans(plans: list[str], only_today_slot: bool = 
 
     supabase = get_client()
     try:
+        from services.scan_scheduling import entitled_sub_rows
         subs = await execute(
             supabase.table("subscriptions")
-                .select("user_id, plan, status")
-                .eq("status", "active")
+                .select("user_id, plan, status, end_at")
+                .in_("status", ["active", "grace_period", "cancelled"])
                 .in_("plan", plans)
         )
+        sub_rows = entitled_sub_rows(subs.data if subs else [])      # 해지했어도 만료일까지는 유지(야간 스캔·통계 잡과 같은 기준)
     except Exception as e:
         logger.error(f"[keyword_rank_job] subscriptions 조회 실패: {e}")
         return
-    if not (subs and subs.data):
+    if not sub_rows:
         logger.info(f"[keyword_rank_job] 대상 사용자 없음 (plans={plans})")
         return
 
-    user_ids = [s["user_id"] for s in subs.data if s.get("user_id")]
-    plan_by_user = {s["user_id"]: s.get("plan") for s in subs.data if s.get("user_id")}
+    user_ids = [s["user_id"] for s in sub_rows if s.get("user_id")]
+    plan_by_user = {s["user_id"]: s.get("plan") for s in sub_rows if s.get("user_id")}
     try:
         biz_res = await execute(
             supabase.table("businesses")

@@ -335,3 +335,13 @@ def entitled_user_ids(sub_rows, admin_ids=()) -> set:
         if status in ("active", "grace_period") or (status == "cancelled" and _end_at_in_future(row.get("end_at"))):
             ids.add(str(uid))
     return ids
+
+
+def entitled_sub_rows(sub_rows) -> list:
+    """`entitled_user_ids`와 같은 기준으로 구독 행만 남긴다(플랜 정보를 같이 쓰는 잡용).
+
+    네이버·AI 스캔 비용이 드는 정기 잡(야간 스캔·순위·내 가게 통계)이 같은 정의를 쓰게 한다. 이전에는 잡마다
+    active만 / active+grace_period로 달라서, 해지했어도 만료일까지 서비스를 유지한다는 안내(설정 화면)와 어긋났다.
+    """
+    keep = entitled_user_ids(sub_rows)
+    return [r for r in (sub_rows or []) if r.get("user_id") in keep]
