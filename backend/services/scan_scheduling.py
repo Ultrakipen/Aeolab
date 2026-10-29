@@ -209,6 +209,13 @@ def select_stale_first(items: list[dict], now: datetime, min_age_sec: float, bud
     # 크기의 1.x배일 때 한 곳씩만 들어가 주간 처리 능력이 대상보다 작아진다(8곳+사업장 변경 시 간격 13일 — 시뮬레이션으로 확인).
     pace_cap = max(1, int(-(-total_pages // pace_days))) if (pace_days and pace_days > 0 and total_pages) else None
     due = [it for it in items if it["last"] is None or (now - it["last"]).total_seconds() >= min_age_sec]
+    # 평활화(pace)는 하루 부하를 고르게 하는 장치일 뿐이다. 이미 기한(min_age_sec)을 하루 넘겨 밀린 사업장이 있으면 풀고
+    # 예산(budget_pages)만 지킨다 — 신규 사업장(관측 없음)이 맨 앞에서 하루 처리량을 먼저 써 기존 사업장이 3~5일 더 기다리는
+    # 것을 막는다(20곳 + 신규 5곳 시뮬레이션: 최대 간격 17일 → 15일, 정상 상태는 변화 없음. 2026-10-29).
+    if pace_cap is not None and any(
+        it["last"] is not None and (now - it["last"]).total_seconds() >= min_age_sec + 86400 for it in due
+    ):
+        pace_cap = None
     due.sort(key=lambda it: (it["last"] is not None, it["last"] or now,
                              hashlib.md5(f"{today.isoformat()}:{it['id']}".encode("utf-8")).hexdigest()))
     out: list[str] = []

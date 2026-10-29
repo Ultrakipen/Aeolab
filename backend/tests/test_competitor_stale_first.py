@@ -153,7 +153,8 @@ def test_simulation_small_population_with_churn_keeps_weekly_cadence():
 
 
 def test_pace_days_none_restores_plain_budget_selection():
-    items = [_it(str(i), T0 - timedelta(days=15 + i), 30) for i in range(10)]
+    # 기한(TTL 13.5일)을 막 넘긴 항목들 — 하루 이상 밀린 항목이 있으면 평활화가 풀리므로(2026-10-29) 그 경계 안쪽으로 둔다
+    items = [_it(str(i), T0 - timedelta(days=14) + timedelta(hours=i), 30) for i in range(10)]
     assert len(ss.select_stale_first(items, T0, TTL, 1000, date(2026, 11, 2), pace_days=None)) == 10
     assert len(ss.select_stale_first(items, T0, TTL, 1000, date(2026, 11, 2))) < 10     # 기본은 pacing 으로 나눈다
 
@@ -256,9 +257,9 @@ def test_build_stale_items_without_cache_info_is_unchanged():
 def test_pacing_uses_full_total_not_discounted_total():
     # 경쟁사 3곳 중 1곳만 비용(pages 6, 나머지는 캐시)인 사업장 26곳: pacing 한도는 할인 전 합(26x18/13 -> 36)이어야 6곳이 담긴다.
     # 할인 후 합(26x6/13 -> 12)으로 한도를 잡으면 2곳만 담겨 처리량이 막힌다(실측: 간격 중앙값 21일 -> 8~14일 차이의 원인)
-    items = [{"id": str(i), "last": T0 - timedelta(days=15), "pages": 6, "pages_full": 18} for i in range(26)]
+    items = [{"id": str(i), "last": T0 - timedelta(days=14), "pages": 6, "pages_full": 18} for i in range(26)]
     assert len(ss.select_stale_first(items, T0, TTL, 1000, date(2026, 11, 2))) == 6
-    legacy = [{"id": str(i), "last": T0 - timedelta(days=15), "pages": 6} for i in range(26)]    # pages_full 없음 = 이전 입력 형식
+    legacy = [{"id": str(i), "last": T0 - timedelta(days=14), "pages": 6} for i in range(26)]    # pages_full 없음 = 이전 입력 형식
     assert len(ss.select_stale_first(legacy, T0, TTL, 1000, date(2026, 11, 2))) == 2
 
 
@@ -329,3 +330,28 @@ def test_sync_job_passes_cache_info_to_scheduler():
     assert "build_stale_items(rows, _now, _cached_ids)" in src
     assert "place_cache_fresh_ids(" in src
     assert '.select("business_id, naver_place_id, naver_place_last_synced_at")' in src
+
+
+def test_burst_of_new_businesses_does_not_push_existing_past_15_days():
+    """20곳 + 20일째 신규 5곳(3곳 삭제) — 신규(관측 없음)가 맨 앞에서 하루 처리량을 쓰면 기존 사업장이 17일까지 밀렸다.
+    공개 문구가 "경쟁사 정보를 2주마다 갱신"이므로 급증 구간에서도 15일을 넘기지 않는다."""
+    _, synced = _simulate(20, 90, 252, churn=True)
+    assert _max_gap(synced) <= 15, _max_gap(synced)
+
+
+def test_pacing_still_smooths_when_nothing_is_overdue():
+    """밀린 항목이 없으면 평활화는 그대로 — 전부 같은 날 기한이 와도 하루에 몰아 처리하지 않는다."""
+    n = 20
+    items = [_it(str(i), T0 - timedelta(days=14)) for i in range(n)]       # TTL 13.5일을 막 넘긴 항목(하루 이상 밀리지 않음)
+    picked = ss.select_stale_first(items, T0, TTL, 100000, date(2026, 11, 2))
+    total = sum(it["pages"] for it in items)
+    assert 0 < len(picked) < n                                              # 한 번에 전부가 아니다
+    assert sum(items[int(i)]["pages"] for i in picked) <= -(-total // ss.COMPETITOR_PACE_DAYS) + items[0]["pages"]
+
+
+def test_overdue_items_are_served_within_budget_not_throttled():
+    n = 20
+    items = [_it(str(i), T0 - timedelta(days=17)) for i in range(n)]       # 기한을 3일 넘겨 밀림
+    budget = 5 * items[0]["pages"]
+    picked = ss.select_stale_first(items, T0, TTL, budget, date(2026, 11, 2))
+    assert len(picked) == 5                                                 # 평활화가 아니라 예산이 한도
