@@ -9,7 +9,7 @@ import { ChatGptChecklist } from "./ChatGptChecklist"
 export const metadata: Metadata = {
   title: "ChatGPT에서 내 가게가 언급되는 조건 | AEOlab",
   description:
-    "ChatGPT 웹검색은 ChatGPT의 검색 프로그램과 구글 검색이 중심이며 마이크로소프트 검색 비중은 제한적입니다. 자체 웹사이트·구글 비즈니스 프로필·영어권 사이트를 참조하는 구조와, 네이버 블로그·스마트플레이스가 직접 연결되지 않는 이유·실제 노출 조건을 정리합니다.",
+    "ChatGPT 웹검색은 구글 검색 결과를 쓴다는 보도가 있고 마이크로소프트 검색과 자체 검색 색인도 함께 쓰는 것으로 알려져 있으며, 각 비율은 OpenAI가 공개하지 않았습니다. 자체 웹사이트·구글 비즈니스 프로필·영어권 사이트를 참조하는 구조와, 네이버 블로그·스마트플레이스가 직접 연결되지 않는 이유·실제 노출 조건을 정리합니다.",
 }
 
 const LEARN_SOURCES = [
@@ -45,7 +45,7 @@ const CHECKLIST_ITEMS = [
   { id: "specific", label: "가격·운영시간·위치 구체 수치 명시" },
   { id: "authority", label: "믿을 만한 곳에 소개된 글 확보 (경력·자격·수상·언론 보도)" },
   { id: "google_biz", label: "구글 비즈니스 프로필 등록 완료 (business.google.com)" },
-  { id: "bing_webmaster", label: "(선택) 마이크로소프트 검색 등록 (bing.com/webmasters) — 보조적 도움" },
+  { id: "bing_webmaster", label: "(선택) 마이크로소프트 검색 등록 (bing.com/webmasters) — ChatGPT 검색이 참고하는 경로 중 하나로 알려져 있어요" },
   { id: "tripadvisor", label: "트립어드바이저 등 영어권 글로벌 사이트 등록" },
 ]
 
@@ -111,7 +111,7 @@ export default function ChatGptSearchGuidePage() {
             ChatGPT에서 내 가게를 노출시키는 방법
           </h1>
           <p className="text-base md:text-lg text-gray-600 mb-4 leading-relaxed break-keep">
-            ChatGPT 웹검색은 ChatGPT의 검색 프로그램 + 구글 검색 중심 구조 — 자체 웹사이트와 구글 비즈니스 프로필이 중요한 기반이 됩니다
+            ChatGPT 웹검색은 구글·마이크로소프트 검색 결과와 자체 색인을 함께 쓰는 것으로 알려져 있어요(비율 비공개) — 자체 웹사이트와 구글 비즈니스 프로필은 어느 검색을 거치든 참고될 수 있는 기반이 됩니다
           </p>
           {/* 면책 문구 */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
@@ -141,7 +141,7 @@ export default function ChatGptSearchGuidePage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="shrink-0 text-blue-600 mt-0.5">•</span>
-                  <span>마이크로소프트 검색 도구 등록은 보조적으로 도움이 될 수 있음 (ChatGPT 자체 경로·구글 경로는 소요기간 미공개)</span>
+                  <span>마이크로소프트 검색 도구 등록은 ChatGPT가 참고하는 경로 중 하나라 도움이 될 수 있음 (경로별 반영 소요기간은 미공개)</span>
                 </li>
               </ul>
             </div>
@@ -165,7 +165,7 @@ export default function ChatGptSearchGuidePage() {
         {/* ── 2. ChatGPT가 참조하는 정보 ── */}
         <section>
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 break-keep">
-            ChatGPT가 실제로 참조하는 정보 — ChatGPT의 검색 프로그램 + 구글 검색 중심 구조
+            ChatGPT가 참조하는 것으로 알려진 정보 — ChatGPT의 검색 프로그램 + 구글·마이크로소프트 검색 결과(비율 비공개)
           </h2>
 
           {/* 흐름도: 내 사업장 정보가 ChatGPT 응답에 도달하는 경로 */}
@@ -187,7 +187,7 @@ export default function ChatGptSearchGuidePage() {
                   <Bot className="w-5 h-5" aria-hidden="true" />
                 </div>
                 <p className="text-sm font-semibold text-gray-900">ChatGPT 검색 등록</p>
-                <p className="text-sm text-gray-600">ChatGPT 검색 프로그램 · 구글 검색</p>
+                <p className="text-sm text-gray-600">ChatGPT 검색 프로그램 · 구글/마이크로소프트 검색</p>
               </div>
 
               <ArrowDown className="w-5 h-5 text-gray-600 shrink-0 md:hidden" aria-hidden="true" />

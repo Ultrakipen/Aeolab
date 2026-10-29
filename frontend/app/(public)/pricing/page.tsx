@@ -389,7 +389,7 @@ export default function PricingPage() {
                   <p className="font-semibold text-gray-900 text-sm">채널 정보 일치 점검</p>
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed break-keep">
-                  내가 입력한 이름·주소·전화번호가 카카오맵·네이버·구글 지도에서 같은지 확인 · 하루 2번(Pro 3번)
+                  내가 입력한 이름·주소·전화번호가 카카오맵·네이버·구글 지도에서 같은지 확인 · 하루 2번(Pro 3번, Biz 5번)
                 </p>
               </div>
             </div>

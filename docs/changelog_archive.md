@@ -682,3 +682,9 @@ CREATE INDEX IF NOT EXISTS idx_trial_scans_claimed
 
 - **2026-10-10 무료 체험 입력·결과 개편 + 측정 정확도 수정**: 가게 이름만 입력하는 2화면 경로, 결과 "손님이 찾는 5개 길", ChatGPT 질문을 구 이름·동네 이름 두 가지로 나란히 측정(동네 칸은 직접 입력 경로에도 있음), 구글 지도 노출·평점·리뷰 수 카드(Serper `/places`, 체험당 최대 2크레딧). **카카오 측정 수정**: 지역 첫 단어만 쓰고 상위 5곳에 없으면 "미등록"으로 단정하던 것을 시·군·구 단위·상위 15곳·이름 재조회로 바꿈(조회 실패는 알 수 없음). **점수 결함 수정**: `calc_kakao_completeness`가 `mentioned`만 읽어 카카오 등록 가게도 0점이던 것을 `is_on_kakao` 인식으로 수정(`score_engine.py:566`). ⚠️ `scan.py`의 `businesses.kakao_score` 자동 저장 블록(`kakao_data.get("mentioned")` 등)은 같은 이유로 죽은 코드이며 **살리면 안 됨** — 저장값이 사용자 체크리스트 점수보다 우선해 덮어씀. 랜딩·공개 페이지·대시보드의 "1분/30초" 등 시간 표현 삭제, 무료 진단 범위를 "네이버 지도·검색, ChatGPT, 구글 지도(직접 측정) / AI 브리핑·AI탭·제미나이·구글 AI·검색(가입 후)"로 정정. 공용 `names_match`는 "점"만 붙은 지점 표기까지 인정하도록 수정(알려진 한계: 한 글자+점은 구별 불가). 미해결: `app/` 안 `.bak` 파일 20여 개 정리(보류 결정), 이번 세션 커밋 push 여부. 상세 `docs/trial_improvement_2026_09_28_v1.0.md` §17~§24.
 
+
+
+## CLAUDE.md 최근 업데이트 이관(2026-10-30)
+
+- **2026-10-25 상업 서비스 직전 종합 점검**: FAQ 토스 문구→크렙, 체험 화면 대비 상향, `trial_scan_abort` 이벤트, Pretendard 서브셋. 에이전트 오판 6건 기각. **미해결(사용자)**: Supabase Auth SMTP 확인·후기 확보. 상세 `docs/prelaunch_inspection_2026_10_25_v1.0.md`, 출시 체크리스트 `docs/launch_checklist_2026_10_25_v1.0.md`.
+- **2026-10-10 무료 체험 개편 + 측정 정확도**: 가게 이름만 입력 2화면·"5개 길" 결과·카카오 측정 수정·`calc_kakao_completeness` `is_on_kakao` 인식(`score_engine.py:566`). ⚠️ `scan.py`의 `businesses.kakao_score` 자동 저장 블록은 죽은 코드이며 **살리면 안 됨**(사용자 체크리스트 점수를 덮어씀). 상세 `docs/trial_improvement_2026_09_28_v1.0.md` §17~§24.

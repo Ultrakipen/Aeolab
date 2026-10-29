@@ -191,7 +191,7 @@ export function ChannelConsistencyCard({
     <div className="rounded-xl border bg-white p-4 shadow-sm md:p-6">
       <h3 className="text-base font-bold text-gray-800 md:text-lg">채널 정보 일치 점검</h3>
       <p className="mt-1 text-sm text-gray-700">
-        내가 입력한 이름·주소·전화번호가 카카오맵·네이버·구글 지도에서 같은지 확인해요. 손님이 길을 찾거나 AI가 가게를 소개할 때 어긋난 정보가 쓰일 수 있어요.
+        내가 입력한 이름·주소·전화번호가 카카오맵·네이버·구글 지도에서 같은지 확인해요. 지도마다 정보가 다르면 손님이 잘못된 번호나 위치로 찾아갈 수 있어요.
       </p>
 
       {!info && !error && (
