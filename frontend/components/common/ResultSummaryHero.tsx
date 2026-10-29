@@ -26,6 +26,8 @@ interface ResultSummaryHeroProps {
   /** 오늘 할 일 CTA */
   todayAction?: string | null;
   todayActionLink?: string;
+  /** 네이버 플레이스 점검 등 일부 항목을 확인하지 못했을 때 true — 낮아진 점수로 단계 이름을 붙이지 않는다(2026-10-29) */
+  stageUnconfirmed?: boolean;
 }
 
 export default function ResultSummaryHero({
@@ -37,9 +39,15 @@ export default function ResultSummaryHero({
   tiles,
   todayAction,
   todayActionLink,
+  stageUnconfirmed = false,
 }: ResultSummaryHeroProps) {
-  const stage = getStageView(stageScore, { inactive, isFranchise });
   const isInactiveOrFranchise = inactive || isFranchise;
+  const baseStage = getStageView(stageScore, { inactive, isFranchise });
+  // 대시보드 히어로(DashboardHeroCard)와 같은 규칙: 확인하지 못한 항목이 있으면 점수는 확인된 항목만으로 다시 계산돼
+  // 인기 있는 가게도 한 단계 낮게 나올 수 있으므로 단계 이름을 붙이지 않는다. INACTIVE·프랜차이즈는 원래 점수 단계를 쓰지 않는다.
+  const stage = stageUnconfirmed && !isInactiveOrFranchise
+    ? { ...baseStage, label: "AI 검색 준비도 · 일부 항목 확인 전", labelColor: "text-slate-700", bg: "bg-slate-50", cardBorder: "border-slate-300", sub: null as string | null }
+    : baseStage;
 
   return (
     <div className={`bg-white rounded-xl border-2 shadow-md overflow-hidden ${stage.cardBorder}`}>

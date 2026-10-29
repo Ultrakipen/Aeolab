@@ -1382,6 +1382,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           <div className="mb-4">
             <ResultSummaryHero
               stageScore={track1}
+              stageUnconfirmed={naverMeasured && !!(result.smart_place_check as { error?: string } | null | undefined)?.error}
               inactive={briefingCategory === "inactive"}
               isFranchise={isFranchise}
               evidenceText={heroEvidence}
