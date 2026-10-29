@@ -1645,16 +1645,18 @@ export function CompetitorsClient({
   const [syncingIds, setSyncingIds] = useState<Record<string, 'loading' | 'success' | 'error' | 'recent' | 'limit' | 'busy'>>({})
 
   // 전체 평점 동기화 상태
-  const [syncAllState, setSyncAllState] = useState<'idle' | 'loading' | 'waiting' | 'done'>('idle')
+  const [syncAllState, setSyncAllState] = useState<'idle' | 'loading' | 'waiting' | 'done' | 'paused'>('idle')
   const [syncAllProgress, setSyncAllProgress] = useState({ done: 0, total: 0 })
   const [syncAllFailedCount, setSyncAllFailedCount] = useState(0)
-  // 새로고침 한도(429)에 걸렸을 때 남은 시간 — 개별 카드 안내와 '전체' 자동 이어가기가 함께 쓴다
+  // 서버 큐가 한도(429)에 걸려 쉬는 남은 시간, 멈춘 이유 — 개별 카드 안내(syncLimitMin)와 따로 쓴다
   const [syncAllWaitSec, setSyncAllWaitSec] = useState(0)
+  const [syncAllMessage, setSyncAllMessage] = useState('')
   const [syncLimitMin, setSyncLimitMin] = useState(0)
-  const syncAllCancelled = useRef(false)
+  const syncAllCancelled = useRef(false)        // 화면을 떠나면 상태 읽기만 멈춘다 — 확인 작업은 서버에서 계속된다
+  const syncAllPolling = useRef(false)
   useEffect(() => {
     syncAllCancelled.current = false
-    return () => { syncAllCancelled.current = true }     // 화면을 떠나면 대기·재시도를 멈춘다
+    return () => { syncAllCancelled.current = true }
   }, [])
 
   // FAQ 수집 상태 (경쟁사 ID)
@@ -1746,73 +1748,118 @@ export function CompetitorsClient({
     }
   }
 
+  // 서버 큐의 진행 상태를 4초마다 읽는다. 큐는 서버가 돌리므로 이 화면을 닫아도 이어진다(읽기만 멈춘다).
+  const pollSyncQueue = useCallback(async () => {
+    if (syncAllPolling.current) return
+    syncAllPolling.current = true
+    let readFailures = 0
+    try {
+      while (!syncAllCancelled.current) {
+        let st: { state?: string; total?: number; done?: number; failed?: number; wait_sec?: number; message?: string } | null = null
+        try {
+          const session = await getSafeSession()
+          const res = await fetch(`${BACKEND}/api/competitors/${business.id}/sync-queue`, {
+            headers: { Authorization: `Bearer ${session?.access_token ?? ''}` },
+            cache: 'no-store',
+          })
+          if (res.ok) st = await res.json()
+        } catch { /* 읽기 실패는 아래에서 재시도 */ }
+        if (syncAllCancelled.current) return
+        if (!st) {
+          if (++readFailures >= 5) { setSyncAllState('idle'); return }      // 상태를 계속 읽지 못하면 조용히 원래 화면으로
+          await new Promise(r => setTimeout(r, 4000))
+          continue
+        }
+        readFailures = 0
+        const total = st.total ?? 0
+        const done = st.done ?? 0
+        if (st.state === 'running' || st.state === 'waiting') {
+          setSyncAllProgress({ done, total })
+          setSyncAllWaitSec(st.wait_sec ?? 0)
+          setSyncAllState(st.state === 'waiting' ? 'waiting' : 'loading')
+          await new Promise(r => setTimeout(r, 4000))
+          continue
+        }
+        // done / paused / idle(서버가 재시작되어 큐가 사라진 경우 포함) — 끝났으니 최신 값을 다시 읽는다
+        setSyncAllWaitSec(0)
+        setSyncAllProgress({ done, total })
+        setSyncAllFailedCount(st.failed ?? 0)
+        if (st.state === 'paused') {
+          setSyncAllMessage(st.message ?? '')
+          setSyncAllState('paused')
+        } else if (st.state === 'done') {
+          setSyncAllMessage('')
+          setSyncAllState('done')
+          setTimeout(() => {
+            setSyncAllState('idle')
+            setSyncAllFailedCount(0)
+          }, 4000)
+        } else {
+          setSyncAllState('idle')
+        }
+        router.refresh()
+        return
+      }
+    } finally {
+      syncAllPolling.current = false
+    }
+  }, [business.id, router])
+
+  // 화면에 들어왔을 때 서버에서 이미 도는 큐가 있으면 이어서 보여 준다(탭을 닫았다 다시 연 경우)
+  useEffect(() => {
+    void (async () => {
+      try {
+        const session = await getSafeSession()
+        const res = await fetch(`${BACKEND}/api/competitors/${business.id}/sync-queue`, {
+          headers: { Authorization: `Bearer ${session?.access_token ?? ''}` },
+          cache: 'no-store',
+        })
+        if (!res.ok) return
+        const st = await res.json()
+        if (st?.state === 'running' || st?.state === 'waiting') void pollSyncQueue()
+      } catch { /* 상태를 읽지 못해도 화면은 그대로 */ }
+    })()
+  }, [business.id, pollSyncQueue])
+
   const handleSyncAllRatings = useCallback(async () => {
-    // 한 번도 동기화되지 않은 경쟁사만 대상 (동기화 후 실제 별점 없는 경우는 제외)
+    // 평점을 아직 가져오지 못한 경쟁사가 대상 (서버가 같은 기준으로 고른다)
     const targets = competitors.filter(
       c => !(typeof c.place_avg_rating === 'number' && c.place_avg_rating > 0)
         && !c.detail_synced_at
     )
     if (targets.length === 0) return
 
+    setSyncAllMessage('')
     setSyncAllState('loading')
     setSyncAllProgress({ done: 0, total: targets.length })
-
-    const session = await getSafeSession()
-    const token = session?.access_token ?? ''
-
-    // 한도(429)는 실패가 아니라 "잠시 기다리면 이어서 된다"는 뜻이다. 서버가 알려 준 남은 시간(Retry-After)만큼 세고
-    // 같은 경쟁사부터 다시 이어간다(최대 3번 — 그래도 안 되면 남은 곳은 오늘 밤 정기 갱신이 가장 먼저 채운다).
-    // 네이버 쪽 사정(503)이나 그 외 오류는 남은 경쟁사에 요청을 계속 보내지 않는다.
-    let failedCount = 0
-    let waits = 0
-    let i = 0
-    while (i < targets.length) {
-      if (syncAllCancelled.current) return
-      const c = targets[i]
-      try {
-        const res = await fetch(`${BACKEND}/api/competitors/${c.id}/sync-place`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-        })
-        if (res.status === 429 && waits < 3) {
-          const ra = parseInt(res.headers.get('Retry-After') ?? '', 10)
-          const wait = Number.isFinite(ra) && ra > 0 ? Math.min(ra, 1200) : 600
-          waits++
-          setSyncAllState('waiting')
-          for (let sec = wait; sec > 0; sec--) {
-            if (syncAllCancelled.current) return
-            setSyncAllWaitSec(sec)
-            await new Promise(r => setTimeout(r, 1000))
-          }
-          setSyncAllWaitSec(0)
-          setSyncAllState('loading')
-          continue                                   // 같은 경쟁사부터 다시
+    try {
+      const session = await getSafeSession()
+      const res = await fetch(`${BACKEND}/api/competitors/${business.id}/sync-queue`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session?.access_token ?? ''}` },
+      })
+      if (!res.ok) throw new Error(String(res.status))
+      const body = await res.json()
+      if (body?.started === false && body?.reason !== 'already_running') {
+        // 시작하지 않은 이유를 알려 준다 — 'nothing'은 방금 확인했거나 이미 채워진 상태라 안내할 것이 없다
+        if (body.reason === 'user_busy') {
+          setSyncAllMessage('다른 사업장의 경쟁사를 확인하는 중이에요. 끝난 뒤 다시 눌러 주세요.')
+          setSyncAllState('paused')
+        } else if (body.reason === 'too_many') {
+          setSyncAllMessage('지금 확인 요청이 많아요. 잠시 후 다시 눌러 주세요.')
+          setSyncAllState('paused')
+        } else {
+          setSyncAllState('idle')
+          router.refresh()
         }
-        if (res.status === 429 || res.status === 503) {
-          failedCount += targets.length - i
-          break
-        }
-        if (!res.ok) failedCount++
-      } catch {
-        failedCount++
+        return
       }
-      i++
-      setSyncAllProgress({ done: i, total: targets.length })
-      // 서버 부하 방지: 요청 간 1초 대기
-      if (i < targets.length) {
-        await new Promise(res => setTimeout(res, 1000))
-      }
+      void pollSyncQueue()
+    } catch {
+      setSyncAllMessage('시작하지 못했어요. 잠시 후 다시 눌러 주세요.')
+      setSyncAllState('paused')
     }
-    setSyncAllProgress({ done: targets.length, total: targets.length })
-
-    setSyncAllFailedCount(failedCount)
-    setSyncAllState('done')
-    setTimeout(() => {
-      setSyncAllState('idle')
-      setSyncAllFailedCount(0)
-      router.refresh()
-    }, 1500)
-  }, [competitors, router])
+  }, [competitors, business.id, router, pollSyncQueue])
 
   const handleSyncPlace = useCallback(async (competitorId: string) => {
     setSyncingIds(prev => ({ ...prev, [competitorId]: 'loading' }))
@@ -2175,9 +2222,17 @@ export function CompetitorsClient({
               ) : (
                 <><strong>{syncedNoRatingCount}개 경쟁사</strong>는 동기화되었지만 네이버에 등록된 별점이 없습니다. 리뷰가 0개인 신규 가게는 별점이 없을 수 있습니다.</>
               )}
-              {syncAllState === 'waiting' && (
+              {(syncAllState === 'loading' || syncAllState === 'waiting') && (
                 <span className="block mt-1 font-medium" role="status" aria-live="polite">
-                  한 번에 확인할 수 있는 수를 넘어서 잠시 쉬고 있어요. 이 화면을 열어 두면 자동으로 이어서 확인해요. 닫아도 오늘 밤 자동으로 채워져요.
+                  {syncAllState === 'waiting'
+                    ? '한 번에 확인할 수 있는 수를 넘어서 잠시 쉬고 있어요. '
+                    : ''}
+                  이 화면을 닫아도 서버가 이어서 확인해요.
+                </span>
+              )}
+              {syncAllState === 'paused' && (
+                <span className="block mt-1 font-medium" role="status" aria-live="polite">
+                  {syncAllMessage || '확인을 잠시 멈췄어요.'} 남은 경쟁사는 다시 누르거나 오늘 밤 자동 갱신으로 채워져요.
                 </span>
               )}
             </p>

@@ -1233,6 +1233,11 @@ async def sync_competitor_place_endpoint(competitor_id: str, user=Depends(get_cu
     """경쟁사 네이버 플레이스 데이터 수동 동기화.
     naver_place_id가 없으면 이름+주소로 자동 조회 후 저장, 찾지 못하면 422 반환.
     """
+    return await _sync_one_competitor(competitor_id, user)
+
+
+async def _sync_one_competitor(competitor_id: str, user: dict):
+    """수동 동기화 본체 — 개별 새로고침 엔드포인트와 '최초 채우기' 백그라운드 큐가 함께 쓴다(같은 한도·보호가 적용된다)."""
     supabase = get_client()
 
     # 소유권 검증: competitor → business_id → user_id
@@ -1344,6 +1349,39 @@ async def sync_competitor_place_endpoint(competitor_id: str, user=Depends(get_cu
         "review_count": result.get("review_count", 0) if result else 0,
         "avg_rating": result.get("avg_rating", 0.0) if result else 0.0,
     }
+
+
+# ── 경쟁사 최초 채우기 큐 (2026-10-29) ───────────────────────────────────────
+@router.post("/{biz_id}/sync-queue")
+async def start_sync_queue(biz_id: str, user=Depends(get_current_user)):
+    """아직 채워지지 않은 경쟁사를 서버가 순서대로 확인한다 — 탭을 닫아도 이어진다. 새 접속 경로가 아니라 수동 새로고침과 같은 한도를 쓴다."""
+    from services import competitor_sync_queue as q
+    supabase = get_client()
+    biz = await execute(
+        supabase.table("businesses").select("id").eq("id", biz_id).eq("user_id", user["id"]).maybe_single()
+    )
+    if not (biz and biz.data):
+        raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
+    rows = await execute(
+        supabase.table("competitors")
+        .select("id, naver_avg_rating, naver_place_last_synced_at")
+        .eq("business_id", biz_id)
+        .eq("is_active", True)
+    )
+    # 화면의 '채우기' 대상과 같은 기준: 평점이 없는 경쟁사. 방금(1시간 안) 확인한 곳은 어차피 건너뛰므로 제외한다.
+    ids = [
+        r["id"] for r in (rows.data or [])
+        if not (isinstance(r.get("naver_avg_rating"), (int, float)) and r["naver_avg_rating"] > 0)
+        and manual_sync_recent_minutes(r.get("naver_place_last_synced_at")) is None
+    ]
+    return q.start(user["id"], biz_id, ids, _sync_one_competitor)
+
+
+@router.get("/{biz_id}/sync-queue")
+async def get_sync_queue(biz_id: str, user=Depends(get_current_user)):
+    """채우기 큐의 진행 상태. 큐가 없거나 서버가 재시작됐으면 idle."""
+    from services import competitor_sync_queue as q
+    return q.public_status(user["id"], biz_id)
 
 
 # ── 경쟁사 약점 분석 ─────────────────────────────────────────────────────────
