@@ -494,11 +494,43 @@ def require_plan(*required_plans: str):
     return decorator
 
 
-async def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
-    """Authorization: Bearer <supabase_jwt> 토큰 검증 후 사용자 정보 반환"""
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="인증 토큰이 필요합니다")
-    token = authorization.removeprefix("Bearer ").strip()
+# ── 토큰 검증 캐시 (2026-10-29) ───────────────────────────────────────────────
+# 인증이 필요한 모든 요청이 매번 Supabase Auth(/auth/v1/user)에 네트워크 호출을 보냈다. 대시보드 한 번이 인증 필요한
+# 백엔드 호출 3개를 동시에 만드는데, Supabase 쪽이 매분 :44~:49에 1~2초 멈추는 구간(2026-10-29 시간대별 측정)에서는
+# 같은 토큰을 세 번 검증하느라 대기열만 길어졌다. 검증에 성공한 토큰은 짧게(60초) 기억하고, 같은 토큰의 동시 요청은
+# 한 번의 검증을 함께 기다린다(single-flight). 실패는 캐시하지 않고, 토큰 자신의 만료(exp)를 넘겨 기억하지 않는다.
+# 로그아웃·권한 회수는 최대 60초 늦게 반영된다 — 토큰 서명 검증만 하는 일반적 방식(만료까지 유효)보다 엄격하다.
+_AUTH_CACHE_TTL = 60.0
+_AUTH_CACHE_MAX = 5000
+_auth_cache: dict[str, tuple[float, dict]] = {}
+_auth_inflight: dict[str, "asyncio.Future"] = {}
+
+
+def _token_key(token: str) -> str:
+    import hashlib
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()      # 원본 토큰을 메모리에 쥐지 않는다
+
+
+def _token_expiry(token: str) -> Optional[float]:
+    """JWT payload의 exp(epoch 초). 읽을 수 없으면 None — 서명 검증이 아니라 캐시 수명 상한을 정하는 용도다
+    (토큰은 이미 Supabase가 검증했다)."""
+    try:
+        import base64, json
+        payload = token.split(".")[1]
+        payload += "=" * (-len(payload) % 4)
+        exp = json.loads(base64.urlsafe_b64decode(payload.encode("ascii"))).get("exp")
+        return float(exp) if exp is not None else None
+    except Exception:
+        return None
+
+
+def reset_auth_cache_for_tests() -> None:
+    _auth_cache.clear()
+    _auth_inflight.clear()
+
+
+async def _verify_token_uncached(token: str) -> dict:
+    """Supabase Auth로 토큰을 검증한다(캐시 없음). 실패 시 HTTPException."""
     try:
         supabase = get_client()
         # 동기 supabase-py 호출이 await 없이 실행되면 --workers 1 단일 이벤트루프를
@@ -531,6 +563,55 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
                 logging.getLogger(__name__).warning(f"Token validation 재시도 실패: {type(retry_exc).__name__}: {retry_exc}")
         logging.getLogger(__name__).warning(f"Token validation failed: {type(e).__name__}: {e}")
         raise HTTPException(status_code=401, detail="토큰 검증에 실패했습니다")
+
+
+async def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
+    """Authorization: Bearer <supabase_jwt> 토큰 검증 후 사용자 정보 반환.
+
+    성공한 검증은 60초 캐시, 같은 토큰의 동시 요청은 한 번의 검증을 공유한다(위 설명)."""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="인증 토큰이 필요합니다")
+    token = authorization.removeprefix("Bearer ").strip()
+    key = _token_key(token)
+    now = time.monotonic()
+
+    hit = _auth_cache.get(key)
+    if hit and now < hit[0]:
+        return dict(hit[1])
+
+    pending = _auth_inflight.get(key)
+    if pending is not None:
+        try:
+            return dict(await asyncio.shield(pending))      # 먼저 시작된 검증을 함께 기다린다(실패면 같은 401)
+        except asyncio.CancelledError:
+            if pending.cancelled():
+                # 검증을 시작한 요청이 (클라이언트 연결 끊김 등으로) 취소된 것이지 내가 취소된 것이 아니다 — 직접 다시 검증한다
+                return await get_current_user(authorization)
+            raise
+
+    fut: "asyncio.Future" = asyncio.get_running_loop().create_future()
+    _auth_inflight[key] = fut
+    try:
+        user = await _verify_token_uncached(token)
+    except asyncio.CancelledError:
+        fut.cancel()                     # 기다리는 요청은 위에서 이를 보고 직접 다시 검증한다
+        raise
+    except BaseException as e:
+        fut.set_exception(e)
+        fut.exception()                  # 기다리는 요청이 없어도 'exception never retrieved' 경고가 나지 않게 한다
+        raise
+    else:
+        expiry = now + _AUTH_CACHE_TTL
+        exp = _token_expiry(token)
+        if exp is not None:
+            expiry = min(expiry, now + max(0.0, exp - time.time()))      # 토큰 만료 이후로는 기억하지 않는다
+        if len(_auth_cache) >= _AUTH_CACHE_MAX:
+            _auth_cache.clear()
+        _auth_cache[key] = (expiry, dict(user))
+        fut.set_result(dict(user))
+        return user
+    finally:
+        _auth_inflight.pop(key, None)
 
 
 async def is_basic_trial_user(user_id: str, supabase) -> bool:
