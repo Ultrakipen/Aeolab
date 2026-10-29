@@ -236,7 +236,20 @@ async def create_business(req: BusinessCreate, user=Depends(get_current_user)):
     if lng is not None:
         insert_payload["lng"] = lng
 
-    result = await execute(supabase.table("businesses").insert(insert_payload))
+    # 등록 때 사용자가 넣은 별점·리뷰 수(체험 입력 이어받기 포함)는 '입력한 값'으로 표시한다 — 출처가 비면
+    # 화면이 입력값인지 측정값인지 구분하지 못한다. 컬럼이 없는 환경에서도 등록은 실패하면 안 되므로 폴백한다.
+    if req.review_count or req.avg_rating:
+        insert_payload["review_stats_source"] = "user"
+
+    try:
+        result = await execute(supabase.table("businesses").insert(insert_payload))
+    except Exception as e:
+        if "review_stats_source" in insert_payload and "review_stats_source" in str(e):
+            logger.warning(f"review_stats_source 컬럼 없음 — 출처 표시 없이 등록: {e}")
+            insert_payload.pop("review_stats_source")
+            result = await execute(supabase.table("businesses").insert(insert_payload))
+        else:
+            raise
     if not result.data:
         raise HTTPException(status_code=500, detail="사업장 등록 실패")
 
