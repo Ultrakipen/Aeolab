@@ -410,11 +410,15 @@ def calc_review_quality(biz: dict) -> float:
     keyword_diversity는 businesses 테이블에 항상 존재하지 않아 항상 0 반환 문제가 있음.
     대신 scan 후 keyword_coverage로 업데이트하는 방식 사용 (5-B 참조).
     공식: review_count/200×50 + avg_rating/5×50 + receipt_bonus (keyword_diversity 비중 제거)
+    별점을 읽지 못했으면(0/None — 네이버가 평균 별점을 공개하지 않거나 파싱 실패) 별점 몫 50점을 0점으로 깎지 않고
+    리뷰 수만으로 100점 만점으로 환산한다: review_count/200×100 + receipt_bonus (2026-10-29). 별점 0점은 존재하지 않으므로 0은 미수집이다.
     """
     rc = biz.get("review_count", 0) or 0
     ar = biz.get("avg_rating", 0) or 0
     receipt_count = biz.get("receipt_review_count", 0) or 0
     receipt_bonus = min(10, receipt_count / 10 * 10)
+    if ar <= 0:
+        return min(100, rc / 200 * 100 + receipt_bonus)
     return min(100, rc / 200 * 50 + ar / 5 * 50 + receipt_bonus)
 
 
