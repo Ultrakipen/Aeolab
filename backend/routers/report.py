@@ -1425,6 +1425,31 @@ async def _badge_basis(supabase, biz_id: str) -> dict | None:
     return None
 
 
+# 순서 주의: "/badge/{biz_id}.svg"가 "/badge/{biz_id}"보다 먼저 등록돼야 한다. 반대면 "xxx.svg"가 biz_id로 먼저 매칭돼
+# 공개 SVG가 로그인 필요(401)로 막힌다 — 사장님 사이트에 삽입한 배지가 방문자에게 깨져 보였다(2026-10-29 발견).
+@router.get("/badge/{biz_id}.svg", response_class=Response)
+async def get_badge_svg(biz_id: str):
+    """배지 SVG 파일 직접 반환"""
+    supabase = get_client()
+    basis = await _badge_basis(supabase, biz_id)
+    if not basis or basis["score"] < 70:
+        raise HTTPException(status_code=403, detail="배지 발급 조건 미충족 (70점 이상 필요)")
+
+    # 점수 숫자·등급 문자(A/B)는 그리지 않는다(점수 비노출 원칙). 날짜는 자격 판정에 쓴 측정일.
+    measured_on = basis["measured_on"].replace("-", ".")
+    svg = f"""<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="60" rx="8" fill="#0f172a"/>
+  <text x="10" y="22" fill="#60a5fa" font-size="11" font-family="sans-serif" font-weight="bold">AEOlab 인증</text>
+  <text x="10" y="42" fill="white" font-size="14" font-family="sans-serif" font-weight="bold">AI 검색 노출 진단 통과</text>
+  <text x="10" y="55" fill="#94a3b8" font-size="9" font-family="sans-serif">{measured_on} 측정 · aeolab.co.kr</text>
+</svg>"""
+    return Response(
+        content=svg,
+        media_type="image/svg+xml",
+        headers={"Cache-Control": "public, max-age=86400"},
+    )
+
+
 @router.get("/badge/{biz_id}")
 async def get_badge(biz_id: str, user=Depends(get_current_user)):
     """인증 배지 JSON + 삽입 코드 반환 (점수 70점 이상 조건, 소유자 전용)"""
@@ -1452,29 +1477,6 @@ async def get_badge(biz_id: str, user=Depends(get_current_user)):
         "svg_url": f"/api/report/badge/{biz_id}.svg",
         "embed_code": embed_code,
     }
-
-
-@router.get("/badge/{biz_id}.svg", response_class=Response)
-async def get_badge_svg(biz_id: str):
-    """배지 SVG 파일 직접 반환"""
-    supabase = get_client()
-    basis = await _badge_basis(supabase, biz_id)
-    if not basis or basis["score"] < 70:
-        raise HTTPException(status_code=403, detail="배지 발급 조건 미충족 (70점 이상 필요)")
-
-    # 점수 숫자·등급 문자(A/B)는 그리지 않는다(점수 비노출 원칙). 날짜는 자격 판정에 쓴 측정일.
-    measured_on = basis["measured_on"].replace("-", ".")
-    svg = f"""<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
-  <rect width="200" height="60" rx="8" fill="#0f172a"/>
-  <text x="10" y="22" fill="#60a5fa" font-size="11" font-family="sans-serif" font-weight="bold">AEOlab 인증</text>
-  <text x="10" y="42" fill="white" font-size="14" font-family="sans-serif" font-weight="bold">AI 검색 노출 진단 통과</text>
-  <text x="10" y="55" fill="#94a3b8" font-size="9" font-family="sans-serif">{measured_on} 측정 · aeolab.co.kr</text>
-</svg>"""
-    return Response(
-        content=svg,
-        media_type="image/svg+xml",
-        headers={"Cache-Control": "public, max-age=86400"},
-    )
 
 
 # ── AI 언급 맥락 분석 (Pro+) ──────────────────────────────────────────────────

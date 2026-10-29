@@ -83,3 +83,14 @@ def test_json_endpoint_has_no_grade_and_uses_measured_date(monkeypatch):
     monkeypatch.setattr(report, "_verify_biz_ownership", own)
     out = _run(report.get_badge("b", user={"id": "u"}))
     assert "grade" not in out and out["issued_at"] == "2026.10.26" and out["eligible"] is True
+
+
+def test_public_svg_route_is_registered_before_the_json_route():
+    """"/badge/{biz_id}"가 먼저면 "xxx.svg"가 biz_id로 매칭돼 공개 SVG가 401로 막힌다(실제로 막혀 있었다)."""
+    scope = {"type": "http", "method": "GET", "path": "/badge/abc123.svg", "root_path": "", "query_string": b"", "headers": []}
+    matching = [r for r in report.router.routes if getattr(r, "path", "").startswith("/badge/") and r.matches(scope)[0].name == "FULL"]
+    assert matching and matching[0].path == "/badge/{biz_id}.svg", [r.path for r in matching]
+    # 일반 JSON 경로는 그대로 JSON 라우트로 간다
+    scope_json = {**scope, "path": "/badge/abc123"}
+    first = [r for r in report.router.routes if getattr(r, "path", "").startswith("/badge/") and r.matches(scope_json)[0].name == "FULL"]
+    assert first and first[0].path == "/badge/{biz_id}"
