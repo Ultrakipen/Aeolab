@@ -345,6 +345,8 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
     blog_mentions      = blog_v["count"] if blog_v else 0
     blog_kw_count      = (blog_v["kw_counts"].get(_kw_first, 0) if _kw_first else blog_v["count"]) if blog_v else 0
     blog_mentions_capped = bool(blog_v and blog_v.get("capped"))
+    # 조회에 성공했는지 — 실패한 0건과 실측 0건을 점수 쪽에서 구분하기 위한 표시(실패를 "블로그 없음"으로 매기지 않는다)
+    blog_checked = blog_v is not None
 
     # ── 최신 블로그 포스트 5건 ────────────────────────────────────
     top_blogs = []
@@ -385,6 +387,7 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
         "is_smart_place":            is_smart_place,
         "blog_mentions":             blog_mentions,
         "blog_mentions_capped":      blog_mentions_capped,   # 상위 100건이 거의 다 확인된 글 — 실제로는 100건 이상일 수 있음
+        "blog_checked":              blog_checked,           # False = 조회 실패(blog_mentions 0은 "없음"이 아니라 "모름")
         "blog_count_method":         "name_in_title_or_snippet_region_confirmed_top100",
         "blog_name_count":           blog_name_count,
         "blog_region_count":         blog_region_count,
@@ -400,6 +403,22 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
         "review_sort_checked":       review_sort_checked,
         "review_sort_query":         search_query,
     }
+
+
+def build_naver_data(visibility, scanner_result) -> dict:
+    """채점용 naver_data = 공식 API 가시성 결과 + AI 브리핑 스캐너 결과 (수동 스캔·정기 스캔 공용).
+
+    - 가시성 조회가 예외로 실패했거나 비어 있으면 블로그 언급을 "모름"(blog_checked=False)으로 표시한다 —
+      표시 없이 빈 dict가 점수에 들어가면 블로그 0건(최하점)으로 계산된다.
+    - 캡차·일일 상한·페이지 접속 실패·브리핑 인식 실패 시에는 스캐너의 mentioned/in_briefing/rank를 빼서
+      측정 실패가 "미노출"로 덮어써지지 않게 한다.
+    """
+    vis = visibility if isinstance(visibility, dict) and visibility else {"blog_checked": False}
+    scan = scanner_result if isinstance(scanner_result, dict) else {}
+    if (scan.get("captcha_detected") or scan.get("quota_skipped")
+            or scan.get("error") in ("page_load_failed", "briefing_unrecognized")):
+        scan = {k: v for k, v in scan.items() if k not in ("mentioned", "in_briefing", "rank")}
+    return {**vis, **scan}
 
 
 def blog_mention_score(count: int) -> float:
@@ -452,6 +471,8 @@ async def get_naver_visibility_multi(business_name: str, keywords: list[str], re
     best = dict(best)
     best["blog_mentions"] = min(nonzero_blogs) if nonzero_blogs else 0
     best["blog_mentions_capped"] = any(r.get("blog_mentions_capped") for r in valid)
+    # 한 키워드에서라도 블로그 조회에 성공했으면 확인된 것(실패한 키워드의 0은 위 최솟값 계산에서 이미 빠진다)
+    best["blog_checked"] = any(r.get("blog_checked", True) for r in valid)
     best["multi_query_count"] = len(valid)
     best["all_queries"] = [r.get("search_query", "") for r in valid]
     # 후기 많은 순 순위는 키워드마다 다르다 — 가장 좋은(작은) 순위를 그 검색어와 함께 쓴다. 한 곳이라도 확인했으면 checked.

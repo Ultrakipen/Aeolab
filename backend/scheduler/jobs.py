@@ -604,11 +604,20 @@ async def daily_scan_all():
                 # (2026-07-14 발견: 수동 전체 스캔 직후엔 정상 반영되다가 다음 자동 스캔에서 null로 되돌아감).
                 # Playwright 아닌 경량 API/HTTP 체크라 세마포어·차단 위험 없이 추가.
                 _sched_keyword_ko = _CATEGORY_KO.get(biz.get("category", ""), biz.get("category", ""))
-                _sched_kakao_data, _sched_website_check = await asyncio.gather(
+                # 2026-10-29: 네이버 공식 검색 API 가시성(블로그 언급·지역검색 순위)도 함께 조회한다. 정기 스캔은 이 값을
+                # 한 번도 채점에 넘기지 않아 블로그 항목(Track1 blog_crank·Track2 online_mentions)이 항상 최하점이었고,
+                # 같은 가게를 수동 스캔하면 점수가 달라졌다. 공식 API라 Playwright 접속·차단 위험이 없다.
+                from services.naver_visibility import get_naver_visibility_multi, build_naver_data
+                _sched_vis_kws = list(dict.fromkeys(valid_kws[:3] + [_sched_keyword_ko]))[:4]
+                _sched_kakao_data, _sched_website_check, _sched_naver_vis = await asyncio.gather(
                     get_kakao_visibility(biz["name"], _sched_keyword_ko, biz.get("region", "")),
                     check_website_seo(biz.get("website_url", "") or ""),
+                    get_naver_visibility_multi(biz["name"], _sched_vis_kws, biz.get("region", "") or "", category_ko=_sched_keyword_ko),
                     return_exceptions=True,
                 )
+                if isinstance(_sched_naver_vis, Exception):
+                    logger.warning(f"[daily_scan_all] naver_visibility 실패 biz={biz['id']}: {_sched_naver_vis}")
+                    _sched_naver_vis = None
                 if isinstance(_sched_kakao_data, Exception):
                     logger.warning(f"[daily_scan_all] kakao_visibility 실패 biz={biz['id']}: {_sched_kakao_data}")
                     _sched_kakao_data = None
@@ -625,7 +634,8 @@ async def daily_scan_all():
                 _sched_blog_kw_cov = float(biz.get("blog_keyword_coverage") or 0)
                 _sched_kw_rate = _sched_blog_kw_cov / 100 if _sched_blog_kw_cov >= 5 else None
                 _sched_combined_result = {**result, "kakao": _sched_kakao_data or {}, "website_check": _sched_website_check or {}}
-                score = calculate_score(_sched_combined_result, biz, keyword_coverage_rate=_sched_kw_rate)
+                _sched_naver_data = build_naver_data(_sched_naver_vis, result.get("naver"))
+                score = calculate_score(_sched_combined_result, biz, naver_data=_sched_naver_data, keyword_coverage_rate=_sched_kw_rate)
 
                 naver_channel = score.get("naver_channel_score")
                 global_channel = score.get("global_channel_score")

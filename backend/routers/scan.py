@@ -2200,13 +2200,14 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
     # naver_data: naver_visibility API 결과(is_smart_place, blog_mentions) + AI 브리핑 스캔 결과 병합
     # 캡챠 차단 시 mentioned/in_briefing을 False로 덮어쓰면 실제 미노출로 오집계됨 — captcha_detected 시 제거
     # 2026-08-08: 일일 상한(quota_skipped) 도달 시에도 동일하게 적용 — 측정 스킵을 "미노출"로 오집계 금지
-    naver_scanner_result = results.get("naver") or {}
     # 2026-10-25: 페이지 접속 실패(error="page_load_failed")도 동일하게 취급
+    # 2026-10-29: 병합 규칙을 정기 스캔과 공용으로(build_naver_data) — 가시성 조회 실패는 블로그 "모름"으로 표시
+    from services.naver_visibility import build_naver_data
+    naver_scanner_result = results.get("naver") or {}
     if (naver_scanner_result.get("captcha_detected") or naver_scanner_result.get("quota_skipped")
             or naver_scanner_result.get("error") in ("page_load_failed", "briefing_unrecognized")):
         _logger.warning("naver_scanner: captcha/quota/page_load skip — skipping mentioned/in_briefing override to prevent false-negative")
-        naver_scanner_result = {k: v for k, v in naver_scanner_result.items() if k not in ("mentioned", "in_briefing", "rank")}
-    naver_data = {**(naver_visibility if isinstance(naver_visibility, dict) else {}), **naver_scanner_result}
+    naver_data = build_naver_data(naver_visibility, naver_scanner_result)
 
     # 카카오·웹사이트 결과를 scan_results에 병합해 채널 점수 계산
     combined_results = {

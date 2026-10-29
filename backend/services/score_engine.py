@@ -977,23 +977,20 @@ def calc_track2_score(scan_result: dict, biz: dict, naver_data: dict) -> float:
     schema   = calc_schema_seo(scan_result, biz)
     mentions = calc_online_mentions(naver_data)
 
-    if _is_google_unmeasured(scan_result):
-        # Google 측정 불가(CAPTCHA 차단 또는 API 오류) → 나머지 3개 항목 가중치 합(0.90)으로 재배분해 100점 만점 유지
-        google_w = GLOBAL_TRACK_WEIGHTS["google_presence"]  # 0.20 (2026-06-23 상향)
-        base_w   = 1.0 - google_w                           # 0.90
-        score = (
-            ai_exp   * GLOBAL_TRACK_WEIGHTS["multi_ai_exposure"] +
-            schema   * GLOBAL_TRACK_WEIGHTS["schema_seo"] +
-            mentions * GLOBAL_TRACK_WEIGHTS["online_mentions"]
-        ) / base_w
-    else:
-        google = calc_google_presence(scan_result)
-        score = (
-            ai_exp   * GLOBAL_TRACK_WEIGHTS["multi_ai_exposure"] +
-            schema   * GLOBAL_TRACK_WEIGHTS["schema_seo"] +
-            mentions * GLOBAL_TRACK_WEIGHTS["online_mentions"] +
-            google   * GLOBAL_TRACK_WEIGHTS["google_presence"]
-        )
+    # 측정 불가 항목은 0점이 아니라 제외하고 나머지 가중치 합으로 재배분해 100점 만점 유지
+    #  - Google 측정 불가(CAPTCHA 차단 또는 API 오류) → google_presence 제외
+    #  - 블로그 조회 실패 → online_mentions 제외 (실패한 0건을 "언급 없음"으로 매기지 않는다)
+    google_unmeasured = _is_google_unmeasured(scan_result)
+    blog_unmeasured = _is_blog_unmeasured(naver_data)
+    google = 0.0 if google_unmeasured else calc_google_presence(scan_result)
+    parts = [
+        (ai_exp,   GLOBAL_TRACK_WEIGHTS["multi_ai_exposure"], False),
+        (schema,   GLOBAL_TRACK_WEIGHTS["schema_seo"],        False),
+        (mentions, GLOBAL_TRACK_WEIGHTS["online_mentions"],   blog_unmeasured),
+        (google,   GLOBAL_TRACK_WEIGHTS["google_presence"],   google_unmeasured),
+    ]
+    used_w = sum(w for _, w, skip in parts if not skip)
+    score = sum(v * w for v, w, skip in parts if not skip) / used_w
     return round(score, 1)
 
 
@@ -1354,6 +1351,15 @@ def get_user_group(category: str, is_franchise: bool = False) -> str:
     return get_briefing_eligibility(category, is_franchise).upper()
 
 
+def _is_blog_unmeasured(naver_data: dict) -> bool:
+    """블로그 언급 조회가 실패했는지 — naver_visibility가 blog_checked=False로 표시한 경우만.
+
+    조회 실패의 blog_mentions=0은 "블로그 없음"이 아니라 "모름"이다. 키가 없는 기존 데이터·빈 dict는
+    기존대로 실측으로 취급한다(동작 변경 없음).
+    """
+    return isinstance(naver_data, dict) and naver_data.get("blog_checked") is False
+
+
 def calc_blog_crank_score(naver_data: dict, biz: dict) -> float:
     """
     블로그 C-rank 추정 점수 (0~100).
@@ -1570,6 +1576,8 @@ def calc_track1_score_v3_1(
     rv_measured = not _is_review_unmeasured(biz)
     if not rv_measured:
         _excluded.add("review_quality")
+    if _is_blog_unmeasured(naver_data):
+        _excluded.add("blog_crank")     # 블로그 조회 실패 — 0점이 아니라 제외 후 재정규화
     score = _renormalized_track1(
         {
             "keyword_search_rank":      kw_search,
@@ -1707,6 +1715,8 @@ def calc_track1_score_v3_2(
     rv_measured = not _is_review_unmeasured(biz)
     if not rv_measured:
         _excluded.add("review_quality")
+    if _is_blog_unmeasured(naver_data):
+        _excluded.add("blog_crank")     # 블로그 조회 실패 — 0점이 아니라 제외 후 재정규화
     score = _renormalized_track1(
         {
             "keyword_search_rank":      kw_search,
