@@ -367,6 +367,17 @@ _REVIEW_COUNT_FIELDS = ("receipt_review_count", "visitor_review_count", "review_
 _REVIEW_STATS_FIELDS = ("avg_rating",) + _REVIEW_COUNT_FIELDS
 
 
+def normalize_review_count(filtered: dict) -> None:
+    """review_count는 방문자 리뷰 수와 같은 값으로 저장한다(2026-10-29 통일).
+
+    크롤러(sync_naver_place_stats)는 review_count=방문자 수만 저장하고 영수증은 receipt_review_count와 점수식의 보너스로 따로 센다.
+    입력 경로가 방문자+영수증 합계를 저장하면 영수증이 점수에 이중 반영되고, 방문자 기준인 경쟁사 리뷰 수와의 비교도 부풀려진다.
+    클라이언트가 어떤 합계를 보내든 서버가 방문자 수로 덮어쓴다."""
+    v = filtered.get("visitor_review_count")
+    if v is not None:
+        filtered["review_count"] = v
+
+
 def review_stats_edited(current: dict | None, filtered: dict) -> bool:
     """사용자가 별점·리뷰 수를 실제로 바꿨는가. 설정 화면은 저장할 때마다 이 값을 통째로 다시 보내므로
     값이 같으면 '입력'으로 보지 않는다(AEOlab이 확인한 값 표시를 지우지 않기 위함). 비교할 수 없으면 False."""
@@ -407,6 +418,7 @@ async def update_business(biz_id: str, updates: dict, user=Depends(get_current_u
     # 사용자 입력 리뷰 수치 범위 검증 — 생성 스키마(schemas.py)는 0~5 검증이 있으나 이 경로는 dict라 없었음.
     # 별점 500 입력 시 calc_review_quality가 100점으로 부풀려지는 것 방지
     _validate_review_inputs(filtered)
+    normalize_review_count(filtered)
 
     # 별점·리뷰 수를 사용자가 바꿨으면 출처를 '입력'으로 표시 — 이후 AEOlab 측정이 성공하면 '확인한 값'으로 바뀐다.
     # 컬럼(review_stats_source)이 아직 없으면 아래 폴백이 이 키만 빼고 재시도한다.

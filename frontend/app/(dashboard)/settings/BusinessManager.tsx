@@ -610,8 +610,8 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
           keywords: typeof editForm.keywords === "string"
             ? (editForm.keywords as string).split(",").map((k) => k.trim()).filter(Boolean)
             : editForm.keywords,
-          // review_count = 방문자 + 영수증 리뷰 합산 (score_engine이 사용하는 필드)
-          review_count: (editForm.visitor_review_count ?? 0) + (editForm.receipt_review_count ?? 0),
+          // review_count = 방문자 리뷰 수 (크롤러와 같은 정의 — 영수증은 receipt_review_count로 따로 센다, 서버도 같은 값으로 맞춘다)
+          review_count: editForm.visitor_review_count ?? 0,
         }),
       });
       if (!res.ok) {

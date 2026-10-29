@@ -38,3 +38,33 @@ def test_patch_calls_validation_before_update():
     from routers import business
     src = inspect.getsource(business.update_business)
     assert src.index("_validate_review_inputs(filtered)") < src.index('.update(filtered)')
+
+
+# ── review_count 정의 통일 (2026-10-29): 방문자 리뷰 수와 같은 값 ─────────────────────────────
+def test_review_count_forced_to_visitor_count():
+    from routers.business import normalize_review_count
+    f = {"visitor_review_count": 600, "receipt_review_count": 600, "review_count": 1200}   # 옛 클라이언트의 합계 전송
+    normalize_review_count(f)
+    assert f["review_count"] == 600 and f["receipt_review_count"] == 600
+
+
+def test_review_count_untouched_without_visitor():
+    from routers.business import normalize_review_count
+    f = {"review_count": 50}
+    normalize_review_count(f)
+    assert f == {"review_count": 50}
+    g = {"name": "x"}
+    normalize_review_count(g)
+    assert g == {"name": "x"}
+
+
+def test_patch_normalizes_before_update_and_clients_do_not_sum():
+    import inspect, os
+    from routers import business
+    src = inspect.getsource(business.update_business)
+    assert src.index("normalize_review_count(filtered)") < src.index(".update(filtered)")
+    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    for rel in ("frontend/components/dashboard/BusinessQuickEditPanel.tsx", "frontend/app/(dashboard)/settings/BusinessManager.tsx"):
+        t = open(os.path.join(root, rel), encoding="utf-8").read()
+        assert "review_count: visitorReviewCount," in t or "review_count: editForm.visitor_review_count ?? 0," in t, rel
+        assert "review_count: visitorReviewCount + receiptReviewCount" not in t and "review_count: (editForm.visitor_review_count ?? 0) + " not in t, rel

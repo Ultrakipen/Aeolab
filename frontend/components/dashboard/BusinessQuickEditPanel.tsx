@@ -202,7 +202,7 @@ export default function BusinessQuickEditPanel({
         has_recent_post: hasRecentPost,
         visitor_review_count: visitorReviewCount,
         receipt_review_count: receiptReviewCount,
-        review_count: visitorReviewCount + receiptReviewCount,
+        review_count: visitorReviewCount,   // 크롤러와 같은 정의(방문자만) — 영수증은 receipt_review_count로 따로 센다
         avg_rating: avgRating,
         naver_place_url: naverPlaceUrl,
       };
