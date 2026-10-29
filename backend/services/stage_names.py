@@ -48,6 +48,21 @@ def is_stage_upgrade(prev_code: Optional[str], curr_code: Optional[str]) -> bool
     return STAGE_ORDER.index(curr_code) > STAGE_ORDER.index(prev_code)
 
 
+def prev_scored_before_baseline(prev_score_date: Optional[str], baseline: Optional[str]) -> bool:
+    """이전 점수 기록이 채점 방식 변경 이전(기준일 전)에 계산된 것인지 — 그렇다면 단계 상승 알림을 보내지 않는다.
+
+    2026-10-29: 정기 스캔이 블로그 언급을 채점에 넣기 시작하면서(점수 보정) 모든 사업장의 단계가 "실제 성장 없이" 한 번
+    오른다. 이를 `AEOLAB_GROWTH_01`(성장 단계 상승 안내)로 보내면 거짓 성장 알림이 된다. 환경변수
+    `GROWTH_ALERT_BASELINE_DATE`(YYYY-MM-DD)보다 이른 기록과의 비교만 건너뛰고, 보정 후 첫 스캔이 기록되면
+    그 다음부터는 자동으로 알림이 재개된다(정리 작업 불필요). 기준일이 비었거나 형식이 틀리면 막지 않는다.
+    """
+    b = (baseline or "").strip()
+    d = (prev_score_date or "").strip()[:10]
+    if len(b) != 10 or len(d) != 10:
+        return False
+    return d < b      # ISO 날짜 문자열은 사전순 비교가 날짜순과 같다
+
+
 def stage_code_for_score(score: Optional[float]) -> str:
     s = score or 0
     for upper, code in _UPPER_BOUNDS:

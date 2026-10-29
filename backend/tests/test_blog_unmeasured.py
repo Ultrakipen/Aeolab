@@ -220,3 +220,28 @@ def test_delivery_rescan_scores_with_reviews_and_visibility():
     assert "review_count" in src and "avg_rating" in src and "receipt_review_count" in src
     assert "naver_data=_d_naver_data" in src and "build_naver_data(_d_vis" in src
     assert "_CATEGORY_KO" in src and "import _CATEGORY_KO" in src       # 함수 안에서 직접 import해야 NameError가 없다
+
+
+# ── 점수 보정 직후 1회성 알림 억제 ──────────────────────────────────────────
+def test_growth_alert_suppressed_only_for_records_before_baseline():
+    from services.stage_names import prev_scored_before_baseline as f
+    assert f("2026-10-28", "2026-10-30") is True        # 옛 채점 기록과의 비교 → 억제
+    assert f("2026-10-29", "2026-10-30") is True
+    assert f("2026-10-30", "2026-10-30") is False       # 보정 후 첫 기록부터는 정상 알림
+    assert f("2026-11-02", "2026-10-30") is False
+    assert f("2026-10-28T02:00:00+00:00", "2026-10-30") is True      # 시각이 붙어 있어도 날짜만 비교
+
+
+def test_growth_alert_baseline_unset_or_invalid_never_blocks():
+    from services.stage_names import prev_scored_before_baseline as f
+    for base in (None, "", "garbage", "2026-1-3"):
+        assert f("2026-01-01", base) is False
+    assert f(None, "2026-10-30") is False and f("", "2026-10-30") is False
+
+
+def test_growth_alert_wiring_in_daily_scan():
+    import inspect
+    import scheduler.jobs as jobs
+    src = inspect.getsource(jobs.daily_scan_all)
+    assert 'GROWTH_ALERT_BASELINE_DATE' in src and "prev_scored_before_baseline" in src
+    assert "if _scan_notify_ok and not _rescored and is_stage_upgrade(" in src

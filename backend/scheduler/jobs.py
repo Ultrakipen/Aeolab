@@ -1112,7 +1112,14 @@ async def daily_scan_all():
                             )
                             # AEOLAB_GROWTH_01 은 "성장 단계 상승이 확인될 경우 발송"으로 승인된 템플릿이다 — 하락·그 외 변화에는 보내지 않는다
                             # (이전에는 `!=`만 봐서 단계가 내려가도 "업그레이드 안내"가 나갔다)
-                            if _scan_notify_ok and is_stage_upgrade(prev_stage.stage, current_stage.stage):
+                            # 채점 방식 변경 이전 기록과의 비교는 실제 성장이 아니라 점수 보정이라 알림을 보내지 않는다(1회성)
+                            from services.stage_names import prev_scored_before_baseline
+                            _rescored = prev_scored_before_baseline(
+                                prev_history[0].get("score_date"), os.getenv("GROWTH_ALERT_BASELINE_DATE", ""),
+                            )
+                            if _rescored and is_stage_upgrade(prev_stage.stage, current_stage.stage):
+                                logger.info(f"[GrowthStage] 채점 보정 이전 기록과의 비교라 상승 알림 생략 biz={biz.get('id')}")
+                            if _scan_notify_ok and not _rescored and is_stage_upgrade(prev_stage.stage, current_stage.stage):
                                 try:
                                     from services.kakao_notify import KakaoNotifier as _KN
                                     await _KN().send_growth_stage_upgrade(
