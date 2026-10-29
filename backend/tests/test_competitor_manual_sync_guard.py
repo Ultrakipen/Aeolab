@@ -221,3 +221,58 @@ def test_503_without_cooldown_keeps_the_generic_message(monkeypatch):
     with pytest.raises(HTTPException) as e:
         _call(monkeypatch, last_synced=None, user_id=uid, sync_result={"error": "naver_rate_limited"})
     assert e.value.status_code == 503 and "잠시 후 다시 시도" in e.value.detail
+
+
+# ── 한도에 걸렸을 때 남은 시간을 알려 준다 ─────────────────────────────────
+def test_retry_after_is_zero_when_not_blocked():
+    uid = "u-ra-0"
+    _fresh(uid)
+    assert comp_router.manual_sync_retry_after(uid) == 0
+    comp_router.manual_sync_take_quota(uid)
+    assert comp_router.manual_sync_retry_after(uid) == 0            # 1회 사용 — 아직 여유가 있다
+
+
+def test_retry_after_counts_down_to_the_end_of_the_burst_window(monkeypatch):
+    uid = "u-ra-1"
+    _fresh(uid)
+    t = [1000.0]
+    monkeypatch.setattr(comp_router.time, "monotonic", lambda: t[0])
+    monkeypatch.setattr(_cache.time, "monotonic", lambda: t[0])
+    for _ in range(comp_router._MANUAL_SYNC_BURST_CAP):
+        assert comp_router.manual_sync_take_quota(uid)
+    assert comp_router.manual_sync_take_quota(uid) is False
+    assert comp_router.manual_sync_retry_after(uid) == 600           # 창은 첫 요청부터 10분
+    t[0] += 240
+    assert comp_router.manual_sync_retry_after(uid) == 360
+    t[0] += 361
+    assert comp_router.manual_sync_retry_after(uid) == 0
+    assert comp_router.manual_sync_take_quota(uid) is True           # 안내한 시간이 지나면 실제로 된다
+
+
+def test_retry_after_follows_the_longer_blocking_window(monkeypatch):
+    """10분 한도와 1시간 한도가 동시에 막고 있으면 10분이 지나도 풀리지 않는다 — 더 늦게 끝나는 창을 알려 준다."""
+    uid = "u-ra-2"
+    _fresh(uid)
+    t = [1000.0]
+    monkeypatch.setattr(comp_router.time, "monotonic", lambda: t[0])
+    monkeypatch.setattr(_cache.time, "monotonic", lambda: t[0])
+    monkeypatch.setattr(comp_router, "_MANUAL_SYNC_USER_CAP", 2)
+    monkeypatch.setattr(comp_router, "_MANUAL_SYNC_BURST_CAP", 2)
+    assert comp_router.manual_sync_take_quota(uid) and comp_router.manual_sync_take_quota(uid)
+    # 두 창이 모두 가득 찼다: 10분 창은 600초 뒤, 1시간 창은 3600초 뒤에 끝난다
+    assert comp_router.manual_sync_retry_after(uid) == 3600
+    t[0] += 700
+    assert comp_router.manual_sync_take_quota(uid) is False          # 10분 창은 풀렸지만 1시간 창이 막고 있다
+    assert comp_router.manual_sync_retry_after(uid) == 3600 - 700
+
+
+def test_429_carries_retry_after_header_and_minutes(monkeypatch):
+    uid = "u-ra-3"
+    _fresh(uid)
+    for _ in range(comp_router._MANUAL_SYNC_BURST_CAP):
+        comp_router.manual_sync_take_quota(uid)
+    with pytest.raises(HTTPException) as e:
+        _call(monkeypatch, last_synced=None, user_id=uid, sync_result={"ok": True})
+    assert e.value.status_code == 429
+    assert int(e.value.headers["Retry-After"]) > 0
+    assert "분 뒤" in e.value.detail and "잠시 후" not in e.value.detail

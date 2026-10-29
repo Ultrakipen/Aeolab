@@ -1186,6 +1186,22 @@ def _manual_sync_window(key: str, window_sec: int, now: float) -> tuple[int, flo
     return count, start
 
 
+def manual_sync_retry_after(user_id: str) -> int:
+    """한도에 걸린 사용자가 다음 새로고침을 할 수 있을 때까지 남은 초(올림). 막혀 있지 않으면 0.
+
+    1시간 한도·10분 한도 중 막고 있는 창이 모두 끝나야 하므로 가장 늦게 끝나는 창을 따른다. 카운트는 바꾸지 않는다.
+    (사용자에게 "잠시 후"만 말하면 실제 대기가 1분인지 50분인지 알 수 없다.)"""
+    now = time.monotonic()
+    waits = []
+    h_count, h_start = _manual_sync_window(f"comp_manual_sync:{user_id}", _MANUAL_SYNC_WINDOW_SEC, now)
+    if h_count >= _MANUAL_SYNC_USER_CAP:
+        waits.append(h_start + _MANUAL_SYNC_WINDOW_SEC - now)
+    b_count, b_start = _manual_sync_window(f"comp_manual_sync_burst:{user_id}", _MANUAL_SYNC_BURST_WINDOW_SEC, now)
+    if b_count >= _MANUAL_SYNC_BURST_CAP:
+        waits.append(b_start + _MANUAL_SYNC_BURST_WINDOW_SEC - now)
+    return max(1, int(max(waits) + 0.999)) if waits else 0
+
+
 def manual_sync_take_quota(user_id: str) -> bool:
     """사용자별 수동 새로고침 1회 사용. 1시간 한도와 10분 한도를 함께 본다. 어느 하나라도 차면 False(둘 다 쓰지 않는다).
 
@@ -1278,10 +1294,13 @@ async def sync_competitor_place_endpoint(competitor_id: str, user=Depends(get_cu
         }
     # ② 사용자별 1시간 상한(관리자 제외) — 접속이 일어나는 요청만 센다
     if user["id"] not in _ADMIN_USER_IDS and not manual_sync_take_quota(user["id"]):
+        _retry = manual_sync_retry_after(user["id"]) or 600
+        _mins = max(1, -(-_retry // 60))
         raise HTTPException(
             status_code=429,
-            detail=(f"새로고침을 너무 자주 하셨어요. 10분에 {_MANUAL_SYNC_BURST_CAP}번, 1시간에 "
-                    f"{_MANUAL_SYNC_USER_CAP}번까지 할 수 있어요. 잠시 후 다시 시도해 주세요."),
+            detail=(f"새로고침을 너무 자주 하셨어요. 약 {_mins}분 뒤에 다시 할 수 있어요. "
+                    f"(10분에 {_MANUAL_SYNC_BURST_CAP}번, 1시간에 {_MANUAL_SYNC_USER_CAP}번까지)"),
+            headers={"Retry-After": str(_retry)},     # 화면이 남은 시간을 세고 자동으로 이어가게 한다
         )
 
     # 동기화 실행 (await로 직접 호출하여 결과 반환)

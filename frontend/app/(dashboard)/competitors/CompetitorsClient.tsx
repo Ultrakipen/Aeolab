@@ -1645,9 +1645,17 @@ export function CompetitorsClient({
   const [syncingIds, setSyncingIds] = useState<Record<string, 'loading' | 'success' | 'error' | 'recent' | 'limit' | 'busy'>>({})
 
   // 전체 평점 동기화 상태
-  const [syncAllState, setSyncAllState] = useState<'idle' | 'loading' | 'done'>('idle')
+  const [syncAllState, setSyncAllState] = useState<'idle' | 'loading' | 'waiting' | 'done'>('idle')
   const [syncAllProgress, setSyncAllProgress] = useState({ done: 0, total: 0 })
   const [syncAllFailedCount, setSyncAllFailedCount] = useState(0)
+  // 새로고침 한도(429)에 걸렸을 때 남은 시간 — 개별 카드 안내와 '전체' 자동 이어가기가 함께 쓴다
+  const [syncAllWaitSec, setSyncAllWaitSec] = useState(0)
+  const [syncLimitMin, setSyncLimitMin] = useState(0)
+  const syncAllCancelled = useRef(false)
+  useEffect(() => {
+    syncAllCancelled.current = false
+    return () => { syncAllCancelled.current = true }     // 화면을 떠나면 대기·재시도를 멈춘다
+  }, [])
 
   // FAQ 수집 상태 (경쟁사 ID)
   const [fetchingFaqId, setFetchingFaqId] = useState<string | null>(null)
@@ -1752,30 +1760,50 @@ export function CompetitorsClient({
     const session = await getSafeSession()
     const token = session?.access_token ?? ''
 
+    // 한도(429)는 실패가 아니라 "잠시 기다리면 이어서 된다"는 뜻이다. 서버가 알려 준 남은 시간(Retry-After)만큼 세고
+    // 같은 경쟁사부터 다시 이어간다(최대 3번 — 그래도 안 되면 남은 곳은 오늘 밤 정기 갱신이 가장 먼저 채운다).
+    // 네이버 쪽 사정(503)이나 그 외 오류는 남은 경쟁사에 요청을 계속 보내지 않는다.
     let failedCount = 0
-    for (let i = 0; i < targets.length; i++) {
+    let waits = 0
+    let i = 0
+    while (i < targets.length) {
+      if (syncAllCancelled.current) return
       const c = targets[i]
       try {
         const res = await fetch(`${BACKEND}/api/competitors/${c.id}/sync-place`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
         })
+        if (res.status === 429 && waits < 3) {
+          const ra = parseInt(res.headers.get('Retry-After') ?? '', 10)
+          const wait = Number.isFinite(ra) && ra > 0 ? Math.min(ra, 1200) : 600
+          waits++
+          setSyncAllState('waiting')
+          for (let sec = wait; sec > 0; sec--) {
+            if (syncAllCancelled.current) return
+            setSyncAllWaitSec(sec)
+            await new Promise(r => setTimeout(r, 1000))
+          }
+          setSyncAllWaitSec(0)
+          setSyncAllState('loading')
+          continue                                   // 같은 경쟁사부터 다시
+        }
         if (res.status === 429 || res.status === 503) {
-          // 사용자별 새로고침 한도(429) 또는 네이버 확인이 몰려 있음(503) — 남은 경쟁사에 요청을 계속 보내지 않는다
           failedCount += targets.length - i
-          setSyncAllProgress({ done: targets.length, total: targets.length })
           break
         }
         if (!res.ok) failedCount++
       } catch {
         failedCount++
       }
-      setSyncAllProgress({ done: i + 1, total: targets.length })
+      i++
+      setSyncAllProgress({ done: i, total: targets.length })
       // 서버 부하 방지: 요청 간 1초 대기
-      if (i < targets.length - 1) {
+      if (i < targets.length) {
         await new Promise(res => setTimeout(res, 1000))
       }
     }
+    setSyncAllProgress({ done: targets.length, total: targets.length })
 
     setSyncAllFailedCount(failedCount)
     setSyncAllState('done')
@@ -1796,7 +1824,9 @@ export function CompetitorsClient({
         headers: { Authorization: `Bearer ${token}` },
       })
       if (res.status === 429) {
-        // 새로고침을 너무 자주 눌렀다 — 실패가 아니라 잠시 기다려 달라는 안내
+        // 새로고침을 너무 자주 눌렀다 — 실패가 아니라 잠시 기다려 달라는 안내(서버가 알려 준 남은 시간 표시)
+        const ra = parseInt(res.headers.get('Retry-After') ?? '', 10)
+        setSyncLimitMin(Number.isFinite(ra) && ra > 0 ? Math.max(1, Math.ceil(ra / 60)) : 0)
         setSyncingIds(prev => ({ ...prev, [competitorId]: 'limit' }))
         setTimeout(() => {
           setSyncingIds(prev => { const next = { ...prev }; delete next[competitorId]; return next })
@@ -2145,16 +2175,23 @@ export function CompetitorsClient({
               ) : (
                 <><strong>{syncedNoRatingCount}개 경쟁사</strong>는 동기화되었지만 네이버에 등록된 별점이 없습니다. 리뷰가 0개인 신규 가게는 별점이 없을 수 있습니다.</>
               )}
+              {syncAllState === 'waiting' && (
+                <span className="block mt-1 font-medium" role="status" aria-live="polite">
+                  한 번에 확인할 수 있는 수를 넘어서 잠시 쉬고 있어요. 이 화면을 열어 두면 자동으로 이어서 확인해요. 닫아도 오늘 밤 자동으로 채워져요.
+                </span>
+              )}
             </p>
             {noRatingCount > 0 && (
               <button
                 onClick={() => void handleSyncAllRatings()}
-                disabled={syncAllState === 'loading'}
+                disabled={syncAllState === 'loading' || syncAllState === 'waiting'}
                 className="shrink-0 inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-400 bg-white hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 whitespace-nowrap"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${syncAllState === 'loading' ? 'animate-spin' : ''}`} />
                 {syncAllState === 'loading'
                   ? `동기화 중 (${syncAllProgress.done}/${syncAllProgress.total})`
+                  : syncAllState === 'waiting'
+                  ? `${Math.ceil(syncAllWaitSec / 60)}분 뒤 이어서 확인 (${syncAllProgress.done}/${syncAllProgress.total})`
                   : syncAllState === 'done'
                   ? syncAllFailedCount > 0
                     ? `동기화 완료 (${syncAllFailedCount}개 실패)`
@@ -2323,7 +2360,7 @@ export function CompetitorsClient({
                             ) : syncingIds[c.id] === 'limit' ? (
                               <div className="flex items-center gap-2 text-sm text-amber-800 font-semibold">
                                 <AlertCircle className="w-4 h-4 shrink-0" />
-                                너무 자주 눌렀어요. 잠시 후 다시 시도해 주세요.
+                                {syncLimitMin > 0 ? `너무 자주 눌렀어요. 약 ${syncLimitMin}분 뒤에 다시 눌러 주세요.` : '너무 자주 눌렀어요. 잠시 후 다시 시도해 주세요.'}
                               </div>
                             ) : syncingIds[c.id] === 'busy' ? (
                               <div className="flex items-center gap-2 text-sm text-amber-800 font-semibold">
@@ -2398,7 +2435,7 @@ export function CompetitorsClient({
                               ) : syncingIds[c.id] === 'recent' ? (
                                 <span className="text-sm text-gray-700 font-medium">방금 확인한 값이에요</span>
                               ) : syncingIds[c.id] === 'limit' ? (
-                                <span className="text-sm text-amber-800 font-medium">너무 자주 눌렀어요. 잠시 후 다시 시도해 주세요</span>
+                                <span className="text-sm text-amber-800 font-medium">{syncLimitMin > 0 ? `너무 자주 눌렀어요. 약 ${syncLimitMin}분 뒤에 다시 눌러 주세요` : '너무 자주 눌렀어요. 잠시 후 다시 시도해 주세요'}</span>
                               ) : syncingIds[c.id] === 'busy' ? (
                                 <span className="text-sm text-amber-800 font-medium">지금 네이버 확인 요청이 몰려 있어요. 잠시 후 다시 시도해 주세요</span>
                               ) : syncingIds[c.id] === 'error' ? (
