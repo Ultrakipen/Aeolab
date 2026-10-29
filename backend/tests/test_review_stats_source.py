@@ -28,9 +28,15 @@ def test_cannot_compare_means_no_edit():
 
 # ── 측정 성공 시 'measured' 기록, 컬럼 없으면 폴백 ───────────────────────────
 class _Q:
-    def __init__(self, log, fail_on):
+    def __init__(self, log, fail_on, existing=None, select_fails=False):
         self.log, self.fail_on = log, fail_on
         self.payload = None
+        self.existing, self.select_fails = existing, select_fails
+        self.is_select = False
+
+    def select(self, *_):
+        self.is_select = True
+        return self
 
     def update(self, payload):
         self.payload = payload
@@ -40,6 +46,10 @@ class _Q:
         return self
 
     def execute(self):
+        if self.is_select:
+            if self.select_fails:
+                raise RuntimeError("select failed")
+            return type("R", (), {"data": [dict(self.existing or {})]})()
         self.log.append(dict(self.payload))
         # Postgres처럼 없는 컬럼을 한 번에 하나씩만 알려 준다
         for c in (self.fail_on or ()):
@@ -49,19 +59,20 @@ class _Q:
 
 
 class _DB:
-    def __init__(self, fail_on=None):
+    def __init__(self, fail_on=None, existing=None, select_fails=False):
         self.log, self.fail_on = [], fail_on
+        self.existing, self.select_fails = existing, select_fails
 
     def table(self, _):
-        return _Q(self.log, self.fail_on)
+        return _Q(self.log, self.fail_on, self.existing, self.select_fails)
 
 
-def _run(monkeypatch, db):
+def _run(monkeypatch, db, stats=None):
     import db.supabase_client as sc
     import services.naver_place_stats as nps
 
     async def fake_fetch(self, _pid):
-        return {"review_count": 50, "visitor_review_count": 50, "receipt_review_count": 5, "avg_rating": 4.3}
+        return stats or {"review_count": 50, "visitor_review_count": 50, "receipt_review_count": 5, "avg_rating": 4.3}
 
     monkeypatch.setattr(nps.NaverPlaceStatsService, "fetch_stats", fake_fetch)
     monkeypatch.setattr(sc, "get_client", lambda: db)
@@ -74,6 +85,29 @@ def test_measured_success_marks_source(monkeypatch):
     assert db.log[0]["review_stats_source"] == "measured"
     assert db.log[0]["review_stats_measured_at"]
     assert db.log[0]["avg_rating"] == 4.3
+
+
+_NO_RATING = {"review_count": 50, "visitor_review_count": 50, "receipt_review_count": 5, "avg_rating": None}
+
+
+def test_user_rating_is_not_relabeled_measured(monkeypatch):
+    """크롤이 리뷰 수만 읽고 별점은 못 읽었을 때, DB의 사용자 입력 별점을 '확인한 값'으로 바꾸면 안 된다."""
+    db = _DB(existing={"avg_rating": 4.5})
+    _run(monkeypatch, db, _NO_RATING)
+    assert db.log[0]["review_count"] == 50
+    assert "review_stats_source" not in db.log[0] and "review_stats_measured_at" not in db.log[0]
+
+
+def test_no_rating_anywhere_still_marks_measured(monkeypatch):
+    db = _DB(existing={"avg_rating": None})
+    _run(monkeypatch, db, _NO_RATING)
+    assert db.log[0]["review_stats_source"] == "measured"
+
+
+def test_unknown_existing_rating_keeps_source(monkeypatch):
+    db = _DB(select_fails=True)
+    _run(monkeypatch, db, _NO_RATING)
+    assert "review_stats_source" not in db.log[0]
 
 
 def test_missing_columns_fall_back_without_losing_stats(monkeypatch):

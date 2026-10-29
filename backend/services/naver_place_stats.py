@@ -689,8 +689,21 @@ async def sync_naver_place_stats(business_id: str, naver_place_id: str):
     if update_data:
         # 측정에 성공한 값 — 출처 표시('확인한 값')와 시각 기록. 컬럼이 없으면 아래 폴백이 이 두 키를 뺀다.
         from datetime import datetime, timezone
-        update_data["review_stats_source"] = "measured"
-        update_data["review_stats_measured_at"] = datetime.now(timezone.utc).isoformat()
+        # 이번 측정에 평균 별점이 없는데 DB에 별점이 이미 있으면 그 별점은 사용자가 입력한 값이다
+        # (네이버 방문자 별점 종료로 크롤은 대개 별점을 못 읽는다). 출처를 '확인한 값'으로 바꾸면 입력값이
+        # 측정값처럼 보이므로 출처 표시는 그대로 둔다 — 리뷰 수만 갱신된다.
+        _keeps_user_rating = False
+        if "avg_rating" not in update_data:
+            try:
+                _cur = supabase.table("businesses").select("avg_rating").eq("id", business_id).execute()
+                _keeps_user_rating = bool(_cur and _cur.data and (_cur.data[0].get("avg_rating") or 0) > 0)
+            except Exception as e:
+                # 기존 별점 유무를 확인하지 못하면 보수적으로 출처를 바꾸지 않는다
+                logger.warning(f"[naver_place_stats] 기존 별점 확인 실패 — 출처 표시 유지: {e}")
+                _keeps_user_rating = True
+        if not _keeps_user_rating:
+            update_data["review_stats_source"] = "measured"
+            update_data["review_stats_measured_at"] = datetime.now(timezone.utc).isoformat()
         update_data["is_smart_place"] = True  # 플레이스 ID로 데이터 조회 성공 = 스마트플레이스 등록됨
         # 선택 컬럼(is_smart_place·출처 표시)이 없으면 오류에 나온 컬럼만 빼고 다시 시도한다.
         # Postgres는 없는 컬럼을 한 번에 하나씩만 알려 주므로 최대 3번까지 반복한다.
