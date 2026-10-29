@@ -41,6 +41,17 @@ def keyword_rank_day(biz_id: str) -> int:
     return int(hashlib.md5(f"{biz_id}:rank".encode("utf-8")).hexdigest()[:8], 16) % 7
 
 
+def keyword_rank_days(plan: str, biz_id: str) -> set[int]:
+    """키워드 순위를 재는 요일 집합(0=월~6=일). 가게당 주 횟수는 이전과 같다 — Basic 주 1회, 그 외 플랜 주 3회.
+
+    주 3회는 월·수·금 일괄이 아니라 가게별 {d, d+2, d+4}(간격 2·2·3일)로 나눠 하루 부하가 전체의 3/7이 되게 한다.
+    """
+    d = keyword_rank_day(biz_id)
+    if plan == "basic":
+        return {d}
+    return {d, (d + 2) % 7, (d + 4) % 7}
+
+
 def place_stats_day(biz_id: str) -> int:
     """내 가게 플레이스 통계(리뷰 수·평점)를 갱신하는 요일(0=월~6=일). 순위·스캔 슬롯과 겹치지 않게 소금값을 따로 둔다."""
     return int(hashlib.md5(f"{biz_id}:stats".encode("utf-8")).hexdigest()[:8], 16) % 7

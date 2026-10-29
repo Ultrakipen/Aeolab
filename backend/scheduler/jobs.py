@@ -216,8 +216,9 @@ def start_scheduler():
         id="keyword_rank_basic_weekly", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
+    # Pro·창업·Biz: 매일 04:30 실행하되 가게별 3요일(keyword_rank_days)에만 측정 = 가게당 주 3회 (월·수·금 일괄 → 분산, 2026-10-29)
     scheduler.add_job(
-        keyword_rank_pro_daily_job, "cron", day_of_week="mon,wed,fri", hour=4, minute=30,
+        keyword_rank_pro_daily_job, "cron", hour=4, minute=30,
         id="keyword_rank_pro_daily", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
@@ -5283,7 +5284,8 @@ _RANK_FAIL_ALERT_RATIO = 0.5  # 측정 대상 중 이 비율 이상 실패하면
 async def _run_keyword_rank_for_plans(plans: list[str], only_today_slot: bool = False) -> None:
     """지정된 플랜의 활성 구독자 사업장 전체에 대해 키워드 순위 측정.
 
-    only_today_slot=True면 오늘 요일이 사업장별 순위 요일(keyword_rank_day)인 곳만 잰다 — 매일 돌려도 가게당 주 1회.
+    only_today_slot=True면 오늘 요일이 사업장별 순위 요일(keyword_rank_days)인 곳만 잰다 — 매일 돌려도 가게당 주 횟수는
+    Basic 1회·그 외 3회로 같다.
 
     Semaphore로 동시성 제한 (BACKEND_MAX_CONCURRENCY 환경변수, 기본 2).
     사업장 간 5초 sleep으로 RAM peak 회피.
@@ -5306,6 +5308,7 @@ async def _run_keyword_rank_for_plans(plans: list[str], only_today_slot: bool = 
         return
 
     user_ids = [s["user_id"] for s in subs.data if s.get("user_id")]
+    plan_by_user = {s["user_id"]: s.get("plan") for s in subs.data if s.get("user_id")}
     try:
         biz_res = await execute(
             supabase.table("businesses")
@@ -5318,9 +5321,9 @@ async def _run_keyword_rank_for_plans(plans: list[str], only_today_slot: bool = 
 
     targets = [b for b in (biz_res.data or []) if b.get("keywords")]
     if only_today_slot:
-        from services.scan_scheduling import keyword_rank_day
+        from services.scan_scheduling import keyword_rank_days
         _wd = date.today().weekday()
-        targets = [b for b in targets if keyword_rank_day(str(b.get("id"))) == _wd]
+        targets = [b for b in targets if _wd in keyword_rank_days(str(plan_by_user.get(b.get("user_id")) or "basic"), str(b.get("id")))]
     try:  # 상한 도달 시 같은 사업장이 매일 뒤로 밀려 굶지 않게 날짜 시드로 순서 회전(2026-10-27)
         from services.scan_scheduling import rotate_for_fairness
         targets = rotate_for_fairness(targets, key=lambda b: str(b.get("id")), today=date.today())
@@ -5453,9 +5456,9 @@ async def keyword_rank_basic_weekly_job() -> None:
 
 @_naver_batch_job
 async def keyword_rank_pro_daily_job() -> None:
-    """Pro/Biz/Enterprise/창업 플랜 키워드 순위 측정 (월·수·금 04:30 KST, 2026-10-28 매일에서 변경)."""
+    """Pro/Biz/Enterprise/창업 플랜 키워드 순위 측정 (매일 04:30 실행, 가게별 3요일만 측정 = 주 3회, 2026-10-29)."""
     try:
-        await _run_keyword_rank_for_plans(["pro", "biz", "enterprise", "startup"])
+        await _run_keyword_rank_for_plans(["pro", "biz", "enterprise", "startup"], only_today_slot=True)
     except Exception as e:
         logger.error(f"[keyword_rank_pro_daily_job] 실패: {e}")
 

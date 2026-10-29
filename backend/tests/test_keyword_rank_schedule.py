@@ -20,10 +20,30 @@ def _registration(job_id: str) -> str:
     return m.group(0)
 
 
-def test_pro_rank_job_runs_mon_wed_fri_only():
+def test_pro_rank_job_runs_daily_but_measures_each_biz_three_times_a_week():
+    """2026-10-29: 월·수·금 일괄 → 매일 실행 + 가게별 3요일(keyword_rank_days). 가게당 주 3회는 이전과 같다."""
     reg = _registration("keyword_rank_pro_daily")
-    assert 'day_of_week="mon,wed,fri"' in reg, reg
+    assert "day_of_week" not in reg, reg
     assert "hour=4, minute=30" in reg
+    body = _SRC.split("async def keyword_rank_pro_daily_job", 1)[1].split("def _parse_rank_canaries", 1)[0]
+    assert "only_today_slot=True" in body
+
+
+def test_rank_days_weekly_counts_unchanged_and_spread():
+    """Basic 주 1회·그 외 주 3회(간격 2·2·3일). 하루 부하가 월·수·금 100%에서 3/7로 줄어야 한다."""
+    import uuid
+    from services.scan_scheduling import keyword_rank_days
+    ids = [str(uuid.UUID(int=(i + 1) * 104729)) for i in range(700)]
+    for i in ids[:50]:
+        assert len(keyword_rank_days("basic", i)) == 1
+        d = sorted(keyword_rank_days("pro", i))
+        assert len(d) == 3
+        gaps = sorted(((d[(k + 1) % 3] - d[k]) % 7) for k in range(3))
+        assert gaps == [2, 2, 3], (d, gaps)
+    for plan in ("pro", "startup", "biz", "enterprise"):
+        per_day = [sum(1 for i in ids if wd in keyword_rank_days(plan, i)) for wd in range(7)]
+        assert max(per_day) <= 700 * 3 / 7 * 1.25, per_day      # 하루 최대가 전체의 약 43%(월·수·금 일괄이면 100%)
+        assert min(per_day) >= 700 * 3 / 7 * 0.75, per_day
 
 
 def test_basic_rank_job_runs_daily_but_measures_each_biz_once_a_week():
@@ -56,8 +76,62 @@ def test_rank_day_independent_of_scan_slot():
 
 
 def test_load_model_matches_schedule():
-    """용량 모델의 순위 요일이 잡 일정과 같아야 한다(월·수·금 = 0·2·4)."""
+    """용량 모델의 순위 요일이 잡 일정과 같은 함수여야 한다."""
     model = open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
                               "scripts", "naver_load_model.py"), encoding="utf-8").read()
-    assert "wd in (0, 2, 4)" in model
-    assert "wd == keyword_rank_day(biz_id)" in model   # Basic 순위 요일이 잡과 같은 함수를 쓴다
+    assert "wd in keyword_rank_days(plan, biz_id)" in model   # 모델 순위 요일이 잡과 같은 함수를 쓴다
+
+
+def test_runner_measures_pro_three_times_and_basic_once_per_week(monkeypatch):
+    """실제 실행기를 가짜 DB로 일주일 돌려 가게별 측정 횟수를 센다 — 플랜별 요일 선택이 빠지면 실패한다."""
+    import asyncio
+    import datetime as _dt
+    import db.supabase_client as sc
+    from scheduler import jobs
+
+    class _Res:
+        def __init__(self, data): self.data = data
+
+    subs = [{"user_id": "u_pro", "plan": "pro", "status": "active"}, {"user_id": "u_basic", "plan": "basic", "status": "active"}]
+    bizs = [{"id": "11111111-aaaa", "user_id": "u_pro", "name": "p", "naver_place_id": "1", "keywords": ["k"], "region": "r"},
+            {"id": "22222222-bbbb", "user_id": "u_basic", "name": "b", "naver_place_id": "2", "keywords": ["k"], "region": "r"}]
+
+    class _Q:
+        def __init__(self, table): self.table = table
+        def select(self, *_): return self
+        def eq(self, *_): return self
+        def in_(self, *_): return self
+
+    class _DB:
+        def table(self, name): return _Q(name)
+
+    async def fake_execute(q): return _Res(subs if q.table == "subscriptions" else bizs)
+
+    measured: list[tuple[int, str]] = []
+    current = {"d": None}
+
+    async def fake_measure(biz):
+        measured.append((current["d"].weekday(), biz["id"]))
+        return True
+
+    async def no_sleep(_s): return None
+
+    class _FakeDate(_dt.date):
+        @classmethod
+        def today(cls): return current["d"]
+
+    monkeypatch.setattr(sc, "get_client", lambda: _DB())
+    monkeypatch.setattr(sc, "execute", fake_execute)
+    monkeypatch.setattr(jobs, "_measure_keyword_rank_for_biz", fake_measure)
+    monkeypatch.setattr(jobs.asyncio, "sleep", no_sleep)
+    monkeypatch.setattr(jobs, "date", _FakeDate)
+
+    monday = _FakeDate(2026, 11, 2)
+    for i in range(7):
+        current["d"] = _FakeDate.fromordinal(monday.toordinal() + i)
+        asyncio.run(jobs._run_keyword_rank_for_plans(["pro", "basic"], only_today_slot=True))
+
+    pro_days = [d for d, bid in measured if bid.startswith("1111")]
+    basic_days = [d for d, bid in measured if bid.startswith("2222")]
+    assert len(pro_days) == 3 and len(basic_days) == 1, (pro_days, basic_days)
+    assert len(set(pro_days)) == 3                    # 같은 날 중복 측정 없음
