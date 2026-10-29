@@ -1007,7 +1007,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
     score = calculate_score(
         combined_result,
         biz=biz_ctx,
-        naver_data=naver_data or {},
+        naver_data=naver_data or {"blog_checked": False},   # 가시성 조회 실패는 블로그 "모름"(0건 아님)
         context=req.business_type or "location_based",
     )
 
@@ -3003,10 +3003,10 @@ async def _run_quick_scan(scan_id: str, req: ScanRequest):
             naver_data = await _naver_multi_q(req.business_name, _quick_multi_kws, _quick_region or req.region or "", category_ko=_quick_keyword_ko)
         except Exception as e:
             _logger.warning(f"naver_visibility failed (quick): {e}")
-            naver_data = {}
+            naver_data = {"blog_checked": False}
 
         combined_result = {**result}
-        score = calculate_score(combined_result, biz or {}, naver_data=naver_data or {})
+        score = calculate_score(combined_result, biz or {}, naver_data=naver_data or {"blog_checked": False})
 
         # 같은 날 재스캔이면 prev_history가 오늘자 자기 자신이 되어 노이즈가 "주간 변화"로 둔갑함
         # — 같은 날짜면 비교 보류(0.0). (2026-08-09 점검, growth 헤드라인 버그와 동일 원인)
@@ -3262,7 +3262,8 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
 
         # naver_data: naver_visibility_multi 결과 + AI 브리핑 스캔 결과 병합
         naver_scanner_result_full = result.get("naver") or {}
-        naver_data_full = {**(naver_visibility_full if isinstance(naver_visibility_full, dict) else {}), **naver_scanner_result_full}
+        # 가시성 조회가 실패(예외·빈 결과)했으면 블로그 "모름"으로 표시 — 표시 없이 비면 블로그 0건(최하점)으로 계산된다
+        naver_data_full = {**(naver_visibility_full if isinstance(naver_visibility_full, dict) and naver_visibility_full else {"blog_checked": False}), **naver_scanner_result_full}
 
         # 카카오·웹사이트 결과를 병합해 채널 점수 계산
         combined_result = {**result, "kakao": kakao_data or {}, "website_check": website_check or {}}

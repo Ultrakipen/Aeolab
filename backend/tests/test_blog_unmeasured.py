@@ -196,3 +196,17 @@ def test_scheduled_scan_passes_naver_data_to_scoring():
 def test_manual_stream_scan_uses_shared_merge():
     src = open("routers/scan.py", encoding="utf-8").read()
     assert "naver_data = build_naver_data(naver_visibility, naver_scanner_result)" in src
+
+
+
+
+def test_every_manual_scan_path_marks_failed_visibility():
+    """체험·빠른 스캔·풀스캔도 가시성 조회 실패를 표시 없는 빈 dict로 채점에 넘기면 안 된다.
+
+    (스트림 경로는 build_naver_data를 거쳐 항상 표시가 붙으므로 위 테스트로 확인한다.)
+    """
+    src = open("routers/scan.py", encoding="utf-8").read()
+    assert 'naver_data=naver_data or {"blog_checked": False},   # 가시성 조회 실패' in src      # 무료 체험
+    assert 'naver_data = {"blog_checked": False}' in src                                          # 빠른 스캔 예외
+    assert 'calculate_score(combined_result, biz or {}, naver_data=naver_data or {"blog_checked": False})' in src
+    assert 'naver_visibility_full if isinstance(naver_visibility_full, dict) and naver_visibility_full else {"blog_checked": False}' in src   # 풀스캔
