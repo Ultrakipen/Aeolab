@@ -749,6 +749,8 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
             ip = _get_client_ip(request)
             _check_trial_rate_limit(ip)
 
+    from services.naver_usage_meter import note_user_scan
+    note_user_scan("trial")   # 비로그인 무료 체험 계측(기록만)
     scanner = MultiAIScanner(mode="trial")
     # 키워드 우선순위: keywords 리스트[0] > keyword 단일(추가 입력) > 카테고리 한글명
     # keywords = 사용자가 선택한 개별 태그, keyword = 추가 직접 입력
@@ -1685,6 +1687,8 @@ async def run_basic_trial(req: BasicTrialRequest, user=Depends(get_current_user)
 
     _active_scans.add(scan_key)
     scan_id = str(uuid.uuid4())
+    from services.naver_usage_meter import note_user_scan
+    note_user_scan("basic_trial", biz_id)   # 가입 후 1회 무료체험 계측(기록만)
     req_scan = ScanRequest(
         business_name=biz["name"],
         category=biz.get("category") or "",
@@ -1779,6 +1783,8 @@ async def full_scan(req: ScanRequest, bg: BackgroundTasks, user=Depends(get_curr
 
     _active_scans.add(scan_key)
     scan_id = str(uuid.uuid4())
+    from services.naver_usage_meter import note_user_scan
+    note_user_scan("full", req.business_id)   # 사용자 수동 스캔 계측(기록만)
 
     async def _scan_and_cleanup():
         try:
@@ -1953,6 +1959,8 @@ async def stream_scan(stream_token: str):
                     yield f"data: {json.dumps({'error': _err}, ensure_ascii=False)}\n\n"
                     return
 
+            from services.naver_usage_meter import note_user_scan
+            note_user_scan("stream", biz_id)   # 사용자 수동 스캔 계측(기록만)
             scanner = MultiAIScanner(mode="quick")
             scan_results: dict = {}
             # free 플랜: Trial 수준 (ChatGPT 5회 + 네이버만, Gemini·Google 제외) — 비용 절감

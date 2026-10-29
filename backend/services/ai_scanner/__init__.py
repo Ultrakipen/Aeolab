@@ -315,6 +315,17 @@ def _load_quota_state() -> None:
             _naver_pw_quota_batch_count = int(data.get("batch_count", 0))
             _naver_pw_quota_by_source.clear()
             _naver_pw_quota_by_source.update({k: int(v) for k, v in (data.get("by_source") or {}).items()})
+        elif data.get("date") and int(data.get("count", 0)) > 0:
+            # 2026-10-29: 어제 이전 기록이 남은 채 재시작되면(배포가 잦아 하루를 넘겨 살아 있는 프로세스가 없었다) 그 하루 사용량이
+            # 이력에 한 줄도 남지 못했다 — 서버 이력 파일이 비어 있던 원인. 이력에 남기고, 같은 기록이 재시작마다 반복되지 않도록
+            # 오늘 날짜의 0 상태로 바로 덮어쓴다.
+            _append_quota_history(data["date"], int(data.get("count", 0)), int(data.get("batch_count", 0)),
+                                  {k: int(v) for k, v in (data.get("by_source") or {}).items()})
+            _naver_pw_quota_date = _date.today().isoformat()
+            _naver_pw_quota_count = 0
+            _naver_pw_quota_batch_count = 0
+            _naver_pw_quota_by_source.clear()
+            _save_quota_state()
     except FileNotFoundError:
         pass
     except Exception as e:
@@ -401,6 +412,13 @@ def check_naver_playwright_quota(source: str = "", cost: int = 1) -> bool:
     _src = source or "unknown"
     _naver_pw_quota_by_source[_src] = _naver_pw_quota_by_source.get(_src, 0) + cost
     _save_quota_state()
+    if not _naver_batch_var.get():
+        # 사용자 요청 몫 계측(기록만 — 한도·차단 판단과 무관, 실패해도 접속에 영향 없음)
+        try:
+            from services.naver_usage_meter import record_user_pages
+            record_user_pages(_src, cost)
+        except Exception as _um_e:
+            _logger.debug("[naver_quota] 사용자 몫 계측 실패(무시): %s", _um_e)
     _warn_quota_usage(today, _naver_pw_quota_count, _src)
     if not _is_place_src:
         try:

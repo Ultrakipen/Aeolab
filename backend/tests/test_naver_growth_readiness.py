@@ -121,12 +121,13 @@ def test_photo_tab_is_off_by_default_and_can_be_enabled(monkeypatch):
 def test_admin_naver_access_endpoint_reports_state_without_secrets():
     from routers.admin import get_naver_access
     out = asyncio.run(get_naver_access(_=None))
-    assert set(out) == {"capacity", "block_events", "proxy", "quota", "place_breaker", "search_breaker", "rate", "competitor_cache", "rank_card_cache", "history", "settings"}
+    assert set(out) == {"capacity", "usage", "block_events", "proxy", "quota", "place_breaker", "search_breaker", "rate", "competitor_cache", "rank_card_cache", "history", "settings"}
     assert set(out["block_events"]) == {"table_ready", "items"} and isinstance(out["block_events"]["items"], list)
     assert {"used", "cap", "batch_used", "batch_cap", "by_source", "used_pct"} <= set(out["quota"])
     assert {"open", "remaining_sec", "strikes"} <= set(out["place_breaker"])
     assert set(out["settings"]) == {"slot_spread_enabled", "photo_tab_enabled"}
     assert isinstance(out["capacity"], dict)    # 용량 현황(DB 조회 실패 시 {"error": ...})
+    assert {"today", "summary", "history"} <= set(out["usage"]) or "error" in out["usage"]   # 사용자 요청 몫 계측
     assert "cookie" not in str(out).lower() and "token" not in str(out).lower()
 
 

@@ -113,3 +113,23 @@ def test_daily_history_line_is_written_at_date_rollover(q, monkeypatch):
     assert row == {"date": yesterday, "used": 8, "batch_used": 5,
                    "by_source": {"naver_place_stats.check": 5, "naver_keyword_rank.pc": 3}}
     assert q._naver_pw_quota_count == 1                         # 새 날은 0부터
+
+
+def test_restart_on_a_new_day_keeps_yesterday_in_history_once(q, tmp_path):
+    """하루를 넘겨 재시작해도 어제 사용량이 이력에 한 줄 남는다 — 이전에는 서버 이력 파일이 비어 있었다(배포가 잦아 자정을 넘기는 프로세스가 없음)."""
+    from datetime import date, timedelta
+    yesterday = (date.today() - timedelta(days=1)).isoformat()
+    with open(sc._quota_state_path(), "w", encoding="utf-8") as f:
+        json.dump({"date": yesterday, "count": 59, "batch_count": 57, "by_source": {"a": 59}}, f)
+    sc._load_quota_state()
+    sc._load_quota_state()                                     # 아무 접속 없이 한 번 더 재시작해도 중복 기록 없음
+    rows = sc.naver_quota_history(30)
+    assert [(r["date"], r["used"], r["batch_used"]) for r in rows] == [(yesterday, 59, 57)]
+    assert sc._naver_pw_quota_count == 0 and sc._naver_pw_quota_date == date.today().isoformat()
+
+
+def test_restart_same_day_does_not_write_history(q):
+    sc.check_naver_playwright_quota("x", 2)
+    sc._naver_pw_quota_count = 0
+    sc._load_quota_state()
+    assert sc._naver_pw_quota_count == 2 and sc.naver_quota_history(30) == []
