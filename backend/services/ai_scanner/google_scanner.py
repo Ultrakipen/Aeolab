@@ -8,12 +8,17 @@ import base64
 
 logger = logging.getLogger("aeolab")
 
-GOOGLE_SCANNER_BACKEND = os.getenv("GOOGLE_SCANNER_BACKEND", "playwright")
+# 기본값을 비워 둔다: 환경변수가 빠진 배포에서 서버가 google.com에 Playwright로 직접 접속해
+# CAPTCHA/IP 차단을 맞는 것을 막는다(2026-10-30). 직접 접속은 "playwright"를 명시했을 때만.
+GOOGLE_SCANNER_BACKEND = os.getenv("GOOGLE_SCANNER_BACKEND", "").strip().lower()
 DATAFORSEO_LOGIN = os.getenv("DATAFORSEO_LOGIN", "")
 DATAFORSEO_PASSWORD = os.getenv("DATAFORSEO_PASSWORD", "")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY", "")
 
-logger.info("[google_scanner] backend=%s", GOOGLE_SCANNER_BACKEND)
+if GOOGLE_SCANNER_BACKEND in ("serper", "dataforseo", "playwright"):
+    logger.info("[google_scanner] backend=%s", GOOGLE_SCANNER_BACKEND)
+else:
+    logger.warning("[google_scanner] GOOGLE_SCANNER_BACKEND 미설정/알 수 없는 값(%r) — 구글 측정을 하지 않는다", GOOGLE_SCANNER_BACKEND)
 
 AI_OVERVIEW_SELECTORS = [
     "[data-attrid='wa:/description']",
@@ -246,6 +251,13 @@ class GoogleAIOverviewScanner:
             return await _scan_via_serper(query, target)
         if GOOGLE_SCANNER_BACKEND == "dataforseo":
             return await _scan_via_dataforseo(query, target)
+        if GOOGLE_SCANNER_BACKEND != "playwright":
+            # 미설정 — 점수에서는 error가 있으면 "측정 불가"로 제외되고(_is_google_unmeasured) 0점으로 오집계되지 않는다
+            return {
+                "platform": "google", "mentioned": False, "in_ai_overview": False,
+                "rank": None, "excerpt": "", "captcha_detected": False, "error": "backend_not_configured",
+                "queries_used": [query],
+            }
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(
                 headless=True,
