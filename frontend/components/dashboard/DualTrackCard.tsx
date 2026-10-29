@@ -43,6 +43,8 @@ interface DualTrackCardProps {
     blogUrl?: string;
   };
   eligibility?: "active" | "likely" | "inactive";
+  /** 이번 스캔에서 네이버 일부 항목(AI 브리핑·AI탭)을 확인하지 못함 — lib/naverMeasure.isNaverUnmeasured. 점수가 확인된 항목만으로 다시 계산돼 낮게 나오므로 단계·수준 라벨을 붙이지 않는다 */
+  naverUnmeasured?: boolean;
   aiExposureData?: {
     chatgptFreq?: number;
     chatgptSampleSize?: number;
@@ -385,6 +387,7 @@ export default function DualTrackCard({
   blogContribution,
   hasRegisteredKeywords = false,
   eligibility,
+  naverUnmeasured = false,
   aiExposureData,
   bizId,
   token,
@@ -424,6 +427,8 @@ export default function DualTrackCard({
   const isActive   = eligibility === "active";
   const isLikely   = eligibility === "likely";
   const isInactive = eligibility === "inactive";
+  // INACTIVE(플레이스형 비대상·프랜차이즈)는 브리핑이 점수에 들어가지 않으므로 네이버 측정 실패가 단계에 영향을 주지 않는다
+  const stageHidden = naverUnmeasured && !isInactive;
 
   const track1LabelText = isInactive
     ? "네이버 검색 준비도 (AI탭 포함)"
@@ -492,6 +497,11 @@ export default function DualTrackCard({
         </div>
         {/* 2행: 상태 배지들 — 전체 폭, 모바일에서 자연스럽게 줄바꿈 */}
         <div className="flex flex-wrap items-center gap-2">
+          {stageHidden ? (
+            <span className="inline-flex items-center gap-1 text-sm font-semibold rounded-full px-2 py-0.5 bg-slate-100 text-slate-700">
+              AI 검색 준비도 · 일부 항목 확인 전
+            </span>
+          ) : (<>
           <div className={`text-sm font-semibold px-2 py-1 rounded-lg ${
             unifiedScore >= 70
               ? "bg-emerald-50 text-emerald-700"
@@ -528,9 +538,16 @@ export default function DualTrackCard({
               <span className="text-gray-600 font-normal ml-1">(추정)</span>
             )}
           </span>
+          </>)}
         </div>
-        {/* 3행: 성장 단계 진행률 바 — 전체 폭 */}
-        <GrowthProgressBar stage={growthStage} score={track1Score} />
+        {/* 3행: 성장 단계 진행률 바 — 전체 폭. 네이버 일부 항목이 확인 전이면 낮아진 점수로 진행률을 그리지 않는다 */}
+        {!stageHidden && <GrowthProgressBar stage={growthStage} score={track1Score} />}
+        {stageHidden && (
+          <p className="mt-2 text-sm text-gray-600">
+            이번 측정에서 네이버 일부 항목(AI 브리핑·AI탭)을 확인하지 못해, 확인된 항목만으로 점수를 계산했어요.
+            그래서 평소보다 낮게 보일 수 있고 단계는 표시하지 않아요. 측정 시점·기기·로그인 상태에 따라 달라질 수 있어요.
+          </p>
+        )}
       </div>
 
       {/* Track 1 */}
@@ -549,8 +566,8 @@ export default function DualTrackCard({
         sublabel={track1Sublabel}
         sourceNote={isKeywordEstimated ? "네이버 블로그·리뷰·스마트플레이스 (일부 키워드 추정 포함)" : "네이버 블로그·리뷰·스마트플레이스 실측 기반"}
         color="bg-green-500"
-        isWeak={isTrack1Weak}
-        isVeryLow={isTrack1VeryLow}
+        isWeak={isTrack1Weak && !stageHidden}
+        isVeryLow={isTrack1VeryLow && !stageHidden}
         tip={track1TipFinal}
         opportunityMsg={isInactive
           ? "블로그·스마트플레이스 관리로 지금 바로 개선할 수 있습니다"

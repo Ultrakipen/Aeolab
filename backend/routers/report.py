@@ -1245,7 +1245,7 @@ async def export_keyword_rank_csv(biz_id: str, user=Depends(get_current_user)):
 async def get_share_page_data(biz_id: str):
     """공개 공유 페이지용 데이터 (민감 정보 제외, 인증 불필요)"""
     supabase = get_client()
-    _biz_res, _score_res = await asyncio.gather(
+    _biz_res, _score_res, _scan_res = await asyncio.gather(
         execute(supabase.table("businesses").select("name, category, region").eq("id", biz_id).single()),
         execute(
             supabase.table("score_history")
@@ -1255,7 +1255,21 @@ async def get_share_page_data(biz_id: str):
             .order("score_date", desc=True)
             .limit(1)
         ),
+        # 가장 최근 점수가 나온 스캔에서 네이버가 측정됐는지 — track1_score가 있는 행만 본다(순위 전용 행은 naver_result가 원래 비어 있다)
+        execute(
+            supabase.table("scan_results")
+            .select("naver_result")
+            .eq("business_id", biz_id)
+            .not_.is_("track1_score", "null")
+            .order("scanned_at", desc=True)
+            .limit(1)
+        ),
+        return_exceptions=True,
     )
+    if isinstance(_biz_res, Exception):
+        raise _biz_res
+    if isinstance(_score_res, Exception):
+        raise _score_res
     biz = _biz_res.data
     if not biz:
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
@@ -1270,7 +1284,16 @@ async def get_share_page_data(biz_id: str):
     # track1이 비었거나 0이면 통합 점수로 대체한다: 특정 기록 경로가 total만 채우고 track1·track2·unified를 0으로 남긴 행이 있다
     # (2026-10-28 실측, 어니언 성수 10-26 행 — 그대로 쓰면 "시작 전"이 된다). jobs.py의 단계 변화 감지도 같은 `or` 대체를 쓴다.
     _t1 = s.get("track1_score")
+    # 네이버가 측정되지 못한 스캔이면 점수가 확인된 항목만으로 재계산돼 낮게 나온다 — 공개 페이지가 그 점수로 단계를 붙이지 않게 알린다
+    _stage_pending = False
+    try:
+        from services.score_engine import naver_result_unmeasured
+        if not isinstance(_scan_res, Exception) and _scan_res and _scan_res.data:
+            _stage_pending = naver_result_unmeasured(_scan_res.data[0].get("naver_result"))
+    except Exception as _e:
+        _logger.warning("share stage_pending 판정 실패(단계 표시는 기존대로): %s", _e)
     return {
+        "stage_pending": _stage_pending,
         "business_name": biz["name"],
         "category": biz["category"],
         "region": biz["region"],

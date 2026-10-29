@@ -17,6 +17,8 @@ interface ShareData {
   score: number;
   /** 성장 단계를 정하는 점수(track1) — 대시보드와 같은 단계로 보이게 한다. 없으면(구버전 응답) score */
   stage_score?: number;
+  /** 이번 스캔에서 네이버 일부 항목을 확인하지 못함 — 낮아진 점수로 단계를 붙이지 않는다 */
+  stage_pending?: boolean;
   grade: string;
   gemini_frequency: number;
   scanned_at: string;
@@ -111,7 +113,17 @@ export default async function SharePage({ params }: Props) {
   }
 
   const stageScore = data.stage_score ?? data.score;
-  const stage = getStage(stageScore);
+  const pending = data.stage_pending === true;
+  const stage = pending
+    ? {
+        label: "AI 검색 준비도 · 일부 항목 확인 전",
+        tagBg: "bg-slate-100 text-slate-700",
+        bar: "bg-slate-400",
+        bg: "bg-slate-50",
+        borderColor: "border-slate-200",
+        message: "이번 측정에서 네이버 일부 항목을 확인하지 못했어요. 확인되면 단계를 보여 드려요.",
+      }
+    : getStage(stageScore);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-blue-950 flex items-start justify-center p-4 py-6">
@@ -131,7 +143,8 @@ export default async function SharePage({ params }: Props) {
               {stage.label}
             </span>
             <p className="text-gray-600 text-sm leading-relaxed">{stage.message}</p>
-            {/* 진행 바 */}
+            {/* 진행 바 — 네이버 일부 항목이 확인 전이면 낮아진 점수로 그리지 않는다 */}
+            {!pending && (
             <div className="mt-3 mb-1">
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
@@ -141,6 +154,7 @@ export default async function SharePage({ params }: Props) {
               </div>
               <p className="text-sm text-gray-600 mt-1 text-right">{stage.label} 기준</p>
             </div>
+            )}
           </div>
 
           {/* 핵심 수치 */}

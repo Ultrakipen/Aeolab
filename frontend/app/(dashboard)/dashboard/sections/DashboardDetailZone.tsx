@@ -307,6 +307,7 @@ export default function DashboardDetailZone({
             hasRegisteredKeywords={!!business.keywords?.length}
             blogContribution={blogContribution}
             eligibility={briefingEligibility}
+            naverUnmeasured={isNaverUnmeasured(naverResult)}
             aiExposureData={aiExposureData}
             bizId={business.id}
             token={accessToken ?? undefined}

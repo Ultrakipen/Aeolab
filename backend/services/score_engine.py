@@ -523,6 +523,17 @@ def _is_naver_unmeasured(scan_result: dict) -> bool:
     return bool(naver_result.get("captcha_detected")) or bool(naver_result.get("error"))
 
 
+def naver_result_unmeasured(naver_result) -> bool:
+    """저장된 scan_results.naver_result가 '측정되지 못한' 결과인가 — 공개 응답 등 점수 계산 밖에서 쓴다.
+
+    프론트 lib/naverMeasure.isNaverUnmeasured와 같은 규칙(캡차·error·일일 상한 건너뜀)이다. 차이는 한 가지: 값이 아예 없으면
+    프론트는 '미측정'으로 보지만 여기서는 False로 둔다 — 순위 전용 행처럼 naver_result가 원래 비는 행을 보류로 잘못 잡지 않기 위함이다.
+    """
+    if not isinstance(naver_result, dict):
+        return False
+    return bool(naver_result.get("captcha_detected")) or bool(naver_result.get("error")) or naver_result.get("quota_skipped") is True
+
+
 def calc_naver_exposure(scan_result: dict) -> float:
     """네이버 AI 브리핑 실제 노출 확인 점수 (0~100).
 
