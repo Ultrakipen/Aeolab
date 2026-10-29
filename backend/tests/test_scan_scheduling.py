@@ -150,3 +150,20 @@ def test_competitor_job_due_spread_runs_each_business_once_per_week_per_job():
         sync_wd = next(wd for wd in range(7) if competitor_job_due("sync", wd, biz, True))
         assert sync_wd == scan_slot(biz)
         assert competitor_job_due("enrich", (sync_wd + 2) % 7, biz, True)   # 72h 캐시 안
+
+
+def test_spread_patterns_load_each_weekday_evenly():
+    """슬롯 분산 패턴이 하루에 몰리지 않는다(이전: Basic 월·목 42%·일 0%, Pro 수·금 71%)."""
+    ids = [str(uuid.UUID(int=(i + 1) * 104729)) for i in range(700)]
+    for plan, per_biz in (("startup", 1), ("basic", 2), ("pro", 3)):
+        per_day = [sum(1 for i in ids if wd in scheduled_full_scan_days(plan, i)) for wd in range(7)]
+        share = per_biz / 7
+        assert max(per_day) <= 700 * share * 1.25, (plan, per_day)
+        assert min(per_day) >= 700 * share * 0.75, (plan, per_day)       # 쉬는 요일이 없다
+        assert sum(per_day) == 700 * per_biz                              # 가게당 주 N회는 그대로
+
+
+def test_pro_full_scan_gaps_are_2_2_3_days():
+    for i in (str(uuid.UUID(int=(k + 1) * 104729)) for k in range(100)):
+        d = sorted(scheduled_full_scan_days("pro", i))
+        assert sorted(((d[(k + 1) % 3] - d[k]) % 7) for k in range(3)) == [2, 2, 3]

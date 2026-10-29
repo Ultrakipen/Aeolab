@@ -20,8 +20,9 @@ from typing import Callable, Iterable, TypeVar
 T = TypeVar("T")
 
 # 요일: 0=월 … 6=일 (date.weekday())
-_BASIC_PAIRS = ({0, 3}, {1, 4}, {2, 5})          # 주 2회 — 이틀 간격 쌍
-_PRO_TRIPLES = ({0, 2, 4}, {1, 3, 5}, {2, 4, 6})  # 주 3회 — 하루 걸러
+# 슬롯 분산 패턴은 가게 슬롯(0~6)에서 바로 만든다: Basic {s, s+3}(주 2회), Pro {s, s+2, s+4}(주 3회).
+# 이전에는 슬롯%3으로 3가지 패턴만 써서 Basic이 월·목에 42%씩 몰리고 일요일은 0%, Pro가 수·금에 71%씩 몰렸다(2026-10-29 측정).
+# 슬롯이 7일에 고르게 퍼지므로 이 방식은 하루 부하가 Basic 2/7·Pro 3/7로 정확히 균등하다.
 
 
 def slot_spread_enabled() -> bool:
@@ -63,9 +64,9 @@ def scheduled_full_scan_days(plan: str, biz_id: str) -> set[int]:
     if plan == "startup":
         return {slot}                                   # 주 1회
     if plan == "basic":
-        return set(_BASIC_PAIRS[slot % 3])              # 주 2회
+        return {slot, (slot + 3) % 7}                   # 주 2회 — 3·4일 간격
     if plan == "pro":
-        return set(_PRO_TRIPLES[slot % 3])              # 주 3회 풀스캔, 나머지 날 경량
+        return {slot, (slot + 2) % 7, (slot + 4) % 7}   # 주 3회 풀스캔(간격 2·2·3일), 나머지 날 경량
     return set(range(7))                                # biz(매일)·그 외 — 분산 불가
 
 
