@@ -100,7 +100,9 @@ export default function RootLayout({
                   name: "AEOlab",
                   alternateName: "AI Engine Optimization Lab",
                   url: "https://aeolab.co.kr",
-                  description: "한국 소상공인을 위한 AI 검색 사업장 성장 서비스 — 네이버 AI 브리핑·ChatGPT·Gemini·Google AI 노출 진단 및 개선",
+                  description: GEMINI_LIVE
+                    ? "한국 소상공인을 위한 AI 검색 사업장 성장 서비스 — 네이버 AI 브리핑·ChatGPT·Gemini·Google AI 노출 진단 및 개선"
+                    : "한국 소상공인을 위한 AI 검색 사업장 성장 서비스 — 네이버 AI 브리핑·ChatGPT·Google AI 노출 진단 및 개선",
                   areaServed: { "@type": "Country", name: "South Korea" },
                 },
                 {

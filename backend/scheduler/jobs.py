@@ -1155,6 +1155,12 @@ async def daily_scan_all():
                                 logger.info(f"[GrowthStage] 채점 보정 이전 기록과의 비교라 상승 알림 생략 biz={biz.get('id')}")
                             # 히스테리시스: 경계에서 흔들리는 점수의 반복 상승 알림을 막는다(새 단계 하한 +3점 이상, 최근 28일 첫 도달)
                             _hysteresis_blocked = False
+                            # 이번 점수가 일부 항목(가중치 40% 미만)만으로 계산됐으면 단계 변화는 측정 공백일 수 있다 → 알리지 않는다
+                            from services.stage_names import coverage_allows_stage_alert
+                            _cov = (score.get("track1_detail") or {}).get("coverage")
+                            if not coverage_allows_stage_alert(_cov):
+                                _hysteresis_blocked = True
+                                logger.info(f"[GrowthStage] 점수가 일부 항목만으로 계산돼(coverage={_cov}) 단계 상승 알림 생략 biz={biz.get('id')}")
                             if _scan_notify_ok and not _rescored and is_stage_upgrade(prev_stage.stage, current_stage.stage):
                                 try:
                                     from services.stage_names import upgrade_alert_allowed, STAGE_UPGRADE_LOOKBACK_DAYS

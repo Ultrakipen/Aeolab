@@ -56,6 +56,20 @@ function StatusBadge({ status }: { status: ConsistencyStatus }) {
   )
 }
 
+/**
+ * 구글 정책(Places API, 2026-10-29 확인): 지도 없이 장소 정보를 보여줄 때는 공식 Google Maps 로고를 쓴다.
+ * 높이 16~19px(18px), 여백 위·좌·우 10px·아래 5px, 로고 변형 금지·원본 비율 유지, 내용과 같은 컨테이너의 위/아래에 둔다.
+ * 텍스트 "Google Maps"는 인터페이스가 로고를 지원하지 못할 때만 허용되므로 쓰지 않는다.
+ */
+function GoogleMapsAttribution() {
+  return (
+    <div className="inline-block px-[10px] pb-[5px] pt-[10px]">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/google-maps-attribution.svg" alt="Google Maps" width={98} height={18} className="block h-[18px] w-auto" />
+    </div>
+  )
+}
+
 function errMsg(e: unknown): string {
   return e instanceof ConsistencyApiError ? e.message : '잠시 후 다시 시도해 주세요'
 }
@@ -251,7 +265,7 @@ export function ChannelConsistencyCard({
                       </button>
                     </li>
                   ))}
-                  <li className="text-sm text-gray-500">후보 정보 출처: Google Maps</li>
+                  <li><GoogleMapsAttribution /></li>
                 </ul>
               )}
             </div>
@@ -307,7 +321,6 @@ export function ChannelConsistencyCard({
                   {CHANNELS.map((c) => (
                     <th key={c.key} scope="col" className="py-2 pr-3 font-semibold">
                       {c.label}
-                      {c.key === 'google' && <span className="block text-sm font-normal text-gray-500">Google Maps</span>}
                     </th>
                   ))}
                 </tr>
@@ -363,10 +376,7 @@ export function ChannelConsistencyCard({
               const notice = channelNotice(ch)
               return (
                 <div key={c.key} className="rounded-lg border p-3">
-                  <p className="text-sm font-bold text-gray-800">
-                    {c.label}
-                    {c.key === 'google' && <span className="ml-2 text-sm font-normal text-gray-500">Google Maps</span>}
-                  </p>
+                  <p className="text-sm font-bold text-gray-800">{c.label}</p>
                   {ch.state === 'found' ? (
                     <ul className="mt-2 space-y-3">
                       {FIELD_ROWS.filter((row) => ch.fields?.[row.key]).map((row) => (
@@ -395,9 +405,10 @@ export function ChannelConsistencyCard({
             <p className="mt-3 text-sm text-gray-700">
               구글 지도 평점 {result.channels.google.rating}
               {result.channels.google.rating_count != null && ` · 리뷰 ${result.channels.google.rating_count.toLocaleString('ko-KR')}건`}
-              <span className="text-gray-500"> (Google Maps, 점검 시점 기준)</span>
+              <span className="text-gray-500"> (점검 시점 기준)</span>
             </p>
           )}
+          {result.channels.google.state === 'found' && <GoogleMapsAttribution />}
         </div>
       )}
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { GEMINI_MEASUREMENT_LIVE } from "@/lib/featureFlags";
 import {
   LineChart,
   Line,
@@ -691,7 +692,7 @@ function BasicTab({
         <SectionTitle
           icon={<Globe className="w-4 h-4 text-blue-600" />}
           title="AI 서비스별 노출 결과표"
-          subtitle="네이버·ChatGPT·Gemini·Google AI 노출 현황 · 매주 자동 업데이트"
+          subtitle={GEMINI_MEASUREMENT_LIVE ? "네이버·ChatGPT·Gemini·Google AI 노출 현황 · 매주 자동 업데이트" : "네이버·ChatGPT·Google AI 노출 현황 · 매주 자동 업데이트"}
         />
         <PlatformResultTable showAll={true} />
         <p className="text-sm text-gray-600 mt-2">* 예시 데이터입니다.</p>

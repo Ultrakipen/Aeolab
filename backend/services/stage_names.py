@@ -118,3 +118,15 @@ def normalize_stage_label(label: Optional[str], code: Optional[str] = None) -> s
     if label in LEGACY_STAGE_LABELS:
         return STAGE_NAME[LEGACY_STAGE_LABELS[label]]
     return label or ""
+
+
+# 이번 점수가 전체 가중치의 이 비율 미만으로만 계산됐으면(나머지는 '확인 전'으로 제외) 단계 변화는 실제 성장이 아니라
+# 측정 공백일 수 있다 → 성장 단계 상승 알림을 보내지 않는다. 근거 없는 제안값(2026-10-30, K 점검) — 실데이터로 보정할 것.
+STAGE_ALERT_MIN_COVERAGE = 0.4
+
+
+def coverage_allows_stage_alert(coverage) -> bool:
+    """coverage(0~1)를 알 수 없으면(키 없음·구버전 기록) 기존 동작대로 허용한다. 40% 미만일 때만 막는다."""
+    if isinstance(coverage, bool) or not isinstance(coverage, (int, float)):
+        return True
+    return coverage >= STAGE_ALERT_MIN_COVERAGE

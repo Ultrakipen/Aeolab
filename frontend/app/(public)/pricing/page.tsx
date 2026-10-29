@@ -15,7 +15,9 @@ import { MoreInfo } from "@/components/common/MoreInfo";
 
 export const metadata: Metadata = {
   title: "요금제 | AEOlab — AI 검색 노출 진단 서비스",
-  description: "Basic 월 17,900원부터 Biz까지. 네이버 AI 브리핑·ChatGPT·Gemini·Google AI 4가지 AI 서비스 노출 진단. 신규 가입 첫 달 50% 할인.",
+  description: GEMINI_LIVE
+    ? "Basic 월 17,900원부터 Biz까지. 네이버 AI 브리핑·ChatGPT·Gemini·Google AI 4가지 AI 서비스 노출 진단. 신규 가입 첫 달 50% 할인."
+    : "Basic 월 17,900원부터 Biz까지. 네이버 AI 브리핑·ChatGPT·Google AI 3가지 AI 서비스 노출 진단. 신규 가입 첫 달 50% 할인.",
   alternates: { canonical: "/pricing" },
   openGraph: {
     title: "AEOlab 요금제 — 월 17,900원부터",

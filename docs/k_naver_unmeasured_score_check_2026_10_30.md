@@ -37,3 +37,8 @@
 2. 남는 가중치가 일정 비율 미만(예: 0.4 미만 [제안])이면 Track1 숫자·성장 단계를 "일부 항목만 확인됨"으로 표시하고 성장 단계 상승/하락 알림을 보내지 않음.
 3. 변이 테스트(제외 장치를 빼면 실패)와 실제 저장 응답 픽스처 사용, 인기 가게 화면 대조(지침 9).
 임계값(0.4)은 근거 없는 제안값이므로 위 시뮬레이션처럼 실데이터로 보정한다.
+
+## 6. 후속 구현 (2026-10-30, 서버 배포·검증 완료)
+- `score_engine._is_smart_place_unmeasured`·`_is_local_map_unmeasured` 추가 → v3_1·v3_2 Track1에서 "읽은 적 없음" 항목을 `_excluded`에 포함(등록 사업장 dict, `naver_place_id` 키가 있을 때만 — 체험·레거시 dict는 기존 동작). 카카오 "미등록(`is_on_kakao=False`)"은 측정된 사실이라 0점 유지.
+- `track1_detail["coverage"]`(0~1) 추가, `stage_names.STAGE_ALERT_MIN_COVERAGE=0.4`·`coverage_allows_stage_alert` → `jobs.py` 성장 단계 상승 알림 게이트(기존 히스테리시스 플래그 재사용). 테스트 13개(`tests/test_unread_place_exclusion.py`), 변이 5종 검출, 서버 전체 823개 통과.
+- 실데이터 재계산: 법무법인 30.3→42.9(coverage 0.35, 알림 억제), 홍스튜디오 24.3→28.6. **남은 한계**: 네이버를 전혀 읽지 못한 신규 가게(시나리오 C)는 제외할 항목이 전부 빠져 coverage 0.0 → Track1 0.0·"시작 전"으로 보인다. 제외·coverage는 DB(`score_breakdown`)에 저장되지 않고 리포트 API로도 나가지 않아 화면에서 "확인 전"으로 바꾸려면 컬럼 추가→저장→API→프론트가 필요하다(`score_breakdown`에 키를 넣으면 최저 항목 계산 `min()`을 깨뜨릴 수 있어 사용 금지).

@@ -1521,6 +1521,50 @@ def _renormalized_track1(items: dict[str, float], weights: dict, excluded: set[s
     return sum(items[k] * weights[k] for k in items if k not in excluded) / total_w
 
 
+def _is_smart_place_unmeasured(naver_data: dict, biz: dict) -> bool:
+    """네이버 플레이스를 한 번도 읽지 못했고 사용자도 입력하지 않은 등록 사업장 — 낮은 점수가 아니라 "확인 전".
+
+    스마트플레이스 완성도는 플레이스 ID·순위·소개글·소식 값으로 계산되는데, 그것들이 전부 비어 있으면
+    "측정된 낮은 값"이 아니라 "읽은 적 없음"이다(2026-10-30 K 점검: 이 경우 인기 가게도 전부 '시작 전').
+    키 'naver_place_id'가 있는 dict(DB 사업장 행)에만 적용한다 — 체험·레거시 dict는 기존 동작 유지(_is_review_unmeasured와 같은 방식).
+    """
+    if "naver_place_id" not in biz:
+        return False
+    if str(biz.get("naver_place_id") or "").strip():
+        return False  # 플레이스 ID가 있으면 등록은 확인된 사실 — 기존 계산 유지
+    nd = naver_data or {}
+    if nd.get("is_smart_place") or nd.get("my_rank") or nd.get("naver_place_rank"):
+        return False
+    if any(biz.get(k) for k in ("is_smart_place", "has_recent_post", "has_intro", "has_faq")):
+        return False
+    if (biz.get("naver_intro_draft") or "").strip() or biz.get("talktalk_faq_draft"):
+        return False
+    if (biz.get("checklist_overrides") or {}).get("__recent_post_sufficient"):
+        return False
+    return True
+
+
+def _is_local_map_unmeasured(scan_result: dict, biz: dict, naver_data: dict) -> bool:
+    """네이버 지도 순위도 카카오 등록 여부도 확인하지 못한 등록 사업장 — 지도 점수는 "확인 전".
+
+    카카오 조회가 "미등록"(is_on_kakao=False)으로 답한 것은 측정된 사실이라 0점으로 유지한다.
+    """
+    if "naver_place_id" not in biz:
+        return False
+    nd = naver_data or {}
+    if nd.get("my_rank") or nd.get("naver_place_rank"):
+        return False
+    stored = biz.get("kakao_score")
+    if stored is not None and stored > 0:
+        return False
+    if biz.get("kakao_place_id") or biz.get("kakao_registered"):
+        return False
+    kr = scan_result.get("kakao_result") or scan_result.get("kakao") or {}
+    if isinstance(kr, dict) and (kr.get("is_on_kakao") is not None or "mentioned" in kr):
+        return False
+    return True
+
+
 def calc_track1_score_v3_1(
     scan_result: dict,
     biz: dict,
@@ -1578,6 +1622,10 @@ def calc_track1_score_v3_1(
         _excluded.add("review_quality")
     if _is_blog_unmeasured(naver_data):
         _excluded.add("blog_crank")     # 블로그 조회 실패 — 0점이 아니라 제외 후 재정규화
+    if _is_smart_place_unmeasured(naver_data, biz):
+        _excluded.add("smart_place_completeness")   # 플레이스를 읽은 적도 입력도 없음 — 낮은 값이 아니라 확인 전
+    if _is_local_map_unmeasured(scan_result, biz, naver_data):
+        _excluded.add("local_map_score")            # 네이버 지도 순위·카카오 등록 모두 확인 전
     score = _renormalized_track1(
         {
             "keyword_search_rank":      kw_search,
@@ -1600,6 +1648,8 @@ def calc_track1_score_v3_1(
         "model_version": "v3.1",
         "weights":       weights,
         "excluded":      sorted(_excluded),
+        # 이번 점수가 전체 가중치의 몇 %로 계산됐는가(0~1). 낮으면 단계 변화가 측정 공백일 수 있다(알림 억제에 사용)
+        "coverage":      round(sum(w for k, w in weights.items() if k not in _excluded), 2),
         "missing":       missing,
         "items": {
             "keyword_search_rank":      {"score": round(kw_search, 1),  "measured": kw_measured},
@@ -1717,6 +1767,10 @@ def calc_track1_score_v3_2(
         _excluded.add("review_quality")
     if _is_blog_unmeasured(naver_data):
         _excluded.add("blog_crank")     # 블로그 조회 실패 — 0점이 아니라 제외 후 재정규화
+    if _is_smart_place_unmeasured(naver_data, biz):
+        _excluded.add("smart_place_completeness")   # 플레이스를 읽은 적도 입력도 없음 — 낮은 값이 아니라 확인 전
+    if _is_local_map_unmeasured(scan_result, biz, naver_data):
+        _excluded.add("local_map_score")            # 네이버 지도 순위·카카오 등록 모두 확인 전
     score = _renormalized_track1(
         {
             "keyword_search_rank":      kw_search,
@@ -1741,6 +1795,8 @@ def calc_track1_score_v3_2(
         "model_version": "v3.2",
         "weights":       weights,
         "excluded":      sorted(_excluded),
+        # 이번 점수가 전체 가중치의 몇 %로 계산됐는가(0~1). 낮으면 단계 변화가 측정 공백일 수 있다(알림 억제에 사용)
+        "coverage":      round(sum(w for k, w in weights.items() if k not in _excluded), 2),
         "missing":       missing,
         "items": {
             "keyword_search_rank":      {"score": round(kw_search, 1),  "measured": kw_measured},

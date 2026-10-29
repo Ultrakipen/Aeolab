@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { GEMINI_MEASUREMENT_LIVE } from "@/lib/featureFlags";
 
 export const runtime = "edge";
 export const size = { width: 1200, height: 630 };
@@ -166,7 +167,9 @@ export default async function Image() {
             justifyContent: "center",
           }}
         >
-          네이버·ChatGPT·Gemini·Google AI 4곳 노출 자동 진단 · 경쟁사 벤치마킹 · 개선 가이드
+          {GEMINI_MEASUREMENT_LIVE
+            ? "네이버·ChatGPT·Gemini·Google AI 4곳 노출 자동 진단 · 경쟁사 벤치마킹 · 개선 가이드"
+            : "네이버·ChatGPT·Google AI 3곳 노출 자동 진단 · 경쟁사 벤치마킹 · 개선 가이드"}
         </div>
 
         {/* 도메인 */}

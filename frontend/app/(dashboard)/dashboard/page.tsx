@@ -734,7 +734,7 @@ export default async function DashboardPage({
           </CollapseSectionWrapper>
 
           {/* ⑥ 글로벌 AI — INACTIVE/프랜차이즈는 핵심 대안 채널이나, 자동 펼침 시 ①③과 겹쳐 페이지 과다 길어짐(2026-07-07 실측) → 배지로 우선순위만 표시 */}
-          <CollapseSectionWrapper id="section-global" title="글로벌 AI 현황" description="ChatGPT · Gemini · Google AI 실측 · 글로벌 소개글" iconColor="text-blue-600" defaultOpen={false} badgeText={(briefingEligibility === "inactive" || isFranchise) ? "핵심 경로" : undefined} badgeColor="blue">
+          <CollapseSectionWrapper id="section-global" title="글로벌 AI 현황" description={GEMINI_LIVE ? "ChatGPT · Gemini · Google AI 실측 · 글로벌 소개글" : "ChatGPT · Google AI 실측 · 글로벌 소개글"} iconColor="text-blue-600" defaultOpen={false} badgeText={(briefingEligibility === "inactive" || isFranchise) ? "핵심 경로" : undefined} badgeColor="blue">
             <DashboardGlobalAiZone
               category={bizBase.category}
               plan={plan}

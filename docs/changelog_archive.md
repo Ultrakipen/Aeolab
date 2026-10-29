@@ -688,3 +688,10 @@ CREATE INDEX IF NOT EXISTS idx_trial_scans_claimed
 
 - **2026-10-25 상업 서비스 직전 종합 점검**: FAQ 토스 문구→크렙, 체험 화면 대비 상향, `trial_scan_abort` 이벤트, Pretendard 서브셋. 에이전트 오판 6건 기각. **미해결(사용자)**: Supabase Auth SMTP 확인·후기 확보. 상세 `docs/prelaunch_inspection_2026_10_25_v1.0.md`, 출시 체크리스트 `docs/launch_checklist_2026_10_25_v1.0.md`.
 - **2026-10-10 무료 체험 개편 + 측정 정확도**: 가게 이름만 입력 2화면·"5개 길" 결과·카카오 측정 수정·`calc_kakao_completeness` `is_on_kakao` 인식(`score_engine.py:566`). ⚠️ `scan.py`의 `businesses.kakao_score` 자동 저장 블록은 죽은 코드이며 **살리면 안 됨**(사용자 체크리스트 점수를 덮어씀). 상세 `docs/trial_improvement_2026_09_28_v1.0.md` §17~§24.
+
+- (2026-10-30 이관) 아래는 CLAUDE.md "최근 업데이트"에서 옮긴 항목이다.
+- **2026-10-25~27 네이버 접속·측정 신뢰성 묶음 (git b48d3b4·7ae1a39·06f6dda·4be733c·48cdc56 등, 서버 배포 완료, push 미실행)**
+  - **접속 보호**: 상한을 페이지 수(cost)로 계산·정기 잡 배치 몫 70%·속도 기준(1분12/10분30/1시간120 — 네이버 비공개라 **보수적 제안값, 검증된 안전선 아님**)·회로 차단기(`services/naver_access_guard.py`, 차단 시 3h→24h)·경쟁사/키워드 순위 공유 캐시·`GET /admin/naver-access`·슬롯 분산 `NAVER_SCAN_SLOT_SPREAD` 기본 꺼짐. 용량은 **코드 기준 모델(실측 아님)로 약 40~50곳 한계**. IP 우회 미적용(`backend/.env` `NAVER_PROXY_LIST` 비움 — 루트 `.env`는 백엔드가 안 읽음). 상세 `docs/naver_place_access_protection_2026_10_27.md`.
+  - **서버 IP 일시 차단 사고(10-27)**: 서버에서 점검 함수를 연속 호출(세마포어·무작위 대기 우회)해 발생. **네이버 페이지 구조 확인은 로컬 Playwright로, 서버에서 점검 함수 연속 호출 금지.** 차단 감지는 `services/naver_block.is_naver_block_page`.
+  - **프록시·쿠키(10-25)**: Webshare 407 → 직접 접속 전환, `NID_SES`/`NID_AUT` 교체(다음 ~11-24). 접속 실패가 `mentioned:false`로 저장되던 결함 수정(`error:"page_load_failed"`, `scan.py:2154` 가드). ⚠️ 이전 저장분은 구분 불가. 미해결: Gemini 무료 티어 한도.
+  - **측정 정확도(10-26~27)**: 플레이스 ID 자동 확정(`naver_place_resolver.py`, 이름 일치 1곳일 때만)·순위 미측정은 0점이 아니라 제외 후 재정규화(`score_engine._renormalized_track1`)·지역검색 API 5곳 한계 None 처리·`lib/naverMeasure.ts`로 측정실패 판정 통일·소식/사진/메뉴 판정 오탐 수정(`feed_post_parser.py`)·라벨 "AI 검색 준비도 · 보강 단계". 상세 `docs/popular_shop_trust_cases_2026_10_27.md`.
