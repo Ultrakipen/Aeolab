@@ -1330,7 +1330,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                 <p className="text-sm font-bold text-gray-700 mb-1 flex items-center gap-1.5">
                   <Star className="w-4 h-4 text-gray-600" />주요 수치 비교
                 </p>
-                <p className="text-sm text-gray-600 mb-3">* 각 경쟁사의 '확인' 날짜 기준 (2주마다 자동 갱신, 경쟁사 목록의 '새로고침'으로 직접 갱신 가능) — 실시간 값과 다를 수 있습니다</p>
+                <p className="text-sm text-gray-600 mb-3">* 각 경쟁사의 '확인' 날짜 기준 (약 2주 간격으로 자동 갱신,경쟁사 목록의 '새로고침'으로 직접 갱신 가능) — 실시간 값과 다를 수 있습니다</p>
                 <div className="overflow-x-auto" tabIndex={0}>
                 <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-100 min-w-[280px]">
                   <div className="grid grid-cols-3 text-sm font-semibold text-gray-600 px-4 py-2.5 border-b border-gray-200 bg-gray-100">
@@ -2596,8 +2596,9 @@ export function CompetitorsClient({
                       pioneerKeywords={gapAnalysis?.keyword_gap?.pioneer_keywords ?? []}
                       onSyncRequest={async () => {
                         const token = await getFreshToken()
-                        await syncCompetitorPlace(c.id, token)
-                        router.refresh()
+                        const r = await syncCompetitorPlace(c.id, token)
+                        if (r.refreshed) router.refresh()
+                        return r
                       }}
                       onPlaceIdSaved={() => router.refresh()}
                       onFetchFaq={() => handleFetchFaq(c.id)}

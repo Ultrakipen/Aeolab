@@ -697,13 +697,21 @@ export async function updateCompetitor(
 }
 
 // 경쟁사 플레이스 수동 동기화
-export async function syncCompetitorPlace(competitorId: string, token?: string): Promise<void> {
-  await apiCall<void>(`${BACKEND_URL}/api/competitors/${competitorId}/sync-place`, {
-    method: "POST",
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+// refreshed=false → 1시간 안에 이미 확인한 값이라 네이버에 다시 접속하지 않았다. 너무 자주 누르면 ApiError(status 429).
+export async function syncCompetitorPlace(
+  competitorId: string,
+  token?: string,
+): Promise<{ refreshed: boolean; minutes_ago?: number }> {
+  const body = await apiCall<{ refreshed?: boolean; minutes_ago?: number } | undefined>(
+    `${BACKEND_URL}/api/competitors/${competitorId}/sync-place`,
+    {
+      method: "POST",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
     },
-  });
+  );
+  return { refreshed: body?.refreshed !== false, minutes_ago: body?.minutes_ago };
 }
 
 // ── 채널별 AI 노출률 추이 ────────────────────────────────────────────────────

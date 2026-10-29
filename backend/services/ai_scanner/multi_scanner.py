@@ -180,7 +180,7 @@ class MultiAIScanner:
             # 사업장별 배치 스캔 시각을 분산 — 여러 사업장이 짧은 시간에 몰려 스캔되면
             # 자동화 패턴으로 보여 차단 유발 가능(2026-07-02/07-03 실측) — 시작 전 랜덤 대기
             await asyncio.sleep(random.uniform(20, 240))
-            for _q in _queries[:4]:
+            for _q in _queries[:_naver_ai_tab.ai_tab_max_queries()]:
                 try:
                     _r = await _naver_ai_tab.scan(_q, target)
                     if _r:

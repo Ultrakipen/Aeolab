@@ -18,7 +18,7 @@ from services.scan_scheduling import decide_scan_mode, keyword_rank_days, place_
 
 # ── 단위: 페이지 로드 수 (check_naver_playwright_quota의 cost와 같은 단위) ───────────────────
 BRIEF_PER_SCAN = 2        # 가정: scan_all/scan_basic이 네이버 브리핑 check_mention을 1회 호출하나 내부 변형 수는 미확인
-AI_TAB_PER_FULL = 4       # 코드: multi_scanner.scan_all이 질의 최대 4개로 AI탭 스캔(NAVER_AI_TAB_ENABLED=true일 때)
+AI_TAB_PER_FULL = int(os.getenv("NAVER_AI_TAB_MAX_QUERIES", "4"))   # 코드: multi_scanner.scan_all이 질의 최대 N개(기본 4, 환경변수로 1~4)로 AI탭 스캔(NAVER_AI_TAB_ENABLED=true일 때)
 LIGHT_SCAN_NAVER = 1      # 코드: scan_basic은 브리핑 1회
 RANK_PER_KEYWORD = 2      # 코드: naver_keyword_rank PC + 모바일(place_rank는 공식 API라 제외)
 PLACE_STATS_COST = 2      # 코드: fetch_stats cost=2 (주 1회 월요일 02:00 직전 잡, jobs.py)

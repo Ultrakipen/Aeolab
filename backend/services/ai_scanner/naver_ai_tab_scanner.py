@@ -26,6 +26,23 @@ _logger = logging.getLogger("aeolab")
 # 환경변수 fallback — DB 조회 실패 시에만 사용
 NAVER_AI_TAB_ENABLED: bool = os.getenv("NAVER_AI_TAB_ENABLED", "false").lower() == "true"
 
+AI_TAB_MAX_QUERIES_DEFAULT = 4
+
+
+def ai_tab_max_queries() -> int:
+    """스캔 1회당 AI탭에서 확인하는 검색어 수 — 환경변수 NAVER_AI_TAB_MAX_QUERIES(1~4, 기본 4=기존 동작).
+
+    네이버 접속량을 줄여야 할 때(활성 사업장이 용량 알림 70%에 닿을 때) 4→2로 낮추는 용도다. 호출할 때마다
+    읽으므로 서버 .env 수정 후 재시작만으로 적용된다. 잘못된 값은 기본값으로 되돌린다(0 이하·숫자 아님).
+    """
+    try:
+        n = int(os.getenv("NAVER_AI_TAB_MAX_QUERIES", str(AI_TAB_MAX_QUERIES_DEFAULT)))
+    except ValueError:
+        return AI_TAB_MAX_QUERIES_DEFAULT
+    if n < 1:
+        return AI_TAB_MAX_QUERIES_DEFAULT
+    return min(n, AI_TAB_MAX_QUERIES_DEFAULT)
+
 
 # 2026-08-08: 로컬 중복 구현 제거 — services.ai_scanner.get_naver_cookies()로 통합
 # (백업 계정 자동전환 로직이 naver_scanner.py와 동일하게 적용되도록 단일 소스화).
@@ -400,7 +417,7 @@ async def scan_batch(queries: list[str], business_name: str) -> dict:
         return {}
 
     results: dict = {}
-    for query in queries[:4]:  # 최대 4개
+    for query in queries[:ai_tab_max_queries()]:  # 기본 최대 4개
         result = await scan(query, business_name)
         if result is not None:
             results[query] = result

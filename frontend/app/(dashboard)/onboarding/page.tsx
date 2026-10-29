@@ -443,7 +443,7 @@ export default function OnboardingPage() {
               </div>
               <ul className="text-sm text-gray-600 space-y-1.5 mb-4">
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-indigo-400 shrink-0" />경쟁사 5곳 비교</li>
-                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-indigo-400 shrink-0" />경쟁사 변화 자동 알림 (정보는 2주마다 갱신)</li>
+                <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-indigo-400 shrink-0" />경쟁사 변화 자동 알림 (정보는 약 2주 간격으로 갱신)</li>
                 <li className="flex items-center gap-1.5"><Check className="w-4 h-4 text-indigo-400 shrink-0" />PDF 성과 보고서</li>
               </ul>
               <button

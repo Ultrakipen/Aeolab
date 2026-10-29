@@ -334,7 +334,7 @@ def test_sync_job_passes_cache_info_to_scheduler():
 
 def test_burst_of_new_businesses_does_not_push_existing_past_15_days():
     """20곳 + 20일째 신규 5곳(3곳 삭제) — 신규(관측 없음)가 맨 앞에서 하루 처리량을 쓰면 기존 사업장이 17일까지 밀렸다.
-    공개 문구가 "경쟁사 정보를 2주마다 갱신"이므로 급증 구간에서도 15일을 넘기지 않는다."""
+    공개 문구가 "경쟁사 정보를 약 2주 간격으로 갱신"이므로 급증 구간에서도 15일을 넘기지 않는다."""
     _, synced = _simulate(20, 90, 252, churn=True)
     assert _max_gap(synced) <= 15, _max_gap(synced)
 

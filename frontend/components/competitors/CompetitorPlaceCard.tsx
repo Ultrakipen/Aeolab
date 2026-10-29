@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { RefreshCw, Star, CheckCircle, XCircle, Info, Lock, ExternalLink, Bot, Newspaper, Globe, HelpCircle, KeyRound, Target } from "lucide-react";
-import { updateCompetitor, syncCompetitorPlace } from "@/lib/api";
+import { updateCompetitor, syncCompetitorPlace, ApiError } from "@/lib/api";
 
 // 플레이스 카드에 필요한 최소 Competitor 필드만 정의
 interface CompetitorWithPlace {
@@ -44,7 +44,7 @@ interface Props {
   competitor: CompetitorWithPlace;
   myReviewCount: number;
   myAvgRating: number | null;
-  onSyncRequest: () => void;
+  onSyncRequest: () => Promise<{ refreshed: boolean } | void> | void;
   accessToken?: string;
   onPlaceIdSaved?: () => void;
   myBlogMentions?: number | null;   // 내 가게 블로그 언급 수 (비교용) — null=측정 실패
@@ -359,6 +359,7 @@ export function CompetitorPlaceCard({
   isFetchingWeakness = false,
 }: Props) {
   const [syncing, setSyncing] = useState(false);
+  const [syncNotice, setSyncNotice] = useState<{ tone: "info" | "error"; text: string } | null>(null);
   // 저장된 naver_place_id가 있으면 초기값으로 pre-populate
   const [localPlaceId, setLocalPlaceId] = useState(competitor.naver_place_id ?? "");
   const [isSaving, setIsSaving] = useState(false);
@@ -373,10 +374,22 @@ export function CompetitorPlaceCard({
 
   const handleSync = async () => {
     setSyncing(true);
+    setSyncNotice(null);
     try {
-      await onSyncRequest();
+      const r = await onSyncRequest();
+      if (r && r.refreshed === false) {
+        // 1시간 안에 이미 확인한 값 — 네이버에 다시 접속하지 않았다
+        setSyncNotice({ tone: "info", text: "방금 확인한 값이에요. 1시간 뒤에 다시 새로고침할 수 있어요." });
+      }
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 429) {
+        setSyncNotice({ tone: "info", text: "너무 자주 눌렀어요. 잠시 후 다시 시도해 주세요." });
+      } else {
+        setSyncNotice({ tone: "error", text: "새로고침하지 못했어요. 잠시 후 다시 시도해 주세요." });
+      }
     } finally {
       setSyncing(false);
+      setTimeout(() => setSyncNotice(null), 6000);
     }
   };
 
@@ -471,6 +484,11 @@ export function CompetitorPlaceCard({
               {syncing ? "동기화 중..." : "저장된 ID로 지금 동기화"}
             </button>
           )}
+          {syncNotice && (
+            <p role="status" className={`text-sm ${syncNotice.tone === "error" ? "text-red-700" : "text-gray-700"}`}>
+              {syncNotice.text}
+            </p>
+          )}
         </div>
       </div>
     );
@@ -499,6 +517,11 @@ export function CompetitorPlaceCard({
           </button>
         </div>
       </div>
+      {syncNotice && (
+        <p role="status" className={`text-sm -mt-2 ${syncNotice.tone === "error" ? "text-red-700" : "text-gray-700"}`}>
+          {syncNotice.text}
+        </p>
+      )}
 
       {/* 핵심 격차 1줄 — 클릭·스크롤 없이 바로 보이는 위치 */}
       <CoreGapBadge

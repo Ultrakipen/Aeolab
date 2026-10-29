@@ -1411,7 +1411,7 @@ export default function DemoPage() {
                 { step: "1", label: "1분 회원가입",               desc: "이메일 인증만으로 즉시 시작" },
                 { step: "2", label: "가게 등록",                   desc: "방금 입력한 정보 그대로 사용" },
                 { step: "3", label: "Basic 구독 시작",              desc: "네이버·Google AI + Gemini·ChatGPT 각 100회 (총 200회) 자동 측정" },
-                { step: "4", label: "경쟁사 데이터 자동 수집",     desc: "경쟁사 정보를 2주마다 자동으로 모읍니다" },
+                { step: "4", label: "경쟁사 데이터 자동 수집",     desc: "경쟁사 정보를 약 2주 간격으로 자동 수집합니다" },
                 { step: "5", label: "AI 맞춤 가이드",       desc: "경쟁사 격차 기반 우선순위 실행 가이드" },
                 { step: "6", label: "7일 뒤 자동 재측정",         desc: "행동한 날짜로부터 7일 뒤 다시 측정해 비교합니다" },
               ].map((s) => (
