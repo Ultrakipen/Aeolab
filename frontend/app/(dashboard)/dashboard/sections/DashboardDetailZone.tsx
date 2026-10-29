@@ -26,6 +26,7 @@ import ScoreEvidenceCard from "../ScoreEvidenceCard";
 import SmartplaceAutoCheck from "@/components/dashboard/SmartplaceAutoCheck";
 import KakaoChecklistCard from "@/components/dashboard/KakaoChecklistCard";
 import { WebsiteCheckCard } from "@/components/dashboard/WebsiteCheckCard";
+import { ChannelConsistencyCard } from "@/components/dashboard/ChannelConsistencyCard";
 import ConversionGuideSection from "@/components/dashboard/ConversionGuideSection";
 import ProUpgradePreview from "@/components/dashboard/ProUpgradePreview";
 import { MultiBizTable } from "@/components/dashboard/MultiBizTable";
@@ -565,6 +566,9 @@ export default function DashboardDetailZone({
             kakaoRegistered={kakaoRegistered}
             authToken={accessToken}
           />
+          {accessToken && (
+            <ChannelConsistencyCard bizId={business.id} accessToken={accessToken} plan={plan} />
+          )}
           <WebsiteCheckCard websiteUrl={business.website_url ?? undefined} checkResult={websiteCheckResult} />
 
           {/* 키워드별 블로그 노출 비교 */}

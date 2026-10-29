@@ -362,7 +362,7 @@ export default function PricingPage() {
               <h2 className="text-lg md:text-xl font-bold text-gray-900">추가 진단 도구</h2>
             </div>
             <p className="text-sm text-gray-600 mb-5 break-keep">
-              AI 노출 점수가 낮은 <strong>원인을 찾는</strong> 도구 두 가지를 구독에 포함해 제공합니다.
+              AI 노출 점수가 낮은 <strong>원인을 찾는</strong> 도구 세 가지를 구독에 포함해 제공합니다.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="bg-white rounded-xl border border-gray-200 p-4">
@@ -381,6 +381,15 @@ export default function PricingPage() {
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed break-keep">
                   채팅방 메뉴·소개글·최근 소식 누락 자동 확인 · 즉시 쓸 수 있는 초안 제공
+                </p>
+              </div>
+              <div className="bg-white rounded-xl border border-gray-200 p-4 sm:col-span-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <IconTile icon={MapPin} tone="green" size="sm" />
+                  <p className="font-semibold text-gray-900 text-sm">채널 정보 일치 점검</p>
+                </div>
+                <p className="text-sm text-gray-600 leading-relaxed break-keep">
+                  내가 입력한 이름·주소·전화번호가 카카오맵·네이버·구글 지도에서 같은지 확인 · 하루 2번(Pro 3번)
                 </p>
               </div>
             </div>

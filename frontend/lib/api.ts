@@ -1043,3 +1043,94 @@ export async function removeCustomKeyword(bizId: string, keyword: string, token:
     },
   );
 }
+
+// ── 채널 정보 일관성 점검 (Basic 이상, 2026-10-30) ────────────────────────────────
+// 구글 지도 정보는 약관상 저장하지 않고 점검할 때마다 새로 불러온다. 설계: docs/naver_independence_design_v2.0_final_2026_10_29.md §5-2
+
+export type ConsistencyStatus = "match" | "mismatch" | "unknown";
+
+export interface ConsistencyField {
+  status: ConsistencyStatus;
+  expected: string | null;
+  observed: string | null;
+  note: string;
+}
+
+export interface ConsistencyChannel {
+  state: "found" | "not_found" | "ambiguous" | "error" | "not_linked";
+  observed_name?: string | null;
+  fields?: Record<string, ConsistencyField>;
+  error?: string;
+  note?: string;
+  lookup_uncertain?: boolean;
+  candidates?: { name: string | null; address: string | null }[];
+  rating?: number | null;
+  rating_count?: number | null;
+  business_status?: string | null;
+  attribution?: string;
+}
+
+export interface ConsistencyUsage {
+  used: number;
+  limit: number;
+  remaining: number;
+}
+
+export interface ConsistencyResult {
+  checked_at: string;
+  expected: { name: string; address: string; phone: string; website: string };
+  channels: { kakao: ConsistencyChannel; naver: ConsistencyChannel; google: ConsistencyChannel };
+  summary: { match: number; mismatch: number; unknown: number };
+  usage?: ConsistencyUsage;
+}
+
+export interface ConsistencyStatusInfo extends ConsistencyUsage {
+  allowed: boolean;
+  plan: string;
+  google_linked: boolean;
+}
+
+export interface GoogleCandidate {
+  place_id: string;
+  name: string | null;
+  address: string | null;
+}
+
+/** detail이 문자열인 안내문(한도·권한·구글 연결 문제)을 그대로 사용자에게 보여주기 위한 전용 오류 */
+export class ConsistencyApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ConsistencyApiError";
+    this.status = status;
+  }
+}
+
+async function consistencyCall<T>(path: string, token: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${BACKEND_URL}/api/consistency/${path}`, {
+    ...init,
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, ...(init?.headers ?? {}) },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const detail = typeof body?.detail === "string" ? body.detail : "";
+    throw new ConsistencyApiError(detail || "잠시 후 다시 시도해 주세요", res.status);
+  }
+  return (await res.json()) as T;
+}
+
+export const getConsistencyStatus = (bizId: string, token: string) =>
+  consistencyCall<ConsistencyStatusInfo>(`${bizId}/status`, token);
+
+export const searchGoogleCandidates = (bizId: string, token: string) =>
+  consistencyCall<{ candidates: GoogleCandidate[]; attribution: string }>(`${bizId}/google-candidates`, token, { method: "POST" });
+
+/** placeId가 null이면 연결 해제 */
+export const linkGooglePlace = (bizId: string, token: string, placeId: string | null) =>
+  consistencyCall<{ google_linked: boolean }>(`${bizId}/link-google`, token, {
+    method: "POST",
+    body: JSON.stringify({ place_id: placeId }),
+  });
+
+export const runConsistencyCheck = (bizId: string, token: string) =>
+  consistencyCall<ConsistencyResult>(`${bizId}/check`, token, { method: "POST" });
