@@ -165,7 +165,8 @@ async def issue_billing(body: BillingIssueRequest, request: Request, user: dict 
     from utils.payment_event_log import find_recent_success_event
     recent_match = await find_recent_success_event(user_id, "billing_issue", body.amount, window_minutes=10)
     payment_key = None  # 크렙 transactionNumber(tid) — 7일 환불 시 취소 키
-    charge_start_at = datetime.now().isoformat()
+    from utils.kst import utc_now_iso
+    charge_start_at = utc_now_iso()   # 시간대가 붙은 UTC — 시간대 없는 서버 시각(KST)을 저장하면 DB가 UTC로 읽어 9시간 뒤로 기록된다
     skip_charge = False
     if recent_match:
         logger.warning(f"issue_billing 중복 청구 방지 — 최근 성공 이벤트 재사용: user_id={user_id}, amount={body.amount}")
@@ -193,7 +194,7 @@ async def issue_billing(body: BillingIssueRequest, request: Request, user: dict 
 
         payment_key = pay_res.data.get("transactionNumber")
         await record_payment_event(user_id, "billing_issue", "success", body.amount, payment_key)
-        charge_start_at = datetime.now().isoformat()
+        charge_start_at = utc_now_iso()
 
     # 3. 구독 저장
     supabase = get_client()

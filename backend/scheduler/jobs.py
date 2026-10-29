@@ -4367,7 +4367,8 @@ async def send_monthly_performance_reports():
                 start_raw = sub.get("start_at")
                 if not start_raw:
                     continue
-                start = date.fromisoformat(str(start_raw)[:10])
+                from utils.kst import kst_date_from_iso
+                start = kst_date_from_iso(start_raw)   # start_at은 시간대 있는 값(UTC) — 한국 날짜로 바꿔 today(KST)와 비교
                 days_since = (today - start).days
                 if days_since not in (30, 60, 90):
                     continue
