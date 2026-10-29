@@ -3214,6 +3214,24 @@ async def competitor_place_sync_job():
         )
         rows = _cps_rows_res.data or []
 
+        # 서비스 기간이 끝난 계정(만료된 해지·구독 없음)의 경쟁사는 크롤하지 않는다 — 네이버 접속은 곧 차단 위험이라 쓸 곳에만 쓴다.
+        # 2026-10-29: 이 필터가 없어 하루 경쟁사 크롤 48페이지가 전부 만료된 해지 계정·관리자 계정의 것이었다.
+        # 필터를 못 만들면(조회 실패) 기존처럼 전체를 처리한다(스캔이 멈추는 쪽이 더 나쁘다).
+        try:
+            from services.scan_scheduling import entitled_user_ids
+            _subs_res = await _db(
+                supabase.table("subscriptions").select("user_id, status, end_at").in_("status", ["active", "grace_period", "cancelled"])
+            )
+            _owner_res = await _db(supabase.table("businesses").select("id, user_id"))
+            _admin_ids = [u.strip() for u in os.getenv("ADMIN_USER_IDS", "").split(",") if u.strip()]
+            _entitled = entitled_user_ids(_subs_res.data or [], admin_ids=_admin_ids)
+            _owner = {b["id"]: b.get("user_id") for b in (_owner_res.data or [])}
+            _before = len(rows)
+            rows = [r for r in rows if _owner.get(r["business_id"]) in _entitled]
+            logger.info(f"competitor_place_sync_job: 서비스 기간이 끝난 계정 제외 — 경쟁사 {_before}곳 중 {len(rows)}곳 대상")
+        except Exception as _ent_e:
+            logger.warning(f"competitor_place_sync_job: 구독 필터 실패(전체 처리로 진행): {_ent_e}")
+
         # business_id 중복 제거
         business_ids = list({r["business_id"] for r in rows})
         try:

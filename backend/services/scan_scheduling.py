@@ -315,3 +315,23 @@ def build_stale_items(rows: list[dict], now: datetime, cached_ids: Optional[set]
             g["last"] = ts
     return [{"id": g["id"], "last": None if g["unobserved"] else g["last"], "pages": g["pages"], "pages_full": g["pages_full"]}
             for g in groups.values()]
+
+
+def entitled_user_ids(sub_rows, admin_ids=()) -> set:
+    """지금 유료 서비스를 받을 자격이 있는 사용자 id (2026-10-29).
+
+    `middleware.plan_gate.get_user_plan`과 같은 기준이다: active·grace_period, 그리고 해지했어도 `end_at`이 아직
+    지나지 않았다면 포함(해지해도 만료일까지 서비스 유지). 만료일이 지난 해지·그 밖의 상태·구독 없음은 free라 제외한다.
+    네이버를 열어 보는 정기 잡이 이미 끝난 계정의 경쟁사까지 매일 크롤하던 낭비를 막는 데 쓴다 — 오늘(10-29) 경쟁사 크롤
+    48페이지가 전부 만료된 해지 계정·관리자 계정의 것이었다.
+    """
+    from middleware.plan_gate import _end_at_in_future
+
+    ids = {str(a) for a in (admin_ids or ()) if a}
+    for row in sub_rows or []:
+        uid, status = row.get("user_id"), row.get("status")
+        if not uid:
+            continue
+        if status in ("active", "grace_period") or (status == "cancelled" and _end_at_in_future(row.get("end_at"))):
+            ids.add(str(uid))
+    return ids
