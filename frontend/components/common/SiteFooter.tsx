@@ -30,21 +30,21 @@ export function SiteFooter({ activePage }: { activePage?: string }) {
               <Link
                 key={href}
                 href={href}
-                className={`hover:text-gray-700 whitespace-nowrap ${activePage === href ? 'text-blue-600 font-medium' : ''}`}
+                className={`inline-flex items-center min-h-[24px] hover:text-gray-700 whitespace-nowrap ${activePage === href ? 'text-blue-600 font-medium' : ''}`}
               >
                 {label}
               </Link>
             ))}
             <Link
               href="/board"
-              className={`hover:text-gray-700 whitespace-nowrap font-medium ${activePage === '/board' ? 'text-blue-600' : 'text-gray-800'}`}
+              className={`inline-flex items-center min-h-[24px] hover:text-gray-700 whitespace-nowrap font-medium ${activePage === '/board' ? 'text-blue-600' : 'text-gray-800'}`}
             >
               문의·건의
             </Link>
           </div>
           <div className="flex items-center gap-3 text-sm text-gray-600 flex-wrap justify-start sm:justify-end">
             {legalLinks.map(({ href, label }) => (
-              <Link key={href} href={href} className="hover:text-gray-600 whitespace-nowrap">
+              <Link key={href} href={href} className="inline-flex items-center min-h-[24px] hover:text-gray-600 whitespace-nowrap">
                 {label}
               </Link>
             ))}
