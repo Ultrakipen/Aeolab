@@ -1302,10 +1302,18 @@ async def sync_competitor_place_endpoint(competitor_id: str, user=Depends(get_cu
             if _err in _SYNC_NO_ACCESS_ERRORS and user["id"] not in _ADMIN_USER_IDS:
                 manual_sync_refund(user["id"])
             # 기존에 저장된 값은 그대로 두었다(실패를 0이나 빈 값으로 덮어쓰지 않는다)
-            raise HTTPException(
-                status_code=503,
-                detail="지금 네이버 확인 요청이 몰려 있어요. 저장된 값은 그대로 유지돼요. 잠시 후 다시 시도해 주세요.",
-            )
+            # 쿨다운 중이면 언제쯤 다시 되는지 알려 준다("잠시 후"만 말하면 최대 24시간인 대기를 사용자가 알 수 없다)
+            try:
+                from services.naver_status import user_status
+                _st = user_status()
+            except Exception:
+                _st = {}
+            if _st.get("state") == "delayed" and _st.get("eta_label"):
+                _when = "내일" if _st.get("reason") == "daily_limit" else _st["eta_label"]
+                _detail = f"지금 네이버 확인이 지연되고 있어요. {_when} 다시 시도해 주세요. 저장된 값은 그대로 유지돼요."
+            else:
+                _detail = "지금 네이버 확인 요청이 몰려 있어요. 저장된 값은 그대로 유지돼요. 잠시 후 다시 시도해 주세요."
+            raise HTTPException(status_code=503, detail=_detail)
         raise HTTPException(status_code=500, detail=f"동기화 실패: {_err}")
 
     return {

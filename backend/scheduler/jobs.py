@@ -482,7 +482,7 @@ async def daily_scan_all():
         basic_scanner = MultiAIScanner(mode="basic")
         full_scanner  = MultiAIScanner(mode="full")
 
-        _naver_captcha_count = 0  # 연속 캡챠 감지 카운터 — 2회 이상 시 당일 네이버 스캔 중단
+        _naver_captcha_count = 0  # 연속 캡챠 감지 카운터 — 2회째에 운영자 알림 1회(스캔은 계속, 네이버 측정은 쿨다운이 건너뜀)
 
         # 2026-10-27 사용자 증가 대비(docs/naver_request_load_spreading_design_v1.0.md §3 A·D):
         #  - 처리 순서를 날짜 시드로 회전 — 상한에 도달해도 DB 순서상 뒤쪽 사업장이 매일 굶지 않게 한다(사용자에게 보이지 않음)
@@ -581,21 +581,24 @@ async def daily_scan_all():
                         except Exception as _sp_upd_err:
                             logger.warning("[daily_scan_all] SmartPlace prescan DB 업데이트 실패: %s", _sp_upd_err)
 
-                # 네이버 캡챠 연속 감지 시 당일 네이버 스캔 조기 중단
+                # 네이버 캡챠 연속 감지 — 운영자에게 한 번 알린다. 스캔은 멈추지 않는다(2026-10-29).
+                # 스캐너가 캡차를 만나면 검색 화면 쿨다운(naver_access_guard.report_search_block)이 열려, 남은 사업장의 네이버 측정은
+                # 네트워크 요청 없이 즉시 "측정 불가"(naver_search_cooldown)로 끝난다. 그래서 예전처럼 루프를 break하면 안 된다:
+                # 쿨다운이 이미 IP를 지켜 주는데도 break는 남은 사업장의 글로벌 AI 스캔·점수·알림까지 그날 통째로 건너뛰게 하고,
+                # 현재 사업장의 이미 끝난 AI 스캔 결과(API 비용 지출)도 저장 전에 버렸다.
                 _naver_result = result.get("naver") or {}
                 if _naver_result.get("captcha_detected"):
                     _naver_captcha_count += 1
-                    if _naver_captcha_count >= 2:
+                    if _naver_captcha_count == 2:
                         logger.warning(
-                            "[daily_scan_all] 네이버 캡챠 연속 %d회 감지 — 당일 네이버 스캔 중단 (IP 차단 방어)",
+                            "[daily_scan_all] 네이버 캡챠 연속 %d회 감지 — 쿨다운으로 남은 사업장은 네이버 항목만 건너뛰고 나머지 스캔은 계속 (IP 차단 방어)",
                             _naver_captcha_count,
                         )
                         await send_slack_alert(
                             "네이버 스캔 IP 차단 감지",
-                            f"연속 {_naver_captcha_count}회 captcha 감지 — 남은 사업장 네이버 스캔 건너뜀. 내일 재시도.",
+                            f"연속 {_naver_captcha_count}회 captcha 감지 — 남은 사업장은 네이버 항목만 건너뛰고(확인 전 표시) 글로벌 AI 스캔은 계속합니다.",
                             level="warning",
                         )
-                        break
                 else:
                     _naver_captcha_count = 0  # 정상 응답 시 카운터 리셋
 

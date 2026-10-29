@@ -200,3 +200,24 @@ def test_other_errors_stay_500(monkeypatch):
     with pytest.raises(HTTPException) as e:
         _call(monkeypatch, last_synced=None, user_id=uid, sync_result={"error": "timeout"})
     assert e.value.status_code == 500
+
+
+def test_503_during_cooldown_tells_the_user_roughly_when_to_retry(monkeypatch):
+    """'잠시 후'만 말하면 최대 24시간인 대기를 사용자가 알 수 없다 — 쿨다운 중이면 예상 시점을 알려 준다."""
+    from services import naver_access_guard as g
+    uid = "u-eta"
+    _fresh(uid)
+    g.report_place_block("test")                      # 첫 차단: 3시간 쿨다운(conftest가 임시 상태 파일로 격리)
+    with pytest.raises(HTTPException) as e:
+        _call(monkeypatch, last_synced=None, user_id=uid, sync_result={"error": "naver_place_cooldown"})
+    assert e.value.status_code == 503
+    assert "시간 뒤" in e.value.detail and "저장된 값은 그대로" in e.value.detail
+    assert "naver_place_cooldown" not in e.value.detail and "잠시 후" not in e.value.detail
+
+
+def test_503_without_cooldown_keeps_the_generic_message(monkeypatch):
+    uid = "u-eta-2"
+    _fresh(uid)
+    with pytest.raises(HTTPException) as e:
+        _call(monkeypatch, last_synced=None, user_id=uid, sync_result={"error": "naver_rate_limited"})
+    assert e.value.status_code == 503 and "잠시 후 다시 시도" in e.value.detail

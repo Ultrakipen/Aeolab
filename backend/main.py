@@ -32,6 +32,7 @@ from routers import actions as actions_router
 from routers import notices as notices_router, faq as faq_router, inquiry as inquiry_router
 from routers import business_search as business_search_router
 from routers import kakao as kakao_router
+from routers import service_status as service_status_router
 from routers import blog as blog_router
 from routers import public_index as public_index_router
 from routers import assistant as assistant_router
@@ -176,6 +177,7 @@ app.include_router(startup.router,        prefix="/api/startup",     tags=["star
 app.include_router(teams.router,          prefix="/api/teams",        tags=["teams"])
 app.include_router(api_keys_router.router, prefix="/api/v1/keys",    tags=["public-api"])
 app.include_router(notices_router.router, prefix="/api/notices", tags=["notices"])
+app.include_router(service_status_router.router, prefix="/api/status", tags=["status"])
 app.include_router(faq_router.router,     prefix="/api/faq",     tags=["faq"])
 app.include_router(inquiry_router.router, prefix="/api/inquiry", tags=["inquiry"])
 app.include_router(board_router.router,   prefix="/api/board",   tags=["board"])
