@@ -765,7 +765,12 @@ def compute_competitor_score(
         blog_count = comp_row.get("blog_mention_count") or 0
         seo_score = comp_row.get("website_seo_score")
 
-        review_quality = round(min(100.0, min(70.0, review_count * 3.5) + (rating / 5.0 * 30.0 if rating else 0.0)), 1)
+        if rating:
+            review_quality = round(min(100.0, min(70.0, review_count * 3.5) + rating / 5.0 * 30.0), 1)
+        else:
+            # 평점을 못 읽음(평점 비공개·파싱 실패) — 평점 30점을 0으로 깎지 않고 리뷰 수만으로 100점 만점 환산
+            # (같은 70:30 비율을 유지하므로 평점이 있는 경쟁사와 척도가 같다. 2026-10-29)
+            review_quality = round(min(100.0, review_count * 5.0), 1)
         smart_place = round((34.0 if has_intro else 0.0) + (33.0 if has_menu else 0.0) + (33.0 if has_recent_post else 0.0), 1)
         online_mentions = round(min(100.0, blog_count * 5.0), 1)
 
