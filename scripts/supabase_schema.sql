@@ -3171,3 +3171,20 @@ ALTER TABLE businesses ADD COLUMN IF NOT EXISTS review_stats_source TEXT;
 ALTER TABLE businesses ADD COLUMN IF NOT EXISTS review_stats_measured_at TIMESTAMPTZ;
 ALTER TABLE businesses DROP CONSTRAINT IF EXISTS businesses_review_stats_source_chk;
 ALTER TABLE businesses ADD CONSTRAINT businesses_review_stats_source_chk CHECK (review_stats_source IS NULL OR review_stats_source IN ('user', 'measured'));
+
+-- ===========================================================
+-- 2026-10-30: 채널 정보 일관성 점검 사용 기록 (하루 한도용)
+-- 구글 Places 약관상 응답 내용은 저장하지 않는다 — 이 테이블에는 사용자·사업장·종류·시각만 저장한다.
+-- RLS를 켜고 정책을 만들지 않는다: 백엔드(service role)만 접근하고 anon/authenticated는 읽을 수 없다.
+-- 미실행이어도 백엔드가 프로세스 메모리 카운터로 한도를 지킨다(재시작 시 초기화).
+-- ===========================================================
+CREATE TABLE IF NOT EXISTS consistency_checks (
+  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id     UUID NOT NULL,
+  business_id UUID REFERENCES businesses(id) ON DELETE CASCADE,
+  kind        TEXT NOT NULL CHECK (kind IN ('check', 'candidates')),
+  created_at  TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_consistency_checks_user_day
+  ON consistency_checks(user_id, kind, created_at DESC);
+ALTER TABLE consistency_checks ENABLE ROW LEVEL SECURITY;

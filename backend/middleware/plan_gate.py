@@ -36,6 +36,7 @@ ADMIN_EMAILS: set[str] = {
 # history_days         : 점수 히스토리 보관 일수 (999 = 무제한)
 # businesses           : 등록 가능 사업장 수
 # review_reply_monthly : 월 리뷰 답변 생성 허용 횟수 (Claude Haiku 사용)
+# consistency_daily    : 채널 정보 일관성 점검 하루 허용 횟수 (구글 Places 상세 조회 1건/회, Basic 이상)
 # keyword_suggest_monthly : 월 키워드 제안 생성 허용 횟수
 # ──────────────────────────────────────────────────────────────────────────────
 PLAN_LIMITS = {
@@ -57,6 +58,7 @@ PLAN_LIMITS = {
         "crisis_reply_monthly": 0,
         "startup_report_monthly": 0,
         "support_ticket_monthly": 1,  # support.py/inquiry.py 단일 소스 (2026-07-15 통합)
+        "consistency_daily": 0,  # 채널 정보 일관성 점검(구글 Places 상세 조회 1건/회) — Basic 이상 (2026-10-30)
     },
     "basic": {
         # v3.5 한도 조정: 리뷰답변 20→50회, 소개글+채팅방메뉴 5→10건 (Haiku 추가 비용 <25원/월)
@@ -77,6 +79,7 @@ PLAN_LIMITS = {
         "crisis_reply_monthly": 20,  # 부정 리뷰 위기관리(Claude Haiku) — 무제한 호출 방지용 신설(2026-07-06)
         "startup_report_monthly": 0,  # basic은 startup_report 미제공
         "support_ticket_monthly": 3,
+        "consistency_daily": 2,
     },
     "pro": {
         # v3.4 강화: 리뷰답변 무제한, 히스토리 90일, FAQ 무제한 (Basic보다 낮으면 안 됨)
@@ -97,6 +100,7 @@ PLAN_LIMITS = {
         "crisis_reply_monthly": 999,
         "startup_report_monthly": 0,  # pro는 startup_report 미제공
         "support_ticket_monthly": 999,
+        "consistency_daily": 3,
     },
     "biz": {
         "competitors": 999,
@@ -116,6 +120,7 @@ PLAN_LIMITS = {
         "crisis_reply_monthly": 999,
         "startup_report_monthly": 10,  # 창업 시장 분석(Claude Sonnet) — 무제한 호출 방지용 신설(2026-07-08)
         "support_ticket_monthly": 999,
+        "consistency_daily": 5,
     },
     "startup": {
         # v3.4 강화: 리뷰답변 무제한, FAQ 무제한
@@ -136,6 +141,7 @@ PLAN_LIMITS = {
         "crisis_reply_monthly": 999,
         "startup_report_monthly": 5,  # 창업 시장 분석(Claude Sonnet) — 무제한 호출 방지용 신설(2026-07-08)
         "support_ticket_monthly": 999,
+        "consistency_daily": 2,
     },
     "enterprise": {
         # 영업 전용 200,000원/월 — Biz 한도 전부 + 사업장 무제한 + 팀 20명 + API 키 무제한
@@ -156,6 +162,7 @@ PLAN_LIMITS = {
         "crisis_reply_monthly": 999,
         "startup_report_monthly": 999,
         "support_ticket_monthly": 999,
+        "consistency_daily": 999,
     },
 }
 

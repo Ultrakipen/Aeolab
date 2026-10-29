@@ -37,6 +37,7 @@ from routers import blog as blog_router
 from routers import public_index as public_index_router
 from routers import assistant as assistant_router
 from routers import keywords as keywords_router
+from routers import place_consistency as place_consistency_router
 from routers import share as share_router
 from routers import public_briefing as public_briefing_router
 from routers import delivery as delivery_router
@@ -168,6 +169,7 @@ app.include_router(admin.router,      prefix="/admin",       tags=["admin"])
 app.include_router(admin.router,      prefix="/api/admin",   tags=["admin"])  # Nginx /api/ 경유 브라우저 직접 접근용
 # business_search_router를 business.router보다 먼저 등록 — /search 경로가 /{id} 경로와 충돌하지 않도록
 app.include_router(business_search_router.router, prefix="/api/businesses", tags=["business-search"])
+app.include_router(place_consistency_router.router, prefix="/api/consistency", tags=["consistency"])
 # keywords_router도 business.router보다 먼저 — /{biz_id}/keywords 경로 충돌 방지
 app.include_router(keywords_router.router, prefix="/api/businesses", tags=["keywords"])
 app.include_router(business.router,   prefix="/api/businesses", tags=["business"])
