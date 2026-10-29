@@ -101,8 +101,10 @@ export default function DashboardHeroCard({
           ? "네이버 검색·플레이스·AI탭 집중 전략 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다"
           : "네이버 검색·플레이스·AI탭이 주요 노출 경로 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다",
       }
-    : unmeasured
-    // 네이버 측정이 실패했고 직전 성공 결과도 없으면 그 점수로 단계 라벨(등급)을 붙이지 않는다
+    : naverCaptchaBlocked
+    // 네이버 측정이 실패하면 단계 라벨(등급)을 붙이지 않는다 — 직전 성공 결과가 있어도 마찬가지다(2026-10-29).
+    // 점수는 확인된 항목만으로 다시 계산돼(높게 나오던 브리핑·순위가 빠져) 차단만으로도 한 단계 낮게 나올 수 있다.
+    // 직전 결과는 아래 채널 카드에 확인 날짜와 함께 보여 준다.
     ? { label: "AI 검색 준비도 · 일부 항목 확인 전", labelColor: "text-slate-700", bg: "bg-slate-50", cardBorder: "border-slate-300", sub: null as string | null }
     : { label: stage.label, labelColor: stage.labelColor, bg: stage.bg, cardBorder: stage.cardBorder, sub: null as string | null };
 
