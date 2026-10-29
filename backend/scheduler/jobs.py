@@ -421,6 +421,26 @@ async def _cleanup_memory_stores():
         logger.warning(f"Memory cleanup failed: {e}")
 
 
+async def _naver_retry_due_for(supabase, biz_id: str, today) -> bool:
+    """스캔하지 않는 날이지만 직전 스캔의 네이버 측정이 실패해 한 번 다시 스캔해야 하는 사업장인가.
+    판정은 services.scan_scheduling.naver_retry_due. 확인하지 못하면 False(재시도하지 않는 쪽)."""
+    try:
+        from datetime import timezone as _tz
+        from services.scan_scheduling import naver_retry_due
+        from services.naver_access_guard import snapshot, search_snapshot
+        blocked = (snapshot().get("remaining_sec") or 0) > 0 or (search_snapshot().get("remaining_sec") or 0) > 0
+        if blocked:
+            return False
+        res = await _db(
+            supabase.table("scan_results").select("scanned_at, naver_result")
+            .eq("business_id", biz_id).order("scanned_at", desc=True).limit(3)
+        )
+        return naver_retry_due(res.data or [], datetime.now(_tz.utc), today, blocked)
+    except Exception as e:
+        logger.warning("[daily_scan_all] 네이버 재시도 판정 실패(재시도하지 않음) biz=%s: %s", biz_id, e)
+        return False
+
+
 @_naver_batch_job
 async def daily_scan_all():
     """활성 구독자 사업장 자동 AI 스캔 (새벽 2시)
@@ -549,6 +569,14 @@ async def daily_scan_all():
                 # 판정 로직은 services/scan_scheduling.decide_scan_mode(기존 규칙과 같음을 전수 비교 테스트로 고정)
                 from services.scan_scheduling import decide_scan_mode
                 _scan_mode = decide_scan_mode(plan, today.weekday(), str(biz.get("id")), _spread_slots)
+                # 스캔하지 않는 날이어도 직전 스캔의 네이버 측정이 실패했다면 한 번만 다시 스캔한다(2026-10-29).
+                # 이전엔 다음 정기 스캔(Basic 최대 며칠)까지 네이버 항목이 "확인 전"으로 남았다. 같은 경로·같은 가드를 거치므로
+                # 새 접속 경로가 아니며, 재시도 스캔은 "스캔 완료" 알림을 한 번 더 보내지 않는다.
+                _is_naver_retry = False
+                if _scan_mode == "skip" and await _naver_retry_due_for(supabase, str(biz.get("id")), today):
+                    _scan_mode = "full"
+                    _is_naver_retry = True
+                    logger.info("[daily_scan_all] 직전 스캔의 네이버 측정 실패 — 하루 뒤 1회 재시도 biz=%s plan=%s", biz.get("id"), plan)
 
                 # 사전 스캔 결과가 쓸 만하면 서버의 중복 네이버 브리핑 접속을 생략한다(설계 문서 §3 B).
                 # 캡챠·오류·상한 건너뜀으로 끝난 사전 스캔은 쓸 수 없으므로 서버가 직접 측정한다.
@@ -1064,7 +1092,8 @@ async def daily_scan_all():
                         logger.warning(f"[daily_scan_all] 알림 프로필 조회 실패 biz={biz.get('id')}: {_spe}")
 
                 # ── 스캔 완료 즉시 알림 (AEOLAB_SCAN_01) ────────────────────────────
-                if _scan_notify_ok:
+                # 네이버 재시도 스캔은 이틀 연속 같은 알림을 보내지 않는다(알림은 최소 빈도, 지침 8번)
+                if _scan_notify_ok and not _is_naver_retry:
                     try:
                         from services.kakao_notify import KakaoNotifier as _KN0, _grade as _kn_grade
                         _prev_grade = ""

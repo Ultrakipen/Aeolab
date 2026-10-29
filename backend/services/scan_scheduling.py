@@ -248,6 +248,48 @@ def select_stale_first(items: list[dict], now: datetime, min_age_sec: float, bud
     return out
 
 
+# ── 네이버 측정 실패 후 1회 재시도 (2026-10-29) ─────────────────────────────────────────────
+# 정기 스캔에서 네이버 측정이 실패(차단·캡차·일일 상한·접속 실패)하면 그 항목은 "확인 전"으로 남고, 스캔하지 않는 날이
+# 많은 플랜(Basic 주 2회·창업패키지 주 1회)은 다음 정기 스캔까지 며칠을 기다린다. 스캔하지 않는 날이어도 **직전 스캔의
+# 네이버 측정이 실패했다면 하루 뒤 한 번만** 기존 스캔 경로로 다시 측정한다(새 측정 코드를 만들지 않는다 — 점수·기록·알림이
+# 정기 스캔과 똑같이 만들어진다). 네이버 접속은 기존 가드(쿨다운·속도·일일 상한·배치 몫)를 그대로 거친다.
+NAVER_RETRY_MAX_AGE_SEC = 36 * 3600     # 직전 스캔이 이보다 오래됐으면 재시도하지 않는다(다음 정기 스캔이 가깝거나 이미 지남)
+NAVER_RETRY_MAX_CONSECUTIVE_FAILS = 1   # 연속 실패가 이보다 많으면(재시도도 실패) 더 두드리지 않고 정기 일정을 기다린다
+
+
+def naver_scan_failed(naver_result) -> bool:
+    """저장된 naver_result가 '측정 자체에 실패한' 결과인가 — 캡차·오류·일일 상한 건너뜀. 값이 아예 없으면 False
+    (순위 전용 행처럼 naver_result가 원래 비는 행을 실패로 오인하지 않는다)."""
+    if not isinstance(naver_result, dict):
+        return False
+    return bool(naver_result.get("captcha_detected")) or bool(naver_result.get("error")) or naver_result.get("quota_skipped") is True
+
+
+def naver_retry_due(recent_scans: list, now: datetime, today: date, access_blocked: bool) -> bool:
+    """오늘이 스캔하지 않는 날이어도 이 사업장을 한 번 다시 스캔해야 하는가.
+
+    recent_scans: 최신순 [{"scanned_at": ISO, "naver_result": dict|None}, ...].
+    - 지금 네이버 접속이 막혀 있으면(쿨다운 중) 재시도해도 같은 결과라 AI 호출 비용만 쓰므로 하지 않는다.
+    - 가장 최근 스캔의 네이버 측정이 실패했고, 그 스캔이 오늘이 아니며 36시간 이내일 때만.
+    - 최근 스캔이 연속으로 실패한 횟수가 NAVER_RETRY_MAX_CONSECUTIVE_FAILS를 넘으면(= 재시도도 실패) 하지 않는다.
+    """
+    if access_blocked or not recent_scans:
+        return False
+    latest = recent_scans[0]
+    if not naver_scan_failed(latest.get("naver_result")):
+        return False
+    ts = parse_ts(latest.get("scanned_at"))
+    if ts is None or ts.date() >= today or (now - ts).total_seconds() > NAVER_RETRY_MAX_AGE_SEC:
+        return False
+    fails = 0
+    for r in recent_scans:
+        if naver_scan_failed(r.get("naver_result")):
+            fails += 1
+        else:
+            break
+    return fails <= NAVER_RETRY_MAX_CONSECUTIVE_FAILS
+
+
 def cache_still_valid(last: Optional[datetime], now: datetime, ttl_sec: float, margin_sec: float = 6 * 3600) -> bool:
     """경쟁사 크롤 캐시가 아직 유효해 enrich 가 네이버 접속 없이 끝낼 수 있는가.
     관측이 없거나 TTL 직전이면 False — enrich 가 캐시 만료로 새 크롤을 시작하지 않게 건너뛴다(다음 sync 가 처리)."""
