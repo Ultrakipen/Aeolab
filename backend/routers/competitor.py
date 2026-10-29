@@ -1150,7 +1150,7 @@ async def remove_competitor(competitor_id: str, user=Depends(get_current_user)):
 _MANUAL_SYNC_RECENT_SEC = 3600
 _MANUAL_SYNC_USER_CAP = 15
 _MANUAL_SYNC_WINDOW_SEC = 3600
-_MANUAL_SYNC_BURST_CAP = 3          # 10분에 3회 — 3회=18페이지로 10분 전역 기준(30)의 60%, 다른 사용자 몫을 남긴다(제안값)
+_MANUAL_SYNC_BURST_CAP = 2          # 10분에 2회 — 2회=12페이지로 10분 전역 기준(30)의 40%, 다른 사용자 몫을 남긴다(제안값, 2026-10-29 3→2: 사용자 결정)
 _MANUAL_SYNC_BURST_WINDOW_SEC = 600
 # 네이버 쪽 사정으로 이번에 확인하지 못한 경우 — 사용자 잘못이 아니므로 429(너무 자주)가 아니라 503(잠시 후)으로 알린다.
 # 앞의 셋은 네이버에 접속하지 않고 거절된 경우라 사용자 한도를 돌려준다. ip_blocked는 접속이 있었으므로 돌려주지 않는다.

@@ -141,14 +141,14 @@ def _fresh(uid):
     _cache.delete(f"comp_manual_sync_burst:{uid}")
 
 
-def test_burst_cap_blocks_fourth_click_within_ten_minutes_then_recovers(monkeypatch):
+def test_burst_cap_blocks_next_click_within_ten_minutes_then_recovers(monkeypatch):
     uid = "u-burst-1"
     _fresh(uid)
     t = [1000.0]
     monkeypatch.setattr(comp_router.time, "monotonic", lambda: t[0])
     monkeypatch.setattr(_cache.time, "monotonic", lambda: t[0])
-    assert comp_router._MANUAL_SYNC_BURST_CAP == 3
-    assert all(comp_router.manual_sync_take_quota(uid) for _ in range(3))
+    assert comp_router._MANUAL_SYNC_BURST_CAP == 2
+    assert all(comp_router.manual_sync_take_quota(uid) for _ in range(comp_router._MANUAL_SYNC_BURST_CAP))
     assert comp_router.manual_sync_take_quota(uid) is False        # 1시간 한도(15)는 남았는데도 막힌다
     t[0] = 1000.0 + 601
     assert comp_router.manual_sync_take_quota(uid) is True          # 10분이 지나면 다시 가능
@@ -157,11 +157,11 @@ def test_burst_cap_blocks_fourth_click_within_ten_minutes_then_recovers(monkeypa
 def test_blocked_attempt_does_not_consume_either_window(monkeypatch):
     uid = "u-burst-2"
     _fresh(uid)
-    for _ in range(3):
+    for _ in range(comp_router._MANUAL_SYNC_BURST_CAP):
         comp_router.manual_sync_take_quota(uid)
     for _ in range(5):
         assert comp_router.manual_sync_take_quota(uid) is False
-    assert _cache.get(f"comp_manual_sync:{uid}")[0] == 3            # 거절된 시도는 1시간 횟수에 더해지지 않는다
+    assert _cache.get(f"comp_manual_sync:{uid}")[0] == comp_router._MANUAL_SYNC_BURST_CAP            # 거절된 시도는 1시간 횟수에 더해지지 않는다
 
 
 def test_refund_returns_both_counts_and_never_goes_negative():
