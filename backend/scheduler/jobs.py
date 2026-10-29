@@ -1119,7 +1119,28 @@ async def daily_scan_all():
                             )
                             if _rescored and is_stage_upgrade(prev_stage.stage, current_stage.stage):
                                 logger.info(f"[GrowthStage] 채점 보정 이전 기록과의 비교라 상승 알림 생략 biz={biz.get('id')}")
+                            # 히스테리시스: 경계에서 흔들리는 점수의 반복 상승 알림을 막는다(새 단계 하한 +3점 이상, 최근 28일 첫 도달)
+                            _hysteresis_blocked = False
                             if _scan_notify_ok and not _rescored and is_stage_upgrade(prev_stage.stage, current_stage.stage):
+                                try:
+                                    from services.stage_names import upgrade_alert_allowed, STAGE_UPGRADE_LOOKBACK_DAYS
+                                    _recent_res = await _db(
+                                        supabase.table("score_history")
+                                        .select("track1_score")
+                                        .not_.is_("track1_score", "null")
+                                        .eq("business_id", biz["id"])
+                                        .gte("score_date", str(date.today() - timedelta(days=STAGE_UPGRADE_LOOKBACK_DAYS)))
+                                        .lt("score_date", today_str)
+                                    )
+                                    _recent_t1 = [r.get("track1_score") for r in (_recent_res.data or [])]
+                                    if not upgrade_alert_allowed(current_stage.stage, score.get("track1_score"), _recent_t1):
+                                        _hysteresis_blocked = True
+                                        logger.info(f"[GrowthStage] 경계 근처이거나 최근 이미 도달한 단계라 상승 알림 생략 biz={biz.get('id')}")
+                                except Exception as _hy_e:
+                                    # 확인하지 못한 상승은 알리지 않는다(잘못된 알림이 빠진 알림보다 신뢰를 더 깎는다)
+                                    _hysteresis_blocked = True
+                                    logger.warning(f"[GrowthStage] 히스테리시스 확인 실패 — 알림 생략 biz={biz.get('id')}: {_hy_e}")
+                            if _scan_notify_ok and not _rescored and not _hysteresis_blocked and is_stage_upgrade(prev_stage.stage, current_stage.stage):
                                 try:
                                     from services.kakao_notify import KakaoNotifier as _KN
                                     await _KN().send_growth_stage_upgrade(

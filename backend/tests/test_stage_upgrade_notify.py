@@ -55,5 +55,5 @@ def test_notification_call_site_is_gated_by_is_stage_upgrade():
     # 인자 순서까지 고정한다 — (이전, 현재)가 뒤집히면 하락에만 "업그레이드 안내"가 나간다
     assert re.search(
         # `not _rescored and`는 채점 보정 직후 1회성 억제(2026-10-29) — 허용하되 상승 판정 자체는 반드시 남아 있어야 한다
-        r"if\s+_scan_notify_ok\s+and\s+(?:not\s+_rescored\s+and\s+)?is_stage_upgrade\(\s*prev_stage\.stage\s*,\s*current_stage\.stage\s*\)\s*:", before
+        r"if\s+_scan_notify_ok\s+and\s+(?:not\s+_\w+\s+and\s+)*is_stage_upgrade\(\s*prev_stage\.stage\s*,\s*current_stage\.stage\s*\)\s*:", before
     ), "단계 상승 판정(이전→현재 순서) 없이 업그레이드 알림을 보내면 안 된다"

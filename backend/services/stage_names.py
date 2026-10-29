@@ -63,6 +63,35 @@ def prev_scored_before_baseline(prev_score_date: Optional[str], baseline: Option
     return d < b      # ISO 날짜 문자열은 사전순 비교가 날짜순과 같다
 
 
+# 단계 상승 알림 히스테리시스 — 경계 근처에서 점수가 흔들려도 같은 상승 알림이 반복되지 않게 한다(2026-10-29).
+STAGE_UPGRADE_MARGIN = 3.0          # 새 단계의 하한을 이만큼 넘어야 "올랐다"고 알린다
+STAGE_UPGRADE_LOOKBACK_DAYS = 28    # 이 기간에 이미 그 단계에 도달한 적이 있으면 재도달은 알리지 않는다
+_STAGE_LOWER_BOUND: dict[str, float] = {"survival": 0.0, "stability": 30.0, "growth": 55.0, "dominance": 75.0}
+
+
+def upgrade_alert_allowed(
+    curr_code: Optional[str],
+    curr_track1: Optional[float],
+    recent_track1: "list[Optional[float]]",
+    margin: float = STAGE_UPGRADE_MARGIN,
+) -> bool:
+    """단계 상승 알림(AEOLAB_GROWTH_01)을 보내도 되는지 — 경계에서 흔들리는 점수의 반복 알림을 막는다.
+
+    `AEOLAB_GROWTH_01`은 "상승이 확인될 경우" 보내는 알림이라, 55점 경계에서 54.8↔55.2를 오가면 매번 "개선 중으로
+    올랐어요"가 나가 신뢰를 깎는다. 두 조건을 모두 만족할 때만 보낸다.
+      ① 현재 점수가 새 단계의 하한을 `margin`점 이상 넘었다(방금 간신히 넘은 것이 아니다).
+      ② 최근 `STAGE_UPGRADE_LOOKBACK_DAYS`일 점수 기록 중 ①과 같은 기준(하한+마진)을 넘은 적이 없다 — 이미 알린 단계의 재도달이 아니다.
+    알 수 없는 단계·점수는 보내지 않는다(확인 못 한 상승은 알리지 않는다).
+    """
+    lower = _STAGE_LOWER_BOUND.get(curr_code or "")
+    if lower is None or curr_track1 is None:
+        return False
+    if curr_track1 < lower + margin:
+        return False
+    # 기록이 하한을 간신히 넘은 정도(마진 미만)였다면 그때는 알림이 나가지 않았으므로 '이미 알린 단계'가 아니다
+    return not any(isinstance(s, (int, float)) and s >= lower + margin for s in (recent_track1 or []))
+
+
 def stage_code_for_score(score: Optional[float]) -> str:
     s = score or 0
     for upper, code in _UPPER_BOUNDS:
