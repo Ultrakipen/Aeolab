@@ -1,5 +1,6 @@
 'use client'
 import { STAGE_NAME } from "@/lib/scoreLabels"
+import { fmtMonthDay } from "@/lib/naverMeasure"
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -1329,7 +1330,7 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                 <p className="text-sm font-bold text-gray-700 mb-1 flex items-center gap-1.5">
                   <Star className="w-4 h-4 text-gray-600" />주요 수치 비교
                 </p>
-                <p className="text-sm text-gray-600 mb-3">* 마지막 동기화 시점 기준 (2주마다 자동 갱신, 경쟁사 카드의 새로고침 버튼으로 직접 갱신 가능) — 실시간 값과 다를 수 있습니다</p>
+                <p className="text-sm text-gray-600 mb-3">* 각 경쟁사의 '확인' 날짜 기준 (2주마다 자동 갱신, 경쟁사 목록의 '새로고침'으로 직접 갱신 가능) — 실시간 값과 다를 수 있습니다</p>
                 <div className="overflow-x-auto" tabIndex={0}>
                 <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-100 min-w-[280px]">
                   <div className="grid grid-cols-3 text-sm font-semibold text-gray-600 px-4 py-2.5 border-b border-gray-200 bg-gray-100">
@@ -1506,6 +1507,9 @@ function CompareModal({ bizName, myScore, myStageScore, myReviewCount, myAvgRati
                             {competitor.place_avg_rating != null && competitor.place_avg_rating > 0 && `⭐ ${competitor.place_avg_rating.toFixed(1)}`}
                           </span>
                         </div>
+                        {fmtMonthDay(competitor.place_synced_at) && (
+                          <p className="text-sm text-gray-600 mt-0.5">{fmtMonthDay(competitor.place_synced_at)} 확인</p>
+                        )}
                         {/* 리뷰 0개인데 평점만 존재 — 크롤링 부분 실패 가능성, 사용자 혼동 방지 캐비엇 */}
                         {competitor.place_review_count === 0 && typeof competitor.place_avg_rating === 'number' && competitor.place_avg_rating > 0 && (
                           <p className="text-sm text-amber-700 mt-0.5 flex items-center gap-1">
@@ -1791,6 +1795,10 @@ export function CompetitorsClient({
       }
       setSyncingIds(prev => ({ ...prev, [competitorId]: 'success' }))
       setTimeout(() => { router.refresh() }, 2000)
+      // 목록의 '갱신했어요' 표시가 영구히 남아 새로고침 버튼을 가리지 않게 지운다
+      setTimeout(() => {
+        setSyncingIds(prev => { const next = { ...prev }; delete next[competitorId]; return next })
+      }, 4000)
     } catch {
       setSyncingIds(prev => ({ ...prev, [competitorId]: 'error' }))
       setTimeout(() => {
@@ -2337,6 +2345,28 @@ export function CompetitorsClient({
                               <span className={c.place_has_recent_post ? 'text-emerald-700 font-medium' : 'text-gray-600'}>
                                 포스팅 {c.place_has_recent_post ? '최신' : '미갱신'}
                               </span>
+                            )}
+                            {/* 이 수치를 언제 확인했는지 — 갱신 주기가 길어 날짜가 보여야 오래된 값을 최신으로 오해하지 않는다(2026-10-29).
+                                펼친 상세 카드에만 있던 날짜·새로고침을 목록에서도 바로 쓸 수 있게 한다. */}
+                            {fmtMonthDay(c.place_synced_at) && (
+                              <span className="text-gray-600">{fmtMonthDay(c.place_synced_at)} 확인</span>
+                            )}
+                            {((typeof c.place_avg_rating === 'number' && c.place_avg_rating > 0) || c.detail_synced_at) && (
+                              syncingIds[c.id] === 'success' ? (
+                                <span className="text-sm text-emerald-700 font-medium">갱신했어요</span>
+                              ) : syncingIds[c.id] === 'error' ? (
+                                <span className="text-sm text-red-700 font-medium">지금은 갱신하지 못했어요. 잠시 후 다시 시도해 주세요</span>
+                              ) : (
+                                <button
+                                  onClick={() => handleSyncPlace(c.id)}
+                                  disabled={syncingIds[c.id] === 'loading'}
+                                  className="flex items-center gap-1 text-sm text-blue-700 hover:text-blue-900 underline-offset-2 hover:underline transition-colors disabled:opacity-50"
+                                  title="네이버에서 이 경쟁사의 최신 정보를 다시 확인합니다"
+                                >
+                                  <RefreshCw className={`w-3 h-3 ${syncingIds[c.id] === 'loading' ? 'animate-spin' : ''}`} />
+                                  {syncingIds[c.id] === 'loading' ? '확인 중…' : '새로고침'}
+                                </button>
+                              )
                             )}
                           </div>
                         )}
