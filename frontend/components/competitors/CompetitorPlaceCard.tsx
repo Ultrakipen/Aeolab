@@ -384,6 +384,8 @@ export function CompetitorPlaceCard({
     } catch (e) {
       if (e instanceof ApiError && e.status === 429) {
         setSyncNotice({ tone: "info", text: "너무 자주 눌렀어요. 잠시 후 다시 시도해 주세요." });
+      } else if (e instanceof ApiError && e.status === 503) {
+        setSyncNotice({ tone: "info", text: "지금 네이버 확인 요청이 몰려 있어요. 저장된 값은 그대로예요. 잠시 후 다시 시도해 주세요." });
       } else {
         setSyncNotice({ tone: "error", text: "새로고침하지 못했어요. 잠시 후 다시 시도해 주세요." });
       }

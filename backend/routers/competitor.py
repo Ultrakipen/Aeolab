@@ -1150,6 +1150,12 @@ async def remove_competitor(competitor_id: str, user=Depends(get_current_user)):
 _MANUAL_SYNC_RECENT_SEC = 3600
 _MANUAL_SYNC_USER_CAP = 15
 _MANUAL_SYNC_WINDOW_SEC = 3600
+_MANUAL_SYNC_BURST_CAP = 3          # 10분에 3회 — 3회=18페이지로 10분 전역 기준(30)의 60%, 다른 사용자 몫을 남긴다(제안값)
+_MANUAL_SYNC_BURST_WINDOW_SEC = 600
+# 네이버 쪽 사정으로 이번에 확인하지 못한 경우 — 사용자 잘못이 아니므로 429(너무 자주)가 아니라 503(잠시 후)으로 알린다.
+# 앞의 셋은 네이버에 접속하지 않고 거절된 경우라 사용자 한도를 돌려준다. ip_blocked는 접속이 있었으므로 돌려주지 않는다.
+_SYNC_NO_ACCESS_ERRORS = {"naver_rate_limited", "naver_place_cooldown", "quota_exceeded"}
+_SYNC_BUSY_ERRORS = _SYNC_NO_ACCESS_ERRORS | {"ip_blocked"}
 _ADMIN_USER_IDS: set[str] = set(
     uid.strip() for uid in os.getenv("ADMIN_USER_IDS", "").split(",") if uid.strip()
 )
@@ -1173,17 +1179,37 @@ def manual_sync_recent_minutes(last_synced_at: str | None, now: datetime | None 
     return int(age // 60)
 
 
-def manual_sync_take_quota(user_id: str) -> bool:
-    """사용자별 수동 새로고침 1회 사용. 창은 첫 요청부터 1시간 고정(요청할 때마다 연장되지 않는다). 한도면 False."""
-    key = f"comp_manual_sync:{user_id}"
-    now = time.monotonic()
+def _manual_sync_window(key: str, window_sec: int, now: float) -> tuple[int, float]:
     count, start = _cache.get(key) or (0, now)
-    if now - start >= _MANUAL_SYNC_WINDOW_SEC:
+    if now - start >= window_sec:
         count, start = 0, now
-    if count >= _MANUAL_SYNC_USER_CAP:
+    return count, start
+
+
+def manual_sync_take_quota(user_id: str) -> bool:
+    """사용자별 수동 새로고침 1회 사용. 1시간 한도와 10분 한도를 함께 본다. 어느 하나라도 차면 False(둘 다 쓰지 않는다).
+
+    창은 첫 요청부터 고정(요청할 때마다 연장되지 않는다). 10분 한도는 한 사람이 몰아 눌러 전체 속도 기준
+    (10분 30페이지, 새로고침 1회=6페이지)을 혼자 다 쓰는 것을 막아 다른 사용자의 몫을 남긴다."""
+    now = time.monotonic()
+    h_key = f"comp_manual_sync:{user_id}"
+    b_key = f"comp_manual_sync_burst:{user_id}"
+    h_count, h_start = _manual_sync_window(h_key, _MANUAL_SYNC_WINDOW_SEC, now)
+    b_count, b_start = _manual_sync_window(b_key, _MANUAL_SYNC_BURST_WINDOW_SEC, now)
+    if h_count >= _MANUAL_SYNC_USER_CAP or b_count >= _MANUAL_SYNC_BURST_CAP:
         return False
-    _cache.set(key, (count + 1, start), ttl=_MANUAL_SYNC_WINDOW_SEC)
+    _cache.set(h_key, (h_count + 1, h_start), ttl=_MANUAL_SYNC_WINDOW_SEC)
+    _cache.set(b_key, (b_count + 1, b_start), ttl=_MANUAL_SYNC_BURST_WINDOW_SEC)
     return True
+
+
+def manual_sync_refund(user_id: str) -> None:
+    """네이버에 접속하지 못하고 거절된 요청은 사용자 한도에서 돌려준다(사용자 잘못이 아니다)."""
+    for key, window in ((f"comp_manual_sync:{user_id}", _MANUAL_SYNC_WINDOW_SEC),
+                        (f"comp_manual_sync_burst:{user_id}", _MANUAL_SYNC_BURST_WINDOW_SEC)):
+        v = _cache.get(key)
+        if v and v[0] > 0:
+            _cache.set(key, (v[0] - 1, v[1]), ttl=window)
 
 
 @router.post("/{competitor_id}/sync-place")
@@ -1254,7 +1280,8 @@ async def sync_competitor_place_endpoint(competitor_id: str, user=Depends(get_cu
     if user["id"] not in _ADMIN_USER_IDS and not manual_sync_take_quota(user["id"]):
         raise HTTPException(
             status_code=429,
-            detail=f"새로고침은 1시간에 {_MANUAL_SYNC_USER_CAP}번까지 할 수 있어요. 잠시 후 다시 시도해 주세요.",
+            detail=(f"새로고침을 너무 자주 하셨어요. 10분에 {_MANUAL_SYNC_BURST_CAP}번, 1시간에 "
+                    f"{_MANUAL_SYNC_USER_CAP}번까지 할 수 있어요. 잠시 후 다시 시도해 주세요."),
         )
 
     # 동기화 실행 (await로 직접 호출하여 결과 반환)
@@ -1270,7 +1297,16 @@ async def sync_competitor_place_endpoint(competitor_id: str, user=Depends(get_cu
         result = await sync_competitor_place(competitor_id, naver_place_id, supabase)
 
     if result and result.get("error"):
-        raise HTTPException(status_code=500, detail=f"동기화 실패: {result['error']}")
+        _err = str(result["error"])
+        if _err in _SYNC_BUSY_ERRORS:
+            if _err in _SYNC_NO_ACCESS_ERRORS and user["id"] not in _ADMIN_USER_IDS:
+                manual_sync_refund(user["id"])
+            # 기존에 저장된 값은 그대로 두었다(실패를 0이나 빈 값으로 덮어쓰지 않는다)
+            raise HTTPException(
+                status_code=503,
+                detail="지금 네이버 확인 요청이 몰려 있어요. 저장된 값은 그대로 유지돼요. 잠시 후 다시 시도해 주세요.",
+            )
+        raise HTTPException(status_code=500, detail=f"동기화 실패: {_err}")
 
     return {
         "message": "동기화 완료",

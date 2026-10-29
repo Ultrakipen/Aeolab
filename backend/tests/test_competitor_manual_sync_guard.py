@@ -1,4 +1,4 @@
-"""경쟁사 수동 새로고침 보호 (2026-10-29): 경쟁사별 1시간 + 사용자별 1시간 15회."""
+"""경쟁사 수동 새로고침 보호 (2026-10-29): 경쟁사별 1시간 + 사용자별 1시간 15회·10분 3회, 네이버 쪽 거절은 503."""
 import asyncio
 from datetime import datetime, timedelta, timezone
 
@@ -28,7 +28,8 @@ def test_recent_minutes(last, expected):
     assert comp_router.manual_sync_recent_minutes(last, NOW) == expected
 
 
-def test_quota_caps_per_user_and_isolates_users():
+def test_quota_caps_per_user_and_isolates_users(monkeypatch):
+    monkeypatch.setattr(comp_router, "_MANUAL_SYNC_BURST_CAP", 10_000)      # 1시간 한도만 검증
     uid = "u-quota-1"
     _cache.delete(f"comp_manual_sync:{uid}")
     cap = comp_router._MANUAL_SYNC_USER_CAP
@@ -39,6 +40,7 @@ def test_quota_caps_per_user_and_isolates_users():
 
 def test_quota_window_is_fixed_not_sliding(monkeypatch):
     """창은 첫 요청부터 1시간 고정이다. 마지막 요청이 창 끝 근처여도 그 시각으로 연장되면 안 된다."""
+    monkeypatch.setattr(comp_router, "_MANUAL_SYNC_BURST_CAP", 10_000)      # 1시간 한도만 검증
     uid = "u-quota-2"
     _cache.delete(f"comp_manual_sync:{uid}")
     t = [1000.0]
@@ -72,7 +74,7 @@ class _DB:
     def table(self, name): return _Q(name, self.rows)
 
 
-def _call(monkeypatch, *, last_synced, user_id="u-ep", place_id="123", admin=False):
+def _call(monkeypatch, *, last_synced, user_id="u-ep", place_id="123", admin=False, sync_result=None):
     comp = {"id": "c1", "name": "경쟁", "address": "a", "naver_place_id": place_id, "business_id": "b1",
             "naver_place_last_synced_at": last_synced}
     rows = {"competitors": comp, "businesses": {"user_id": user_id, "region": "창원"}}
@@ -83,7 +85,7 @@ def _call(monkeypatch, *, last_synced, user_id="u-ep", place_id="123", admin=Fal
 
     async def fake_sync(competitor_id, naver_place_id, supabase, region="", registered_name="", max_age_sec=None):
         calls.append(competitor_id)
-        return {"review_count": 5, "avg_rating": 4.0}
+        return sync_result if sync_result is not None else {"review_count": 5, "avg_rating": 4.0}
 
     import services.competitor_place_crawler as cpc
     monkeypatch.setattr(comp_router, "get_client", lambda: _DB(rows))
@@ -113,6 +115,7 @@ def test_stale_competitor_crawls_and_counts_quota(monkeypatch):
 
 
 def test_over_cap_returns_429_without_crawling(monkeypatch):
+    monkeypatch.setattr(comp_router, "_MANUAL_SYNC_BURST_CAP", 10_000)
     uid = "u-ep-cap"
     _cache.delete(f"comp_manual_sync:{uid}")
     for _ in range(comp_router._MANUAL_SYNC_USER_CAP):
@@ -123,9 +126,77 @@ def test_over_cap_returns_429_without_crawling(monkeypatch):
 
 
 def test_admin_is_exempt_from_cap(monkeypatch):
+    monkeypatch.setattr(comp_router, "_MANUAL_SYNC_BURST_CAP", 10_000)
     uid = "u-ep-admin"
     _cache.delete(f"comp_manual_sync:{uid}")
     for _ in range(comp_router._MANUAL_SYNC_USER_CAP):
         comp_router.manual_sync_take_quota(uid)
     out, calls = _call(monkeypatch, last_synced=None, user_id=uid, admin=True)
     assert calls == ["c1"] and out["refreshed"] is True
+
+
+# ── 10분 한도(몰아 누르기 방지) ───────────────────────────────────────────
+def _fresh(uid):
+    _cache.delete(f"comp_manual_sync:{uid}")
+    _cache.delete(f"comp_manual_sync_burst:{uid}")
+
+
+def test_burst_cap_blocks_fourth_click_within_ten_minutes_then_recovers(monkeypatch):
+    uid = "u-burst-1"
+    _fresh(uid)
+    t = [1000.0]
+    monkeypatch.setattr(comp_router.time, "monotonic", lambda: t[0])
+    monkeypatch.setattr(_cache.time, "monotonic", lambda: t[0])
+    assert comp_router._MANUAL_SYNC_BURST_CAP == 3
+    assert all(comp_router.manual_sync_take_quota(uid) for _ in range(3))
+    assert comp_router.manual_sync_take_quota(uid) is False        # 1시간 한도(15)는 남았는데도 막힌다
+    t[0] = 1000.0 + 601
+    assert comp_router.manual_sync_take_quota(uid) is True          # 10분이 지나면 다시 가능
+
+
+def test_blocked_attempt_does_not_consume_either_window(monkeypatch):
+    uid = "u-burst-2"
+    _fresh(uid)
+    for _ in range(3):
+        comp_router.manual_sync_take_quota(uid)
+    for _ in range(5):
+        assert comp_router.manual_sync_take_quota(uid) is False
+    assert _cache.get(f"comp_manual_sync:{uid}")[0] == 3            # 거절된 시도는 1시간 횟수에 더해지지 않는다
+
+
+def test_refund_returns_both_counts_and_never_goes_negative():
+    uid = "u-refund"
+    _fresh(uid)
+    comp_router.manual_sync_refund(uid)                              # 쓴 적 없음 — 오류 없이 무시
+    comp_router.manual_sync_take_quota(uid)
+    comp_router.manual_sync_refund(uid)
+    assert _cache.get(f"comp_manual_sync:{uid}")[0] == 0 and _cache.get(f"comp_manual_sync_burst:{uid}")[0] == 0
+
+
+# ── 네이버 쪽 거절은 503 + 한도 환급 ──────────────────────────────────────
+@pytest.mark.parametrize("err", ["naver_rate_limited", "naver_place_cooldown", "quota_exceeded"])
+def test_no_access_errors_return_503_and_refund_quota(monkeypatch, err):
+    uid = f"u-busy-{err}"
+    _fresh(uid)
+    with pytest.raises(HTTPException) as e:
+        _call(monkeypatch, last_synced=None, user_id=uid, sync_result={"error": err})
+    assert e.value.status_code == 503 and "저장된 값은 그대로" in e.value.detail
+    assert err not in e.value.detail                                  # 내부 오류 코드를 사용자에게 보이지 않는다
+    assert _cache.get(f"comp_manual_sync:{uid}")[0] == 0               # 접속하지 못했으니 한도를 돌려준다
+
+
+def test_ip_blocked_returns_503_but_keeps_quota_used(monkeypatch):
+    uid = "u-busy-blocked"
+    _fresh(uid)
+    with pytest.raises(HTTPException) as e:
+        _call(monkeypatch, last_synced=None, user_id=uid, sync_result={"error": "ip_blocked"})
+    assert e.value.status_code == 503
+    assert _cache.get(f"comp_manual_sync:{uid}")[0] == 1               # 접속은 실제로 있었다
+
+
+def test_other_errors_stay_500(monkeypatch):
+    uid = "u-err-500"
+    _fresh(uid)
+    with pytest.raises(HTTPException) as e:
+        _call(monkeypatch, last_synced=None, user_id=uid, sync_result={"error": "timeout"})
+    assert e.value.status_code == 500

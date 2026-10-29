@@ -1642,7 +1642,7 @@ export function CompetitorsClient({
   const [changeDetails, setChangeDetails] = useState<Record<string, string>>({})
 
   // 네이버 플레이스 동기화 상태 (경쟁사 ID → 상태)
-  const [syncingIds, setSyncingIds] = useState<Record<string, 'loading' | 'success' | 'error' | 'recent' | 'limit'>>({})
+  const [syncingIds, setSyncingIds] = useState<Record<string, 'loading' | 'success' | 'error' | 'recent' | 'limit' | 'busy'>>({})
 
   // 전체 평점 동기화 상태
   const [syncAllState, setSyncAllState] = useState<'idle' | 'loading' | 'done'>('idle')
@@ -1760,8 +1760,8 @@ export function CompetitorsClient({
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
         })
-        if (res.status === 429) {
-          // 사용자별 새로고침 한도 — 남은 경쟁사에 요청을 계속 보내지 않는다
+        if (res.status === 429 || res.status === 503) {
+          // 사용자별 새로고침 한도(429) 또는 네이버 확인이 몰려 있음(503) — 남은 경쟁사에 요청을 계속 보내지 않는다
           failedCount += targets.length - i
           setSyncAllProgress({ done: targets.length, total: targets.length })
           break
@@ -1798,6 +1798,14 @@ export function CompetitorsClient({
       if (res.status === 429) {
         // 새로고침을 너무 자주 눌렀다 — 실패가 아니라 잠시 기다려 달라는 안내
         setSyncingIds(prev => ({ ...prev, [competitorId]: 'limit' }))
+        setTimeout(() => {
+          setSyncingIds(prev => { const next = { ...prev }; delete next[competitorId]; return next })
+        }, 6000)
+        return
+      }
+      if (res.status === 503) {
+        // 네이버 쪽 사정(요청이 몰렸거나 일시 제한) — 사용자 잘못이 아니고 저장된 값은 그대로다
+        setSyncingIds(prev => ({ ...prev, [competitorId]: 'busy' }))
         setTimeout(() => {
           setSyncingIds(prev => { const next = { ...prev }; delete next[competitorId]; return next })
         }, 6000)
@@ -2317,6 +2325,11 @@ export function CompetitorsClient({
                                 <AlertCircle className="w-4 h-4 shrink-0" />
                                 너무 자주 눌렀어요. 잠시 후 다시 시도해 주세요.
                               </div>
+                            ) : syncingIds[c.id] === 'busy' ? (
+                              <div className="flex items-center gap-2 text-sm text-amber-800 font-semibold">
+                                <AlertCircle className="w-4 h-4 shrink-0" />
+                                지금 네이버 확인 요청이 몰려 있어요. 잠시 후 다시 시도해 주세요.
+                              </div>
                             ) : syncingIds[c.id] === 'error' ? (
                               <div className="flex items-center gap-2 text-sm text-red-700 font-semibold">
                                 <AlertCircle className="w-4 h-4 shrink-0" />
@@ -2386,6 +2399,8 @@ export function CompetitorsClient({
                                 <span className="text-sm text-gray-700 font-medium">방금 확인한 값이에요</span>
                               ) : syncingIds[c.id] === 'limit' ? (
                                 <span className="text-sm text-amber-800 font-medium">너무 자주 눌렀어요. 잠시 후 다시 시도해 주세요</span>
+                              ) : syncingIds[c.id] === 'busy' ? (
+                                <span className="text-sm text-amber-800 font-medium">지금 네이버 확인 요청이 몰려 있어요. 잠시 후 다시 시도해 주세요</span>
                               ) : syncingIds[c.id] === 'error' ? (
                                 <span className="text-sm text-red-700 font-medium">지금은 갱신하지 못했어요. 잠시 후 다시 시도해 주세요</span>
                               ) : (
