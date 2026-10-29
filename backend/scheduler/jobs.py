@@ -6010,7 +6010,13 @@ async def delivery_30day_rescan_job():
                 # 사업장 기본 정보 조회
                 biz_res = await _db(
                     supabase.table("businesses")
-                    .select("id, name, category, region, keywords, has_recent_post, has_intro, user_id")
+                    .select(
+                        "id, name, category, region, keywords, user_id, business_type, website_url, "
+                        "naver_place_url, naver_place_id, google_place_id, kakao_place_id, "
+                        "review_count, avg_rating, keyword_diversity, receipt_review_count, visitor_review_count, "
+                        "has_faq, has_recent_post, has_intro, review_sample, is_franchise, is_smart_place, "
+                        "kakao_score, kakao_checklist, kakao_registered, blog_keyword_coverage, blog_analysis_json"
+                    )
                     .eq("id", biz_id)
                     .maybe_single()
                 )
@@ -6035,10 +6041,26 @@ async def delivery_30day_rescan_job():
                 )
                 prev_scan = prev_res.data if (prev_res and prev_res.data) else {}
 
+                # 2026-10-29: 채점에 필요한 리뷰·별점 컬럼과 네이버 공식 API 가시성(블로그 언급·순위)을 함께 넣는다.
+                # 이전엔 조회 컬럼에 리뷰 수·별점이 없고 naver_data도 없어, 첫 스캔(수동)과 달리 리뷰·블로그 항목이 빈 값으로
+                # 계산돼 "대행 후" 점수가 낮게 나왔다(전후 비교가 왜곡). 조회 실패는 블로그 "모름"으로 표시된다.
+                from services.naver_visibility import get_naver_visibility_multi, build_naver_data
+                from services.ai_scanner.multi_scanner import _CATEGORY_KO
+                _d_kw_ko = _CATEGORY_KO.get(biz_data.get("category", ""), biz_data.get("category", ""))
+                _d_valid_kws = [k.strip() for k in (biz_data.get("keywords") or []) if k and len(k.strip()) >= 2]
+                _d_kws = list(dict.fromkeys(_d_valid_kws[:3] + [_d_kw_ko]))[:4]
+                try:
+                    _d_vis = await get_naver_visibility_multi(biz_data.get("name", ""), _d_kws, biz_data.get("region", "") or "", category_ko=_d_kw_ko)
+                except Exception as _d_vis_err:
+                    logger.warning(f"[delivery_30day_rescan_job] naver_visibility 실패 biz={biz_id}: {_d_vis_err}")
+                    _d_vis = None
+                _d_naver_data = build_naver_data(_d_vis, prev_scan.get("naver_result"))
+
                 # 점수 재계산 (AI 재스캔 없이 기존 결과 기반)
                 score = calculate_score(
                     scan_result=prev_scan,
                     biz=biz_data,
+                    naver_data=_d_naver_data,
                     context=(
                         "location_based"
                         if biz_data.get("category") in (

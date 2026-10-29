@@ -210,3 +210,13 @@ def test_every_manual_scan_path_marks_failed_visibility():
     assert 'naver_data = {"blog_checked": False}' in src                                          # 빠른 스캔 예외
     assert 'calculate_score(combined_result, biz or {}, naver_data=naver_data or {"blog_checked": False})' in src
     assert 'naver_visibility_full if isinstance(naver_visibility_full, dict) and naver_visibility_full else {"blog_checked": False}' in src   # 풀스캔
+
+
+def test_delivery_rescan_scores_with_reviews_and_visibility():
+    """대행 30일 재스캔은 리뷰·별점 컬럼과 가시성을 채점에 넘겨야 한다 — 빠지면 '대행 후' 점수가 낮게 나온다."""
+    import inspect
+    import scheduler.jobs as jobs
+    src = inspect.getsource(jobs.delivery_30day_rescan_job)
+    assert "review_count" in src and "avg_rating" in src and "receipt_review_count" in src
+    assert "naver_data=_d_naver_data" in src and "build_naver_data(_d_vis" in src
+    assert "_CATEGORY_KO" in src and "import _CATEGORY_KO" in src       # 함수 안에서 직접 import해야 NameError가 없다
