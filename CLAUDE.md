@@ -316,13 +316,13 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 - 프론트 카드: `frontend/lib/plans.ts`
 - 비교표: `frontend/app/(public)/pricing/page.tsx`, `frontend/app/(dashboard)/settings/page.tsx`
 - 관리자 MRR: `frontend/app/admin/AdminDashboard.tsx`
-- 결제: `backend/services/toss_billing.py`, `backend/routers/webhook.py`
+- 결제: `backend/services/creb_billing.py`·`creb_client.py`, `backend/routers/webhook.py` (토스는 2026-10-25 폐기)
 - UI: `frontend/components/common/PlanGate.tsx`, `frontend/app/(auth)/signup/page.tsx`
 
 ### 첫 달 50% 할인 인프라 (v3.3, 2026-04-22)
 
 - `pricing/PayButton`: `subscriptions` 이력 조회 → 없으면 `chargeAmount=5950`, 있으면 정상가
-- `/api/webhook/toss/billing/issue` 서버 재검증 (`_is_first_time_subscriber()`)
+- `/api/webhook/creb/billing/issue` 서버 재검증 (`_is_first_time_subscriber()`)
 - 통과 시 `first_month_discount_until=today+30` + `first_payment_amount=5950` 기록
 - 30일 후 자동 재결제 → `PLAN_PRICE["basic"]=11900` 정상가 청구
 - **악용 차단:** 클라이언트가 `amount=5950` 조작해도 서버 400 거부
@@ -392,8 +392,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 | POST | /api/guide/{biz_id}/smartplace-faq | FAQ 초안 (Basic+, 월 한도) |
 | GET | /api/guide/{biz_id}/pioneer-detail | 선점 키워드 상세 (Basic+, 2h 캐시) |
 | POST | /api/schema/generate | JSON-LD |
-| POST | /api/webhook/toss/confirm | 결제 확정 |
-| POST | /api/webhook/toss/billing/issue | 빌링키 + 첫 달 할인 재검증 |
+| POST | /api/webhook/creb/billing/issue | 빌링키 발급 + 첫 결제 + 첫 달 할인 재검증 (크렙, 단일 경로) |
 | CRUD | /api/businesses{/me,/{id}} | 사업장 |
 | CRUD | /api/competitors | 경쟁사 (search, suggest/list 포함) |
 | POST | /api/startup/report | 창업 리포트 (startup/biz+) |
@@ -641,6 +640,8 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ## 최근 업데이트 (2026-10-10 이전 상세 내역은 `docs/changelog_archive.md` "CLAUDE.md 최근 업데이트 이관(2026-10-10 / 10-27)"로 이관)
 
+- **2026-10-29 용량·신뢰·결제 정리 (git `fa0d6f5`~`5099525`, 서버 배포·md5 일치, 테스트 628개, push 미실행)**: ①**용량 판단**: 수용량은 서버 사양이 아니라 **네이버 차단 위험**이 정한다(일 600·속도 기준은 10-27 IP 차단 사건 하나에서 나온 보수적 제안값, 실제 기준 미확인). 현재 구조의 현실적 한계는 활성 사업장 **약 35~50곳**(모델), 대시보드 동시 접속 약 30명(08-23 측정, 재측정 안 함). 100곳부터는 플랜 한도 축소 등 사용자 결정이 필요하고 300곳은 튜닝만으로 불가 — `python scripts/naver_load_model.py --levers 300`, 단계별 대응표는 `backend/services/naver_capacity.py` `PLAYBOOK`(용량 알림 메일·`/admin/naver-access`의 `capacity.next_steps`), 문서 `docs/naver_capacity_300_playbook_2026_10_29.md`. ②**접속 줄이기**: AI탭 질의 수 `NAVER_AI_TAB_MAX_QUERIES`(1~4, 기본 4=현재), 수동 스캔 `quick`·`full`도 당일 사전 스캔(GitHub 야간 워크플로 `naver_scan.yml`, 매일 다른 IP)이 쓸 만하면 서버 브리핑 접속 생략(`services/naver_prescan.prescan_usable`, 야간 스캔과 같은 규칙). ⚠️ **대시보드 "지금 측정"(`/api/scan/stream`)은 사전 스캔을 쓰지 않는다**(질의 형태가 달라 점수 입력이 바뀔 수 있어 미착수). 사전 스캔의 GitHub IP 접속은 법적 검토 대상(프록시와 같은 성격). ③**수동 새로고침 보호**: 경쟁사별 1시간·사용자별 10분 3회/1시간 15회, 네이버 쪽 거절(속도 제한·쿨다운·일일 상한)은 500이 아니라 503+한도 환급. ④**계측**: `services/naver_usage_meter.py`가 사용자 요청(정기 잡 아닌) 접속 페이지와 수동 스캔 횟수를 센다(`/admin/naver-access`의 `usage`, 표본 없으면 None). 한도 일별 이력이 서버에 한 번도 안 생기던 결함 수정(배포가 잦아 자정을 넘기는 프로세스가 없었음). 첫 이력 확인은 2026-10-30 새벽. ⑤**공개 문구**: 스캔·순위 요일 표기("월·목" 등) 프론트 19곳+FAQ 2행 제거, "2주마다"→"약 2주 간격", how-it-works 순위표의 "매일 04:30" 오표기 정정. ⑥**신뢰**: 체험 결과 히어로도 플레이스 점검 실패 시 "일부 항목 확인 전"(대시보드와 같은 규칙, 라이브 미확인). ⑦**결제**: 구독 `start_at`이 시간대 없는 KST로 저장돼 9시간 뒤로 기록되던 결함 수정(`utils/kst.py`, 알림 잡은 한국 날짜 비교). **Gemini 무료 티어 한도(하루 100회 중 92~97회 실패)·Claude 크레딧 충전은 사용자 결제 대기** — 결제 후 `gemini_result.sample_size`가 100 근처인지로 확인.
+
 - **2026-10-28 경쟁사 크롤 예산이 캐시 적중을 반영하도록 개선**: 캐시는 플레이스 ID 기준 공유(`competitor_place_crawler.py:36`, 적중하면 쿼터·회로·속도 모두 안 쓰고 첫 줄에서 반환)인데 일정 선택(`build_stale_items`)은 경쟁사 행마다 6페이지를 무조건 더해 겹침이 많을수록 예산을 과대 계산했다. 이제 `place_cache_fresh_ids`(읽기 전용·TTL-6시간 마진)로 **지금 캐시가 유효한 행은 0페이지**, 단 **pacing 한도는 할인 전 합(`pages_full`) 기준**(할인 후 합으로 잡으면 한도가 같이 줄어 처리량이 막힘 — 시뮬레이션으로 확인한 함정). 시뮬레이션(300곳·겹침 약 40%, 예산 252): 갱신 간격 최대 29일→17일·14일 초과 99%→16%, 실제 접속은 예산 이내. 겹침이 없으면 이전과 동일(테스트). 20곳 규모는 변화 없음. **실제 겹침 비율은 구독자가 없어 미확인** — `place_cache_snapshot`의 일별 적중률로 실측할 것. 사업장 300곳·겹침 0%이면 여전히 21일 간격(예산 한계)이라 그 경우는 문구 수정·상한 확대(사용자 결정). 변이 4종 검증, `tests/test_competitor_stale_first.py`.
 - **2026-10-28 경쟁사 정보 갱신 주기 1주→2주 (사용자 결정, 문구 동시 수정)**: 캐시 TTL 6.5일→**13.5일**(`COMPETITOR_PLACE_CACHE_TTL_SEC` 기본 1166400, 서버 `.env`에 덮어쓰기 없음 확인), `select_stale_first` pacing 6→**13일**(`scan_scheduling.COMPETITOR_REFRESH_TTL_SEC`·`COMPETITOR_PACE_DAYS`, 14일이 아니라 13.5/13인 이유는 14일째 아침에 못 들어와 하루씩 밀리기 때문). **사용자가 기다리는 경로(신규 경쟁사 등록 2곳·창업 리포트)는 `INTERACTIVE_MAX_AGE_SEC`(6.5일)로 좁혀** 최대 2주 옛 값을 보이지 않게 했고, 수동 새로고침은 원래 1시간(`max_age_sec=3600`). 변화 감지(`detect_competitor_changes`, 월 04:00)는 매주 현재값과 직전값을 비교해 직전값을 덮어쓰는 구조라 2주 데이터에서도 정상(알림은 사업장별로 갱신된 다음 월요일에 나감, ≥5건 변화 기준은 2주 누적이 됨). `weekly_competitor_sync_job`은 등록되지 않은 죽은 코드(변경 없음). 문구는 **크롤 데이터에 해당하는 4곳만** 수정: `demo/page.tsx` "2주마다 자동으로 모읍니다", `PlanGate.tsx` "경쟁사 정보를 2주마다 자동 추적", `onboarding/page.tsx` "경쟁사 변화 자동 알림 (정보는 2주마다 갱신)", `CompetitorsClient.tsx` 안내. "경쟁사 비교"(AI 스캔 기반, 주 1~3회)·`GuideClient` 사장님 할 일 문구는 해당 없어 그대로. 시뮬레이션(20곳)에서 정상 간격 14일·일 최대 36페이지, 신규 5곳 추가 시 기존 곳이 최대 17~19일까지 밀림(한 주기를 통째로 건너뛰면 27일+라 상한 20일로 테스트 고정). 용량 모델 20곳 주간: 키워드 순위 256·스캔 184·경쟁사 180·통계 40 = 660페이지(오늘 작업 전 1,032), 상한 초과 시점은 경쟁사 분산 시나리오 기준 배치 몫 40곳/전체 50곳(코드 기준 모델, 실측 아님). 위 "경쟁사 크롤이 다시 최대 항목" 서술은 이 변경 이전 값. `tests/test_competitor_stale_first.py`(주기 상수 일치·등록 경로 제한 테스트 포함), 변이 3종 검증.
 - **2026-10-28 키워드 순위 잡 주기 조정**: Pro·창업·Biz·Enterprise 순위 측정을 매일→**월·수·금 04:30**(스캔 요일과 동일, Basic은 월 1회 그대로). 사업장 30%가 순위 부하의 75%였고 20곳 모델 기준 주간 순위 448→256페이지(-43%, 전체 -19%, 순위 비중 43%→30%, 경쟁사 크롤 43%가 다시 최대). 공개 문구에 순위 주기 약속은 데모의 "주 1회"뿐이라 충돌 없음, 저장 순위를 읽는 신선도 기준은 7일·30일이라 영향 없음. 잡 id·함수명의 "daily"는 호환용으로 유지, 카나리 점검(04:50)은 독립 측정이라 매일 유지. `tests/test_keyword_rank_schedule.py`가 일정을 고정(변이 검증 완료). 검색어 단위 공유 캐시(6시간, 메모리) 적중률은 모델 미반영 — 첫 유료 구독자부터 `/admin/naver-access`의 `rank_card_cache`와 출처별 일별 기록으로 모델 가정(키워드 수·경쟁사 수·중복률)을 실측으로 교체할 것. 추세 점이 주 3개로 성겨짐(순위 급변은 최대 2일 늦게 보임).
@@ -662,7 +663,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 
 ### 사용자가 직접 해야 할 것
 - ⏳ **베타 후기 1~3개 확보** → `frontend/lib/testimonials.ts` `isPlaceholder: false`로 교체 (Phase 0 인터뷰 후)
-- ✅ **크렙 심사 승인·`CREB_TEST_PRICE_*` 삭제 완료(2026-10-27)** — 키 교체 불필요(사용자 확인). 남은 것: 빌키(정기결제) 심사 포함 여부 크렙에 확인 → 실결제 시험 1건(직접 취소) → 심사용 계정(`creb-review@`·`toss-review@`) 삭제
+- ✅ **크렙 심사 승인·`CREB_TEST_PRICE_*` 삭제 완료(2026-10-27)** — 키 교체 불필요. 10-27 실결제 시험(Basic 8,950원 결제→환불·빌링키 삭제) 서버 기록으로 확인: 빌키 심사 포함 확인됨, 심사용 계정 삭제 완료(2026-10-29). 남은 것: 30일 뒤 정기 재결제 동작 미확인
 - ✅ **NAVER API Hub 키 발급·전환 완료** (2026-09-02) — 마이그레이션 실질 완료, 재작업 불필요
 - ✅ **카카오 비즈센터 승인내역 확인 완료** (2026-09-02, 스크린샷 제공) — `AEOLAB_SCAN_01`/`AEOLAB_COMP_02` 승인 확인 후 `send_scan_complete()`/`send_competitor_overtake()` 연결 완료(git `50ab946`). 재작업 불필요
 - ✅ **네이버 서치어드바이저 사이트 등록 + 사이트맵 제출 완료** (2026-08-07) — HTML 파일 방식으로 소유확인(`frontend/public/naver90ab854379ebb072c6795b390f874ac8.html`, git `b45b952`, 라이브 200 확인) 후 사이트맵 제출까지 사용자 완료. 색인 반영은 네이버 측 처리 시간 소요 — 재작업 불필요
