@@ -447,6 +447,9 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
+  // 별점·리뷰 수의 출처 — 'measured'=AEOlab이 네이버에서 확인, 'user'=사용자 입력, null=출처 모름(기존 데이터·컬럼 미생성)
+  const [statsSource, setStatsSource] = useState<"user" | "measured" | null>(null);
+  const [statsMeasuredAt, setStatsMeasuredAt] = useState<string | null>(null);
   const [syncingReviews, setSyncingReviews] = useState(false);
   const [syncReviewMsg, setSyncReviewMsg] = useState<string | null>(null);
   const [syncingSmartplace, setSyncingSmartplace] = useState(false);
@@ -466,6 +469,29 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
 
   // 현재 활성 탭 사업장 원본 데이터
   const activeBiz = businesses.find((b) => b.id === activeTabId) ?? null;
+
+  // 출처 표시 조회 — 실패해도 입력·저장에는 영향 없다(표시만 생략). 저장 직후에는 '입력한 값'으로 바뀌므로 다시 조회한다.
+  useEffect(() => {
+    if (!activeTabId) return;
+    let cancelled = false;
+    setStatsSource(null);
+    setStatsMeasuredAt(null);
+    (async () => {
+      try {
+        const token = await getAuthToken();
+        if (!token) return;
+        const res = await fetch(`${BACKEND}/api/businesses/${activeTabId}`, { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok || cancelled) return;
+        const d = (await res.json()) as { review_stats_source?: string | null; review_stats_measured_at?: string | null };
+        if (cancelled) return;
+        setStatsSource(d.review_stats_source === "user" || d.review_stats_source === "measured" ? d.review_stats_source : null);
+        setStatsMeasuredAt(d.review_stats_measured_at ?? null);
+      } catch {
+        /* 표시만 생략 */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [activeTabId, saveSuccess]);
 
   // isDirty: editForm과 원본 데이터가 다른지 확인
   const isDirty = activeBiz !== null && (() => {
@@ -1079,6 +1105,27 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               {syncReviewMsg && (
                 <p className={`text-sm mt-1 ${syncReviewMsg.startsWith("✓") ? "text-green-700" : "text-red-700"}`}>
                   {syncReviewMsg}
+                </p>
+              )}
+              {(editForm.avg_rating ?? 0) <= 0 && statsSource !== "user" && (
+                <p className="text-sm text-gray-700">
+                  별점을 읽지 못했어요. 별점이 없어도 점수는 리뷰 수로 계산돼요. 네이버 플레이스에 보이는 평균 별점이 있다면
+                  입력해 주세요. 입력하신 값은 점수에 반영하고 &quot;입력하신 값&quot;으로 표시해요.
+                </p>
+              )}
+              {statsSource === "measured" && (
+                <p className="text-sm text-gray-700">
+                  AEOlab이 네이버에서 확인한 값이에요
+                  {(() => {
+                    const d = statsMeasuredAt ? new Date(statsMeasuredAt) : null;
+                    return d && !isNaN(d.getTime()) ? ` (${d.getMonth() + 1}월 ${d.getDate()}일 기준)` : "";
+                  })()}
+                  . 측정 시점에 따라 달라질 수 있어요.
+                </p>
+              )}
+              {statsSource === "user" && (
+                <p className="text-sm text-amber-800 bg-amber-100 border border-amber-300 rounded-lg px-3 py-2">
+                  입력하신 값이에요. AEOlab이 확인한 값이 아니에요. 네이버에서 확인되면 확인한 값으로 바뀝니다.
                 </p>
               )}
             </div>
