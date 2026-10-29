@@ -24,8 +24,8 @@ export function nextScanLabel(plan: string | null | undefined): { label: string;
   const p = plan ?? "free";
   if (p === "biz")     return { label: "매일 새벽 자동 측정", desc: "내일 새벽 2시에 전체 AI 서비스 현황을 분석합니다" };
   if (p === "startup") return { label: "주 1회 자동 측정 (월요일)", desc: "월요일 새벽 2시에 전체 AI 서비스 현황을 분석합니다" };
-  if (p === "pro")     return { label: "주 3회 자동 측정 (월·수·금)", desc: "월·수·금 새벽 2시에 전체 AI 서비스 현황을 분석합니다" };
-  if (p === "basic")   return { label: "주 2회 자동 측정 (월·목)", desc: "월·목 새벽 2시에 전체 AI 서비스 현황을 분석합니다" };
+  if (p === "pro")     return { label: "주 3회 자동 측정", desc: "주 3회 새벽에 전체 AI 서비스 현황을 분석합니다" };
+  if (p === "basic")   return { label: "주 2회 자동 측정", desc: "주 2회 새벽에 전체 AI 서비스 현황을 분석합니다" };
   return { label: "자동 측정 없음", desc: "유료 플랜으로 업그레이드하면 자동 측정을 이용할 수 있습니다" };
 }
 

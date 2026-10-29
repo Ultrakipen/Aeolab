@@ -83,13 +83,44 @@ def test_scan_basic_default_calls_naver_and_skip_does_not():
     assert res["naver"] is None                     # 호출자(daily_scan_all)가 사전 스캔 결과로 채운다
 
 
-def test_prescan_usability_rule_matches_daily_scan_all():
-    """daily_scan_all의 판정 규칙(사전 스캔이 쓸 만한가)을 같은 식으로 검증한다."""
-    def usable(p):
-        return bool(p and not p.get("captcha_detected") and not p.get("error") and not p.get("quota_skipped"))
+def test_prescan_usable_rule():
+    """실제 판정 함수(services/naver_prescan.py)를 검증한다 — 야간 스캔과 수동 스캔이 같은 함수를 쓴다."""
+    from services.naver_prescan import prescan_usable as usable
 
     assert usable({"mentioned": True, "in_briefing": False}) is True
+    assert usable({"mentioned": False}) is True      # 정상 측정에서 '노출 안 됨'은 쓸 수 있는 결과다
     assert usable({}) is False                       # 결과 없음 → 서버가 직접 측정
+    assert usable(None) is False
     assert usable({"captcha_detected": True}) is False
     assert usable({"error": "page_load_failed"}) is False
     assert usable({"quota_skipped": True}) is False
+
+
+def test_scan_quick_default_calls_naver_and_skip_does_not():
+    class _Chat:
+        async def sample_5(self, q, t):
+            return {"platform": "chatgpt", "mentioned": True}
+
+    spy = _Spy()
+    m = _scanner(spy)
+    m.chatgpt = _Chat()
+    res = asyncio.run(m.scan_quick("성수 카페 추천", "어니언 성수"))
+    assert "naver" in spy.calls and res["naver"]["mentioned"] is True
+
+    spy2 = _Spy()
+    m2 = _scanner(spy2)
+    m2.chatgpt = _Chat()
+    res2 = asyncio.run(m2.scan_quick("성수 카페 추천", "어니언 성수", skip_naver=True))
+    assert "naver" not in spy2.calls                 # 네이버 접속 없음
+    assert "naver" not in res2 and res2["chatgpt"]["mentioned"] is True   # 다른 채널은 그대로
+
+
+def test_manual_scan_paths_and_nightly_use_the_shared_rule():
+    """수동 스캔 두 경로(quick·full)와 야간 스캔이 모두 같은 판정으로 서버 접속을 생략한다 — 한 곳이라도 빠지면 접속이 중복된다."""
+    root = os.path.join(os.path.dirname(__file__), "..")
+    scan = open(os.path.join(root, "routers", "scan.py"), encoding="utf-8").read()
+    jobs = open(os.path.join(root, "scheduler", "jobs.py"), encoding="utf-8").read()
+    assert "scanner.scan_quick(query, req.business_name, skip_naver=_prescan_usable(_prescan_naver_q))" in scan
+    assert "skip_naver=_prescan_usable(_prescan_naver_f)" in scan
+    assert "_skip_naver_brief = prescan_usable(_prescan_naver)" in jobs
+    assert 'result["naver"] = _prescan_naver_f' in scan and 'result["naver"] = _prescan_naver_q' in scan   # 결과 채우기는 그대로

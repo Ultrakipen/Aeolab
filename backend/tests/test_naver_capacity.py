@@ -72,5 +72,5 @@ def test_lever_report_is_monotone_and_marks_assumptions():
     assert (m.AI_TAB_PER_FULL, m.RANK_PER_KEYWORD, m.COMPETITOR_REFRESH_WEEKS) == before   # 모듈 상태를 되돌린다
     peaks = [r["batch_peak"] for r in rows]
     assert all(a >= b for a, b in zip(peaks, peaks[1:])), peaks
-    assert {r["kind"] for r in rows} == {"", "결정", "가정"}
+    assert {r["kind"] for r in rows} == {"", "결정", "조건부", "가정"}
     assert rows[-1]["batch_peak"] < rows[0]["batch_peak"] * 0.3

@@ -2979,7 +2979,9 @@ async def _run_quick_scan(scan_id: str, req: ScanRequest):
         except Exception as _pe_q:
             _logger.debug("[scan/quick] naver_prescan 조회 실패 (무시): %s", _pe_q)
 
-        result = await scanner.scan_quick(query, req.business_name)
+        # 오늘 사전 스캔이 쓸 만하면 서버가 같은 네이버 브리핑 접속을 또 보내지 않는다(결과는 어차피 아래에서 덮어쓴다).
+        from services.naver_prescan import prescan_usable as _prescan_usable
+        result = await scanner.scan_quick(query, req.business_name, skip_naver=_prescan_usable(_prescan_naver_q))
 
         # prescan 결과가 있으면 덮어쓰기
         if _prescan_naver_q:
@@ -3174,8 +3176,11 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         except Exception as _pe_f:
             _logger.debug("[scan/full] naver_prescan 조회 실패 (무시): %s", _pe_f)
 
+        # 오늘 사전 스캔이 쓸 만하면 서버가 같은 네이버 브리핑 접속을 또 보내지 않는다(결과는 아래에서 덮어쓴다).
+        from services.naver_prescan import prescan_usable as _prescan_usable
         result, kakao_data, website_check, smart_place_check, naver_visibility_full, place_stats_fresh = await _asyncio.gather(
-            scanner.scan_all(_scan_queries, req.business_name, sample_size=50),
+            scanner.scan_all(_scan_queries, req.business_name, sample_size=50,
+                             skip_naver=_prescan_usable(_prescan_naver_f)),
             get_kakao_visibility(req.business_name, keyword_ko, req.region),
             check_website_seo((biz or {}).get("website_url", "")),
             check_smart_place_completeness(naver_place_url) if naver_place_url else _asyncio.sleep(0),

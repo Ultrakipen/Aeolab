@@ -36,7 +36,7 @@ const STATUS_META: Record<string, { label: string; color: string; dot: string }>
 
 const PLAN_LIMITS: Record<string, { scan: string; competitors: string; autoScan: string }> = {
   free:       { scan: "—",          competitors: "—",      autoScan: "—" },
-  basic:      { scan: "하루 2회",   competitors: "3개",    autoScan: "주 2회 (월·목)" },
+  basic:      { scan: "하루 2회",   competitors: "3개",    autoScan: "주 2회" },
   startup:    { scan: "하루 3회",   competitors: "5개",    autoScan: "주 1회 (월요일)" },
   pro:        { scan: "하루 5회",   competitors: "5개",   autoScan: "주 3회" },
   biz:        { scan: "하루 10회",  competitors: "무제한", autoScan: "매일" },

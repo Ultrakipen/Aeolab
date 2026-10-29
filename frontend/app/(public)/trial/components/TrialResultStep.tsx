@@ -1632,7 +1632,7 @@ function MergedScanInfoBox({ chatgptSampleSize }: { chatgptSampleSize: number })
         <div className="bg-slate-600 rounded-lg px-3 py-2">
           <p className="text-sm text-blue-300 font-semibold mb-0.5">③ Basic 구독하면</p>
           <p className="text-sm text-slate-300 leading-relaxed">
-            같은 4개 AI 서비스를 각 <span className="text-white font-semibold">100회씩(총 200회)</span>로 정확도를 높여 매주(월·목) 자동 반복 + 점수 변화 추적 + 경쟁사 비교
+            같은 4개 AI 서비스를 각 <span className="text-white font-semibold">100회씩(총 200회)</span>로 정확도를 높여 매주 2회 자동 반복 + 점수 변화 추적 + 경쟁사 비교
           </p>
         </div>
       </div>

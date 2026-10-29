@@ -552,12 +552,8 @@ async def daily_scan_all():
 
                 # 사전 스캔 결과가 쓸 만하면 서버의 중복 네이버 브리핑 접속을 생략한다(설계 문서 §3 B).
                 # 캡챠·오류·상한 건너뜀으로 끝난 사전 스캔은 쓸 수 없으므로 서버가 직접 측정한다.
-                _skip_naver_brief = bool(
-                    _prescan_naver
-                    and not _prescan_naver.get("captcha_detected")
-                    and not _prescan_naver.get("error")
-                    and not _prescan_naver.get("quota_skipped")
-                )
+                from services.naver_prescan import prescan_usable
+                _skip_naver_brief = prescan_usable(_prescan_naver)
                 if _scan_mode == "skip":
                     logger.debug("[daily_scan_all] %s 스캔일 아님 스킵 biz=%s", plan, biz.get("id"))
                     continue

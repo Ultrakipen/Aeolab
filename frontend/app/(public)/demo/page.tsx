@@ -1355,7 +1355,7 @@ export default function DemoPage() {
                   <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                     <p className="text-sm font-bold text-blue-700 mb-2">구독 시작 후 (Basic 기준)</p>
                     <ul className="space-y-1.5 text-sm text-blue-700">
-                      <li>· 주 2회(월·목) 자동 측정 — Gemini·ChatGPT 각 100회 + 네이버 AI 브리핑</li>
+                      <li>· 주 2회 자동 측정 — Gemini·ChatGPT 각 100회 + 네이버 AI 브리핑</li>
                       <li>· 수동 측정 하루 2회 (원할 때 직접 실행)</li>
                       <li>· 경쟁사 3곳 추적 + 6개 차원 갭 분석</li>
                       <li>· 업종 시장 순위·분포 확인</li>

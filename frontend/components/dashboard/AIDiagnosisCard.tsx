@@ -281,7 +281,7 @@ export default function AIDiagnosisCard({
                       <div className="flex-1 min-w-0">
                         <span className="text-sm font-semibold text-indigo-700">네이버 AI탭 (현재 네이버플러스 멤버십 한정 · 6월 전체 공개 예정)</span>
                         <span className="block text-sm text-indigo-500 mt-0.5">
-                          업종 제한 없음 — 전체 공개 감지 즉시 자동 측정 시작 (월·목 자동 확인 중)
+                          업종 제한 없음 — 전체 공개 감지 즉시 자동 측정 시작 (정기 자동 확인 중)
                         </span>
                       </div>
                       <span className="text-sm font-semibold text-indigo-400 shrink-0">공개 대기 중</span>

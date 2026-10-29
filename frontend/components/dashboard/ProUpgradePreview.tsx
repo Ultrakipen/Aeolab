@@ -114,7 +114,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
               <span className="text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
                 Pro (업그레이드 후)
               </span>
-              <span className="text-sm text-gray-600">월·수·금 전체 측정</span>
+              <span className="text-sm text-gray-600">주 3회 전체 측정</span>
             </div>
             <div className="flex gap-1.5 flex-wrap">
               {WEEKDAY_LABELS.map((_, i) => (

@@ -628,7 +628,7 @@ function BasicTab({
         lines={[
           {
             Icon: BarChart3,
-            text: `매주 월요일 AI 4개 서비스가 ${d.bizName}을 얼마나 추천하는지 자동으로 추적합니다`,
+            text: `주 2회 AI 4개 서비스가 ${d.bizName}을 얼마나 추천하는지 자동으로 추적합니다`,
           },
           {
             Icon: Target,
@@ -647,7 +647,7 @@ function BasicTab({
           Basic — {PLAN_PRICES.basic.toLocaleString()}원/월
         </p>
         <p className="text-sm text-blue-700 leading-relaxed">
-          매주 월요일 AI 4개 서비스 자동 측정 + 경쟁사 3곳 비교. 커피 한 잔 값으로 내 가게가 AI에서
+          주 2회 AI 4개 서비스 자동 측정 + 경쟁사 3곳 비교. 커피 한 잔 값으로 내 가게가 AI에서
           어떻게 보이는지 매주 자동으로 추적합니다.
         </p>
       </div>
@@ -903,7 +903,7 @@ function BasicTab({
           title="Basic 포함 기능"
         />
         <div className="divide-y divide-gray-50">
-          <FeatureRow label="매주 월요일 AI 4개 서비스 자동 측정" available={true} />
+          <FeatureRow label="주 2회 AI 4개 서비스 자동 측정" available={true} />
           <FeatureRow label="경쟁사 비교" available={true} note="최대 3곳" />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 3회" />
           <FeatureRow label="리뷰 답변 초안 생성" available={true} note="월 50회" />
@@ -1109,7 +1109,7 @@ function StartupTab({
           <FeatureRow label="창업 시장 분석 리포트 (업종·지역 경쟁 강도)" available={true} />
           <FeatureRow label="시장 진입 난이도 + 틈새 키워드 발굴" available={true} />
           <FeatureRow label="경쟁사 비교" available={true} note="최대 5개" />
-          <FeatureRow label="매주 월요일 AI 4개 서비스 자동 측정" available={true} />
+          <FeatureRow label="주 1회 AI 4개 서비스 자동 측정" available={true} />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 5회" />
           <FeatureRow label="리뷰 답변 초안 생성" available={true} note="무제한" />
           <FeatureRow label="파일 내보내기" available={true} />
@@ -1204,7 +1204,7 @@ function ProTab({
           </span>
         </div>
         <p className="text-sm text-indigo-700 leading-relaxed">
-          월·수·금 주 3회 전체 AI 분석 + 경쟁사 5곳 비교. 경쟁사 변화를 3일 안에 포착하고
+          주 3회 전체 AI 분석 + 경쟁사 5곳 비교. 경쟁사 변화를 3일 안에 포착하고
           ChatGPT 광고 대응까지 선제 준비합니다.
         </p>
       </div>
@@ -1421,7 +1421,7 @@ function ProTab({
           title="Pro 포함 기능"
         />
         <div className="divide-y divide-gray-50">
-          <FeatureRow label="월·수·금 주 3회 AI 4개 서비스 자동 측정" available={true} />
+          <FeatureRow label="주 3회 AI 4개 서비스 자동 측정" available={true} />
           <FeatureRow label="경쟁사 비교" available={true} note="최대 5개" />
           <FeatureRow label="AI 개선 가이드" available={true} note="월 10회" />
           <FeatureRow label="리뷰 답변 초안 생성" available={true} note="무제한" />

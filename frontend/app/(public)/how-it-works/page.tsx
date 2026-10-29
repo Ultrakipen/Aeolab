@@ -646,8 +646,8 @@ export default function HowItWorksPage() {
                   <table className="w-full text-sm border-collapse min-w-[280px]">
                     <tbody className="text-gray-700">
                       <tr className="border-b border-gray-100"><td className="py-1.5 px-2">Free</td><td className="py-1.5 px-2 text-center">—</td><td className="py-1.5 px-2 text-gray-500">정기 측정 없음</td></tr>
-                      <tr className="border-b border-gray-100"><td className="py-1.5 px-2">Basic</td><td className="py-1.5 px-2 text-center">주 1회</td><td className="py-1.5 px-2 text-gray-500">매주 월요일 04:00</td></tr>
-                      <tr className="border-b border-gray-100"><td className="py-1.5 px-2">창업패키지·Pro·Biz</td><td className="py-1.5 px-2 text-center">매일</td><td className="py-1.5 px-2 text-gray-500">매일 04:30 자동</td></tr>
+                      <tr className="border-b border-gray-100"><td className="py-1.5 px-2">Basic</td><td className="py-1.5 px-2 text-center">주 1회</td><td className="py-1.5 px-2 text-gray-500">가게마다 정해진 요일에 자동</td></tr>
+                      <tr className="border-b border-gray-100"><td className="py-1.5 px-2">창업패키지·Pro·Biz</td><td className="py-1.5 px-2 text-center">주 3회</td><td className="py-1.5 px-2 text-gray-500">가게마다 정해진 요일에 자동</td></tr>
                     </tbody>
                   </table>
                 </div>

@@ -168,7 +168,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
             <p className="text-sm md:text-base text-slate-600 mt-1 leading-relaxed">
               계속 이용하려면 <strong className="text-slate-900">Basic 플랜</strong>에 가입해 주세요.
               방금 체험한 50회 질문이 <strong className="text-slate-900">100회로 늘어나 정확도가 높아지고</strong>,
-              주 2회(월·목) 자동 측정과 개선 가이드를 지속해서 받을 수 있습니다.
+              주 2회 자동 측정과 개선 가이드를 지속해서 받을 수 있습니다.
             </p>
             <p className="text-sm md:text-base font-semibold text-emerald-700 mt-2">
               <span className="flex items-center gap-1.5"><PartyPopper className="w-4 h-4 shrink-0" aria-hidden="true" />지금 가입하면 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 (50% 할인) · 이후 월 {PLAN_PRICES.basic.toLocaleString()}원</span>

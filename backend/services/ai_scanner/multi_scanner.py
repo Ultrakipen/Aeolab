@@ -249,12 +249,21 @@ class MultiAIScanner:
                       else {"platform": "google", "mentioned": False, "error": str(google_result)},
         }
 
-    async def scan_quick(self, query: str, target: str) -> dict:
+    async def scan_quick(self, query: str, target: str, skip_naver: bool = False) -> dict:
         """수동 Quick scan: ChatGPT 5회 샘플링 + 네이버 AI 브리핑
 
         _run_quick_scan()에서 호출. 비용: ~5.5원/회 (ChatGPT 5회 2.5원 + Naver 0원)
         2026-05-05 변경: ChatGPT 1회 → 5회 격상 (변동성 1/√5 감소, 응답 시간 동일)
+
+        skip_naver: True면 서버의 네이버 AI 브리핑 접속을 생략한다(2026-10-29). 호출자가 당일 사전 스캔 결과로
+        result["naver"]를 채울 때만 쓴다 — 결과 dict에 "naver" 키가 없다.
         """
+        if skip_naver:
+            chatgpt_result = (await asyncio.gather(self.chatgpt.sample_5(query, target), return_exceptions=True))[0]
+            return {
+                "chatgpt": chatgpt_result if not isinstance(chatgpt_result, Exception)
+                           else {"platform": "chatgpt", "mentioned": False, "error": str(chatgpt_result)},
+            }
         chatgpt_result, naver_result = await asyncio.gather(
             self.chatgpt.sample_5(query, target),
             self._run_playwright(self.naver.check_mention, query, target),
