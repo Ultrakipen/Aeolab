@@ -144,8 +144,9 @@ def start_scheduler():
     )
     # 내 사업장 네이버 플레이스 리뷰 수·평점 갱신 (매주 일요일 03:00)
     # 월요일 새벽 2시 daily_scan_all 직전에 최신 리뷰 수를 확보해 점수에 반영
+    # 매일 03:00 실행, 가게별 요일(place_stats_day)에만 갱신 = 가게당 주 1회 (일요일 일괄 → 분산, 2026-10-29)
     scheduler.add_job(
-        weekly_my_place_stats_job, "cron", day_of_week="sun", hour=3, minute=0,
+        weekly_my_place_stats_job, "cron", hour=3, minute=0,
         id="weekly_my_place_stats", replace_existing=True, max_instances=1, misfire_grace_time=600,
     )
     # 행동 완료 7일 후 재스캔 (매일 새벽 3시)
@@ -3425,14 +3426,15 @@ async def weekly_industry_trend_job():
         logger.error(f"[weekly_industry_trend_job] 실패: {e}")
 
 
+@_naver_batch_job
 async def weekly_my_place_stats_job():
-    """매주 일요일 03:00 — 내 사업장 네이버 플레이스 리뷰 수·평점 자동 갱신.
+    """매일 03:00 실행 — 오늘이 가게별 요일(place_stats_day)인 사업장만 리뷰 수·평점 자동 갱신(가게당 주 1회).
 
     naver_place_id가 등록된 활성 구독 사업장에 대해 NaverPlaceStatsService로
     businesses.review_count / avg_rating 을 최신값으로 업데이트한다.
 
-    실행 타이밍: 일요일 03:00 → 월요일 02:00 daily_scan_all 이전에 최신 리뷰 수 확보,
-    calc_review_quality()가 실제 최신 데이터를 사용하도록 보장.
+    과거에는 일요일 03:00에 전원을 일괄 처리했으나(스캔 전 최신 리뷰 수 확보 목적) 가게 수가 늘면 하루에 몰려
+    네이버 접속이 한꺼번에 나가므로 요일을 나눴다. 갱신 주기는 가게당 7일로 같고, 사용자 직접 스캔은 스캔 때 새로 읽는다.
 
     비용: Playwright 스크래핑 (API 비용 없음).
     RAM: Playwright 순차 실행, 사업장 간 5초 간격 (iwinv RAM4GB 기준).
@@ -3461,8 +3463,15 @@ async def weekly_my_place_stats_job():
         subs = _wps_subs_res.data or []
         active_user_ids = {s["user_id"] for s in subs}
         targets = [b for b in businesses if b.get("user_id") in active_user_ids]
+        from services.scan_scheduling import place_stats_day, rotate_for_fairness
+        _wd = date.today().weekday()
+        targets = [b for b in targets if place_stats_day(str(b.get("id"))) == _wd]
+        try:  # 상한 도달 시 같은 사업장이 계속 뒤로 밀려 굶지 않게 날짜 시드로 순서 회전
+            targets = rotate_for_fairness(targets, key=lambda b: str(b.get("id")), today=date.today())
+        except Exception as _rot_e:
+            logger.warning(f"[weekly_my_place_stats] 순서 회전 실패(기존 순서 유지): {_rot_e}")
 
-        logger.info(f"weekly_my_place_stats_job: 대상 {len(targets)}개 사업장")
+        logger.info(f"weekly_my_place_stats_job: 오늘 대상 {len(targets)}개 사업장")
 
         success = 0
         errors = 0
@@ -3474,6 +3483,10 @@ async def weekly_my_place_stats_job():
                         f"weekly_my_place_stats [{biz['name']}]: {stats['error']}"
                     )
                     errors += 1
+                    # 차단·쿨다운·상한이면 남은 가게에도 요청을 계속 보내지 않는다(차단 연장 방지)
+                    if stats.get("error") in ("ip_blocked", "quota_exceeded", "naver_place_cooldown", "naver_rate_limited"):
+                        logger.warning("weekly_my_place_stats: 접속 제한 감지 — 남은 사업장 중단")
+                        break
                 else:
                     logger.info(
                         f"weekly_my_place_stats [{biz['name']}]: "

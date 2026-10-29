@@ -41,6 +41,11 @@ def keyword_rank_day(biz_id: str) -> int:
     return int(hashlib.md5(f"{biz_id}:rank".encode("utf-8")).hexdigest()[:8], 16) % 7
 
 
+def place_stats_day(biz_id: str) -> int:
+    """내 가게 플레이스 통계(리뷰 수·평점)를 갱신하는 요일(0=월~6=일). 순위·스캔 슬롯과 겹치지 않게 소금값을 따로 둔다."""
+    return int(hashlib.md5(f"{biz_id}:stats".encode("utf-8")).hexdigest()[:8], 16) % 7
+
+
 def scheduled_full_scan_days(plan: str, biz_id: str) -> set[int]:
     """슬롯 분산 시 이 사업장이 풀스캔하는 요일 집합. 주 N회 횟수는 플랜 약속과 같다."""
     slot = scan_slot(biz_id)

@@ -14,7 +14,7 @@ import sys
 import uuid
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "backend"))
-from services.scan_scheduling import decide_scan_mode, keyword_rank_day, scan_slot  # noqa: E402
+from services.scan_scheduling import decide_scan_mode, keyword_rank_day, place_stats_day, scan_slot  # noqa: E402
 
 # ── 단위: 페이지 로드 수 (check_naver_playwright_quota의 cost와 같은 단위) ───────────────────
 BRIEF_PER_SCAN = 2        # 가정: scan_all/scan_basic이 네이버 브리핑 check_mention을 1회 호출하나 내부 변형 수는 미확인
@@ -62,8 +62,8 @@ def daily_loads(n: int, *, spread: bool, keywords: int, competitors: int, dedupe
             batch += rank_cost
             if comps is not None:
                 comps["키워드 순위(PC·모바일)"] = comps.get("키워드 순위(PC·모바일)", 0) + rank_cost
-            # 장소 통계: 월요일 주 1회
-            if wd == 0:
+            # 장소 통계: 가게별 요일 주 1회(2026-10-29 이전 코드는 일요일 03:00 일괄 — 모델은 월요일로 잘못 가정하고 있었다)
+            if wd == place_stats_day(biz_id):
                 batch += PLACE_STATS_COST
                 if comps is not None:
                     comps["내 가게 통계"] = comps.get("내 가게 통계", 0) + PLACE_STATS_COST
