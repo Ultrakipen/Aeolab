@@ -74,3 +74,22 @@ def test_lever_report_is_monotone_and_marks_assumptions():
     assert all(a >= b for a, b in zip(peaks, peaks[1:])), peaks
     assert {r["kind"] for r in rows} == {"", "결정", "조건부", "가정"}
     assert rows[-1]["batch_peak"] < rows[0]["batch_peak"] * 0.3
+
+
+def test_playbook_env_levers_exist_in_code():
+    """대응표가 안내하는 환경변수는 실제로 코드가 읽는 이름이어야 한다 — 오타가 있으면 켜도 아무 일도 일어나지 않는다."""
+    import re
+    import os
+    from services.naver_capacity import PLAYBOOK
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    sources = ""
+    for dirpath, _d, files in os.walk(os.path.join(root, "services")):
+        if "__pycache__" in dirpath:
+            continue
+        for fn in files:
+            if fn.endswith(".py") and fn != "naver_capacity.py":
+                sources += open(os.path.join(dirpath, fn), encoding="utf-8").read()
+    named = {n for s in PLAYBOOK for n in re.findall(r"\b([A-Z][A-Z0-9_]{6,})=", s["step"])}
+    assert {"NAVER_RANK_MOBILE_ONLY", "NAVER_AI_TAB_ENABLED", "COMPETITOR_REFRESH_WEEKS", "NAVER_AI_TAB_MAX_QUERIES"} <= named
+    for name in named:
+        assert f'"{name}"' in sources, name

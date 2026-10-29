@@ -43,10 +43,13 @@ INTERACTIVE_MAX_AGE_SEC = 561600   # 6.5일 — 사용자가 방금 등록한 �
 
 
 def _place_cache_ttl() -> float:
+    """공유 캐시 TTL. 직접 지정(COMPETITOR_PLACE_CACHE_TTL_SEC)이 없으면 갱신 주기 단일 출처(scan_scheduling,
+    COMPETITOR_REFRESH_WEEKS, 기본 2주=13.5일)를 따른다 — 일정 선택(build_stale_items)과 같은 값이어야 한다."""
+    from services.scan_scheduling import COMPETITOR_REFRESH_TTL_SEC
     try:
-        return float(os.getenv("COMPETITOR_PLACE_CACHE_TTL_SEC", "1166400"))
+        return float(os.getenv("COMPETITOR_PLACE_CACHE_TTL_SEC", str(COMPETITOR_REFRESH_TTL_SEC)))
     except ValueError:
-        return 1166400.0
+        return float(COMPETITOR_REFRESH_TTL_SEC)
 
 
 def _place_cache_path() -> str:

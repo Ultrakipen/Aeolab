@@ -39,7 +39,7 @@ from typing import Optional
 
 from playwright.async_api import async_playwright, Page, TimeoutError as PWTimeout
 from services.naver_visibility import _get as _naver_open_api_get, _name_matches as _nv_name_matches
-from services.ai_scanner import check_naver_playwright_quota, naver_playwright_quota_usage
+from services.ai_scanner import check_naver_playwright_quota, naver_playwright_quota_usage, get_proxy_config, note_proxy_result
 
 _logger = logging.getLogger("aeolab")
 
@@ -413,6 +413,15 @@ async def measure_keywords(
         return await _run_with_browser(keywords, biz_name, place_id, region or "")
 
 
+def mobile_only_enabled() -> bool:
+    """NAVER_RANK_MOBILE_ONLY=true 이면 PC 검색 화면은 읽지 않는다(용량 절감 레버, 기본 꺼짐).
+
+    PC 순위는 None(미측정)으로 남고 점수는 모바일·플레이스 순위 중 최선으로 계산된다(score_engine은 순위가 있는
+    채널의 최선 값을 쓴다). 켜면 PC에서만 잘 보이던 가게의 순위 항목이 낮아질 수 있어 용량 문제가 확인된 뒤에 켠다.
+    """
+    return os.getenv("NAVER_RANK_MOBILE_ONLY", "false").strip().lower() == "true"
+
+
 async def _run_with_browser(
     keywords: list[str],
     biz_name: str,
@@ -424,12 +433,19 @@ async def _run_with_browser(
     errors: list[str] = []
     results: dict = {}
     biz_name_norm = _norm(biz_name)
+    _mobile_only = mobile_only_enabled()
+
+    # 2026-10-29: 다른 검색 화면 접속(naver_scanner·AI탭)과 같은 프록시 범위("search")를 따른다. 이전에는 순위 측정만
+    # 프록시 인자가 없어 어떤 프록시를 설정해도 서버 IP로 직접 접속했다. NAVER_PROXY_LIST가 비어 있거나 범위 밖이면
+    # None(직접 연결)이라 동작은 그대로다.
+    _proxy = get_proxy_config("search")
 
     try:
         async with async_playwright() as pw:
             browser = await pw.chromium.launch(
                 headless=True,
                 args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+                proxy=_proxy,
             )
             try:
                 pc_ctx = await browser.new_context(locale="ko-KR", user_agent=UA_PC)
@@ -473,7 +489,9 @@ async def _run_with_browser(
                         # 전역 일일 상한(check_naver_playwright_quota) 도달 시 해당 채널은 None
                         # (미측정) — 임의 수치 대체 없음, 다음 사이클에 재시도.
                         _pc_cards = _card_cache_get("pc", search_query)
-                        if _pc_cards is not None:     # 같은 검색어를 최근에 읽었다 — 네이버 접속 없이 목록에서 순위만 구한다
+                        if _mobile_only:              # 용량 절감 레버 — PC 화면은 읽지 않는다(미측정, 미노출 아님)
+                            pc_rank = None
+                        elif _pc_cards is not None:   # 같은 검색어를 최근에 읽었다 — 네이버 접속 없이 목록에서 순위만 구한다
                             pc_rank = rank_from_cards(_pc_cards, biz_name_norm, place_id)
                         else:
                             pc_rank = (
@@ -530,10 +548,12 @@ async def _run_with_browser(
     except Exception as e:
         _logger.warning(f"keyword_rank Playwright 자체 실패: {e}")
         errors.append(f"playwright: {type(e).__name__}: {e}")
+        if _proxy:
+            note_proxy_result(e)      # 프록시 인증·연결 실패가 반복되면 회로를 열어 직접 연결로 되돌린다
 
     results["_context"] = {
         "location": os.getenv("KEYWORD_RANK_LOCATION", "Seoul"),
-        "device": "PC+mobile+place",
+        "device": "mobile+place" if _mobile_only else "PC+mobile+place",
         "logged_in": False,
         "started_at": started_at,
         "scanned_at": _now_iso(),

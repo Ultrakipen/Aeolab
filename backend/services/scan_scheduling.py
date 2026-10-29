@@ -156,8 +156,27 @@ from typing import Optional
 COMPETITOR_PAGE_COST = 6     # competitor_place_crawler.fetch_competitor_place_data 의 cost 와 같아야 한다
 # 경쟁사 플레이스 정보 갱신 주기 — 2주(2026-10-28 사용자 결정, 공개 문구도 "2주마다"). 캐시 TTL(13.5일)과 pacing(13일)을 함께 둔다:
 # TTL이 14일이면 14일째 아침에 아슬아슬하게 못 들어와 하루씩 밀린다. 기본값 변경 시 crawler의 기본 TTL·테스트도 같이 바꿀 것.
-COMPETITOR_REFRESH_TTL_SEC = 13.5 * 86400   # competitor_place_crawler._place_cache_ttl 기본값과 같아야 한다
-COMPETITOR_PACE_DAYS = 13.0
+# 갱신 주기는 COMPETITOR_REFRESH_WEEKS(2·3·4주, 기본 2)가 단일 출처다. 용량이 모자랄 때 쓰는 절감 레버(기본 꺼짐=2주):
+# 바꾸면 공개 문구("경쟁사 정보를 2주마다")도 같은 주기로 고쳐야 한다 — demo/page.tsx·PlanGate.tsx·onboarding/page.tsx·CompetitorsClient.tsx.
+_ALLOWED_REFRESH_WEEKS = (2, 3, 4)
+
+
+def competitor_refresh_weeks() -> int:
+    """환경변수 COMPETITOR_REFRESH_WEEKS(2·3·4). 비었거나 허용값이 아니면 2주(현재 약속)."""
+    try:
+        w = int(os.getenv("COMPETITOR_REFRESH_WEEKS", "2").strip())
+    except ValueError:
+        return 2
+    return w if w in _ALLOWED_REFRESH_WEEKS else 2
+
+
+def refresh_params(weeks: int) -> tuple:
+    """(캐시 TTL 초, pacing 일수). N주 주기 = N*7일에서 TTL은 0.5일, pacing은 1일 모자라게 둔다(N*7일째 아침에
+    아슬아슬하게 못 들어와 하루씩 밀리는 것을 막는다)."""
+    return ((weeks * 7 - 0.5) * 86400, float(weeks * 7 - 1))
+
+
+COMPETITOR_REFRESH_TTL_SEC, COMPETITOR_PACE_DAYS = refresh_params(competitor_refresh_weeks())   # 기본 2주 = 13.5일 / 13일
 
 
 def competitor_stale_first_enabled() -> bool:
