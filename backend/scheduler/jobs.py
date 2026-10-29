@@ -209,8 +209,9 @@ def start_scheduler():
     # Basic 주 1회(월 04:00) / Pro·창업·Biz 주 3회(월·수·금 04:30, 스캔 요일과 같다) — 시간 분산으로 RAM peak 회피
     # 2026-10-28: 매일 → 월·수·금. 순위는 느리게 변하고 네이버 검색 화면 접속을 43%→약 30%로 줄인다(사업장 30%가 순위 부하의 75%였음).
     # 잡 id·함수 이름의 "daily"는 호환을 위해 유지. 저장 순위를 읽는 쪽의 신선도 기준은 7일·30일이라 영향 없음.
+    # Basic: 매일 04:00 실행하되 가게별 요일에만 측정 = 가게당 주 1회 (월요일 쏠림 해소, 2026-10-29)
     scheduler.add_job(
-        keyword_rank_basic_weekly_job, "cron", day_of_week="mon", hour=4, minute=0,
+        keyword_rank_basic_weekly_job, "cron", hour=4, minute=0,
         id="keyword_rank_basic_weekly", replace_existing=True,
         max_instances=1, misfire_grace_time=600,
     )
@@ -5260,8 +5261,10 @@ async def _measure_keyword_rank_for_biz(biz: dict) -> bool:
 _RANK_FAIL_ALERT_RATIO = 0.5  # 측정 대상 중 이 비율 이상 실패하면 운영자 알림
 
 
-async def _run_keyword_rank_for_plans(plans: list[str]) -> None:
+async def _run_keyword_rank_for_plans(plans: list[str], only_today_slot: bool = False) -> None:
     """지정된 플랜의 활성 구독자 사업장 전체에 대해 키워드 순위 측정.
+
+    only_today_slot=True면 오늘 요일이 사업장별 순위 요일(keyword_rank_day)인 곳만 잰다 — 매일 돌려도 가게당 주 1회.
 
     Semaphore로 동시성 제한 (BACKEND_MAX_CONCURRENCY 환경변수, 기본 2).
     사업장 간 5초 sleep으로 RAM peak 회피.
@@ -5295,6 +5298,10 @@ async def _run_keyword_rank_for_plans(plans: list[str]) -> None:
         return
 
     targets = [b for b in (biz_res.data or []) if b.get("keywords")]
+    if only_today_slot:
+        from services.scan_scheduling import keyword_rank_day
+        _wd = date.today().weekday()
+        targets = [b for b in targets if keyword_rank_day(str(b.get("id"))) == _wd]
     try:  # 상한 도달 시 같은 사업장이 매일 뒤로 밀려 굶지 않게 날짜 시드로 순서 회전(2026-10-27)
         from services.scan_scheduling import rotate_for_fairness
         targets = rotate_for_fairness(targets, key=lambda b: str(b.get("id")), today=date.today())
@@ -5419,7 +5426,7 @@ async def _maybe_notify_keyword_change(biz: dict, prev: dict, curr: dict) -> Non
 async def keyword_rank_basic_weekly_job() -> None:
     """Basic 플랜 주 1회 키워드 순위 측정 (매주 월요일 04:00 KST)."""
     try:
-        await _run_keyword_rank_for_plans(["basic"])
+        await _run_keyword_rank_for_plans(["basic"], only_today_slot=True)
     except Exception as e:
         logger.error(f"[keyword_rank_basic_weekly_job] 실패: {e}")
         await send_slack_alert("keyword_rank_basic_weekly_job 실패", str(e), level="error")
