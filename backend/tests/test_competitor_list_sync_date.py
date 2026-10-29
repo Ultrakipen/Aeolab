@@ -33,3 +33,16 @@ def test_success_state_is_cleared_and_error_is_user_readable():
 def test_page_text_points_to_where_refresh_actually_is():
     assert "경쟁사 목록의 '새로고침'으로 직접 갱신 가능" in _SRC
     assert "경쟁사 카드의 새로고침 버튼으로" not in _SRC           # 이전 문구는 '이미지 카드 새로고침'과 혼동됐다
+
+
+def test_429_and_recent_responses_are_handled_not_shown_as_failure():
+    body = _SRC.split("const handleSyncPlace = useCallback", 1)[1].split("const [searchQuery", 1)[0]
+    assert "res.status === 429" in body and "'limit'" in body
+    assert "body.refreshed === false" in body and "'recent'" in body
+    assert "방금 확인한 값이에요" in _SRC and "너무 자주 눌렀어요" in _SRC
+    assert "'loading' | 'success' | 'error' | 'recent' | 'limit'" in _SRC
+
+
+def test_batch_sync_stops_at_the_hourly_limit():
+    loop = _SRC.split("const handleSyncAllRatings = useCallback", 1)[1].split("setSyncAllFailedCount(failedCount)", 1)[0]
+    assert "res.status === 429" in loop and "break" in loop

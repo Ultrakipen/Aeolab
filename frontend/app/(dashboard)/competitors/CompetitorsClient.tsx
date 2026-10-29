@@ -1642,7 +1642,7 @@ export function CompetitorsClient({
   const [changeDetails, setChangeDetails] = useState<Record<string, string>>({})
 
   // 네이버 플레이스 동기화 상태 (경쟁사 ID → 상태)
-  const [syncingIds, setSyncingIds] = useState<Record<string, 'loading' | 'success' | 'error'>>({})
+  const [syncingIds, setSyncingIds] = useState<Record<string, 'loading' | 'success' | 'error' | 'recent' | 'limit'>>({})
 
   // 전체 평점 동기화 상태
   const [syncAllState, setSyncAllState] = useState<'idle' | 'loading' | 'done'>('idle')
@@ -1760,6 +1760,12 @@ export function CompetitorsClient({
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
         })
+        if (res.status === 429) {
+          // 사용자별 새로고침 한도 — 남은 경쟁사에 요청을 계속 보내지 않는다
+          failedCount += targets.length - i
+          setSyncAllProgress({ done: targets.length, total: targets.length })
+          break
+        }
         if (!res.ok) failedCount++
       } catch {
         failedCount++
@@ -1789,9 +1795,26 @@ export function CompetitorsClient({
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })
+      if (res.status === 429) {
+        // 새로고침을 너무 자주 눌렀다 — 실패가 아니라 잠시 기다려 달라는 안내
+        setSyncingIds(prev => ({ ...prev, [competitorId]: 'limit' }))
+        setTimeout(() => {
+          setSyncingIds(prev => { const next = { ...prev }; delete next[competitorId]; return next })
+        }, 6000)
+        return
+      }
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
         throw new Error(err.detail || '동기화 실패')
+      }
+      const body = await res.json().catch(() => ({}))
+      if (body && body.refreshed === false) {
+        // 1시간 안에 이미 확인한 값 — 네이버에 다시 접속하지 않았다(서버가 거절하지 않고 그대로 알려 준다)
+        setSyncingIds(prev => ({ ...prev, [competitorId]: 'recent' }))
+        setTimeout(() => {
+          setSyncingIds(prev => { const next = { ...prev }; delete next[competitorId]; return next })
+        }, 4000)
+        return
       }
       setSyncingIds(prev => ({ ...prev, [competitorId]: 'success' }))
       setTimeout(() => { router.refresh() }, 2000)
@@ -2289,6 +2312,11 @@ export function CompetitorsClient({
                                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                                 동기화 완료! 페이지를 새로고침합니다.
                               </div>
+                            ) : syncingIds[c.id] === 'limit' ? (
+                              <div className="flex items-center gap-2 text-sm text-amber-800 font-semibold">
+                                <AlertCircle className="w-4 h-4 shrink-0" />
+                                너무 자주 눌렀어요. 잠시 후 다시 시도해 주세요.
+                              </div>
                             ) : syncingIds[c.id] === 'error' ? (
                               <div className="flex items-center gap-2 text-sm text-red-700 font-semibold">
                                 <AlertCircle className="w-4 h-4 shrink-0" />
@@ -2354,6 +2382,10 @@ export function CompetitorsClient({
                             {((typeof c.place_avg_rating === 'number' && c.place_avg_rating > 0) || c.detail_synced_at) && (
                               syncingIds[c.id] === 'success' ? (
                                 <span className="text-sm text-emerald-700 font-medium">갱신했어요</span>
+                              ) : syncingIds[c.id] === 'recent' ? (
+                                <span className="text-sm text-gray-700 font-medium">방금 확인한 값이에요</span>
+                              ) : syncingIds[c.id] === 'limit' ? (
+                                <span className="text-sm text-amber-800 font-medium">너무 자주 눌렀어요. 잠시 후 다시 시도해 주세요</span>
                               ) : syncingIds[c.id] === 'error' ? (
                                 <span className="text-sm text-red-700 font-medium">지금은 갱신하지 못했어요. 잠시 후 다시 시도해 주세요</span>
                               ) : (

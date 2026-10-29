@@ -4,10 +4,13 @@ import os
 import re
 import urllib.parse
 import aiohttp
+import time
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from models.schemas import CompetitorCreate
 from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user, PLAN_LIMITS
+import utils.cache as _cache
 
 router = APIRouter()
 _logger = logging.getLogger(__name__)
@@ -1139,6 +1142,50 @@ async def remove_competitor(competitor_id: str, user=Depends(get_current_user)):
     return {"status": "deleted"}
 
 
+# ── 수동 새로고침(sync-place) 보호 (2026-10-29) ───────────────────────────────
+# 목록에 새로고침 버튼을 눈에 띄게 노출했으므로 연타·일괄 클릭이 네이버 접속으로 번지지 않게 막는다.
+#  ① 경쟁사별: 1시간 안에 갱신된 값이면 네이버에 접속하지 않고 "방금 확인한 값"으로 응답(공유 캐시 재사용 한도 3600초와 같다)
+#  ② 사용자별: 1시간에 15회까지(관리자 제외). 경쟁사 5곳 전부 새로고침하는 정상 사용(5회)의 3배 여유.
+# 사용자별 횟수는 프로세스 메모리(utils.cache)라 재시작하면 초기화된다 — 보호막이지 과금 근거가 아니다.
+_MANUAL_SYNC_RECENT_SEC = 3600
+_MANUAL_SYNC_USER_CAP = 15
+_MANUAL_SYNC_WINDOW_SEC = 3600
+_ADMIN_USER_IDS: set[str] = set(
+    uid.strip() for uid in os.getenv("ADMIN_USER_IDS", "").split(",") if uid.strip()
+)
+
+
+def manual_sync_recent_minutes(last_synced_at: str | None, now: datetime | None = None) -> int | None:
+    """마지막 갱신이 1시간 안이면 몇 분 전인지(0 이상), 아니거나 알 수 없으면 None."""
+    if not last_synced_at:
+        return None
+    try:
+        last = datetime.fromisoformat(str(last_synced_at).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if last.tzinfo is None:
+        last = last.replace(tzinfo=timezone.utc)
+    age = ((now or datetime.now(timezone.utc)) - last).total_seconds()
+    if age >= _MANUAL_SYNC_RECENT_SEC:
+        return None
+    if age < 0:          # 시계 차이로 미래 시각이 기록된 경우 — 방금 갱신으로 본다
+        return 0
+    return int(age // 60)
+
+
+def manual_sync_take_quota(user_id: str) -> bool:
+    """사용자별 수동 새로고침 1회 사용. 창은 첫 요청부터 1시간 고정(요청할 때마다 연장되지 않는다). 한도면 False."""
+    key = f"comp_manual_sync:{user_id}"
+    now = time.monotonic()
+    count, start = _cache.get(key) or (0, now)
+    if now - start >= _MANUAL_SYNC_WINDOW_SEC:
+        count, start = 0, now
+    if count >= _MANUAL_SYNC_USER_CAP:
+        return False
+    _cache.set(key, (count + 1, start), ttl=_MANUAL_SYNC_WINDOW_SEC)
+    return True
+
+
 @router.post("/{competitor_id}/sync-place")
 async def sync_competitor_place_endpoint(competitor_id: str, user=Depends(get_current_user)):
     """경쟁사 네이버 플레이스 데이터 수동 동기화.
@@ -1149,7 +1196,7 @@ async def sync_competitor_place_endpoint(competitor_id: str, user=Depends(get_cu
     # 소유권 검증: competitor → business_id → user_id
     comp = await execute(
         supabase.table("competitors")
-        .select("id, name, address, naver_place_id, business_id")
+        .select("id, name, address, naver_place_id, business_id, naver_place_last_synced_at")
         .eq("id", competitor_id)
         .maybe_single()
     )
@@ -1191,6 +1238,25 @@ async def sync_competitor_place_endpoint(competitor_id: str, user=Depends(get_cu
             detail="네이버 플레이스에서 해당 업체를 찾을 수 없습니다. 직접 네이버 플레이스 ID를 입력해주세요.",
         )
 
+    # ① 방금 갱신된 값이면 네이버에 접속하지 않는다 — 같은 값을 다시 읽을 뿐이고 접속 쿼터만 쓴다
+    _recent_min = manual_sync_recent_minutes(comp.data.get("naver_place_last_synced_at"))
+    if _recent_min is not None:
+        return {
+            "message": "방금 확인한 값이에요",
+            "refreshed": False,
+            "reason": "recent",
+            "minutes_ago": _recent_min,
+            "competitor_id": competitor_id,
+            "name": comp.data.get("name"),
+            "naver_place_id": naver_place_id,
+        }
+    # ② 사용자별 1시간 상한(관리자 제외) — 접속이 일어나는 요청만 센다
+    if user["id"] not in _ADMIN_USER_IDS and not manual_sync_take_quota(user["id"]):
+        raise HTTPException(
+            status_code=429,
+            detail=f"새로고침은 1시간에 {_MANUAL_SYNC_USER_CAP}번까지 할 수 있어요. 잠시 후 다시 시도해 주세요.",
+        )
+
     # 동기화 실행 (await로 직접 호출하여 결과 반환)
     from services.competitor_place_crawler import sync_competitor_place
     try:
@@ -1208,6 +1274,7 @@ async def sync_competitor_place_endpoint(competitor_id: str, user=Depends(get_cu
 
     return {
         "message": "동기화 완료",
+        "refreshed": True,
         "competitor_id": competitor_id,
         "name": comp.data.get("name"),
         "naver_place_id": naver_place_id,
