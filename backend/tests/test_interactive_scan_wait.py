@@ -244,3 +244,24 @@ def test_stream_route_uses_the_quick_generator_not_the_dead_one():
     import pathlib
     src = (pathlib.Path(__file__).resolve().parents[1] / "routers" / "scan.py").read_text(encoding="utf-8")
     assert "scanner.scan_quick_with_progress(req)" in src
+
+
+# ── 완료 시간 상한: 다른 사용자 호출 뒤에 줄을 서도 90초 안전망에 걸리지 않는다 ──
+def test_quick_scan_gives_up_on_a_slow_api_channel_and_still_completes(monkeypatch):
+    sc, state = _quick(monkeypatch, gemini_delay=3.0)
+    monkeypatch.setattr(ms, "QUICK_SCAN_API_DEADLINE_SEC", 0.4)
+    t = time.monotonic()
+    events = _run(_collect_quick(sc))
+    assert time.monotonic() - t < 1.5                       # 3초짜리 Gemini를 끝까지 기다리지 않는다
+    gem = [e for e in events if e["step"] == "gemini" and e["status"] == "error"]
+    assert gem and gem[0]["error"] == "timeout"             # 실패로 드러난다(0으로 위장하지 않는다)
+    assert events[-1]["step"] == "complete"
+    assert any(e["step"] == "chatgpt" and e["status"] == "done" for e in events)   # 다른 채널 결과는 그대로
+    assert state["gemini_cancelled"] is True                # 시간 초과한 호출은 멈춘다
+
+
+def test_slow_channel_error_event_carries_no_result():
+    """라우트는 done+result만 저장하므로 시간 초과 채널은 저장되지 않고 점수에서 제외된다(기존 실패 처리와 같은 경로)."""
+    import pathlib
+    src = (pathlib.Path(__file__).resolve().parents[1] / "routers" / "scan.py").read_text(encoding="utf-8")
+    assert 'progress.get("status") == "done" and "result" in progress' in src

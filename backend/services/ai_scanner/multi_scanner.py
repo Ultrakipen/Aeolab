@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import random
+import time
 from typing import AsyncIterator
 
 _logger = logging.getLogger("aeolab")
@@ -45,6 +46,9 @@ PLAYWRIGHT_SEMAPHORE = asyncio.Semaphore(int(os.getenv("PLAYWRIGHT_MAX_CONCURREN
 # 실패했음(실행 자체엔 40s 타임아웃이 있었지만 대기열엔 없었음). 대기 15s + 실행 40s로
 # nginx 60s 타임아웃 안에 항상 친절한 오류를 먼저 반환하도록 예산 분리.
 PLAYWRIGHT_QUEUE_TIMEOUT_SEC = float(os.getenv("PLAYWRIGHT_QUEUE_TIMEOUT_SEC", "15"))
+# 수동 빠른 측정에서 API 채널(Gemini·ChatGPT)을 기다리는 최대 시간(초, 측정 시작 기준). 클라이언트에 90초 안전망 타임아웃이 있어
+# 호출 간격 제한 아래에서 다른 사용자의 호출 뒤에 줄을 서더라도 이 시간을 넘기면 그 채널은 '측정 안 됨'으로 두고 나머지로 끝낸다.
+QUICK_SCAN_API_DEADLINE_SEC = float(os.getenv("QUICK_SCAN_API_DEADLINE_SEC", "70"))
 
 
 class MultiAIScanner:
@@ -301,6 +305,7 @@ class MultiAIScanner:
 
         # Gemini(호출 간격 제한 아래에서 10표본≈45초)·ChatGPT는 API라 Playwright 채널(네이버·구글)과 서로 기다릴 이유가 없어 동시에 돌린다.
         # 직렬이면 클라이언트 90초 안전망(ScanProgress.tsx) 안에 끝나지 않을 수 있다.
+        _t_start = time.monotonic()
         gemini_task = asyncio.create_task(self.gemini.sample_10(query, req.business_name))
         chatgpt_task = asyncio.create_task(self.chatgpt.sample_5(query, req.business_name))
         platforms = [
@@ -330,7 +335,12 @@ class MultiAIScanner:
                     yield {"step": name, "status": "error", "error": str(e), "progress": int((i + 1) / total * 80)}
             for _name, _task, _prog in (("chatgpt", chatgpt_task, 90), ("gemini", gemini_task, 95)):
                 try:
-                    yield {"step": _name, "status": "done", "result": await _task, "progress": _prog}
+                    _left = max(1.0, QUICK_SCAN_API_DEADLINE_SEC - (time.monotonic() - _t_start))
+                    yield {"step": _name, "status": "done", "result": await asyncio.wait_for(_task, timeout=_left), "progress": _prog}
+                except asyncio.TimeoutError:
+                    # 줄이 길어 시간 안에 못 끝났다 — 이 채널은 측정 안 됨(점수에서 제외)으로 두고 측정을 끝낸다
+                    _logger.warning("[scan/quick] %s 대기 %.0f초 초과 — 측정 안 됨으로 종료", _name, QUICK_SCAN_API_DEADLINE_SEC)
+                    yield {"step": _name, "status": "error", "error": "timeout", "progress": _prog}
                 except Exception as e:
                     yield {"step": _name, "status": "error", "error": str(e), "progress": _prog}
         finally:
