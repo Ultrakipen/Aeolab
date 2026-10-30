@@ -4,6 +4,7 @@ import logging
 from datetime import date
 
 logger = logging.getLogger("aeolab")
+_logger = logger   # 대행 서비스 알림 함수(send_delivery_*)가 쓰는 이름 — 2026-05-18부터 미정의라 "템플릿 미설정 건너뜀" 경로가 NameError였다
 
 
 # ── 점수 → 텍스트 등급 변환 헬퍼 ────────────────────────────────────────────

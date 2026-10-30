@@ -3,7 +3,7 @@ import logging
 import os
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.events import EVENT_JOB_ERROR
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from utils.alert import send_slack_alert
 from db.supabase_client import execute as _db
 from services.ai_scanner import naver_batch_job as _naver_batch_job  # 정기 잡은 네이버 상한의 배치 비율까지만 사용(2026-10-27)
