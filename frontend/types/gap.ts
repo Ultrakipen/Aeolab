@@ -58,6 +58,8 @@ export interface GapAnalysis {
   dimensions: DimensionGap[];
   gap_card_url?: string;
   estimated_score_if_fixed: number;
+  // 내 가게를 경쟁사와 같은 공식으로 계산한 비교용 점수(경쟁사 페이지 순위·막대 전용). 입력이 부족하면 null
+  my_compare?: { score: number; basis: string; ai_source: string; ai_count: number; ai_sample_size: number } | null;
   // v2.4 추가 — 글로벌 AI 차단 리스크
   naver_only_risk: boolean;
   naver_only_risk_score_impact: number;

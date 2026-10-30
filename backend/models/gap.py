@@ -99,3 +99,5 @@ class GapAnalysis(BaseModel):
     # top_recommendation 등 블로그 분석 결과 전체 포함
     # 경쟁사 데이터 추정 여부 (breakdown 없어 수식 가공한 경우 True)
     is_competitor_estimated: bool = False
+    # 내 가게를 경쟁사와 같은 공식(compute_competitor_score)으로 계산한 비교용 점수 — 경쟁사 페이지 순위·막대 전용. 입력 부족 시 None
+    my_compare: Optional[dict] = None

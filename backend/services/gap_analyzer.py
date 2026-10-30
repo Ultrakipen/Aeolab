@@ -713,20 +713,35 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
     # 왕복이 누적돼 다른 대시보드 backend fetch와 경합 시 지연을 키웠음)
     _biz_task = execute(
         supabase.table("businesses")
-        .select("id, name, category, region, business_type, review_sample, keywords, blog_url, blog_keyword_coverage, blog_analysis_json, blog_post_count, blog_latest_post_date, blog_analyzed_at, is_smart_place, has_faq, has_intro, has_recent_post, review_count, naver_intro_draft, is_franchise")
+        .select("id, name, category, region, business_type, review_sample, keywords, blog_url, blog_keyword_coverage, blog_analysis_json, blog_post_count, blog_latest_post_date, blog_analyzed_at, is_smart_place, has_faq, has_intro, has_recent_post, review_count, avg_rating, receipt_review_count, naver_place_id, blog_mention_count, naver_intro_draft, is_franchise")
         .eq("id", business_id)
         .single()
     )
     _scan_task = execute(
         supabase.table("scan_results")
-        .select("id, total_score, track1_score, score_breakdown, competitor_scores, naver_result, gemini_result, keyword_coverage")
+        .select("id, total_score, track1_score, score_breakdown, competitor_scores, naver_result, gemini_result, chatgpt_result, website_check_result, keyword_coverage")
         .eq("business_id", business_id)
         .order("scanned_at", desc=True)
         .limit(1)
     )
     _prefs_task = get_user_keyword_prefs(business_id, supabase)
+    # 내 가게 스마트플레이스 항목(메뉴 등) — 비교용 점수(compare_score)에 쓴다. 가장 최근에 읽은 값(place_compare와 같은 출처).
+    _sp_task = execute(
+        supabase.table("scan_results")
+        .select("smart_place_completeness_result")
+        .eq("business_id", business_id)
+        .not_.is_("smart_place_completeness_result", "null")
+        .order("scanned_at", desc=True)
+        .limit(1)
+    )
 
-    _biz_res, scan_row_res, _prefs = await asyncio.gather(_biz_task, _scan_task, _prefs_task)
+    _biz_res, scan_row_res, _prefs, _sp_res = await asyncio.gather(_biz_task, _scan_task, _prefs_task, _sp_task, return_exceptions=True)
+    if isinstance(_biz_res, Exception):
+        raise _biz_res
+    if isinstance(scan_row_res, Exception):
+        raise scan_row_res
+    if isinstance(_prefs, Exception):
+        raise _prefs
 
     biz_row = _biz_res.data
     if not biz_row:
@@ -750,6 +765,17 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
     if my_track1 is not None:
         my_track1 = float(my_track1)
     scan_id = scan["id"]
+
+    # 내 가게도 경쟁사와 같은 공식으로 계산한 비교용 점수 — 경쟁사 페이지의 순위·막대 비교 전용(입력이 부족하면 None).
+    # 경쟁사 점수가 없어 업종 평균 추정 분기로 가는 경우에도 필요하므로 분기 앞에서 계산한다.
+    my_compare = None
+    try:
+        from services.compare_score import my_compare_score
+        _sp_rows = (getattr(_sp_res, "data", None) or []) if not isinstance(_sp_res, Exception) else []
+        _sp_auto = (_sp_rows[0].get("smart_place_completeness_result") if _sp_rows else None) or {}
+        my_compare = my_compare_score(biz_row, scan, _sp_auto)
+    except Exception as _mce:
+        _logger.warning(f"my_compare 계산 실패(무시) biz={business_id}: {_mce}")
 
     # keyword_coverage_rate: DB에 저장된 값 우선 활용 (cold start 방지)
     stored_coverage = scan.get("keyword_coverage")
@@ -1001,6 +1027,7 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
             keyword_gap=keyword_gap_result,
             growth_stage=growth_stage,
             blog_diagnosis=blog_diagnosis,
+            my_compare=my_compare,
             # 경쟁사 미등록 — "업종 평균"은 실제 표본이 아니라 내 점수 기준 수식(+10/+15/55.0 고정)으로
             # 가공한 값이므로 반드시 추정 플래그를 표시해야 함 (CLAUDE.md "계산 근거 없는 추정 점수" 금지 원칙)
             is_competitor_estimated=True,
@@ -1025,7 +1052,7 @@ async def analyze_gap_from_db(business_id: str, supabase) -> Optional[GapAnalysi
         excluded_keywords=_excluded_kw or None,
     )
     # blog_diagnosis는 analyze_gap() 파라미터가 아니므로 반환 후 주입
-    return gap_result.model_copy(update={"blog_diagnosis": blog_diagnosis})
+    return gap_result.model_copy(update={"blog_diagnosis": blog_diagnosis, "my_compare": my_compare})
 
 
 _REVIEW_CATEGORIES_BY_TYPE: dict[str, dict[str, list[str]]] = {

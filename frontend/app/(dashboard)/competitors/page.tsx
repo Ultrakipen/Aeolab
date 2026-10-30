@@ -240,7 +240,8 @@ export default async function CompetitorsPage({
         key={business.id}
         business={business}
         competitors={competitors ?? []}
-        myScore={latestScanWithScores?.total_score ?? latestScans?.[0]?.total_score ?? 0}
+        myScore={gapAnalysis?.my_compare?.score ?? latestScanWithScores?.total_score ?? latestScans?.[0]?.total_score ?? 0}
+        myScoreSameFormula={gapAnalysis?.my_compare?.score != null}
         myTrack1Score={latestScanWithScores?.track1_score ?? null}
         myReviewCount={business.review_count ?? 0}
         myAvgRating={business.avg_rating && business.avg_rating > 0 ? business.avg_rating : null}

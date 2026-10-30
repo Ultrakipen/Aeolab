@@ -568,6 +568,8 @@ interface Props {
   competitors: Competitor[]
   myScore: number
   myTrack1Score?: number | null
+  // true면 myScore가 경쟁사와 같은 공식으로 계산한 비교용 점수(백엔드 gap.my_compare), false면 종합 점수(공식이 달라 참고용)
+  myScoreSameFormula?: boolean
   myReviewCount?: number
   myAvgRating?: number | null
   myBlogMentions?: number | null
@@ -1614,6 +1616,7 @@ export function CompetitorsClient({
   competitors: initial,
   myScore,
   myTrack1Score = null,
+  myScoreSameFormula = false,
   myReviewCount = 0,
   myAvgRating = null,
   myBlogMentions = null,
@@ -3456,6 +3459,11 @@ export function CompetitorsClient({
                 : gap > 15
                 ? '격차가 큽니다. 가이드에서 우선 순위 높은 항목부터 개선하세요.'
                 : '조금만 더 노력하면 1위에 올라갈 수 있습니다.'}
+            </p>
+            <p className="text-sm text-gray-600 mt-1">
+              {myScoreSameFormula
+                ? '순위는 내 가게도 경쟁사와 같은 공식(리뷰·평점·소개글·메뉴·소식·블로그·AI 추천 목록 등장)으로 계산한 비교 점수 기준입니다. 대시보드의 종합 점수와 다를 수 있습니다.'
+                : '아직 내 가게를 경쟁사와 같은 공식으로 계산할 데이터가 모이지 않아 종합 점수로 비교하고 있습니다. 공식이 달라 순위는 참고용이며, 다음 측정 이후 같은 공식 기준으로 바뀝니다.'}
             </p>
             {topTip && (
               <div className="flex items-center gap-2 mt-2.5 bg-white/80 rounded-xl px-3 py-2 border border-gray-200 flex-wrap">
