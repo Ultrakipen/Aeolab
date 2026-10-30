@@ -2945,26 +2945,12 @@ async def _enrich_scan_background(
     except Exception as e:
         _logger.warning(f"ai_search_screenshots failed (bg biz={business_id}): {e}")
 
-    # ── 3. query_exposure Gemini 3회 추가 호출 ────────────────────────────────
+    # ── 3. query_exposure ────────────────────────────────────────────────────
+    # 질의별 추가 호출(예약·근처·맛집)은 가게 이름을 질문에 넣는 유도형이라 '추천됨'이 부풀 수 있고, 읽는 곳이 없는(scan_analytics 쓰기 전용)
+    # 값을 위해 스캔마다 제한 대기열 호출 3회를 쓰고 있었다 — 비유도 본 스캔의 결과(recommend)만 남기고 중단(2026-10-30).
     query_exposure = {
         "recommend": bool((results.get("gemini") or {}).get("mentioned")),
     }
-    try:
-        from services.ai_scanner.gemini_scanner import GeminiScanner as _GeminiQD
-        gemini_qd = _GeminiQD()
-        biz_name_qd = (biz or {}).get("name", req.business_name)
-        keyword_ko_qd = _CATEGORY_KO.get((biz or {}).get("category", req.category), req.category)
-        qd_results = await _asyncio.gather(
-            gemini_qd.single_check(f"{keyword_ko_qd} 예약", biz_name_qd),
-            gemini_qd.single_check(f"근처 {keyword_ko_qd}", biz_name_qd),
-            gemini_qd.single_check(f"{keyword_ko_qd} 맛집", biz_name_qd),
-            return_exceptions=True,
-        )
-        query_exposure["reservation"] = bool(not isinstance(qd_results[0], Exception) and (qd_results[0] or {}).get("mentioned"))
-        query_exposure["nearby"]      = bool(not isinstance(qd_results[1], Exception) and (qd_results[1] or {}).get("mentioned"))
-        query_exposure["best"]        = bool(not isinstance(qd_results[2], Exception) and (qd_results[2] or {}).get("mentioned"))
-    except Exception as e:
-        _logger.warning(f"query_exposure scan failed (bg biz={business_id}): {e}")
 
     # ── 4. scan_analytics INSERT (익명화 통계) ────────────────────────────────
     comp_list = list(competitor_scores.values()) if competitor_scores else []
@@ -3417,25 +3403,10 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         comp_avg_full = round(sum(c.get("score", 0) for c in comp_list_full) / len(comp_list_full), 2) if comp_list_full else None
         comp_gap_full = round(score.get("unified_score", 0) - comp_avg_full, 2) if comp_avg_full is not None else None
 
-        # 쿼리 다양화: 3가지 추가 의도 쿼리 노출 확인 (단일 체크, 비용 최소)
+        # query_exposure — 유도형 추가 호출 3회 중단(위 _enrich 경로와 같은 이유, 2026-10-30)
         query_exposure_full = {
             "recommend": bool((result.get("gemini") or {}).get("mentioned")),  # 기존 결과 재활용
         }
-        try:
-            gemini_qd_full = GeminiScanner()
-            biz_name_qd_full = (biz or {}).get("name", req.business_name)
-            keyword_ko_qd_full = _CATEGORY_KO.get(req.category, req.category)
-            qd_results_full = await _asyncio.gather(
-                gemini_qd_full.single_check(f"{keyword_ko_qd_full} 예약", biz_name_qd_full),
-                gemini_qd_full.single_check(f"근처 {keyword_ko_qd_full}", biz_name_qd_full),
-                gemini_qd_full.single_check(f"{keyword_ko_qd_full} 맛집", biz_name_qd_full),
-                return_exceptions=True,
-            )
-            query_exposure_full["reservation"] = bool(not isinstance(qd_results_full[0], Exception) and (qd_results_full[0] or {}).get("mentioned"))
-            query_exposure_full["nearby"]      = bool(not isinstance(qd_results_full[1], Exception) and (qd_results_full[1] or {}).get("mentioned"))
-            query_exposure_full["best"]        = bool(not isinstance(qd_results_full[2], Exception) and (qd_results_full[2] or {}).get("mentioned"))
-        except Exception as e:
-            _logger.warning(f"query_exposure scan failed (full biz={req.business_id}): {e}")
 
         # 리뷰 스냅샷 변수
         review_count_snap_full = (biz or {}).get("review_count")
