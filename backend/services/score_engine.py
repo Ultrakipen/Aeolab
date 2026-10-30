@@ -559,6 +559,18 @@ def calc_naver_exposure(scan_result: dict) -> float:
     return briefing_score
 
 
+def _smoothed_ai_brief(scan_result: dict) -> tuple[float, int]:
+    """AI 브리핑 점수를 이번 스캔과 직전 측정 성공 스캔(`_prior_naver`, 최대 2건)의 평균으로 — 하루 단위 깜빡임 완화.
+
+    이전 스캔 정보가 없으면 이번 값 그대로다(기존 동작). 근거와 규칙은 services/briefing_smoothing.py.
+    """
+    current = calc_naver_exposure(scan_result)
+    priors = scan_result.get("_prior_naver") or []
+    vals = [calc_naver_exposure(p) for p in priors if isinstance(p, dict) and not _is_naver_unmeasured(p)]
+    from services.briefing_smoothing import smooth
+    return smooth(current, vals)
+
+
 def calc_kakao_completeness(scan_result: dict, biz: dict) -> float:
     """
     카카오맵 완성도 점수 (0~100).
@@ -1601,7 +1613,7 @@ def calc_track1_score_v3_1(
     sp_comp = sp_base * 0.7 + kw_gap * 0.3  # 콘텐츠 매칭 흡수
     blog_crank = calc_blog_crank_score(naver_data, biz)
     local_map = calc_local_map_score(scan_result, biz, naver_data)
-    ai_brief = calc_naver_exposure(scan_result)
+    ai_brief, _brief_n = _smoothed_ai_brief(scan_result)
 
     # INACTIVE + 정보형 AI 브리핑 실측 노출 시 LIKELY 가중치 적용
     # (INACTIVE weights: ai_briefing_score=0.00 → LIKELY: 0.15, 합계 1.0 유지)
@@ -1657,7 +1669,7 @@ def calc_track1_score_v3_1(
             "smart_place_completeness": {"score": round(sp_comp, 1),    "kw_gap_absorbed": round(kw_gap, 1), "kw_gap_estimated": kw_is_est, "rank_measured": _rank_known},
             "blog_crank":               {"score": round(blog_crank, 1), "is_estimated": True},
             "local_map_score":          {"score": round(local_map, 1), "rank_measured": _rank_known},
-            "ai_briefing_score":        {"score": round(ai_brief, 1)},
+            "ai_briefing_score":        {"score": round(ai_brief, 1), "smoothed_over": _brief_n},
         },
     }
     return (round(score, 2), detail)
@@ -1751,7 +1763,7 @@ def calc_track1_score_v3_2(
     sp_comp = sp_base * 0.7 + kw_gap * 0.3
     blog_crank = calc_blog_crank_score(naver_data, biz)
     local_map = calc_local_map_score(scan_result, biz, naver_data)
-    ai_brief = calc_naver_exposure(scan_result)
+    ai_brief, _brief_n = _smoothed_ai_brief(scan_result)
     ai_tab_visible = calc_naver_ai_tab_visible_score(scan_result)
 
     # 미측정 항목은 0점이 아니라 제외 후 나머지 가중치로 재정규화
@@ -1804,7 +1816,7 @@ def calc_track1_score_v3_2(
             "smart_place_completeness": {"score": round(sp_comp, 1),    "kw_gap_absorbed": round(kw_gap, 1), "kw_gap_estimated": kw_is_est, "rank_measured": _rank_known},
             "blog_crank":               {"score": round(blog_crank, 1), "is_estimated": True},
             "local_map_score":          {"score": round(local_map, 1), "rank_measured": _rank_known},
-            "ai_briefing_score":        {"score": round(ai_brief, 1)},
+            "ai_briefing_score":        {"score": round(ai_brief, 1), "smoothed_over": _brief_n},
             "naver_ai_tab_visible":     {"score": round(ai_tab_visible, 1)},
         },
     }

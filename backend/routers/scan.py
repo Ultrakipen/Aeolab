@@ -19,6 +19,7 @@ from middleware.plan_gate import get_current_user
 from utils.scan_errors import make_scan_error, classify_exception
 import utils.cache as _cache
 from services.competitor_ai_exposure import compact_for_storage
+from services.briefing_smoothing import attach_prior_naver
 
 _logger = logging.getLogger("aeolab")
 
@@ -2224,6 +2225,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
         biz = {**(biz or {}), "blog_covered_keywords": " ".join(_blog_covered_calc)}
     _blog_kw_cov = float((biz or {}).get("blog_keyword_coverage") or 0)
     _stream_kw_rate = _blog_kw_cov / 100 if _blog_kw_cov >= 10 else None
+    await attach_prior_naver(combined_results, business_id)   # AI 브리핑 점수를 최근 스캔과 평활화(깜빡임 완화)
     score = calculate_score(combined_results, biz or {}, naver_data=naver_data, keyword_coverage_rate=_stream_kw_rate)
 
     # 쿼리 생성: 선택 키워드가 있으면 우선 반영 (_stream_multi_kws[0] = 선택 or 등록 첫번째)
@@ -3003,6 +3005,7 @@ async def _run_quick_scan(scan_id: str, req: ScanRequest):
             naver_data = {"blog_checked": False}
 
         combined_result = {**result}
+        await attach_prior_naver(combined_result, req.business_id)   # AI 브리핑 점수를 최근 스캔과 평활화(깜빡임 완화)
         score = calculate_score(combined_result, biz or {}, naver_data=naver_data or {"blog_checked": False})
 
         # 같은 날 재스캔이면 prev_history가 오늘자 자기 자신이 되어 노이즈가 "주간 변화"로 둔갑함
@@ -3272,6 +3275,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
             biz = {**(biz or {}), "blog_covered_keywords": " ".join(_blog_covered_full)}
         _blog_kw_cov_full = float((biz or {}).get("blog_keyword_coverage") or 0)
         _full_kw_rate = _blog_kw_cov_full / 100 if _blog_kw_cov_full >= 10 else None
+        await attach_prior_naver(combined_result, req.business_id)   # AI 브리핑 점수를 최근 스캔과 평활화(깜빡임 완화)
         score = calculate_score(combined_result, biz or {}, naver_data=naver_data_full, keyword_coverage_rate=_full_kw_rate)
 
         # weekly_change 계산 (이전 score_history 기준)

@@ -3439,6 +3439,8 @@ export function CompetitorsClient({
     const total = allEntries.length
     const leader = allEntries[0]
     const gap = leader && !leader.isMe ? leader.score - Math.round(myScore) : 0
+    // 새 방식(ai_basis)으로 측정되지 않은 경쟁사 수 — 다음 측정 전까지는 이름을 직접 물은 단일 측정 값이 섞여 있다
+    const legacyCompCount = competitors.filter(c => competitorScores[c.id] && !competitorScores[c.id]!.ai_basis).length
 
     return (
       <div className={`rounded-xl border p-4 md:p-5 mb-5 ${myRank === 1 ? 'bg-emerald-50 border-emerald-200' : gap > 15 ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
@@ -3462,7 +3464,7 @@ export function CompetitorsClient({
             </p>
             <p className="text-sm text-gray-600 mt-1">
               {myScoreSameFormula
-                ? '순위는 내 가게도 경쟁사와 같은 공식(리뷰·평점·소개글·메뉴·소식·블로그·AI 추천 목록 등장)으로 계산한 비교 점수 기준입니다. 대시보드의 종합 점수와 다를 수 있습니다.'
+                ? `순위는 내 가게도 경쟁사와 같은 공식(리뷰·평점·소개글·메뉴·소식·블로그·AI 추천 목록 등장)으로 계산한 비교 점수 기준입니다. 대시보드의 종합 점수와 다를 수 있습니다.${legacyCompCount > 0 ? ` 경쟁사 ${legacyCompCount}곳은 이전 방식(이름을 직접 물은 단일 측정)으로 측정된 점수라 다음 측정 후 같은 기준으로 바뀝니다.` : ''}`
                 : '아직 내 가게를 경쟁사와 같은 공식으로 계산할 데이터가 모이지 않아 종합 점수로 비교하고 있습니다. 공식이 달라 순위는 참고용이며, 다음 측정 이후 같은 공식 기준으로 바뀝니다.'}
             </p>
             {topTip && (
@@ -3483,8 +3485,8 @@ export function CompetitorsClient({
                 <span className={`font-semibold ${myRank === 1 ? 'text-emerald-700' : gap > 15 ? 'text-red-700' : 'text-amber-700'}`}>
                   내 가게
                 </span>
-                <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(Math.round(myStageScore)).cls}`}>
-                  {getGrowthStageText(Math.round(myStageScore)).label}
+                <span className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${getGrowthStageText(Math.round(myScoreSameFormula ? myScore : myStageScore)).cls}`}>
+                  {getGrowthStageText(Math.round(myScoreSameFormula ? myScore : myStageScore)).label}
                 </span>
               </span>
               {!leader.isMe && (
@@ -3502,6 +3504,11 @@ export function CompetitorsClient({
                 style={{ width: `${Math.min(Math.round((Math.round(myScore) / Math.max(leader.score, 1)) * 100), 100)}%` }}
               />
             </div>
+            {myScoreSameFormula && (
+              <p className="text-sm mt-1.5 text-gray-600">
+                단계 표시와 막대는 모두 비교 점수 기준입니다. 대시보드의 AI 노출 성장 단계와 다를 수 있습니다.
+              </p>
+            )}
             {!leader.isMe && gap > 0 && gap <= 15 && (
               <p className="text-sm mt-1 text-gray-600">
                 조금만 더 노력하면 1위에 올라갈 수 있습니다. <a href="/guide" className="text-blue-600 font-semibold underline underline-offset-2">가이드 →</a>

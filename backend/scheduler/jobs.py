@@ -10,6 +10,7 @@ from services.ai_scanner import naver_batch_job as _naver_batch_job  # 정기 �
 from services.keyword_taxonomy import build_ai_scan_queries as _build_ai_scan_queries
 from services.ai_usage_logger import log_ai_usage
 from services.competitor_ai_exposure import compact_for_storage, basis_changed
+from services.briefing_smoothing import attach_prior_naver
 
 # 카카오 알림 키 설정 여부 — 미설정 시 알림 발송 시도 자체를 스킵해 에러 로그 누적 방지
 _KAKAO_CONFIGURED = bool(os.getenv("KAKAO_APP_KEY") and os.getenv("KAKAO_SENDER_KEY"))
@@ -676,6 +677,7 @@ async def daily_scan_all():
                 _sched_kw_rate = _sched_blog_kw_cov / 100 if _sched_blog_kw_cov >= 5 else None
                 _sched_combined_result = {**result, "kakao": _sched_kakao_data or {}, "website_check": _sched_website_check or {}}
                 _sched_naver_data = build_naver_data(_sched_naver_vis, result.get("naver"))
+                await attach_prior_naver(_sched_combined_result, biz.get("id"))   # AI 브리핑 점수를 최근 스캔과 평활화(깜빡임 완화)
                 score = calculate_score(_sched_combined_result, biz, naver_data=_sched_naver_data, keyword_coverage_rate=_sched_kw_rate)
 
                 naver_channel = score.get("naver_channel_score")
