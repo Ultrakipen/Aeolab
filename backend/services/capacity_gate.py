@@ -16,7 +16,8 @@ import os
 import time
 
 CACHE_TTL_SEC = 60
-_cache: dict = {"at": 0.0, "accepting": True}
+# monotonic()은 부팅 후 경과 시간이라 0.0으로 시작하면 갓 켜진 머신(CI 등)에서 캐시가 유효한 것으로 보인다 → -inf
+_cache: dict = {"at": float("-inf"), "accepting": True}
 
 WAITLIST_MESSAGE = (
     "지금은 측정 품질을 지키기 위해 신규 구독을 잠시 받지 않고 있어요. 대기자 명단에 등록해 주시면 자리가 나는 대로 먼저 알려 드립니다. "
@@ -77,4 +78,4 @@ async def new_subscriber_blocked(user_id: str, supabase=None) -> dict | None:
 
 
 def reset_cache() -> None:
-    _cache.update({"at": 0.0, "accepting": True})
+    _cache.update({"at": float("-inf"), "accepting": True})

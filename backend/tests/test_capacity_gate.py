@@ -173,3 +173,13 @@ def test_waitlist_registers_the_logged_in_users_email(monkeypatch):
     assert out == {"ok": True} and saved["table"] == "waitlist"
     assert saved["row"]["email"] == "owner@shop.kr" and saved["row"]["category"] == "capacity_waitlist"
     assert _run(service_status.join_capacity_waitlist({"id": "u2", "email": ""}))["ok"] is False   # 이메일 없으면 등록하지 않음
+
+
+def test_fresh_cache_is_never_treated_as_valid_even_on_a_freshly_booted_machine(monkeypatch):
+    """time.monotonic()이 작은(부팅 직후) 머신에서도 초기·리셋된 캐시는 만료 상태여야 한다(CI에서 실제로 실패했다)."""
+    import time
+    monkeypatch.setenv("NEW_SUBSCRIBER_CAPACITY_GATE", "true")
+    monkeypatch.setattr(time, "monotonic", lambda: 5.0)
+    cg.reset_cache()
+    _snap(monkeypatch, pct=100)
+    assert _run(cg.accepting_new_subscribers()) is False
