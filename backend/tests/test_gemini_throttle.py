@@ -50,7 +50,7 @@ def test_every_generate_call_is_throttled():
     src = inspect.getsource(gemini_scanner)
     lines = src.split("\n")
     sites = [i for i, l in enumerate(lines) if "self.model.generate_content" in l and "def " not in l]
-    assert len(sites) >= 6
+    assert len(sites) >= 4   # 죽은 코드 정리(2026-10-30)로 6→4곳, 남은 지점은 전부 검사한다
     for i in sites:
         window = "\n".join(lines[max(0, i - 3):i + 1])
         assert "await _throttle()" in window, f"throttle 누락: {lines[i].strip()}"

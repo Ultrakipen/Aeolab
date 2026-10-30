@@ -361,25 +361,3 @@ class ChatGPTScanner:
         2026-09-28: 유도형 sample_n → 비유도형 sample_recommend로 위임(유료 자동 스캔과 측정 방식 통일).
         """
         return await self.sample_recommend(query, target, n=5)
-
-    async def sample_10(self, query: str, target: str) -> dict:
-        """10회 샘플링 — Trial/Quick scan 전용 (비용 ~5원/회)"""
-        mention_count = 0
-        citations = []
-        tasks = [self._check(query, target) for _ in range(10)]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        for r in results:
-            if isinstance(r, Exception):
-                continue
-            if r.get("mentioned"):
-                mention_count += 1
-                if r.get("excerpt"):
-                    citations.append(r["excerpt"])
-        return {
-            "platform": "chatgpt",
-            "exposure_freq": mention_count,
-            "exposure_rate": mention_count / 10,
-            "citations": citations[:3],
-            "confidence": self._wilson_ci(mention_count, 10) if mention_count > 0 else {"lower": 0, "upper": 0.31},
-            "sample_size": 10,
-        }

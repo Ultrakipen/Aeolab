@@ -655,20 +655,6 @@ async def _competitor_blog_counts(competitors: list, business_name: str, region:
     return [r for r in res if isinstance(r, dict)]
 
 
-async def _run_trial_gemini(query: str, business_name: str) -> Optional[dict]:
-    """trial 신뢰도 강화 2라운드 — Gemini 10회 샘플링 + AI 응답 원문 evidence 보존.
-
-    실패 시 None 반환 (trial 본 응답에는 영향 없음).
-    """
-    try:
-        from services.ai_scanner.gemini_scanner import GeminiScanner
-        scanner = GeminiScanner()
-        return await scanner.sample_10_with_evidence(query, business_name)
-    except Exception as e:
-        _logger.warning(f"_run_trial_gemini failed: {e}")
-        return None
-
-
 def _build_trial_ai_evidence(gemini_data: Optional[dict], query_text: str) -> Optional[dict]:
     """Gemini 10회 evidence를 trial 응답용 ai_evidence 객체로 빌드.
 
