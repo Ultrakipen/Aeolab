@@ -57,6 +57,19 @@ def scrub_personal(text: str) -> str:
 PLACE_COUNTS_CAP = 600   # place_counts에 담는 이름 수 상한 — 표본 100개×추천 5곳=500이 최대라 사실상 잘리지 않는다(저장 시 compact_for_storage로 줄임)
 
 
+# 사용자가 기다리는 수동 측정(대시보드 "지금 측정", 가입 후 체험)에서 Gemini에 쓸 시간 예산(초). 클라이언트에 90초 안전망 타임아웃이 있어
+# 호출 간격 제한(GEMINI_MIN_INTERVAL) 아래에서 100표본을 그대로 돌리면(100×4.5초=7.5분) 항상 오류로 끝난다 — 표본 수를 예산에 맞춘다.
+GEMINI_INTERACTIVE_BUDGET_SEC = float(os.getenv("GEMINI_INTERACTIVE_BUDGET_SEC", "45"))
+GEMINI_INTERACTIVE_MIN_SAMPLES = 10
+
+
+def interactive_sample_count(default: int = 100) -> int:
+    """수동 측정의 Gemini 표본 수 — 호출 간격 제한이 없으면 default, 있으면 시간 예산 ÷ 간격(최소 10). 정기 스캔에는 쓰지 않는다."""
+    if GEMINI_MIN_INTERVAL <= 0:
+        return default
+    return max(GEMINI_INTERACTIVE_MIN_SAMPLES, min(default, int(GEMINI_INTERACTIVE_BUDGET_SEC / GEMINI_MIN_INTERVAL)))
+
+
 class GeminiBusy(Exception):
     """호출 대기열이 상한을 넘어 이번 호출을 포기했다 — API 호출이 일어나지 않았으므로 사용량 로그에 남기지 않는다."""
 
@@ -195,7 +208,7 @@ class GeminiScanner:
                 return {"places": [], "_measured": False, "_error": str(e)[:80]}
         return {"places": [], "_measured": False, "_error": "unknown"}
 
-    async def sample_recommend(self, queries: "str | list[str]", target: str, n: int = 50) -> dict:
+    async def sample_recommend(self, queries: "str | list[str]", target: str, n: int = 50, deadline_sec: float | None = None) -> dict:
         """비유도형 n회 추천 샘플링 — 반환 키는 ChatGPT sample_recommend와 동일.
 
         실패 샘플(_measured=False)은 분모에서 제외한다("언급 안 됨"으로 오집계 금지).
@@ -222,7 +235,10 @@ class GeminiScanner:
         presence: dict[str, int] = {}   # 이름 → 그 이름이 등장한 표본 수(표본당 1회) — 경쟁사 노출 대조용
 
         all_results = list(cached_results)
+        _t0 = time.monotonic()
         for batch_start in range(0, len(task_queries), GEMINI_BATCH_SIZE):
+            if deadline_sec and batch_start > 0 and time.monotonic() - _t0 > deadline_sec:
+                break   # 시간 예산 초과 — 지금까지 모은 표본으로 결과를 낸다(모자란 표본은 failed_count로 드러난다)
             batch_queries = task_queries[batch_start:batch_start + GEMINI_BATCH_SIZE]
             results = await asyncio.gather(
                 *[self._recommend_once(q) for q in batch_queries], return_exceptions=True

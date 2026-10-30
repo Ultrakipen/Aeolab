@@ -124,7 +124,7 @@ class MultiAIScanner:
             PLAYWRIGHT_SEMAPHORE.release()
 
     async def scan_all(self, queries: "str | list[str]", target: str, sample_size: int = 100,
-                       skip_naver: bool = False) -> dict:
+                       skip_naver: bool = False, gemini_sample_size: int | None = None) -> dict:
         """전체 4개 AI 병렬 스캔 — Gemini·ChatGPT·Naver·Google
 
         API 기반 스캐너는 동시 실행, Playwright 기반은 세마포어 제한 직렬 실행.
@@ -140,7 +140,7 @@ class MultiAIScanner:
         primary_query = queries if isinstance(queries, str) else (queries[0] if queries else "")
         # API 기반 스캐너: 동시 실행 (다중 쿼리 분산 샘플링)
         api_tasks = [
-            self.gemini.sample_recommend(queries, target, n=sample_size),
+            self.gemini.sample_recommend(queries, target, n=gemini_sample_size or sample_size),
             # ChatGPT는 가게명을 프롬프트에 넣지 않는 비유도형 추천 프로브(체험과 동일, 2026-09-28) —
             # 유도형 sample_n은 존재하지 않는 가게·소규모 가게도 환각으로 "추천됨"이라 답해 노출률이 부풀었다
             # (실사업장 유료 스캔 43/100·95/100, 체험 비유도형은 가짜 가게 0/50).
@@ -299,30 +299,44 @@ class MultiAIScanner:
             _raw = [f"{region} {kw} 추천" for kw in valid_kw] + ([f"{region} {category_ko} 추천"] if category_ko else [])
             all_kw_queries = list(dict.fromkeys(_raw))[:4] or [query]
 
+        # Gemini(호출 간격 제한 아래에서 10표본≈45초)·ChatGPT는 API라 Playwright 채널(네이버·구글)과 서로 기다릴 이유가 없어 동시에 돌린다.
+        # 직렬이면 클라이언트 90초 안전망(ScanProgress.tsx) 안에 끝나지 않을 수 있다.
+        gemini_task = asyncio.create_task(self.gemini.sample_10(query, req.business_name))
+        chatgpt_task = asyncio.create_task(self.chatgpt.sample_5(query, req.business_name))
         platforms = [
-            ("gemini",  "Gemini AI 확인 중...",             self.gemini.sample_10,         False),
-            ("chatgpt", "ChatGPT 5회 샘플링 중...",         self.chatgpt.sample_5,         False),
+            ("gemini",  "Gemini AI 확인 중...",             None,                          False),
+            ("chatgpt", "ChatGPT 5회 샘플링 중...",         None,                          False),
             ("naver",   "네이버 AI 브리핑 파싱 중...",       self.naver.check_mention,      True),
             ("google",  "Google AI Overview 확인 중...",    self.google.check_mention,     True),
         ]
         total = len(platforms)
-        for i, (name, msg, fn, is_playwright) in enumerate(platforms):
-            yield {"step": name, "status": "running", "message": msg, "progress": int(i / total * 80)}
-            try:
-                if name == "naver":
-                    # 항상 check_mention_multi — 키워드별 결과를 keyword_results로 반환
-                    result = await self._run_playwright(
-                        self.naver.check_mention_multi, all_kw_queries, req.business_name
-                    )
-                    await asyncio.sleep(2)
-                elif is_playwright:
-                    result = await self._run_playwright(fn, query, req.business_name)
-                    await asyncio.sleep(2)
-                else:
-                    result = await fn(query, req.business_name)
-                yield {"step": name, "status": "done", "result": result, "progress": int((i + 1) / total * 80)}
-            except Exception as e:
-                yield {"step": name, "status": "error", "error": str(e), "progress": int((i + 1) / total * 80)}
+        try:
+            for i, (name, msg, fn, is_playwright) in enumerate(platforms):
+                yield {"step": name, "status": "running", "message": msg, "progress": int(i / total * 80)}
+                if name in ("gemini", "chatgpt"):
+                    continue   # 백그라운드로 진행 중 — 완료는 마지막에 알린다
+                try:
+                    if name == "naver":
+                        # 항상 check_mention_multi — 키워드별 결과를 keyword_results로 반환
+                        result = await self._run_playwright(
+                            self.naver.check_mention_multi, all_kw_queries, req.business_name
+                        )
+                        await asyncio.sleep(2)
+                    else:
+                        result = await self._run_playwright(fn, query, req.business_name)
+                        await asyncio.sleep(2)
+                    yield {"step": name, "status": "done", "result": result, "progress": int((i + 1) / total * 80)}
+                except Exception as e:
+                    yield {"step": name, "status": "error", "error": str(e), "progress": int((i + 1) / total * 80)}
+            for _name, _task, _prog in (("chatgpt", chatgpt_task, 90), ("gemini", gemini_task, 95)):
+                try:
+                    yield {"step": _name, "status": "done", "result": await _task, "progress": _prog}
+                except Exception as e:
+                    yield {"step": _name, "status": "error", "error": str(e), "progress": _prog}
+        finally:
+            for _task in (gemini_task, chatgpt_task):
+                if not _task.done():
+                    _task.cancel()   # 클라이언트가 먼저 끊은 경우 남은 AI 호출을 멈춘다
         yield {"step": "complete", "status": "done", "progress": 100}
 
     async def scan_free_with_progress(self, req) -> AsyncIterator[dict]:
@@ -384,31 +398,48 @@ class MultiAIScanner:
             query = f"{region} {valid_kw[0]} 추천" if valid_kw else f"{region} {category_ko} 추천"
             _raw = [f"{region} {kw} 추천" for kw in valid_kw] + ([f"{region} {category_ko} 추천"] if category_ko else [])
             all_kw_queries = list(dict.fromkeys(_raw))[:4] or [query]
+        # Gemini는 호출 간격 제한 때문에 표본이 많으면 오래 걸린다 — 사용자가 기다리는 수동 측정에서는 (1) 표본 수를 시간 예산에 맞추고
+        # (2) 나머지 채널과 동시에 돌려 합계가 아니라 가장 긴 쪽만큼만 기다리게 한다(클라이언트 90초 안전망 타임아웃 때문). 정기 스캔은 그대로 100표본.
+        from services.ai_scanner.gemini_scanner import interactive_sample_count, GEMINI_INTERACTIVE_BUDGET_SEC
+        gemini_n = interactive_sample_count(100)
+        gemini_task = asyncio.create_task(self.gemini.sample_recommend(
+            all_kw_queries, req.business_name, n=gemini_n, deadline_sec=GEMINI_INTERACTIVE_BUDGET_SEC + 15))
+        # ChatGPT 표본(API)도 Playwright 채널(네이버·구글)과 서로 기다릴 이유가 없어 동시에 돌린다
+        chatgpt_task = asyncio.create_task(self.chatgpt.sample_100(all_kw_queries, req.business_name))
         # (name, message, fn, is_playwright)
         platforms = [
-            ("gemini",     "Gemini AI 100회 샘플링 중...",    self.gemini.sample_100,        False),
+            ("gemini",     f"Gemini AI {gemini_n}회 샘플링 중...", None,                          False),
             ("chatgpt",    "ChatGPT 100회 샘플링 중...",       self.chatgpt.sample_100,       False),
             ("naver",      "네이버 AI 브리핑 파싱 중...",       self.naver.check_mention,      True),
             ("google",     "Google AI Overview 확인 중...",    self.google.check_mention,     True),
         ]
         total = len(platforms)
-        for i, (name, msg, fn, is_playwright) in enumerate(platforms):
-            yield {"step": name, "status": "running", "message": msg, "progress": int(i / total * 80)}
-            try:
-                if name == "naver":
-                    result = await self._run_playwright(
-                        self.naver.check_mention_multi, all_kw_queries, req.business_name
-                    )
-                    await asyncio.sleep(2)
-                elif is_playwright:
-                    result = await self._run_playwright(fn, query, req.business_name)
-                    await asyncio.sleep(2)
-                elif name in ("gemini", "chatgpt"):
-                    # 다중 쿼리 분산 샘플링
-                    result = await fn(all_kw_queries, req.business_name)
-                else:
-                    result = await fn(query, req.business_name)
-                yield {"step": name, "status": "done", "result": result, "progress": int((i + 1) / total * 80)}
-            except Exception as e:
-                yield {"step": name, "status": "error", "error": str(e), "progress": int((i + 1) / total * 80)}
+        try:
+            for i, (name, msg, fn, is_playwright) in enumerate(platforms):
+                yield {"step": name, "status": "running", "message": msg, "progress": int(i / total * 80)}
+                if name in ("gemini", "chatgpt"):
+                    continue   # 백그라운드로 진행 중 — 완료는 마지막에 알린다
+                try:
+                    if name == "naver":
+                        result = await self._run_playwright(
+                            self.naver.check_mention_multi, all_kw_queries, req.business_name
+                        )
+                        await asyncio.sleep(2)
+                    elif is_playwright:
+                        result = await self._run_playwright(fn, query, req.business_name)
+                        await asyncio.sleep(2)
+                    else:
+                        result = await fn(query, req.business_name)
+                    yield {"step": name, "status": "done", "result": result, "progress": int((i + 1) / total * 80)}
+                except Exception as e:
+                    yield {"step": name, "status": "error", "error": str(e), "progress": int((i + 1) / total * 80)}
+            for _name, _task, _prog in (("chatgpt", chatgpt_task, 90), ("gemini", gemini_task, 95)):
+                try:
+                    yield {"step": _name, "status": "done", "result": await _task, "progress": _prog}
+                except Exception as e:
+                    yield {"step": _name, "status": "error", "error": str(e), "progress": _prog}
+        finally:
+            for _task in (gemini_task, chatgpt_task):
+                if not _task.done():
+                    _task.cancel()   # 클라이언트가 먼저 끊은 경우 남은 AI 호출을 멈춘다
         yield {"step": "complete", "status": "done", "progress": 100}

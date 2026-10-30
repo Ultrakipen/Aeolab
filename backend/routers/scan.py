@@ -20,6 +20,7 @@ from utils.scan_errors import make_scan_error, classify_exception
 import utils.cache as _cache
 from services.competitor_ai_exposure import compact_for_storage
 from services.briefing_smoothing import attach_prior_naver
+from services.ai_scanner.gemini_scanner import interactive_sample_count
 
 _logger = logging.getLogger("aeolab")
 
@@ -3189,7 +3190,8 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         from services.naver_prescan import prescan_usable as _prescan_usable
         result, kakao_data, website_check, smart_place_check, naver_visibility_full, place_stats_fresh = await _asyncio.gather(
             scanner.scan_all(_scan_queries, req.business_name, sample_size=50,
-                             skip_naver=_prescan_usable(_prescan_naver_f)),
+                             skip_naver=_prescan_usable(_prescan_naver_f),
+                             gemini_sample_size=interactive_sample_count(50)),   # 사용자가 기다리는 체험 — Gemini 표본을 시간 예산에 맞춘다
             get_kakao_visibility(req.business_name, keyword_ko, req.region),
             check_website_seo((biz or {}).get("website_url", "")),
             check_smart_place_completeness(naver_place_url) if naver_place_url else _asyncio.sleep(0),
