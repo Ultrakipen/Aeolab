@@ -12,6 +12,8 @@ interface ChannelScoreCardsProps {
   googlePlaceRegistered?: boolean
   /** 업종 네이버 비중 (DUAL_TRACK_RATIO 기반). 0.55 초과 → 네이버 주력, 0.45 미만 → 글로벌 주력 */
   naverWeight?: number
+  /** 이 결과가 나온 스캔 시각(ISO) — 오래된 노출/미노출 표시가 현재 사실처럼 읽히지 않게 날짜를 보여 준다 */
+  measuredAt?: string | null
 }
 
 function ScoreRing({ score, color }: { score: number; color: string }) {
@@ -49,7 +51,13 @@ export function ChannelScoreCards({
   hasWebsite,
   googlePlaceRegistered,
   naverWeight,
+  measuredAt,
 }: ChannelScoreCardsProps) {
+  const measuredDate = measuredAt ? new Date(measuredAt) : null
+  const measuredValid = !!measuredDate && !Number.isNaN(measuredDate.getTime())
+  const measuredLabel = measuredValid ? `${measuredDate!.getMonth() + 1}월 ${measuredDate!.getDate()}일` : null
+  const measuredAgeDays = measuredValid ? Math.floor((Date.now() - measuredDate!.getTime()) / 86_400_000) : null
+  const isStaleMeasure = measuredAgeDays !== null && measuredAgeDays >= 14
   const naverGrade  = naverScore  >= 70 ? 'good'  : naverScore  >= 40 ? 'mid' : 'low'
   const globalGrade = globalScore >= 70 ? 'good'  : globalScore >= 40 ? 'mid' : 'low'
 
@@ -163,6 +171,13 @@ export function ChannelScoreCards({
           </div>
         </div>
       </div>
+      {measuredLabel && (
+        <p className={`md:col-span-2 text-sm leading-relaxed ${isStaleMeasure ? 'text-amber-700' : 'text-gray-600'}`}>
+          {isStaleMeasure
+            ? `마지막 측정은 ${measuredLabel}(${measuredAgeDays}일 전)입니다. 노출 여부는 지금과 다를 수 있으니 다시 측정해 확인하세요.`
+            : `${measuredLabel} 측정 결과입니다.`}
+        </p>
+      )}
     </div>
   )
 }

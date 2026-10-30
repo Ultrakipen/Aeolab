@@ -358,6 +358,7 @@ export default function DashboardDetailZone({
             hasWebsite={isIndependentWebsite(business.website_url)}
             googlePlaceRegistered={!!business.google_place_id}
             naverWeight={hasLatestScan ? naverWeight : undefined}
+            measuredAt={(scan.scanned_at as string | null | undefined) ?? null}
           />
           <GlobalAIBanner
             globalScore={track2Score}
