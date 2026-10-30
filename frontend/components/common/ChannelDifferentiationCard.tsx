@@ -1,5 +1,6 @@
 "use client";
 
+import { AI_NAMES } from "@/lib/featureFlags";
 import { getUserGroup, type UserGroup } from "@/lib/userGroup";
 
 export type ChannelDiffVariant = "landing" | "dashboard" | "preview" | "compact";
@@ -199,7 +200,7 @@ export default function ChannelDifferentiationCard({
           title="ChatGPT·Gemini·Google AI"
           badge="측정 중"
           badgeVariant="all"
-          description="ChatGPT·Gemini에 가게가 소개되는지 자동 측정. 네이버 검색과 별도의 AI 서비스"
+          description={`${AI_NAMES}에 가게가 소개되는지 자동 측정. 네이버 검색과 별도의 AI 서비스`}
           disclaimer="ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다"
           highlight={true}
           compact={isCompact}

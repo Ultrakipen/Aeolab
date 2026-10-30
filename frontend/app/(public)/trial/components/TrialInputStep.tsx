@@ -1,5 +1,6 @@
 "use client";
 
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronDown, ChevronUp, CheckCircle2, Search, Target, Mail, Store, Laptop, Rocket, MapPin, Phone, Info, AlertTriangle } from "lucide-react";
@@ -414,7 +415,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                           네이버 AI 브리핑 대상 업종입니다
                         </p>
                         <p className="text-sm text-green-800">
-                          네이버 검색·ChatGPT·구글 지도 노출을 진단합니다. 네이버 AI 브리핑·Gemini는 가입 후 1회 체험에서 측정합니다.
+                          네이버 검색·ChatGPT·구글 지도 노출을 진단합니다. {GEMINI_LIVE ? "네이버 AI 브리핑·Gemini는" : "네이버 AI 브리핑은"} 가입 후 1회 체험에서 측정합니다.
                         </p>
                       </div>
                     </div>
@@ -1339,7 +1340,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                 </p>
                 <p className="font-semibold text-slate-700 pt-0.5">가입 후 1회 체험·구독에서 추가 확인</p>
                 <p className="leading-relaxed break-keep">
-                  네이버 AI 브리핑·AI탭 실제 노출 여부 · 구글 제미나이(Gemini) 노출 · 구글 검색 노출 · 매주 자동 측정과 변화 알림
+                  네이버 AI 브리핑·AI탭 실제 노출 여부{GEMINI_LIVE ? " · 구글 제미나이(Gemini) 노출" : ""} · 구글 검색 노출 · 매주 자동 측정과 변화 알림
                 </p>
               </div>
 

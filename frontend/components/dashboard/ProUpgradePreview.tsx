@@ -106,7 +106,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
                 </div>
               ))}
             </div>
-            <p className="text-sm text-gray-600 mt-1.5">나머지 날: Gemini+네이버만 분석</p>
+            <p className="text-sm text-gray-600 mt-1.5">나머지 날: 경량 분석(표본 50회)</p>
           </div>
 
           <div>

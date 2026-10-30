@@ -1,5 +1,6 @@
 "use client";
 
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -19,7 +20,7 @@ const STEPS: Step[] = [
   {
     title: "AI 측정 실행하기",
     description:
-      "상단의 'AI 측정 시작' 버튼을 누르면 네이버·ChatGPT·Gemini·Google AI에서 내 가게 노출 여부를 약 2분 안에 확인합니다.",
+      `상단의 'AI 측정 시작' 버튼을 누르면 네이버·ChatGPT${GEMINI_LIVE ? "·Gemini" : ""}·Google AI에서 내 가게 노출 여부를 약 2분 안에 확인합니다.`,
     targetAttr: "scan-button",
   },
   {

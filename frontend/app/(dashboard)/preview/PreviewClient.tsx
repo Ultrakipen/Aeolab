@@ -484,7 +484,7 @@ function FreeTab({
       {/* ① 설명 배너 */}
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
         <p className="text-sm font-semibold text-gray-700 mb-1">
-          무료 체험 — Gemini AI 1회 측정
+          무료 체험 — {GEMINI_MEASUREMENT_LIVE ? "Gemini AI" : "ChatGPT"} 1회 측정
         </p>
         <p className="text-sm text-gray-600 leading-relaxed">
           로그인 없이 지금 바로 내 가게의 AI 검색 노출 준비도를 확인합니다.
@@ -497,7 +497,7 @@ function FreeTab({
         <SectionTitle
           icon={<BarChart3 className="w-4 h-4 text-gray-600" />}
           title="네이버 AI 검색 준비도 (AI브리핑·AI탭)"
-          subtitle="Gemini에게 10회 질문해 즉시 진단"
+          subtitle={GEMINI_MEASUREMENT_LIVE ? "Gemini에게 10회 질문해 즉시 진단" : "ChatGPT에게 5회 질문해 즉시 진단"}
         />
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <span className="text-sm font-medium text-gray-700">준비 상태</span>
@@ -559,7 +559,7 @@ function FreeTab({
           title="무료 체험 포함 내용"
         />
         <div className="divide-y divide-gray-50">
-          <FeatureRow label="Gemini AI 1회 측정" available={true} />
+          <FeatureRow label={`${GEMINI_MEASUREMENT_LIVE ? "Gemini AI" : "ChatGPT"} 1회 측정`} available={true} />
           <FeatureRow label="네이버 AI 검색 준비도 점수 (AI브리핑·AI탭)" available={true} />
           <FeatureRow label="성장 단계 진단" available={true} />
           <FeatureRow label="개선 방향 1개 공개" available={true} />

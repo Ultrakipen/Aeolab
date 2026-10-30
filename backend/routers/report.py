@@ -1301,7 +1301,7 @@ async def get_share_page_data(biz_id: str):
         "score": score,
         "stage_score": _t1 if _t1 else score,
         "grade": grade,
-        "gemini_frequency": s.get("exposure_freq", 0),
+        "gemini_frequency": s.get("exposure_freq") or None,   # 0·NULL은 측정 실패와 구분되지 않아 None(공유 페이지가 숨김)
         "scanned_at": s.get("score_date", ""),
     }
 

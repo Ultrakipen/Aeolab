@@ -1,3 +1,4 @@
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import Link from "next/link";
 import { Search, ChevronRight } from "lucide-react";
 import DashboardAccordion from "../DashboardAccordion";
@@ -215,7 +216,7 @@ export default function DashboardDetailZone({
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 max-w-lg w-full">
           {[
-            { name: "Gemini", note: "최대 100회 측정" },
+            { name: "Gemini", note: GEMINI_LIVE ? "최대 100회 측정" : "한도 내 측정(횟수 변동)" },
             { name: "ChatGPT", note: "최대 100회 측정" },
             { name: "네이버 AI", note: "브리핑 포함" },
             { name: "Google AI", note: "AI Overview" },

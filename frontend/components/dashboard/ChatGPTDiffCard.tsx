@@ -57,8 +57,8 @@ export default function ChatGPTDiffCard({
       highlight: (chatgptCount ?? 0) > 0,
     }] : [{
       label: "ChatGPT 자동 측정",
-      value: "자동 측정 시 50회 확인",
-      detail: "자동 측정(Basic 이상)에서 ChatGPT GPT-4.1-mini 50회 측정이 추가됩니다. 빠른 진단은 Gemini만 포함됩니다",
+      value: "자동 측정 시 최대 100회 확인",
+      detail: "자동 측정(Basic 이상)에서 ChatGPT GPT-4.1-mini 최대 100회 측정으로 정확도가 높아집니다. 빠른 진단은 5회 표본입니다",
       highlight: false,
       inactive: true,
     }]),

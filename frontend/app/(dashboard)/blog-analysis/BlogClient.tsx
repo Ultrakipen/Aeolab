@@ -1,5 +1,6 @@
 "use client";
 
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE, AI_COUNT_N } from "@/lib/featureFlags";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getSafeSession } from "@/lib/supabase/client";
 import {
@@ -2188,7 +2189,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                   </div>
                   <div className="flex items-start gap-2 bg-white border border-amber-100 rounded-lg px-3 py-2.5">
                     <BarChart2 className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-                    <p className="text-sm text-amber-900">Gemini·ChatGPT·네이버·Google 4개 AI 서비스 언급 현황을 한눈에 봅니다</p>
+                    <p className="text-sm text-amber-900">{GEMINI_LIVE ? "Gemini·" : ""}ChatGPT·네이버·Google {AI_COUNT_N}개 AI 서비스 언급 현황을 한눈에 봅니다</p>
                   </div>
                   <div className="flex items-start gap-2 bg-white border border-amber-100 rounded-lg px-3 py-2.5">
                     <Target className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />

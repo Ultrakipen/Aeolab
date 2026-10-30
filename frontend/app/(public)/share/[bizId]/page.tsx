@@ -20,7 +20,7 @@ interface ShareData {
   /** 이번 스캔에서 네이버 일부 항목을 확인하지 못함 — 낮아진 점수로 단계를 붙이지 않는다 */
   stage_pending?: boolean;
   grade: string;
-  gemini_frequency: number;
+  gemini_frequency: number | null;
   scanned_at: string;
 }
 
@@ -159,10 +159,13 @@ export default async function SharePage({ params }: Props) {
 
           {/* 핵심 수치 */}
           <div className={`mx-4 mb-4 px-4 py-3 rounded-xl border ${stage.bg} ${stage.borderColor}`}>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Gemini AI 측정 노출 횟수</span>
-              <span className="font-bold text-slate-800">{data.gemini_frequency.toFixed(0)}회</span>
-            </div>
+            {/* 0회는 "측정 안 됨"과 구분되지 않아(점수 기록은 Gemini 실패 시에도 0으로 저장) 양수일 때만 보여 준다 */}
+            {typeof data.gemini_frequency === "number" && data.gemini_frequency > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Gemini AI 측정 노출 횟수</span>
+                <span className="font-bold text-slate-800">{data.gemini_frequency.toFixed(0)}회</span>
+              </div>
+            )}
             {data.scanned_at && (
               <div className="flex justify-between text-sm mt-1">
                 <span className="text-gray-600">분석일</span>

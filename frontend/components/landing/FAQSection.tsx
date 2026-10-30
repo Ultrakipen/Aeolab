@@ -1,5 +1,6 @@
 "use client";
 
+import { AI_NAMES } from "@/lib/featureFlags";
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ArrowRight } from "lucide-react";
@@ -43,7 +44,7 @@ const FAQS: FaqItem[] = [
           <li className="flex gap-2.5">
             <span className="font-bold shrink-0 mt-px" style={{ color: "#2563EB" }}>④</span>
             <span>
-              <strong>ChatGPT·Gemini·Google AI</strong> — 내 가게가 답변에 나오는 비율 측정 및 개선
+              <strong>{AI_NAMES}·Google AI</strong> — 내 가게가 답변에 나오는 비율 측정 및 개선
             </span>
           </li>
         </ul>

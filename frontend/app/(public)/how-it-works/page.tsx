@@ -1,3 +1,4 @@
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE, AI_COUNT_LABEL } from "@/lib/featureFlags"
 import Link from "next/link"
 import type { Metadata } from "next"
 import type { LucideIcon } from "lucide-react"
@@ -651,7 +652,7 @@ export default function HowItWorksPage() {
                     </tbody>
                   </table>
                 </div>
-                <p className="text-sm text-gray-500 mt-1.5">※ AI 자동 점검(Gemini·ChatGPT·네이버) 주기와 별도입니다.</p>
+                <p className="text-sm text-gray-500 mt-1.5">※ AI 자동 점검({GEMINI_LIVE ? "Gemini·" : ""}ChatGPT·네이버) 주기와 별도입니다.</p>
               </MoreInfo>
             </div>
             <div className="rounded-2xl border border-purple-200 bg-purple-50/50 p-4">
@@ -780,7 +781,7 @@ export default function HowItWorksPage() {
               </thead>
               <tbody>
                 <tr className="border-b border-gray-100"><td className="py-2.5 px-3">무료 진단(1회)</td><td className="text-center py-2.5"><Check className="w-4 h-4 text-emerald-600 mx-auto" aria-label="제공" /></td><td className="text-center py-2.5"><Check className="w-4 h-4 text-emerald-600 mx-auto" aria-label="제공" /></td><td className="text-center py-2.5"><Check className="w-4 h-4 text-emerald-600 mx-auto" aria-label="제공" /></td><td className="text-center py-2.5"><Check className="w-4 h-4 text-emerald-600 mx-auto" aria-label="제공" /></td><td className="text-center py-2.5"><Check className="w-4 h-4 text-emerald-600 mx-auto" aria-label="제공" /></td></tr>
-                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">AI 자동 점검 (Gemini·ChatGPT·네이버)</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5 text-sm">주 2회</td><td className="text-center py-2.5 text-sm">주 1회</td><td className="text-center py-2.5 text-sm">주 3회</td><td className="text-center py-2.5 text-sm">매일</td></tr>
+                <tr className="border-b border-gray-100"><td className="py-2.5 px-3">AI 자동 점검 ({GEMINI_LIVE ? "Gemini·" : ""}ChatGPT·네이버)</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5 text-sm">주 2회</td><td className="text-center py-2.5 text-sm">주 1회</td><td className="text-center py-2.5 text-sm">주 3회</td><td className="text-center py-2.5 text-sm">매일</td></tr>
                 <tr className="border-b border-gray-100"><td className="py-2.5 px-3">AI 콘텐츠 생성<br /><span className="text-sm text-gray-500">소개글+채팅방메뉴 합산</span></td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5 text-sm">월 10건</td><td className="text-center py-2.5 text-sm">월 20건</td><td className="text-center py-2.5 text-sm">월 30건</td><td className="text-center py-2.5 text-sm">월 60건</td></tr>
                 <tr className="border-b border-gray-100"><td className="py-2.5 px-3">소식 자동 초안 (매주)</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5"><Check className="w-4 h-4 text-emerald-600 mx-auto" /></td><td className="text-center py-2.5"><Check className="w-4 h-4 text-emerald-600 mx-auto" /></td><td className="text-center py-2.5"><Check className="w-4 h-4 text-emerald-600 mx-auto" /></td><td className="text-center py-2.5"><Check className="w-4 h-4 text-emerald-600 mx-auto" /></td></tr>
                 <tr className="border-b border-gray-100"><td className="py-2.5 px-3">리뷰 답변 생성</td><td className="text-center py-2.5 text-gray-400">—</td><td className="text-center py-2.5 text-sm">월 50회</td><td className="text-center py-2.5 text-sm">무제한</td><td className="text-center py-2.5 text-sm">무제한</td><td className="text-center py-2.5 text-sm">무제한</td></tr>
@@ -811,7 +812,7 @@ export default function HowItWorksPage() {
               <ul className="space-y-2 text-sm md:text-base text-gray-700 leading-relaxed">
                 <li className="flex items-start gap-2"><IconTile icon={CheckCircle2} tone="green" size="sm" className="mt-0.5 shrink-0" /> 노출 조건 점수화·시각화 (점수 5항목 + 키워드 순위 별도 표시)</li>
                 <li className="flex items-start gap-2"><IconTile icon={CheckCircle2} tone="green" size="sm" className="mt-0.5 shrink-0" /> AI 콘텐츠 초안 자동 생성 (소개글·채팅방 메뉴·소식)</li>
-                <li className="flex items-start gap-2"><IconTile icon={CheckCircle2} tone="green" size="sm" className="mt-0.5 shrink-0" /> 플랜에 따라 Gemini·ChatGPT·네이버·Google AI 4곳 점검 + 결과 추적</li>
+                <li className="flex items-start gap-2"><IconTile icon={CheckCircle2} tone="green" size="sm" className="mt-0.5 shrink-0" /> 플랜에 따라 {GEMINI_LIVE ? "Gemini·" : ""}ChatGPT·네이버·Google AI {AI_COUNT_LABEL} 점검 + 결과 추적</li>
                 <li className="flex items-start gap-2"><IconTile icon={CheckCircle2} tone="green" size="sm" className="mt-0.5 shrink-0" /> 경쟁사 비교 + 상위 가게와의 차이 분석</li>
                 <li className="flex items-start gap-2"><IconTile icon={CheckCircle2} tone="green" size="sm" className="mt-0.5 shrink-0" /> 카카오 알림 + 이메일 다이제스트</li>
                 <li className="flex items-start gap-2"><IconTile icon={CheckCircle2} tone="green" size="sm" className="mt-0.5 shrink-0" /> QR 카드·리뷰 답변 도구 제공</li>

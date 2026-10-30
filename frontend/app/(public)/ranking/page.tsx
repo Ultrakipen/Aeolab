@@ -1,3 +1,4 @@
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE, AI_COUNT_LABEL } from "@/lib/featureFlags";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BarChart2 } from "lucide-react";
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "업종·지역별 AI 노출 익명 랭킹 — AEOlab",
     description:
-      "업종·지역별로 AI 검색 노출 수준을 비교하세요. 네이버 AI 브리핑·ChatGPT·Gemini·Google 4곳 기준.",
+      `업종·지역별로 AI 검색 노출 수준을 비교하세요. 네이버 AI 브리핑·ChatGPT${GEMINI_LIVE ? "·Gemini" : ""}·Google ${AI_COUNT_LABEL} 기준.`,
   },
 };
 
@@ -52,7 +53,7 @@ export default function RankingPage() {
             업종·지역별 AI 검색 노출 랭킹
           </h1>
           <p className="text-sm md:text-base text-gray-600 leading-relaxed break-keep max-w-2xl">
-            네이버 AI 브리핑·ChatGPT·Gemini·Google 4곳 AI 기준으로 집계한 익명 랭킹입니다.
+            네이버 AI 브리핑·ChatGPT{GEMINI_LIVE ? "·Gemini" : ""}·Google {AI_COUNT_LABEL} AI 기준으로 집계한 익명 랭킹입니다.
             가게 이름과 점수는 공개하지 않으며, 순위와{" "}
             <strong className="font-semibold text-gray-700">
               상위 몇 %인지

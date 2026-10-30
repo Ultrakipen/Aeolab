@@ -78,7 +78,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
               전체 AI가 내 가게를 확인하고 있어요...
             </p>
             <p className="text-sm md:text-base text-emerald-700 mt-1">
-              ChatGPT · 네이버 AI 브리핑 · 구글 AI · Gemini 동시 분석 중
+              ChatGPT · 네이버 AI 브리핑 · 구글 AI{GEMINI_LIVE ? " · Gemini" : ""} 동시 분석 중
             </p>
             <p className="text-sm text-emerald-700 mt-2">
               이 페이지를 닫지 말고 잠시만 기다려 주세요.

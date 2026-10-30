@@ -211,3 +211,12 @@ def test_share_card_shows_korean_category_and_integer_count(monkeypatch):
     joined = " | ".join(_card_texts(monkeypatch, [row]))
     assert "음식점 · 창원시 의창구" in joined and "restaurant" not in joined
     assert "AI 검색 측정에서 9회 언급" in joined and "9.0회" not in joined
+
+
+def test_share_data_hides_unmeasured_zero_gemini_frequency(monkeypatch):
+    """Gemini 측정이 실패해도 score_history.exposure_freq는 0으로 저장된다 — 공개 페이지가 0회로 보이면 안 되므로 None."""
+    for freq in (0, None):
+        rows = [{"business_id": "b1", "score_date": "2026-10-30", "total_score": 49.0, "exposure_freq": freq, "context": "location_based"}]
+        report = _patch_report(monkeypatch, {"businesses": [HARA], "score_history": rows})
+        out = asyncio.run(report.get_share_page_data("b1"))
+        assert out["gemini_frequency"] is None, freq

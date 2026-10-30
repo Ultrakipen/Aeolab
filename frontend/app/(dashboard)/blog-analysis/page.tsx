@@ -1,3 +1,4 @@
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE, AI_COUNT_N } from "@/lib/featureFlags"
 import { createClient, getCachedUser, getCachedActivePlan } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { BlogClient } from './BlogClient'
@@ -25,7 +26,7 @@ export default async function BlogPage() {
       description="내 블로그 포스트가 실제로 AI에 언급되고 있는지 확인하고, 개선하면 더 많은 AI 서비스에서 언급되도록 안내합니다."
       features={[
         { Icon: Search,     title: "포스트별 실측 언급 확인", desc: "어떤 글이 네이버 AI 브리핑에 실제로 언급됐는지 포스트 단위로 확인합니다." },
-        { Icon: BarChart2,  title: "4개 AI 서비스 언급 현황", desc: "Gemini·ChatGPT·네이버·Google별로 얼마나 언급되고 있는지 한눈에 봅니다." },
+        { Icon: BarChart2,  title: `${AI_COUNT_N}개 AI 서비스 언급 현황`, desc: `${GEMINI_LIVE ? "Gemini·" : ""}ChatGPT·네이버·Google별로 얼마나 언급되고 있는지 한눈에 봅니다.` },
         { Icon: TrendingUp, title: "경쟁사 대비 개선 방향",   desc: "경쟁사가 이미 점유한 키워드와 아직 아무도 안 쓴 선점 기회 키워드를 알려드립니다." },
       ]}
     />
