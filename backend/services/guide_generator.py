@@ -1270,6 +1270,8 @@ async def generate_smartplace_intro(
 }}
 
 작성 기준:
+- 사실 지어내기 금지: 위 [사업장 정보]에 실제로 적힌 값만 사실로 쓴다. "미입력"·"없음"인 항목(가격·영업시간·재료·좌석/수용 인원·주차·시설·운영 기간·수상·인증)은 지어내지 말고 그 부분을 생략하거나 "스마트플레이스에서 확인해 주세요"로 안내한다. 메뉴·서비스 가격, 재료·원산지, 자주 묻는 질문의 답도 제공된 정보 안에서만 쓰고 근거가 없으면 확인 안내로 답한다
+- 리뷰_모음: 실제 고객이 쓴 것처럼 꾸민 구체적 경험(맛·직원 응대·대기 시간 등)을 단정하지 말고, 제공된 메뉴·강점 범위 안에서 사장님이 실제 후기를 덧붙여 쓸 수 있는 틀로 작성한다
 - 소개글: 스마트플레이스 소개글 칸에 그대로 붙여넣을 수 있는 완성 텍스트
 - 블로그 제목: '{region} {category_ko} 추천', '{business_name} 후기' 형식, 각각 다른 키워드 타겟
 - 블로그 본문: 사장님이 약간만 수정해 바로 올릴 수 있는 완성 텍스트
@@ -1334,8 +1336,8 @@ async def generate_smartplace_intro(
                     "title": f"{business_name} 메뉴·서비스 총정리",
                     "content": (
                         f"{business_name}의 대표 메뉴와 서비스를 소개합니다.\n\n"
-                        f"■ 메뉴·서비스\n{menu_items or '다양한 메뉴를 준비하고 있습니다.'}\n\n"
-                        f"■ 특징\n{specialty or f'{region} {category_ko} 중 최고의 품질을 자랑합니다.'}\n\n"
+                        f"■ 메뉴·서비스\n{menu_items or '메뉴·서비스는 스마트플레이스에서 확인해 주세요.'}\n\n"
+                        f"■ 특징\n{specialty or '특징은 스마트플레이스에서 확인해 주세요.'}\n\n"
                         f"■ 방문 안내\n주소: {address or region} | 전화: {phone or '문의 주세요'}"
                     ),
                     "target_keyword": f"{region} {category_ko} 메뉴",
@@ -1346,9 +1348,10 @@ async def generate_smartplace_intro(
                     "content": (
                         f"{region}에서 {category_ko}{_select_josa(category_ko, '을', '를')} 찾다가 "
                         f"{business_name}{_select_josa(business_name, '을', '를')} 방문했습니다.\n\n"
-                        f"{description or '처음 방문이었지만 정말 만족스러웠습니다.'}\n\n"
-                        f"위치도 접근하기 편리하고, 직원분들도 친절했습니다.\n\n"
-                        f"재방문 의향 있으며, {region} {category_ko}{_select_josa(category_ko, '을', '를')} 찾으신다면 강력 추천합니다!"
+                        f"{description or '[실제 방문 경험을 직접 적어 주세요]'}
+
+"
+                        f"[주문한 것, 분위기, 아쉬웠던 점 등 직접 겪은 내용을 적어 주세요]"
                     ),
                     "target_keyword": f"{region} {category_ko} 후기",
                 },

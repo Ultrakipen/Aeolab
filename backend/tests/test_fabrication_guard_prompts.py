@@ -142,3 +142,30 @@ def test_briefing_engine_guard_comment_count():
         f"{BRIEFING_ENG.name} 에 '사실 지어내기' 패턴이 {count}회만 있습니다(최소 3회 필요). "
         "소식 생성, FAQ 답변, 소식 본문 구성 3곳 모두에 가드가 있어야 합니다."
     )
+
+
+def _func_src(name: str) -> str:
+    """파일 전체가 아니라 해당 함수 본문만 — 다른 프롬프트의 가드가 이 함수의 부재를 가리지 않도록."""
+    src = GUIDE_GEN.read_text(encoding="utf-8")
+    start = src.index(f"async def {name}(")
+    nxt = src.find("\nasync def ", start + 10)
+    nxt2 = src.find("\ndef ", start + 10)
+    ends = [e for e in (nxt, nxt2) if e != -1]
+    return src[start:min(ends) if ends else len(src)]
+
+
+def test_blog_draft_prompt_has_own_fabrication_guard():
+    """소개글+블로그 초안 3종(generate_smartplace_intro) 프롬프트에도 사실 지어내기 금지가 있어야 한다 (2026-10-30 발견).
+
+    이 프롬프트는 '가격 정보'·'재료·특징'·'자주 묻는 질문'·'고객 후기'를 구조로 요구하면서 가드가 없었다.
+    """
+    body = _func_src("generate_smartplace_intro")
+    assert "사실 지어내기 금지" in body
+    assert "스마트플레이스에서 확인해 주세요" in body
+
+
+def test_blog_draft_fallback_has_no_invented_claims():
+    """Claude 호출 실패 시 대체 템플릿이 근거 없는 칭찬·가짜 후기 문장을 사실처럼 넣지 않는다."""
+    body = _func_src("generate_smartplace_intro")
+    for phrase in ("최고의 품질을 자랑", "정말 만족스러웠", "직원분들도 친절", "강력 추천합니다", "다양한 메뉴를 준비"):
+        assert phrase not in body, phrase
