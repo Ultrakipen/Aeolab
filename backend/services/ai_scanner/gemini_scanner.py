@@ -29,16 +29,29 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip() or "gemini-
 # 프로세스 전체 Gemini 호출 최소 간격(초) — 무료 등급은 분당 약 15회 제한(2026-10-30 실측: 동시 10개 몰아 보내면 429,
 # 4초 간격이면 8/8 성공). 0이면 제한 없음(기본값, 기존 동작). 호출 시작 시각만 배정하므로 호출이 겹치는 것은 허용.
 GEMINI_MIN_INTERVAL = float(os.getenv("GEMINI_MIN_INTERVAL", "0"))
+# 대기열 상한(초) — 여러 스캔이 겹쳐 호출이 쌓이면 뒤 호출은 오래 기다리는 대신 "측정 안 됨"(분모 제외)으로 포기한다.
+# 사용자가 기다리는 요청이 수 분 멈추거나 서버 스레드·연결이 쌓이는 과부하를 막는다. 0이면 상한 없음.
+GEMINI_MAX_WAIT_SEC = float(os.getenv("GEMINI_MAX_WAIT_SEC", "120"))
 _next_slot = 0.0
 
 
-async def _throttle() -> None:
-    """모든 generate_content 호출 직전에 대기 — 슬롯 예약은 await 없이 이뤄져 단일 이벤트 루프에서 원자적."""
+class GeminiBusy(Exception):
+    """호출 대기열이 상한을 넘어 이번 호출을 포기했다 — API 호출이 일어나지 않았으므로 사용량 로그에 남기지 않는다."""
+
+
+async def _throttle(max_wait: float | None = None) -> None:
+    """모든 generate_content 호출 직전에 대기 — 슬롯 예약은 await 없이 이뤄져 단일 이벤트 루프에서 원자적.
+
+    예상 대기가 상한(max_wait, 기본 GEMINI_MAX_WAIT_SEC)을 넘으면 슬롯을 예약하지 않고 GeminiBusy를 던진다.
+    """
     global _next_slot
     if GEMINI_MIN_INTERVAL <= 0:
         return
+    limit = GEMINI_MAX_WAIT_SEC if max_wait is None else max_wait
     now = time.monotonic()
     slot = max(now, _next_slot)
+    if limit > 0 and slot - now > limit:
+        raise GeminiBusy(f"gemini queue wait {slot - now:.0f}s > {limit:.0f}s")
     _next_slot = slot + GEMINI_MIN_INTERVAL
     if slot > now:
         await asyncio.sleep(slot - now)
@@ -307,6 +320,8 @@ class GeminiScanner:
         """API 호출 실패 기록 — 2026-07-12 OpenAI 결제 미등록 장애가 예외를 삼키고 조용히
         폴백되던 걸 로그로 감지 못 했던 사고 이후 신설. purpose에 오류 유형을 붙여
         ai_usage_log에 0토큰/0비용으로 남긴다(집계 시 성공 계측과 구분 가능)."""
+        if isinstance(error, GeminiBusy):
+            return   # API를 호출하지 않았다 — 한도 집계(ai_capacity)를 부풀리지 않는다
         log_ai_usage("gemini", GEMINI_MODEL, f"{purpose}:FAILED:{type(error).__name__}", 0, 0)
 
     async def _check_with_context(
@@ -366,34 +381,8 @@ JSON으로만 답하세요: {{"mentioned": true/false, "excerpt": "판단 근거
         return {"lower": round(max(0, c - m), 3), "upper": round(min(1, c + m), 3)}
 
     async def sample_10(self, query: str, target: str) -> dict:
-        """10회 샘플링 — 수동 quick scan 전용 (비용 ~0.3원/회)
-
-        trial 스캔과 달리 exposure_freq를 10 기준으로 반환.
-        """
-        mention_count = 0
-        success_count = 0
-        citations = []
-        tasks = [self._check(query, target) for _ in range(10)]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        for r in results:
-            # sample_n()과 동일 원칙 — 타임아웃·API 오류(_measured=False)는 "미언급"이 아닌
-            # "측정 안 됨"으로 분모에서 제외 (실패를 부정 응답으로 오집계 방지)
-            if isinstance(r, Exception) or not r.get("_measured", True):
-                continue
-            success_count += 1
-            if r.get("mentioned"):
-                mention_count += 1
-                if r.get("excerpt"):
-                    citations.append(r["excerpt"])
-        return {
-            "platform": "gemini",
-            "exposure_freq": mention_count,
-            "exposure_rate": (mention_count / success_count) if success_count > 0 else 0.0,
-            "citations": citations[:3],
-            "confidence": self._wilson_ci(mention_count, success_count) if success_count > 0 else {"lower": 0, "upper": 0.31},
-            "sample_size": success_count,
-            "failed_count": 10 - success_count,
-        }
+        """10회 샘플링 — 수동 quick scan 전용. 비유도형 추천 프로브로 위임(2026-10-30, 가게명을 질문에 넣지 않는다)."""
+        return await self.sample_recommend([query], target, n=10)
 
     async def _natural_check(self, query: str, target: str) -> dict:
         """자연어 응답을 받아 가게명 매칭 여부 + 발췌문 보존 (trial 신뢰도 강화 2라운드).

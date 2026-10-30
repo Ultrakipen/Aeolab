@@ -1555,7 +1555,7 @@ async def generate_blog_topics(
         _logger.warning("[blog_topics] GEMINI_API_KEY 미설정")
         raise HTTPException(status_code=503, detail="AI 서비스를 일시적으로 사용할 수 없습니다")
 
-    from services.ai_scanner.gemini_scanner import GEMINI_MODEL  # gemini-2.0-flash는 2026-10 전면 종료(404)
+    from services.ai_scanner.gemini_scanner import GEMINI_MODEL, _throttle  # gemini-2.0-flash는 2026-10 전면 종료(404)
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={gemini_api_key}"
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
@@ -1563,6 +1563,7 @@ async def generate_blog_topics(
     }
 
     try:
+        await _throttle(max_wait=10)   # 사용자가 기다리는 요청 — 대기열이 길면 기다리지 않고 아래 fallback 제목으로
         async with _aiohttp.ClientSession(timeout=_aiohttp.ClientTimeout(total=20)) as session:
             async with session.post(url, json=payload) as resp:
                 if resp.status != 200:
@@ -1570,6 +1571,12 @@ async def generate_blog_topics(
                     _logger.warning(f"[blog_topics] Gemini API 오류 status={resp.status}: {body[:200]}")
                     raise HTTPException(status_code=503, detail="블로그 주제 생성에 실패했습니다")
                 data = await resp.json()
+        try:   # 한도 집계(ai_capacity)가 이 호출도 세도록 사용량 기록 — 기록 실패는 무시
+            from services.ai_usage_logger import log_ai_usage
+            _um = data.get("usageMetadata") or {}
+            log_ai_usage("gemini", GEMINI_MODEL, "blog_topics", int(_um.get("promptTokenCount") or 0), int(_um.get("candidatesTokenCount") or 0))
+        except Exception:
+            pass
 
         raw = (data.get("candidates") or [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
         m = re.search(r"\[.*\]", raw, re.DOTALL)

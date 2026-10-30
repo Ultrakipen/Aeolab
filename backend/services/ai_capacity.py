@@ -5,8 +5,7 @@
 호출량은 사업장 수·요금제·질의 겹침에 따라 달라 구독자 수로 환산하면 틀린다.
 
 집계는 `ai_usage_log`의 최근 24시간(롤링)이다. Google의 일 한도는 달력 기준이라 롤링 24시간은 그 값 이상이므로
-알림이 늦게 가는 일은 없다(과하게 알릴 수는 있다). 기록되지 않는 호출(가게명 유도형 경쟁사 재스캔 등)은 빠져 있어 실제 사용은
-이 값보다 클 수 있다. 결제는 막지 않고 운영자에게 알리기만 한다.
+알림이 늦게 가는 일은 없다(과하게 알릴 수는 있다). Gemini 스캐너의 모든 호출 지점은 사용량을 기록한다(2026-10-30 확인). 같은 API 키를 쓰는 다른 서비스가 있으면 그 호출은 여기에 없다. 결제는 막지 않고 운영자에게 알리기만 한다.
 """
 from __future__ import annotations
 
@@ -85,5 +84,5 @@ async def gemini_usage_snapshot(supabase=None) -> dict:
         "truncated": len(rows) >= 5000,
         "next_steps": next_steps(pct),
         "probe_cache": probe_cache.snapshot(),
-        "basis": "ai_usage_log 기록 호출만(유도형 경쟁사 재스캔 등 미기록 호출은 빠져 실제는 더 클 수 있음). 한도는 GEMINI_DAILY_LIMIT",
+        "basis": "ai_usage_log에 기록된 Gemini 호출(스캐너 전 지점 + 블로그 주제 생성). 한도는 GEMINI_DAILY_LIMIT",
     }

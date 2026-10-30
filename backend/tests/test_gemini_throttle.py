@@ -74,3 +74,76 @@ def test_blog_topics_does_not_use_retired_model():
     src = pathlib.Path(__file__).resolve().parents[1].joinpath("routers", "guide.py").read_text(encoding="utf-8")
     assert "models/gemini-2.0-flash" not in src
     assert re.search(r"models/\{GEMINI_MODEL\}", src)
+
+
+# ── 대기열 상한(GeminiBusy) — 과부하 방지 ──
+def test_throttle_gives_up_when_queue_too_long(monkeypatch):
+    monkeypatch.setattr(gemini_scanner, "GEMINI_MIN_INTERVAL", 4.5)
+    monkeypatch.setattr(gemini_scanner, "GEMINI_MAX_WAIT_SEC", 10.0)
+    monkeypatch.setattr(gemini_scanner, "_next_slot", 0.0)
+
+    async def no_sleep(*a, **k):
+        return None
+
+    monkeypatch.setattr(gemini_scanner.asyncio, "sleep", no_sleep)
+
+    async def go():
+        return await asyncio.gather(*[gemini_scanner._throttle() for _ in range(5)], return_exceptions=True)
+
+    res = _run(go())
+    busy = [r for r in res if isinstance(r, gemini_scanner.GeminiBusy)]
+    assert len(busy) == 2 and len(res) - len(busy) == 3   # 대기 0·4.5·9초는 통과, 13.5초부터 포기
+
+
+def test_busy_does_not_advance_slot(monkeypatch):
+    monkeypatch.setattr(gemini_scanner, "GEMINI_MIN_INTERVAL", 4.5)
+    monkeypatch.setattr(gemini_scanner, "GEMINI_MAX_WAIT_SEC", 5.0)
+    t = gemini_scanner.time.monotonic()
+    monkeypatch.setattr(gemini_scanner, "_next_slot", t + 60)   # 이미 1분치 쌓임
+    before = gemini_scanner._next_slot
+
+    async def go():
+        try:
+            await gemini_scanner._throttle()
+        except gemini_scanner.GeminiBusy:
+            return True
+        return False
+
+    assert _run(go()) is True
+    assert gemini_scanner._next_slot == before   # 포기한 호출은 슬롯을 예약하지 않는다
+
+
+def test_busy_call_is_unmeasured_and_not_logged(monkeypatch):
+    sc = gemini_scanner.GeminiScanner()
+    logged = []
+    monkeypatch.setattr(gemini_scanner, "log_ai_usage", lambda *a, **k: logged.append(a))
+
+    async def busy(*a, **k):
+        raise gemini_scanner.GeminiBusy("full")
+
+    monkeypatch.setattr(gemini_scanner, "_throttle", busy)
+    r = _run(sc._recommend_once("q"))
+    assert r["_measured"] is False and logged == []   # 분모 제외 + 한도 집계에 안 센다
+
+
+def test_quick_scan_sample_10_is_unguided(monkeypatch):
+    sc = gemini_scanner.GeminiScanner()
+    calls = []
+
+    async def fake_once(query):
+        calls.append(query)
+        return {"places": ["A"], "_measured": True}
+
+    async def no_sleep(*a, **k):
+        return None
+
+    monkeypatch.setattr(sc, "_recommend_once", fake_once)
+    monkeypatch.setattr(gemini_scanner.asyncio, "sleep", no_sleep)
+    r = _run(sc.sample_10("창원 한식 추천", "하라식당"))
+    assert r["probe"] == "recommend_v1" and len(calls) == 10 and all("하라식당" not in q for q in calls)
+
+
+def test_blog_topics_call_is_throttled_with_short_wait_and_logged():
+    import pathlib
+    src = pathlib.Path(__file__).resolve().parents[1].joinpath("routers", "guide.py").read_text(encoding="utf-8")
+    assert "_throttle(max_wait=10)" in src and '"blog_topics"' in src
