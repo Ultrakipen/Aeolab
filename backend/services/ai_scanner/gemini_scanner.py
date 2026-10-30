@@ -4,6 +4,7 @@ import logging
 import re
 import os
 import math
+import time
 import google.generativeai as genai
 from typing import Optional
 
@@ -24,6 +25,22 @@ GEMINI_BATCH_SLEEP = float(os.getenv("GEMINI_BATCH_SLEEP", "0.5"))
 # 모델 ID — 신규 프로젝트 키는 gemini-2.5-flash가 404(신규 사용자 제공 종료, 2026-10-30 실측)라 env로 교체 가능
 # 기본값은 기존과 동일. 단가표(ai_usage_logger)에 없는 모델은 비용이 None으로 기록된다(추정 단가를 지어내지 않음).
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip() or "gemini-2.5-flash"
+# 프로세스 전체 Gemini 호출 최소 간격(초) — 무료 등급은 분당 약 15회 제한(2026-10-30 실측: 동시 10개 몰아 보내면 429,
+# 4초 간격이면 8/8 성공). 0이면 제한 없음(기본값, 기존 동작). 호출 시작 시각만 배정하므로 호출이 겹치는 것은 허용.
+GEMINI_MIN_INTERVAL = float(os.getenv("GEMINI_MIN_INTERVAL", "0"))
+_next_slot = 0.0
+
+
+async def _throttle() -> None:
+    """모든 generate_content 호출 직전에 대기 — 슬롯 예약은 await 없이 이뤄져 단일 이벤트 루프에서 원자적."""
+    global _next_slot
+    if GEMINI_MIN_INTERVAL <= 0:
+        return
+    now = time.monotonic()
+    slot = max(now, _next_slot)
+    _next_slot = slot + GEMINI_MIN_INTERVAL
+    if slot > now:
+        await asyncio.sleep(slot - now)
 
 
 class GeminiScanner:
@@ -115,6 +132,7 @@ class GeminiScanner:
         )
         for attempt in range(2):
             try:
+                await _throttle()
                 resp = await asyncio.wait_for(
                     asyncio.to_thread(self.model.generate_content, prompt),
                     timeout=20.0,
@@ -233,6 +251,7 @@ class GeminiScanner:
         # 빠져 유효 샘플 수가 줄어들었음. 다른 오류(타임아웃·파싱실패 등)는 재시도하지 않음.
         for attempt in range(2):
             try:
+                await _throttle()
                 resp = await asyncio.wait_for(
                     asyncio.to_thread(self.model.generate_content, prompt),
                     timeout=15.0,
@@ -314,6 +333,7 @@ class GeminiScanner:
 관련 있으면 true, 전혀 무관하면 false.
 JSON으로만 답하세요: {{"mentioned": true/false, "excerpt": "판단 근거 한 문장"}}"""
         try:
+            await _throttle()
             resp = await asyncio.wait_for(
                 asyncio.to_thread(self.model.generate_content, prompt),
                 timeout=15.0,
@@ -387,6 +407,7 @@ JSON으로만 답하세요: {{"mentioned": true/false, "excerpt": "판단 근거
             "JSON이 아닌 일반 문장으로만 답하세요."
         )
         try:
+            await _throttle()
             resp = await asyncio.wait_for(
                 asyncio.to_thread(self.model.generate_content, prompt),
                 timeout=15.0,
@@ -500,6 +521,7 @@ JSON으로만 답하세요: {{"mentioned": true/false, "excerpt": "판단 근거
 competitors는 실제 해당 지역에 존재할 법한 업체명으로 작성하세요."""
 
         try:
+            await _throttle()
             resp = await asyncio.wait_for(
                 asyncio.to_thread(self.model.generate_content, prompt),
                 timeout=15.0,
@@ -555,7 +577,7 @@ competitors는 실제 해당 지역에 존재할 법한 업체명으로 작성�
 
         async def scan_keyword(keyword: str) -> dict:
             async with sem:
-                query = f"{business_info.get('region', '')} {keyword} {business_info.get('name', '')}"
+                query = f"{business_info.get('region', '')} {keyword} 추천"  # 비유도형 — 사업장명을 질의에 넣지 않는다
                 result = await self.sample_100(query, business_info.get("name", ""))
                 return {
                     "keyword": keyword,
@@ -583,6 +605,7 @@ AI 응답:
 {{"sentiment": "positive|neutral|negative", "mention_type": "recommendation|information|comparison|warning", "mentioned_attributes": ["속성1", "속성2"], "excerpt": "언급된 원문 발췌(최대 100자)", "position": "top3|middle|bottom"}}"""
 
         try:
+            await _throttle()
             resp = await asyncio.to_thread(self.model.generate_content, prompt)
             self._log_usage(resp, "analyze_mention_context")
             m = re.search(r"\{.*?\}", resp.text, re.DOTALL)

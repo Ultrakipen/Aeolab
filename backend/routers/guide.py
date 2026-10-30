@@ -1555,10 +1555,11 @@ async def generate_blog_topics(
         _logger.warning("[blog_topics] GEMINI_API_KEY 미설정")
         raise HTTPException(status_code=503, detail="AI 서비스를 일시적으로 사용할 수 없습니다")
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_api_key}"
+    from services.ai_scanner.gemini_scanner import GEMINI_MODEL  # gemini-2.0-flash는 2026-10 전면 종료(404)
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={gemini_api_key}"
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.8, "maxOutputTokens": 512},
+        "generationConfig": {"temperature": 0.8, "maxOutputTokens": 2048},
     }
 
     try:
