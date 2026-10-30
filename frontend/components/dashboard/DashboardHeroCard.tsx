@@ -83,6 +83,14 @@ export default function DashboardHeroCard({
     ? `${fmtMonthDay(lastGoodNaver!.measuredAt) ?? "직전"} 확인`
     : scanMd ? `${scanMd} 측정` : "측정 결과";
   const positiveDetail = (text: string) => (useLast || oldScan ? measuredDetail : text);
+  // 14일 이상 지난 측정의 "미노출"은 지금도 그렇다는 뜻이 아니다 — 단정 대신 마지막 확인일과 재측정 안내로 말한다(2026-10-31).
+  // 직전 성공 결과를 날짜와 함께 보여 주는 경우(useLast)는 이미 날짜로 말하므로 제외한다.
+  const staleNegative = !useLast && scanAgeDays >= 14;
+  const staleNegativeCard = {
+    icon: "?", iconClass: "bg-gray-200 text-gray-600",
+    status: `${scanMd ?? "이전"} 확인`, statusClass: "text-gray-700",
+    detail: "최신 아님 · 다시 측정 권장",
+  };
 
   // INACTIVE/프랜차이즈는 네이버 AI 브리핑 비대상 — 부정 점수 레이블("노출 미흡") 대신
   // 네이버 검색·플레이스가 핵심 무기임을 긍정 리드로. 실제 채널 상태는 아래 3채널 그리드가 정직하게 표시.
@@ -138,6 +146,8 @@ export default function DashboardHeroCard({
     ? unknownCard
     : naverAiTabVisible === true
     ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "노출 중",    statusClass: "text-emerald-700", detail: positiveDetail("AI탭 답변 있음") }
+    : naverAiTabVisible === false && staleNegative
+    ? staleNegativeCard
     : naverAiTabVisible === false
     ? { icon: "!", iconClass: "bg-amber-700 text-white",   status: "미노출",      statusClass: "text-amber-700",   detail: measuredDetail }
     : { icon: "i", iconClass: "bg-blue-100 text-blue-700 font-black", status: "준비 가능",   statusClass: "text-blue-700",    detail: "가이드로 설정하기" };
@@ -154,6 +164,8 @@ export default function DashboardHeroCard({
     ? { icon: "△", iconClass: "bg-yellow-400 text-white",  status: "확대 예정",        statusClass: "text-yellow-700",  detail: "지금 준비 중" }
     : naverInBriefing
     ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "노출 중",          statusClass: "text-emerald-700", detail: positiveDetail("브리핑 노출 확인됨") }
+    : staleNegative
+    ? staleNegativeCard
     : { icon: "!", iconClass: "bg-amber-700 text-white",   status: "미노출",           statusClass: "text-amber-700",   detail: measuredDetail };
 
   // INACTIVE/프랜차이즈는 AI 브리핑 비대상 → 경쟁순위 카드 대체 표시.
