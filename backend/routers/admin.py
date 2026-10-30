@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from db.supabase_client import get_client, execute
 from config.prices import PLAN_PRICE_MAP
+from services.db_paging import fetch_all_rows
 from services.score_engine import BRIEFING_ACTIVE_CATEGORIES, BRIEFING_LIKELY_CATEGORIES
 from utils.admin_auth import require_owner, verify_admin
 
@@ -25,7 +26,8 @@ async def get_stats(_=Depends(verify_admin)):
     """구독자 MRR BEP 현황 통계 플랜별 포함"""
     supabase = get_supabase()
 
-    subs = (await execute(supabase.table("subscriptions").select("plan, status, user_id").limit(5000))).data
+    # 서버는 .limit()과 무관하게 1,000행까지만 돌려주므로(docs/supabase_row_cap_audit_2026_10_30.md) 페이지로 나눠 읽는다
+    subs, _ = await fetch_all_rows(lambda: supabase.table("subscriptions").select("plan, status, user_id").order("id"), max_rows=100_000)
     total = len(subs)
     active = [s for s in subs if s["status"] in ("active", "grace_period")]
 
@@ -494,13 +496,10 @@ async def get_cohort_analysis(_=Depends(verify_admin)):
     않기 위해 "현재 상태 스냅샷 기준"으로 범위를 명확히 좁혔다(data_caveat 참조).
     """
     supabase = get_supabase()
-    rows = (
-        await execute(
-            supabase.table("subscriptions")
-            .select("plan, status, start_at, end_at, created_at")
-            .limit(5000)
-        )
-    ).data or []
+    rows, _ = await fetch_all_rows(
+        lambda: supabase.table("subscriptions").select("plan, status, start_at, end_at, created_at").order("id"),
+        max_rows=100_000,
+    )
 
     status_dist: dict = {}
     cohorts: dict = {}
@@ -570,17 +569,16 @@ async def get_growth_funnel(weeks: int = Query(12, ge=1, le=52), _=Depends(verif
     since_dt = datetime.now(timezone.utc) - timedelta(weeks=weeks)
     since = since_dt.isoformat()
 
-    trial_rows = (await execute(
-        supabase.table("trial_scans").select("scanned_at").gte("scanned_at", since).limit(5000)
-    )).data or []
-    biz_rows = (await execute(
-        supabase.table("businesses").select("created_at").gte("created_at", since).limit(5000)
-    )).data or []
-    payment_rows = (await execute(
-        supabase.table("payment_events").select("created_at, status, event_type")
+    trial_rows, _ = await fetch_all_rows(
+        lambda: supabase.table("trial_scans").select("scanned_at").gte("scanned_at", since).order("id"), max_rows=100_000)
+    biz_rows, _ = await fetch_all_rows(
+        lambda: supabase.table("businesses").select("created_at").gte("created_at", since).order("id"), max_rows=100_000)
+    payment_rows, _ = await fetch_all_rows(
+        lambda: supabase.table("payment_events").select("created_at, status, event_type")
         .eq("event_type", "billing_issue").eq("status", "success")
-        .gte("created_at", since).limit(5000)
-    )).data or []
+        .gte("created_at", since).order("id"),
+        max_rows=100_000,
+    )
 
     try:
         # per_page=1000 고정 — BEP 20명·목표 100명 규모에서 충분(다른 admin.py 엔드포인트와 동일 관례).
@@ -641,12 +639,12 @@ async def get_growth_funnel(weeks: int = Query(12, ge=1, le=52), _=Depends(verif
     # ── 대행 서비스 퍼널 (2026-07-21 추가) — 신청→결제→진행→완료→후기.
     # "페이지 방문"·"신청 클릭"은 GA4 클라이언트 이벤트로만 확인 가능해 이 DB 기반
     # 엔드포인트에는 포함하지 않는다(주문 생성 이후 단계만 신뢰 가능한 서버 기록).
-    delivery_rows = (await execute(
-        supabase.table("delivery_orders")
+    delivery_rows, _ = await fetch_all_rows(
+        lambda: supabase.table("delivery_orders")
         .select("created_at, paid_at, status, testimonial_submitted_at")
-        .gte("created_at", since)
-        .limit(5000)
-    )).data or []
+        .gte("created_at", since).order("id"),
+        max_rows=100_000,
+    )
 
     delivery_created_by_week = _weekly_counts(delivery_rows, "created_at")
     delivery_paid_by_week = _weekly_counts(
@@ -896,8 +894,9 @@ async def get_score_comparison(
     cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
 
     # shadow 데이터 존재 행만 조회 (v31 컬럼 NULL 제외)
-    _res = await execute(
-        supabase.table("scan_results")
+    # 최근 순 최대 2,000건 표본 — 서버가 1,000행에서 자르던 것을 페이지로 나눠 의도한 2,000건까지 읽는다
+    rows, _ = await fetch_all_rows(
+        lambda: supabase.table("scan_results")
         .select(
             "id, business_id, unified_score, track1_score, "
             "track1_score_v31, unified_score_v31, user_group_v31, "
@@ -905,10 +904,9 @@ async def get_score_comparison(
         )
         .gte("scanned_at", cutoff)
         .not_.is_("unified_score_v31", "null")
-        .order("scanned_at", desc=True)
-        .limit(2000)
+        .order("scanned_at", desc=True).order("id"),
+        max_rows=2000,
     )
-    rows = _res.data or []
 
     if not rows:
         return {
@@ -1059,14 +1057,10 @@ async def get_dia_stats(
     since = (datetime.now() - timedelta(days=days)).isoformat()
 
     try:
-        rows = (
-            await execute(
-                supabase.table("guides")
-                .select("tools_json, generated_at")
-                .gte("generated_at", since)
-                .limit(2000)
-            )
-        ).data or []
+        rows, _ = await fetch_all_rows(
+            lambda: supabase.table("guides").select("tools_json, generated_at").gte("generated_at", since).order("id"),
+            max_rows=50_000,
+        )
     except Exception as e:
         _logger.warning("dia-stats: guides 조회 실패 — %s", e)
         rows = []
@@ -1158,13 +1152,10 @@ async def get_ai_usage(
         .gte("scanned_at", cutoff).not_.is_("google_result", "null")
     )
 
-    guide_rows = (
-        await execute(
-            supabase.table("guides").select("context")
-            .gte("generated_at", cutoff)
-            .limit(5000)
-        )
-    ).data or []
+    guide_rows, _ = await fetch_all_rows(
+        lambda: supabase.table("guides").select("context").gte("generated_at", cutoff).order("id"),
+        max_rows=100_000,
+    )
     guide_by_context: dict = {}
     for g in guide_rows:
         ctx = g.get("context") or "unknown"

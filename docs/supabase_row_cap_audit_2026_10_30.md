@@ -23,3 +23,7 @@
 ## 로그 롤업·보관 (같은 날 구현)
 - 테이블 `ai_usage_daily`(SQL은 `scripts/supabase_schema.sql` 끝, **SQL Editor에서 수동 실행 필요**). 매일 05:20 KST `ai_usage_rollup_job`이 하루가 끝난 날의 `ai_usage_log`를 (일·프로바이더·모델·목적)별로 합치고, **롤업과 원본 건수가 일치한 날만** 보관 기간(`AI_USAGE_LOG_RETENTION_DAYS`, 기본 35일, 0=삭제 안 함) 지난 원본을 한 시간 창씩 지운다. 테이블이 없으면 아무것도 지우지 않고 관리자 집계는 원본으로 폴백한다. 한 번에 처리하는 날짜 수에 상한(롤업 백필 10일·삭제 7일).
 - 실서버 확인(테이블 생성 전): 원본 51,474줄 그대로, `/ai-cost`는 `source: raw`로 폴백.
+
+## 후속 정리 (2026-10-30 저녁)
+남은 `.limit(>1000)` 조회를 모두 페이징(`fetch_all_rows`)·서버 집계(count)로 교체했다. 대상: `routers/admin.py` 구독 목록·MRR·주간 퍼널 4표·scan_results v31 표본·guides 2곳, `score_model_migration_notice.py` 2곳, `jobs.py` 주간 다이제스트(1,000행 정확히면 잘렸는지도 알 수 없었음)·`ai_provider_health_check_job`(프로바이더별 count)·`backend_scaling_trigger_check_job`, `index_aggregator.py` 인용 표본(.range 루프, 상한 2,000). 구조 테스트 `test_no_limit_above_server_row_cap_remains`가 재유입을 막는다(서버의 추적되지 않는 옛 폴더 `ai_scanner_deploy_tmp/`는 제외 — 임포트 안 됨).
+**미조치**: `.limit()` 없는 조회도 1,000행에서 잘림, `.in_("user_id", 수백 개 id)`의 URL 길이 한계(미확인).

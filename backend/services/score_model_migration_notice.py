@@ -103,13 +103,11 @@ async def send_v3_1_activation_notice(
     from db.supabase_client import execute
 
     # 1. 활성 구독자 user_id 목록 조회
-    _subs_res = await execute(
-        supabase.table("subscriptions")
-        .select("user_id, plan")
-        .in_("status", ["active", "grace_period"])
-        .limit(5000)
-    )
-    subs = _subs_res.data or []
+    from services.db_paging import fetch_all_rows
+    subs, _ = await fetch_all_rows(
+        lambda: supabase.table("subscriptions").select("user_id, plan").in_("status", ["active", "grace_period"]).order("id"),
+        max_rows=100_000,
+    )   # 서버는 .limit()과 무관하게 1,000행까지만 돌려주므로 페이지로 나눠 읽는다
     target_count = len(subs)
 
     if dry_run:
@@ -225,13 +223,11 @@ async def send_v3_1_kakao_only(supabase) -> dict:
             "error": "KAKAO_TEMPLATE_SCORE_MODEL 환경변수 미설정",
         }
 
-    _subs_res = await execute(
-        supabase.table("subscriptions")
-        .select("user_id, plan")
-        .in_("status", ["active", "grace_period"])
-        .limit(5000)
-    )
-    subs = _subs_res.data or []
+    from services.db_paging import fetch_all_rows
+    subs, _ = await fetch_all_rows(
+        lambda: supabase.table("subscriptions").select("user_id, plan").in_("status", ["active", "grace_period"]).order("id"),
+        max_rows=100_000,
+    )   # 서버는 .limit()과 무관하게 1,000행까지만 돌려주므로 페이지로 나눠 읽는다
     _user_ids = [s["user_id"] for s in subs if s.get("user_id")]
     if not _user_ids:
         return {"target_count": 0, "kakao_sent": 0, "kakao_failed": 0}

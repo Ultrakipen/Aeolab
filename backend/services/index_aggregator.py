@@ -271,19 +271,28 @@ async def compute_quarter_snapshot(
         platform_stats = _extract_platform_stats(scan_rows)
 
         # 6. ai_citations에서 키워드 추출
-        citation_rows = await asyncio.to_thread(
-            lambda: (
-                supabase.table("ai_citations")
-                .select("excerpt")
-                .in_("business_id", biz_ids)
-                .eq("mentioned", True)
-                .gte("created_at", start_date)
-                .lte("created_at", end_date)
-                .limit(2000)  # 메모리 안전 상한
-                .execute()
-                .data
-            )
-        )
+        def _read_citations() -> list:
+            # 메모리 안전 상한 2,000건 — 서버가 1,000행에서 자르므로 페이지로 나눠 의도한 상한까지 읽는다
+            out: list = []
+            while len(out) < 2000:
+                chunk = (
+                    supabase.table("ai_citations")
+                    .select("excerpt")
+                    .in_("business_id", biz_ids)
+                    .eq("mentioned", True)
+                    .gte("created_at", start_date)
+                    .lte("created_at", end_date)
+                    .order("id")
+                    .range(len(out), len(out) + 999)
+                    .execute()
+                    .data
+                ) or []
+                out += chunk
+                if len(chunk) < 1000:
+                    break
+            return out[:2000]
+
+        citation_rows = await asyncio.to_thread(_read_citations)
 
         top_keywords = _extract_top_keywords(citation_rows, top_n=10)
 

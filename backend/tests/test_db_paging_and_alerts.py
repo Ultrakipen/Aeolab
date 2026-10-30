@@ -134,3 +134,21 @@ def test_other_ai_usage_reads_use_paging():
     assert "fetch_all_rows" in a or "_fetch_all(" in a
     assert ".limit(10000)" not in a and ".limit(20000)" not in a
     assert "fetch_all_rows" in inspect.getsource(ai_capacity.gemini_usage_snapshot)
+
+
+def test_no_limit_above_server_row_cap_remains():
+    """서버는 .limit()과 무관하게 1,000행까지만 돌려준다 — 그보다 큰 .limit()은 조용히 잘리므로 페이징(fetch_all_rows)이나 count 집계를 써야 한다."""
+    import pathlib
+    import re
+    root = pathlib.Path(__file__).resolve().parent.parent
+    pat = re.compile(r"\.limit\((\d[\d_]*)\)")
+    bad = []
+    for sub in ("routers", "services", "scheduler", "middleware"):
+        for p in (root / sub).rglob("*.py"):
+            if p.name == "db_paging.py" or "_deploy_tmp" in p.parts[-2]:   # 서버의 추적되지 않는 옛 폴더(임포트 안 됨)
+                continue
+            for n, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+                m = pat.search(line)
+                if m and int(m.group(1).replace("_", "")) > 1000 and not line.lstrip().startswith("#"):
+                    bad.append(f"{p.relative_to(root)}:{n}")
+    assert not bad, bad

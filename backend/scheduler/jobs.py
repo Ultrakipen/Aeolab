@@ -4985,13 +4985,11 @@ async def weekly_digest_job():
         seven_days_ago = (today - timedelta(days=7)).isoformat()
 
         # 1) 활성 구독자 목록 조회
-        subs_res = await _db(
-            supabase.table("subscriptions")
-            .select("user_id, plan")
-            .eq("status", "active")
-            .limit(1000)
-        )
-        subscriptions = (subs_res.data or []) if subs_res else []
+        from services.db_paging import fetch_all_rows
+        subscriptions, _ = await fetch_all_rows(
+            lambda: supabase.table("subscriptions").select("user_id, plan").eq("status", "active").order("id"),
+            max_rows=100_000,
+        )   # 정확히 1,000행(서버 상한)이면 잘렸는지 알 수 없었다 — 페이지로 나눠 모두 읽는다
         if not subscriptions:
             logger.info("[weekly_digest_job] 활성 구독자 없음 — 종료")
             return
@@ -6962,31 +6960,24 @@ async def ai_provider_health_check_job() -> None:
     supabase = get_client()
     window_start = (datetime.utcnow() - timedelta(minutes=30)).isoformat()
 
+    # 행을 읽어 세지 않고 프로바이더별로 서버에서 센다(count=exact) — 서버가 한 번에 1,000행까지만 돌려줘 호출이 많은 시간대에는 표본이 잘린다
+    stats: dict[str, dict[str, int]] = {}
     try:
-        rows = (
-            await _db(
-                supabase.table("ai_usage_log")
-                .select("provider, purpose")
-                .gte("created_at", window_start)
-                .limit(2000)
-            )
-        ).data or []
+        for provider in ("gemini", "chatgpt"):
+            _base = lambda q, p=provider: q.eq("provider", p).gte("created_at", window_start)   # noqa: E731
+            _tot = await _db(_base(supabase.table("ai_usage_log").select("id", count="exact")).limit(1))
+            _fail = await _db(_base(supabase.table("ai_usage_log").select("id", count="exact")).like("purpose", "%:FAILED%").limit(1))
+            total, failed = int(_tot.count or 0), int(_fail.count or 0)
+            if total:
+                stats[provider] = {"total": total, "failed": failed}
     except Exception as e:
         # ai_usage_log 테이블 미생성 등 — 헬스체크 잡 자체 실패가 알림 오발송으로
         # 이어지면 안 되므로 조용히 종료 (다음 스캔 트래픽 발생 시 재시도)
         _logger.debug(f"[ai_provider_health] ai_usage_log 조회 실패(스킵): {e}")
         return
 
-    if not rows:
+    if not stats:
         return  # 최근 30분간 스캔 트래픽 자체가 없으면 판단 불가 — 정상 케이스
-
-    stats: dict[str, dict[str, int]] = {}
-    for r in rows:
-        provider = r.get("provider") or "unknown"
-        s = stats.setdefault(provider, {"total": 0, "failed": 0})
-        s["total"] += 1
-        if ":FAILED:" in (r.get("purpose") or ""):
-            s["failed"] += 1
 
     for provider, s in stats.items():
         # 호출은 3건 이상 있었는데 전부 실패 — 개별 API 오류가 아닌 전면 장애로 판단
@@ -7269,15 +7260,14 @@ async def backend_scaling_trigger_check_job() -> None:
     window_start = (now - timedelta(days=4)).isoformat()
 
     try:
-        rows = (
-            await _db(
-                supabase.table("system_alerts")
-                .select("source, created_at")
-                .in_("source", ["playwright_queue_timeout", "lock_contention"])
-                .gte("created_at", window_start)
-                .limit(5000)
-            )
-        ).data or []
+        from services.db_paging import fetch_all_rows
+        rows, _ = await fetch_all_rows(
+            lambda: supabase.table("system_alerts")
+            .select("source, created_at")
+            .in_("source", ["playwright_queue_timeout", "lock_contention"])
+            .gte("created_at", window_start).order("id"),
+            max_rows=100_000,
+        )
     except Exception as e:
         _logger.debug(f"[backend_scaling_trigger] system_alerts 조회 실패(스킵): {e}")
         rows = []
