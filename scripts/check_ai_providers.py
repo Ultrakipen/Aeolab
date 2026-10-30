@@ -46,7 +46,7 @@ async def check_gemini() -> str:
         return "FAIL — GEMINI_API_KEY 없음"
     try:
         from services.ai_scanner.gemini_scanner import GeminiScanner
-        res = await GeminiScanner().sample_n(["서울 성동구 카페 추천"], "어니언 성수", 10)
+        res = await GeminiScanner().sample_recommend(["서울 성동구 카페 추천"], "어니언 성수", 10)
         ok, failed = res.get("sample_size"), res.get("failed_count")
         verdict = "OK" if isinstance(ok, int) and ok >= 9 else "FAIL(대부분 실패 — 결제/한도 확인)"
         return f"{verdict} — 10회 중 성공 {ok}회, 실패 {failed}회"
