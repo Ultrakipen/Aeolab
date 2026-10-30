@@ -57,11 +57,60 @@ async def main():
     if not scanned:
         print("  (이번 창의 스캔 결과 없음 — 스캔이 돌지 않았거나 대상 요일이 아님. 아래 B·C로 사유 확인)")
     admins = {u.strip() for u in os.getenv("ADMIN_USER_IDS", "").split(",") if u.strip()}
-    active_paid = [b for b in biz.values() if subs.get(b["user_id"], ("", ""))[1] == "active"]
+    # 야간 스캔과 같은 자격 기준(active·유예·해지했어도 만료 전) — status가 active인 사용자만 보면 유예·해지 후 만료 전 사용자가 '대상 아님'으로 보인다(2026-10-31)
+    from services.scan_scheduling import entitled_user_ids
+    sub_rows = (await execute(sb.table("subscriptions").select("user_id,status,end_at"))).data or []
+    entitled = entitled_user_ids(sub_rows)
+    active_paid = [b for b in biz.values() if b["user_id"] in entitled]
     targets = [b for b in active_paid if b["user_id"] not in admins]          # daily_scan_all은 관리자 계정을 제외한다
     missing = [b["name"][:12] for b in targets if b["id"] not in scanned]
     excluded = [b["name"][:12] for b in active_paid if b["user_id"] in admins]
     print(f"  야간 스캔 대상(관리자 제외) {len(targets)}곳 중 이번 창 스캔 {len(scanned)}곳 | 스캔 없음: {missing or '없음'} | 관리자 계정이라 제외: {excluded or '없음'}")
+
+    print("\n[A2] AI 측정 상세 — Gemini·ChatGPT 표본 수와 측정 방식(비유도 recommend_v1인지), 실패·미완 표본")
+    for bid, r in scanned.items():
+        g, c = r.get("gemini_result") or {}, r.get("chatgpt_result") or {}
+        fmt = lambda x: (f"probe={x.get('probe')} 표본={x.get('sample_size')}/{x.get('requested_size')} 실패={x.get('failed_count')} "
+                         f"노출={x.get('exposure_freq')} 오류={x.get('error')}") if x else "(없음)"
+        print(f"  {name(bid):<12} Gemini {fmt(g)}")
+        print(f"  {'':<12} ChatGPT {fmt(c)}")
+        gn = g.get("sample_size") if g else None
+        if isinstance(gn, (int, float)) and gn < 30:
+            print(f"  {'':<12} ⚠ Gemini 표본이 {gn}개로 적다 — 무료 등급 한도(일 500회·분당 약 15회) 소진 가능. 점수에는 실패 표본이 제외되고, 10개 미만+실패 10건 이상이면 항목 자체가 제외된다")
+
+    print("\n[A3] 질의 노출(query_exposure) — 유도형 추가 호출을 중단했으므로 'recommend' 키만 있어야 한다 (scan_analytics 최신 full 행)")
+    try:
+        qa = (await execute(sb.table("scan_analytics").select("scanned_at,query_exposure").eq("scan_type", "full").order("scanned_at", desc=True).limit(3))).data or []
+        for a in qa:
+            print(f"  {kst(a.get('scanned_at',''))}  키={sorted((a.get('query_exposure') or {}).keys())}")
+        if not qa:
+            print("  (full 행 없음)")
+    except Exception as e:
+        print(f"  조회 실패(테이블·컬럼 확인): {e}")
+
+    print("\n[A4] 서버 로그 표지 — 이번 창 이후 경쟁사 급등 감지 실패·Traceback (pm2 out/err 로그의 마지막 부분)")
+    # pm2 로그 경로는 `pm2 jlist`의 pm_out_log_path 기준 /var/log/pm2/ 이다(예전 ~/.pm2/logs 는 옛 기록 — 이 경로를 봐서 매일 나던 실패를 놓친 적이 있다).
+    # 로그는 자정마다 `backend-out__<날짜>_00-00-00.log`로 회전하므로 최근 회전 파일 2개와 현재 파일을 함께 본다.
+    import glob
+    log_files = sorted(glob.glob("/var/log/pm2/backend-out__*.log"))[-2:] + ["/var/log/pm2/backend-out.log"]
+    log_files += sorted(glob.glob("/var/log/pm2/backend-error__*.log"))[-1:] + ["/var/log/pm2/backend-error.log"]
+
+    def _since_window(line):
+        # 로그의 timestamp는 UTC(naive ISO). 점검 창 시작 이후의 줄만 센다(옛 기록이 섞이지 않게)
+        i = line.find('"timestamp": "')
+        return i >= 0 and line[i + 14:i + 33] >= s_iso[:19]
+
+    for fn in log_files:
+        if not os.path.exists(fn):
+            print(f"  {fn}: 없음"); continue
+        with open(fn, "rb") as fh:
+            fh.seek(0, 2); size = fh.tell(); fh.seek(max(0, size - 6_000_000)); tail = fh.read().decode("utf-8", "ignore")
+        recent_lines = [l for l in tail.splitlines() if _since_window(l)]
+        spike = [l for l in recent_lines if "competitor_spike] 실패" in l]
+        tb = [l for l in tail.splitlines() if "Traceback" in l]      # Traceback 줄에는 timestamp가 없어 파일 끝 6MB 전체 기준
+        print(f"  {os.path.basename(fn)}: 창 이후 competitor_spike 실패 {len(spike)}건 | Traceback {len(tb)}건")
+        for l in spike[-1:]:
+            print("    ", l[:200])
 
     print("\n[B] 알림 발송 (이번 창, type별)")
     notes = (await execute(sb.table("notifications").select("user_id,type,status,sent_at").gte("sent_at", s_iso).lt("sent_at", e_iso))).data or []
