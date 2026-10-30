@@ -156,3 +156,56 @@ def test_job_registered_and_uses_snapshot():
     src = inspect.getsource(jobs)
     assert "ai_capacity_check_job, \"cron\", hour=9, minute=50" in src
     assert "gemini_usage_snapshot" in inspect.getsource(jobs.ai_capacity_check_job)
+
+
+# ── 규모 대응: 행을 읽지 않고 서버에서 센다 ──
+class _CountRes:
+    def __init__(self, count=None, data=None):
+        self.count, self.data = count, data
+
+
+class _CQ:
+    def __init__(self, kind, log):
+        self.kind, self.log = kind, log
+
+    def __getattr__(self, name):
+        def chain(*a, **k):
+            if name == "like":
+                self.kind = "failed"
+            if name == "select" and k.get("count") == "exact":
+                self.log.append("count")
+            return self
+        return chain
+
+
+class _CSB:
+    def __init__(self, log):
+        self.log = log
+
+    def table(self, name):
+        return _CQ("total", self.log)
+
+
+def test_usage_snapshot_counts_on_server_not_by_reading_rows(monkeypatch):
+    import db.supabase_client as sc
+    log = []
+
+    async def fake_execute(q):
+        return _CountRes(count=(2000 if q.kind == "failed" else 12000))   # 5,000행 상한을 넘는 규모
+
+    monkeypatch.setattr(sc, "execute", fake_execute)
+    snap = asyncio.run(ai_capacity.gemini_usage_snapshot(_CSB(log)))
+    assert snap["calls_failed"] == 2000 and snap["calls_ok"] == 10000   # 12,000 - 2,000
+    assert snap["truncated"] is False and snap["level"] == "100%"
+    assert log == ["count", "count"]
+
+
+def test_usage_snapshot_falls_back_to_rows_when_count_unavailable(monkeypatch):
+    import db.supabase_client as sc
+
+    async def fake_execute(q):
+        return _CountRes(count=None, data=[{"purpose": "scan_recommend"}, {"purpose": "x:FAILED:Timeout"}])
+
+    monkeypatch.setattr(sc, "execute", fake_execute)
+    snap = asyncio.run(ai_capacity.gemini_usage_snapshot(_CSB([])))
+    assert (snap["calls_ok"], snap["calls_failed"]) == (1, 1) and snap["truncated"] is False
