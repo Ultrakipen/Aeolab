@@ -54,6 +54,9 @@ def scrub_personal(text: str) -> str:
     return out
 
 
+PLACE_COUNTS_CAP = 600   # place_counts에 담는 이름 수 상한 — 표본 100개×추천 5곳=500이 최대라 사실상 잘리지 않는다(저장 시 compact_for_storage로 줄임)
+
+
 class GeminiBusy(Exception):
     """호출 대기열이 상한을 넘어 이번 호출을 포기했다 — API 호출이 일어나지 않았으므로 사용량 로그에 남기지 않는다."""
 
@@ -216,6 +219,7 @@ class GeminiScanner:
         citations: list[str] = []
         counter: dict[str, int] = {}
         display: dict[str, dict[str, int]] = {}
+        presence: dict[str, int] = {}   # 이름 → 그 이름이 등장한 표본 수(표본당 1회) — 경쟁사 노출 대조용
 
         all_results = list(cached_results)
         for batch_start in range(0, len(task_queries), GEMINI_BATCH_SIZE):
@@ -235,6 +239,7 @@ class GeminiScanner:
             success_count += 1
             places = r.get("places") or []
             hit_idx = None
+            seen_here: set[str] = set()
             for idx, p in enumerate(places):
                 pn = self._norm_name(p)
                 if names_match(target_norm, pn):
@@ -244,6 +249,9 @@ class GeminiScanner:
                     counter[pn] = counter.get(pn, 0) + 1
                     display.setdefault(pn, {})
                     display[pn][p] = display[pn].get(p, 0) + 1
+                    seen_here.add(pn)
+            for pn in seen_here:
+                presence[pn] = presence.get(pn, 0) + 1
             if hit_idx is not None:
                 mention_count += 1
                 ranks.append(hit_idx + 1)
@@ -254,6 +262,12 @@ class GeminiScanner:
         for pn, cnt in sorted(counter.items(), key=lambda kv: -kv[1])[:5]:
             names = display.get(pn) or {pn: cnt}
             top_places.append({"name": max(names.items(), key=lambda kv: kv[1])[0], "count": cnt})
+
+        # 표본별 등장 횟수 전체(상한 PLACE_COUNTS_CAP) — top_places(상위 5)로는 특정 경쟁사 노출을 판정할 수 없다
+        place_counts = []
+        for pn, cnt in sorted(presence.items(), key=lambda kv: (-kv[1], kv[0]))[:PLACE_COUNTS_CAP]:
+            names = display.get(pn) or {pn: cnt}
+            place_counts.append({"name": max(names.items(), key=lambda kv: kv[1])[0], "count": cnt})
 
         return {
             "platform": "gemini",
@@ -269,6 +283,8 @@ class GeminiScanner:
             "queries_used": query_list,
             "avg_rank": round(sum(ranks) / len(ranks), 1) if ranks else None,
             "top_places": top_places,
+            "place_counts": place_counts,
+            "place_counts_truncated": len(presence) > PLACE_COUNTS_CAP,
         }
 
     async def sample_100(self, queries: "str | list[str]", target: str) -> dict:

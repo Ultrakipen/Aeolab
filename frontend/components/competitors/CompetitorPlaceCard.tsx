@@ -623,7 +623,7 @@ export function CompetitorPlaceCard({
           </div>
           <blockquote className="bg-blue-50 border-l-4 border-blue-400 rounded-r-xl px-4 py-3">
             <p className="text-sm text-blue-900 leading-relaxed italic">"{competitor.ai_excerpt}"</p>
-            <p className="text-sm text-blue-600 mt-1.5">Gemini AI 측정 기준</p>
+            <p className="text-sm text-blue-600 mt-1.5">가게 이름을 직접 물어 받은 AI 응답 — 노출 여부 판정에는 쓰지 않습니다</p>
           </blockquote>
           <p className="text-sm text-gray-600 mt-1.5 leading-relaxed">
             AI가 경쟁사를 이렇게 소개하고 있습니다. 내 가게도 이런 키워드가 포함되도록 소개글을 작성하세요.

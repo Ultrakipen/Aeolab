@@ -1590,17 +1590,25 @@ async def _scan_new_competitor(comp_id: str, comp_name: str, business_id: str, s
         keyword_ko = _CATEGORY_KO.get(category, category)
         query = f"{region} {keyword_ko}".strip() if region else keyword_ko
 
-        # Gemini 단일 스캔 (single_check_with_competitors 사용)
-        from services.ai_scanner.gemini_scanner import GeminiScanner
-        gemini = GeminiScanner()
-        result = await gemini.single_check_with_competitors(query, comp_name)
-
-        if not result.get("_measured", True):
-            _logger.warning(f"[competitor_scan] Gemini 측정 실패, 스캔 생략 — comp={comp_name}: {result.get('_error')}")
+        # 경쟁사 노출은 이름을 따로 묻지 않고(유도형 환각 방지) 가장 최근 스캔의 비유도 추천 표본 목록에서 대조한다.
+        # 최근 스캔에 목록(place_counts)이 없으면(이 방식 도입 전 스캔) 측정하지 않고 다음 스캔을 기다린다 — 0으로 저장하지 않는다.
+        from services.competitor_ai_exposure import competitor_exposure, score_fields
+        _latest_scan = await execute(
+            supabase.table("scan_results")
+            .select("gemini_result, chatgpt_result")
+            .eq("business_id", business_id)
+            .order("scanned_at", desc=True)
+            .limit(1)
+            .maybe_single()
+        )
+        _ld = (_latest_scan.data if _latest_scan else None) or {}
+        _exp = competitor_exposure(comp_name, _ld.get("gemini_result"), _ld.get("chatgpt_result"))
+        if not _exp["_measured"]:
+            _logger.info(f"[competitor_scan] 노출 대조 불가, 다음 스캔에서 반영 — comp={comp_name}: {_exp['error']}")
             return
-        mentioned = bool(result.get("mentioned"))
-        excerpt = result.get("excerpt", "")
-        exposure_freq = result.get("exposure_freq", 0) or 0
+        mentioned = bool(_exp["mentioned"])
+        excerpt = ""
+        exposure_freq = _exp["exposure_freq"]
 
         # 등록 직후라 크롤링(sync_competitor_place)이 아직 안 끝났을 수 있음 — 그 시점 기준
         # 실측값(있으면)만 반영. scan.py와 동일 함수를 써서 breakdown 산식을 단일화(2026-07-14).
@@ -1622,6 +1630,7 @@ async def _scan_new_competitor(comp_id: str, comp_name: str, business_id: str, s
             "excerpt": excerpt,
             "breakdown": breakdown,
             "score_estimated": True,
+            **score_fields(_exp),
         }
 
         # ── Race condition 방지: Gemini 스캔 완료 후 최신 DB 값 재조회 후 병합 ──

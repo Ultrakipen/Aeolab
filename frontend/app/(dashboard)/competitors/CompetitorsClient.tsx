@@ -114,9 +114,14 @@ interface CompetitorScore {
   score: number
   excerpt?: string
   breakdown: { [key: string]: number }
+  // 새 방식(2026-10-30~): 같은 질문의 비유도 표본 목록에서 센 등장 횟수. 과거 항목에는 없다.
+  ai_count?: number
+  ai_sample_size?: number
+  ai_source?: string | null
+  ai_basis?: string
 }
 
-const TRACK1_ESTIMATED_NOTE = '경쟁사 데이터는 Gemini AI 언급 여부 + 네이버 플레이스 실측(리뷰·소개글·블로그 등) 병행 추정값입니다'
+const TRACK1_ESTIMATED_NOTE = '경쟁사 데이터는 AI 추천 목록 등장 여부 + 네이버 플레이스 실측(리뷰·소개글·블로그 등) 병행 추정값입니다'
 const TRACK1_LABELS: Record<string, string> = {
   keyword_gap_score:        '키워드 커버리지 (추정)',
   review_quality:           '리뷰·평점 (추정)',
@@ -1145,7 +1150,7 @@ function CompetitorScoreWaiting({ onRefresh }: { onRefresh: () => void }) {
           <div>
             <p className="text-sm font-semibold text-blue-900">경쟁사 점수를 분석하는 중입니다</p>
             <p className="text-sm text-blue-700 mt-0.5">
-              측정 완료 후 경쟁사 Gemini 분석이 백그라운드에서 실행됩니다.
+              측정 완료 후 경쟁사의 AI 추천 목록 등장 횟수가 백그라운드에서 계산됩니다.
               {countdown > 0 && <> <strong>{countdown}초</strong> 후 자동으로 새로고침됩니다.</>}
             </p>
           </div>
@@ -2382,7 +2387,7 @@ export function CompetitorsClient({
                                 ? 'bg-orange-50 text-orange-700 border-orange-200'
                                 : 'bg-gray-50 text-gray-600 border-gray-200'
                             }`}>
-                              {cs.mentioned ? 'AI 노출됨' : 'AI 미노출'}
+                              {cs.ai_basis && cs.ai_sample_size ? `AI 추천 ${cs.ai_count ?? 0}/${cs.ai_sample_size}회` : (cs.mentioned ? 'AI 노출됨' : 'AI 미노출')}
                             </span>
                             {/* 스파크라인 + 점수 변화 — 모바일만 표시 (2행에 배치) */}
                             {trendScans.length >= 2 && (
@@ -2541,8 +2546,17 @@ export function CompetitorsClient({
 
                         {cs ? (
                           <>
-                            {/* AI 채널별 노출 배지 — 경쟁사는 Gemini 단일 스캔 추정값 */}
-                            {cs.breakdown && (() => {
+                            {/* 새 방식: 같은 질문 표본 목록에서 센 등장 횟수(내 가게와 같은 방법) — 채널별 노출 배지는 쓰지 않는다 */}
+                            {cs.ai_basis && typeof cs.ai_sample_size === 'number' && cs.ai_sample_size > 0 && (
+                              <div className="mt-1.5">
+                                <p className="text-sm text-gray-700">
+                                  <span className="font-semibold">AI 추천 목록 등장</span> — 같은 질문 {cs.ai_sample_size}회 중 {cs.ai_count ?? 0}회 ({cs.ai_source === 'chatgpt' ? 'ChatGPT' : 'Gemini'})
+                                </p>
+                                <p className="text-sm text-gray-600 mt-0.5">내 가게와 같은 질문·같은 방법으로 센 값입니다. 측정 시점·기기에 따라 달라질 수 있습니다.</p>
+                              </div>
+                            )}
+                            {/* 과거 항목: 가게 이름을 직접 물은 단일 측정 추정값(새 방식 이전 기록) */}
+                            {!cs.ai_basis && cs.breakdown && (() => {
                               const naverOn = (cs.breakdown.naver_exposure_confirmed ?? 0) >= 50
                               const globalOn = (cs.breakdown.multi_ai_exposure ?? 0) >= 50
                               return (
@@ -2559,7 +2573,7 @@ export function CompetitorsClient({
                                       ChatGPT·Gemini {globalOn ? '노출됨' : '미노출'} <span className="font-normal">(추정)</span>
                                     </span>
                                   </div>
-                                  <p className="text-sm text-gray-600 mt-0.5">Gemini AI 단일 측정 기반 추정 — 실제와 다를 수 있음</p>
+                                  <p className="text-sm text-gray-600 mt-0.5">과거 방식(가게 이름을 직접 물은 단일 측정) 기반 추정 — 실제와 다를 수 있으며, 다음 측정부터 새 방식으로 바뀝니다</p>
                                 </div>
                               )
                             })()}
@@ -2786,7 +2800,7 @@ export function CompetitorsClient({
                         <div className="mt-2 pt-2 border-t border-gray-100 space-y-1">
                           <p className="text-sm text-gray-600">막대 길이 = 최신 점수 기반 · 화살표 = 이전 측정 대비 변화</p>
                           {allEntries.some(([k]) => TRACK1_KEYS.includes(k)) && (
-                            <p className="text-sm text-gray-600">* (추정) 항목은 Gemini AI 단일 측정 기반 추정값입니다</p>
+                            <p className="text-sm text-gray-600">* (추정) 항목은 추정값입니다 — AI 노출은 같은 질문 표본 목록 기준(과거 기록은 이름을 직접 물은 단일 측정)</p>
                           )}
                         </div>
                       </div>

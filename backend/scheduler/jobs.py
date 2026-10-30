@@ -9,6 +9,7 @@ from db.supabase_client import execute as _db
 from services.ai_scanner import naver_batch_job as _naver_batch_job  # 정기 잡은 네이버 상한의 배치 비율까지만 사용(2026-10-27)
 from services.keyword_taxonomy import build_ai_scan_queries as _build_ai_scan_queries
 from services.ai_usage_logger import log_ai_usage
+from services.competitor_ai_exposure import compact_for_storage
 
 # 카카오 알림 키 설정 여부 — 미설정 시 알림 발송 시도 자체를 스킵해 에러 로그 누적 방지
 _KAKAO_CONFIGURED = bool(os.getenv("KAKAO_APP_KEY") and os.getenv("KAKAO_SENDER_KEY"))
@@ -815,29 +816,20 @@ async def daily_scan_all():
                     comp_rows = _comp_res2.data or []
 
                     if comp_rows:
-                        from services.ai_scanner.gemini_scanner import GeminiScanner
                         from services.competitor_place_crawler import compute_competitor_score
-                        _gemini = GeminiScanner()
-                        comp_results = await asyncio.gather(
-                            *[_gemini.single_check(query, c["name"]) for c in comp_rows],
-                            return_exceptions=True,
-                        )
-                        for comp, cr in zip(comp_rows, comp_results):
-                            if isinstance(cr, Exception):
+                        from services.competitor_ai_exposure import competitor_exposure, score_fields
+                        # 경쟁사 노출은 이름을 따로 묻지 않고(유도형 환각 방지) 이번 스캔의 비유도 추천 표본 목록에서 대조한다.
+                        for comp in comp_rows:
+                            cr = competitor_exposure(comp["name"], result.get("gemini"), result.get("chatgpt"))
+                            if not cr["_measured"]:
+                                # 표본 없음·목록 잘림 — "미노출"로 확정하지 않고 이번 배치 갱신을 생략
                                 logger.warning(
-                                    f"[scheduler] 경쟁사 단일 스캔 예외 "
-                                    f"comp={comp['name']}: {cr}"
+                                    f"[scheduler] 경쟁사 노출 대조 불가, 갱신 생략 — "
+                                    f"comp={comp['name']}: {cr.get('error')}"
                                 )
                                 continue
-                            if not cr.get("_measured", True):
-                                # API 오류·타임아웃 — "미노출"로 확정하지 않고 이번 배치 갱신을 생략
-                                logger.warning(
-                                    f"[scheduler] 경쟁사 측정 실패, 갱신 생략 — "
-                                    f"comp={comp['name']}: {cr.get('_error')}"
-                                )
-                                continue
-                            is_mentioned = (cr.get("exposure_freq") or 0) > 0
-                            excerpt = cr.get("excerpt") or ""
+                            is_mentioned = bool(cr["mentioned"])
+                            excerpt = ""
                             # 2026-08-29 수정: 과거엔 Gemini 단건 응답(naver 크롤링 필드 없음)만으로
                             # naver_result proxy를 만들어 _estimate_competitor_score()에 넘겼음 —
                             # review_count/rating/is_smart_place가 늘 기본값(0/0/False)이라 실제
@@ -848,7 +840,7 @@ async def daily_scan_all():
                             comp_score, _breakdown = compute_competitor_score(
                                 comp_row=comp,
                                 mentioned=is_mentioned,
-                                exposure_freq=cr.get("exposure_freq") or 0,
+                                exposure_freq=cr["exposure_freq"],
                                 excerpt=excerpt,
                             )
                             competitor_scores[comp["id"]] = {
@@ -857,6 +849,7 @@ async def daily_scan_all():
                                 "score": comp_score,
                                 "excerpt": excerpt,
                                 "region": biz.get("region", ""),
+                                **score_fields(cr),
                             }
                 except Exception as e:
                     logger.warning(
@@ -891,8 +884,8 @@ async def daily_scan_all():
                         {
                             "business_id": biz["id"],
                             "query_used": query,
-                            "gemini_result": result.get("gemini"),
-                            "chatgpt_result": result.get("chatgpt"),
+                            "gemini_result": compact_for_storage(result.get("gemini")),
+                            "chatgpt_result": compact_for_storage(result.get("chatgpt")),
                             "naver_result": result.get("naver"),
                             "google_result": result.get("google"),
                             "kakao_result": _sched_kakao_data,
@@ -2250,7 +2243,8 @@ async def _enrich_competitor_excerpts():
             for comp_id, data in comp_scores.items():
                 if api_calls >= max_calls:
                     break
-                if isinstance(data, dict) and not data.get("excerpt"):
+                # 새 방식(ai_basis) 항목은 이름을 직접 묻는 유도형 호출로 문장을 채우지 않는다 — 노출 판정과 섞이고 호출량만 는다
+                if isinstance(data, dict) and not data.get("excerpt") and not data.get("ai_basis"):
                     name = data.get("name", "")
                     query = scan.get("query_used", "")
                     if name and query:

@@ -18,6 +18,7 @@ from db.supabase_client import get_client, execute
 from middleware.plan_gate import get_current_user
 from utils.scan_errors import make_scan_error, classify_exception
 import utils.cache as _cache
+from services.competitor_ai_exposure import compact_for_storage
 
 _logger = logging.getLogger("aeolab")
 
@@ -1452,9 +1453,9 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
         "faq_copy_text": faq_copy_text,
         "review_copy_text": review_copy_text,
         # AI 플랫폼별 결과 (프론트엔드 플랫폼 카드에서 직접 참조)
-        "chatgpt_result": ai_result.get("chatgpt"),
+        "chatgpt_result": compact_for_storage(ai_result.get("chatgpt")),
         # 동네·역 이름으로 물은 ChatGPT 결과(없으면 null) — 구 이름 결과와 나란히 보여 주기 위한 별도 필드
-        "chatgpt_neighborhood": ({**_nb_result, "neighborhood": _nb} if _nb_result else None),
+        "chatgpt_neighborhood": ({**compact_for_storage(_nb_result), "neighborhood": _nb} if _nb_result else None),
         # 기존 필드 (하위호환)
         "score": score,
         "result": ai_result,
@@ -2385,8 +2386,8 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
     inserted = (await execute(supabase.table("scan_results").insert({
         "business_id": business_id,
         "query_used": query,
-        "gemini_result":     results.get("gemini"),
-        "chatgpt_result":    results.get("chatgpt"),
+        "gemini_result":     compact_for_storage(results.get("gemini")),
+        "chatgpt_result":    compact_for_storage(results.get("chatgpt")),
         "naver_result":      results.get("naver"),
         "google_result":     results.get("google"),
         "kakao_result":      kakao_data or None,
@@ -2786,25 +2787,21 @@ async def _enrich_scan_background(
     if competitors:
         try:
             from services.competitor_place_crawler import compute_competitor_score
-            gemini = GeminiScanner()
-            comp_results = await _asyncio.gather(
-                *[gemini.single_check_with_competitors(query, c["name"]) for c in competitors],
-                return_exceptions=True,
-            )
-            for comp, result in zip(competitors, comp_results):
-                if isinstance(result, Exception):
-                    _logger.warning(f"competitor scan failed for {comp['name']}: {result}")
+            # 경쟁사 노출은 이름을 따로 묻지 않고(유도형 환각 방지) 이번 스캔의 비유도 추천 표본 목록에서 대조한다.
+            from services.competitor_ai_exposure import competitor_exposure, score_fields
+            for comp in competitors:
+                exp = competitor_exposure(comp["name"], (results or {}).get("gemini"), (results or {}).get("chatgpt"))
+                if not exp["_measured"]:
+                    _logger.warning(f"competitor exposure skipped for {comp['name']}: {exp['error']}")
                     continue
-                mentioned = bool(result.get("mentioned") or result.get("exposure_freq", 0) > 0)
-                excerpt = result.get("excerpt") or ""
-                exposure_freq = result.get("exposure_freq", 0) or 0
-                base_score, breakdown = compute_competitor_score(comp, mentioned, exposure_freq, excerpt)
+                base_score, breakdown = compute_competitor_score(comp, exp["mentioned"], exp["exposure_freq"], "")
                 competitor_scores[comp["id"]] = {
                     "name": comp["name"],
-                    "mentioned": mentioned,
+                    "mentioned": exp["mentioned"],
                     "score": base_score,
-                    "excerpt": excerpt,
+                    "excerpt": "",
                     "breakdown": breakdown,
+                    **score_fields(exp),
                 }
         except Exception as e:
             _logger.warning(f"competitor_scores scan failed (bg biz={business_id}): {e}")
@@ -3029,8 +3026,8 @@ async def _run_quick_scan(scan_id: str, req: ScanRequest):
                 "id": scan_id,
                 "business_id": req.business_id,
                 "query_used": query,
-                "gemini_result": result.get("gemini"),
-                "chatgpt_result": result.get("chatgpt"),
+                "gemini_result": compact_for_storage(result.get("gemini")),
+                "chatgpt_result": compact_for_storage(result.get("chatgpt")),
                 "naver_result": result.get("naver"),
                 "exposure_freq": (result.get("gemini") or {}).get("exposure_freq", 0),
                 "total_score": score["total_score"],
@@ -3311,26 +3308,22 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         comp_by_id: dict = {c["id"]: c for c in competitors}
         if competitors:
             try:
-                gemini = GeminiScanner()
-                comp_results = await _asyncio.gather(
-                    *[gemini.single_check_with_competitors(query, c["name"]) for c in competitors],
-                    return_exceptions=True,
-                )
                 from services.competitor_place_crawler import compute_competitor_score
-                for comp, r in zip(competitors, comp_results):
-                    if isinstance(r, Exception):
-                        _logger.warning(f"competitor scan failed for {comp['name']}: {r}")
+                from services.competitor_ai_exposure import competitor_exposure, score_fields
+                _scan_res = result if isinstance(result, dict) else {}
+                for comp in competitors:
+                    exp = competitor_exposure(comp["name"], _scan_res.get("gemini"), _scan_res.get("chatgpt"))
+                    if not exp["_measured"]:
+                        _logger.warning(f"competitor exposure skipped for {comp['name']}: {exp['error']}")
                         continue
-                    mentioned = bool(r.get("mentioned") or r.get("exposure_freq", 0) > 0)
-                    excerpt = r.get("excerpt") or ""
-                    exposure_freq = r.get("exposure_freq", 0) or 0
-                    base_score, breakdown = compute_competitor_score(comp, mentioned, exposure_freq, excerpt)
+                    base_score, breakdown = compute_competitor_score(comp, exp["mentioned"], exp["exposure_freq"], "")
                     competitor_scores[comp["id"]] = {
                         "name": comp["name"],
-                        "mentioned": mentioned,
+                        "mentioned": exp["mentioned"],
                         "score": base_score,
-                        "excerpt": excerpt,
+                        "excerpt": "",
                         "breakdown": breakdown,
+                        **score_fields(exp),
                     }
             except Exception as e:
                 _logger.warning(f"competitor_scores scan failed (full biz={req.business_id}): {e}")
@@ -3486,8 +3479,8 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                     "id": scan_id,
                     "business_id": req.business_id,
                     "query_used": query,
-                    "gemini_result": result.get("gemini"),
-                    "chatgpt_result": result.get("chatgpt"),
+                    "gemini_result": compact_for_storage(result.get("gemini")),
+                    "chatgpt_result": compact_for_storage(result.get("chatgpt")),
                     "naver_result": _naver_result_full,
                     "google_result": result.get("google"),
                     "kakao_result": kakao_data or None,
