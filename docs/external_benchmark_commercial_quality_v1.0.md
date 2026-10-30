@@ -64,6 +64,8 @@ docs/external_benchmark_commercial_quality_v1.0.md 기준으로 <페이지명> �
 
 대시보드 — §1.2 신규항목 확인 + §3 회귀확인 + WCAG 대비율 전수 수정 완료(2026-07-09, `07eca07`~`ff1bf24`). `text-gray-400` 246건 전수 분류 완료 — 106건은 아이콘/다크모드/장식/`/competitors`·`/blog-analysis`·`/onboarding` 전용 컴포넌트라 정상 제외, 나머지 140건 전부 `text-gray-500`로 교체. 이 문서 기준 점검이 필요한 잔여 항목 없음. 9개 페이지 + 대시보드 전부 완료.
 
-### 사이트 전역 후속 후보 (개별 페이지 범위 밖으로 기록만 해둔 것)
-- 화살표(→)·체크(✓) 등 리스트 불릿 장식 글리콘의 저대비(3.76:1/2.22:1) — `text-blue-500 shrink-0`/`text-green-500 shrink-0` 패턴, 20개 파일에 공통 존재. 순수 장식(제목이 이미 범주를 텍스트로 명시)이라 WCAG 1.4.1/1.4.3 예외 소지 있으나, 사이트 전체 일괄 상향 시 일관성 개선 가능
-- `HelpFAQFloat.tsx` 전역 검색힌트 텍스트(2.60:1) — 모든 페이지 공통 위젯, 개별 페이지 점검에서 반복 발견되나 범위 밖으로 계속 보류 중
+### 사이트 전역 후속 후보 — 2026-09-07 재확인 결과 둘 다 종료 (아래는 2차 재검증까지 거친 결론)
+- ~~화살표(→)·체크(✓) 등 리스트 불릿 장식 글리콘의 저대비 — `text-blue-500 shrink-0`/`text-green-500 shrink-0` 패턴~~ → **1차 확인(불충분)**: `text-blue-500`/`text-green-500` 리터럴만 검색해 0건 → "22735aa 커밋 때문에 해소"로 추정했으나 이 커밋은 대시보드 이모지→SVG 아이콘 교체였을 뿐 화살표/체크 불릿과 무관 — **근거 없이 지어낸 원인이었음, 오판**. **2차 확인(재검증)**: 색상 범위를 전체로 넓혀 재검색한 결과 실제로 12곳 존재(`ChatGPTDiffCard.tsx`×3 `text-indigo-400`, `DashboardDeliverableSignal.tsx`×1 `text-purple-400`, `score-guide/page.tsx`×4 `text-slate-400`, `ScoreEvidenceCard.tsx`×2 `text-indigo-400`, `stories/[id]/page.tsx`+`StoriesClient.tsx`×2 `ChevronRight text-blue-300/gray-300`, `onboarding/page.tsx`×3 `Check text-indigo-400`) — 전부 Read로 문맥 확인 후 **전부 순수 장식으로 판정**(예: "시작 전→향상", "점수개선→노출증가→방문가능성↑" 플로우 연결, "✓ 인근 경쟁사 실제 AI 노출 점수"처럼 아이콘 제거해도 텍스트만으로 의미 완결. `DashboardDeliverableSignal.tsx`는 `aria-hidden="true"`로 이미 명시적 장식 처리). WCAG 1.4.11(비텍스트 대비 3:1)은 "콘텐츠 이해에 필요한 그래픽"에만 적용되며 이 12곳은 전부 예외 대상 — 실제 위반 없음, 이번엔 문맥 확인을 거친 결론.
+- ~~`HelpFAQFloat.tsx` 전역 검색힌트 텍스트(2.60:1)~~ → 파일 전체 Read로 확인, 힌트 문구가 이미 `text-gray-600`(4.5:1 이상 통과). `text-gray-400`은 frontend 전체에 2건뿐이며 둘 다 `.tsx`가 아닌 `COLOR_GUIDE.md`/`DARK_MODE_GUIDE.md` 문서 내 예시 텍스트 — 실코드에 잔존 없음. (이 항목은 1차 확인부터 견고했음)
+
+**결론**: 이 문서가 추적하던 잔여 항목 전체(9개 페이지 + 대시보드 + 사이트 전역 백로그 2건) 완전 종료. **재발 방지 메모**: "grep 0건"을 "문제 없음"과 동일시하지 말 것 — 검색 색상 범위가 좁으면 거짓음성이 나온다. 원인을 추정할 땐 반드시 해당 커밋의 실제 diff를 열어 확인할 것(이번에 "22735aa 때문"이라는 추정이 실제로는 틀렸음).

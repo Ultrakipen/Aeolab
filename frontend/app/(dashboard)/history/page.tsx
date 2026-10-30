@@ -341,7 +341,7 @@ export default async function HistoryPage() {
                           <span className="text-gray-600">—</span>
                         )}
                       </td>
-                      <td className="px-4 md:px-6 py-3 text-gray-600 text-sm">{row.exposure_freq ?? 0}/{row.sample_size ?? 100}</td>
+                      <td className="px-4 md:px-6 py-3 text-gray-600 text-sm">{row.sample_size ? `${row.exposure_freq ?? 0}/${row.sample_size}` : '확인 전'}</td>
                       <td className="px-4 md:px-6 py-3">
                         {(row.weekly_change ?? 0) > 2 ? (
                           <span className="text-green-700 font-semibold">↑ 상승</span>
