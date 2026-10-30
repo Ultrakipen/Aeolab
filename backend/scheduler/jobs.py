@@ -4333,21 +4333,21 @@ async def _detect_competitor_score_spike():
                 # 이번 주 최신 스캔 (최근 3일 이내)
                 this_scan_res = await _asyncio.to_thread(
                     supabase.table("scan_results")
-                    .select("competitor_scores,created_at")
+                    .select("competitor_scores,scanned_at")
                     .eq("business_id", biz_id)
-                    .gte("created_at", str(today - timedelta(days=3)))
-                    .order("created_at", desc=True)
+                    .gte("scanned_at", str(today - timedelta(days=3)))
+                    .order("scanned_at", desc=True)
                     .limit(1)
                     .execute
                 )
                 # 지난 주 스캔 (4~10일 전)
                 last_scan_res = await _asyncio.to_thread(
                     supabase.table("scan_results")
-                    .select("competitor_scores,created_at")
+                    .select("competitor_scores,scanned_at")
                     .eq("business_id", biz_id)
-                    .gte("created_at", str(week_ago))
-                    .lt("created_at", str(today - timedelta(days=4)))
-                    .order("created_at", desc=True)
+                    .gte("scanned_at", str(week_ago))
+                    .lt("scanned_at", str(today - timedelta(days=4)))
+                    .order("scanned_at", desc=True)
                     .limit(1)
                     .execute
                 )
