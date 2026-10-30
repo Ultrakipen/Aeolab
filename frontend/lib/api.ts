@@ -48,6 +48,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   AI_UNAVAILABLE:   "일부 AI 서비스가 일시적으로 이용 불가합니다.",
   PAYMENT_FAILED:   "결제에 실패했습니다. 카드 정보를 확인해주세요.",
   RATE_LIMIT:       "요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
+  CAPACITY_WAITLIST: "지금은 측정 품질을 지키기 위해 신규 구독을 잠시 받지 않고 있어요. 대기자 명단에 등록해 주시면 자리가 나는 대로 알려 드립니다. 결제는 진행되지 않았습니다.",
   SERVER_ERROR:     "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
 };
 
@@ -184,6 +185,15 @@ export async function generateGuide(req: { business_id: string; scan_id: string 
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(req),
   });
+}
+
+// ── 신규 구독 수용 한도(용량이 찼을 때만 켜지는 스위치, 기본 꺼짐) ──
+export async function getCapacityMe(token: string): Promise<{ blocked: boolean; message: string }> {
+  return apiCall(`${BACKEND_URL}/api/status/capacity/me`, { headers: { Authorization: `Bearer ${token}` } });
+}
+
+export async function joinCapacityWaitlist(token: string): Promise<{ ok: boolean }> {
+  return apiCall(`${BACKEND_URL}/api/status/capacity/waitlist`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
 }
 
 export async function issueBilling(

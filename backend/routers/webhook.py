@@ -113,6 +113,12 @@ async def issue_billing(body: BillingIssueRequest, request: Request, user: dict 
     user_id = user["id"]
     customer_key = f"customer_{user_id}"
 
+    # 0. 신규 구독 수용 한도(기본 꺼짐) — 용량이 찼을 때 빌링키 발급·결제 **이전에** 대기자 안내로 돌린다(기존 구독자는 통과)
+    from services.capacity_gate import new_subscriber_blocked
+    _blocked = await new_subscriber_blocked(user_id)
+    if _blocked:
+        raise HTTPException(status_code=409, detail=_blocked)
+
     # 1. 빌링키 발급
     issue_res = await creb_client.issue_billkey(body.authKey)
     if not issue_res.ok:

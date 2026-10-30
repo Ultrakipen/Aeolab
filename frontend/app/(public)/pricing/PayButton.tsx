@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient, getSafeSession } from "@/lib/supabase/client";
-import { updatePhone } from "@/lib/api";
+import { updatePhone, getCapacityMe, joinCapacityWaitlist } from "@/lib/api";
 import { loadCreb } from "@/lib/creb";
 import { savePayContext } from "@/lib/payContext";
 
@@ -38,6 +38,8 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState("");
+  const [capacityMsg, setCapacityMsg] = useState(""); // 신규 구독 수용 한도 안내(용량이 찼을 때만, 결제 전)
+  const [waitlistState, setWaitlistState] = useState<"idle" | "saving" | "done" | "error">("idle");
   const [agreed, setAgreed] = useState(false); // 결제 진행 동의 (카드사 심사 결제경로 요건)
 
   // 이미 로그인한 사용자에게는 "회원가입" 문구 대신 결제 지향 문구를 보여줌
@@ -75,6 +77,8 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
     if (!showConfirm) return;
     setPhoneError("");
     setAgreed(false);
+    setCapacityMsg("");   // 모달을 다시 열면 용량 안내를 새로 확인한다
+    setWaitlistState("idle");
     (async () => {
       const session = await getSafeSession();
       const user = session?.user ?? null;
@@ -96,7 +100,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
   const priceChecking = !!firstMonthAmount && isFirstTime === null;
 
   const handleConfirm = async () => {
-    if (!agreed || priceChecking) return;
+    if (!agreed || priceChecking || capacityMsg) return;
     setPhoneError("");
     setLoading(true);
     // 전화번호 검증 실패 시에는 모달을 닫지 않고 그대로 두어 사용자가 바로 고칠 수 있게 함
@@ -108,6 +112,14 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
       if (!user || !session) {
         // 비로그인은 가입 유도만 — 아직 저장할 계정이 없으므로 전화번호를 여기서 요구하지 않음
         window.location.href = `${signupHref}?plan=${encodeURIComponent(planName)}&amount=${chargeAmount}`;
+        return;
+      }
+
+      // 용량이 찼을 때만(기본 꺼짐) 카드 등록 전에 대기자 안내로 돌린다 — 기존 구독자는 서버가 통과시킨다. 확인 실패 시에는 막지 않는다.
+      const gate = await getCapacityMe(session.access_token).catch(() => null);
+      if (gate?.blocked) {
+        setCapacityMsg(gate.message || "지금은 신규 구독을 잠시 받지 않고 있습니다. 결제는 진행되지 않았습니다.");
+        keepModalOpen = true;
         return;
       }
 
@@ -171,6 +183,38 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 break-keep">
             <h2 className="text-lg font-bold text-gray-900 mb-1">결제 확인</h2>
             <p className="text-sm text-gray-600 mb-5">아래 내용을 확인하고 결제를 진행해주세요.</p>
+
+            {capacityMsg && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 text-sm text-amber-900 leading-relaxed">
+                <p className="font-semibold mb-1">지금은 신규 구독을 잠시 받지 않고 있어요</p>
+                <p>{capacityMsg}</p>
+                {waitlistState === "done" ? (
+                  <p className="mt-2 font-semibold text-emerald-700">대기자 명단에 등록했습니다. 자리가 나면 이메일로 알려 드릴게요.</p>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={waitlistState === "saving"}
+                    onClick={async () => {
+                      setWaitlistState("saving");
+                      try {
+                        const session = await getSafeSession();
+                        if (!session) throw new Error("no session");
+                        const res = await joinCapacityWaitlist(session.access_token);
+                        setWaitlistState(res?.ok ? "done" : "error");
+                      } catch {
+                        setWaitlistState("error");
+                      }
+                    }}
+                    className="mt-3 w-full py-2.5 rounded-lg bg-amber-600 text-white text-sm font-semibold hover:bg-amber-700 disabled:opacity-60"
+                  >
+                    {waitlistState === "saving" ? "등록 중..." : "대기자 명단에 등록"}
+                  </button>
+                )}
+                {waitlistState === "error" && (
+                  <p className="mt-2 text-red-700">등록하지 못했습니다. 잠시 후 다시 시도해 주세요.</p>
+                )}
+              </div>
+            )}
 
             <div className="bg-gray-50 rounded-xl p-4 mb-5 space-y-2 text-sm">
               <div className="flex justify-between">
