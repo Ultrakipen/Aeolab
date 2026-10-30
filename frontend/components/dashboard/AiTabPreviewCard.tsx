@@ -52,6 +52,8 @@ interface AiTabPreviewResponse {
   data_source?: "measured" | "estimated";
   /** 실측 AI탭 노출 확인 여부 (data_source==="measured" 일 때만 신뢰) */
   confirmed_in_ai_tab?: boolean;
+  /** 이 AI탭 판정이 나온 스캔 시각(ISO) — 오래된 "미노출"을 현재 사실처럼 말하지 않기 위해 날짜를 보여 준다 */
+  measured_at?: string | null;
   /** 광고 영역 노출 여부 — true 시 유기 점수 제외 안내 */
   ad_only?: boolean;
   /** 예약 연동 여부 — null=미측정, true=연동됨, false=미연동 */
@@ -202,6 +204,12 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
   // measured/estimated 배지 계산 (naver_result.in_ai_tab 기반)
   const isMeasured = data ? typeof data.confirmed_in_ai_tab === "boolean" || data.data_source === "measured" : false;
   const isVisible = data?.confirmed_in_ai_tab === true;
+  // 측정 날짜와 경과일 — 14일 이상 지난 "미노출"은 단정하지 않고 "마지막 확인"으로 말한다(대시보드 상단 카드와 같은 기준)
+  const measuredDate = data?.measured_at ? new Date(data.measured_at) : null;
+  const measuredValid = !!measuredDate && !Number.isNaN(measuredDate.getTime());
+  const measuredLabel = measuredValid ? `${measuredDate!.getMonth() + 1}월 ${measuredDate!.getDate()}일` : null;
+  const measuredAgeDays = measuredValid ? Math.floor((Date.now() - measuredDate!.getTime()) / 86_400_000) : null;
+  const isStaleMeasure = isMeasured && measuredAgeDays !== null && measuredAgeDays >= 14;
 
   return (
     <section
@@ -342,7 +350,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-emerald-800">AI탭 노출 확인됨</p>
                   <p className="text-sm text-emerald-700 mt-0.5 leading-snug break-keep">
-                    마지막 측정에서 네이버 AI탭에 내 사업장이 실제로 노출된 것을 확인했습니다.
+                    {measuredLabel ? `${measuredLabel} 측정에서` : "마지막 측정에서"} 네이버 AI탭에 내 사업장이 실제로 노출된 것을 확인했습니다.{isStaleMeasure ? " 측정한 지 시간이 지나 지금과 다를 수 있습니다." : ""}
                   </p>
                   <span className="inline-flex items-center mt-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-sm font-semibold">
                     실측 확인
@@ -350,11 +358,22 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
                 </div>
               </div>
             )}
-            {isMeasured && !isVisible && (
+            {isMeasured && !isVisible && isStaleMeasure && (
+              <div className="flex items-start gap-2.5 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3">
+                <Clock className="w-5 h-5 text-gray-600 shrink-0 mt-0.5" />
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-gray-700">AI탭 확인 전{measuredLabel ? ` · 마지막 확인 ${measuredLabel}` : ""}</p>
+                  <p className="text-sm text-gray-600 mt-0.5 leading-snug break-keep">
+                    마지막 측정에서는 AI탭 노출이 확인되지 않았지만 측정한 지 {measuredAgeDays}일이 지나 지금 상태와 다를 수 있습니다. 다시 측정하면 최신 상태를 확인할 수 있습니다.
+                  </p>
+                </div>
+              </div>
+            )}
+            {isMeasured && !isVisible && !isStaleMeasure && (
               <div className="flex items-start gap-2.5 rounded-xl bg-gray-50 border border-gray-200 px-4 py-3">
                 <AlertCircle className="w-5 h-5 text-gray-600 shrink-0 mt-0.5" />
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-gray-700">AI탭 미노출</p>
+                  <p className="text-sm font-bold text-gray-700">AI탭 미노출{measuredLabel ? ` · ${measuredLabel} 측정` : ""}</p>
                   <p className="text-sm text-gray-600 mt-0.5 leading-snug break-keep">
                     마지막 측정에서 AI탭 노출이 확인되지 않았습니다. 아래 체크리스트를 완료하면 노출 가능성이 높아집니다.
                   </p>

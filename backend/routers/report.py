@@ -1749,7 +1749,7 @@ async def get_ai_tab_preview(biz_id: str, user=Depends(get_current_user)):
         ),
         execute(
             supabase.table("scan_results")
-            .select("id, keyword_coverage, score_breakdown, naver_result, naver_ai_tab_visible")
+            .select("id, scanned_at, keyword_coverage, score_breakdown, naver_result, naver_ai_tab_visible")
             .eq("business_id", biz_id)
             .order("scanned_at", desc=True)
             .limit(1)
@@ -1786,6 +1786,8 @@ async def get_ai_tab_preview(biz_id: str, user=Depends(get_current_user)):
         "available": True,
         "briefing_eligibility": briefing_eligibility,  # AI 브리핑 게이팅 (UI 분기용)
         "readiness_label": readiness_label,   # {"short": "준비 중", "description": "..."}
+        # 이 AI탭 판정이 나온 스캔 시각 — 화면이 오래된 "미노출"을 현재 사실처럼 말하지 않게 날짜를 보여 준다(2026-10-31)
+        "measured_at": (scan_row or {}).get("scanned_at"),
         **preview,
     }
     _cache.set(_cache_key, result, ttl=_TTL_BENCHMARK)
