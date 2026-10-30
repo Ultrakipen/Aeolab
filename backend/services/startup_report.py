@@ -35,14 +35,18 @@ class StartupReportService:
         # 해당 업종 기존 사업장 조회 — region은 자유 입력이라 category만 DB에서 필터하고
         # region_matches()로 표기 차이(서울 강남/강남구 등)를 흡수 (get_market_overview/
         # get_timing_index와 동일 기준 공유, startup.py 참조)
-        biz_res = await execute(
-            supabase.table("businesses")
+        # 서버는 .limit()과 무관하게 1,000행에서 자르므로(docs/supabase_row_cap_audit_2026_10_30.md) 페이지로 나눠 읽는다
+        from datetime import datetime, timedelta, timezone
+        from services.db_paging import fetch_all_rows, fetch_all_in_chunks
+        biz_rows_all, _ = await fetch_all_rows(
+            lambda: supabase.table("businesses")
             .select("id, name, region")
             .eq("category", category)
-            .eq("is_active", True)
+            .eq("is_active", True).order("id"),
+            max_rows=100_000,
         )
         businesses = [
-            b for b in (biz_res.data or [])
+            b for b in biz_rows_all
             if region_matches(b.get("region") or "", region)
         ]
         competitor_count = len(businesses)
@@ -58,14 +62,19 @@ class StartupReportService:
             biz_name_map = {b["id"]: b["name"] for b in businesses}
 
             # N+1 제거 — 단일 IN 쿼리로 최신 스캔 일괄 조회
-            scans_res = await execute(
-                supabase.table("scan_results")
+            # 사업장별 "최신 1건"만 필요한데 이력 전체를 읽으면 1,000행에서 잘려 최근 스캔이 없는 사업장이 빠진다 — 최근 30일 안에 측정된 사업장만 쓴다
+            _since = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+            scan_rows_all, _ = await fetch_all_in_chunks(
+                lambda part: supabase.table("scan_results")
                 .select("business_id, total_score, exposure_freq, scanned_at")
-                .in_("business_id", biz_ids)
-                .order("scanned_at", desc=True)
+                .in_("business_id", part)
+                .gte("scanned_at", _since)
+                .order("scanned_at", desc=True).order("id"),
+                biz_ids,
+                max_rows=100_000,
             )
             seen: dict = {}
-            for s in (scans_res.data or []):
+            for s in scan_rows_all:
                 bid = s.get("business_id")
                 if bid not in seen and s.get("total_score") is not None:
                     seen[bid] = s
