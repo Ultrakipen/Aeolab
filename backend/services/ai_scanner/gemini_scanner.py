@@ -21,6 +21,9 @@ _GROUNDING_ENABLED: bool = os.getenv("GEMINI_GROUNDING_ENABLED", "false").lower(
 # 배치 크기·배치 간 대기 — 프로바이더 티어 상향 시 코드 수정 없이 env로 조정
 GEMINI_BATCH_SIZE = max(1, int(os.getenv("GEMINI_BATCH_SIZE", "10")))  # 0 입력 시 range() ValueError 방지로 최소 1
 GEMINI_BATCH_SLEEP = float(os.getenv("GEMINI_BATCH_SLEEP", "0.5"))
+# 모델 ID — 신규 프로젝트 키는 gemini-2.5-flash가 404(신규 사용자 제공 종료, 2026-10-30 실측)라 env로 교체 가능
+# 기본값은 기존과 동일. 단가표(ai_usage_logger)에 없는 모델은 비용이 None으로 기록된다(추정 단가를 지어내지 않음).
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip() or "gemini-2.5-flash"
 
 
 class GeminiScanner:
@@ -37,12 +40,12 @@ class GeminiScanner:
                 google_search_retrieval=glm.GoogleSearchRetrieval()
             )
             self.model = genai.GenerativeModel(
-                "gemini-2.5-flash",
+                GEMINI_MODEL,
                 tools=[_google_search_tool],
             )
             _logger.info("[gemini] Google Search 그라운딩 활성화 (gemini-2.5-flash)")
         else:
-            self.model = genai.GenerativeModel("gemini-2.5-flash")
+            self.model = genai.GenerativeModel(GEMINI_MODEL)
 
     async def sample_n(self, queries: "str | list[str]", target: str, n: int = 50) -> dict:
         """n회 샘플링으로 AI 노출 빈도 측정 (일반화 버전).
@@ -272,7 +275,7 @@ class GeminiScanner:
                 return
             p_in = um.prompt_token_count or 0
             p_out = um.candidates_token_count or 0  # thinking 토큰 포함(Developer API 특성)
-            log_ai_usage("gemini", "gemini-2.5-flash", purpose, p_in, p_out, thinking_tokens=None)
+            log_ai_usage("gemini", GEMINI_MODEL, purpose, p_in, p_out, thinking_tokens=None)
         except Exception as e:
             _logger.debug("gemini usage 로깅 실패(무시): %s", e)
 
@@ -280,7 +283,7 @@ class GeminiScanner:
         """API 호출 실패 기록 — 2026-07-12 OpenAI 결제 미등록 장애가 예외를 삼키고 조용히
         폴백되던 걸 로그로 감지 못 했던 사고 이후 신설. purpose에 오류 유형을 붙여
         ai_usage_log에 0토큰/0비용으로 남긴다(집계 시 성공 계측과 구분 가능)."""
-        log_ai_usage("gemini", "gemini-2.5-flash", f"{purpose}:FAILED:{type(error).__name__}", 0, 0)
+        log_ai_usage("gemini", GEMINI_MODEL, f"{purpose}:FAILED:{type(error).__name__}", 0, 0)
 
     async def _check_with_context(
         self,
