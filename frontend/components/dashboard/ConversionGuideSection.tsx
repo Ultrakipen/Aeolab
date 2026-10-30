@@ -168,6 +168,12 @@ function TipCard({ tip, bizId }: { tip: ConversionTip; bizId: string }) {
       )}
 
       {/* 복사 가능 본문 */}
+      {!tip.locked && editedText.includes("[") && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-2 text-sm text-amber-700 flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+          <span><strong>[ ] 괄호 안</strong>은 내 가게 정보로 바꾼 후 사용하세요. 확인되지 않은 내용은 지우세요.</span>
+        </div>
+      )}
       {tip.copy_text && (
         <div className="relative">
           {tip.locked ? (
