@@ -1,5 +1,6 @@
 "use client";
 
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE, AI_NAMES, AI_COUNT_N } from "@/lib/featureFlags";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useBriefingCategories } from "@/lib/useBriefingCategories";
@@ -1627,13 +1628,13 @@ function MergedScanInfoBox({ chatgptSampleSize }: { chatgptSampleSize: number })
         <div className="bg-slate-600 rounded-lg px-3 py-2">
           <p className="text-sm text-emerald-300 font-semibold mb-0.5">② 가입하면 (결제 없이 1회 무료)</p>
           <p className="text-sm text-slate-300 leading-relaxed">
-            Gemini·ChatGPT 각 <span className="text-white font-semibold">50회씩(총 100회)</span> + 네이버 AI 브리핑 + Google 검색 노출까지 4개 AI 서비스 전체 분석
+            {AI_NAMES}{GEMINI_LIVE ? " 각 " : " "}<span className="text-white font-semibold">{GEMINI_LIVE ? "50회씩(총 100회)" : "50회"}</span> + 네이버 AI 브리핑 + Google 검색 노출까지 {AI_COUNT_N}개 AI 서비스 전체 분석
           </p>
         </div>
         <div className="bg-slate-600 rounded-lg px-3 py-2">
           <p className="text-sm text-blue-300 font-semibold mb-0.5">③ Basic 구독하면</p>
           <p className="text-sm text-slate-300 leading-relaxed">
-            같은 4개 AI 서비스를 각 <span className="text-white font-semibold">100회씩(총 200회)</span>로 정확도를 높여 매주 2회 자동 반복 + 점수 변화 추적 + 경쟁사 비교
+            같은 {AI_COUNT_N}개 AI 서비스를 {GEMINI_LIVE ? "각 " : "ChatGPT "}<span className="text-white font-semibold">{GEMINI_LIVE ? "100회씩(총 200회)" : "100회"}</span>로 정확도를 높여 매주 2회 자동 반복 + 점수 변화 추적 + 경쟁사 비교
           </p>
         </div>
       </div>

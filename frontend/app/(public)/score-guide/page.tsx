@@ -1,3 +1,4 @@
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE, aiEach } from "@/lib/featureFlags";
 import { STAGE_NAME } from "@/lib/scoreLabels";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -294,7 +295,7 @@ export default function ScoreGuidePage() {
                 {
                   item: "AI 노출 빈도",
                   weight: "30%",
-                  desc: "Gemini·ChatGPT 각 100회 (총 200회, 자동 스캔 기준)",
+                  desc: `${aiEach(100)}${GEMINI_LIVE ? " (총 200회, 자동 스캔 기준)" : " (자동 스캔 기준)"}`,
                 },
                 {
                   item: "웹사이트 정보 등록",

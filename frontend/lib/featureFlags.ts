@@ -19,3 +19,7 @@ const G = GEMINI_MEASUREMENT_LIVE;
 export const AI_NAMES = G ? "ChatGPT·Gemini" : "ChatGPT";
 /** 측정 서비스 수(네이버·ChatGPT·구글 + Gemini) */
 export const AI_COUNT_LABEL = G ? "4곳" : "3곳";
+/** 측정 서비스 수 숫자(네이버·ChatGPT·구글 + Gemini) */
+export const AI_COUNT_N = G ? 4 : 3;
+/** "ChatGPT·Gemini 각 100회" 또는 "ChatGPT 100회" */
+export const aiEach = (n: number, unit = "회") => (G ? `ChatGPT·Gemini 각 ${n}${unit}` : `ChatGPT ${n}${unit}`);

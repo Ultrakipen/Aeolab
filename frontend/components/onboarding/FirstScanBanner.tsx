@@ -1,5 +1,6 @@
 "use client";
 
+import { AI_COUNT_N } from "@/lib/featureFlags";
 import { useState, useEffect } from "react";
 import { Sparkles, X } from "lucide-react";
 
@@ -74,7 +75,7 @@ export default function FirstScanBanner({ businessId, businessName, plan, hasSca
             {businessName ? `${businessName} 등록 완료!` : "환영합니다!"} 첫 측정으로 AI 노출 진단을 시작하세요
           </h2>
           <p className="text-sm text-gray-600">
-            4개 AI 서비스 측정 · {planLabel} 무료 측정 1회
+            {AI_COUNT_N}개 AI 서비스 측정 · {planLabel} 무료 측정 1회
           </p>
         </div>
 

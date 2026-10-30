@@ -1,5 +1,6 @@
 "use client";
 
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE, AI_NAMES, aiEach } from "@/lib/featureFlags";
 import { useState } from "react";
 import Link from "next/link";
 import { SiteFooter } from "@/components/common/SiteFooter";
@@ -1001,7 +1002,7 @@ export default function DemoPage() {
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
               <p className="mb-2 text-sm font-medium text-slate-600">{isRealBiz ? "이렇게 측정했습니다" : "실제 구독 시에는 이렇게 측정합니다"}</p>
               <div className="flex flex-wrap gap-x-4 gap-y-1 mb-2">
-                <span className="text-sm text-slate-700">ChatGPT·Gemini 각 100번(총 200번) 물어봄</span>
+                <span className="text-sm text-slate-700">{aiEach(100, "번")}{GEMINI_LIVE ? "(총 200번)" : ""} 물어봄</span>
                 <span className="text-sm text-slate-700">네이버 AI 브리핑 직접 확인</span>
                 <span className="text-sm text-slate-700">블로그 후기 {m.blogMentions}건 발견</span>
                 <span className="text-sm text-slate-700">스마트플레이스 자동 점검</span>
@@ -1230,7 +1231,7 @@ export default function DemoPage() {
                           AI가 {m.businessName}를 추천하지 않았습니다
                         </p>
                         <p className="text-sm md:text-base text-gray-700 leading-relaxed">
-                          &ldquo;{m.query}&rdquo;으로 ChatGPT·Gemini에 각 100번 물어본 결과,
+                          &ldquo;{m.query}&rdquo;으로 {AI_NAMES}에 {GEMINI_LIVE ? "각 " : ""}100번 물어본 결과,
                           <strong className="text-red-700"> {m.geminiRate === 0 ? "이번 측정에서 AI에 미노출" : m.geminiRate < 10 ? "AI에 가끔 노출" : "AI에 일부 노출"}</strong>입니다.
                           소개글·소식에 잘 정리된 정보가 없어 AI가 참고할 텍스트를 찾기 어렵습니다.
                         </p>
@@ -1243,7 +1244,7 @@ export default function DemoPage() {
                         </p>
                       </div>
                       <p className="text-sm text-gray-600 mt-2 leading-relaxed">
-                        이 데모는 <span className="font-medium">자동 측정 기준 (Gemini·ChatGPT 각 100회)</span>으로 측정한 샘플입니다.
+                        이 데모는 <span className="font-medium">자동 측정 기준 ({aiEach(100)})</span>으로 측정한 샘플입니다.
                         무료 체험은 가게 이름을 알려주지 않고 ChatGPT에 50번 물어보는 방식이며, 구독 후 정밀 측정이 진행됩니다.
                       </p>
                     </>
@@ -1355,7 +1356,7 @@ export default function DemoPage() {
                   <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                     <p className="text-sm font-bold text-blue-700 mb-2">구독 시작 후 (Basic 기준)</p>
                     <ul className="space-y-1.5 text-sm text-blue-700">
-                      <li>· 주 2회 자동 측정 — Gemini·ChatGPT 각 100회 + 네이버 AI 브리핑</li>
+                      <li>· 주 2회 자동 측정 — {aiEach(100)} + 네이버 AI 브리핑</li>
                       <li>· 수동 측정 하루 2회 (원할 때 직접 실행)</li>
                       <li>· 경쟁사 3곳 추적 + 6개 차원 갭 분석</li>
                       <li>· 업종 시장 순위·분포 확인</li>
@@ -1410,7 +1411,7 @@ export default function DemoPage() {
               {[
                 { step: "1", label: "1분 회원가입",               desc: "이메일 인증만으로 즉시 시작" },
                 { step: "2", label: "가게 등록",                   desc: "방금 입력한 정보 그대로 사용" },
-                { step: "3", label: "Basic 구독 시작",              desc: "네이버·Google AI + Gemini·ChatGPT 각 100회 (총 200회) 자동 측정" },
+                { step: "3", label: "Basic 구독 시작",              desc: `네이버·Google AI + ${aiEach(100)}${GEMINI_LIVE ? " (총 200회)" : ""} 자동 측정` },
                 { step: "4", label: "경쟁사 데이터 자동 수집",     desc: "경쟁사 정보를 약 2주 간격으로 자동 수집합니다" },
                 { step: "5", label: "AI 맞춤 가이드",       desc: "경쟁사 격차 기반 우선순위 실행 가이드" },
                 { step: "6", label: "7일 뒤 자동 재측정",         desc: "행동한 날짜로부터 7일 뒤 다시 측정해 비교합니다" },

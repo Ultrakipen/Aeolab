@@ -1,5 +1,6 @@
 "use client";
 
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE, aiEach } from "@/lib/featureFlags";
 import { Check, X, Search } from "lucide-react";
 
 /**
@@ -197,7 +198,7 @@ export default function FactEvidenceSection({
               </>
             ) : null}
             <p className="text-sm text-gray-600 italic mt-2">
-              정식 구독은 Gemini·ChatGPT 각 50회 (총 100회) 반복 측정 + 매주 추적 + 변화 알림
+              정식 구독은 {aiEach(100)}{GEMINI_LIVE ? " (총 200회)" : ""} 반복 측정 + 매주 추적 + 변화 알림
             </p>
             <p className="text-sm text-gray-600 leading-relaxed mt-1">
               ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
@@ -271,7 +272,7 @@ export default function FactEvidenceSection({
                 </div>
               ))}
             <p className="text-sm text-gray-600 italic mt-2">
-              정식 구독은 Gemini·ChatGPT 각 50회 (총 100회) + 매일 변화 추적
+              정식 구독은 {aiEach(100)}{GEMINI_LIVE ? " (총 200회)" : ""} + 매일 변화 추적
             </p>
           </div>
         )}
