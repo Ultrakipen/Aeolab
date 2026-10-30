@@ -957,6 +957,10 @@ export interface BasicTrialStatus {
   used_at: string | null;
   can_use: boolean;
   has_active_subscription: boolean;
+  // 백그라운드 실행 상태(측정은 요청 안에서 기다리지 않고 서버에서 진행) — 진행 중이 아니면 null
+  run?: { status: "running" | "done" | "error"; scan_id?: string | null; elapsed_sec: number; error?: string | null } | null;
+  // 서버가 측정 도중 재시작돼 체험을 되돌렸는가(다시 시도할 수 있다)
+  interrupted?: boolean;
 }
 
 export async function getBasicTrialStatus(token: string): Promise<BasicTrialStatus> {
@@ -968,8 +972,8 @@ export async function getBasicTrialStatus(token: string): Promise<BasicTrialStat
 export async function runBasicTrial(
   token: string,
   business_id: string,
-): Promise<{ scan_id: string; business_id: string; message: string }> {
-  return apiCall<{ scan_id: string; business_id: string; message: string }>(
+): Promise<{ scan_id: string; business_id: string; message: string; status?: string }> {
+  return apiCall<{ scan_id: string; business_id: string; message: string; status?: string }>(
     `${BACKEND_URL}/api/scan/basic-trial`,
     {
       method: "POST",

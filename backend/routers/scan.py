@@ -285,6 +285,13 @@ _stream_tokens: dict[str, dict] = {}
 # ── 진행 중 스캔 추적 (중복 실행 방지, 실운영은 Redis 권장) ────────────────
 _active_scans: set[str] = set()
 
+# 가입 후 1회 무료 측정(basic-trial)의 실행 상태 — 요청 안에서 끝까지 기다리지 않고(nginx 120초 한도·504 방지, 탭을 닫아도 계속) 백그라운드로 돌린다.
+# 프로세스 메모리(워커 1개)라 서버가 재시작되면 사라지며, 상태 조회가 "중단"을 감지해 체험을 복구한다(get_basic_trial_status).
+_basic_trial_runs: dict[str, dict] = {}
+_BASIC_TRIAL_RUN_TTL_SEC = 600          # 끝난 실행 정보를 보관하는 시간
+_BASIC_TRIAL_INTERRUPT_WINDOW_SEC = 900  # 이 시간 안에 시작했는데 실행 정보도 결과도 없으면 중단으로 본다
+_bg_tasks: set = set()
+
 
 def cleanup_expired_stream_tokens() -> int:
     """만료된 SSE 토큰 정리. 삭제된 수 반환 (스케줄러에서 주기 호출)"""
@@ -1585,7 +1592,7 @@ async def get_basic_trial_status(user=Depends(get_current_user)):
     prof, sub = await asyncio.gather(
         execute(
             supabase.table("profiles")
-            .select("basic_trial_used, basic_trial_used_at")
+            .select("basic_trial_used, basic_trial_used_at, basic_trial_business_id")
             .eq("user_id", user_id)
             .maybe_single()
         ),
@@ -1602,17 +1609,50 @@ async def get_basic_trial_status(user=Depends(get_current_user)):
     used_at = prof_data.get("basic_trial_used_at")
     has_active_subscription = bool(sub and sub.data)
 
+    # 백그라운드 실행 상태(진행 중·완료·오류) — 끝난 지 오래된 정보는 정리한다
+    import time as _time
+    _now = _time.time()
+    for _uid in [k for k, v in _basic_trial_runs.items() if v.get("status") != "running" and _now - v.get("finished_at", _now) > _BASIC_TRIAL_RUN_TTL_SEC]:
+        _basic_trial_runs.pop(_uid, None)
+    _run = _basic_trial_runs.get(user_id)
+    run_info = ({"status": _run["status"], "scan_id": _run.get("scan_id"), "elapsed_sec": int(_now - _run["started_at"]), "error": _run.get("error")}
+                if _run else None)
+
+    # 중단 감지: 체험을 시작했다고 기록돼 있는데 실행 정보도 결과도 없으면(서버가 측정 도중 재시작) 체험을 되돌려 다시 시도할 수 있게 한다
+    interrupted = False
+    if used and not _run and used_at and not has_active_subscription:
+        try:
+            from datetime import datetime as _dt, timezone as _tz
+            _started = _dt.fromisoformat(str(used_at).replace("Z", "+00:00"))
+            if _started.tzinfo is None:
+                _started = _started.replace(tzinfo=_tz.utc)
+            _age = (_dt.now(_tz.utc) - _started).total_seconds()
+            _biz = prof_data.get("basic_trial_business_id")
+            if _biz and 0 <= _age <= _BASIC_TRIAL_INTERRUPT_WINDOW_SEC:
+                _has_scan = await execute(
+                    supabase.table("scan_results").select("id").eq("business_id", _biz).gte("scanned_at", _started.isoformat()).limit(1)
+                )
+                if not (_has_scan and _has_scan.data):
+                    await execute(supabase.table("profiles").update({
+                        "basic_trial_used": False, "basic_trial_used_at": None, "basic_trial_business_id": None,
+                    }).eq("user_id", user_id))
+                    interrupted, used = True, False
+        except Exception as _ie:
+            _logger.warning(f"basic_trial interrupted check failed user={user_id}: {_ie}")
+
     return {
         "used": used,
-        "used_at": used_at,
+        "used_at": None if interrupted else used_at,
         "can_use": (not used) and (not has_active_subscription),
         "has_active_subscription": has_active_subscription,
+        "run": run_info,
+        "interrupted": interrupted,
     }
 
 
 @router.post("/basic-trial")
 async def run_basic_trial(req: BasicTrialRequest, user=Depends(get_current_user)):
-    """Basic 1회 무료 Full Scan 체험 (동기, 약 1분 소요).
+    """Basic 1회 무료 Full Scan 체험 (백그라운드 실행 — 즉시 응답하고 진행은 /basic-trial/status로 조회, 보통 1~2분).
 
     - 활성 구독자 차단 (정식 API 경로 사용 유도)
     - profiles.basic_trial_used=True 이면 차단
@@ -1701,8 +1741,30 @@ async def run_basic_trial(req: BasicTrialRequest, user=Depends(get_current_user)
         business_id=biz_id,
         keywords=biz.get("keywords") or [],
     )
+    import time as _time
+    _basic_trial_runs[user_id] = {"status": "running", "scan_id": scan_id, "business_id": biz_id, "started_at": _time.time()}
+    _task = asyncio.create_task(_run_basic_trial_worker(user_id, biz_id, scan_id, req_scan, scan_key))
+    _bg_tasks.add(_task)
+    _task.add_done_callback(_bg_tasks.discard)   # 태스크 참조를 잡아 두지 않으면 실행 도중 회수될 수 있다
+
+    return {
+        "scan_id": scan_id,
+        "business_id": biz_id,
+        "status": "running",
+        "message": "Basic 무료 체험 측정을 시작했습니다. 보통 1~2분 걸리며, 창을 닫아도 측정은 계속됩니다.",
+    }
+
+
+async def _run_basic_trial_worker(user_id: str, biz_id: str, scan_id: str, req_scan, scan_key: str) -> None:
+    """체험 측정 본체(백그라운드). 성공·실패 상태를 _basic_trial_runs에 남기고, 실패하면 체험 사용 기록을 되돌려 재시도할 수 있게 한다."""
+    import time as _time
+    from services.playwright_slot import mark_interactive
+    mark_interactive()   # 가입자가 화면에서 기다리는 첫 측정 — Playwright 대기에 상한(15초)을 두고 정기 배치는 양보한다
+    supabase = get_client()
+    run = _basic_trial_runs.setdefault(user_id, {"started_at": _time.time(), "scan_id": scan_id})
     try:
         await _run_full_scan(scan_id, req_scan)
+        run.update(status="done", finished_at=_time.time())
     except Exception as e:
         # 실패 시 체험 상태 롤백 (사용자가 재시도 가능하도록)
         _logger.error(f"basic_trial scan failed user={user_id} biz={biz_id}: {e}")
@@ -1714,15 +1776,9 @@ async def run_basic_trial(req: BasicTrialRequest, user=Depends(get_current_user)
             }).eq("user_id", user_id))
         except Exception as rollback_e:
             _logger.warning(f"basic_trial rollback failed: {rollback_e}")
-        raise HTTPException(status_code=500, detail="체험 측정 중 오류가 발생했습니다. 잠시 후 다시 시도하세요.")
+        run.update(status="error", finished_at=_time.time(), error="체험 측정 중 오류가 발생했습니다. 체험 횟수는 차감되지 않았으니 잠시 후 다시 시도해 주세요.")
     finally:
         _active_scans.discard(scan_key)
-
-    return {
-        "scan_id": scan_id,
-        "business_id": biz_id,
-        "message": "Basic 무료 체험 측정이 완료되었습니다. 대시보드에서 결과를 확인하세요.",
-    }
 
 
 @router.post("/full")

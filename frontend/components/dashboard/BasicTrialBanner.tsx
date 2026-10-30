@@ -1,7 +1,7 @@
 "use client";
 
 import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE, AI_COUNT_N } from "@/lib/featureFlags";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Gift, Sparkles, Loader2, Lock, PartyPopper } from "lucide-react";
 import { getBasicTrialStatus, runBasicTrial, ApiError, type BasicTrialStatus } from "@/lib/api";
 import { FIRST_MONTH_DISCOUNT_PRICES, PLAN_PRICES } from "@/lib/plans";
@@ -18,13 +18,62 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
   const [confirming, setConfirming] = useState(false);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const alive = useRef(true);
+
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+
+  // 서버가 백그라운드로 돌리는 측정이 끝날 때까지 3초마다 상태를 확인한다(최대 6분). 창을 닫아도 측정은 계속되고, 다시 열면 이어서 확인한다.
+  const waitForTrial = useCallback(async () => {
+    const startedAt = Date.now();
+    while (alive.current && Date.now() - startedAt < 6 * 60_000) {
+      await new Promise((r) => setTimeout(r, 3000));
+      if (!alive.current) return;
+      let st: BasicTrialStatus | null = null;
+      try {
+        st = await getBasicTrialStatus(authToken);
+      } catch {
+        continue; // 일시적인 조회 실패는 다음 주기에 다시 확인
+      }
+      if (st.run?.status === "error") {
+        setError(st.run.error || "체험 측정 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        setStatus(st);
+        setRunning(false);
+        return;
+      }
+      if (st.interrupted) {
+        setError("측정이 중간에 중단되어 체험 횟수를 되돌렸습니다. 다시 시도해 주세요.");
+        setStatus(st);
+        setRunning(false);
+        return;
+      }
+      if (st.run?.status === "done" || (st.used && !st.run)) {
+        window.location.reload();
+        return;
+      }
+    }
+    if (alive.current) {
+      setError("측정이 예상보다 오래 걸리고 있어요. 잠시 후 페이지를 새로고침하면 결과가 표시됩니다.");
+      setRunning(false);
+    }
+  }, [authToken]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const s = await getBasicTrialStatus(authToken);
-        if (!cancelled) setStatus(s);
+        if (!cancelled) {
+          setStatus(s);
+          if (s.run?.status === "running") {
+            setRunning(true);   // 새로고침·재접속해도 진행 중인 측정을 이어서 확인
+            void waitForTrial();
+          }
+        }
       } catch {
         if (!cancelled) setStatus(null);
       } finally {
@@ -34,15 +83,14 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
     return () => {
       cancelled = true;
     };
-  }, [authToken]);
+  }, [authToken, waitForTrial]);
 
   const handleStart = async () => {
     setError(null);
     setRunning(true);
     try {
-      await runBasicTrial(authToken, businessId);
-      // 성공 시 새로고침하여 결과 반영
-      window.location.reload();
+      await runBasicTrial(authToken, businessId);   // 접수만 하고 즉시 돌아온다 — 측정은 서버에서 진행
+      await waitForTrial();                          // 끝나면 새로고침해 결과를 반영
     } catch (e) {
       if (e instanceof ApiError) {
         const detail = e.detail as { code?: string; message?: string } | undefined;
@@ -81,7 +129,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
               ChatGPT · 네이버 AI 브리핑 · 구글 AI{GEMINI_LIVE ? " · Gemini" : ""} 동시 분석 중
             </p>
             <p className="text-sm text-emerald-700 mt-2">
-              이 페이지를 닫지 말고 잠시만 기다려 주세요.
+              보통 1~2분 걸려요. 창을 닫아도 측정은 계속되고, 다시 열면 결과가 표시됩니다.
             </p>
           </div>
         </div>
