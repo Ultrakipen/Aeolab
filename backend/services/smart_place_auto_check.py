@@ -13,6 +13,7 @@
 Playwright 인스턴스는 RAM 보호용 Semaphore(1)로 직렬화. 실패 시 절대 raise 하지 않고
 모든 항목 False + error 코드 반환 (트라이얼 흐름 보존).
 """
+from services.playwright_slot import playwright_slot
 import asyncio
 import logging
 import random
@@ -123,7 +124,7 @@ async def auto_check_smart_place(naver_place_id: str) -> dict:
         return _failed_result(_rwhy, place_id)
 
     try:
-        async with _get_playwright_sem():
+        async with playwright_slot(_get_playwright_sem()):
             await place_pace()
             return await asyncio.wait_for(
                 _run_check(place_id),

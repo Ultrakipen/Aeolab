@@ -1233,6 +1233,8 @@ async def sync_competitor_place_endpoint(competitor_id: str, user=Depends(get_cu
     """경쟁사 네이버 플레이스 데이터 수동 동기화.
     naver_place_id가 없으면 이름+주소로 자동 조회 후 저장, 찾지 못하면 422 반환.
     """
+    from services.playwright_slot import mark_interactive
+    mark_interactive()   # 사용자가 새로고침을 누르고 기다리는 요청 — Playwright 대기에 상한을 둔다(정기 잡 뒤 무한 대기 방지)
     return await _sync_one_competitor(competitor_id, user)
 
 

@@ -3,6 +3,7 @@
 네이버 플레이스 업주 페이지에서 조회수·저장수·방문 리뷰 수를 파싱
 소상공인 AI 검색 최적화 간접 효과 증명용
 """
+from services.playwright_slot import playwright_slot
 import asyncio
 import logging
 import re
@@ -63,7 +64,7 @@ class NaverPlaceStatsService:
         if not _rok:
             return {"error": _rwhy, "naver_place_id": naver_place_id}
         try:
-            async with _get_playwright_sem():
+            async with playwright_slot(_get_playwright_sem()):
                 await place_pace()
                 return await asyncio.wait_for(self._run(naver_place_id), timeout=30)
         except asyncio.TimeoutError:
@@ -265,7 +266,7 @@ async def check_smart_place_completeness(naver_place_url: str) -> dict:
         return {**default, "error": _rwhy}
 
     try:
-        async with _get_playwright_sem():
+        async with playwright_slot(_get_playwright_sem()):
             await place_pace()
             return await asyncio.wait_for(_check_completeness(naver_place_url), timeout=43)
     except asyncio.TimeoutError:

@@ -3,6 +3,7 @@
 naver_place_stats.py 패턴 참고 — 경쟁사용 추가 필드(has_faq, has_recent_post, has_menu) 포함
 Playwright 인스턴스는 순차 실행 (asyncio.Semaphore(1)) — RAM 보호
 """
+from services.playwright_slot import playwright_slot
 import asyncio
 import logging
 import os
@@ -250,7 +251,7 @@ async def fetch_competitor_place_data(naver_place_id: str, max_age_sec: Optional
         return {**default, "error": _rwhy}
 
     try:
-        async with _get_playwright_sem():
+        async with playwright_slot(_get_playwright_sem()):
             await place_pace()
             _res = await asyncio.wait_for(_run_place_crawl(naver_place_id), timeout=90)
             if isinstance(_res, dict) and not _res.get("error"):
@@ -652,7 +653,7 @@ async def fetch_competitor_faq_items(naver_place_id: str) -> dict:
         return {**default, "error": _rwhy}
 
     try:
-        async with _get_playwright_sem():
+        async with playwright_slot(_get_playwright_sem()):
             await place_pace()
             return await asyncio.wait_for(_run_faq_crawl(naver_place_id), timeout=25)
     except asyncio.TimeoutError:

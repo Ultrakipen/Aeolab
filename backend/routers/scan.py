@@ -1621,6 +1621,8 @@ async def run_basic_trial(req: BasicTrialRequest, user=Depends(get_current_user)
     - 내부적으로 _run_full_scan() 재사용 → DB 저장·가이드 자동생성까지 완료
     - rate_limit / manual_scan_daily 체크 우회 (체험은 별도 카운터)
     """
+    from services.playwright_slot import mark_interactive
+    mark_interactive()   # 가입자가 한 요청 안에서 기다리는 첫 측정 — Playwright 대기에 상한(15초)을 두고 정기 배치는 양보한다
     supabase = get_client()
     user_id = str(user["id"])
     biz_id = req.business_id
