@@ -3619,8 +3619,15 @@ async def weekly_my_place_stats_job():
         await send_slack_alert("weekly_my_place_stats_job 실패", str(e), level="error")
 
 
+_ACTION_RESCAN_SAMPLES = 10   # 무료 등급 일일 호출 한도(Gemini)를 지키기 위한 작은 표본 — 행동 1건당 호출 10회
+
+
 async def check_action_rescans():
-    """행동 완료 7일 후 Gemini 단일 재스캔 → Before/After 결과 저장 (매일 03:00)"""
+    """행동 완료 7일 후 Gemini 비유도 재측정 → Before/After 결과 저장 (매일 03:00)
+
+    가게 이름을 질문에 넣는 유도형 single_check는 '추천됨'이 부풀 수 있어(2026-10-30) 본 스캔과 같은 비유도 `sample_recommend`
+    (가게 이름 없이 추천을 나열시켜 내 가게가 나오는지 대조)로 바꿨다. before 값도 본 스캔(비유도)에서 오므로 같은 기준이다.
+    """
     from db.supabase_client import get_client
     from services.ai_scanner.gemini_scanner import GeminiScanner
     from datetime import datetime, timezone
@@ -3666,13 +3673,13 @@ async def check_action_rescans():
                 region = biz.data.get("region", "")
                 query = f"{region} {keyword}".strip() if region else keyword
 
-                result = await gemini.single_check(query, biz_name)
-                if not result.get("_measured", True):
-                    # API 오류·타임아웃 — "노출 안 됨"으로 확정하지 않고 rescan_done을 세팅하지 않아
+                result = await gemini.sample_recommend(f"{query} 추천", biz_name, n=_ACTION_RESCAN_SAMPLES)
+                if not result.get("sample_size"):
+                    # API 오류·타임아웃·대기열 초과 — "노출 안 됨"으로 확정하지 않고 rescan_done을 세팅하지 않아
                     # 다음 날 배치에서 자동 재시도되도록 둔다 (측정 실패 ≠ 실측된 미노출)
                     logger.warning(
                         f"[action_rescan] Gemini 측정 실패, 다음 배치에 재시도 — "
-                        f"id={action_id}, error={result.get('_error')}"
+                        f"id={action_id}, error={result.get('error')}"
                     )
                     continue
                 after_mentioned = bool(result.get("exposure_freq", 0) > 0)
@@ -3700,7 +3707,8 @@ async def check_action_rescans():
                     summary = "AI 브리핑 노출이 유지되고 있습니다"
                 else:
                     summary = (
-                        "아직 AI 브리핑에 반영되지 않았습니다. 조금 더 기다려주세요"
+                        f"이번 확인({result.get('sample_size')}회 표본)에서는 나타나지 않았습니다. "
+                        "AI 검색 반영에는 시간이 걸리니 조금 더 기다려주세요"
                     )
 
                 await _db(
