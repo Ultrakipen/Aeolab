@@ -9,7 +9,7 @@ from db.supabase_client import execute as _db
 from services.ai_scanner import naver_batch_job as _naver_batch_job  # 정기 잡은 네이버 상한의 배치 비율까지만 사용(2026-10-27)
 from services.keyword_taxonomy import build_ai_scan_queries as _build_ai_scan_queries
 from services.ai_usage_logger import log_ai_usage
-from services.competitor_ai_exposure import compact_for_storage
+from services.competitor_ai_exposure import compact_for_storage, basis_changed
 
 # 카카오 알림 키 설정 여부 — 미설정 시 알림 발송 시도 자체를 스킵해 에러 로그 누적 방지
 _KAKAO_CONFIGURED = bool(os.getenv("KAKAO_APP_KEY") and os.getenv("KAKAO_SENDER_KEY"))
@@ -1331,6 +1331,8 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
             prev_scores = latest_scan[1].get("competitor_scores") or {}
             for comp_id, curr_data in curr_scores.items():
                 prev_data = prev_scores.get(comp_id, {})
+                if basis_changed(curr_data, prev_data):
+                    continue   # 측정 방식이 바뀐 구간의 점수 차이는 경쟁사의 실제 변화가 아니다
                 # 키가 있어도 값이 None일 수 있다(.get 기본값은 키 부재에만 적용) — `or 0`
                 prev_s = prev_data.get("score") or 0
                 curr_s = curr_data.get("score") or 0
@@ -4351,6 +4353,8 @@ async def _detect_competitor_score_spike():
                     last_data = last_scores.get(comp_id, {})
                     if not last_data:
                         continue
+                    if basis_changed(this_data, last_data):
+                        continue   # 측정 방식이 바뀐 구간의 점수 차이는 급등이 아니다
                     this_score = float(this_data.get("score") or 0)
                     last_score = float(last_data.get("score") or 0)
                     comp_name = this_data.get("name") or comp_id

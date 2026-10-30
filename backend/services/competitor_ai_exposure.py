@@ -77,6 +77,14 @@ def compact_for_storage(res: dict | None, keep: int = STORED_PLACE_COUNTS) -> di
     return {**res, "place_counts": pcs[:keep], "place_counts_truncated": True}
 
 
+def basis_changed(curr: dict | None, prev: dict | None) -> bool:
+    """두 경쟁사 점수 항목의 AI 측정 방식이 다른가(과거: 이름을 직접 물은 단일 측정 / 새 방식: 표본 목록 대조).
+
+    방식이 다르면 점수 차이는 경쟁사의 실제 변화가 아니라 측정 방식 변경의 결과라 변화·급등 알림에서 제외한다.
+    """
+    return bool((curr or {}).get("ai_basis")) != bool((prev or {}).get("ai_basis"))
+
+
 def score_fields(exp: dict) -> dict:
     """competitor_scores 항목에 더하는 표시용 필드(과거 항목에는 없다 — 화면이 키 유무로 새 방식을 구분한다)."""
     return {

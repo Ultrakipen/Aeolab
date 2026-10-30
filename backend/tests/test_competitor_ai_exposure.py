@@ -240,3 +240,29 @@ def test_every_persistence_site_goes_through_compaction():
             found += 1
             assert "compact_for_storage(" in val, (rel, val[:80])
     assert found >= 7   # 지점 수가 줄면(패턴이 어긋나면) 검사가 비어 통과하는 것을 막는다
+
+
+# ── 측정 방식 전환 구간의 알림 억제 ──
+def test_basis_changed_detects_legacy_vs_new_and_ignores_same_basis():
+    legacy = {"score": 47.0, "mentioned": True}
+    new = {"score": 12.0, "mentioned": False, "ai_basis": "recommend_v1"}
+    assert cae.basis_changed(new, legacy) is True and cae.basis_changed(legacy, new) is True
+    assert cae.basis_changed(legacy, {"score": 40.0}) is False
+    assert cae.basis_changed(new, {**new, "score": 30.0}) is False
+    assert cae.basis_changed(None, None) is False
+
+
+def test_competitor_change_alerts_skip_basis_transition():
+    import inspect
+    from scheduler import jobs
+    src = inspect.getsource(jobs)
+    assert src.count("basis_changed(") >= 2   # 점수 변화 알림(≥5)과 급등 알림(≥15) 두 곳 모두
+
+
+def test_transition_scan_would_have_triggered_alert_without_guard():
+    """방식만 바뀌어도 점수가 5점 넘게 움직인다는 것을 실제 공식으로 보인다(가드가 필요한 이유)."""
+    comp = {"detail_synced_at": "2026-10-29", "naver_review_count": 10, "naver_avg_rating": 4.5,
+            "has_intro": True, "has_menu": True, "has_recent_post": True, "blog_mention_count": 4}
+    legacy_score, _ = compute_competitor_score(comp, True, 1, "x" * 120)   # 이름을 직접 물었을 때 "언급됨"(발췌문 길이 100자 초과)
+    new_score, _ = compute_competitor_score(comp, False, 0.0, "")          # 같은 경쟁사가 표본 목록에는 없음
+    assert abs(legacy_score - new_score) >= 5
