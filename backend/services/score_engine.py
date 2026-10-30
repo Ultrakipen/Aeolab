@@ -860,6 +860,17 @@ def _one_ai_rate(r: dict) -> float:
     return 1.0 if r.get("mentioned") else 0.0
 
 
+def _is_multi_ai_unmeasured(scan_result: dict) -> bool:
+    """돌린 AI(Gemini·ChatGPT) 측정이 전부 실패했는가 — 이 경우 노출 점수는 "낮은 값"이 아니라 "확인 전"이다.
+
+    한쪽만 실패하면 `calc_multi_ai_exposure`가 다른 쪽만으로 평가한다. 둘 다 실패(무료 한도 소진 + 결제 크레딧 부족 등)하면 그 함수는
+    기존대로 0점을 돌려주는데, 이 0점을 가중치 30%로 평균에 넣으면 측정 못 한 것이 점수 하락처럼 보여 인기 가게가 저평가된다(2026-10-31).
+    안 돌린 쪽(빈 dict)은 실패로 보지 않는다 — 돌린 쪽이 하나도 없으면(구형 데이터) 기존 동작을 유지한다.
+    """
+    ran = [r for r in (scan_result.get("gemini") or {}, scan_result.get("chatgpt") or {}) if r]
+    return bool(ran) and all(_ai_measurement_failed(r) for r in ran)
+
+
 def calc_multi_ai_exposure(scan_result: dict) -> float:
     """멀티 AI 노출 점수 (0~100).
 
@@ -995,8 +1006,9 @@ def calc_track2_score(scan_result: dict, biz: dict, naver_data: dict) -> float:
     google_unmeasured = _is_google_unmeasured(scan_result)
     blog_unmeasured = _is_blog_unmeasured(naver_data)
     google = 0.0 if google_unmeasured else calc_google_presence(scan_result)
+    ai_unmeasured = _is_multi_ai_unmeasured(scan_result)   #  - Gemini·ChatGPT 모두 측정 실패 → multi_ai_exposure 제외
     parts = [
-        (ai_exp,   GLOBAL_TRACK_WEIGHTS["multi_ai_exposure"], False),
+        (ai_exp,   GLOBAL_TRACK_WEIGHTS["multi_ai_exposure"], ai_unmeasured),
         (schema,   GLOBAL_TRACK_WEIGHTS["schema_seo"],        False),
         (mentions, GLOBAL_TRACK_WEIGHTS["online_mentions"],   blog_unmeasured),
         (google,   GLOBAL_TRACK_WEIGHTS["google_presence"],   google_unmeasured),
@@ -1103,6 +1115,7 @@ def calculate_score(
         "online_mentions_t2":       round(calc_online_mentions(naver_data), 1),
         "google_presence":          round(calc_google_presence(scan_result), 1),
         "google_captcha_blocked":   _is_google_captcha(scan_result),
+        "multi_ai_unmeasured":      _is_multi_ai_unmeasured(scan_result),
         # 항목별 감점 근거 (score_breakdown JSONB 저장, TrendLine 이벤트용)
         "track1_detail":            track1_detail,
         # 하위호환 필드
