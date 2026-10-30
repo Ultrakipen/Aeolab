@@ -11,6 +11,28 @@ from services.keyword_taxonomy import build_ai_scan_queries as _build_ai_scan_qu
 from services.ai_usage_logger import log_ai_usage
 from services.competitor_ai_exposure import compact_for_storage, basis_changed
 from services.briefing_smoothing import attach_prior_naver
+from services.db_paging import fetch_all_rows as _fetch_all_rows, fetch_all_in_chunks as _fetch_all_in_chunks
+
+
+class _AllRows:
+    """`_db()` 결과처럼 `.data`로 읽는 전체 행 묶음."""
+
+    def __init__(self, data):
+        self.data = data
+
+
+async def _db_all(build_query) -> _AllRows:
+    """`build_query()`(정렬은 호출자가 붙인다)를 1,000행씩 모두 읽는다 — 서버는 `.limit()`과 무관하게 1,000행에서 자르므로(docs/supabase_row_cap_audit_2026_10_30.md)
+    구독자·사업장·경쟁사처럼 사용자 수에 비례해 늘어나는 조회는 `_db()` 대신 이것을 쓴다."""
+    rows, _ = await _fetch_all_rows(build_query, max_rows=100_000)
+    return _AllRows(rows)
+
+
+async def _db_all_in(build_query, ids) -> _AllRows:
+    """`build_query(ids_조각)`을 ids 150개씩 나눠(URL 한도: 실측 UUID 600~700개) 모두 읽는다. ids가 비면 조회하지 않는다."""
+    rows, _ = await _fetch_all_in_chunks(build_query, list(ids), max_rows=100_000)
+    return _AllRows(rows)
+
 
 # 카카오 알림 키 설정 여부 — 미설정 시 알림 발송 시도 자체를 스킵해 에러 로그 누적 방지
 _KAKAO_CONFIGURED = bool(os.getenv("KAKAO_APP_KEY") and os.getenv("KAKAO_SENDER_KEY"))
@@ -490,21 +512,25 @@ async def daily_scan_all():
         # 자동 스캔 대상에 포함 — active만 필터하면 유예 중인 유료 구독자가 스캔에서 부당 제외됨
         # 해지했어도 만료일(end_at)까지는 서비스를 유지한다는 안내(설정 화면)·get_user_plan과 같은 기준으로 대상을 정한다(2026-10-29).
         from services.scan_scheduling import entitled_sub_rows, exclude_admin_businesses
-        _subs_res = await _db(
-            supabase.table("subscriptions")
+        from services.db_paging import fetch_all_rows as _far, fetch_all_in_chunks as _fac
+        # 서버는 .limit()과 무관하게 1,000행까지만 돌려주므로(docs/supabase_row_cap_audit_2026_10_30.md) 페이지로 나눠 읽는다. in_() 목록은 URL 한도(실측 UUID 600~700개)를 넘지 않게 조각으로 나눈다 — 구독자가 늘어도 야간 스캔 대상이 조용히 빠지거나 잡이 중단되지 않게.
+        _subs_rows, _ = await _far(
+            lambda: supabase.table("subscriptions")
             .select("user_id, plan, status, end_at")
             .in_("status", ["active", "grace_period", "cancelled"])
             .in_("plan", ["basic", "pro", "biz", "startup"])
+            .order("id"),
+            max_rows=100_000,
         )
-        _active_subs = {s["user_id"]: s["plan"] for s in entitled_sub_rows(_subs_res.data or [])}
-        _biz_res = await _db(
-            supabase.table("businesses")
-            .select("*")
-            .in_("user_id", list(_active_subs.keys()) or ["__none__"])
+        _active_subs = {s["user_id"]: s["plan"] for s in entitled_sub_rows(_subs_rows)}
+        _biz_rows, _ = await _fac(
+            lambda part: supabase.table("businesses").select("*").in_("user_id", part).order("id"),
+            list(_active_subs.keys()),
+            max_rows=100_000,
         )
         # 각 사업장에 플랜 정보 병합
         businesses = []
-        for _b in (_biz_res.data or []):
+        for _b in _biz_rows:
             _b["subscriptions"] = {"plan": _active_subs.get(_b["user_id"], "basic"), "status": "active"}
             businesses.append(_b)
 
@@ -1530,11 +1556,11 @@ async def weekly_kakao_notify():
         supabase = get_client()
         notifier = KakaoNotifier()
 
-        _u_res = await _db(
-            supabase.table("subscriptions")
+        _u_res = await _db_all(
+            lambda: supabase.table("subscriptions")
             .select("user_id, plan")
             .eq("status", "active")
-            .in_("plan", ["basic"])
+            .in_("plan", ["basic"]).order("id")
         )
         subs_data = _u_res.data or []
 
@@ -1571,10 +1597,10 @@ async def weekly_kakao_notify():
         from db.supabase_client import get_client as _get_client_review, _db as _db_r
         from datetime import datetime, timedelta
         supabase_r = _get_client_review()
-        review_notif_result = await _db_r(
-            supabase_r.table("scan_results")
+        review_notif_result = await _db_all(
+            lambda: supabase_r.table("scan_results")
             .select("business_id, naver_result, scanned_at")
-            .gte("scanned_at", (datetime.utcnow() - timedelta(days=7)).isoformat())
+            .gte("scanned_at", (datetime.utcnow() - timedelta(days=7)).isoformat()).order("id")
         )
         for row in (review_notif_result.data or []):
             try:
@@ -1631,11 +1657,11 @@ async def daily_kakao_notify():
         supabase = get_client()
         notifier = KakaoNotifier()
 
-        _u_res2 = await _db(
-            supabase.table("subscriptions")
+        _u_res2 = await _db_all(
+            lambda: supabase.table("subscriptions")
             .select("user_id, plan")
             .eq("status", "active")
-            .in_("plan", ["pro", "biz", "startup"])
+            .in_("plan", ["pro", "biz", "startup"]).order("id")
         )
         subs_data = _u_res2.data or []
 
@@ -1859,16 +1885,17 @@ async def after_screenshot_job():
         for days in [7, 14, 30]:
             target_date = today - timedelta(days=days)
             # subscriptions!inner 조인 PGRST200 에러 → 두 번 조회
-            _as_subs = await _db(
-                supabase.table("subscriptions").select("user_id").eq("status", "active")
+            _as_subs = await _db_all(
+                lambda: supabase.table("subscriptions").select("user_id").eq("status", "active").order("id")
             )
             _as_active_uids = [s["user_id"] for s in (_as_subs.data or [])]
-            _as_biz_res = await _db(
-                supabase.table("businesses")
+            _as_biz_res = await _db_all_in(
+                lambda part: supabase.table("businesses")
                 .select("*")
-                .in_("user_id", _as_active_uids or ["__none__"])
+                .in_("user_id", part)
                 .gte("created_at", str(target_date))
-                .lt("created_at", str(target_date + timedelta(days=1)))
+                .lt("created_at", str(target_date + timedelta(days=1))).order("id"),
+                _as_active_uids,
             )
             businesses = _as_biz_res.data or []
 
@@ -2001,20 +2028,22 @@ async def monthly_market_news_job():
 
         # subscriptions↔profiles/businesses는 FK 없어 embedded join 시 PGRST200 →
         # 세 번 조회 후 user_id 기준 병합으로 교체 (2026-07-01, 기존 패턴과 동일)
-        _subs_res = await _db(
-            supabase.table("subscriptions").select("user_id").eq("status", "active")
+        _subs_res = await _db_all(
+            lambda: supabase.table("subscriptions").select("user_id").eq("status", "active").order("id")
         )
         _active_user_ids = list({s["user_id"] for s in (_subs_res.data or [])}) or ["__none__"]
 
-        _profiles_res = await _db(
-            supabase.table("profiles").select("user_id, phone").in_("user_id", _active_user_ids)
+        _profiles_res = await _db_all_in(
+            lambda part: supabase.table("profiles").select("user_id, phone").in_("user_id", part).order("user_id"),
+            _active_user_ids,
         )
         _phone_by_user = {p["user_id"]: p.get("phone") for p in (_profiles_res.data or [])}
 
-        _biz_res0 = await _db(
-            supabase.table("businesses")
+        _biz_res0 = await _db_all_in(
+            lambda part: supabase.table("businesses")
             .select("id, name, category, region, user_id")
-            .in_("user_id", _active_user_ids)
+            .in_("user_id", part).order("id"),
+            _active_user_ids,
         )
         _biz_by_user: dict = {}
         for _b in (_biz_res0.data or []):
@@ -2103,19 +2132,20 @@ async def check_competitor_overtake():
         notifier = KakaoNotifier()
 
         # 활성 구독 사업장 조회
-        _sub_res = await _db(
-            supabase.table("subscriptions")
+        _sub_res = await _db_all(
+            lambda: supabase.table("subscriptions")
             .select("user_id")
-            .eq("status", "active")
+            .eq("status", "active").order("id")
         )
         subscribed = _sub_res.data or []
         user_ids = [s["user_id"] for s in subscribed]
 
-        _biz_res2 = await _db(
-            supabase.table("businesses")
+        _biz_res2 = await _db_all_in(
+            lambda part: supabase.table("businesses")
             .select("id, name, user_id")
-            .in_("user_id", user_ids)
-            .eq("is_active", True)
+            .in_("user_id", part)
+            .eq("is_active", True).order("id"),
+            user_ids,
         )
         businesses = _biz_res2.data or []
 
@@ -2315,18 +2345,19 @@ async def detect_new_competitors():
         notifier = KakaoNotifier()
 
         # 구독 중인 사업장 조회
-        _dnc_sub_res = await _db(
-            supabase.table("subscriptions")
+        _dnc_sub_res = await _db_all(
+            lambda: supabase.table("subscriptions")
             .select("user_id")
-            .eq("status", "active")
+            .eq("status", "active").order("id")
         )
         subscribed = _dnc_sub_res.data or []
         user_ids = [s["user_id"] for s in subscribed]
-        _dnc_biz_res = await _db(
-            supabase.table("businesses")
+        _dnc_biz_res = await _db_all_in(
+            lambda part: supabase.table("businesses")
             .select("id, name, user_id, category, region")
-            .in_("user_id", user_ids)
-            .eq("is_active", True)
+            .in_("user_id", part)
+            .eq("is_active", True).order("id"),
+            user_ids,
         )
         businesses = _dnc_biz_res.data or []
 
@@ -2476,11 +2507,12 @@ async def keyword_alert_job():
             return
 
         biz_ids = list(biz_excerpts.keys())
-        _ka_biz_res = await _db(
-            supabase.table("businesses")
+        _ka_biz_res = await _db_all_in(
+            lambda part: supabase.table("businesses")
             .select("id, name, user_id, category")
-            .in_("id", biz_ids)
-            .eq("is_active", True)
+            .in_("id", part)
+            .eq("is_active", True).order("id"),
+            biz_ids,
         )
         businesses = _ka_biz_res.data or []
 
@@ -2741,22 +2773,23 @@ async def weekly_post_draft_job():
         client = _get_ai_client()
 
         # 구독 중인 사업장 조회 (basic 이상)
-        _wpd_subs_res = await _db(
-            supabase.table("subscriptions")
+        _wpd_subs_res = await _db_all(
+            lambda: supabase.table("subscriptions")
             .select("user_id")
             .eq("status", "active")
-            .in_("plan", ["basic", "startup", "pro", "biz"])
+            .in_("plan", ["basic", "startup", "pro", "biz"]).order("id")
         )
         subs = _wpd_subs_res.data or []
         user_ids = list({s["user_id"] for s in subs})
         if not user_ids:
             return
 
-        _wpd_biz_res = await _db(
-            supabase.table("businesses")
+        _wpd_biz_res = await _db_all_in(
+            lambda part: supabase.table("businesses")
             .select("id, name, category, region, user_id, keywords")
-            .in_("user_id", user_ids)
-            .eq("is_active", True)
+            .in_("user_id", part)
+            .eq("is_active", True).order("id"),
+            user_ids,
         )
         businesses = _wpd_biz_res.data or []
         MAX_CLAUDE_CALLS = int(os.getenv("MAX_CLAUDE_CALLS_PER_JOB", "50"))
@@ -2884,21 +2917,22 @@ async def monthly_growth_card_job():
         month_start = today.replace(day=1).isoformat() + "T00:00:00"
 
         # 구독 중인 사업장 전체
-        _mgc_subs_res = await _db(
-            supabase.table("subscriptions")
+        _mgc_subs_res = await _db_all(
+            lambda: supabase.table("subscriptions")
             .select("user_id")
-            .eq("status", "active")
+            .eq("status", "active").order("id")
         )
         subs = _mgc_subs_res.data or []
         user_ids = list({s["user_id"] for s in subs})
         if not user_ids:
             return
 
-        _mgc_biz_res = await _db(
-            supabase.table("businesses")
+        _mgc_biz_res = await _db_all_in(
+            lambda part: supabase.table("businesses")
             .select("id, name, user_id, category, region")
-            .in_("user_id", user_ids)
-            .eq("is_active", True)
+            .in_("user_id", part)
+            .eq("is_active", True).order("id"),
+            user_ids,
         )
         businesses = _mgc_biz_res.data or []
 
@@ -3041,10 +3075,10 @@ async def monthly_report_notify():
         return
 
     try:
-        subs = await _db(
-            supabase.table("subscriptions")
+        subs = await _db_all(
+            lambda: supabase.table("subscriptions")
             .select("user_id, plan")
-            .eq("status", "active")
+            .eq("status", "active").order("id")
         )
         if not subs.data:
             return
@@ -3225,26 +3259,33 @@ async def competitor_place_sync_job():
         supabase = get_client()
 
         # naver_place_id가 있는 경쟁사의 business_id 목록 수집 (중복 제거)
-        _cps_rows_res = await _db(
-            supabase.table("competitors")
+        from services.db_paging import fetch_all_rows as _far
+        # 서버는 .limit()과 무관하게 1,000행까지만 돌려주므로(docs/supabase_row_cap_audit_2026_10_30.md) 페이지로 나눠 읽는다 — 경쟁사는 사업장 수 × 5~10이라 사업장 100~200곳에서 1,000행을 넘는다
+        rows, _ = await _far(
+            lambda: supabase.table("competitors")
             .select("business_id, naver_place_id, naver_place_last_synced_at")
             .eq("is_active", True)
-            .not_.is_("naver_place_id", "null")
+            .not_.is_("naver_place_id", "null").order("id"),
+            max_rows=100_000,
         )
-        rows = _cps_rows_res.data or []
 
         # 서비스 기간이 끝난 계정(만료된 해지·구독 없음)의 경쟁사는 크롤하지 않는다 — 네이버 접속은 곧 차단 위험이라 쓸 곳에만 쓴다.
         # 2026-10-29: 이 필터가 없어 하루 경쟁사 크롤 48페이지가 전부 만료된 해지 계정·관리자 계정의 것이었다.
         # 필터를 못 만들면(조회 실패) 기존처럼 전체를 처리한다(스캔이 멈추는 쪽이 더 나쁘다).
         try:
             from services.scan_scheduling import entitled_user_ids
-            _subs_res = await _db(
-                supabase.table("subscriptions").select("user_id, status, end_at").in_("status", ["active", "grace_period", "cancelled"])
+            # 소유자 맵이 1,000행에서 잘리면 정상 구독자의 경쟁사까지 크롤에서 빠지므로 전부 읽는다
+            _subs_rows, _ = await _far(
+                lambda: supabase.table("subscriptions").select("user_id, status, end_at").in_("status", ["active", "grace_period", "cancelled"]).order("id"),
+                max_rows=100_000,
             )
-            _owner_res = await _db(supabase.table("businesses").select("id, user_id"))
+            _owner_rows, _ = await _far(
+                lambda: supabase.table("businesses").select("id, user_id").order("id"),
+                max_rows=100_000,
+            )
             _admin_ids = [u.strip() for u in os.getenv("ADMIN_USER_IDS", "").split(",") if u.strip()]
-            _entitled = entitled_user_ids(_subs_res.data or [], admin_ids=_admin_ids)
-            _owner = {b["id"]: b.get("user_id") for b in (_owner_res.data or [])}
+            _entitled = entitled_user_ids(_subs_rows, admin_ids=_admin_ids)
+            _owner = {b["id"]: b.get("user_id") for b in _owner_rows}
             _before = len(rows)
             rows = [r for r in rows if _owner.get(r["business_id"]) in _entitled]
             logger.info(f"competitor_place_sync_job: 서비스 기간이 끝난 계정 제외 — 경쟁사 {_before}곳 중 {len(rows)}곳 대상")
@@ -3380,14 +3421,14 @@ async def enrich_competitor_details_job():
         supabase = get_client()
 
         # naver_place_id 있는 경쟁사만 조회 (business_id, region 포함)
-        rows = (
-            await execute(
-                supabase.table("competitors")
-                .select("id, name, naver_place_id, business_id, naver_place_last_synced_at")
-                .eq("is_active", True)
-                .not_.is_("naver_place_id", "null")
-            )
-        ).data or []
+        from services.db_paging import fetch_all_rows as _far
+        rows, _ = await _far(   # 서버는 .limit()과 무관하게 1,000행까지만 돌려주므로(docs/supabase_row_cap_audit_2026_10_30.md) 페이지로 나눠 읽는다
+            lambda: supabase.table("competitors")
+            .select("id, name, naver_place_id, business_id, naver_place_last_synced_at")
+            .eq("is_active", True)
+            .not_.is_("naver_place_id", "null").order("id"),
+            max_rows=100_000,
+        )
 
         # 오늘이 차례인 사업장의 경쟁사만(슬롯 분산 켜짐: 사업장 슬롯+2일, 꺼짐: 기존과 같이 목요일 전원) — 2026-10-27
         try:
@@ -3556,20 +3597,20 @@ async def weekly_my_place_stats_job():
         supabase = get_client()
 
         # naver_place_id가 설정된 활성 구독 사업장만 대상
-        _wps_biz_res = await _db(
-            supabase.table("businesses")
+        _wps_biz_res = await _db_all(
+            lambda: supabase.table("businesses")
             .select("id, name, naver_place_id, user_id")
             .eq("is_active", True)
-            .not_.is_("naver_place_id", "null")
+            .not_.is_("naver_place_id", "null").order("id")
         )
         businesses = _wps_biz_res.data or []
 
         # 활성 구독자만 필터 (구독 없는 사업장 스킵)
         from services.scan_scheduling import entitled_sub_rows
-        _wps_subs_res = await _db(
-            supabase.table("subscriptions")
+        _wps_subs_res = await _db_all(
+            lambda: supabase.table("subscriptions")
             .select("user_id, status, end_at")
-            .in_("status", ["active", "grace_period", "cancelled"])
+            .in_("status", ["active", "grace_period", "cancelled"]).order("id")
         )
         subs = entitled_sub_rows(_wps_subs_res.data or [])
         active_user_ids = {s["user_id"] for s in subs}
@@ -3744,8 +3785,9 @@ async def detect_competitor_changes():
     try:
         supabase = get_client()
 
-        _dcc_rows_res = await _db(
-            supabase.table("competitors")
+        from services.db_paging import fetch_all_rows as _far
+        rows, _ = await _far(   # 서버는 .limit()과 무관하게 1,000행까지만 돌려주므로(docs/supabase_row_cap_audit_2026_10_30.md) 페이지로 나눠 읽는다
+            lambda: supabase.table("competitors")
             .select(
                 "id, business_id, name, "
                 "has_faq, has_menu, has_recent_post, "
@@ -3753,9 +3795,9 @@ async def detect_competitor_changes():
                 "prev_has_faq, prev_has_menu, prev_has_recent_post, "
                 "prev_review_count, prev_photo_count"
             )
-            .eq("is_active", True)
+            .eq("is_active", True).order("id"),
+            max_rows=100_000,
         )
-        rows = _dcc_rows_res.data or []
 
         logger.info(f"[detect_competitor_changes] 점검 대상 {len(rows)}개 경쟁사")
 
@@ -4049,10 +4091,10 @@ async def weekly_score_report_job():
         notifier = KakaoNotifier()
 
         # active/grace_period 구독자 조회 (profiles FK 없으므로 별도 조회)
-        subs_res = await _exec(
-            supabase.table("subscriptions")
+        subs_res = await _db_all(
+            lambda: supabase.table("subscriptions")
             .select("user_id, plan")
-            .in_("status", ["active", "grace_period"])
+            .in_("status", ["active", "grace_period"]).order("id")
         )
         subs = subs_res.data or []
         logger.info("[weekly_score_report_job] 대상 구독자 %d명", len(subs))
@@ -4157,12 +4199,12 @@ async def check_briefing_alert_job():
         day_before = (today - timedelta(days=2)).isoformat()
 
         # 어제 스캔이 완료된 사업장 조회 (active 구독자만)
-        scan_res = await _exec(
-            supabase.table("scan_results")
+        scan_res = await _db_all(
+            lambda: supabase.table("scan_results")
             .select("business_id, naver_result, scanned_at")
             .gte("scanned_at", yesterday + "T00:00:00")
             .lt("scanned_at", today.isoformat() + "T00:00:00")
-            .order("scanned_at", desc=True)
+            .order("scanned_at", desc=True).order("id")
         )
         today_scans = scan_res.data or []
 
@@ -4181,13 +4223,14 @@ async def check_briefing_alert_job():
         logger.info("[check_briefing_alert_job] 어제 스캔 사업장 %d개 분석", len(biz_ids))
 
         # 전날 스캔 결과 조회 (비교용)
-        prev_res = await _exec(
-            supabase.table("scan_results")
+        prev_res = await _db_all_in(
+            lambda part: supabase.table("scan_results")
             .select("business_id, naver_result, scanned_at")
             .gte("scanned_at", day_before + "T00:00:00")
             .lt("scanned_at", yesterday + "T00:00:00")
-            .in_("business_id", biz_ids)
-            .order("scanned_at", desc=True)
+            .in_("business_id", part)
+            .order("scanned_at", desc=True).order("id"),
+            biz_ids,
         )
         prev_scans_data = prev_res.data or []
         prev_map: dict[str, dict] = {}
@@ -4197,11 +4240,12 @@ async def check_briefing_alert_job():
                 prev_map[bid] = row
 
         # 사업장 정보 + 구독자 phone 조회 (kakao_scan_notify 포함)
-        biz_info_res = await _exec(
-            supabase.table("businesses")
+        biz_info_res = await _db_all_in(
+            lambda part: supabase.table("businesses")
             .select("id, name, user_id")
-            .in_("id", biz_ids)
-            .eq("is_active", True)
+            .in_("id", part)
+            .eq("is_active", True).order("id"),
+            biz_ids,
         )
         biz_info_map: dict[str, dict] = {
             b["id"]: b for b in (biz_info_res.data or [])
@@ -4212,10 +4256,11 @@ async def check_briefing_alert_job():
         if not user_ids:
             return
 
-        profile_res = await _exec(
-            supabase.table("profiles")
+        profile_res = await _db_all_in(
+            lambda part: supabase.table("profiles")
             .select("user_id, phone, kakao_scan_notify")
-            .in_("user_id", user_ids)
+            .in_("user_id", part).order("user_id"),
+            user_ids,
         )
         profile_map: dict[str, dict] = {
             p["user_id"]: p for p in (profile_res.data or [])

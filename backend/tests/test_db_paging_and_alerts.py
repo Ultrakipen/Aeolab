@@ -152,3 +152,149 @@ def test_no_limit_above_server_row_cap_remains():
                 if m and int(m.group(1).replace("_", "")) > 1000 and not line.lstrip().startswith("#"):
                     bad.append(f"{p.relative_to(root)}:{n}")
     assert not bad, bad
+
+
+# ── in_() 목록 분할 (2026-10-31) ──
+def test_chunked_splits_without_losing_items():
+    parts = list(dp.chunked(range(10), 4))
+    assert parts == [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9]]
+    assert list(dp.chunked([], 4)) == []
+
+
+def test_fetch_all_in_chunks_reads_each_chunk_and_pages(monkeypatch):
+    import db.supabase_client as sc
+    seen = []
+
+    class _InQ:
+        def __init__(self, ids):
+            self.ids, self.rng = ids, None
+
+        def range(self, a, b):
+            self.rng = (a, b)
+            return self
+
+    async def fake_execute(q):
+        seen.append((tuple(q.ids), q.rng))
+        a, b = q.rng
+        total = len(q.ids) * 700            # 조각당 700행 — 두 페이지가 필요하지 않게 조각 하나가 1,000행 미만
+        n = max(0, min(total, b + 1) - a)
+        return _Res([{"id": i} for i in range(n)])
+
+    monkeypatch.setattr(sc, "execute", fake_execute)
+    ids = [f"u{i}" for i in range(7)]
+    rows, trunc = asyncio.run(dp.fetch_all_in_chunks(lambda part: _InQ(part), ids, chunk=3))
+    assert trunc is False
+    assert {s[0] for s in seen} >= {("u0", "u1", "u2"), ("u3", "u4", "u5"), ("u6",)}   # 모든 id가 조회됐다
+    assert len(rows) == 7 * 700                                                         # 조각마다 1,000행을 넘는 경우도 페이징으로 모두 읽는다
+
+
+def test_fetch_all_in_chunks_empty_ids_makes_no_query(monkeypatch):
+    import db.supabase_client as sc
+
+    async def boom(q):
+        raise AssertionError("빈 목록은 조회하지 않는다")
+
+    monkeypatch.setattr(sc, "execute", boom)
+    assert asyncio.run(dp.fetch_all_in_chunks(lambda part: None, [])) == ([], False)
+
+
+
+# ── 변수·표현식 .limit() 감사 (2026-10-31) ──
+# 숫자 리터럴만 막던 위 테스트를 `.limit(DB_SCAN_CAP)`·`.limit(limit_rows)`·`.limit(len(x) * 3)`이 피해 갔다. 변수·표현식을 쓴 `.limit()`은
+# 값이 1,000을 넘을 수 있는지 사람이 확인해 아래 허용 목록에 사유와 함께 올려야 한다(새로 생기면 이 테스트가 실패한다).
+_VARIABLE_LIMIT_ALLOWED = {
+    ("routers/admin.py", "limit"): "관리자 조회 — 요청 상한 le=500(감사 로그·시스템 알림·결제·창업 리포트), 스캔 로그는 관리자 전용 기본 50",
+    ("routers/competitor.py", "len(biz_ids) * 2"): "후보 사업장 최대 20곳 x 2",
+    ("routers/faq.py", "limit"): "Query le=20",
+    ("routers/report.py", "comp_limit"): "플랜별 경쟁사 한도(5~10)",
+    ("routers/report.py", "len(biz_ids) * 2"): "벤치마크 표본 200곳 x 2",
+    ("routers/report.py", "len(comp_ids) * 2"): "경쟁사 최대 10곳 x 2",
+    ("routers/report.py", "limit_rows"): "미리보기 90행 상한(history_days 최대 90으로 묶음)",
+}
+
+
+def _limit_args(line):
+    """한 줄의 `.limit(...)` 인자 문자열을 괄호 균형을 맞춰 모두 뽑는다."""
+    out, i = [], 0
+    while True:
+        i = line.find(".limit(", i)
+        if i < 0:
+            return out
+        j = i + len(".limit(")
+        k, depth = j, 1
+        while k < len(line) and depth:
+            depth += (line[k] == "(") - (line[k] == ")")
+            k += 1
+        out.append(line[j:k - 1].strip())
+        i = k
+
+
+def test_variable_limits_are_reviewed_and_allowlisted():
+    import pathlib
+    import re
+    root = pathlib.Path(__file__).resolve().parent.parent
+    found, unknown = set(), []
+    for sub in ("routers", "services", "scheduler", "middleware"):
+        for p in (root / sub).rglob("*.py"):
+            if p.name == "db_paging.py" or "_deploy_tmp" in p.parts[-2]:
+                continue
+            for n, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+                if line.lstrip().startswith("#"):
+                    continue
+                for arg in _limit_args(line):
+                    if not arg or re.fullmatch(r"[\d_]+", arg):
+                        continue                       # 숫자 리터럴은 위 테스트가 본다
+                    key = (str(p.relative_to(root)).replace("\\", "/"), arg)
+                    found.add(key)
+                    if key not in _VARIABLE_LIMIT_ALLOWED:
+                        unknown.append(f"{key[0]}:{n} .limit({arg})")
+    assert not unknown, (
+        "변수·표현식 .limit()은 1,000행을 넘을 수 있는지 확인해 페이징(fetch_all_rows/fetch_all_in_chunks)을 쓰거나 "
+        f"이 테스트의 허용 목록에 사유와 함께 추가하세요: {unknown}"
+    )
+    stale = set(_VARIABLE_LIMIT_ALLOWED) - found
+    assert not stale, f"허용 목록에 있지만 코드에 없는 항목(정리하세요): {sorted(stale)}"
+
+
+# 아직 `_db()`로 읽는 곳(변수명 -> 사유) — 잘려도 결과가 같거나 날짜·플랜 조건으로 좁혀져 1,000행에 닿지 않는 곳(2026-10-31 점검).
+_KNOWN_UNBOUNDED_JOBS_READS = {
+    "_exp_res": "7일 뒤 만료되는 구독만(날짜 조건)",
+    "_expired_res": "만료일이 지났지만 아직 처리되지 않은 구독만",
+    "_grace_res": "결제 실패 유예 중인 구독만",
+    "_price_up_res": "할인 종료 3일 전 구독만(날짜 조건)",
+    "result": "하루 동안 가입한 무료 구독만(날짜 조건)",
+    "_res": "죽은 코드(weekly_competitor_sync_job — 스케줄러에 등록되지 않음)",
+    "_subs_res": "backend_scaling_trigger_check_job — 구독자 수를 임계값(50)과만 비교해 1,000에서 잘려도 결과가 같음",
+    "subs_res": "가입 후속 알림 — 하루 가입자(.limit(500)) 안에서 user_id로 좁힌 구독만",
+}
+
+
+def test_unreviewed_unbounded_reads_in_scheduled_jobs_are_not_added_silently():
+    """사용자 수에 비례하는 테이블(subscriptions·competitors)을 jobs.py에서 `_db()`로 직접 읽으면 1,000행에서 조용히 잘린다 — `_db_all`/`_db_all_in`을 쓴다."""
+    import pathlib
+    import re
+    root = pathlib.Path(__file__).resolve().parent.parent
+    lines = (root / "scheduler" / "jobs.py").read_text(encoding="utf-8").splitlines()
+    offenders = []
+    for i, l in enumerate(lines):
+        m0 = re.search(r"(\w+) = await (_db|_exec)\($", l)
+        if not m0:
+            continue
+        indent = re.match(r"^(\s*)", l).group(1)
+        j = i + 1
+        while j < len(lines) and lines[j].rstrip() != indent + ")":
+            j += 1
+        block = "\n".join(lines[i:j + 1])
+        if not re.search(r'\.table\("(subscriptions|competitors)"\)', block):
+            continue
+        if any(x in block for x in (".update(", ".insert(", ".upsert(", ".delete(")):
+            continue
+        if re.search(r"\.(single|maybe_single)\(\)|\.limit\(\d+\)|count=", block):
+            continue
+        if re.search(r'\.eq\("(business_id|user_id|id)",', block):
+            continue                                  # 한 사업장·한 사용자의 행 — 플랜 한도 안
+        offenders.append(m0.group(1))
+    unknown = sorted(set(offenders) - set(_KNOWN_UNBOUNDED_JOBS_READS))
+    assert not unknown, f"구독자·경쟁사 전체 조회는 _db_all/_db_all_in을 쓰거나 이 목록에 사유와 함께 추가하세요: {unknown}"
+    stale = sorted(set(_KNOWN_UNBOUNDED_JOBS_READS) - set(offenders))
+    assert not stale, f"목록에 있지만 코드에 없는 항목(정리하세요): {stale}"

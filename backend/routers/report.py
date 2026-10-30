@@ -235,23 +235,24 @@ async def get_history(biz_id: str, user=Depends(get_current_user)):
     if limit_rows == 0:
         return []
 
-    _scan_res, _sh_res = await asyncio.gather(
-        execute(
-            supabase.table("scan_results")
+    # 서버는 .limit()과 무관하게 1,000행에서 자르므로(무제한 플랜은 최대 3650행) 페이지로 나눠 읽는다 — 이력이 쌓여도 오래된 구간이 조용히 잘리지 않게
+    from services.db_paging import fetch_all_rows
+    (rows, _), (_sh_rows, _) = await asyncio.gather(
+        fetch_all_rows(
+            lambda: supabase.table("scan_results")
             .select("scanned_at, total_score, track1_score, track2_score, unified_score, exposure_freq, competitor_scores, score_breakdown")
             .eq("business_id", biz_id)
-            .order("scanned_at", desc=True)
-            .limit(limit_rows)
+            .order("scanned_at", desc=True).order("id"),
+            max_rows=limit_rows,
         ),
-        execute(
-            supabase.table("score_history")
+        fetch_all_rows(
+            lambda: supabase.table("score_history")
             .select("score_date, rank_in_category, total_in_category, weekly_change, sample_size")
             .eq("business_id", biz_id)
-            .order("score_date", desc=True)
-            .limit(limit_rows)
+            .order("score_date", desc=True).order("id"),
+            max_rows=limit_rows,
         ),
     )
-    rows = _scan_res.data or []
     # score_date 별칭 추가 (하위 호환) — 아래 sh_by_date 조인이 score_history.score_date(KST
     # 기준)와 맞아떨어지려면 scanned_at(UTC 저장)도 KST로 변환해야 함. 일일 스캔이 02:00 KST
     # 고정 스케줄이라 단순 [:10] 슬라이싱 시 사실상 모든 계정에서 하루 전 행과 상시 오조인됨.
@@ -259,7 +260,7 @@ async def get_history(biz_id: str, user=Depends(get_current_user)):
         row["score_date"] = _scanned_at_to_kst_date(row.get("scanned_at"))
 
     # score_history에서 업종 내 순위·주간 변화 보완 (scan_results엔 없는 컬럼 — /pdf 엔드포인트와 동일 패턴)
-    sh_by_date = {r["score_date"]: r for r in (_sh_res.data or []) if r.get("score_date")}
+    sh_by_date = {r["score_date"]: r for r in _sh_rows if r.get("score_date")}
     # score_history는 (business_id, score_date) 유일값이라 같은 날 여러 번 스캔하면(Pro+ manual_scan_daily)
     # 전부 같은 하루 단위 스냅샷을 가리키게 됨 — 그 날짜의 가장 최근 scan_results 행에만
     # 순위·주간변화·표본수를 붙이고, 같은 날의 다른 행은 자기 스캔 값이 아닌 수치를

@@ -24,3 +24,28 @@ async def fetch_all_rows(build_query, max_rows: int = 200_000) -> tuple[list[dic
             return rows, False
         offset += PAGE
     return rows[:max_rows], True
+
+
+# in_() 목록이 길면 요청 URL이 한도를 넘어 400("JSON could not be generated")이 난다.
+# 2026-10-31 실측(서버→Supabase): UUID 600개 성공 / 700개부터 실패. 한도의 1/4 수준으로 나눠 조회한다.
+IN_CHUNK = 150
+
+
+def chunked(items, size: int = IN_CHUNK):
+    items = list(items)
+    for i in range(0, len(items), size):
+        yield items[i:i + size]
+
+
+async def fetch_all_in_chunks(build_query, ids, chunk: int = IN_CHUNK, max_rows: int = 200_000) -> tuple[list[dict], bool]:
+    """`build_query(ids_조각)`(정렬 포함)을 ids를 `chunk`개씩 나눠, 조각마다 1,000행씩 페이징해 모두 읽는다.
+
+    ids가 비어 있으면 조회하지 않고 ([], False)를 돌려준다. 반환: (행 목록, 어느 조각이든 상한에 걸려 잘렸는가).
+    """
+    rows: list[dict] = []
+    truncated = False
+    for part in chunked(ids, chunk):
+        part_rows, part_trunc = await fetch_all_rows(lambda part=part: build_query(part), max_rows=max_rows)
+        rows += part_rows
+        truncated = truncated or part_trunc
+    return rows, truncated

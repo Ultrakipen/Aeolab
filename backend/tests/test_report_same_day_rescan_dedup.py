@@ -83,6 +83,7 @@ def test_same_day_dedup_latest_gets_rank():
     with (
         patch("routers.report.get_client", return_value=mock_supabase),
         patch("routers.report.execute", new=mock_execute),
+        patch("db.supabase_client.execute", new=mock_execute),   # 이력 조회는 페이징 도구(fetch_all_rows)를 거친다
         patch(
             "routers.report._verify_biz_ownership",
             new=AsyncMock(return_value=None),
@@ -153,6 +154,7 @@ def test_different_days_each_gets_rank():
     with (
         patch("routers.report.get_client", return_value=mock_supabase),
         patch("routers.report.execute", new=mock_execute),
+        patch("db.supabase_client.execute", new=mock_execute),   # 이력 조회는 페이징 도구(fetch_all_rows)를 거친다
         patch(
             "routers.report._verify_biz_ownership",
             new=AsyncMock(return_value=None),

@@ -39,8 +39,12 @@ class _Res:
 
 
 class _Q:
-    def __init__(self, rows): self.rows = rows
+    def __init__(self, rows): self.rows, self.rng = rows, None
     def select(self, *_): return self
+    def order(self, *_, **__): return self
+    def range(self, a, b):
+        self.rng = (a, b)
+        return self
     def eq(self, *_): return self
     def in_(self, *_): return self
     def is_(self, *_): return self
@@ -67,8 +71,10 @@ def _run_job(monkeypatch, *, comps, subs, businesses, admin_ids="", fail_filter=
     async def fake_db(q):
         if fail_filter and q.rows is subs:
             raise RuntimeError("subscriptions 조회 실패")
-        return _Res(q.rows)
+        # 서버처럼 한 번에 1,000행까지만 돌려준다(.limit()과 무관, 2026-10-30 실측) — 페이징하지 않으면 뒤쪽 행이 조용히 빠진다
+        return _Res(q.rows[:1000] if q.rng is None else q.rows[q.rng[0]:min(q.rng[1] + 1, q.rng[0] + 1000)])
 
+    monkeypatch.setattr(dbc, "execute", fake_db)     # 페이징 도우미(fetch_all_rows)가 쓰는 실행 함수
     monkeypatch.setattr(dbc, "get_client", lambda: _DB({"competitors": comps, "subscriptions": subs, "businesses": businesses}))
     monkeypatch.setattr(jobs, "_db", fake_db)
     monkeypatch.setattr(cpc, "sync_all_competitor_places", fake_sync_all)
@@ -104,3 +110,11 @@ def test_filter_failure_falls_back_to_syncing_everyone(monkeypatch):
     """필터를 못 만들어도 정기 갱신이 통째로 멈추지는 않는다."""
     synced = _run_job(monkeypatch, comps=COMPS, subs=SUBS, businesses=BIZ, fail_filter=True)
     assert sorted(synced) == sorted({c["business_id"] for c in COMPS})
+
+
+def test_rows_beyond_the_server_row_cap_are_still_read(monkeypatch):
+    """사업장이 1,000곳을 넘어도 뒤쪽 정상 구독자의 경쟁사가 크롤 대상에서 빠지지 않는다(소유자 맵이 잘리면 소유자를 못 찾아 제외됐다)."""
+    biz = [{"id": f"x{i}", "user_id": f"ux{i}"} for i in range(1200)] + [{"id": "b_late", "user_id": "u_paid"}]
+    comps = [{"business_id": "b_late", "naver_place_id": "9", "naver_place_last_synced_at": None}]
+    synced = _run_job(monkeypatch, comps=comps, subs=SUBS, businesses=biz)
+    assert synced == ["b_late"]

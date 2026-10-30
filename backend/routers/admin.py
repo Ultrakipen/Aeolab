@@ -219,16 +219,15 @@ async def search_businesses(q: str = None, limit: int = 50, offset: int = 0, _=D
     병합 자체는 전체 행에 수행하되, 실제 반환은 페이지 분량으로 슬라이스한다.
     """
     supabase = get_supabase()
-    DB_SCAN_CAP = 2000
-    rows = (
-        await execute(
-            supabase.table("businesses")
-            .select("id, user_id, name, category, region, is_active, created_at")
-            .order("created_at", desc=True)
-            .limit(DB_SCAN_CAP)
-        )
-    ).data or []
-    if len(rows) >= DB_SCAN_CAP:
+    DB_SCAN_CAP = 20_000
+    # 서버는 .limit()과 무관하게 1,000행에서 자르므로(이전 .limit(2000)은 1,000에서 잘려 total이 1,000으로 고정되고 경고도 울리지 않았다) 페이지로 나눠 읽는다
+    rows, _capped = await fetch_all_rows(
+        lambda: supabase.table("businesses")
+        .select("id, user_id, name, category, region, is_active, created_at")
+        .order("created_at", desc=True).order("id"),
+        max_rows=DB_SCAN_CAP,
+    )
+    if _capped:
         _logger.warning(f"[admin] 사업장 검색이 DB 스캔 상한({DB_SCAN_CAP}건)에 도달 — 페이지네이션/인덱싱 재검토 필요")
     if not rows:
         return {"items": [], "total": 0}

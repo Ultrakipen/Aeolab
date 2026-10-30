@@ -25,35 +25,42 @@ from services.ai_scanner.gemini_scanner import interactive_sample_count
 _logger = logging.getLogger("aeolab")
 
 
+# 순위 비교에 쓰는 점수의 최대 연령(일). 이보다 오래 측정되지 않은 사업장은 "지금 비교할 값이 없는 곳"이라 모집단에서 뺀다.
+_RANK_WINDOW_DAYS = 14
+
+
 async def _calc_rank_in_category(supabase, category: str, my_business_id: str, my_score: float) -> tuple[int, int]:
-    """카테고리 내 순위 계산 — 각 사업장의 '최신' score_history 기준(당일 스캔 여부 무관).
-    당일에 스캔한 업체끼리만 비교하면 자동 스캔(새벽 일괄) 미대상 업체가 전부 빠져
-    표본이 부당하게 좁아지므로, 카테고리 내 전 사업장의 가장 최근 점수와 비교한다."""
-    same_cat_biz_ids = [
-        b["id"] for b in (
-            await execute(
-                supabase.table("businesses")
-                .select("id")
-                .eq("category", category)
-                .eq("is_active", True)
-            )
-        ).data or []
-    ]
+    """카테고리 내 순위 계산 — 각 사업장의 최근(_RANK_WINDOW_DAYS일 이내) 최신 score_history 기준.
+    당일에 스캔한 업체끼리만 비교하면 자동 스캔(새벽 일괄) 미대상 업체가 전부 빠져 표본이 부당하게 좁아지므로,
+    카테고리 내 전 사업장의 가장 최근 점수와 비교한다.
+
+    2026-10-31: 이전에는 limit(사업장 수 × 3)으로 읽어 두 가지가 틀렸다. ①서버는 `.limit()`과 무관하게 1,000행에서 자르므로 사업장이 334곳을 넘으면
+    조용히 잘렸다. ②"사업장당 최근 3행"을 가정했지만 정렬이 날짜순이라, 매일 스캔하는 사업장이 앞쪽 행을 채우면 주 2회 스캔하는 사업장은
+    모집단에서 통째로 빠졌다(total_in_category가 실제보다 작게 나옴). 이제 기간 안의 행을 모두 읽는다."""
+    from datetime import date as _date
+    from services.db_paging import fetch_all_rows, fetch_all_in_chunks
+
+    biz_rows, _ = await fetch_all_rows(
+        lambda: supabase.table("businesses").select("id").eq("category", category).eq("is_active", True).order("id"),
+        max_rows=100_000,
+    )
+    same_cat_biz_ids = [b["id"] for b in biz_rows]
     if not same_cat_biz_ids:
         return 1, 1
-    scores_raw = (
-        await execute(
-            supabase.table("score_history")
-            .select("business_id, total_score")
-            .in_("business_id", same_cat_biz_ids)
-            .order("score_date", desc=True)
-            .limit(len(same_cat_biz_ids) * 3)
-        )
-    ).data or []
+    since = (_date.today() - timedelta(days=_RANK_WINDOW_DAYS)).isoformat()
+    scores_raw, _ = await fetch_all_in_chunks(
+        lambda part: supabase.table("score_history")
+        .select("business_id, total_score")
+        .in_("business_id", part)
+        .gte("score_date", since)
+        .order("score_date", desc=True).order("id"),
+        same_cat_biz_ids,
+        max_rows=100_000,
+    )
     latest: dict = {}
     for r in scores_raw:
         bid = r["business_id"]
-        if bid not in latest:
+        if bid not in latest and r.get("total_score") is not None:
             latest[bid] = float(r["total_score"])
     latest[my_business_id] = my_score  # 방금 저장한 내 최신 점수로 갱신 (읽기 지연 대비)
     total_in_category = len(latest)
