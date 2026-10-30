@@ -182,14 +182,15 @@ async def get_market_overview(category: str, region: str):
     supabase = get_client()
     # region은 자유 입력 텍스트라 완전일치(eq)로는 "서울 강남"과 "강남구" 같은 동일 지역의
     # 표기 차이를 못 잡음 — category로만 1차 필터 후 정규화 매칭으로 좁힘(region_match.py)
-    candidates = (
-        await execute(
-            supabase.table("businesses")
-            .select("id, region")
-            .eq("category", category)
-            .eq("is_active", True)
-        )
-    ).data or []
+    # 서버는 .limit()과 무관하게 1,000행에서 자르므로(docs/supabase_row_cap_audit_2026_10_30.md) 페이지로 나눠 읽는다
+    from services.db_paging import fetch_all_rows, fetch_all_in_chunks
+    candidates, _ = await fetch_all_rows(
+        lambda: supabase.table("businesses")
+        .select("id, region")
+        .eq("category", category)
+        .eq("is_active", True).order("id"),
+        max_rows=100_000,
+    )
     businesses = [b for b in candidates if region_matches(b.get("region") or "", region)]
     count = len(businesses)
 
@@ -198,14 +199,19 @@ async def get_market_overview(category: str, region: str):
     if businesses:
         # competitor_count가 전체 모집단 기준이므로 평균도 동일 모집단이어야 함 (앞 20개만 쓰면 불일치)
         biz_ids = [b["id"] for b in businesses]
-        all_scans = (
-            await execute(
-                supabase.table("scan_results")
-                .select("business_id, total_score")
-                .in_("business_id", biz_ids)
-                .order("scanned_at", desc=True)
-            )
-        ).data or []
+        # 사업장별 "최신 1건"만 필요한데 이력 전체를 읽으면 시간이 갈수록 1,000행에서 잘려 최근 스캔이 없는 사업장이 평균에서 빠진다.
+        # 최근 30일 안에 측정된 사업장만 평균에 넣는다(더 오래된 점수는 지금의 시장 수준이 아니다). 사업장 수(competitor_count)는 그대로 전체 기준.
+        from datetime import datetime, timedelta, timezone
+        _since = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+        all_scans, _ = await fetch_all_in_chunks(
+            lambda part: supabase.table("scan_results")
+            .select("business_id, total_score")
+            .in_("business_id", part)
+            .gte("scanned_at", _since)
+            .order("scanned_at", desc=True).order("id"),
+            biz_ids,
+            max_rows=100_000,
+        )
         # 사업장별 최신 스캔 1건만 집계
         seen: set = set()
         for s in all_scans:
@@ -267,13 +273,15 @@ async def get_timing_index(category: str, region: str):
     # 해당 업종 사업장 후보 — category로 1차 필터 후 region_matches()로 정규화 매칭
     # (완전일치는 "서울 강남"/"강남구" 같은 표기 차이를 놓침. ilike prefix 대신 정규화 매칭을
     # 쓰는 이유는 get_market_overview()와 동일 기준을 공유해 두 엔드포인트 간 모순을 막기 위함)
-    biz_res = await execute(
-        supabase.table("businesses")
+    from services.db_paging import fetch_all_rows, fetch_all_in_chunks
+    biz_rows_all, _ = await fetch_all_rows(
+        lambda: supabase.table("businesses")
         .select("id, region")
         .eq("category", category)
-        .eq("is_active", True)
+        .eq("is_active", True).order("id"),
+        max_rows=100_000,
     )
-    biz_list = [b for b in (biz_res.data or []) if region_matches(b.get("region") or "", region)]
+    biz_list = [b for b in biz_rows_all if region_matches(b.get("region") or "", region)]
     total_count = len(biz_list)
 
     if total_count == 0:
@@ -299,25 +307,28 @@ async def get_timing_index(category: str, region: str):
     month_ago = (now - timedelta(days=30)).isoformat()
     two_month_ago = (now - timedelta(days=60)).isoformat()
 
-    recent_scores, old_scores = await asyncio.gather(
-        execute(
-            supabase.table("score_history")
+    # 사업장 30곳 x 30일이면 1,000행을 넘는다 — 서버가 임의로 잘라 추세 부호가 뒤집힐 수 있어 두 구간 모두 페이지로 나눠 전부 읽는다
+    (recent_rows, _), (old_rows, _) = await asyncio.gather(
+        fetch_all_in_chunks(
+            lambda part: supabase.table("score_history")
             .select("total_score, score_date")
-            .in_("business_id", biz_ids)
+            .in_("business_id", part)
             .gte("score_date", month_ago[:10])
-            .order("score_date", desc=True)
+            .order("score_date", desc=True).order("id"),
+            biz_ids, max_rows=100_000,
         ),
-        execute(
-            supabase.table("score_history")
+        fetch_all_in_chunks(
+            lambda part: supabase.table("score_history")
             .select("total_score")
-            .in_("business_id", biz_ids)
+            .in_("business_id", part)
             .gte("score_date", two_month_ago[:10])
-            .lt("score_date", month_ago[:10])
+            .lt("score_date", month_ago[:10]).order("id"),
+            biz_ids, max_rows=100_000,
         ),
     )
 
-    recent = [r["total_score"] for r in (recent_scores.data or []) if r.get("total_score")]
-    old = [r["total_score"] for r in (old_scores.data or []) if r.get("total_score")]
+    recent = [r["total_score"] for r in recent_rows if r.get("total_score")]
+    old = [r["total_score"] for r in old_rows if r.get("total_score")]
 
     avg_recent = sum(recent) / len(recent) if recent else 0
     avg_old = sum(old) / len(old) if old else 0

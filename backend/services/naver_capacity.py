@@ -58,17 +58,33 @@ def capacity_level(count: int, limit: int) -> str | None:
 
 
 async def active_business_count(supabase=None) -> int:
-    """활성 구독자가 소유한 활성 사업장 수(네이버 접속 대상 규모)."""
-    from db.supabase_client import get_client, execute
+    """네이버 접속 대상 규모 = 지금 서비스를 받는 구독자(active·유예·해지했어도 만료 전)가 소유한 활성 사업장 수. 관리자 소유 사업장은 뺀다.
+
+    야간 스캔·순위·통계 잡이 쓰는 자격 기준(`scan_scheduling.entitled_user_ids`)과 같게 맞췄다 — 이전에는 status가 active인 사용자만 세어
+    유예 중·해지 후 만료 전 사용자의 사업장이 빠졌고(스캔은 하는데 용량에는 안 잡힘), 관리자 소유 사업장(야간 스캔 제외 대상)은 들어갔다.
+    서버는 `.limit()`과 무관하게 1,000행까지만 돌려주므로 구독·사업장을 페이지로 나눠 읽고 `in_()` 목록은 조각으로 나눈다.
+    (NIGHTLY_SCAN_INCLUDE_BIZ_IDS로 스캔에 넣은 관리자 소유 검증용 사업장은 세지 않는다 — 소수라 용량 판단에 영향이 작다.)
+    """
+    import os
+    from db.supabase_client import get_client
+    from services.db_paging import fetch_all_rows, fetch_all_in_chunks
+    from services.scan_scheduling import entitled_user_ids
+
     supabase = supabase or get_client()
-    subs = await execute(supabase.table("subscriptions").select("user_id").eq("status", "active"))
-    user_ids = list({s["user_id"] for s in ((subs.data if subs else None) or []) if s.get("user_id")})
+    subs, _ = await fetch_all_rows(
+        lambda: supabase.table("subscriptions").select("user_id, status, end_at").in_("status", ["active", "grace_period", "cancelled"]).order("id"),
+        max_rows=100_000,
+    )
+    admin_ids = {u.strip() for u in os.getenv("ADMIN_USER_IDS", "").split(",") if u.strip()}
+    user_ids = sorted(entitled_user_ids(subs) - admin_ids)
     if not user_ids:
         return 0
-    biz = await execute(
-        supabase.table("businesses").select("id").eq("is_active", True).in_("user_id", user_ids)
+    biz, _ = await fetch_all_in_chunks(
+        lambda part: supabase.table("businesses").select("id").eq("is_active", True).in_("user_id", part).order("id"),
+        user_ids,
+        max_rows=100_000,
     )
-    return len((biz.data if biz else None) or [])
+    return len(biz)
 
 
 async def capacity_snapshot(supabase=None) -> dict:

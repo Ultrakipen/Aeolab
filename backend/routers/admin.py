@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from db.supabase_client import get_client, execute
 from config.prices import PLAN_PRICE_MAP
-from services.db_paging import fetch_all_rows
+from services.db_paging import fetch_all_rows, fetch_all_in_chunks
 from services.score_engine import BRIEFING_ACTIVE_CATEGORIES, BRIEFING_LIKELY_CATEGORIES
 from utils.admin_auth import require_owner, verify_admin
 
@@ -55,15 +55,18 @@ async def get_stats(_=Depends(verify_admin)):
     user_plan_map = {s["user_id"]: s["plan"] for s in active if s.get("user_id")}
     plan_scan_counts = {p: 0 for p in PLAN_PRICE_MAP}
     if user_plan_map:
-        biz_rows = (await execute(
-            supabase.table("businesses").select("id, user_id").in_("user_id", list(user_plan_map.keys()))
-        )).data or []
+        # 서버는 .limit()과 무관하게 1,000행에서 자르고 in_() 목록이 길면 URL 한도에 걸리므로(실측 UUID 600~700개) 조각으로 나눠 페이지째 읽는다
+        biz_rows, _ = await fetch_all_in_chunks(
+            lambda part: supabase.table("businesses").select("id, user_id").in_("user_id", part).order("id"),
+            list(user_plan_map.keys()), max_rows=100_000,
+        )
         biz_plan_map = {b["id"]: user_plan_map.get(b["user_id"]) for b in biz_rows}
         if biz_plan_map:
-            scan_rows = (await execute(
-                supabase.table("scan_results").select("business_id")
-                .gte("scanned_at", month_start).in_("business_id", list(biz_plan_map.keys()))
-            )).data or []
+            scan_rows, _ = await fetch_all_in_chunks(
+                lambda part: supabase.table("scan_results").select("business_id")
+                .gte("scanned_at", month_start).in_("business_id", part).order("id"),
+                list(biz_plan_map.keys()), max_rows=200_000,
+            )
             for sr in scan_rows:
                 p = biz_plan_map.get(sr["business_id"])
                 if p and p in plan_scan_counts:
@@ -458,13 +461,12 @@ async def remove_admin_user(email: str, owner_email: str = Depends(require_owner
 async def get_revenue(_=Depends(verify_admin)):
     """월별 매출 추이 (최근 12개월)"""
     supabase = get_supabase()
-    rows = (
-        await execute(
-            supabase.table("subscriptions")
-            .select("plan, status, start_at")
-            .in_("status", ["active", "grace_period", "cancelled", "expired"])
-        )
-    ).data
+    rows, _ = await fetch_all_rows(
+        lambda: supabase.table("subscriptions")
+        .select("plan, status, start_at")
+        .in_("status", ["active", "grace_period", "cancelled", "expired"]).order("id"),
+        max_rows=100_000,
+    )
     monthly: dict = {}
     for row in rows:
         if not row.get("start_at"):
@@ -750,11 +752,10 @@ async def get_category_distribution(_=Depends(verify_admin)):
     INACTIVE 비율이 큰 경우 UX 우선순위 조정의 근거로 사용.
     """
     supabase = get_supabase()
-    rows = (
-        await execute(
-            supabase.table("businesses").select("id, category")
-        )
-    ).data or []
+    rows, _ = await fetch_all_rows(
+        lambda: supabase.table("businesses").select("id, category").order("id"),
+        max_rows=100_000,
+    )
 
     ACTIVE = set(BRIEFING_ACTIVE_CATEGORIES)
     LIKELY = set(BRIEFING_LIKELY_CATEGORIES)
@@ -811,19 +812,18 @@ async def broadcast_kakao(message: str, owner_email: str = Depends(require_owner
     supabase = get_supabase()
     from services.kakao_notify import KakaoNotifier
 
-    active_subs = (
-        await execute(
-            supabase.table("subscriptions").select("user_id").eq("status", "active")
-        )
-    ).data or []
+    # 구독자가 1,000명을 넘으면 일부에게만 발송되는데 응답은 {"sent": N}만 줘 알아채기 어려웠다 — 모두 읽는다
+    active_subs, _ = await fetch_all_rows(
+        lambda: supabase.table("subscriptions").select("user_id").eq("status", "active").order("id"),
+        max_rows=100_000,
+    )
     user_ids = [s["user_id"] for s in active_subs if s.get("user_id")]
     phone_map: dict = {}
     if user_ids:
-        prof_rows = (
-            await execute(
-                supabase.table("profiles").select("user_id, phone").in_("user_id", user_ids)
-            )
-        ).data or []
+        prof_rows, _ = await fetch_all_in_chunks(
+            lambda part: supabase.table("profiles").select("user_id, phone").in_("user_id", part).order("user_id"),
+            user_ids, max_rows=100_000,
+        )
         phone_map = {p["user_id"]: p.get("phone") for p in prof_rows}
 
     notifier = KakaoNotifier()
