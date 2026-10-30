@@ -345,3 +345,16 @@ def entitled_sub_rows(sub_rows) -> list:
     """
     keep = entitled_user_ids(sub_rows)
     return [r for r in (sub_rows or []) if r.get("user_id") in keep]
+
+
+def exclude_admin_businesses(businesses: list[dict], admin_user_ids: set[str], include_biz_ids: set[str] | None = None) -> list[dict]:
+    """야간 스캔 대상에서 관리자 소유 사업장을 뺀다. 단 include_biz_ids(NIGHTLY_SCAN_INCLUDE_BIZ_IDS)에 있는 사업장은 유지.
+
+    검증용 사업장(어니언 성수·하라식당 등)을 정기 스캔에 넣어 점수 변동을 관찰하기 위한 옵트인 — 기본(빈 집합)은 기존 동작과 동일.
+    포함한 사업장은 네이버 접속량을 늘리므로(scripts/naver_load_model.py의 사업장 수에 합산) 소수만 지정한다.
+    """
+    include = include_biz_ids or set()
+    return [
+        b for b in businesses
+        if b.get("user_id") not in admin_user_ids or str(b.get("id")) in include
+    ]

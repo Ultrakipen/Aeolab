@@ -475,7 +475,7 @@ async def daily_scan_all():
         # grace_period(결제실패 유예)도 plan_gate.get_user_plan()이 유료로 취급하는 상태이므로
         # 자동 스캔 대상에 포함 — active만 필터하면 유예 중인 유료 구독자가 스캔에서 부당 제외됨
         # 해지했어도 만료일(end_at)까지는 서비스를 유지한다는 안내(설정 화면)·get_user_plan과 같은 기준으로 대상을 정한다(2026-10-29).
-        from services.scan_scheduling import entitled_sub_rows
+        from services.scan_scheduling import entitled_sub_rows, exclude_admin_businesses
         _subs_res = await _db(
             supabase.table("subscriptions")
             .select("user_id, plan, status, end_at")
@@ -497,8 +497,9 @@ async def daily_scan_all():
         # 관리자 계정은 자동 스캔 대상에서 명시적으로 제외
         if admin_user_ids:
             before_count = len(businesses)
-            businesses = [biz for biz in businesses if biz.get("user_id") not in admin_user_ids]
-            logger.info(f"daily_scan_all: 관리자 {before_count - len(businesses)}개 사업장 제외")
+            _include_biz = {x.strip() for x in os.getenv("NIGHTLY_SCAN_INCLUDE_BIZ_IDS", "").split(",") if x.strip()}
+            businesses = exclude_admin_businesses(businesses, admin_user_ids, _include_biz)
+            logger.info(f"daily_scan_all: 관리자 {before_count - len(businesses)}개 사업장 제외 (검증용 포함 지정 {len(_include_biz)}개)")
         logger.info(f"daily_scan_all: 스캔 대상 {len(businesses)}개 사업장")
 
         basic_scanner = MultiAIScanner(mode="basic")
