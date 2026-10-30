@@ -151,6 +151,22 @@ def _safe_percentiles(values: list[float], percents: list[int]) -> dict[str, flo
     return result
 
 
+
+_IN_CHUNK = 100   # in_() 목록이 길면 요청 URL이 PostgREST 한도에 걸릴 수 있어 나눠 조회한다
+
+
+async def _fetch_chunked(build_query, ids: list) -> list:
+    """`build_query(ids_조각)`(정렬 포함)을 1,000행씩 페이징하며 ids를 _IN_CHUNK개씩 나눠 모두 읽는다."""
+    from services.db_paging import fetch_all_rows
+    out: list = []
+    for i in range(0, len(ids), _IN_CHUNK):
+        part = ids[i:i + _IN_CHUNK]
+        rows, truncated = await fetch_all_rows(lambda part=part: build_query(part))
+        if truncated:
+            _logger.warning("[index_aggregator] 페이징 상한 도달 — 일부 행 누락")
+        out += rows
+    return out
+
 async def compute_quarter_snapshot(
     supabase,
     quarter: str,
@@ -203,16 +219,17 @@ async def compute_quarter_snapshot(
             return None
 
         # 2. score_history 분기 범위 조회 (점수·growth_stage)
-        history_rows = await asyncio.to_thread(
-            lambda: (
+        # 분기 90일 × 사업장 수는 쉽게 1,000행을 넘고 서버는 1,000행에서 조용히 자른다 → 페이징 + in_ 목록 분할(URL 길이)
+        history_rows = await _fetch_chunked(
+            lambda ids: (
                 supabase.table("score_history")
                 .select("business_id, unified_score, track1_score, track2_score, growth_stage")
-                .in_("business_id", biz_ids)
+                .in_("business_id", ids)
                 .gte("score_date", start_date)
                 .lte("score_date", end_date)
-                .execute()
-                .data
-            )
+                .order("id")
+            ),
+            biz_ids,
         )
 
         # 고유 business_id 기준 sample_count 산정
@@ -253,19 +270,19 @@ async def compute_quarter_snapshot(
         growth_dist = _compute_growth_dist(history_rows)
 
         # 5. scan_results 조회 (플랫폼 통계용)
-        scan_rows = await asyncio.to_thread(
-            lambda: (
+        scan_rows = await _fetch_chunked(
+            lambda ids: (
                 supabase.table("scan_results")
                 .select(
                     "business_id, "
                     + ", ".join(_PLATFORM_COLUMNS)
                 )
-                .in_("business_id", biz_ids)
+                .in_("business_id", ids)
                 .gte("scanned_at", start_date)
                 .lte("scanned_at", end_date)
-                .execute()
-                .data
-            )
+                .order("id")
+            ),
+            biz_ids,
         )
 
         platform_stats = _extract_platform_stats(scan_rows)
