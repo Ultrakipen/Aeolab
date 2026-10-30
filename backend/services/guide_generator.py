@@ -1348,9 +1348,7 @@ async def generate_smartplace_intro(
                     "content": (
                         f"{region}에서 {category_ko}{_select_josa(category_ko, '을', '를')} 찾다가 "
                         f"{business_name}{_select_josa(business_name, '을', '를')} 방문했습니다.\n\n"
-                        f"{description or '[실제 방문 경험을 직접 적어 주세요]'}
-
-"
+                        f"{description or '[실제 방문 경험을 직접 적어 주세요]'}\n\n"
                         f"[주문한 것, 분위기, 아쉬웠던 점 등 직접 겪은 내용을 적어 주세요]"
                     ),
                     "target_keyword": f"{region} {category_ko} 후기",

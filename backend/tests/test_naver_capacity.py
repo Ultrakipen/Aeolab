@@ -70,7 +70,10 @@ def test_lever_report_is_monotone_and_marks_assumptions():
     before = (m.AI_TAB_PER_FULL, m.RANK_PER_KEYWORD, m.COMPETITOR_REFRESH_WEEKS)
     rows = m.lever_report(300)
     assert (m.AI_TAB_PER_FULL, m.RANK_PER_KEYWORD, m.COMPETITOR_REFRESH_WEEKS) == before   # 모듈 상태를 되돌린다
-    peaks = [r["batch_peak"] for r in rows]
+    # D0·H0는 겹침 0% 보수 시나리오(2026-10-30) — 누적 사슬이 아니라 곁가지라 단조 검사에서 제외한다
+    chain = [r for r in rows if not r["name"].startswith(("D0 ", "H0 "))]
+    assert len(chain) == len(rows) - 2
+    peaks = [r["batch_peak"] for r in chain]
     assert all(a >= b for a, b in zip(peaks, peaks[1:])), peaks
     assert {r["kind"] for r in rows} == {"", "결정", "조건부", "가정"}
     assert rows[-1]["batch_peak"] < rows[0]["batch_peak"] * 0.3
