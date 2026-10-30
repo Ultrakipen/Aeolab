@@ -6,6 +6,7 @@ import re
 from openai import AsyncOpenAI
 
 from services.ai_usage_logger import log_ai_usage
+from services.ai_scanner import probe_cache
 
 _logger = logging.getLogger(__name__)
 
@@ -263,11 +264,8 @@ class ChatGPTScanner:
                 "sample_size": 0, "requested_size": n, "failed_count": n, "queries_used": [],
                 "avg_rank": None, "top_places": [], "error": "no_query",
             }
-        q_count = len(query_list)
-        base, rem = divmod(n, q_count)
-        task_queries: list[str] = []
-        for i, q in enumerate(query_list):
-            task_queries.extend([q] * (base + (1 if i < rem else 0)))
+        # 같은 질의의 캐시 표본은 재사용(기본 꺼짐 — probe_cache 참조), 모자란 만큼만 호출한다
+        cached_results, task_queries = probe_cache.plan("chatgpt:gpt-4.1-mini", query_list, n)
 
         target_norm = self._norm_name(target)
         mention_count = 0
@@ -277,32 +275,38 @@ class ChatGPTScanner:
         counter: dict[str, int] = {}
         display: dict[str, dict[str, int]] = {}
 
-        for batch_start in range(0, n, 10):
+        all_results = list(cached_results)
+        for batch_start in range(0, len(task_queries), 10):
             batch_queries = task_queries[batch_start:batch_start + 10]
             results = await asyncio.gather(
                 *[self._recommend_once(q) for q in batch_queries], return_exceptions=True
             )
-            for r in results:
-                if isinstance(r, Exception) or not r.get("_measured", True):
-                    continue
-                success_count += 1
-                places = r.get("places") or []
-                hit_idx = None
-                for idx, p in enumerate(places):
-                    pn = self._norm_name(p)
-                    if self._name_matches(target_norm, pn):
-                        hit_idx = idx
-                        continue  # 내 가게는 경쟁 후보 집계에서 제외
-                    if pn:
-                        counter[pn] = counter.get(pn, 0) + 1
-                        display.setdefault(pn, {})
-                        display[pn][p] = display[pn].get(p, 0) + 1
-                if hit_idx is not None:
-                    mention_count += 1
-                    ranks.append(hit_idx + 1)
-                    if len(citations) < 3:
-                        citations.append("AI 추천 목록 — " + " · ".join(f"{i + 1}. {p}" for i, p in enumerate(places)))
+            for q, r in zip(batch_queries, results):
+                if not isinstance(r, Exception):
+                    probe_cache.store("chatgpt:gpt-4.1-mini", q, r)
+            all_results.extend(results)
             await asyncio.sleep(1.0)
+
+        for r in all_results:
+            if isinstance(r, Exception) or not r.get("_measured", True):
+                continue
+            success_count += 1
+            places = r.get("places") or []
+            hit_idx = None
+            for idx, p in enumerate(places):
+                pn = self._norm_name(p)
+                if self._name_matches(target_norm, pn):
+                    hit_idx = idx
+                    continue  # 내 가게는 경쟁 후보 집계에서 제외
+                if pn:
+                    counter[pn] = counter.get(pn, 0) + 1
+                    display.setdefault(pn, {})
+                    display[pn][p] = display[pn].get(p, 0) + 1
+            if hit_idx is not None:
+                mention_count += 1
+                ranks.append(hit_idx + 1)
+                if len(citations) < 3:
+                    citations.append("AI 추천 목록 — " + " · ".join(f"{i + 1}. {p}" for i, p in enumerate(places)))
 
         top_places = []
         for pn, cnt in sorted(counter.items(), key=lambda kv: -kv[1])[:5]:

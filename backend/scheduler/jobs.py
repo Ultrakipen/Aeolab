@@ -365,6 +365,12 @@ def start_scheduler():
         id="naver_capacity_check", replace_existing=True,
         max_instances=1, misfire_grace_time=3600,
     )
+    # Gemini 하루 호출량 점검 — 70/90/100% 단계 도달 시 운영자 메일(결제는 막지 않음). 네이버 용량 점검 10분 뒤
+    scheduler.add_job(
+        ai_capacity_check_job, "cron", hour=9, minute=50,
+        id="ai_capacity_check", replace_existing=True,
+        max_instances=1, misfire_grace_time=3600,
+    )
     scheduler.add_listener(_on_job_error, EVENT_JOB_ERROR)
     scheduler.start()
     logger.info("Scheduler started")
@@ -7390,6 +7396,53 @@ async def naver_capacity_check_job() -> None:
         "한도는 실측이 아니라 코드 기준 모델(scripts/naver_load_model.py)입니다. /admin/naver-access의 일별 사용량과 "
         "차단 이력으로 실제 여유를 먼저 확인하세요. 결제·가입은 자동으로 막지 않습니다.\n\n"
         "지금 착수할 조치 (사용자 결정 필요 표시는 공개 약속·기능 범위가 바뀌는 항목):\n"
+        + "\n".join(
+            f"- {s['step']} → {s['effect']}" + (" [사용자 결정 필요]" if s["decide"] else "")
+            for s in snap.get("next_steps", [])
+        ),
+    )
+
+
+async def ai_capacity_check_job() -> None:
+    """Gemini 하루 호출량이 한도(GEMINI_DAILY_LIMIT)의 70/90/100%에 닿으면 운영자에게 알린다 — 매일 09:50 KST.
+
+    최근 24시간 롤링 집계라 야간 스캔이 포함된다. 같은 단계 알림은 7일 안에 다시 보내지 않는다. 결제·스캔은 막지 않는다.
+    """
+    from db.supabase_client import get_client
+    from services.email_sender import send_operator_alert
+    from services.ai_capacity import gemini_usage_snapshot
+
+    try:
+        snap = await gemini_usage_snapshot(get_client())
+    except Exception as e:
+        _logger.warning(f"[ai_capacity] 점검 실패(스킵): {e}")
+        return
+    level = snap.get("level")
+    if not level:
+        return
+    subject = f"Gemini 하루 호출 {level} 도달"
+    try:
+        recent = (
+            await _db(
+                get_client().table("system_alerts")
+                .select("id")
+                .ilike("subject", f"%{subject}%")
+                .gte("created_at", (datetime.utcnow() - timedelta(days=7)).isoformat())
+                .limit(1)
+            )
+        ).data or []
+    except Exception as e:
+        _logger.debug(f"[ai_capacity] dedup 조회 실패: {e}")
+        recent = []
+    if recent:
+        return
+    await send_operator_alert(
+        subject,
+        f"최근 24시간 Gemini 호출 {snap['calls_ok'] + snap['calls_failed']}회(성공 {snap['calls_ok']}·실패 {snap['calls_failed']}) / "
+        f"한도 {snap['limit']}회 ({snap['used_pct']}%).\n\n"
+        "기록된 호출만 센 값이라 실제 사용은 더 클 수 있습니다. 한도는 서버 .env GEMINI_DAILY_LIMIT입니다. "
+        "초과분은 429로 '측정 안 됨' 처리되어 점수에서 제외됩니다(0점 아님). 결제·스캔은 자동으로 막지 않습니다.\n\n"
+        "지금 착수할 조치 (사용자 결정 필요 표시는 비용·공개 문구가 걸린 항목):\n"
         + "\n".join(
             f"- {s['step']} → {s['effect']}" + (" [사용자 결정 필요]" if s["decide"] else "")
             for s in snap.get("next_steps", [])
