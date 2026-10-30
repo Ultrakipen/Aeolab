@@ -140,7 +140,7 @@ class MultiAIScanner:
         primary_query = queries if isinstance(queries, str) else (queries[0] if queries else "")
         # API 기반 스캐너: 동시 실행 (다중 쿼리 분산 샘플링)
         api_tasks = [
-            self.gemini.sample_n(queries, target, n=sample_size),
+            self.gemini.sample_recommend(queries, target, n=sample_size),
             # ChatGPT는 가게명을 프롬프트에 넣지 않는 비유도형 추천 프로브(체험과 동일, 2026-09-28) —
             # 유도형 sample_n은 존재하지 않는 가게·소규모 가게도 환각으로 "추천됨"이라 답해 노출률이 부풀었다
             # (실사업장 유료 스캔 43/100·95/100, 체험 비유도형은 가짜 가게 0/50).

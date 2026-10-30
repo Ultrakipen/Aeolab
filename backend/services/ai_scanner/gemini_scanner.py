@@ -8,6 +8,7 @@ import google.generativeai as genai
 from typing import Optional
 
 from services.ai_usage_logger import log_ai_usage
+from services.ai_scanner.chatgpt_scanner import names_match
 
 _logger = logging.getLogger(__name__)
 
@@ -94,13 +95,131 @@ class GeminiScanner:
             "queries_used": query_list,
         }
 
+    # ── 비유도형 추천 프로브 (2026-10-30, ChatGPT sample_recommend와 동일 구조) ──
+    # 유도형(_check)은 가게명을 프롬프트에 넣어 "추천되나?"를 물어 환각으로 부풀 수 있다.
+    # 여기서는 가게명을 넣지 않고 추천 가게를 나열시켜 내 가게가 자발적으로 나오는지 대조한다.
+
+    @staticmethod
+    def _norm_name(name: str) -> str:
+        return re.sub(r"[\s\-·.,()\[\]'\"“”‘’]+", "", (name or "")).lower()
+
+    async def _recommend_once(self, query: str) -> dict:
+        prompt = (
+            f"손님이 \"{query}\" 라고 검색했을 때 추천할 만한 가게를 최대 5곳, 추천 순서대로 알려주세요. "
+            "실제로 존재한다고 알고 있는 가게만 넣고, 모르면 빈 배열로 답하세요. "
+            "JSON으로만 답하세요.\n"
+            '{"places": ["가게명1", "가게명2"]}'
+        )
+        for attempt in range(2):
+            try:
+                resp = await asyncio.wait_for(
+                    asyncio.to_thread(self.model.generate_content, prompt),
+                    timeout=20.0,
+                )
+                self._log_usage(resp, "scan_recommend")
+                m = re.search(r"\{.*\}", resp.text, re.DOTALL)
+                if not m:
+                    return {"places": [], "_measured": False, "_error": "unparseable"}
+                data = json.loads(m.group())
+                raw = data.get("places") if isinstance(data, dict) else None
+                if not isinstance(raw, list):
+                    return {"places": [], "_measured": False, "_error": "bad_shape"}
+                places = [str(p).strip() for p in raw if isinstance(p, (str, int)) and str(p).strip()]
+                return {"places": [p for p in places if len(p) <= 40][:5], "_measured": True}
+            except asyncio.TimeoutError as e:
+                self._log_failure("scan_recommend", e)
+                return {"places": [], "_measured": False, "_error": "timeout"}
+            except Exception as e:
+                is_rate_limit = "429" in str(e) or "ResourceExhausted" in type(e).__name__ or "rate limit" in str(e).lower()
+                if is_rate_limit and attempt == 0:
+                    await asyncio.sleep(1.5)
+                    continue
+                self._log_failure("scan_recommend", e)
+                return {"places": [], "_measured": False, "_error": str(e)[:80]}
+        return {"places": [], "_measured": False, "_error": "unknown"}
+
+    async def sample_recommend(self, queries: "str | list[str]", target: str, n: int = 50) -> dict:
+        """비유도형 n회 추천 샘플링 — 반환 키는 ChatGPT sample_recommend와 동일.
+
+        실패 샘플(_measured=False)은 분모에서 제외한다("언급 안 됨"으로 오집계 금지).
+        """
+        query_list = [queries] if isinstance(queries, str) else [q for q in (queries or []) if q]
+        query_list = [q for q in query_list if q and q.strip()]
+        if not query_list:
+            return {
+                "platform": "gemini", "probe": "recommend_v1", "mentioned": False, "exposure_freq": 0,
+                "exposure_rate": 0.0, "citations": [], "confidence": self._wilson_ci(0, 0),
+                "sample_size": 0, "requested_size": n, "failed_count": n, "queries_used": [],
+                "avg_rank": None, "top_places": [], "error": "no_query",
+            }
+        base, rem = divmod(n, len(query_list))
+        task_queries: list[str] = []
+        for i, q in enumerate(query_list):
+            task_queries.extend([q] * (base + (1 if i < rem else 0)))
+
+        target_norm = self._norm_name(target)
+        mention_count = 0
+        success_count = 0
+        ranks: list[int] = []
+        citations: list[str] = []
+        counter: dict[str, int] = {}
+        display: dict[str, dict[str, int]] = {}
+
+        for batch_start in range(0, n, GEMINI_BATCH_SIZE):
+            batch_queries = task_queries[batch_start:batch_start + GEMINI_BATCH_SIZE]
+            results = await asyncio.gather(
+                *[self._recommend_once(q) for q in batch_queries], return_exceptions=True
+            )
+            for r in results:
+                if isinstance(r, Exception) or not r.get("_measured", True):
+                    continue
+                success_count += 1
+                places = r.get("places") or []
+                hit_idx = None
+                for idx, p in enumerate(places):
+                    pn = self._norm_name(p)
+                    if names_match(target_norm, pn):
+                        hit_idx = idx
+                        continue  # 내 가게는 경쟁 후보 집계에서 제외
+                    if pn:
+                        counter[pn] = counter.get(pn, 0) + 1
+                        display.setdefault(pn, {})
+                        display[pn][p] = display[pn].get(p, 0) + 1
+                if hit_idx is not None:
+                    mention_count += 1
+                    ranks.append(hit_idx + 1)
+                    if len(citations) < 3:
+                        citations.append("AI 추천 목록 — " + " · ".join(f"{i + 1}. {p}" for i, p in enumerate(places)))
+            await asyncio.sleep(GEMINI_BATCH_SLEEP)
+
+        top_places = []
+        for pn, cnt in sorted(counter.items(), key=lambda kv: -kv[1])[:5]:
+            names = display.get(pn) or {pn: cnt}
+            top_places.append({"name": max(names.items(), key=lambda kv: kv[1])[0], "count": cnt})
+
+        return {
+            "platform": "gemini",
+            "probe": "recommend_v1",
+            "mentioned": mention_count > 0,
+            "exposure_freq": mention_count,
+            "exposure_rate": (mention_count / success_count) if success_count > 0 else 0.0,
+            "citations": citations,
+            "confidence": self._wilson_ci(mention_count, success_count),
+            "sample_size": success_count,
+            "requested_size": n,
+            "failed_count": n - success_count,
+            "queries_used": query_list,
+            "avg_rank": round(sum(ranks) / len(ranks), 1) if ranks else None,
+            "top_places": top_places,
+        }
+
     async def sample_100(self, queries: "str | list[str]", target: str) -> dict:
-        """100회 샘플링 — Full 스캔·scan_by_keywords 등 하위 호환 wrapper."""
-        return await self.sample_n(queries, target, n=100)
+        """100회 샘플링 — Full 스캔 하위 호환 wrapper. 비유도형 추천 프로브로 위임(2026-10-30)."""
+        return await self.sample_recommend(queries, target, n=100)
 
     async def sample_50(self, queries: "str | list[str]", target: str) -> dict:
-        """50회 샘플링 — Basic 자동 스캔 A안 50/50 분할 전용."""
-        return await self.sample_n(queries, target, n=50)
+        """50회 샘플링 — 비유도형 추천 프로브로 위임(2026-10-30)."""
+        return await self.sample_recommend(queries, target, n=50)
 
     async def _check(self, query: str, target: str) -> dict:
         prompt = f"""검색어: {query}
