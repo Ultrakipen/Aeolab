@@ -35,6 +35,25 @@ GEMINI_MAX_WAIT_SEC = float(os.getenv("GEMINI_MAX_WAIT_SEC", "120"))
 _next_slot = 0.0
 
 
+# Gemini 프롬프트에 개인정보를 넣지 않는다(2026-10-30 사용자 결정). 사업장 소개글 초안은 사장님이 쓴 글이라 전화번호·이메일 등이 섞일 수 있어
+# 조건 검색(_check_with_context)처럼 사용자 입력 텍스트를 보내는 지점은 이 함수를 거친다. 무료 등급은 입력이 제품 개선에 쓰일 수 있다(약관).
+_PII_PATTERNS = (
+    re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+"),                                    # 이메일
+    re.compile(r"\+82[-.\s]?\d{1,2}[-.\s]?\d{3,4}[-.\s]?\d{4}"),                    # 국제 표기 전화번호
+    re.compile(r"01[016-9][-.\s]?\d{3,4}[-.\s]?\d{4}"),                             # 휴대폰(010·011 등)
+    re.compile(r"0\d{1,2}[)\-.\s]\s?\d{3,4}[-.\s]\d{4}"),                           # 지역번호(구분자 필수 — "2020-2024" 같은 연도 범위는 건드리지 않는다)
+    re.compile(r"(?<!\d)\d{3}-\d{2}-\d{5}(?!\d)"),                                  # 사업자등록번호
+)
+
+
+def scrub_personal(text: str) -> str:
+    """전화번호·이메일·사업자등록번호를 제거한다(이름·주소 같은 자유 서술은 판별 불가라 건드리지 않는다)."""
+    out = text or ""
+    for pat in _PII_PATTERNS:
+        out = pat.sub("", out)
+    return out
+
+
 class GeminiBusy(Exception):
     """호출 대기열이 상한을 넘어 이번 호출을 포기했다 — API 호출이 일어나지 않았으므로 사용량 로그에 남기지 않는다."""
 
@@ -336,8 +355,8 @@ class GeminiScanner:
         학습 데이터가 없는 지역 소규모 사업체도 소개글·키워드를 제공하면
         Gemini가 해당 쿼리에 추천될 자격이 있는지 판단할 수 있다.
         """
-        kw_str = ", ".join((keywords or [])[:10])
-        intro_short = (intro or "")[:400]
+        kw_str = scrub_personal(", ".join((keywords or [])[:10]))
+        intro_short = scrub_personal((intro or "")[:400])
 
         context = f"\n사업장명: {target}"
         if intro_short:

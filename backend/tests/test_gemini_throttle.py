@@ -147,3 +147,37 @@ def test_blog_topics_call_is_throttled_with_short_wait_and_logged():
     import pathlib
     src = pathlib.Path(__file__).resolve().parents[1].joinpath("routers", "guide.py").read_text(encoding="utf-8")
     assert "_throttle(max_wait=10)" in src and '"blog_topics"' in src
+
+
+# ── 개인정보 미전송(scrub_personal) ──
+def test_scrub_personal_removes_phone_email_bizno():
+    t = "문의 010-1234-5678 / 055)123-4567 / 02.345.6789 mail me: owner@shop.co.kr 사업자 123-45-67890 창원 성산구 맛집"
+    out = gemini_scanner.scrub_personal(t)
+    for bad in ("010-1234-5678", "123-4567", "345.6789", "owner@shop.co.kr", "123-45-67890"):
+        assert bad not in out
+    assert "창원 성산구 맛집" in out   # 일반 서술은 유지
+
+
+def test_check_with_context_prompt_has_no_phone_or_email(monkeypatch):
+    sc = gemini_scanner.GeminiScanner()
+    seen = {}
+
+    class FakeModel:
+        def generate_content(self, prompt):
+            seen["p"] = prompt
+            raise RuntimeError("stop")   # 응답 처리까지 갈 필요 없다
+
+    sc.model = FakeModel()
+    monkeypatch.setattr(gemini_scanner, "GEMINI_MIN_INTERVAL", 0.0)
+    _run(sc._check_with_context("창원 한식 추천", "하라식당", intro="예약 010-9999-8888 hara@mail.com 직화 구이 전문", keywords=["한식", "010 1111 2222"]))
+    assert "p" in seen
+    for bad in ("010-9999-8888", "hara@mail.com", "1111 2222"):
+        assert bad not in seen["p"]
+    assert "직화 구이 전문" in seen["p"]
+
+
+def test_scrub_personal_keeps_year_ranges_and_prices():
+    t = "2020-2024년 운영, 가격 12000-15000원, 단체 20-30명, 전화 055-123-4567"
+    out = gemini_scanner.scrub_personal(t)
+    assert "2020-2024" in out and "12000-15000" in out and "20-30명" in out
+    assert "055-123-4567" not in out
