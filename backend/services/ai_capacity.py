@@ -24,7 +24,7 @@ PLAYBOOK = (
      "decide": False},
     {"from_pct": 90,
      "step": "Gemini 유료 결제를 연결하고 .env의 GEMINI_DAILY_LIMIT·GEMINI_MIN_INTERVAL을 새 한도에 맞춘다 "
-             "(유료 구독자 발생 시 결제한다는 계획)",
+             "(유료 구독자 발생 시 결제한다는 계획). 사용자 결정: GEMINI_MEASUREMENT_LIVE=true 복귀·프론트 재빌드는 무료 한도를 다 쓴 이 시점에 한다 — 복귀 전 야간 스캔의 gemini_result.probe=recommend_v1·sample_size 확인",
      "effect": "한도·분당 속도 제한이 올라가고 입력이 제품 개선에 쓰이지 않음(약관). 유료 한도·단가는 결제 후 AI Studio에서 확인 후 단가표에 추가",
      "decide": True},
     {"from_pct": 100,
