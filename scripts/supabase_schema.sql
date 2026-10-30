@@ -3188,3 +3188,29 @@ CREATE TABLE IF NOT EXISTS consistency_checks (
 CREATE INDEX IF NOT EXISTS idx_consistency_checks_user_day
   ON consistency_checks(user_id, kind, created_at DESC);
 ALTER TABLE consistency_checks ENABLE ROW LEVEL SECURITY;
+
+
+-- ===========================================================
+-- 2026-10-30: ai_usage_log 일별 롤업 (ai_usage_daily) — SQL Editor에서 수동 실행
+-- 배경: 호출마다 한 줄이라 사업장 300곳이면 하루 약 2.3만 줄(연 800만 줄). 매일 05:20 KST 잡(ai_usage_rollup_job)이 하루가 끝난 날의
+-- 원본을 (일·프로바이더·모델·목적)별로 합쳐 여기에 저장하고, 롤업과 원본 건수가 일치한 날만 보관 기간(기본 35일, AI_USAGE_LOG_RETENTION_DAYS)이
+-- 지난 원본을 지운다. 이 테이블이 없으면 잡은 아무것도 지우지 않고, 관리자 /ai-cost는 기존처럼 원본만 읽는다.
+-- 날짜(day)는 KST 기준이다.
+-- ===========================================================
+
+CREATE TABLE IF NOT EXISTS ai_usage_daily (
+  day            DATE    NOT NULL,
+  provider       TEXT    NOT NULL,
+  model          TEXT    NOT NULL,
+  purpose        TEXT    NOT NULL,              -- ':FAILED:...' 접미를 뗀 기본 목적
+  calls_ok       INTEGER NOT NULL DEFAULT 0,
+  calls_failed   INTEGER NOT NULL DEFAULT 0,
+  tokens_in      BIGINT  NOT NULL DEFAULT 0,
+  tokens_out     BIGINT  NOT NULL DEFAULT 0,
+  cost_krw       NUMERIC NOT NULL DEFAULT 0,
+  PRIMARY KEY (day, provider, model, purpose)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_usage_daily_day ON ai_usage_daily(day DESC);
+
+ALTER TABLE ai_usage_daily ENABLE ROW LEVEL SECURITY;   -- 서비스 키(백엔드)만 접근

@@ -1206,50 +1206,51 @@ async def get_ai_cost(
     /ai-usage(채널별 실행 횟수, scan_results 기반)와 별개 엔드포인트.
     """
     supabase = get_supabase()
-    cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
+    from services import ai_usage_rollup as _rollup
+    today = _rollup.kst_today()
+    first_day = today - timedelta(days=days - 1)
+    truncated = False
 
+    # 롤업(하루가 끝난 날)과 원본(롤업이 없는 날·오늘)을 합친다 — 원본만 읽으면 행 상한(10,000)으로 규모가 커질수록 조용히 과소집계된다.
+    # ai_usage_daily 테이블이 없으면(SQL 미실행) 기존처럼 원본만 읽는다.
+    rollup_rows: list[dict] = []
+    rolled_days: set = set()
+    rollup_ok = True
     try:
-        rows_res = await execute(
-            supabase.table("ai_usage_log")
-            .select("provider, model, purpose, tokens_in, tokens_out, estimated_cost_krw, created_at")
-            .gte("created_at", cutoff)
-            .limit(10000)
+        from services.db_paging import fetch_all_rows as _fetch_all
+        rollup_rows, _ = await _fetch_all(
+            lambda: supabase.table("ai_usage_daily").select("*")
+            .gte("day", first_day.isoformat()).lt("day", today.isoformat()).order("day"),
+            max_rows=50_000,
         )
-        rows = rows_res.data or []
+        rolled_days = {_rollup_date(r.get("day")) for r in rollup_rows}
+    except Exception as e:
+        rollup_ok = False
+        _logger.info("ai_cost: ai_usage_daily 조회 실패(테이블 미생성 가능성) — 원본만 사용: %s", e)
+
+    raw_start = first_day if not rollup_ok else min([d for d in (first_day + timedelta(days=i) for i in range(days)) if d not in rolled_days] or [today])
+    try:
+        start_iso = _rollup.day_bounds_utc(raw_start)[0]
+        # 서버는 .limit()과 무관하게 1,000행까지만 돌려주므로(예전 집계는 항상 1,000행에서 잘렸다) 페이지로 나눠 읽는다
+        from services.db_paging import fetch_all_rows
+        rows, truncated = await fetch_all_rows(
+            lambda: supabase.table("ai_usage_log")
+            .select("provider, model, purpose, tokens_in, tokens_out, estimated_cost_krw, created_at")
+            .gte("created_at", start_iso).order("created_at"),
+            max_rows=200_000,
+        )
     except Exception as e:
         _logger.warning("ai_cost: ai_usage_log 쿼리 실패(테이블 미생성 가능성): %s", e)
         rows = []
 
-    # Python에서 그룹별 집계 (Supabase 클라이언트가 GROUP BY 미지원)
-    by_combo: dict[tuple, dict] = {}
+    detail = _rollup.combine_cost_sources(rollup_rows, rows, rolled_days)
     by_provider: dict[str, dict] = {}
-
-    for row in rows:
-        provider = row.get("provider") or "unknown"
-        model = row.get("model") or "unknown"
-        purpose = row.get("purpose") or "unknown"
-        tokens_in = row.get("tokens_in") or 0
-        tokens_out = row.get("tokens_out") or 0
-        cost_krw = row.get("estimated_cost_krw") or 0.0
-
-        key = (provider, model, purpose)
-        if key not in by_combo:
-            by_combo[key] = {"provider": provider, "model": model, "purpose": purpose,
-                             "calls": 0, "tokens_in": 0, "tokens_out": 0, "cost_krw": 0.0}
-        by_combo[key]["calls"] += 1
-        by_combo[key]["tokens_in"] += tokens_in
-        by_combo[key]["tokens_out"] += tokens_out
-        by_combo[key]["cost_krw"] = round(by_combo[key]["cost_krw"] + cost_krw, 4)
-
-        if provider not in by_provider:
-            by_provider[provider] = {"calls": 0, "tokens_in": 0, "tokens_out": 0, "cost_krw": 0.0}
-        by_provider[provider]["calls"] += 1
-        by_provider[provider]["tokens_in"] += tokens_in
-        by_provider[provider]["tokens_out"] += tokens_out
-        by_provider[provider]["cost_krw"] = round(by_provider[provider]["cost_krw"] + cost_krw, 4)
-
-    # cost_krw 내림차순 정렬
-    detail = sorted(by_combo.values(), key=lambda x: x["cost_krw"], reverse=True)
+    for d in detail:
+        p = by_provider.setdefault(d["provider"], {"calls": 0, "tokens_in": 0, "tokens_out": 0, "cost_krw": 0.0})
+        p["calls"] += d["calls"]
+        p["tokens_in"] += d["tokens_in"]
+        p["tokens_out"] += d["tokens_out"]
+        p["cost_krw"] = round(p["cost_krw"] + d["cost_krw"], 4)
 
     total_cost = round(sum(r["cost_krw"] for r in detail), 4)
     total_calls = sum(r["calls"] for r in detail)
@@ -1260,7 +1261,15 @@ async def get_ai_cost(
         "total_cost_krw": total_cost,
         "by_provider": by_provider,
         "detail": detail,
+        "source": "rollup+raw" if rollup_ok else "raw",
+        "truncated": truncated,
     }
+
+
+def _rollup_date(v):
+    """ai_usage_daily.day(문자열 'YYYY-MM-DD')를 date로."""
+    from datetime import date as _d
+    return v if isinstance(v, _d) else _d.fromisoformat(str(v)[:10])
 
 
 # ─── 이메일 미리보기 / 테스트 발송 ────────────────────────────────────────────

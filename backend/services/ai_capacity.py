@@ -84,10 +84,9 @@ async def gemini_usage_snapshot(supabase=None) -> dict:
         failed = int(failed)
     except Exception as e:  # noqa: BLE001 — 집계 방식이 막히면 예전처럼 최근 행을 읽어 센다(상한 5,000)
         _logger.warning("[ai_capacity] count 집계 실패, 행 조회로 대체: %s", e)
-        res = await execute(base(supabase.table("ai_usage_log").select("purpose")).limit(5000))
-        rows = (res.data if res else None) or []
+        from services.db_paging import fetch_all_rows
+        rows, truncated = await fetch_all_rows(lambda: base(supabase.table("ai_usage_log").select("purpose")).order("created_at"), max_rows=50_000)
         ok, failed = split_counts(rows)
-        truncated = len(rows) >= 5000
     attempts = ok + failed   # 보수적으로 시도 전체를 한도 소진으로 본다(실패 중 429는 한도에 안 들어갈 수 있다)
     limit = gemini_daily_limit()
     pct = round(attempts / limit * 100, 1)

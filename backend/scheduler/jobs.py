@@ -373,6 +373,12 @@ def start_scheduler():
         id="ai_capacity_check", replace_existing=True,
         max_instances=1, misfire_grace_time=3600,
     )
+    # AI 사용량 로그 일별 롤업·보관 — 매일 05:20 KST(DB만 쓰는 잡, 네이버 접속 없음). ai_usage_daily 테이블이 없으면 아무것도 지우지 않는다
+    scheduler.add_job(
+        ai_usage_rollup_job, "cron", hour=5, minute=20,
+        id="ai_usage_rollup", replace_existing=True,
+        max_instances=1, misfire_grace_time=3600,
+    )
     scheduler.add_listener(_on_job_error, EVENT_JOB_ERROR)
     scheduler.start()
     logger.info("Scheduler started")
@@ -7187,29 +7193,23 @@ async def ai_daily_usage_alert_job() -> None:
     supabase = get_client()
     window_start = (datetime.utcnow() - timedelta(hours=24)).isoformat()
 
+    # 행을 읽어 세지 않고 프로바이더별로 서버에서 센다(count=exact) — 서버는 .limit()과 무관하게 한 번에 1,000행까지만 돌려줘서,
+    # 예전처럼 행을 읽어 세면 임계값(기본 3,000)에 영원히 도달하지 못했다.
+    stats: dict[str, dict[str, int]] = {}
     try:
-        rows = (
-            await _db(
-                supabase.table("ai_usage_log")
-                .select("provider, purpose")
-                .gte("created_at", window_start)
-                .limit(20000)
-            )
-        ).data or []
+        for provider in _AI_DAILY_WARN_THRESHOLDS:
+            _base = lambda q, p=provider: q.eq("provider", p).gte("created_at", window_start)   # noqa: E731
+            _tot = await _db(_base(supabase.table("ai_usage_log").select("id", count="exact")).limit(1))
+            _fail = await _db(_base(supabase.table("ai_usage_log").select("id", count="exact")).like("purpose", "%:FAILED%").limit(1))
+            total, failed = int(_tot.count or 0), int(_fail.count or 0)
+            if total:
+                stats[provider] = {"total": total, "failed": failed}
     except Exception as e:
         _logger.debug(f"[ai_daily_usage_alert] ai_usage_log 조회 실패(스킵): {e}")
         return
 
-    if not rows:
+    if not stats:
         return
-
-    stats: dict[str, dict[str, int]] = {}
-    for r in rows:
-        provider = r.get("provider") or "unknown"
-        s = stats.setdefault(provider, {"total": 0, "failed": 0})
-        s["total"] += 1
-        if ":FAILED:" in (r.get("purpose") or ""):
-            s["failed"] += 1
 
     today = date.today().isoformat()
     for provider, s in stats.items():
@@ -7448,6 +7448,22 @@ async def ai_capacity_check_job() -> None:
             for s in snap.get("next_steps", [])
         ),
     )
+
+
+async def ai_usage_rollup_job() -> None:
+    """`ai_usage_log`를 하루 단위로 합쳐 `ai_usage_daily`에 저장하고, 보관 기간(기본 35일)이 지난 원본을 지운다 — 매일 05:20 KST.
+
+    사업장 수가 늘면 호출 로그가 하루 수만 줄이 된다(300곳 약 2.3만). 삭제는 롤업과 원본 건수가 일치한 날만, 롤업 테이블이 없으면 아무것도 지우지 않는다
+    (services/ai_usage_rollup.py). `AI_USAGE_LOG_RETENTION_DAYS=0`이면 삭제 없이 롤업만 한다.
+    """
+    from db.supabase_client import get_client
+    from services.ai_usage_rollup import run_rollup_and_purge
+
+    try:
+        summary = await run_rollup_and_purge(get_client())
+        _logger.info(f"[ai_usage_rollup] 완료: {summary}")
+    except Exception as e:
+        _logger.warning(f"[ai_usage_rollup] 실패(다음 실행에서 이어서 처리): {e}")
 
 
 async def alert_pipeline_heartbeat_job() -> None:
