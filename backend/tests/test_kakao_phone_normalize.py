@@ -234,3 +234,12 @@ def test_notifier_does_not_call_nhn_for_ended_subscription_but_still_sends_statu
     asyncio.run(n.send_subscription_cancelled("01012345678", refunded=False))             # 해지 완료 안내는 보낸다
     asyncio.run(n.send_payment_failed("01012345678"))
     assert len(calls) == 2
+
+
+def test_value_length_limit_14_with_safe_fallbacks():
+    """승인 템플릿 변수 값은 14자 초과 시 -1028로 발송이 통째로 실패한다(2026-10-31 시험 발송). 긴 문장은 대체 문구로, 그 밖은 잘라서 보낸다."""
+    assert kn._short("가" * 14, "대체") == "가" * 14
+    assert kn._short("가" * 15, "대체") == "대체"
+    assert kn._short("", "대체") == "대체" and kn._short(None, "대체") == "대체"
+    out = kn._template_params({"#{사업장명}": "아주아주아주아주긴사업장이름입니다", "#{확인일시}": "2026-10-31"})
+    assert all(len(v) <= 14 for v in out.values()) and out["확인일시"] == "2026-10-31"

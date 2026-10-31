@@ -46,7 +46,10 @@ def _template_params(params: dict) -> dict:
     out = {}
     for k, v in (params or {}).items():
         m = re.fullmatch(r"#\{(.+)\}", str(k))
-        out[m.group(1) if m else k] = v
+        name = m.group(1) if m else k
+        v = "" if v is None else str(v)
+        # 마지막 안전망: 한도를 넘는 값은 발송 자체가 실패하므로(알림이 아예 안 감) 잘라서라도 보낸다. 긴 문장은 호출 쪽에서 _short로 미리 대체한다.
+        out[name] = v if len(v) <= _VALUE_MAX_CHARS else v[:_VALUE_MAX_CHARS - 1] + "…"
     return out
 
 
@@ -196,6 +199,13 @@ async def _email_fallback(
 
 
 _ACTION_LIST_MAX_CHARS = 14   # AEOLAB_ACTION_01 #{할일목록} 값 길이 한도(실측)
+_VALUE_MAX_CHARS = 14         # 승인 템플릿 변수 값 길이 한도 — 2026-10-31 시험 발송 실측: 14자 성공·15자 실패(-1028), ACTION·CITE·SCAN·GROWTH·NEWS 모두
+
+
+def _short(text, fallback: str) -> str:
+    """변수 값이 한도(14자)를 넘으면 문장을 자르지 않고(뜻이 바뀐다) 짧은 대체 문구를 쓴다."""
+    t = (text or "").strip()
+    return t if t and len(t) <= _VALUE_MAX_CHARS else fallback
 
 TEMPLATES = {
     "score_change":         "AEOLAB_SCORE_01",
@@ -279,7 +289,7 @@ class KakaoNotifier:
                 "#{사업장명}": biz_name,
                 "#{AI플랫폼}": platform,
                 "#{검색어}": query,
-                "#{인용내용}": excerpt[:50],
+                "#{인용내용}": _short(excerpt, "AI 답변에 언급됨"),
                 "#{확인일시}": date.today().strftime("%Y-%m-%d"),
             },
         )
@@ -331,7 +341,7 @@ class KakaoNotifier:
             {
                 "#{사업장명}": biz_name,
                 "#{업종}": category,
-                "#{시장동향}": news[:100],
+                "#{시장동향}": _short(news, "대시보드에서 확인"),
             },
         )
 
@@ -411,17 +421,18 @@ class KakaoNotifier:
     ):
         """경쟁사 역전 알림 (템플릿 코드: AEOLAB_COMP_02)"""
         gap_note = "근소한 차이로" if gap < 10 else "큰 격차로"
-        message = (
-            f"[AEOlab] {biz_name}\n\n"
-            f"해당 메시지는 고객님께서 가입하신 AEOlab AI 노출 모니터링의 경쟁사 비교 알림으로, "
-            f"경쟁사가 AI 검색 노출에서 앞선 것이 확인될 경우 발송됩니다.\n\n"
-            f"경쟁사 '{comp_name}'이(가) AI 검색에서 앞섰습니다!\n\n"
-            f"내 등급: {_grade(my_score)}\n"
-            f"{comp_name}: {_grade(comp_score)} ({gap_note} 앞서고 있어요)\n\n"
-            f"지금 바로 개선 가이드를 확인하고 역전하세요.\n"
-            f"https://aeolab.co.kr/guide"
+        # 승인 템플릿 변수로 보낸다(자유 문구 _send_raw 경로는 변수를 채우지 않아 승인 템플릿과 맞지 않았다 — 2026-10-31 콘솔 본문 대조)
+        await self._send(
+            phone,
+            "competitor_overtake",
+            {
+                "#{사업장명}": biz_name,
+                "#{경쟁사명}": comp_name,
+                "#{내등급}": _grade(my_score),
+                "#{경쟁사등급}": _grade(comp_score),
+                "#{격차설명}": gap_note,
+            },
         )
-        await self._send_raw(phone, message, template_code="AEOLAB_COMP_02")
 
     async def send_scan_complete(
         self, phone: str, biz_name: str, score: float, grade: str,
@@ -429,20 +440,19 @@ class KakaoNotifier:
     ):
         """스캔 완료 즉시 알림 (템플릿 코드: AEOLAB_SCAN_01)"""
         curr_grade = _grade(score)
-        change_emoji = "📈" if weekly_change > 0 else "📉" if weekly_change < 0 else "➡️"
-        grade_change_note = (
-            f"({grade} → {curr_grade})" if grade and grade != curr_grade else ""
+        grade_change_note = f"({grade} → {curr_grade})" if grade and grade != curr_grade else "(유지)"
+        await self._send(
+            phone,
+            "scan_complete",
+            {
+                "#{사업장명}": biz_name,
+                "#{현재등급}": curr_grade,
+                "#{등급변화메모}": grade_change_note,
+                "#{추세}": _grade_change(score - weekly_change, score),
+                "#{최다플랫폼}": top_platform or "AI 검색",
+                "#{개선포인트}": _short(top_improvement, "가이드에서 확인"),
+            },
         )
-        message = (
-            f"[AEOlab] {biz_name} AI 스캔 완료\n\n"
-            f"해당 메시지는 고객님께서 설정에서 켜신 스캔 완료 알림으로, AI 검색 노출 스캔이 완료될 경우 발송됩니다.\n\n"
-            f"📊 AI 노출 등급: {curr_grade} {grade_change_note}\n"
-            f"{change_emoji} 지난주 대비: {_grade_change(score - weekly_change, score)}\n"
-            f"✅ {top_platform}에서 가장 많이 언급됨\n"
-            f"💡 {top_improvement}\n\n"
-            f"aeolab.co.kr 에서 자세한 결과 확인"
-        )
-        await self._send_raw(phone, message, template_code="AEOLAB_SCAN_01")
 
     async def send_gap_card_url(self, phone: str, biz_name: str, card_url: str):
         """주간 갭 카드 PNG URL 알림 — 카카오톡 공유 유도"""
@@ -475,16 +485,18 @@ class KakaoNotifier:
             trend = "소폭 하락"
         else:
             trend = "하락 — 점검 필요"
-        message = (
-            f"[AEOlab] {month_str}월 성장 리포트\n"
-            f"사업장: {biz_name}\n\n"
-            f"📊 AI 가시성 변화: {trend}\n"
-            f"🔍 스캔 횟수: {scan_count}회\n"
-            f"💬 AI 인용: {citation_count}건\n\n"
-            f"전체 리포트 보기 →\n"
-            f"https://aeolab.co.kr/dashboard"
+        month = str(int(month_str)) if str(month_str).isdigit() else str(month_str)
+        await self._send(
+            phone,
+            "monthly_report",
+            {
+                "#{월}": month,
+                "#{사업장명}": biz_name,
+                "#{추세}": trend,
+                "#{스캔횟수}": str(scan_count),
+                "#{인용건수}": str(citation_count),
+            },
         )
-        await self._send_raw(phone, message, template_code="AEOLAB_MONTHLY_01")
 
     async def send_delivery_received(
         self, order_id: str, user_phone: str, package_name: str, business_name: str
@@ -679,17 +691,18 @@ class KakaoNotifier:
     ) -> bool:
         """처음으로 AI에 노출됐을 때 알림 — AEOLAB_CITE_01 재활용"""
         try:
-            await self._send(
+            resp = await self._send(
                 phone,
                 "ai_citation",
                 {
                     "#{사업장명}": biz_name,
                     "#{AI플랫폼}": platform,
                     "#{검색어}": "AI 검색",
-                    "#{인용내용}": "처음으로 AI 검색에 노출됐습니다. 스마트플레이스 최적화 효과!",
+                    "#{인용내용}": "처음 AI 노출 확인",
+                    "#{확인일시}": date.today().strftime("%Y-%m-%d"),
                 },
             )
-            return True
+            return _kakao_response_ok(resp)
         except Exception as e:
             masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
             logger.warning(f"send_first_exposure 실패 ({masked}): {e}")
@@ -710,7 +723,7 @@ class KakaoNotifier:
                 "#{사업장명}": biz_name,
                 "#{이전단계}": prev_stage,
                 "#{현재단계}": curr_stage,
-                "#{이번주추천}": this_week_action or "대시보드에서 맞춤 개선 가이드를 확인해보세요.",
+                "#{이번주추천}": _short(this_week_action, "개선 가이드 확인"),
             },
         )
 
