@@ -24,6 +24,36 @@ def _grade_label(score: float, rank: int = 0) -> str:
     return g
 
 
+def _kakao_response_ok(resp) -> bool:
+    """`KakaoNotifier._send`가 돌려준 응답이 실제 발송 성공인가.
+
+    HTTP 200이어도 본문 `header.isSuccessful`이 false면 실패다(예: resultCode -1031 "All of receivers are failed to send").
+    응답이 없으면(앱키 미설정으로 건너뜀 등) 성공이 아니다.
+    """
+    if resp is None:
+        return False
+    try:
+        if resp.status_code >= 400:
+            return False
+        return bool((resp.json().get("header") or {}).get("isSuccessful", True))
+    except Exception:
+        return getattr(resp, "status_code", 500) < 400
+
+
+def _kakao_failure_summary(resp) -> str:
+    """실패 응답의 원인 요약(전화번호는 넣지 않는다). 이전 로그는 본문 앞 200자만 남겨 수신자별 사유가 잘렸다."""
+    try:
+        j = resp.json()
+        header = j.get("header") or {}
+        results = (j.get("message") or {}).get("sendResults") or []
+        per = "; ".join(
+            f"seq{x.get('recipientSeq')}:{x.get('resultCode')} {str(x.get('resultMessage'))[:80]}" for x in results[:3]
+        )
+        return f"header={header.get('resultCode')} {header.get('resultMessage')} | {per}"
+    except Exception:
+        return str(getattr(resp, "text", ""))[:200]
+
+
 def _grade_change(prev: float, curr: float) -> str:
     """등급 변화 방향 텍스트."""
     pg, cg = _grade(prev), _grade(curr)
@@ -230,9 +260,10 @@ class KakaoNotifier:
             },
         )
 
-    async def send_action_items(self, phone: str, biz_name: str, items: list):
+    async def send_action_items(self, phone: str, biz_name: str, items: list) -> bool:
+        """이달 할 일 알림. 실제 발송 성공 여부를 돌려준다(호출자가 '발송됨'으로 기록해도 되는지 판단하게)."""
         items_text = "\n".join(f"• {item}" for item in items[:3])
-        await self._send(
+        resp = await self._send(
             phone,
             "action_items",
             {
@@ -241,13 +272,15 @@ class KakaoNotifier:
                 "#{기준일}": date.today().strftime("%Y-%m-%d"),
             },
         )
+        return _kakao_response_ok(resp)
 
-    async def send_post_remind(self, phone: str, biz_name: str, days: int = 14):
+    async def send_post_remind(self, phone: str, biz_name: str, days: int = 14) -> bool:
         """소식 N일 미작성 알림 (action_items 템플릿 재활용).
 
         AI 브리핑 적시성(Timeliness) 점수 유지 환기 — 14일 미작성 시 발송.
+        실제 발송 성공 여부를 돌려준다 — 이전에는 반환값이 없어 잡이 실패한 발송도 '발송됨'으로 기록했다(2026-10-31).
         """
-        await self.send_action_items(
+        return await self.send_action_items(
             phone,
             biz_name,
             [
@@ -733,7 +766,7 @@ class KakaoNotifier:
             if r.status_code >= 400 or not body_ok:
                 status = "failed"
                 kakao_failed = True
-                logger.warning(f"Kakao _send failed {r.status_code} ({ttype}): {r.text[:200]}")
+                logger.warning(f"Kakao _send failed {r.status_code} ({ttype}): {_kakao_failure_summary(r)}")
                 # AEOLAB_SCORE_01 발송 실패 시 이메일 fallback
                 if ttype == "score_change" and user_id:
                     template_code = TEMPLATES.get(ttype, "")

@@ -5799,7 +5799,12 @@ async def inactive_post_alert_job() -> None:
                 continue
 
             try:
-                await notifier.send_post_remind(phone, biz["name"], days=14)
+                delivered = await notifier.send_post_remind(phone, biz["name"], days=14)
+                if not delivered:
+                    # 실패한 발송을 '발송됨'으로 기록하지 않는다(2026-10-31: 78건이 전부 실패였는데 post_remind는 전부 sent로 남아 있었다).
+                    # 기록하지 않으면 14일 주기 판정에 안 잡혀 다음 실행에 다시 시도한다. 실패 사실은 _send가 action_items/failed로 이미 남긴다.
+                    logger.warning(f"[inactive_post_alert_job] 발송 실패(기록 안 함) biz={biz.get('id')}")
+                    continue
                 await _db(
                     supabase.table("notifications").insert({
                         "business_id": biz["id"],
