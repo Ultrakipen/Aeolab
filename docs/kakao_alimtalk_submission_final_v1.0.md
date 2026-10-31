@@ -192,6 +192,7 @@ aeolab.co.kr 에서 결제를 완료하면 즉시 재개됩니다.
 ```
 - **변수:** `#{환불금액}`(예: 11,900원)
 - **발송 함수:** `send_subscription_cancelled(refunded=True)` (`kakao_notify.py:321`)
+- **⚠️ 2026-10-31 정정:** 실제 비즈센터에는 `AEOLAB_CANCEL_01`이 **"환불 없음"** 문안으로 승인돼 있고(콘솔 확인), 환불 있음 템플릿은 **미등록**이다(사용자 확인). 이 절의 CANCEL_01/02 번호 배정은 실제와 반대다 — 환불 있음은 `AEOLAB_CANCEL_02`로 신규 신청하며 문안·검수 입력값은 `docs/kakao_alimtalk_sending_rules_2026_10_31.md` 참조. 승인 후 서버 `.env`에 `KAKAO_TEMPLATE_CANCEL_REFUND=AEOLAB_CANCEL_02`.
 
 ### 2-7. `AEOLAB_CANCEL_02` — 구독 해지 완료(환불 없음)
 
