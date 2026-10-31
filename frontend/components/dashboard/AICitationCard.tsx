@@ -119,8 +119,8 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
           아직 AI 언급 데이터가 없습니다. 측정을 완료하면 자동으로 분석됩니다.
         </p>
         <div className="mt-4 bg-amber-50 rounded-lg p-3">
-          <p className="text-sm font-semibold text-amber-800">AI가 아직 내 가게를 언급하지 않고 있습니다</p>
-          <p className="text-sm text-amber-700 mt-1">소개글 Q&A 추가와 키워드 보강이 도움이 될 수 있습니다.</p>
+          <p className="text-sm font-semibold text-amber-800">아직 측정된 AI 언급이 없습니다</p>
+          <p className="text-sm text-amber-700 mt-1">검색을 켠 ChatGPT·Gemini 화면에서는 다르게 나올 수 있습니다. 소개글 Q&A 추가와 키워드 보강이 도움이 될 수 있습니다.</p>
           <Link href="/guide" className="mt-2 inline-flex items-center text-sm font-semibold text-amber-800 hover:underline">
             지금 소개글 편집하러 가기 →
           </Link>
@@ -271,7 +271,11 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
       <div className="mt-4 pt-4 border-t border-gray-100">
         {mentionedCount === 0 ? (
           <div className="bg-amber-50 rounded-lg p-3 space-y-2">
-            <p className="text-sm font-semibold text-amber-800">AI가 아직 내 가게를 언급하지 않고 있습니다</p>
+            <p className="text-sm font-semibold text-amber-800">이번 측정에서는 AI 답변에서 내 가게가 확인되지 않았습니다</p>
+            <p className="text-sm text-amber-700">
+              이 측정은 검색 기능 없이 AI가 기억하는 내용을 보는 방식입니다. 검색을 켠 ChatGPT·Gemini 화면에서는 내 가게가 추천될 수 있으니,
+              같은 질문을 직접 해보고 확인해 보세요.
+            </p>
             <p className="text-sm text-amber-700">
               <strong>Gemini 개선</strong> — 구글 비즈니스 프로필 등록 후 <strong>2~4주 내 반영 시작</strong>, 안정적 언급까지 수개월 걸릴 수 있습니다.
             </p>

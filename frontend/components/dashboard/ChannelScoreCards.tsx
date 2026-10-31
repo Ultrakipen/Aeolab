@@ -167,6 +167,7 @@ export function ChannelScoreCards({
             </div>
             <p className="text-sm text-gray-600 mt-3 leading-relaxed">
               ChatGPT 측정은 AI 학습 데이터 기반이며 실시간 웹 검색 결과와 다를 수 있습니다.
+              측정에서 언급이 확인되지 않아도 검색을 켠 ChatGPT에서는 추천될 수 있습니다.
             </p>
           </div>
         </div>
