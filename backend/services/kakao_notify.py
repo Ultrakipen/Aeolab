@@ -199,6 +199,7 @@ async def _email_fallback(
 
 
 _ACTION_LIST_MAX_CHARS = 14   # AEOLAB_ACTION_01 #{할일목록} 값 길이 한도(실측)
+_FREE_TEXT_ENABLED = os.getenv("KAKAO_ALLOW_FREE_TEXT", "").strip().lower() in ("1", "true", "yes")   # 기본 꺼짐(위 _send_raw 주석)
 _VALUE_MAX_CHARS = 14         # 승인 템플릿 변수 값 길이 한도 — 2026-10-31 시험 발송 실측: 14자 성공·15자 실패(-1028), ACTION·CITE·SCAN·GROWTH·NEWS 모두
 
 
@@ -365,9 +366,9 @@ class KakaoNotifier:
         """유예 기간 중 자동결제 재시도 성공 알림 (승인 템플릿 AEOLAB_RESUME_01, 변수 없음)"""
         await self._send_delivery_template(phone=phone, template_code="AEOLAB_RESUME_01", params={}, log_tag="payment_recovered")
 
-    async def send_notice(self, phone: str, message: str):
-        """관리자 공지 발송"""
-        await self._send_raw(phone, f"[AEOlab 공지]\n{message}", template_code="AEOLAB_NOTICE_01")
+    async def send_notice(self, phone: str, message: str) -> bool:
+        """관리자 공지 발송. 실제 발송 성공이면 True(승인된 공지 템플릿이 없어 지금은 False)."""
+        return await self._send_raw(phone, f"[AEOlab 공지]\n{message}", template_code="AEOLAB_NOTICE_01")
 
     async def send_price_increase_notice(self, phone: str, regular_price: int):
         """첫 달 50% 할인 종료 D-3 사전고지 (legal_compliance_and_infra_resilience_audit_v1.0.md B축 P1).
@@ -396,8 +397,17 @@ class KakaoNotifier:
                 "현재 결제 기간 만료일까지 서비스를 계속 이용하실 수 있습니다."
             )
         if refunded:
-            # 환불 완료용 승인 템플릿은 확인하지 못했다(2026-10-31) — 기존 자유 문구 경로 유지(전달 여부 미확인)
-            await self._send_raw(phone, message, template_code="AEOLAB_NOTICE_01", gated=False)
+            # 환불 완료 안내 승인 템플릿은 아직 등록되지 않았다(2026-10-31, 사용자 확인) — 등록 후 코드를 환경변수에 넣으면 보낸다.
+            # 변수: #{환불금액}. 미설정이면 보내지 않고 기록한다(자유 문구는 전달되지 않는다).
+            refund_tmpl = os.getenv("KAKAO_TEMPLATE_CANCEL_REFUND", "").strip()
+            if refund_tmpl:
+                await self._send_delivery_template(
+                    phone=phone, template_code=refund_tmpl,
+                    params={"#{환불금액}": f"{refund_amount:,}원" if refund_amount else "결제 금액"}, log_tag="subscription_cancelled_refund",
+                )
+            else:
+                logger.warning("send_subscription_cancelled: 환불 안내 알림톡 템플릿 미등록(KAKAO_TEMPLATE_CANCEL_REFUND) — 발송 안 함")
+                self._log_notification(None, "subscription_cancelled_refund", {"reason": "template_not_registered"}, "skipped")
         else:
             await self._send_delivery_template(phone=phone, template_code="AEOLAB_CANCEL_01", params={}, log_tag="subscription_cancelled")
 
@@ -668,9 +678,9 @@ class KakaoNotifier:
                 status,
             )
 
-    async def send_text(self, phone: str, message: str):
-        """단문 텍스트 알림 발송 (SMS fallback)"""
-        await self._send_raw(phone, message, template_code="AEOLAB_NOTICE_01")
+    async def send_text(self, phone: str, message: str) -> bool:
+        """단문 텍스트 알림 발송. 실제 발송 성공이면 True."""
+        return await self._send_raw(phone, message, template_code="AEOLAB_NOTICE_01")
 
 
     async def send_first_exposure(
@@ -733,6 +743,13 @@ class KakaoNotifier:
         if gated and await _subscription_ended(phone):
             logger.info("_send_raw skipped: 서비스 기간이 끝난 계정")
             self._log_notification(None, "notice", {"text": text[:200]}, "skipped")
+            return False
+        if not _FREE_TEXT_ENABLED:
+            # 2026-10-31 시험 발송 실측: AEOLAB_NOTICE_01은 존재하지 않는 템플릿(-3003 Template does not exist)이고, 다른 승인 코드에 자유 문구를
+            # 얹으면 변수 불일치(-3004)로 실패한다 — 알림톡은 승인된 본문의 변수만 채울 수 있다. 매번 실패 요청을 보내지 않고 건너뛴다.
+            # 이 경로를 쓰던 알림은 승인 템플릿(_send 또는 _send_delivery_template)으로 옮기거나 새 템플릿을 등록한 뒤에 보낼 수 있다.
+            logger.warning("_send_raw 건너뜀: 자유 문구를 보낼 승인 템플릿이 없음 (template=%s)", template_code)
+            self._log_notification(None, "notice", {"text": text[:200], "reason": "no_approved_template"}, "skipped")
             return False
         app_key = os.getenv("KAKAO_APP_KEY", "")
         if not app_key:

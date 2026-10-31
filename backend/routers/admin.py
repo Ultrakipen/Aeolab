@@ -828,15 +828,19 @@ async def broadcast_kakao(message: str, owner_email: str = Depends(require_owner
 
     notifier = KakaoNotifier()
     sent = 0
+    failed = 0
     for uid in user_ids:
         phone = phone_map.get(uid)
         if phone:
             try:
-                await notifier.send_notice(phone, message)
-                sent += 1
+                if await notifier.send_notice(phone, message):
+                    sent += 1
+                else:
+                    failed += 1
             except Exception as e:
+                failed += 1
                 _logger.warning("kakao broadcast failed phone=%s: %s", f"{str(phone)[:3]}****{str(phone)[-2:]}", e)
-    return {"sent": sent}
+    return {"sent": sent, "failed": failed}
 
 
 # ────────────────────────────────────────────────────────────────

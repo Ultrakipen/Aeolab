@@ -57,6 +57,7 @@ def _notifier(monkeypatch, resp=None, exc=None, app_key="k"):
         return False
 
     monkeypatch.setattr(kn, "_subscription_ended", _gate_open)
+    monkeypatch.setattr(kn, "_FREE_TEXT_ENABLED", True)     # 자유 문구 경로 자체의 HTTP 처리 시험(기본은 꺼짐 — test_kakao_phone_normalize.py)
     monkeypatch.setattr(kn.httpx, "AsyncClient", _Client)
     n = kn.KakaoNotifier()
     monkeypatch.setattr(n, "_log_notification", lambda *a, **k: logs.append(a))   # DB에 쓰지 않는다

@@ -2451,7 +2451,11 @@ async def detect_new_competitors():
                     f"https://aeolab.co.kr/competitors"
                 )
 
-                await notifier.send_text(phone=phone, message=alert_msg)
+                delivered = await notifier.send_text(phone=phone, message=alert_msg)
+                if not delivered:
+                    # 발송되지 않았는데 이력을 남기면 '보냄'으로 오해한다(지침 9)
+                    logger.info("신규 경쟁사 알림 미발송(알림톡 승인 템플릿 없음): %s", biz.get("id"))
+                    continue
                 # 알림 이력 저장
                 await _db(
                     supabase.table("notifications").insert({
@@ -4761,15 +4765,8 @@ async def new_user_day7_rescan_job():
                         from services.kakao_notify import KakaoNotifier as _KN
                         _notifier = _KN()
                         biz_name = biz.get("name") or "내 가게"
-                        message = (
-                            f"[AEOlab] {biz_name}\n\n"
-                            "가입 7일차 자동 재스캔이 완료됐습니다.\n"
-                            "오늘의 추천 행동 1가지를 대시보드에서 확인하세요.\n\n"
-                            "→ aeolab.co.kr"
-                        )
-                        await _notifier._send_raw(
-                            phone, message, template_code="AEOLAB_ACTION_01"
-                        )
+                        # 승인 템플릿 AEOLAB_ACTION_01(이달 할 일)의 변수로 보낸다 — 값은 14자 이내(자유 문구는 전달되지 않는다)
+                        await _notifier.send_action_items(phone, biz_name, ["추천 행동 확인"])
                     except Exception as e:
                         logger.warning(f"[day7_rescan] 카카오 발송 실패 user={uid}: {e}")
 

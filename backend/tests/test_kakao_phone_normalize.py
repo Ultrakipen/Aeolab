@@ -263,3 +263,39 @@ def test_status_notices_use_approved_templates(monkeypatch):
     assert [c for c, _ in seen] == ["AEOLAB_EXPIRE_01", "AEOLAB_PAYFAIL_01", "AEOLAB_SUSPEND_01",
                                     "AEOLAB_RESUME_01", "AEOLAB_PRICEUP_01", "AEOLAB_CANCEL_01"]
     assert seen[0][1] == {"#{플랜명}": "BASIC", "#{잔여일}": "7"} and seen[4][1] == {"#{정상가}": "17,900"}
+
+
+def test_free_text_path_is_off_by_default_and_never_calls_nhn(monkeypatch):
+    """2026-10-31 실측: AEOLAB_NOTICE_01은 존재하지 않는 템플릿(-3003)이고 다른 코드에 자유 문구를 얹으면 -3004 — 매번 실패 요청을 보내지 않고 건너뛴다."""
+    calls = []
+
+    class _Client:
+        def __init__(self, *a, **k):
+            calls.append("client")
+
+    monkeypatch.setattr(kn.httpx, "AsyncClient", _Client)
+    monkeypatch.setenv("KAKAO_APP_KEY", "x")
+    monkeypatch.setattr(kn, "_FREE_TEXT_ENABLED", False)
+    n = kn.KakaoNotifier()
+    logged = []
+    monkeypatch.setattr(n, "_log_notification", lambda *a, **k: logged.append(a[-1]))
+    assert asyncio.run(n.send_text("01012345678", "hi")) is False
+    assert asyncio.run(n.send_notice("01012345678", "hi")) is False
+    assert calls == [] and logged == ["skipped", "skipped"]
+
+
+def test_refund_cancellation_waits_for_registered_template(monkeypatch):
+    seen = []
+
+    async def fake(self, phone, template_code, params, log_tag="delivery"):
+        seen.append((template_code, params))
+
+    monkeypatch.setattr(kn.KakaoNotifier, "_send_delivery_template", fake)
+    n = kn.KakaoNotifier()
+    monkeypatch.setattr(n, "_log_notification", lambda *a, **k: None)
+    monkeypatch.delenv("KAKAO_TEMPLATE_CANCEL_REFUND", raising=False)
+    asyncio.run(n.send_subscription_cancelled("01012345678", refunded=True, refund_amount=8950))
+    assert seen == []                                    # 템플릿 미등록이면 보내지 않는다
+    monkeypatch.setenv("KAKAO_TEMPLATE_CANCEL_REFUND", "AEOLAB_CANCEL_02")
+    asyncio.run(n.send_subscription_cancelled("01012345678", refunded=True, refund_amount=8950))
+    assert seen == [("AEOLAB_CANCEL_02", {"#{환불금액}": "8,950원"})]
