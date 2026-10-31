@@ -1,6 +1,7 @@
 import httpx
 import os
 import logging
+import re
 from datetime import date
 
 logger = logging.getLogger("aeolab")
@@ -22,6 +23,18 @@ def _grade_label(score: float, rank: int = 0) -> str:
     if rank > 0:
         return f"{g} · 업종 {rank}위"
     return g
+
+
+def _normalize_phone(phone) -> str:
+    """수신번호를 숫자만(01012345678)으로 정리. 휴대전화 형식이 아니거나 비어 있으면 빈 문자열.
+
+    프로필에는 '010-1234-5678'(하이픈)과 빈 값이 섞여 있는데, 이전에는 그대로 NHN에 보냈다(2026-10-31, 알림톡 전체 -1031 실패 조사).
+    NHN이 하이픈·빈 번호를 받아 주는지는 문서 원문으로 확인하지 못했으나, 형식을 맞추고 빈 번호는 보내지 않는 쪽이 안전하다.
+    """
+    digits = re.sub(r"\D", "", str(phone or ""))
+    if digits.startswith("82"):
+        digits = "0" + digits[2:]
+    return digits if re.fullmatch(r"01[0-9]\d{7,8}", digits) else ""
 
 
 def _kakao_response_ok(resp) -> bool:
@@ -587,6 +600,11 @@ class KakaoNotifier:
         _send()와 달리 TEMPLATES dict를 사용하지 않고 template_code를 직접 받음.
         실패 시 _logger.warning 기록 후 silently return (호출자 응답에 영향 없음).
         """
+        phone = _normalize_phone(phone)
+        if not phone:
+            logger.warning(f"[{log_tag}] 알림톡 건너뜀: 수신번호 없음 또는 형식 오류 (template={template_code})")
+            self._log_notification(None, log_tag, {"template": template_code}, "skipped")
+            return
         masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
         status = "sent"
         try:
@@ -683,6 +701,11 @@ class KakaoNotifier:
         반환값(2026-10-28): 이전에는 아무것도 돌려주지 않아 호출한 쪽이 실패를 성공으로 기록했다(별점 알림 잡이 실패한 알림을 '발송됨'으로
         남기고 영영 재시도하지 않음). 기존 호출처는 반환값을 쓰지 않으므로 동작은 그대로다.
         """
+        phone = _normalize_phone(phone)
+        if not phone:
+            logger.warning("_send_raw skipped: 수신번호 없음 또는 형식 오류")
+            self._log_notification(None, "notice", {"text": text[:200]}, "skipped")
+            return False
         app_key = os.getenv("KAKAO_APP_KEY", "")
         if not app_key:
             masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
@@ -731,6 +754,15 @@ class KakaoNotifier:
         Args:
             user_id: 이메일 fallback에 필요한 사용자 ID (None이면 fallback 불가).
         """
+        phone = _normalize_phone(phone)
+        if not phone:
+            logger.warning(f"_send skipped: 수신번호 없음 또는 형식 오류 (ttype={ttype})")
+            self._log_notification(None, ttype, dict(params), "skipped")
+            if ttype == "score_change" and user_id:
+                template_code = TEMPLATES.get(ttype, "")
+                if template_code:
+                    await _email_fallback(user_id, template_code, params)
+            return None
         app_key = os.getenv("KAKAO_APP_KEY", "")
         if not app_key:
             masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
