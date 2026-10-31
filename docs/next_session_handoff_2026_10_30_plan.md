@@ -36,6 +36,18 @@
 - pm2 로그 실제 경로는 `/var/log/pm2/backend-out.log`·`backend-error.log`(자정마다 `__<날짜>_00-00-00.log`로 회전). `~/.pm2/logs`는 옛 기록이라 보면 안 된다.
 - 지난밤 `guide_generator.py` f-string 문법 오류가 배포되어 서버가 잠시 기동 실패(다른 작업 창, `509c538`로 수정). 재발 방지로 `deploy_backend_files.sh`를 만들었다.
 
+### ⚠️ 알림톡 실발송 장애 (10-31 점검에서 발견, **원인 미확인 — 다음 세션 최우선**)
+- `notifications` 전체 이력(2026-04-28~10-31, 224건): 카카오 알림톡 경로 `action_items`·`notice`·`score_change`·`competitor`는 **성공 0건·실패 97건**. (`blog_analysis`·`competitor_change`·`new_competitor`·`day7_action`의 "성공"은 앱 내부 알림이며 카카오 발송이 아니다.)
+- 응답: HTTP 200, `header.resultCode -1031`, `"All of receivers are failed to send."`, `isSuccessful:false`. 공급자 NHN Cloud(`kakaotalk-bizmessage.api.nhncloudservice.com/alimtalk/v2.3`)의 오류 코드 페이지(요약 기준, 원문 미확인): -1031 = 요청한 전체 수신자 발송 실패. **원인은 수신자별 `sendResults[].resultCode`**에 있다 — 후보(요약 기준): 발신 프로필 차단 -1027·존재하지 않음 -2017·비활성 -1014, 템플릿 없음 -3003·상태 오류 -3005·본문 불일치 -3010, 번호 오류 -5000/-4019. 어느 것인지 **미확인**.
+- 대상에 **관리자 본인 번호가 포함**되어 있어 "고객 번호 오류"만으로는 설명되지 않는다. 대부분의 프로필은 전화번호가 비어 있다.
+- 조치함: 실패 로그가 수신자별 코드를 남기도록 수정(`kakao_notify._kakao_failure_summary`, 전화번호 미포함). **다음 실패 시도(매일 09:10 KST `inactive_post_alert_job` 등)의 `/var/log/pm2/backend-out.log`에서 `Kakao _send failed` 줄의 `seq1:<코드>`를 확인하면 원인이 나온다.**
+- 사용자 확인 필요: NHN Cloud 콘솔 > Notification > KakaoTalk Bizmessage의 발송 내역(requestId별 결과)·발신 프로필 상태·템플릿 승인 상태(`AEOLAB_ACTION_01` 등 변수명 일치 포함), 카카오 비즈센터의 발신 프로필 상태.
+- 이 장애는 지침 9번(알림톡 승인 템플릿과 코드 일치, 실패를 성공으로 기록하지 말 것)과 직결된다. 상업 오픈 전 해결 대상이다.
+
+### `inactive_post_alert_job` 수정 (같은 점검)
+- 멱등키에 매일 바뀌는 `cutoff_date`가 들어 "14일에 1회"가 매일 시도가 됐다(해지·만료 계정 사업장 2곳 9/30~10/31 32일 연속, 관리자 사업장 2곳 9일 연속, 총 82건). 그리고 발송이 실패해도 `post_remind`/`sent`로 기록했다. 최근 14일의 발송 기록으로 주기를 강제하고, `send_post_remind`가 성공 여부를 반환해 실패는 기록하지 않도록 고쳤다(테스트 4개, 변이 검증).
+- **사용자 결정 대기(10-29부터)**: 해지·만료 사용자에게 알림을 계속 보낼지. 알림 잡 약 17개가 구독 자격 확인 없이 보낸다. 권장은 서비스 기간이 끝난 계정 제외(광고성 정보 수신 동의 관련 법적 검토 포함).
+
 ### 도구 (장기 운영용)
 | 도구 | 용도 |
 |---|---|
