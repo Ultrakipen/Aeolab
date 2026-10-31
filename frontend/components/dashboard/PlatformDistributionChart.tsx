@@ -302,7 +302,7 @@ export function PlatformDistributionChart({
             return (
               <div className="mt-3 bg-blue-50 border border-blue-100 rounded-lg p-3">
                 <p className="text-sm text-blue-800 leading-relaxed">
-                  3개 AI 서비스 모두 미노출은 한국 소상공인의 일반적인 현재 상태입니다.<br />
+                  이번 측정에서는 3개 AI 서비스 모두 언급이 확인되지 않았습니다. ChatGPT·Gemini 측정은 검색을 켠 화면과 다를 수 있습니다.<br />
                   Gemini는 구글 비즈니스 프로필 등록 후 수주 내 개선 가능합니다.<br />
                   ChatGPT는 AI가 미리 공부한 자료 기반으로 단기 개선이 어렵습니다.<br />
                   Google 검색 노출은 실시간 검색 기반이라 웹사이트 검색 노출 개선이 반영되면 비교적 빠르게 변화합니다.

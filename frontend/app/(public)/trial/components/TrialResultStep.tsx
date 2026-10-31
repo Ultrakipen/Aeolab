@@ -276,8 +276,8 @@ function ScanConclusionCard({
           <div className="flex items-start gap-3 rounded-lg px-3 py-2.5 bg-blue-50 border border-blue-100">
             <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
             <p className="text-sm text-slate-600 break-keep leading-snug">
-              <strong className="text-slate-800">네이버 {naverMyRank}위인데 ChatGPT에 없는 건 정상입니다.</strong>{" "}
-              ChatGPT는 수개월~1년 주기로 AI 자료를 갱신하며, 네이버 검색 상위권인 가게도 대부분 아직 미인식 상태입니다. 네이버 상태를 유지하면 점차 반영됩니다.
+              <strong className="text-slate-800">네이버 {naverMyRank}위인데 이번 측정에서 ChatGPT 언급이 확인되지 않았습니다.</strong>{" "}
+              이 측정은 검색 기능 없이 ChatGPT가 기억하는 내용을 보는 방식이라, 검색을 켠 ChatGPT 화면에서는 가게가 추천될 수 있습니다. 같은 질문을 직접 해보고 확인해 보세요.
             </p>
           </div>
         )}
@@ -2104,11 +2104,11 @@ function ChatGPTResultCard({
             (ChatGPT는 학습 데이터 기반이라 스마트플레이스 소개글을 직접 읽지 않음. 네이버용 조치는 "할 일" 탭에 있음) */}
         {!mentioned && !(neighborhood && neighborhood.freq > 0) && (
           <div>
-            <p className="text-sm font-semibold text-gray-700 mb-1.5">왜 안 나오나요</p>
+            <p className="text-sm font-semibold text-gray-700 mb-1.5">이번 측정에서 확인되지 않은 이유</p>
             <ul className="space-y-1.5">
               <li className="flex items-start gap-2 text-sm text-gray-700 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
                 <span className="text-gray-600 shrink-0 mt-px">•</span>
-                <span className="break-keep">ChatGPT는 학습된 자료를 바탕으로 답합니다. 웹에서 가게 이름이 충분히 언급되지 않은 가게는 추천 목록에 오르기 어렵습니다.</span>
+                <span className="break-keep">이 측정은 ChatGPT가 학습한 자료를 바탕으로 합니다. 웹에서 가게 이름이 충분히 언급되지 않은 가게는 이 방식의 추천 목록에 오르기 어렵습니다. 검색을 켠 ChatGPT에서는 다르게 나올 수 있습니다.</span>
               </li>
               <li className="flex items-start gap-2 text-sm text-gray-700 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
                 <span className="text-gray-600 shrink-0 mt-px">•</span>
