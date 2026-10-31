@@ -395,6 +395,12 @@ def start_scheduler():
         id="ai_capacity_check", replace_existing=True,
         max_instances=1, misfire_grace_time=3600,
     )
+    # 알림톡 발송 성공률 점검 — 정기 알림 잡(09:10) 뒤 10:00 KST. 전부·절반 이상 실패하면 운영자 메일(10-31 성공 0건을 아무도 몰랐던 일 재발 방지)
+    scheduler.add_job(
+        alimtalk_delivery_check_job, "cron", hour=10, minute=0,
+        id="alimtalk_delivery_check", replace_existing=True,
+        max_instances=1, misfire_grace_time=3600,
+    )
     # AI 사용량 로그 일별 롤업·보관 — 매일 05:20 KST(DB만 쓰는 잡, 네이버 접속 없음). ai_usage_daily 테이블이 없으면 아무것도 지우지 않는다
     scheduler.add_job(
         ai_usage_rollup_job, "cron", hour=5, minute=20,
@@ -7502,6 +7508,56 @@ async def ai_capacity_check_job() -> None:
             f"- {s['step']} → {s['effect']}" + (" [사용자 결정 필요]" if s["decide"] else "")
             for s in snap.get("next_steps", [])
         ),
+    )
+
+
+async def alimtalk_delivery_check_job() -> None:
+    """최근 24시간 카카오 알림톡 성공·실패를 세어 이상이면 운영자에게 알린다 — 매일 10:00 KST. 같은 알림은 3일 안에 다시 보내지 않는다.
+
+    건너뜀(skipped)은 세지 않는다. 사용자에게 아무것도 보내지 않는 읽기 전용 점검이다.
+    """
+    from db.supabase_client import get_client
+    from services.alimtalk_health import assess_delivery
+    from services.email_sender import send_operator_alert
+
+    try:
+        rows = await _db_all(
+            lambda: get_client().table("notifications")
+            .select("status")
+            .eq("channel", "kakao")
+            .gte("created_at", (datetime.utcnow() - timedelta(hours=24)).isoformat())
+            .order("created_at")
+        )
+    except Exception as e:
+        _logger.warning(f"[alimtalk_delivery_check] 조회 실패(스킵): {e}")
+        return
+    sent = sum(1 for r in rows.data if r.get("status") == "sent")
+    failed = sum(1 for r in rows.data if r.get("status") == "failed")
+    reason = assess_delivery(sent, failed)
+    if not reason:
+        _logger.info(f"[alimtalk_delivery_check] 정상: 성공 {sent}·실패 {failed}")
+        return
+    subject = "알림톡 발송 이상"
+    try:
+        recent = (
+            await _db(
+                get_client().table("system_alerts")
+                .select("id")
+                .ilike("subject", f"%{subject}%")
+                .gte("created_at", (datetime.utcnow() - timedelta(days=3)).isoformat())
+                .limit(1)
+            )
+        ).data or []
+    except Exception as e:
+        _logger.debug(f"[alimtalk_delivery_check] dedup 조회 실패: {e}")
+        recent = []
+    if recent:
+        return
+    await send_operator_alert(
+        subject,
+        f"{reason}.\n\n"
+        "원인은 서버 로그에서 확인합니다: grep 'Kakao _send failed' /var/log/pm2/backend-out.log | tail — 수신자별 사유 코드(seq1:-3004 템플릿 변수, -1028 값 14자 초과, "
+        "-1027 발신 프로필, -3003 템플릿 없음 등)가 남습니다. 규칙은 docs/kakao_alimtalk_sending_rules_2026_10_31.md.",
     )
 
 
