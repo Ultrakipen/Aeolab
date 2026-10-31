@@ -241,6 +241,8 @@ async def get_market_overview(category: str, region: str):
         "competitor_count": count,
         "avg_score": avg_score,
         "competition_level": (
+            # 등록 사업장은 있지만 최근 30일 안에 측정된 점수가 없으면 "데이터 없음"이지 "기회 있음"이 아니다(창업 리포트와 같은 기준, 2026-10-31)
+            "측정 데이터 부족" if not scores else
             "매우 치열" if avg_score >= 70 else
             "치열" if avg_score >= 55 else
             "보통" if avg_score >= 40 else

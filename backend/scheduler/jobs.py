@@ -1060,6 +1060,9 @@ async def daily_scan_all():
                     "track1_score": score.get("track1_score"),
                     "track2_score": score.get("track2_score"),
                     "exposure_freq": result.get("gemini", {}).get("exposure_freq", 0),
+                    # 노출 횟수가 몇 번 중인지 — 이 값이 없으면 변화 기록 화면이 측정된 행도 "확인 전"으로 보인다(2026-10-31, 수동 스캔 3곳만 채우고 야간 경로를 빠뜨렸음).
+                    # Gemini를 측정하지 못했으면 50 등으로 꾸미지 않고 비워 둔다.
+                    "sample_size": (result.get("gemini") or {}).get("sample_size") or None,
                     "weekly_change": weekly_change,
                     "naver_channel_score": naver_channel,
                     "global_channel_score": global_channel,

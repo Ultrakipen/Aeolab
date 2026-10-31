@@ -79,6 +79,7 @@ async def main():
             print(f"  {'':<12} ⚠ Gemini 표본이 {gn}개로 적다 — 무료 등급 한도(일 500회·분당 약 15회) 소진 가능. 점수에는 실패 표본이 제외되고, 10개 미만+실패 10건 이상이면 항목 자체가 제외된다")
 
     print("\n[A3] 질의 노출(query_exposure) — 유도형 추가 호출을 중단했으므로 'recommend' 키만 있어야 한다 (scan_analytics 최신 full 행)")
+    print("     ※ 이 표는 **수동 풀스캔만** 기록한다(야간 스캔은 쓰지 않는다). 수동 스캔이 없었다면 옛 행만 보이는 것이 정상이다.")
     try:
         qa = (await execute(sb.table("scan_analytics").select("scanned_at,query_exposure").eq("scan_type", "full").order("scanned_at", desc=True).limit(3))).data or []
         for a in qa:

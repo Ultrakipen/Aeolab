@@ -88,3 +88,26 @@ def test_trend_is_exact_even_when_score_rows_exceed_the_server_row_cap(monkeypat
 
     full_recent_avg = (15 * 60.0 + 14 * 40.0) / 29        # 모든 행을 읽었을 때의 최근 평균
     assert result["score_trend"] == round(full_recent_avg - 45.0, 1)    # 상한에서 잘렸다면 오래된 낮은 점수가 빠져 더 높게 나온다
+
+
+def test_market_overview_without_recent_scores_is_not_labelled_as_opportunity(monkeypatch):
+    """등록 사업장은 있는데 최근 30일 안에 측정된 점수가 없으면 '기회 있음'(평균 0점)이 아니라 '측정 데이터 부족'이어야 한다 (2026-10-31)."""
+    region = "테스트동-시장개요"
+    biz = [{"id": f"m{i}", "region": region, "category": "cafe", "is_active": True} for i in range(5)]
+    old = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
+    scans = [{"id": f"s{i}", "business_id": f"m{i}", "total_score": 30.0, "scanned_at": old} for i in range(5)]   # 전부 90일 전
+
+    async def fake_execute(q):
+        return _Res(q.run())
+
+    async def fake_density(category, reg):
+        return {"available": False, "total_count": 0, "samples": []}
+
+    import services.local_search as ls
+    monkeypatch.setattr(sc, "execute", fake_execute)
+    monkeypatch.setattr(startup, "execute", fake_execute, raising=False)
+    monkeypatch.setattr(startup, "get_client", lambda: _DB({"businesses": biz, "scan_results": scans}), raising=False)
+    monkeypatch.setattr(ls, "get_market_density", fake_density)
+    result = asyncio.run(startup.get_market_overview("cafe", region))
+    assert result["competitor_count"] == 5
+    assert result["competition_level"] == "측정 데이터 부족"

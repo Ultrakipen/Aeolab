@@ -109,8 +109,9 @@ done
 say "⑤ 서버 문법 검사 통과"
 RESULT=$(ssh "$HOST" "cd $ROOT_REMOTE/backend && $ROOT_REMOTE/venv/bin/python -m pytest -q -x 2>&1 | tail -1")
 echo "$RESULT"
-if echo "$RESULT" | grep -q "failed\|error"; then
-  say "⑥ 서버 테스트 실패 — 재시작하지 않고 되돌립니다"; rollback; exit 1
+# 결과가 비었거나(SSH 실패 등) 'passed'가 없으면 통과로 보지 않는다 — 실패 문자열이 없다는 것만으로 통과 처리하면 빈 결과가 통과가 된다
+if ! echo "$RESULT" | grep -q "passed" || echo "$RESULT" | grep -q "failed\|error"; then
+  say "⑥ 서버 테스트 실패 또는 결과 확인 불가 — 재시작하지 않고 되돌립니다"; rollback; exit 1
 fi
 say "⑥ 서버 테스트 통과"
 
