@@ -37,6 +37,19 @@ def _normalize_phone(phone) -> str:
     return digits if re.fullmatch(r"01[0-9]\d{7,8}", digits) else ""
 
 
+def _template_params(params: dict) -> dict:
+    """templateParameter 키에서 '#{ }' 껍데기를 벗긴다 ('#{사업장명}' → '사업장명').
+
+    NHN Cloud API는 변수 이름만 받는다. 코드는 처음부터 '#{사업장명}' 형태로 보내 왔고, 2026-10-31 관리자 번호 시험 발송에서
+    껍데기가 있으면 변수를 다 채워도 -3004(Please check template parameter)로 실패하고 벗기면 성공했다(알림톡 전체 -1031 실패의 원인 중 하나).
+    """
+    out = {}
+    for k, v in (params or {}).items():
+        m = re.fullmatch(r"#\{(.+)\}", str(k))
+        out[m.group(1) if m else k] = v
+    return out
+
+
 def _kakao_response_ok(resp) -> bool:
     """`KakaoNotifier._send`가 돌려준 응답이 실제 발송 성공인가.
 
@@ -215,6 +228,8 @@ class KakaoNotifier:
                 "#{변화}": _grade_change(prev, curr),
                 "#{이전순위}": str(prev_r) if prev_r else "-",
                 "#{현재순위}": str(curr_r) if curr_r else "-",
+                # 승인된 AEOLAB_SCORE_01 본문이 요구하는 변수(2026-10-31 시험 발송 실측: 빠지면 -3004 "Please check template parameter")
+                "#{스캔일시}": date.today().strftime("%Y-%m-%d"),
             },
             user_id=user_id,
         )
@@ -616,7 +631,7 @@ class KakaoNotifier:
                         "senderKey": os.getenv("KAKAO_SENDER_KEY", ""),
                         "templateCode": template_code,
                         "recipientList": [
-                            {"recipientNo": phone, "templateParameter": params}
+                            {"recipientNo": phone, "templateParameter": _template_params(params)}
                         ],
                     },
                 )
@@ -785,7 +800,7 @@ class KakaoNotifier:
                         "senderKey": os.getenv("KAKAO_SENDER_KEY", ""),
                         "templateCode": TEMPLATES[ttype],
                         "recipientList": [
-                            {"recipientNo": phone, "templateParameter": params}
+                            {"recipientNo": phone, "templateParameter": _template_params(params)}
                         ],
                     },
                 )

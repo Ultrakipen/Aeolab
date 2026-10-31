@@ -42,3 +42,42 @@ def test_send_skips_api_when_phone_missing(monkeypatch):
     assert asyncio.run(notifier._send("", "action_items", {})) is None
     assert asyncio.run(notifier._send_raw("", "hi")) is False
     assert calls == []                       # 번호가 없으면 NHN을 부르지 않는다
+
+
+def test_template_params_strip_wrapper():
+    assert kn._template_params({"#{사업장명}": "a", "변화": "b"}) == {"사업장명": "a", "변화": "b"}
+
+
+def test_score_change_payload_uses_plain_keys_and_scan_date(monkeypatch):
+    """2026-10-31 시험 발송 실측: '#{변수}' 키는 -3004, 이름만 쓰고 스캔일시를 채우면 성공 (AEOLAB_SCORE_01)."""
+    sent = {}
+
+    class _Resp:
+        status_code = 200
+        text = "{}"
+
+        def json(self):
+            return {"header": {"isSuccessful": True}}
+
+    class _Client:
+        def __init__(self, *a, **k):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *a):
+            return False
+
+        async def post(self, url, headers=None, json=None):
+            sent["json"] = json
+            return _Resp()
+
+    monkeypatch.setattr(kn.httpx, "AsyncClient", _Client)
+    monkeypatch.setenv("KAKAO_APP_KEY", "x")
+    n = kn.KakaoNotifier()
+    monkeypatch.setattr(n, "_log_notification", lambda *a, **k: None)
+    asyncio.run(n.send_score_change("010-1234-5678", "가게", 50, 70, 5, 3))
+    rec = sent["json"]["recipientList"][0]
+    assert rec["recipientNo"] == "01012345678"
+    assert set(rec["templateParameter"]) == {"사업장명", "이전점수", "현재점수", "변화", "이전순위", "현재순위", "스캔일시"}
