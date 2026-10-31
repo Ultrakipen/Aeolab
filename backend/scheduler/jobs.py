@@ -1600,10 +1600,13 @@ async def weekly_kakao_notify():
         from db.supabase_client import get_client as _get_client_review, _db as _db_r
         from datetime import datetime, timedelta
         supabase_r = _get_client_review()
-        review_notif_result = await _db_all(
-            lambda: supabase_r.table("scan_results")
+        # ⚠️ 이 블록은 현재 발송되지 않는다(2026-10-31 확인: 최근 30일 스캔 33행 중 naver_result에 reviews/review_excerpts가 있는 행 0) — 스캐너가 이 키를 저장하지 않는다.
+        # 그래서 페이징으로 전체를 읽는 대신 원래대로 둔다(쓸모없는 7일치 JSON 전체 로드를 피함). 이 키를 저장하게 만들 때는 먼저 고쳐야 한다:
+        #  ①스캔 행마다 보내서 같은 사용자에게 주 최대 7번 중복 ②구독 자격 확인이 없음 ③승인 목록에 없는 AEOLAB_NOTICE_01 자유 문구로 발송.
+        review_notif_result = await _db_r(
+            supabase_r.table("scan_results")
             .select("business_id, naver_result, scanned_at")
-            .gte("scanned_at", (datetime.utcnow() - timedelta(days=7)).isoformat()).order("id")
+            .gte("scanned_at", (datetime.utcnow() - timedelta(days=7)).isoformat())
         )
         for row in (review_notif_result.data or []):
             try:
