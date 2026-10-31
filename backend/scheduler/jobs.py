@@ -5729,6 +5729,7 @@ async def inactive_post_alert_job() -> None:
         cutoff = datetime.now() - timedelta(days=14)
         cutoff_iso = cutoff.isoformat()
         cutoff_date = cutoff.date().isoformat()
+        resend_after_iso = (datetime.now(timezone.utc) - timedelta(days=14)).isoformat()
 
         # last_post_at < cutoff OR (last_post_at IS NULL AND created_at < cutoff)
         try:
@@ -5767,14 +5768,16 @@ async def inactive_post_alert_job() -> None:
                     except Exception as _e:
                         logger.warning(f"[inactive_post_alert_job] created_at 파싱 실패 — {_e}")
 
-            # 멱등키 체크 (14일에 1회만)
+            # 14일에 1회만: 최근 14일 안에 이 사업장에 이미 보냈으면 건너뛴다.
+            # 이전에는 멱등키(post_remind_{id}_{cutoff_date})만 봤는데 cutoff_date가 "오늘−14일"이라 매일 바뀌어 중복 방지가 되지 않았다
+            # (2026-10-31 실측: 해지·만료 계정 사업장 2곳이 9/30~10/31 32일 연속, 관리자 사업장 2곳이 9일 연속 매일 수신).
             idem_key = f"post_remind_{biz['id']}_{cutoff_date}"
             already = await _db(
                 supabase.table("notifications")
                 .select("id")
                 .eq("business_id", biz["id"])
                 .eq("type", "post_remind")
-                .eq("idempotency_key", idem_key)
+                .gte("sent_at", resend_after_iso)
                 .limit(1)
             )
             if already and already.data:
