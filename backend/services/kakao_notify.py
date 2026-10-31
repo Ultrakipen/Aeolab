@@ -50,6 +50,12 @@ def _template_params(params: dict) -> dict:
     return out
 
 
+async def _subscription_ended(phone: str) -> bool:
+    """해지·만료로 서비스 기간이 끝난 계정의 번호인가(services/notify_gate.py)."""
+    from services.notify_gate import is_blocked
+    return await is_blocked(phone)
+
+
 def _kakao_response_ok(resp) -> bool:
     """`KakaoNotifier._send`가 돌려준 응답이 실제 발송 성공인가.
 
@@ -335,7 +341,7 @@ class KakaoNotifier:
             phone,
             f"[AEOlab] {plan.upper()} 구독이 {days_left}일 후 만료됩니다.\n"
             f"자동 갱신이 설정된 경우 카드에서 결제됩니다.",
-            template_code="AEOLAB_NOTICE_01",
+            template_code="AEOLAB_NOTICE_01", gated=False,
         )
 
     async def send_payment_failed(self, phone: str):
@@ -344,7 +350,7 @@ class KakaoNotifier:
             phone,
             "[AEOlab] 구독 갱신 결제에 실패했습니다.\n"
             "3일 이내 결제 수단을 확인해주세요. 미결제 시 서비스가 정지됩니다.",
-            template_code="AEOLAB_NOTICE_01",
+            template_code="AEOLAB_NOTICE_01", gated=False,
         )
 
     async def send_suspended(self, phone: str):
@@ -353,7 +359,7 @@ class KakaoNotifier:
             phone,
             "[AEOlab] 미결제로 인해 서비스가 정지되었습니다.\n"
             "aeolab.co.kr 에서 결제를 완료하면 즉시 재개됩니다.",
-            template_code="AEOLAB_NOTICE_01",
+            template_code="AEOLAB_NOTICE_01", gated=False,
         )
 
     async def send_payment_recovered(self, phone: str):
@@ -362,7 +368,7 @@ class KakaoNotifier:
             phone,
             "[AEOlab] 결제가 정상 처리되어 구독이 계속 유지됩니다.\n"
             "이용해 주셔서 감사합니다.",
-            template_code="AEOLAB_NOTICE_01",
+            template_code="AEOLAB_NOTICE_01", gated=False,
         )
 
     async def send_notice(self, phone: str, message: str):
@@ -380,7 +386,7 @@ class KakaoNotifier:
             phone,
             f"[AEOlab] 3일 후부터 정상가 월 {regular_price:,}원으로 자동 결제됩니다.\n"
             f"첫 달 50% 할인 기간이 종료됩니다. 해지를 원하시면 설정 페이지에서 미리 처리해주세요.",
-            template_code="AEOLAB_NOTICE_01",
+            template_code="AEOLAB_NOTICE_01", gated=False,
         )
 
     async def send_subscription_cancelled(self, phone: str, refunded: bool, refund_amount: int | None = None):
@@ -397,7 +403,7 @@ class KakaoNotifier:
                 "[AEOlab] 구독 해지가 완료되었습니다.\n"
                 "현재 결제 기간 만료일까지 서비스를 계속 이용하실 수 있습니다."
             )
-        await self._send_raw(phone, message, template_code="AEOLAB_NOTICE_01")
+        await self._send_raw(phone, message, template_code="AEOLAB_NOTICE_01", gated=False)
 
     async def send_competitor_overtake(
         self, phone: str, biz_name: str, comp_name: str,
@@ -708,7 +714,7 @@ class KakaoNotifier:
             },
         )
 
-    async def _send_raw(self, phone: str, text: str, template_code: str = "AEOLAB_NOTICE_01") -> bool:
+    async def _send_raw(self, phone: str, text: str, template_code: str = "AEOLAB_NOTICE_01", gated: bool = True) -> bool:
         """알림톡 자유 메시지 발송 (SMS fallback 포함). 발송 성공이면 True, 실패·미설정(skipped)이면 False.
 
         NHN Cloud 알림톡 API v2.3: resendType=SMS로 템플릿 미승인 시에도 SMS 대체 발송.
@@ -719,6 +725,10 @@ class KakaoNotifier:
         phone = _normalize_phone(phone)
         if not phone:
             logger.warning("_send_raw skipped: 수신번호 없음 또는 형식 오류")
+            self._log_notification(None, "notice", {"text": text[:200]}, "skipped")
+            return False
+        if gated and await _subscription_ended(phone):
+            logger.info("_send_raw skipped: 서비스 기간이 끝난 계정")
             self._log_notification(None, "notice", {"text": text[:200]}, "skipped")
             return False
         app_key = os.getenv("KAKAO_APP_KEY", "")
@@ -777,6 +787,10 @@ class KakaoNotifier:
                 template_code = TEMPLATES.get(ttype, "")
                 if template_code:
                     await _email_fallback(user_id, template_code, params)
+            return None
+        if await _subscription_ended(phone):
+            logger.info("_send skipped: 서비스 기간이 끝난 계정 (ttype=%s)", ttype)
+            self._log_notification(None, ttype, dict(params), "skipped")
             return None
         app_key = os.getenv("KAKAO_APP_KEY", "")
         if not app_key:

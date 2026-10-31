@@ -53,6 +53,10 @@ def _notifier(monkeypatch, resp=None, exc=None, app_key="k"):
                 raise exc
             return resp
 
+    async def _gate_open(phone):          # 해지·만료 차단(notify_gate)은 test_kakao_phone_normalize.py에서 따로 시험
+        return False
+
+    monkeypatch.setattr(kn, "_subscription_ended", _gate_open)
     monkeypatch.setattr(kn.httpx, "AsyncClient", _Client)
     n = kn.KakaoNotifier()
     monkeypatch.setattr(n, "_log_notification", lambda *a, **k: logs.append(a))   # DB에 쓰지 않는다

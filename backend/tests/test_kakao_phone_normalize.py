@@ -124,3 +124,113 @@ def test_action_list_value_stays_within_14_chars(monkeypatch):
     assert len(v2) <= 14 and "미작성" in v2
     v3 = _capture_action_value(monkeypatch, lambda n: n.send_action_items("01012345678", "가게", ["사진 등록"]))
     assert v3 == "• 사진 등록"          # 짧으면 그대로
+
+
+# ── 해지·만료 계정 차단 (2026-10-31, 사용자 결정) ────────────────────────────────────────────────
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def _gate_open_by_default(monkeypatch):
+    async def _open(phone):
+        return False
+    monkeypatch.setattr(kn, "_subscription_ended", _open)
+
+
+def _gate_module():
+    import services.notify_gate as ng
+    ng._cache.update(at=0.0, phones=None)
+    return ng
+
+
+def test_gate_blocks_only_lapsed_subscribers(monkeypatch):
+    from datetime import datetime, timedelta, timezone
+    import db.supabase_client as sc
+    import services.db_paging as dp
+    ng = _gate_module()
+    past = (datetime.now(timezone.utc) - timedelta(days=3)).isoformat()
+    future = (datetime.now(timezone.utc) + timedelta(days=3)).isoformat()
+    subs = [
+        {"user_id": "expired", "status": "cancelled", "end_at": past},
+        {"user_id": "cancelled_but_paid_through", "status": "cancelled", "end_at": future},
+        {"user_id": "active", "status": "active", "end_at": future},
+        {"user_id": "shared_lapsed", "status": "cancelled", "end_at": past},
+    ]
+    profiles = [
+        {"user_id": "expired", "phone": "010-1111-1111"},
+        {"user_id": "cancelled_but_paid_through", "phone": "01022222222"},
+        {"user_id": "active", "phone": "010-3333-3333"},
+        {"user_id": "never_subscribed", "phone": "01044444444"},
+        {"user_id": "shared_lapsed", "phone": "01033333333"},      # 자격 있는 계정과 같은 번호 → 보낸다
+    ]
+
+    async def fake_all(build_query, max_rows=0):
+        return subs, False
+
+    async def fake_in(build_query, ids, chunk=150, max_rows=0):
+        return [p for p in profiles if p["user_id"] in set(ids)], False
+
+    monkeypatch.setattr(sc, "get_client", lambda: None)
+    monkeypatch.setattr(dp, "fetch_all_rows", fake_all)
+    monkeypatch.setattr(dp, "fetch_all_in_chunks", fake_in)
+    monkeypatch.delenv("NOTIFY_SUBSCRIPTION_GATE", raising=False)
+    monkeypatch.delenv("ADMIN_USER_IDS", raising=False)
+    blocked = lambda p: asyncio.run(ng.is_blocked(p))
+    assert blocked("010-1111-1111") is True          # 만료된 해지
+    assert blocked("01022222222") is False           # 해지했지만 만료일 전
+    assert blocked("01033333333") is False           # 활성 구독(같은 번호의 만료 계정이 있어도)
+    assert blocked("01044444444") is False           # 구독 이력 없음(체험) — 이 규칙의 대상 아님
+    assert blocked("+82 10-1111-1111") is True       # 표기 방식이 달라도 같은 번호
+
+
+def test_gate_fails_closed_when_lookup_fails(monkeypatch):
+    import services.db_paging as dp
+    ng = _gate_module()
+
+    async def boom(*a, **k):
+        raise RuntimeError("db down")
+
+    monkeypatch.setattr(dp, "fetch_all_rows", boom)
+    import db.supabase_client as sc
+    monkeypatch.setattr(sc, "get_client", lambda: None)
+    assert asyncio.run(ng.is_blocked("01012345678")) is True
+
+
+def test_notifier_does_not_call_nhn_for_ended_subscription_but_still_sends_status_notices(monkeypatch):
+    calls = []
+
+    class _Client:
+        def __init__(self, *a, **k):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *a):
+            return False
+
+        async def post(self, url, headers=None, json=None):
+            calls.append(json["templateCode"])
+
+            class _R:
+                status_code = 200
+                text = "{}"
+
+                def json(self_inner):
+                    return {"header": {"isSuccessful": True}}
+            return _R()
+
+    async def _blocked(phone):
+        return True
+
+    monkeypatch.setattr(kn.httpx, "AsyncClient", _Client)
+    monkeypatch.setattr(kn, "_subscription_ended", _blocked)
+    monkeypatch.setenv("KAKAO_APP_KEY", "x")
+    n = kn.KakaoNotifier()
+    monkeypatch.setattr(n, "_log_notification", lambda *a, **k: None)
+    assert asyncio.run(n.send_action_items("01012345678", "가게", ["a"])) is False       # 템플릿 알림 차단
+    assert asyncio.run(n._send_raw("01012345678", "x")) is False                         # 자유 문구 차단
+    assert calls == []
+    asyncio.run(n.send_subscription_cancelled("01012345678", refunded=False))             # 해지 완료 안내는 보낸다
+    asyncio.run(n.send_payment_failed("01012345678"))
+    assert len(calls) == 2
