@@ -106,7 +106,7 @@ export function MentionContextCard({ citation }: Props) {
           </div>
         )}
         <p className="text-sm text-gray-600">
-          이 검색어에서 아직 언급되지 않았습니다.{' '}
+          이번 측정에서는 이 검색어로 확인되지 않았습니다. 검색을 켠 AI 화면에서는 다를 수 있습니다.{' '}
           <span className="text-xs">온라인 콘텐츠가 쌓이면 수개월 내 개선됩니다.</span>
         </p>
       </div>
