@@ -81,3 +81,46 @@ def test_score_change_payload_uses_plain_keys_and_scan_date(monkeypatch):
     rec = sent["json"]["recipientList"][0]
     assert rec["recipientNo"] == "01012345678"
     assert set(rec["templateParameter"]) == {"사업장명", "이전점수", "현재점수", "변화", "이전순위", "현재순위", "스캔일시"}
+
+
+def _capture_action_value(monkeypatch, call):
+    sent = {}
+
+    class _Resp:
+        status_code = 200
+        text = "{}"
+
+        def json(self):
+            return {"header": {"isSuccessful": True}}
+
+    class _Client:
+        def __init__(self, *a, **k):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *a):
+            return False
+
+        async def post(self, url, headers=None, json=None):
+            sent["json"] = json
+            return _Resp()
+
+    monkeypatch.setattr(kn.httpx, "AsyncClient", _Client)
+    monkeypatch.setenv("KAKAO_APP_KEY", "x")
+    n = kn.KakaoNotifier()
+    monkeypatch.setattr(n, "_log_notification", lambda *a, **k: None)
+    asyncio.run(call(n))
+    return sent["json"]["recipientList"][0]["templateParameter"]["할일목록"]
+
+
+def test_action_list_value_stays_within_14_chars(monkeypatch):
+    """AEOLAB_ACTION_01 #{할일목록}은 14자 초과 시 -1028로 실패(2026-10-31 시험 발송: 14자 성공·15자 실패)."""
+    long_items = ["스마트플레이스 소식을 이번 주 안에 작성하세요", "대표 사진을 5장 이상 등록하세요", "소개글에 지역명을 넣으세요"]
+    v = _capture_action_value(monkeypatch, lambda n: n.send_action_items("01012345678", "가게", long_items))
+    assert len(v) <= 14 and "3건" in v
+    v2 = _capture_action_value(monkeypatch, lambda n: n.send_post_remind("01012345678", "가게", 14))
+    assert len(v2) <= 14 and "미작성" in v2
+    v3 = _capture_action_value(monkeypatch, lambda n: n.send_action_items("01012345678", "가게", ["사진 등록"]))
+    assert v3 == "• 사진 등록"          # 짧으면 그대로

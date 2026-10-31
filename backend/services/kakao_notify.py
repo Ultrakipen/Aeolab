@@ -189,6 +189,8 @@ async def _email_fallback(
         logger.warning("[email_fallback] send_email 예외: %s", send_e)
 
 
+_ACTION_LIST_MAX_CHARS = 14   # AEOLAB_ACTION_01 #{할일목록} 값 길이 한도(실측)
+
 TEMPLATES = {
     "score_change":         "AEOLAB_SCORE_01",
     "ai_citation":          "AEOLAB_CITE_01",
@@ -290,7 +292,12 @@ class KakaoNotifier:
 
     async def send_action_items(self, phone: str, biz_name: str, items: list) -> bool:
         """이달 할 일 알림. 실제 발송 성공 여부를 돌려준다(호출자가 '발송됨'으로 기록해도 되는지 판단하게)."""
+        # 승인된 AEOLAB_ACTION_01의 #{할일목록}은 14자를 넘으면 -1028("more than 14 characters in template value")로 실패한다
+        # (2026-10-31 시험 발송: 14자 성공·15자 실패). 긴 문장을 자르면 뜻이 바뀌므로 건수만 알리고 내용은 대시보드에서 보게 한다.
+        # 긴 목록을 보내려면 비즈센터에서 이 변수의 길이 제한이 없는 템플릿으로 재신청해야 한다.
         items_text = "\n".join(f"• {item}" for item in items[:3])
+        if len(items_text) > _ACTION_LIST_MAX_CHARS:
+            items_text = f"할 일 {min(len(items), 3)}건 확인 필요"
         resp = await self._send(
             phone,
             "action_items",
@@ -308,15 +315,8 @@ class KakaoNotifier:
         AI 브리핑 적시성(Timeliness) 점수 유지 환기 — 14일 미작성 시 발송.
         실제 발송 성공 여부를 돌려준다 — 이전에는 반환값이 없어 잡이 실패한 발송도 '발송됨'으로 기록했다(2026-10-31).
         """
-        return await self.send_action_items(
-            phone,
-            biz_name,
-            [
-                f"스마트플레이스 소식이 {days}일 동안 미작성입니다",
-                "AI 브리핑 적시성 점수 유지를 위해 이번 주 1건 등록 권장",
-                "메뉴 변경·이벤트·시즌 추천 중 하나로 작성하세요",
-            ],
-        )
+        # #{할일목록}은 14자 제한이라(send_action_items 주석) 긴 문장 3줄은 보낼 수 없다 — 사실만 짧게
+        return await self.send_action_items(phone, biz_name, [f"소식 {days}일 미작성"])
 
     async def send_market_news(self, phone: str, biz_name: str, category: str, news: str):
         await self._send(
