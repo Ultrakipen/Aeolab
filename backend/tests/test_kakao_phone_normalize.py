@@ -243,3 +243,23 @@ def test_value_length_limit_14_with_safe_fallbacks():
     assert kn._short("", "대체") == "대체" and kn._short(None, "대체") == "대체"
     out = kn._template_params({"#{사업장명}": "아주아주아주아주긴사업장이름입니다", "#{확인일시}": "2026-10-31"})
     assert all(len(v) <= 14 for v in out.values()) and out["확인일시"] == "2026-10-31"
+
+
+def test_status_notices_use_approved_templates(monkeypatch):
+    """구독 상태 안내는 자유 문구(NOTICE_01)가 아니라 승인 템플릿으로 간다(2026-10-31 콘솔 본문 대조, 시험 발송 전부 성공)."""
+    seen = []
+
+    async def fake(self, phone, template_code, params, log_tag="delivery"):
+        seen.append((template_code, params))
+
+    monkeypatch.setattr(kn.KakaoNotifier, "_send_delivery_template", fake)
+    n = kn.KakaoNotifier()
+    asyncio.run(n.send_expire_warning("01012345678", "basic", 7))
+    asyncio.run(n.send_payment_failed("01012345678"))
+    asyncio.run(n.send_suspended("01012345678"))
+    asyncio.run(n.send_payment_recovered("01012345678"))
+    asyncio.run(n.send_price_increase_notice("01012345678", 17900))
+    asyncio.run(n.send_subscription_cancelled("01012345678", refunded=False))
+    assert [c for c, _ in seen] == ["AEOLAB_EXPIRE_01", "AEOLAB_PAYFAIL_01", "AEOLAB_SUSPEND_01",
+                                    "AEOLAB_RESUME_01", "AEOLAB_PRICEUP_01", "AEOLAB_CANCEL_01"]
+    assert seen[0][1] == {"#{플랜명}": "BASIC", "#{잔여일}": "7"} and seen[4][1] == {"#{정상가}": "17,900"}

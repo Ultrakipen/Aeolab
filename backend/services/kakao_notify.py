@@ -217,6 +217,7 @@ TEMPLATES = {
     "scan_complete":        "AEOLAB_SCAN_01",
     "monthly_report":       "AEOLAB_MONTHLY_01",
     "growth_stage_up":      "AEOLAB_GROWTH_01",
+    "weekly_report":        "AEOLAB_WEEKLY_01",
     "notice":               "AEOLAB_NOTICE_01",
     # v3.1 키워드 변동 알림 (service_unification_v1.0.md §4.5)
     # 비즈센터 신청·승인 후 환경변수 KAKAO_TEMPLATE_KEYWORD_CHANGE 설정 필요. 미설정 시 "" → graceful skip
@@ -346,40 +347,23 @@ class KakaoNotifier:
         )
 
     async def send_expire_warning(self, phone: str, plan: str, days_left: int):
-        """구독 만료 D-7 알림"""
-        await self._send_raw(
-            phone,
-            f"[AEOlab] {plan.upper()} 구독이 {days_left}일 후 만료됩니다.\n"
-            f"자동 갱신이 설정된 경우 카드에서 결제됩니다.",
-            template_code="AEOLAB_NOTICE_01", gated=False,
+        """구독 만료 D-7 알림 (승인 템플릿 AEOLAB_EXPIRE_01: #{플랜명}·#{잔여일})"""
+        await self._send_delivery_template(
+            phone=phone, template_code="AEOLAB_EXPIRE_01",
+            params={"#{플랜명}": str(plan).upper(), "#{잔여일}": str(days_left)}, log_tag="expire_warning",
         )
 
     async def send_payment_failed(self, phone: str):
-        """자동결제 실패 알림"""
-        await self._send_raw(
-            phone,
-            "[AEOlab] 구독 갱신 결제에 실패했습니다.\n"
-            "3일 이내 결제 수단을 확인해주세요. 미결제 시 서비스가 정지됩니다.",
-            template_code="AEOLAB_NOTICE_01", gated=False,
-        )
+        """자동결제 실패 알림 (승인 템플릿 AEOLAB_PAYFAIL_01, 변수 없음)"""
+        await self._send_delivery_template(phone=phone, template_code="AEOLAB_PAYFAIL_01", params={}, log_tag="payment_failed")
 
     async def send_suspended(self, phone: str):
-        """구독 정지 알림"""
-        await self._send_raw(
-            phone,
-            "[AEOlab] 미결제로 인해 서비스가 정지되었습니다.\n"
-            "aeolab.co.kr 에서 결제를 완료하면 즉시 재개됩니다.",
-            template_code="AEOLAB_NOTICE_01", gated=False,
-        )
+        """구독 정지 알림 (승인 템플릿 AEOLAB_SUSPEND_01, 변수 없음)"""
+        await self._send_delivery_template(phone=phone, template_code="AEOLAB_SUSPEND_01", params={}, log_tag="suspended")
 
     async def send_payment_recovered(self, phone: str):
-        """유예 기간 중 자동결제 재시도 성공 알림"""
-        await self._send_raw(
-            phone,
-            "[AEOlab] 결제가 정상 처리되어 구독이 계속 유지됩니다.\n"
-            "이용해 주셔서 감사합니다.",
-            template_code="AEOLAB_NOTICE_01", gated=False,
-        )
+        """유예 기간 중 자동결제 재시도 성공 알림 (승인 템플릿 AEOLAB_RESUME_01, 변수 없음)"""
+        await self._send_delivery_template(phone=phone, template_code="AEOLAB_RESUME_01", params={}, log_tag="payment_recovered")
 
     async def send_notice(self, phone: str, message: str):
         """관리자 공지 발송"""
@@ -392,11 +376,9 @@ class KakaoNotifier:
         가입 시점 1회 안내(PayButton.tsx)만으로는 이 요건을 충족하는지 해석이 갈려
         실무 관행에 따라 증액 3일 전 별도 알림을 추가한다.
         """
-        await self._send_raw(
-            phone,
-            f"[AEOlab] 3일 후부터 정상가 월 {regular_price:,}원으로 자동 결제됩니다.\n"
-            f"첫 달 50% 할인 기간이 종료됩니다. 해지를 원하시면 설정 페이지에서 미리 처리해주세요.",
-            template_code="AEOLAB_NOTICE_01", gated=False,
+        await self._send_delivery_template(
+            phone=phone, template_code="AEOLAB_PRICEUP_01",
+            params={"#{정상가}": f"{regular_price:,}"}, log_tag="price_increase",
         )
 
     async def send_subscription_cancelled(self, phone: str, refunded: bool, refund_amount: int | None = None):
@@ -413,7 +395,11 @@ class KakaoNotifier:
                 "[AEOlab] 구독 해지가 완료되었습니다.\n"
                 "현재 결제 기간 만료일까지 서비스를 계속 이용하실 수 있습니다."
             )
-        await self._send_raw(phone, message, template_code="AEOLAB_NOTICE_01", gated=False)
+        if refunded:
+            # 환불 완료용 승인 템플릿은 확인하지 못했다(2026-10-31) — 기존 자유 문구 경로 유지(전달 여부 미확인)
+            await self._send_raw(phone, message, template_code="AEOLAB_NOTICE_01", gated=False)
+        else:
+            await self._send_delivery_template(phone=phone, template_code="AEOLAB_CANCEL_01", params={}, log_tag="subscription_cancelled")
 
     async def send_competitor_overtake(
         self, phone: str, biz_name: str, comp_name: str,
@@ -519,8 +505,8 @@ class KakaoNotifier:
             phone=user_phone,
             template_code=template,
             params={
-                "#{주문번호}": str(order_id)[:20],
-                "#{패키지명}": package_name,
+                "#{주문번호}": str(order_id)[:8],
+                "#{패키지명}": re.sub(r"^\d+\s*", "", str(package_name)),
                 "#{사업장명}": business_name,
             },
             log_tag="delivery_received",
@@ -552,8 +538,8 @@ class KakaoNotifier:
             phone=user_phone,
             template_code=template,
             params={
-                "#{주문번호}": str(order_id)[:20],
-                "#{패키지명}": package_name,
+                "#{주문번호}": str(order_id)[:8],
+                "#{패키지명}": re.sub(r"^\d+\s*", "", str(package_name)),
                 "#{사업장명}": business_name,
                 "#{예상일수}": str(expected_days),
             },
@@ -581,8 +567,8 @@ class KakaoNotifier:
             phone=user_phone,
             template_code=template,
             params={
-                "#{주문번호}": str(order_id)[:20],
-                "#{패키지명}": package_name,
+                "#{주문번호}": str(order_id)[:8],
+                "#{패키지명}": re.sub(r"^\d+\s*", "", str(package_name)),
                 "#{사업장명}": business_name,
             },
             log_tag="delivery_completed",
@@ -614,7 +600,7 @@ class KakaoNotifier:
             phone=user_phone,
             template_code=template,
             params={
-                "#{주문번호}": str(order_id)[:20],
+                "#{주문번호}": str(order_id)[:8],
                 "#{사업장명}": business_name,
                 "#{등급변화}": _grade_change(score_before, score_after),
             },
@@ -636,6 +622,10 @@ class KakaoNotifier:
         phone = _normalize_phone(phone)
         if not phone:
             logger.warning(f"[{log_tag}] 알림톡 건너뜀: 수신번호 없음 또는 형식 오류 (template={template_code})")
+            self._log_notification(None, log_tag, {"template": template_code}, "skipped")
+            return
+        if not os.getenv("KAKAO_APP_KEY", ""):
+            logger.warning(f"[{log_tag}] 알림톡 건너뜀: KAKAO_APP_KEY 미설정")
             self._log_notification(None, log_tag, {"template": template_code}, "skipped")
             return
         masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
@@ -885,15 +875,6 @@ class KakaoNotifier:
         grade_note = f"{prev_grade} → {curr_grade}" if curr_grade != prev_grade else curr_grade
         direction = "▲" if current_score > prev_score else ("▼" if current_score < prev_score else "→")
 
-        message = (
-            f"[AEOlab 주간 성적표]\n"
-            f"{business_name}\n\n"
-            f"해당 메시지는 고객님께서 가입하신 AEOlab AI 노출 모니터링 서비스의 주간 성적표 알림으로, 매주 정기 발송됩니다.\n\n"
-            f"이번 주 AI 노출 등급: {grade_note} {direction}\n\n"
-            f"이번 주 할 일:\n{top_action}\n\n"
-            f"자세한 분석 보기 → https://aeolab.co.kr/dashboard"
-        )
-
         app_key = os.getenv("KAKAO_APP_KEY", "")
         masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
 
@@ -906,8 +887,18 @@ class KakaoNotifier:
             return True
 
         try:
-            await self._send_raw(phone, message, template_code="AEOLAB_SCORE_01")
-            return True
+            # 승인 템플릿 AEOLAB_WEEKLY_01: #{사업장명}·#{등급변화}·#{추세방향}·#{할일} (이전에는 SCORE_01 코드로 자유 문구를 보냈다)
+            resp = await self._send(
+                phone,
+                "weekly_report",
+                {
+                    "#{사업장명}": business_name,
+                    "#{등급변화}": grade_note,
+                    "#{추세방향}": direction,
+                    "#{할일}": _short(top_action, "대시보드에서 확인"),
+                },
+            )
+            return _kakao_response_ok(resp)
         except Exception as e:
             logger.warning("send_weekly_score_report 실패 (%s): %s", masked, e)
             return False
