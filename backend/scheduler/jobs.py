@@ -5730,14 +5730,15 @@ async def inactive_post_alert_job() -> None:
 
         # last_post_at < cutoff OR (last_post_at IS NULL AND created_at < cutoff)
         try:
-            res = await _db(
-                supabase.table("businesses")
+            # 정렬 없는 limit(500)은 사업장이 500곳을 넘으면 어느 곳이 빠지는지 매번 달라진다 — 전부 읽는다
+            res = await _db_all(
+                lambda: supabase.table("businesses")
                 .select("id, user_id, name, last_post_at, created_at")
                 .or_(
                     f"last_post_at.lt.{cutoff_iso},last_post_at.is.null"
                 )
                 .eq("is_active", True)
-                .limit(500)
+                .order("id")
             )
         except Exception as col_err:
             if "last_post_at" in str(col_err) or "column" in str(col_err).lower():

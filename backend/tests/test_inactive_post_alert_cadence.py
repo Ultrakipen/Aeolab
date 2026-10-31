@@ -40,6 +40,9 @@ class _Query:
     def or_(self, *_):
         return self
 
+    def order(self, *_):
+        return self
+
     def eq(self, col, val):
         self.filters.append(lambda r: r.get(col) == val)
         return self
@@ -99,10 +102,14 @@ def _run(monkeypatch, notifications):
     async def fake_db(q):
         return q.run()
 
+    async def fake_db_all(build_query):
+        return build_query().run()
+
     monkeypatch.setattr(sc, "get_client", lambda: _DB(tables))
     monkeypatch.setitem(sys.modules, "services.kakao_notify", kn)
     monkeypatch.setattr(kn, "KakaoNotifier", _Notifier)
     monkeypatch.setattr(jobs, "_db", fake_db)
+    monkeypatch.setattr(jobs, "_db_all", fake_db_all)
     monkeypatch.setattr(jobs, "_KAKAO_CONFIGURED", True)
     asyncio.run(jobs.inactive_post_alert_job())
     return sent, tables
@@ -134,10 +141,14 @@ def test_running_the_job_twice_in_a_row_does_not_resend(monkeypatch):
     async def fake_db(q):
         return q.run()
 
+    async def fake_db_all(build_query):
+        return build_query().run()
+
     monkeypatch.setattr(sc, "get_client", lambda: _DB(tables))
     monkeypatch.setitem(sys.modules, "services.kakao_notify", kn)
     monkeypatch.setattr(kn, "KakaoNotifier", _Notifier2)
     monkeypatch.setattr(jobs, "_db", fake_db)
+    monkeypatch.setattr(jobs, "_db_all", fake_db_all)
     asyncio.run(jobs.inactive_post_alert_job())
     assert sent2 == []
 
@@ -158,10 +169,14 @@ def test_failed_delivery_is_not_recorded_as_sent(monkeypatch):
     async def fake_db(q):
         return q.run()
 
+    async def fake_db_all(build_query):
+        return build_query().run()
+
     monkeypatch.setattr(sc, "get_client", lambda: _DB(tables))
     monkeypatch.setitem(sys.modules, "services.kakao_notify", kn)
     monkeypatch.setattr(kn, "KakaoNotifier", _FailingNotifier)
     monkeypatch.setattr(jobs, "_db", fake_db)
+    monkeypatch.setattr(jobs, "_db_all", fake_db_all)
     monkeypatch.setattr(jobs, "_KAKAO_CONFIGURED", True)
     asyncio.run(jobs.inactive_post_alert_job())
     assert [n for n in tables["notifications"] if n.get("type") == "post_remind"] == []
