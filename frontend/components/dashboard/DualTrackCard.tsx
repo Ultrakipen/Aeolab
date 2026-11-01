@@ -457,6 +457,10 @@ export default function DualTrackCard({
     ? Math.round(aiExposureData.geminiFreq / aiExposureData.geminiSampleSize * 100)
     : null;
   const hasAiData = chatgptRate !== null || geminiRate !== null;
+  // 표본이 10회 미만이면 %로 보여 주지 않는다 — 1번 중 1번이 '100%'로 읽히면 과장이다(2026-11-01, DashboardGlobalAiZone과 같은 기준)
+  const LOW_SAMPLE = 10;
+  const chatgptLow = (aiExposureData?.chatgptSampleSize ?? 0) < LOW_SAMPLE;
+  const geminiLow = (aiExposureData?.geminiSampleSize ?? 0) < LOW_SAMPLE;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-5 space-y-3 md:space-y-4">
@@ -656,21 +660,19 @@ export default function DualTrackCard({
       {hasAiData && (
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 md:p-4">
           <p className="text-sm font-semibold text-blue-800 mb-2.5 flex items-center gap-1.5"><Bot className="w-4 h-4 shrink-0" aria-hidden="true" />AI 도구별 노출 현황 (실측)</p>
-          <p className="text-xs text-blue-600 mb-2.5 -mt-1">업종 키워드로 AI에 직접 물어봤을 때 가게명이 언급된 횟수입니다</p>
+          <p className="text-sm text-blue-700 mb-2.5 -mt-1 leading-relaxed break-keep">업종 키워드로 AI에 직접 물어봤을 때 가게명이 언급된 횟수입니다. ChatGPT는 같은 질문에 거의 같은 답을 해서 0%나 100%에 가깝게 나올 수 있어요.</p>
           <div className="space-y-2.5">
             {chatgptRate !== null && aiExposureData?.chatgptSampleSize ? (
               <div>
-                <div className="flex justify-between text-sm text-gray-700 mb-1">
-                  <span>ChatGPT</span>
-                  <span className="font-semibold">
-                    {chatgptRate}%
-                    <span className="text-xs text-gray-600 font-normal ml-1">
-                      ({aiExposureData.chatgptSampleSize}번 중 {aiExposureData.chatgptFreq}번 가게명 언급)
-                    </span>
-                  </span>
+                <div className="flex justify-between items-baseline gap-3 text-sm text-gray-700 mb-1">
+                  <span className="shrink-0">ChatGPT</span>
+                  <span className="font-semibold text-right">{chatgptLow ? "참고용" : `${chatgptRate}%`}</span>
                 </div>
+                <p className="text-sm text-gray-600 mb-1 break-keep">
+                  {aiExposureData.chatgptSampleSize}번 중 {aiExposureData.chatgptFreq}번 가게명 언급{chatgptLow ? " · 표본이 적어 참고용이에요" : ""}
+                </p>
                 <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${Math.min(100, chatgptRate)}%` }} />
+                  <div className={`h-full rounded-full ${chatgptLow ? "bg-gray-400" : "bg-blue-500"}`} style={{ width: `${Math.min(100, chatgptRate)}%` }} />
                 </div>
               </div>
             ) : (
@@ -681,17 +683,15 @@ export default function DualTrackCard({
             )}
             {geminiRate !== null && aiExposureData?.geminiSampleSize ? (
               <div>
-                <div className="flex justify-between text-sm text-gray-700 mb-1">
-                  <span>Google Gemini</span>
-                  <span className="font-semibold">
-                    {geminiRate}%
-                    <span className="text-xs text-gray-600 font-normal ml-1">
-                      ({aiExposureData.geminiSampleSize}번 중 {aiExposureData.geminiFreq}번 가게명 언급)
-                    </span>
-                  </span>
+                <div className="flex justify-between items-baseline gap-3 text-sm text-gray-700 mb-1">
+                  <span className="shrink-0">Google Gemini</span>
+                  <span className="font-semibold text-right">{geminiLow ? "참고용" : `${geminiRate}%`}</span>
                 </div>
+                <p className="text-sm text-gray-600 mb-1 break-keep">
+                  {aiExposureData.geminiSampleSize}번 중 {aiExposureData.geminiFreq}번 가게명 언급{geminiLow ? " · 표본이 적어 참고용이에요" : ""}
+                </p>
                 <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-purple-500 rounded-full" style={{ width: `${Math.min(100, geminiRate)}%` }} />
+                  <div className={`h-full rounded-full ${geminiLow ? "bg-gray-400" : "bg-purple-500"}`} style={{ width: `${Math.min(100, geminiRate)}%` }} />
                 </div>
               </div>
             ) : (
@@ -701,8 +701,8 @@ export default function DualTrackCard({
               </div>
             )}
           </div>
-          <p className="text-sm text-gray-600 mt-2.5 leading-relaxed">
-            ChatGPT는 AI가 미리 공부한 자료 기반 — 한국 소상공인은 낮은 점수가 일반적이며 단기 변동이 없습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.
+          <p className="text-sm text-gray-600 mt-2.5 leading-relaxed break-keep">
+            ChatGPT는 AI가 미리 공부한 자료 기반이라, 이번 측정에서 확인되지 않아도 검색을 켠 화면에서는 다를 수 있고 개선이 반영되기까지 오래 걸릴 수 있습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.
           </p>
         </div>
       )}

@@ -678,7 +678,7 @@ export default function AIDiagnosisCard({
         </div>
       )}
       <p className="text-sm text-gray-600 mt-3 leading-relaxed">
-        ChatGPT는 AI가 미리 공부한 자료를 바탕으로 하므로 한국 소상공인은 낮은 점수가 일반적이며 단기 변동이 없습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 반영이 시작될 수 있습니다.
+        ChatGPT는 AI가 미리 공부한 자료를 바탕으로 하므로, 이번 측정에서 확인되지 않아도 검색을 켠 화면에서는 다를 수 있고 개선이 반영되기까지 오래 걸릴 수 있습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 반영이 시작될 수 있습니다.
       </p>
     </div>
   );

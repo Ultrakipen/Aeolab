@@ -193,7 +193,7 @@ export default function ChatGPTDiffCard({
           )}
         </ul>
         <p className="mt-2 text-sm text-indigo-600 leading-snug">
-          <strong>측정 원리 차이:</strong> ChatGPT는 AI가 미리 공부한 자료 기반 — 한국 소상공인은 낮은 점수가 일반적이며 단기 변동이 없습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.
+          <strong>측정 원리 차이:</strong> ChatGPT는 AI가 미리 공부한 자료 기반이라, 이번 측정에서 확인되지 않아도 검색을 켠 화면에서는 다를 수 있고 개선이 반영되기까지 오래 걸릴 수 있습니다. Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영하므로, 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.
         </p>
       </div>
     </div>
