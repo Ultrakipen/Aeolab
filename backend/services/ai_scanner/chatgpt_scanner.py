@@ -309,6 +309,7 @@ class ChatGPTScanner:
         presence: dict[str, int] = {}   # 이름 → 그 이름이 등장한 표본 수(표본당 1회) — 경쟁사 노출 대조용
 
         all_results = list(cached_results)
+        pairs: list[tuple[str, dict]] = []   # (질의, 결과) — 질문별 일관성으로 유효 표본 수를 판단하는 데 쓴다
         for batch_start in range(0, len(task_queries), 10):
             batch_queries = task_queries[batch_start:batch_start + 10]
             results = await asyncio.gather(
@@ -317,6 +318,7 @@ class ChatGPTScanner:
             for q, r in zip(batch_queries, results):
                 if not isinstance(r, Exception):
                     probe_cache.store(f"chatgpt:{CHATGPT_MODEL}", q, r)
+                    pairs.append((q, r))
             all_results.extend(results)
             await asyncio.sleep(1.0)
 
@@ -350,6 +352,23 @@ class ChatGPTScanner:
             names = display.get(pn) or {pn: cnt}
             top_places.append({"name": max(names.items(), key=lambda kv: kv[1])[0], "count": cnt})
 
+        # 유효 표본 수 — 새 모델(gpt-6-luna)은 같은 질문에 거의 같은 답을 해서 100번 물어도 사실상 질문 수만큼의 관측이다.
+        # 질문마다 언급이 전부 있거나 전부 없으면(일관) 그 질문 하나를 독립 관측 1개로 보고 신뢰구간을 계산한다.
+        # 표본 100개로 "실제 언급 가능성 93~100%"라고 말하면 과장이다(2026-11-01). exposure_rate·점수 계산은 그대로 둔다.
+        eff_n, eff_k = success_count, mention_count
+        if not cached_results and success_count > 0:
+            per_q: dict[str, list[int]] = {}
+            for q, r in pairs:
+                if not r.get("_measured", True):
+                    continue
+                hit = any(self._name_matches(target_norm, self._norm_name(p)) for p in (r.get("places") or []))
+                a = per_q.setdefault(q, [0, 0])
+                a[0] += 1 if hit else 0
+                a[1] += 1
+            if per_q and all(h in (0, n) for h, n in per_q.values()):
+                eff_n = len(per_q)
+                eff_k = sum(1 for h, n in per_q.values() if h == n)
+
         # 표본별 등장 횟수 전체(상한 PLACE_COUNTS_CAP) — top_places(상위 5)로는 특정 경쟁사 노출을 판정할 수 없다
         place_counts = []
         for pn, cnt in sorted(presence.items(), key=lambda kv: (-kv[1], kv[0]))[:PLACE_COUNTS_CAP]:
@@ -364,7 +383,8 @@ class ChatGPTScanner:
             "exposure_freq": mention_count,
             "exposure_rate": (mention_count / success_count) if success_count > 0 else 0.0,
             "citations": citations,
-            "confidence": self._wilson_ci(mention_count, success_count),
+            "confidence": self._wilson_ci(eff_k, eff_n),
+            "effective_n": eff_n,
             "sample_size": success_count,
             "requested_size": n,
             "failed_count": n - success_count,

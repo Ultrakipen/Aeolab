@@ -805,6 +805,9 @@ export default function TrialResultStep(props: TrialResultProps) {
     (chatgptResult as { avg_rank?: number | null } | undefined)?.avg_rank ?? null;
   const chatgptConfidence =
     (chatgptResult as { confidence?: { lower: number; upper: number } } | undefined)?.confidence;
+  // 같은 질문에 거의 같은 답이 나오면 표본 수만큼의 독립 관측이 아니다 — 백엔드가 질문별 일관성으로 유효 관측 수를 계산해 준다
+  const chatgptEffectiveN =
+    (chatgptResult as { effective_n?: number } | undefined)?.effective_n;
   // 동네·역 이름으로 물은 ChatGPT 결과(없으면 null). "미노출" 같은 단정은 구 이름 결과만이 아니라 두 결과를 함께 보고 한다.
   const nbGroup = (result as { chatgpt_neighborhood?: TrialChatgptGroup | null }).chatgpt_neighborhood ?? null;
   const nbName = nbGroup?.neighborhood ?? "";
@@ -1509,6 +1512,7 @@ export default function TrialResultStep(props: TrialResultProps) {
               isSmartPlace={isSmartPlace}
               missingKws={effectiveMissingKws}
               confidence={chatgptConfidence}
+              effectiveN={chatgptEffectiveN}
               exposureFreq={chatgptResult?.exposure_freq}
               neighborhood={hasNb ? { name: nbName, freq: nbFreq, sample: nbSample } : null}
             />
@@ -1993,6 +1997,7 @@ function ChatGPTResultCard({
   isSmartPlace,
   missingKws,
   confidence,
+  effectiveN,
   exposureFreq,
   neighborhood,
 }: {
@@ -2005,6 +2010,8 @@ function ChatGPTResultCard({
   exposureFreq?: number;
   sampleSize: number;
   confidence?: { lower: number; upper: number };
+  /** 서로 다른 질문 기준 유효 관측 수 — sampleSize보다 작으면 답이 거의 같아 표본이 독립이 아니라는 뜻 */
+  effectiveN?: number;
   hasFaq?: boolean;
   hasIntro?: boolean;
   isSmartPlace?: boolean;
@@ -2081,7 +2088,10 @@ function ChatGPTResultCard({
         {confidence && sampleSize > 0 && (
           <div>
             <p className="text-sm font-semibold text-gray-700 mb-1.5 break-keep">
-              {sampleSize}회 표본 기준, 실제 언급 가능성은 약 {Math.round(confidence.lower * 100)}~
+              {effectiveN !== undefined && effectiveN > 0 && effectiveN < sampleSize
+                ? `같은 질문에는 ChatGPT가 거의 같은 답을 해서, 서로 다른 질문 ${effectiveN}개 기준으로 보면`
+                : `${sampleSize}회 표본 기준,`}{" "}
+              실제 언급 가능성은 약 {Math.round(confidence.lower * 100)}~
               {Math.round(confidence.upper * 100)}% 범위입니다
             </p>
             <div className="relative h-3 rounded-full bg-slate-200" aria-hidden="true">

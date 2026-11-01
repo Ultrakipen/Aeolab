@@ -151,3 +151,49 @@ def test_no_hardcoded_legacy_model_in_call_sites():
 def test_usage_price_table_knows_the_new_model():
     from services.ai_usage_logger import _estimate_cost_krw
     assert _estimate_cost_krw("chatgpt", "gpt-6-luna", 1_000_000, 1_000_000) == round((0.10 + 0.50) * 1400, 4)
+
+
+# ── 유효 표본 수(effective_n): 결정적 응답에서 신뢰구간 과장 방지 (2026-11-01) ─────────────────────────────
+
+def _sample(monkeypatch, answers_by_query, n):
+    """answers_by_query: 질의 → 호출 순서대로 돌려줄 place 리스트들(순환)."""
+    sc = cs.ChatGPTScanner()
+    counters = {q: 0 for q in answers_by_query}
+
+    async def fake_once(query):
+        seq = answers_by_query[query]
+        i = counters[query]
+        counters[query] += 1
+        return {"places": list(seq[i % len(seq)]), "_measured": True}
+
+    async def no_sleep(_):
+        return None
+
+    monkeypatch.setattr(sc, "_recommend_once", fake_once)
+    monkeypatch.setattr(asyncio, "sleep", no_sleep)
+    return _run(sc.sample_recommend(list(answers_by_query), "내가게", n=n))
+
+
+def test_deterministic_answers_count_as_one_observation_per_query(monkeypatch):
+    r = _sample(monkeypatch, {"q1": [["내가게", "A"]], "q2": [["내가게", "B"]]}, n=40)
+    assert r["sample_size"] == 40 and r["exposure_rate"] == 1.0   # 점수 계산용 비율은 그대로
+    assert r["effective_n"] == 2
+    assert r["confidence"]["lower"] < 0.4                           # 2개 관측 기준(Wilson 2/2 ≈ 0.34), 40/40의 0.91이 아니다
+
+
+def test_deterministic_absence_is_not_reported_as_tight_zero(monkeypatch):
+    r = _sample(monkeypatch, {"q1": [["A"]], "q2": [["B"]]}, n=40)
+    assert r["exposure_rate"] == 0.0 and r["effective_n"] == 2
+    assert r["confidence"]["upper"] > 0.6                           # 0/2 기준(≈0.66), 0/40의 0.09가 아니다
+
+
+def test_varied_answers_keep_the_full_sample_for_the_interval(monkeypatch):
+    # 한 질문에서 언급이 섞이면(일관하지 않음) 표본이 실제로 서로 다른 답이라고 보고 전체 표본을 쓴다
+    r = _sample(monkeypatch, {"q1": [["내가게"], ["A"]]}, n=40)
+    assert r["effective_n"] == r["sample_size"] == 40
+    assert r["confidence"]["upper"] - r["confidence"]["lower"] < 0.35
+
+
+def test_inconsistency_in_one_query_disables_the_reduction(monkeypatch):
+    r = _sample(monkeypatch, {"q1": [["내가게"]], "q2": [["내가게"], ["A"]]}, n=40)
+    assert r["effective_n"] == r["sample_size"]
