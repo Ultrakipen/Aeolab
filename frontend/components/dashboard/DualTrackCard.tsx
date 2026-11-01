@@ -641,8 +641,8 @@ export default function DualTrackCard({
       />
       {/* Track 2 면책 문구 — AI 데이터 유무와 무관하게 항상 표시 */}
       <p className="text-sm text-gray-600 -mt-1 leading-relaxed px-1">
-        한국 소상공인 포함률이 낮아 두 AI 서비스 모두 낮은 점수가 일반적입니다. Gemini는 구글 검색 실시간 연동으로 수 주~수개월 내 개선되지만,
-        ChatGPT는 AI가 미리 공부한 자료 기반이라 개선 반영까지 수개월~1년 소요됩니다. Google AI Overview(구글 검색 상단 AI 요약)는 구글 비즈니스 프로필 등록 후 수 주 내 개선 시작 가능합니다.
+        이번 측정에서는 두 AI 서비스에서 내 가게가 잘 확인되지 않을 수 있습니다(검색을 켠 화면에서는 다를 수 있음). Gemini는 구글 검색 실시간 연동으로 수 주~수개월 내 개선이 시작될 수 있지만,
+        ChatGPT는 AI가 미리 공부한 자료 기반이라 개선 반영까지 수개월~1년이 걸릴 수 있습니다. Google AI Overview(구글 검색 상단 AI 요약)는 구글 비즈니스 프로필 등록 후 수 주 내 개선 시작 가능합니다.
       </p>
 
       {/* 집중 채널 추천 */}

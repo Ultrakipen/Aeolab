@@ -214,8 +214,8 @@ export default function AICitationCard({ bizId, token, briefingEligibility, plat
                 </p>
               ) : c.platform === 'chatgpt' ? (
                 <p className="text-sm text-gray-600 italic">
-                  ChatGPT가 미리 공부한 자료에 아직 포함되지 않았습니다.
-                  한국 소상공인 ChatGPT 평균 언급률 약 1~3%(추정) — 현재 수준이 일반적입니다.
+                  이번 측정(ChatGPT가 미리 공부한 자료 기반)에서는 내 가게가 확인되지 않았습니다.
+                  검색을 켠 ChatGPT 화면에서는 다르게 나올 수 있고, 가게·질문·시점에 따라 달라질 수 있습니다.
                 </p>
               ) : c.platform === 'gemini' ? (
                 <p className="text-sm text-gray-600 italic">

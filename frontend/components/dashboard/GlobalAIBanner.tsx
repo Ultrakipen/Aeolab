@@ -24,7 +24,7 @@ export function GlobalAIBanner({ globalScore, hasWebsite, eligibility }: GlobalA
           </p>
           <p className="text-sm text-amber-700 leading-relaxed mb-3">
             <strong>Gemini(구글 AI)는 구글 비즈니스 프로필 정보를 반영합니다. 지금 등록하면 2~4주 내 인식이 개선될 수 있습니다.</strong>{' '}
-            ChatGPT는 과거에 학습한 자료를 기반으로 단기 변동이 없으며, 한국 소상공인은 낮은 점수가 일반적입니다.
+            ChatGPT는 과거에 학습한 자료를 기반으로 단기 변동이 적고, 이 측정에서는 낮게 나올 수 있습니다(검색을 켠 화면에서는 다를 수 있음).
             지금 바로 할 수 있는 것: <strong>Google 비즈니스 프로필 등록</strong>
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
