@@ -117,7 +117,9 @@ def test_retry_only_converts_skip_days_and_is_wired_into_the_daily_scan():
     src = inspect.getsource(jobs.daily_scan_all)
     assert '_scan_mode == "skip" and await _naver_retry_due_for(' in src
     assert "_is_naver_retry = True" in src and "_is_naver_retry = False" in src
-    assert "if _scan_notify_ok and not _is_naver_retry:" in src          # 재시도 스캔은 '스캔 완료' 알림을 다시 보내지 않는다
+    # 재시도 스캔은 '스캔 완료' 알림을 다시 보내지 않는다. 같은 조건에 '비교 가능(_cmp_ok)'이 더해졌다(2026-11-02:
+    # 네이버 측정이 빠진 스캔이 비교에 끼면 등급 변화 메모·추세가 가짜가 되므로 보내지 않는다 — tests/test_naver_block_drill.py)
+    assert "if _scan_notify_ok and not _is_naver_retry and _cmp_ok:" in src
 
 
 def test_daily_scan_all_keeps_its_naver_batch_decorator():

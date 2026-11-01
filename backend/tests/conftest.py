@@ -26,3 +26,17 @@ def _isolate_naver_state_files(tmp_path, monkeypatch):
     _g.reset_rate_for_tests()
     _g.reset_search_for_tests()
     _cc.reset_cache_for_tests()
+
+
+@pytest.fixture(autouse=True)
+def _never_upload_gap_card_to_real_storage(monkeypatch):
+    """알림 함수(jobs._send_kakao_notifications) 5단계는 갭 카드 PNG를 만들어 Supabase Storage(before-after 버킷)에 올린다.
+    서버처럼 환경변수가 로드된 곳에서 테스트가 돌면 가짜 사업장 ID로 운영 Storage에 파일이 생기므로 모든 테스트에서 업로드를 막는다
+    (2026-11-02: 서버 Storage를 읽기 전용으로 확인해 지금까지 올라간 파일은 없었다 — 우연히 안 올라갔을 뿐 막는 장치는 없었다).
+    """
+    import services.gap_card as _gc
+
+    async def _stub(*a, **k):
+        return None
+
+    monkeypatch.setattr(_gc, "generate_and_upload_gap_card", _stub)

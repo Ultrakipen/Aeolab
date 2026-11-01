@@ -1069,10 +1069,24 @@ async def daily_scan_all():
                     .limit(1)
                 )
                 prev_history = _prev_res.data or []
+                # 네이버 측정이 빠진 스캔(오늘 또는 직전)의 점수는 항목이 제외·재정규화돼 측정 성공일과 같은 척도가 아니다(시험: 64.5 ↔ 54.6).
+                # 그 점수 차이를 하락/개선/등급 변화/역전/단계 상승으로 기록·알리지 않는다 — 차단이 풀린 다음 날 반대 방향 가짜 변화도 막는다.
+                # _tonight_measured: 오늘 점수만 문제인 신호(경쟁사 역전), _cmp_ok: 직전과의 비교가 필요한 신호. 확인 못 하면 알리지 않는 쪽(services/change_signal_guard).
+                _tonight_measured = False
+                _cmp_ok = False
+                try:
+                    from services.naver_batch_health import naver_failure_reason as _nfr
+                    from services.change_signal_guard import comparable_scans, recent_naver_unmeasured_flags
+                    _tonight_measured = _nfr(_naver_result) is None
+                    _cmp_ok = _tonight_measured and comparable_scans(await recent_naver_unmeasured_flags(supabase, biz["id"]))
+                except Exception as _cg_e:
+                    logger.warning("[daily_scan_all] 변화 비교 가능 여부 판정 실패(변화 알림·기록 생략) biz=%s: %s", biz.get("id"), _cg_e)
+                if not _cmp_ok:
+                    logger.info("[daily_scan_all] 네이버 측정이 빠진 스캔이 비교에 섞여 점수 변화 기록·알림을 생략 biz=%s (오늘 측정=%s)", biz.get("id"), _tonight_measured)
                 weekly_change = 0.0
                 # 같은 날 재스캔이면 prev_history가 오늘자 자기 자신이 되어 노이즈가 "주간 변화"로
                 # 둔갑함 — 같은 날짜면 비교 보류(0.0). (2026-08-09 점검, scan.py 3곳과 동일 원인)
-                if prev_history and prev_history[0].get("score_date") != today_str:
+                if _cmp_ok and prev_history and prev_history[0].get("score_date") != today_str:
                     weekly_change = round(score["total_score"] - prev_history[0]["total_score"], 2)
                 _history_row: dict = {
                     "business_id": biz["id"],
@@ -1154,7 +1168,8 @@ async def daily_scan_all():
 
                 # ── 스캔 완료 즉시 알림 (AEOLAB_SCAN_01) ────────────────────────────
                 # 네이버 재시도 스캔은 이틀 연속 같은 알림을 보내지 않는다(알림은 최소 빈도, 지침 8번)
-                if _scan_notify_ok and not _is_naver_retry:
+                # 본문의 '현재 등급·등급 변화 메모·추세'가 직전 점수와의 비교로 만들어지므로, 네이버 측정이 빠진 스캔이 끼면 가짜 하락/개선이 나간다 → 보내지 않는다
+                if _scan_notify_ok and not _is_naver_retry and _cmp_ok:
                     try:
                         from services.kakao_notify import KakaoNotifier as _KN0, _grade as _kn_grade
                         _prev_grade = ""
@@ -1223,6 +1238,10 @@ async def daily_scan_all():
                             if not coverage_allows_stage_alert(_cov):
                                 _hysteresis_blocked = True
                                 logger.info(f"[GrowthStage] 점수가 일부 항목만으로 계산돼(coverage={_cov}) 단계 상승 알림 생략 biz={biz.get('id')}")
+                            # 오늘 또는 직전 스캔의 네이버 측정이 빠졌다면 단계 변화는 측정 공백일 수 있다(coverage 가드는 네이버 2항목 제외 시 0.5라 통과한다)
+                            if not _cmp_ok:
+                                _hysteresis_blocked = True
+                                logger.info(f"[GrowthStage] 네이버 측정이 빠진 스캔이 비교에 섞여 단계 상승 알림 생략 biz={biz.get('id')}")
                             if _scan_notify_ok and not _rescored and is_stage_upgrade(prev_stage.stage, current_stage.stage):
                                 try:
                                     from services.stage_names import upgrade_alert_allowed, STAGE_UPGRADE_LOOKBACK_DAYS
@@ -1264,13 +1283,15 @@ async def daily_scan_all():
                         old_unified = float(_uni_old if _uni_old is not None else (prev_history[0].get("total_score") or 0))
                     else:
                         old_unified = 0.0
-                    await _auto_log_score_change(supabase, biz["id"], new_unified, old_unified)
+                    if _cmp_ok:     # 네이버 측정이 빠진 스캔이 끼면 점수 차이는 변화가 아니다
+                        await _auto_log_score_change(supabase, biz["id"], new_unified, old_unified)
                 except Exception as _ale:
                     logger.warning(f"auto_log_score 호출 실패 biz={biz.get('id')}: {_ale}")
 
                 # ── 경쟁사 역전 자동 로그 + 카카오 알림 (AEOLAB_COMP_02) ────────────
                 try:
-                    if competitor_scores:
+                    # 오늘 네이버 측정이 빠졌다면 내 점수가 낮게 나와 경쟁사가 '앞선 것'처럼 보인다 — 역전 기록·알림 생략
+                    if competitor_scores and _tonight_measured:
                         _uni_my = score.get("unified_score")
                         my_s = float(_uni_my if _uni_my is not None else (score.get("total_score") or 0))
                         for _cid, _cdata in competitor_scores.items():
@@ -1356,12 +1377,17 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
         # 임계값 0→3점: Pro/Biz는 매일 스캔+매일 알림 잡이 실행되어 측정 노이즈 수준의
         # 미세 변동(예: 0.1점)에도 매일 카톡이 발송되던 문제 — 체감 가능한 변화에만 알림
         if abs(curr_h["total_score"] - prev_h["total_score"]) >= 3:
-            await notifier.send_score_change(
-                phone, biz_name,
-                prev_h["total_score"], curr_h["total_score"],
-                prev_h.get("rank_in_category", 0),
-                curr_h.get("rank_in_category", 0),
-            )
+            # 비교하는 두 점수 중 하나라도 네이버 측정이 빠진 스캔의 점수면 변화가 아니다(차단·캡차·상한 때의 재정규화 점수; 확인 못 하면 보내지 않는다)
+            from services.change_signal_guard import comparable_scans, recent_naver_unmeasured_flags
+            if comparable_scans(await recent_naver_unmeasured_flags(supabase, biz_id)):
+                await notifier.send_score_change(
+                    phone, biz_name,
+                    prev_h["total_score"], curr_h["total_score"],
+                    prev_h.get("rank_in_category", 0),
+                    curr_h.get("rank_in_category", 0),
+                )
+            else:
+                logger.info("[score_change] 네이버 측정이 빠진 스캔이 비교에 섞여 점수 변화 알림 생략 biz=%s", biz_id)
 
     # 2. AI 인용 실증 알림 (최근 1일 신규 인용 첫 건)
     if phone and scan_notify_on:
