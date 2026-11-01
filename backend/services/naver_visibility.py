@@ -30,12 +30,48 @@ def _strip_html(text: str) -> str:
     )
 
 
+# 등록 이름에만 붙어 있고 네이버 표시명에는 없을 수 있는 일반 표기(위치가 아닌 것): 본점·본사·지점 등과 법인 표기.
+# 위치 지점명(강남역점·마산점)은 뜻이 달라지므로 여기에 넣지 않는다 — 다른 지점을 내 가게로 세면 안 된다.
+_GENERIC_TAIL_RE = re.compile(r"(본점|본사|본관|직영점|분점|지점)$")
+_CORP_MARK_RE = re.compile(r"(\(주\)|㈜|주식회사|유한회사)")
+_LOCATION_BRANCH_TAIL_RE = re.compile(r"(?<!본)(?<!직영)[가-힣0-9]{1,6}점$")
+
+
+def _name_core(norm_name: str) -> str:
+    """정규화된 이름에서 법인 표기와 끝의 일반 표기(본점·본사 등)를 걷어낸 핵심 이름."""
+    core = _CORP_MARK_RE.sub("", norm_name)
+    core = _GENERIC_TAIL_RE.sub("", core)
+    return core
+
+
+_RAW_GENERIC_TAIL_RE = re.compile(r"\s*(본점|본사|본관|직영점|분점|지점)\s*$")
+_RAW_CORP_MARK_RE = re.compile(r"\s*(\(주\)|㈜|주식회사|유한회사)\s*")
+
+
+def _search_names(business_name: str) -> list[str]:
+    """네이버 지역검색에 넣을 이름 후보 — 등록한 이름 그대로, 그리고 '본사·본점·(주)'를 뗀 핵심 이름.
+
+    검색어에 '본사' 같은 표기가 들어가면 네이버가 결과를 하나도 돌려주지 않는 경우가 있다(실측: '법무법인 리얼로펌 본사' → [],
+    '법무법인 리얼로펌' → 창원·부산 사무소). 그러면 실제로 있는 가게가 '네이버에 없음'으로 판정된다.
+    """
+    name = (business_name or "").strip()
+    out = [name] if name else []
+    core = _RAW_GENERIC_TAIL_RE.sub("", _RAW_CORP_MARK_RE.sub(" ", name)).strip()
+    if core and core != name and len(re.sub(r"\s", "", core)) >= 3:
+        out.append(core)
+    return out
+
+
 def _name_matches(target: str, candidate: str) -> bool:
     """내 가게명이 검색결과 업체명과 동일한지 판단.
     단방향 매칭: target(내 가게명) in candidate(검색결과명) 방향만 허용.
     접두어 오매칭 방지: candidate에 접두어가 있으면 거부.
     예) '홍스튜디오' vs '더홍스튜디오' → False (접두어 '더' 존재)
     예) '홍스튜디오' vs '홍스튜디오 창원점' → True (접미어만 존재)
+
+    2026-11-01 보강: 등록 이름에만 '본사·본점·(주)' 같은 일반 표기가 붙어 있으면 그 표기를 뗀 핵심 이름으로 한 번 더 대조한다
+    (실사례: 등록명 '법무법인 리얼로펌 본사' ↔ 네이버 '법무법인 리얼 로펌 개인회생파산 창원분사무소'가 달라 '네이버에 없음'으로 판정됐다).
+    단 후보가 다른 위치 지점(예: '…마산점')이면 핵심 이름 대조로는 인정하지 않는다.
     """
     t = re.sub(r"[\s\-_·&]", "", target).lower()
     c = re.sub(r"[\s\-_·&]", "", candidate).lower()
@@ -52,6 +88,15 @@ def _name_matches(target: str, candidate: str) -> bool:
         if prefix:
             return False
         # 접두어 없이 시작 (= t로 시작) → 허용 (뒤에 지점명 등 붙을 수 있음)
+        return True
+    # 일반 표기를 뗀 핵심 이름으로 재대조 (핵심 이름이 너무 짧으면 동명 가게와 섞이므로 3글자 이상일 때만)
+    core = _name_core(t)
+    if core and core != t and len(core) >= 3 and c.startswith(core):
+        tail = c[len(core):]
+        # 등록명의 '본점·본사'를 뗀 경우에만 다른 위치 지점(…마산점)을 거부한다 — 법인 표기만 뗀 경우는 위 직접 포함 규칙과 같게 뒤 표기를 허용
+        stripped_generic_tail = bool(_GENERIC_TAIL_RE.search(_CORP_MARK_RE.sub("", t)))
+        if stripped_generic_tail and _LOCATION_BRANCH_TAIL_RE.search(tail) and not tail.endswith(("본점", "직영점")):
+            return False
         return True
     return False
 
@@ -245,38 +290,44 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
 
     # ── Fallback 1: 지역+업체명으로 직접 검색 (전국 동명업체 구분) ─────────
     if not is_smart_place and business_name and region_prefix:
-        direct_data = await _get("local", {
-            "query": f"{region_prefix} {business_name}",
-            "display": 5,
-            "sort": "sim",
-        })
-        if isinstance(direct_data, dict):
-            for i, item in enumerate(direct_data.get("items", [])):
-                name = _strip_html(item.get("title", ""))
-                if _name_matches(business_name, name):
-                    is_smart_place = True
-                    # my_rank는 메인 키워드 검색 기준으로만 설정 — fallback rank는 다른 쿼리 기준이라 혼동 유발
-                    _logger.debug(f"[naver_visibility] fallback 지역+업체명 검색으로 등록 확인: {name}")
-                    break
+        for _qname in _search_names(business_name):
+            direct_data = await _get("local", {
+                "query": f"{region_prefix} {_qname}",
+                "display": 5,
+                "sort": "sim",
+            })
+            if isinstance(direct_data, dict):
+                for i, item in enumerate(direct_data.get("items", [])):
+                    name = _strip_html(item.get("title", ""))
+                    if _name_matches(business_name, name):
+                        is_smart_place = True
+                        # my_rank는 메인 키워드 검색 기준으로만 설정 — fallback rank는 다른 쿼리 기준이라 혼동 유발
+                        _logger.debug(f"[naver_visibility] fallback 지역+업체명 검색으로 등록 확인: {name}")
+                        break
+            if is_smart_place:
+                break
 
     # ── Fallback 2: 업체명 단독 검색 (지역이 없거나 Fallback 1 실패 시) ─────────
     if not is_smart_place and business_name:
-        direct_data2 = await _get("local", {
-            "query": business_name,
-            "display": 5,
-            "sort": "sim",
-        })
-        if isinstance(direct_data2, dict):
-            for i, item in enumerate(direct_data2.get("items", [])):
-                name = _strip_html(item.get("title", ""))
-                addr = item.get("roadAddress") or item.get("address", "")
-                # 지역이 있으면 주소도 대조 — 전국 동명업체 오매칭 방지
-                addr_ok = (not region_prefix) or (region_prefix in addr)
-                if _name_matches(business_name, name) and addr_ok:
-                    is_smart_place = True
-                    # my_rank는 메인 키워드 검색 기준으로만 설정 — fallback rank는 다른 쿼리 기준이라 혼동 유발
-                    _logger.debug(f"[naver_visibility] fallback 업체명 단독 검색으로 등록 확인: {name} ({addr})")
-                    break
+        for _qname in _search_names(business_name):
+            direct_data2 = await _get("local", {
+                "query": _qname,
+                "display": 5,
+                "sort": "sim",
+            })
+            if isinstance(direct_data2, dict):
+                for i, item in enumerate(direct_data2.get("items", [])):
+                    name = _strip_html(item.get("title", ""))
+                    addr = item.get("roadAddress") or item.get("address", "")
+                    # 지역이 있으면 주소도 대조 — 전국 동명업체 오매칭 방지
+                    addr_ok = (not region_prefix) or (region_prefix in addr)
+                    if _name_matches(business_name, name) and addr_ok:
+                        is_smart_place = True
+                        # my_rank는 메인 키워드 검색 기준으로만 설정 — fallback rank는 다른 쿼리 기준이라 혼동 유발
+                        _logger.debug(f"[naver_visibility] fallback 업체명 단독 검색으로 등록 확인: {name} ({addr})")
+                        break
+            if is_smart_place:
+                break
 
     # ── 내 가게를 제외한 지역 검색 1위 경쟁사 ────────────────────
     # 키워드가 "단체 예약 가능" 같은 속성 태그일 때 의원·병원·공공기관 등 이종 업종이 상위에 잡히는 문제 방지

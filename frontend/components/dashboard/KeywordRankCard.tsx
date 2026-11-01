@@ -79,7 +79,8 @@ function rankBadge(rank: number | null | undefined, failed?: string): {
 } {
   // 측정 자체가 실패한 행은 "미노출"이 아니라 "측정 실패"로 구분 (실패≠순위권 밖)
   if (failed) return { text: "측정 실패", cls: "text-gray-600 bg-gray-50" };
-  if (!rank || rank <= 0) return { text: "미노출", cls: "text-gray-600 bg-gray-50" };
+  // "미노출"은 네이버에 아예 없다는 말로 읽힌다 — 실제로는 확인한 첫 화면(보통 5~13곳) 안에 없다는 뜻이라 그대로 쓴다(2026-11-01)
+  if (!rank || rank <= 0) return { text: "첫 화면 밖", cls: "text-gray-600 bg-gray-50" };
   if (rank === 1) return { text: "1위", cls: "text-emerald-700 bg-emerald-100 font-bold" };
   if (rank <= 3) return { text: `${rank}위`, cls: "text-emerald-700 bg-emerald-50" };
   if (rank <= 10) return { text: `${rank}위`, cls: "text-amber-700 bg-amber-50" };
@@ -361,7 +362,7 @@ export default function KeywordRankCard({
         <ul className="space-y-0.5 text-blue-700">
           <li>· <span className="font-medium">검색어</span>: 등록 키워드{keywords.length > 0 ? ` ${keywords.length}개` : ""} 각각 측정 — 키워드에 지역명이 없으면 사업장 지역을 앞에 붙입니다. 아래 표에 실제 검색어 표시</li>
           <li>· <span className="font-medium">검색 위치</span>: 서울 기준 서버 IP (비로그인, 개인화 없음)</li>
-          <li>· <span className="font-medium">순위 범위</span>: 검색 첫 화면에 나오는 가게 카드(보통 5~13곳) 순서, <span className="font-medium">광고 제외</span> 기준 — 첫 화면에 없으면 &apos;미노출&apos;로 표시하며 그 아래 순위는 확인하지 않습니다. 화면에서는 위에 광고가 몇 칸 있어 더 아래에 보일 수 있습니다</li>
+          <li>· <span className="font-medium">순위 범위</span>: 검색 첫 화면에 나오는 가게 카드(보통 5~13곳) 순서, <span className="font-medium">광고 제외</span> 기준 — 첫 화면에 없으면 &apos;첫 화면 밖&apos;으로 표시합니다(네이버에 없다는 뜻이 아니라 그 아래 순위는 확인하지 않았다는 뜻입니다). 화면에서는 위에 광고가 몇 칸 있어 더 아래에 보일 수 있습니다</li>
           <li>· <span className="font-medium">PC</span> = 네이버 PC 통합검색 &nbsp;·&nbsp; <span className="font-medium">모바일</span> = 네이버 모바일 통합검색 &nbsp;·&nbsp; <span className="font-medium">플레이스</span> = 네이버 지역 검색 상위 5곳(그 아래는 확인하지 않음)</li>
         </ul>
       </div>
@@ -428,7 +429,7 @@ export default function KeywordRankCard({
                 )}
                 {failed > 0 && (
                   <p className="text-gray-700 break-keep">
-                    {failed}개 키워드는 측정에 실패해 순위를 알 수 없습니다(미노출이 아닙니다). &apos;다시 측정&apos;을 눌러 주세요.
+                    {failed}개 키워드는 측정에 실패해 순위를 알 수 없습니다(첫 화면 밖이라는 뜻이 아닙니다). &apos;다시 측정&apos;을 눌러 주세요.
                   </p>
                 )}
               </div>
