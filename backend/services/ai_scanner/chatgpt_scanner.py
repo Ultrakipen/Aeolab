@@ -11,6 +11,39 @@ from services.ai_scanner import probe_cache
 _logger = logging.getLogger(__name__)
 
 
+# 측정 모델 (2026-11-01 gpt-4.1-mini → gpt-6-luna, 4.1-mini는 2027-01-14 종료 예정).
+# 환경변수 CHATGPT_MODEL로 즉시 되돌릴 수 있다(gpt-4* 이름이면 옛 파라미터 방식으로 호출).
+# 근거: docs/openai_model_migration_eval_2026_11_01.md — 실존 가게 적중 87→100%, 호출당 비용 -75%(추론 none 기준).
+CHATGPT_MODEL = os.getenv("CHATGPT_MODEL", "gpt-6-luna").strip() or "gpt-6-luna"
+
+
+def completion_kwargs(max_out: int, model: str | None = None) -> dict:
+    """chat.completions.create에 넘길 모델·토큰·추론 설정.
+
+    새 계열(gpt-5.x/6)은 max_tokens·temperature를 쓰지 않고(max_completion_tokens 필요), 추론을 끄지 않으면
+    출력 토큰이 5~6배(비용이 현재보다 비싸짐)가 되므로 reasoning_effort=none을 항상 붙인다.
+    SDK 버전이 reasoning_effort를 직접 받지 못해 extra_body로 전달한다.
+    """
+    m = model or CHATGPT_MODEL
+    if m.startswith("gpt-4"):
+        return {"model": m, "temperature": 1.0, "max_tokens": max_out}
+    return {"model": m, "max_completion_tokens": max(max_out, 200), "extra_body": {"reasoning_effort": "none"}}
+
+
+# 모델이 가게명 자리에 설명 문장을 넣는 경우를 거른다(2026-11-01 gpt-5.4-mini 시험에서
+# "…실제 가게를 확인할 수 없어 빈 배열로 답합니다."가 가게명으로 반환됨).
+_NON_NAME_MARKERS = ("빈 배열", "없습니다", "않습니다", "확인할 수", "알 수 없", "모릅니다", "죄송", "답합니다", "해당하는 가게")
+
+
+def is_plausible_place_name(name: str) -> bool:
+    s = (name or "").strip()
+    if not s or len(s) > 40 or len(s.split()) > 6:
+        return False
+    if any(m in s for m in _NON_NAME_MARKERS):
+        return False
+    return not s.endswith(("니다.", "니다", "요.", "다."))
+
+
 # 지점 표기(점·본점·OO점·OO역·OO동…)만 다른 경우를 같은 가게로 인정하기 위한 접미사 패턴
 # (2026-10-10: "어니언성수"↔"어니언성수점"처럼 "점"만 붙은 표기를 추가. 알려진 한계: "카페모모"↔"카페모모카점"처럼 한 글자+점은 지점으로 보므로 구별하지 못한다)
 _BRANCH_SUFFIX_RE = re.compile(r"^(?:본점|점|\d*호점|[가-힣0-9a-z]{1,8}(?:지점|점|역|동|구))?$")
@@ -51,10 +84,8 @@ class ChatGPTScanner:
         try:
             response = await asyncio.wait_for(
                 self.client.chat.completions.create(
-                    model="gpt-4.1-mini",
                     messages=[{"role": "user", "content": prompt}],
-                    temperature=1.0,
-                    max_tokens=200,
+                    **completion_kwargs(200),
                 ),
                 timeout=20.0,
             )
@@ -85,10 +116,8 @@ class ChatGPTScanner:
                 try:
                     resp = await asyncio.wait_for(
                         self.client.chat.completions.create(
-                            model="gpt-4.1-mini",
                             messages=[{"role": "user", "content": prompt}],
-                            temperature=1.0,
-                            max_tokens=200,
+                            **completion_kwargs(200),
                         ),
                         timeout=20.0,
                     )
@@ -114,19 +143,21 @@ class ChatGPTScanner:
                     return {"mentioned": False, "_measured": False, "_error": str(e)}
 
     def _log_usage(self, resp, purpose: str) -> None:
-        """gpt-4.1-mini는 reasoning 모델이 아니라 thinking 토큰 개념 없음 — prompt/completion만 기록."""
+        """prompt/completion 토큰을 기록. 추론 토큰이 있으면(새 계열) thinking_tokens로 함께 남긴다(completion에 이미 포함)."""
         try:
             usage = getattr(resp, "usage", None)
             if not usage:
                 return
-            log_ai_usage("chatgpt", "gpt-4.1-mini", purpose, usage.prompt_tokens or 0, usage.completion_tokens or 0)
+            rt = getattr(getattr(usage, "completion_tokens_details", None), "reasoning_tokens", None)
+            log_ai_usage("chatgpt", CHATGPT_MODEL, purpose, usage.prompt_tokens or 0, usage.completion_tokens or 0,
+                         thinking_tokens=rt or None)
         except Exception as e:
             _logger.debug("chatgpt usage 로깅 실패(무시): %s", e)
 
     def _log_failure(self, purpose: str, error: Exception) -> None:
         """API 호출 실패 기록 — 2026-07-12 OpenAI 결제 미등록 장애가 예외를 삼키고 조용히
         폴백되던 걸 로그로 감지 못 했던 사고 이후 신설."""
-        log_ai_usage("chatgpt", "gpt-4.1-mini", f"{purpose}:FAILED:{type(error).__name__}", 0, 0)
+        log_ai_usage("chatgpt", CHATGPT_MODEL, f"{purpose}:FAILED:{type(error).__name__}", 0, 0)
         # 결제 미등록·한도 초과면 운영자에게 알림(6시간에 1회, 예외 없음) — 2026-10-26
         from services.billing_alert import note_billing_error
         note_billing_error("openai", error)
@@ -218,10 +249,8 @@ class ChatGPTScanner:
                 try:
                     resp = await asyncio.wait_for(
                         self.client.chat.completions.create(
-                            model="gpt-4.1-mini",
                             messages=[{"role": "user", "content": prompt}],
-                            temperature=1.0,
-                            max_tokens=160,
+                            **completion_kwargs(160),
                         ),
                         timeout=20.0,
                     )
@@ -235,7 +264,7 @@ class ChatGPTScanner:
                     if not isinstance(raw, list):
                         return {"places": [], "_measured": False, "_error": "bad_shape"}
                     places = [str(p).strip() for p in raw if isinstance(p, (str, int)) and str(p).strip()]
-                    return {"places": [p for p in places if len(p) <= 40][:5], "_measured": True}
+                    return {"places": [p for p in places if is_plausible_place_name(p)][:5], "_measured": True}
                 except asyncio.TimeoutError as e:
                     self._log_failure("trial_recommend", e)
                     return {"places": [], "_measured": False, "_error": "timeout"}
@@ -268,7 +297,7 @@ class ChatGPTScanner:
                 "avg_rank": None, "top_places": [], "error": "no_query",
             }
         # 같은 질의의 캐시 표본은 재사용(기본 꺼짐 — probe_cache 참조), 모자란 만큼만 호출한다
-        cached_results, task_queries = probe_cache.plan("chatgpt:gpt-4.1-mini", query_list, n)
+        cached_results, task_queries = probe_cache.plan(f"chatgpt:{CHATGPT_MODEL}", query_list, n)
 
         target_norm = self._norm_name(target)
         mention_count = 0
@@ -287,7 +316,7 @@ class ChatGPTScanner:
             )
             for q, r in zip(batch_queries, results):
                 if not isinstance(r, Exception):
-                    probe_cache.store("chatgpt:gpt-4.1-mini", q, r)
+                    probe_cache.store(f"chatgpt:{CHATGPT_MODEL}", q, r)
             all_results.extend(results)
             await asyncio.sleep(1.0)
 
@@ -330,6 +359,7 @@ class ChatGPTScanner:
         return {
             "platform": "chatgpt",
             "probe": "recommend_v1",
+            "model": CHATGPT_MODEL,   # 모델이 바뀌면 노출률 기준선이 달라진다 — 비교 시 같은 모델끼리만(competitor_ai_exposure.basis_changed)
             "mentioned": mention_count > 0,
             "exposure_freq": mention_count,
             "exposure_rate": (mention_count / success_count) if success_count > 0 else 0.0,

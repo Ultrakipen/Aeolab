@@ -260,6 +260,20 @@ async def capture_naver_results(
     return results
 
 
+def _chat_payload(prompt: str) -> dict:
+    """OpenAI REST 본문 — SDK 호출과 같은 모델·토큰·추론 설정(chatgpt_scanner.completion_kwargs)을 쓴다."""
+    from services.ai_scanner.chatgpt_scanner import completion_kwargs
+    kw = completion_kwargs(200)
+    body: dict = {"model": kw["model"], "messages": [{"role": "user", "content": prompt}]}
+    if "max_completion_tokens" in kw:
+        body["max_completion_tokens"] = kw["max_completion_tokens"]
+        body.update(kw.get("extra_body") or {})   # reasoning_effort는 REST 본문에서는 최상위 필드
+    else:
+        body["max_tokens"] = kw["max_tokens"]
+        body["temperature"] = kw["temperature"]
+    return body
+
+
 async def capture_chatgpt_result(
     query: str,
     business_name: str,
@@ -290,11 +304,7 @@ async def capture_chatgpt_result(
             async with session.post(
                 "https://api.openai.com/v1/chat/completions",
                 headers={"Authorization": f"Bearer {api_key}"},
-                json={
-                    "model": "gpt-4.1-mini",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": 200,
-                },
+                json=_chat_payload(prompt),
             ) as resp:
                 if resp.status == 200:
                     data = await resp.json()

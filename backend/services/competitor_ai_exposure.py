@@ -57,6 +57,7 @@ def competitor_exposure(comp_name: str, gemini_result: dict | None, chatgpt_resu
         "sample_size": n,
         "exposure_freq": round(best / n * FREQ_SCALE, 2),
         "source": src_name,
+        "model": src.get("model"),
         "error": None,
     }
 
@@ -82,7 +83,21 @@ def basis_changed(curr: dict | None, prev: dict | None) -> bool:
 
     방식이 다르면 점수 차이는 경쟁사의 실제 변화가 아니라 측정 방식 변경의 결과라 변화·급등 알림에서 제외한다.
     """
-    return bool((curr or {}).get("ai_basis")) != bool((prev or {}).get("ai_basis"))
+    return _basis_key(curr) != _basis_key(prev)
+
+
+LEGACY_CHATGPT_MODEL = "gpt-4.1-mini"   # ai_model 필드가 생기기 전(~2026-11-01)의 ChatGPT 표본은 모두 이 모델이었다
+
+
+def _basis_key(item: dict | None):
+    """측정 방식 식별자 — (표본 대조 여부, ChatGPT일 때의 모델). 모델이 달라지면 노출률 기준선이 달라 비교할 수 없다."""
+    item = item or {}
+    if not item.get("ai_basis"):
+        return None
+    model = item.get("ai_model")
+    if model is None and item.get("ai_source") == "chatgpt":
+        model = LEGACY_CHATGPT_MODEL
+    return (True, model if item.get("ai_source") == "chatgpt" else None)
 
 
 def score_fields(exp: dict) -> dict:
@@ -91,5 +106,6 @@ def score_fields(exp: dict) -> dict:
         "ai_count": exp["count"],
         "ai_sample_size": exp["sample_size"],
         "ai_source": exp["source"],
+        "ai_model": exp.get("model"),
         "ai_basis": "recommend_v1",
     }

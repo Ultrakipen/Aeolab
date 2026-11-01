@@ -22,6 +22,7 @@ USD_KRW = 1400
 _PRICES_PER_1M_USD = {
     ("gemini", "gemini-2.5-flash"):     {"in": 0.30, "out": 2.50},  # out에 thinking 토큰 포함(Standard tier)
     ("chatgpt", "gpt-4.1-mini"):        {"in": 0.40, "out": 1.60},
+    ("chatgpt", "gpt-6-luna"):          {"in": 0.10, "out": 0.50},  # 2026-11-01 공식 가격 페이지 확인, 추론 토큰은 출력으로 청구된다고 가정(미확인)
     ("claude", "claude-sonnet-4-6"):    {"in": 3.00, "out": 15.00},
     ("claude", "claude-haiku-4-5-20251001"): {"in": 1.00, "out": 5.00},
 }
