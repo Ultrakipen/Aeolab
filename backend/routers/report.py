@@ -31,6 +31,19 @@ def _scanned_at_to_kst_date(scanned_at: str | None) -> str:
         return raw[:10]
 
 
+# 키워드 순위 측정이 전면 실패한 기간은 2026-09-02~10-26(매일 100% ValueError — project-rank-measurement-data-quality 기록).
+# 수정 커밋 e55aa35는 10-26 17:52 KST에 배포돼 그날 새벽 04:30 순위 잡은 수정 전 코드로 돌았다 — 10-26의 99.0도 실패 값이다(실측: 하라식당·홍스튜디오
+# 10-26은 99.0, 10-27부터 25.5·83.5). 이 기간의 score_history.keyword_rank_avg=99.0은 '미노출'이 아니라 실패가 섞인 값이라 30일 추이에 그리면
+# "99위 → 25위 급상승"으로 보인다(실제로는 측정 복구). 신뢰할 수 있는 값은 이 날짜부터다.
+# 30일 창이 이 날짜를 지나는 2026-11-26 이후에는 효과가 없으니 그때 이 상수와 사용처를 지워도 된다.
+RANK_MEASUREMENT_TRUSTED_FROM = "2026-10-27"
+
+
+def _rank_trend_since(today: date) -> str:
+    """키워드 순위 30일 추이의 시작일 — 30일 전과 '측정이 믿을 만해진 날' 중 더 늦은 날."""
+    return max((today - timedelta(days=30)).isoformat(), RANK_MEASUREMENT_TRUSTED_FROM)
+
+
 def _csv_safe(s):
     """CSV 인젝션 방어: =, +, -, @ 시작 문자열에 작은따옴표 prefix."""
     if not isinstance(s, str):
@@ -6471,7 +6484,7 @@ async def get_naver_seo_strength(biz_id: str, user: dict = Depends(get_current_u
                 .select("score_date, keyword_rank_avg")
                 .eq("business_id", biz_id)
                 .not_.is_("keyword_rank_avg", "null")
-                .gte("score_date", thirty_days_ago)
+                .gte("score_date", _rank_trend_since(date.today()))
                 .order("score_date", desc=False)
                 .limit(31)
             )
