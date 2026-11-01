@@ -45,7 +45,7 @@ export default function ChatGPTCompareSection() {
           </h2>
           <p className="text-sm mt-2 break-keep" style={{ color: "#475569" }}>
             &ldquo;강남 카페 추천해줘&rdquo; — ChatGPT가 답할 때 내 가게가 언급되는지,
-            AEOlab은 이걸 50~100회 자동 측정합니다 (Basic 플랜 기준).
+            AEOlab은 여러 말투로 바꿔 50~100번 자동으로 물어 확인합니다 (Basic 플랜 기준).
             <strong className="block mt-1" style={{ color: "#0F172A" }}>
               ChatGPT·Gemini뿐 아니라 네이버 AI까지 함께 다루고, 소상공인 가격(월 17,900원부터)으로 제공합니다.
             </strong>

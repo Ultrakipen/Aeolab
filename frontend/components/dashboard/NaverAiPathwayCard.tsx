@@ -214,7 +214,7 @@ export default function NaverAiPathwayCard({ briefingEligibility, isFranchise, l
               </div>
               <ul className="space-y-0.5 text-sm text-slate-600 leading-snug">
                 <li>• AEOlab 측정: AI가 미리 공부한 자료 기반 / 실사용 Gemini는 구글 검색 실시간 연동</li>
-                <li>• 같은 질문을 50~100번 물어봐 노출 빈도 측정</li>
+                <li>• 질문 말투를 바꿔 50~100번 물어봐 추천 목록에 나오는지 확인</li>
                 <li>• 구글 비즈니스 프로필·위치 정보 중요</li>
               </ul>
             </div>

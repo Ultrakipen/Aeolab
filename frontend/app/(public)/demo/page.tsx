@@ -1257,7 +1257,7 @@ export default function DemoPage() {
                           ChatGPT·Gemini 합산 — {m.geminiRate < 10 ? "AI에 가끔 노출" : m.geminiRate < 30 ? "AI에 일부 노출" : "AI에 자주 노출"}
                         </p>
                       </div>
-                      <p className="text-sm text-gray-600 leading-relaxed">무료 체험은 가게 이름을 알려주지 않고 ChatGPT에 50번 물어보는 방식입니다. 자동 측정: Gemini·ChatGPT 각 100회 측정.</p>
+                      <p className="text-sm text-gray-600 leading-relaxed">무료 체험은 가게 이름을 알려주지 않고 ChatGPT에 50번 물어보는 방식입니다. 자동 측정: {aiEach(100)} 측정.</p>
                     </>
                   )}
                   <p className="mt-2 text-sm text-gray-600 leading-relaxed">
