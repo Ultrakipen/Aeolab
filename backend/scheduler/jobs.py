@@ -1448,7 +1448,9 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
                 "info_completeness": "정보 완성도",
                 "content_freshness": "콘텐츠 최신성",
             }
-            lowest = min(breakdown.items(), key=lambda x: x[1], default=(None, None))
+            # score_breakdown에는 문자열·None 값도 섞여 있어 숫자 항목만 비교한다(2026-11-01 str↔float TypeError로 갭 카드가 매번 실패)
+            _num_items = [(k, v) for k, v in breakdown.items() if isinstance(v, (int, float)) and not isinstance(v, bool)]
+            lowest = min(_num_items, key=lambda x: x[1], default=(None, None))
             hint = f"{LABELS.get(lowest[0], '')} 개선 시 점수 상승 예상" if lowest[0] else ""
 
             from services.gap_card import generate_and_upload_gap_card
@@ -3148,9 +3150,9 @@ async def monthly_report_notify():
                 # 최근 60개 점수 조회 (약 2달치)
                 scores = await _db(
                     supabase.table("score_history")
-                    .select("unified_score, created_at")
+                    .select("unified_score, score_date")
                     .eq("business_id", biz_id)
-                    .order("created_at", desc=True)
+                    .order("score_date", desc=True)
                     .limit(60)
                 )
                 if not scores.data or len(scores.data) < 2:
@@ -3167,7 +3169,7 @@ async def monthly_report_notify():
                     supabase.table("score_history")
                     .select("id", count="exact")
                     .eq("business_id", biz_id)
-                    .gte("created_at", month_start)
+                    .gte("score_date", month_start[:10])
                 )
                 scan_count = scan_res.count or 0
 
