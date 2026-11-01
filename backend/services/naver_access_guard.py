@@ -33,7 +33,35 @@ COOLDOWN_STEPS_MIN = (180, 360, 720, 1440)  # 연속 차단 때마다 3h → 6h 
 _PROBE_STALE_SEC = 300                       # 시험 접속이 5분 넘게 끝나지 않으면 다시 허용
 COOLDOWN_ERROR = "naver_place_cooldown"
 
-_state: dict = {"strikes": 0, "open_until": 0.0, "probing_since": 0.0, "last_block_at": 0.0, "last_source": ""}
+
+# ── 킬스위치 (2026-11-02, 문서 W-2/T-4): 모든 Playwright 네이버 접속을 즉시 멈춘다 ─────────────────────
+# 쓰임: 네이버 측의 통지·경고를 받았거나 법률 자문 결과 중단이 필요할 때, 원인을 조사하는 동안 접속을 더 쌓지 않으려 할 때.
+# 켜는 법(둘 중 하나, 하나라도 켜져 있으면 켜짐):
+#   ① 파일: 서버에서 `touch /var/www/aeolab/backend/.naver_kill_switch`  → 재시작 없이 다음 접속 시도부터 적용, `rm`으로 해제
+#   ② 환경변수: NAVER_ACCESS_KILL_SWITCH=true (.env 수정 + pm2 restart 필요)
+# 효과: begin_place_access / begin_search_access가 거부한다 — 구조 감사(tests)가 모든 Playwright 진입 함수가 이 둘 중 하나를 거친다고
+#   보장하므로 함수 단위로 막힌다. 거부는 기존 쿨다운 오류 코드(naver_place_cooldown / naver_search_cooldown)로 돌려줘서 호출부의 기존 처리
+#   (측정 못 함 처리·503·사용자 한도 환불·잡 조기 종료)를 그대로 쓴다. 회로 상태는 바꾸지 않는다(해제하면 바로 평소대로).
+# 범위 밖: 공식 API(지역검색·블로그·DataLab·검색광고), 블로그 RSS(블로거가 공개한 피드), 구글 계열 접속. 쿠키 확인 잡은 포함한다(로그인 세션 사용).
+_KILL_ENV = "NAVER_ACCESS_KILL_SWITCH"
+
+
+def _kill_switch_file() -> str:
+    default = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".naver_kill_switch")
+    return os.getenv("NAVER_KILL_SWITCH_FILE", default)
+
+
+def kill_switch_on() -> bool:
+    """킬스위치가 켜져 있는가. 읽기 실패는 '꺼짐'으로 본다 — 단 파일이 있으면(존재 확인 성공) 켜짐이다."""
+    if os.getenv(_KILL_ENV, "").strip().lower() in ("1", "true", "yes", "on"):
+        return True
+    try:
+        return os.path.exists(_kill_switch_file())
+    except OSError:
+        return False
+
+
+_state: dict ={"strikes": 0, "open_until": 0.0, "probing_since": 0.0, "last_block_at": 0.0, "last_source": ""}
 _loaded = False
 
 
@@ -78,6 +106,8 @@ def reset_for_tests() -> None:
 
 def begin_place_access(source: str, now: Optional[float] = None) -> tuple[bool, Optional[str]]:
     """플레이스 접속 직전에 호출. (허용 여부, 거부 시 오류 코드). 거부되면 네이버 요청을 보내면 안 된다."""
+    if kill_switch_on():
+        return False, COOLDOWN_ERROR
     _load()
     t = now if now is not None else time.time()
     if _state["open_until"] and t < _state["open_until"]:
@@ -464,6 +494,8 @@ def _search_save() -> None:
 
 def begin_search_access(source: str, now: Optional[float] = None) -> tuple[bool, Optional[str]]:
     """검색 화면 접속 직전에 호출. 쿨다운 중이면 (False, 오류코드) — 네이버 요청을 보내면 안 된다."""
+    if kill_switch_on():
+        return False, SEARCH_COOLDOWN_ERROR
     _search_load()
     t = now if now is not None else time.time()
     if _search["open_until"] and t < _search["open_until"]:

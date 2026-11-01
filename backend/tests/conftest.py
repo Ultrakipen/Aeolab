@@ -40,3 +40,11 @@ def _never_upload_gap_card_to_real_storage(monkeypatch):
         return None
 
     monkeypatch.setattr(_gc, "generate_and_upload_gap_card", _stub)
+
+
+@pytest.fixture(autouse=True)
+def _isolate_naver_kill_switch(tmp_path, monkeypatch):
+    """킬스위치(서버의 .naver_kill_switch 파일·NAVER_ACCESS_KILL_SWITCH 환경변수)가 실제로 켜진 긴급 상황에서도 테스트가 그 영향을 받지 않게 한다.
+    격리하지 않으면 킬스위치를 켠 채 배포 스크립트의 서버 테스트가 돌 때 '접속이 허용돼야 하는' 테스트가 전부 실패해 긴급 수정 배포가 막힌다."""
+    monkeypatch.setenv("NAVER_KILL_SWITCH_FILE", str(tmp_path / "no_kill_switch"))
+    monkeypatch.delenv("NAVER_ACCESS_KILL_SWITCH", raising=False)

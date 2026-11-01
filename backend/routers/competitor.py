@@ -1335,7 +1335,10 @@ async def _sync_one_competitor(competitor_id: str, user: dict):
                 _st = user_status()
             except Exception:
                 _st = {}
-            if _st.get("state") == "delayed" and _st.get("eta_label"):
+            if _st.get("reason") == "paused":
+                # 운영자가 네이버 접속을 멈춘 상태(킬스위치) — 재개 시각을 모르므로 말하지 않고, '몰려 있다'는 틀린 설명도 하지 않는다
+                _detail = "지금 네이버 확인을 잠시 멈춰 두었어요. 저장된 값은 그대로 유지돼요. 나중에 다시 시도해 주세요."
+            elif _st.get("state") == "delayed" and _st.get("eta_label"):
                 _when = "내일" if _st.get("reason") == "daily_limit" else _st["eta_label"]
                 _detail = f"지금 네이버 확인이 지연되고 있어요. {_when} 다시 시도해 주세요. 저장된 값은 그대로 유지돼요."
             else:

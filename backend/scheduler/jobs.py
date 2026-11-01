@@ -6848,6 +6848,13 @@ async def check_naver_cookie_health_job():
     from datetime import datetime as _dt, timedelta as _td
     from services.email_sender import send_operator_alert
 
+    # 킬스위치(services/naver_access_guard): 이 잡은 로그인 쿠키로 naver.com에 접속하고(아래 중첩 함수들이 Playwright를 직접 연다)
+    # 회로 차단기를 거치지 않으므로, 킬스위치가 켜져 있으면 여기서 직접 멈춘다 — 로그인 세션 사용은 법적으로 가장 민감하다.
+    from services.naver_access_guard import kill_switch_on as _kill_on
+    if _kill_on():
+        _logger.warning("[naver_cookie_health] 네이버 접속 킬스위치가 켜져 있어 쿠키 확인을 건너뜀 (로그인 세션으로 접속하지 않음)")
+        return
+
     nid_aut = os.getenv("NAVER_COOKIE_NID_AUT", "")
     if not nid_aut:
         _logger.warning("[naver_cookie_health] NID_AUT 미설정 — AI탭 스캔 불가. .env에 추가 필요")

@@ -40,8 +40,13 @@ def _seconds_until_next_midnight_kst(now_ts: float) -> int:
 
 def user_status(now: Optional[float] = None) -> dict:
     """현재 네이버 확인 상태. 가드 상태는 읽기만 하며 어떤 접속도 일으키지 않는다."""
-    from services.naver_access_guard import snapshot, search_snapshot
+    from services.naver_access_guard import snapshot, search_snapshot, kill_switch_on
     from services.ai_scanner import naver_playwright_quota_usage
+
+    # 운영자가 네이버 접속을 일부러 멈춘 상태(킬스위치) — 언제 재개되는지는 알 수 없으므로 시각을 말하지 않고, 원인도 추정해 쓰지 않는다
+    if kill_switch_on():
+        return {"state": "delayed", "reason": "paused", "resume_in_sec": None, "eta_label": None,
+                "message": "네이버 확인을 잠시 멈춰 두었어요. 다시 시작되면 새 값으로 갱신돼요.", "detail": KEEP_NOTE}
 
     t = now if now is not None else time.time()
     place, search = snapshot(t), search_snapshot(t)

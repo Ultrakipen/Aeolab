@@ -86,3 +86,5 @@ backend/.naver_rate_window.json*
 
 backend/.naver_usage_meter.json*
 backend/.naver_usage_meter_history.jsonl
+
+backend/.naver_kill_switch
