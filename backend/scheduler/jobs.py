@@ -98,9 +98,10 @@ def start_scheduler():
         _cleanup_memory_stores, "interval", minutes=10, id="memory_cleanup",
         replace_existing=True,
     )
-    # 경쟁사 keyword_gap excerpt 보강 (매주 일요일 02:00 KST, 트래픽 최저점)
+    # 경쟁사 keyword_gap excerpt 보강 (매주 일요일 05:00 KST). 02:00은 야간 스캔(Gemini 100표본)과 같은 호출 한도를 다투어
+    # 2026-11-01(일) 야간 스캔의 Gemini 표본이 55/100(타임아웃 37·한도 초과 8)으로 줄었다 — 평일 밤은 98/100이었다.
     scheduler.add_job(
-        _enrich_competitor_excerpts, "cron", day_of_week="sun", hour=2, minute=0,
+        _enrich_competitor_excerpts, "cron", day_of_week="sun", hour=5, minute=0,
         id="enrich_competitor_keywords_job",
         replace_existing=True, max_instances=1, misfire_grace_time=300,
     )
