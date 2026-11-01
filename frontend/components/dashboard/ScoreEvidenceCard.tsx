@@ -1172,8 +1172,8 @@ export default function ScoreEvidenceCard({
           {track2Score < 30 && (
             <div className="mt-3 bg-purple-50 border border-purple-100 rounded-lg p-3 space-y-1.5">
               <p className="text-sm text-purple-800">
-                <span className="font-semibold">지금 노출 안 되는 건 정상입니다.</span>{" "}
-                ChatGPT는 AI가 미리 공부한 자료 기반이라 수개월~1년 소요됩니다. Gemini는 구글 비즈니스 프로필 등록 후 2~4주 내 개선이 시작될 수 있습니다.
+                <span className="font-semibold">이번 측정에서는 노출이 확인되지 않았습니다.</span>{" "}
+                검색을 켠 ChatGPT·Gemini 화면에서는 다르게 나올 수 있으니 직접 질문해 보세요. ChatGPT는 AI가 미리 공부한 자료 기반이라 개선 반영에 수개월~1년이 걸릴 수 있고, Gemini는 구글 비즈니스 프로필 등록 후 2~4주 내 개선이 시작될 수 있습니다.
               </p>
               <p className="text-sm text-purple-700">
                 <span className="font-medium">지금 할 수 있는 것:</span>{" "}

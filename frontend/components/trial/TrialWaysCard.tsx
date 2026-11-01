@@ -139,7 +139,7 @@ export function ChannelWaysCard({
 
   const lowGu =
     chatgptMeasured && chatgptFreq !== undefined && chatgptSample > 0 && chatgptFreq / chatgptSample < 0.3;
-  // 동네 이름 결과가 있으면 둘 다 0번일 때만 "낮아도 정상"이라고 말한다(동네 이름에서 나온 것은 좋은 발견이라 달래는 말을 붙이지 않는다)
+  // 동네 이름 결과가 있으면 둘 다 0번일 때만 "검색을 켠 화면에서는 다를 수 있다"는 안내를 붙인다(동네 이름에서 나온 것은 좋은 발견이라 안내를 붙이지 않는다. 낮은 값을 "정상"이라 단정하지 않는다 — 2026-11-01 V1 검증)
   const lowChatgpt = lowGu && (!neighborhood || neighborhood.freq === 0);
 
   const ways: Way[] = [
@@ -174,8 +174,8 @@ export function ChannelWaysCard({
         : chatgptFreq === undefined
           ? "추천 여부를 확인했어요."
           : neighborhood
-            ? `구 이름으로 ${chatgptFreq}번, 동네 이름(${neighborhood.name})으로 ${neighborhood.freq}번 추천됐어요 (각 ${chatgptSample}번 중).${lowChatgpt ? " 이 길은 지금 낮아도 정상이에요." : ""}`
-            : `${chatgptSample}번 중 ${chatgptFreq}번 추천됐어요.${lowChatgpt ? " 이 길은 지금 낮아도 정상이에요." : ""}`,
+            ? `구 이름으로 ${chatgptFreq}번, 동네 이름(${neighborhood.name})으로 ${neighborhood.freq}번 추천됐어요 (각 ${chatgptSample}번 중).${lowChatgpt ? " 검색을 켠 화면에서는 다를 수 있어요." : ""}`
+            : `${chatgptSample}번 중 ${chatgptFreq}번 추천됐어요.${lowChatgpt ? " 검색을 켠 화면에서는 다를 수 있어요." : ""}`,
       nowTone: !chatgptMeasured ? "muted" : lowChatgpt ? "calm" : "ok",
       affects: "AI가 미리 공부한 자료 (단기에는 거의 안 바뀌어요)",
       duration: durationOf("ChatGPT"),
@@ -490,7 +490,7 @@ export function AreaCompareCard({
 
   let verdict: string;
   if (gF === 0 && nF === 0) {
-    verdict = `구 이름으로도 동네 이름(${name})으로도 추천되지 않았어요. 이 길은 지금 낮아도 정상이에요.`;
+    verdict = `구 이름으로도 동네 이름(${name})으로도 추천되지 않았어요. 이번 측정 결과이고, 검색을 켠 화면에서는 다를 수 있어요.`;
   } else if (gF === 0) {
     verdict = `구 이름으로 물으면 0번이고, 동네 이름(${name})으로 물으면 ${nF}번 추천돼요. 손님이 동네 이름으로 찾을 때는 ChatGPT가 내 가게를 추천해요.`;
   } else if (nF === 0) {

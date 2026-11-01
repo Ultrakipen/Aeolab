@@ -48,7 +48,7 @@ export const CHANNEL_ROWS: ChannelRow[] = [
     duration: "수개월~1년",
     durationColor: "text-amber-700",
     note: "AI가 미리 공부한 자료 기반 — 단기 변동 없음",
-    extraNote: "(지금 낮아도 정상)",
+    extraNote: "(검색을 켠 화면에서는 다를 수 있음)",
     isGlobal: true,
   },
   {
