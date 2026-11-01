@@ -33,8 +33,10 @@ async def check_openai() -> str:
         return "FAIL — OPENAI_API_KEY 없음"
     try:
         from openai import AsyncOpenAI
+        # 운영 스캐너와 같은 모델·파라미터로 점검한다(2026-11-01: 옛 gpt-4.1-mini 하드코딩이라 교체 뒤에도 종료 예정 모델을 보고 있었다)
+        from services.ai_scanner.chatgpt_scanner import completion_kwargs
         r = await AsyncOpenAI(api_key=key).chat.completions.create(
-            model="gpt-4.1-mini", max_tokens=5, messages=[{"role": "user", "content": "ok"}]
+            messages=[{"role": "user", "content": "ok"}], **completion_kwargs(20)
         )
         return f"OK — {r.model}"
     except Exception as e:
