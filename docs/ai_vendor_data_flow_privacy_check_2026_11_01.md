@@ -1,0 +1,37 @@
+# AI 업체로 나가는 데이터 점검 (2026-11-01)
+
+목적: 개인정보처리방침이 AI 업체(Google·OpenAI·Anthropic)를 언급하지 않는 상태가 문제인지 **법적으로 판단하려면** "실제로 무엇이 나가는지"가 필요하다. 이 문서는 코드를 정적으로 읽어 확인한 **사실만** 적는다. 법적 판단은 하지 않았다(변호사 확인 필요).
+
+## 1. 현재 방침이 말하는 것 (`frontend/app/(public)/privacy/page.tsx` 직접 확인)
+- 제3자 제공: 카카오(알림톡·전화번호), 크렙(결제), Resend(이메일).
+- 처리 위탁: Supabase Inc., iwinv, 크렙, Sentry.
+- **AI 업체(Google·OpenAI·Anthropic) 항목 없음. "국외 이전" 항목 없음.** (Supabase·Sentry·Google Analytics는 해외 사업자로 보이나 방침에 국외 이전 문구가 없다 — 해외 여부 자체는 이번에 확인하지 않았다.)
+
+## 2. 코드로 확인한 전송 내용
+| 기능 | 업체·모델 | 보내는 데이터 | 근거 |
+|---|---|---|---|
+| 소개글·블로그 초안·FAQ·톡톡 메뉴 생성 | Anthropic (Claude Haiku 4.5·Sonnet 4.6) | 가게명, 업종, 지역, **주소, 전화번호**, 영업시간, 메뉴·서비스, 특징, 추가 설명, 키워드, 사업자가 직접 입력한 수상·강점 | `services/guide_generator.py` `generate_smartplace_intro`(프롬프트 1236~1241행), `_INTRO_PROMPT_TMPL`(1412~1428행, `전화: {phone}`·`주소: {address}`) |
+| 개선 가이드 | Anthropic | 사업장 정보·스캔 결과·경쟁사 데이터 | `services/guide_generator.py` |
+| 리뷰 답변·위기 대응 | Anthropic | **사용자가 붙여 넣은 고객 리뷰 본문**(위기 대응은 최대 400자) — 리뷰어 이름이 들어 있을 수 있음 | `services/crisis_guide.py`(리뷰 내용 `[:400]`), `routers/guide.py` `_generate_reply`(Claude 호출, 이 줄의 입력 필드 전체는 이번에 열어 보지 않았다) |
+| AI 응답 감정 분석 | Anthropic (Haiku 4.5) | **AI가 가게를 언급한 응답 발췌**(`excerpts`)와 가게명 — 고객 리뷰가 아니다 | `services/review_sentiment.py` `analyze_review_sentiment(biz_id, excerpts, biz_name)` |
+| AI 어시스턴트 대화 | Anthropic | 가게명·업종·지역·점수 + **사용자가 입력한 자유 문장** | `routers/assistant.py` `_get_biz_context` |
+| 노출 측정(ChatGPT) | OpenAI | 검색어(지역+업종+키워드), 가게명 대조는 우리 쪽에서 | `services/ai_scanner/chatgpt_scanner.py` |
+| 노출 측정(Gemini) | Google (무료 등급은 입력이 제품 개선에 쓰일 수 있다 — 10-30 확인) | 검색어, 가게명, 응답 발췌, Pro+ 조건 검색의 소개글 초안 400자·키워드는 `scrub_personal`로 전화·이메일·사업자번호 제거 | `services/ai_scanner/gemini_scanner.py` |
+| 블로그 품질 점수 | Anthropic (Haiku 4.5) | 네이버 검색으로 모은 **공개 블로그 글**(제목·본문 일부) | `services/blog_quality_scorer.py` `score_posts_quality(posts)` |
+| 월간 시장 뉴스 | Anthropic | **지역·업종만**("한국 {region} {category} 업종의 이달 AI 검색 트렌드") — 개인 식별 정보 없음 | `scheduler/jobs.py` 월간 시장 뉴스 블록 |
+
+## 3. 기존 결정과의 관계
+- 10-30 사용자 결정: **Gemini 프롬프트에는 개인정보(전화·이메일·결제·사용자 입력 원문·리뷰 내용)를 넣지 않는다.** Gemini 쪽은 지켜지고 있다(`scrub_personal`).
+- 이 결정은 Gemini(무료 등급)에 한정돼 있고, **Anthropic 호출에는 같은 규칙이 적용되지 않았다.** 위 표처럼 Claude 프롬프트에는 사업장 전화·주소와 고객 리뷰 본문이 들어간다.
+
+## 4. 사용자가 결정할 것 (선택지)
+1. **프롬프트에서 전화번호를 뺀다(권장 후보)**: 소개글 생성에 전화번호가 꼭 필요한 입력은 아니다(결과 문구의 연락처는 사장님이 직접 넣는 값). 변경 범위는 `generate_smartplace_intro`와 `_INTRO_PROMPT_TMPL`의 `전화` 줄과 호출부. 출력에서 전화 문구가 달라질 수 있어 확인 필요.
+2. **방침을 갱신한다**: 처리 위탁에 AI 업체(Anthropic·OpenAI·Google)와 위탁 업무를, 국외 이전 항목(이전받는 자·국가·항목·목적·보유 기간)을 추가. **문구는 변호사 검토 후**.
+3. **리뷰 본문 전송 방식 결정**: 고객 리뷰를 AI로 보내는 기능(리뷰 답변·위기 대응·감정 분석)이 핵심 가치이므로 막기보다, 방침 고지와 사용자 동의 문구로 풀지 판단.
+4. 아무 것도 안 한다 — 이 경우 위험을 인지한 상태로 두는 것이다.
+
+## 5. 미확인
+- 사업장 전화번호가 대표자 개인 번호인 비율, 주소·전화가 법적으로 개인정보에 해당하는지(상호·사업장 정보의 해석)는 확인하지 못했다.
+- Anthropic·OpenAI API의 데이터 보관·학습 사용 정책 최신 내용은 이번에 조회하지 않았다(공식 약관 확인 필요).
+- Supabase·Sentry·Google Analytics의 서버 소재지와 계약 조건은 확인하지 않았다.
+- 코드 정적 읽기라서 동적으로 구성되는 프롬프트 전부를 보장하지는 않는다(주요 생성 함수 위주로 확인).
