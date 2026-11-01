@@ -72,23 +72,32 @@ _KAKAO_LOCAL_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
 
 
 async def check_kakao_registration(business_name: str, region: str) -> bool:
+    """등록 여부 bool (확인하지 못한 경우도 False). 저장·점수에 쓰지 말 것 — `check_kakao_registration_or_none`을 쓴다.
+
+    2026-11-01: API 키 없음·HTTP 오류·타임아웃을 '미등록(False)'과 구분하지 못해, 카카오 API가 한 번 실패하면 등록된 가게가
+    businesses.kakao_registered=False로 덮어써졌다(지침 9: 측정 못 한 것은 0이 아니라 '확인 전'). 호환용 래퍼로만 남긴다.
+    """
+    return bool(await check_kakao_registration_or_none(business_name, region))
+
+
+async def check_kakao_registration_or_none(business_name: str, region: str) -> "bool | None":
     """
     카카오 로컬 API로 사업장 등록 여부 확인.
 
     검색어: "{region 앞 2글자} {business_name}" → 결과에 business_name 포함 시 True.
-    API 키 미설정 또는 오류 시 False 반환 (graceful fallback).
+    **확인하지 못한 경우(API 키 없음·HTTP 오류·타임아웃·예외)는 None** — '미등록(False)'이 아니다. 호출자는 None이면 저장된 값을 바꾸지 않는다.
 
     Args:
         business_name: 사업장 이름
         region: 지역명 (예: "서울 강남구")
 
     Returns:
-        bool: 카카오맵 등록 여부
+        True(검색 결과에 있음) / False(확인했고 결과에 없음) / None(확인 못 함)
     """
     rest_key = os.getenv("KAKAO_REST_API_KEY")
     if not rest_key:
-        _logger.warning("KAKAO_REST_API_KEY 미설정 — is_registered=False fallback")
-        return False
+        _logger.warning("KAKAO_REST_API_KEY 미설정 — 등록 여부 확인 못 함(None)")
+        return None
 
     region_prefix = region.split()[0] if region else ""
     full_query = f"{region_prefix} {business_name}".strip()
@@ -102,8 +111,8 @@ async def check_kakao_registration(business_name: str, region: str) -> bool:
                 timeout=aiohttp.ClientTimeout(total=5),
             ) as res:
                 if res.status != 200:
-                    _logger.warning(f"카카오 로컬 API 오류: status={res.status}")
-                    return False
+                    _logger.warning(f"카카오 로컬 API 오류: status={res.status} — 확인 못 함(None)")
+                    return None
                 data = await res.json()
 
         documents = data.get("documents", [])
@@ -115,11 +124,11 @@ async def check_kakao_registration(business_name: str, region: str) -> bool:
         return False
 
     except asyncio.TimeoutError:
-        _logger.warning(f"카카오 로컬 API 타임아웃 (5s) — business_name={business_name}")
-        return False
+        _logger.warning(f"카카오 로컬 API 타임아웃 (5s) — business_name={business_name} — 확인 못 함(None)")
+        return None
     except Exception as e:
-        _logger.warning(f"카카오 로컬 API 호출 실패: {e}")
-        return False
+        _logger.warning(f"카카오 로컬 API 호출 실패: {e} — 확인 못 함(None)")
+        return None
 
 
 def calculate_kakao_score(checklist: dict) -> dict:
@@ -175,6 +184,7 @@ async def build_kakao_checklist_with_auto(
     business_name: str,
     region: str,
     user_checklist: dict,
+    fallback_registered: "bool | None" = None,
 ) -> dict:
     """
     자동 항목(is_registered)을 API로 확인하고, 사용자 체크리스트와 합쳐 점수를 반환.
@@ -183,13 +193,15 @@ async def build_kakao_checklist_with_auto(
         business_name: 사업장 이름
         region: 지역명
         user_checklist: 사용자가 입력한 체크리스트 (auto=False 항목)
+        fallback_registered: API로 확인하지 못했을 때 점수 계산에 쓸 직전 저장값(없으면 False로 계산하되 저장은 하지 않는다)
 
     Returns:
-        calculate_kakao_score() 반환 구조 + "is_registered_auto": bool
+        calculate_kakao_score() 반환 구조 + "is_registered_auto": True/False(확인함) 또는 None(확인 못 함 — 저장하지 말 것)
     """
-    is_registered = await check_kakao_registration(business_name, region)
+    checked = await check_kakao_registration_or_none(business_name, region)
+    is_registered = checked if checked is not None else bool(fallback_registered)
 
     merged = {**user_checklist, "is_registered": is_registered}
     result = calculate_kakao_score(merged)
-    result["is_registered_auto"] = is_registered
+    result["is_registered_auto"] = checked   # None이면 호출자가 kakao_registered를 덮어쓰지 않는다
     return result

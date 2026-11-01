@@ -2,6 +2,7 @@
 
 Usage (server): cd backend && set -a && . ./.env && set +a && PYTHONPATH=. python scripts/route_smoke_readonly.py [business-name]
 Default business: the one owned by the account used on 2026-11-01. Run it after changing routes; 5xx/EXC lines are real bugs.
+DB writes are blocked and listed, so the run is read-only.
 Never add routes that call AI / Playwright / Naver here: those are blocked on purpose (see guard below).
 
 Safety: all outbound network except the DB host is blocked (name resolution fails and the attempt is recorded),
@@ -36,6 +37,36 @@ def guarded_getaddrinfo(host, *a, **k):
 
 
 socket.getaddrinfo = guarded_getaddrinfo
+
+# DB write guard: any non-GET/HEAD request to the DB host is blocked and recorded (this script must be read-only).
+# 2026-11-01: the first version was NOT read-only - /api/report/visit-delta PATCHed profiles.last_dashboard_visit.
+import httpx  # noqa: E402
+
+write_attempts = {}   # "METHOD /path" -> set(routes)
+_orig_send = httpx.Client.send
+_orig_asend = httpx.AsyncClient.send
+
+
+def _is_db_write(request):
+    return "supabase.co" in str(request.url.host) and request.method not in ("GET", "HEAD")
+
+
+def _guard_send(self, request, *a, **k):
+    if _is_db_write(request):
+        write_attempts.setdefault(f"{request.method} {request.url.path}", set()).add(current["path"])
+        raise RuntimeError("DB write blocked by smoke test")
+    return _orig_send(self, request, *a, **k)
+
+
+async def _guard_asend(self, request, *a, **k):
+    if _is_db_write(request):
+        write_attempts.setdefault(f"{request.method} {request.url.path}", set()).add(current["path"])
+        raise RuntimeError("DB write blocked by smoke test")
+    return await _orig_asend(self, request, *a, **k)
+
+
+httpx.Client.send = _guard_send
+httpx.AsyncClient.send = _guard_asend
 
 # playwright must never launch a browser
 import playwright.async_api as _pa  # noqa: E402
@@ -167,6 +198,9 @@ for r in results:
         print(r["route"], st, r.get("exc", r.get("body", "")), r.get("frames", ""))
 print("---- 403/404 routes (not reached beyond the gate)")
 print(sorted(r["route"] + " " + str(r["status"]) for r in results if r["status"] in (403, 404)))
+print("---- DB WRITE attempts by GET routes (blocked) - these routes mutate data on a GET")
+for k, rs in sorted(write_attempts.items()):
+    print(k, "<-", sorted(rs)[:5])
 print("---- external hosts attempted (blocked)")
 for h, rs in sorted(blocked.items()):
     print(h, "<-", sorted(rs)[:4], "..." if len(rs) > 4 else "")

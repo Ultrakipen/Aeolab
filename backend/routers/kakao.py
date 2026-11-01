@@ -17,7 +17,7 @@ from services.kakao_checker import (
     KAKAO_CHECKLIST,
     build_kakao_checklist_with_auto,
     calculate_kakao_score,
-    check_kakao_registration,
+    check_kakao_registration_or_none,
 )
 
 router = APIRouter()
@@ -82,23 +82,34 @@ async def check_kakao_registration_endpoint(
     biz = _verify_biz_ownership(biz_id, user["id"], supabase)
 
     try:
-        is_registered = await check_kakao_registration(biz["name"], biz.get("region", ""))
+        is_registered = await check_kakao_registration_or_none(biz["name"], biz.get("region", ""))
     except Exception as e:
         _logger.warning(f"check_kakao_registration 오류: {e}")
-        is_registered = False
+        is_registered = None
 
-    # DB 자동 갱신 (등록 여부)
-    try:
-        supabase.table("businesses").update(
-            {"kakao_registered": is_registered}
-        ).eq("id", biz_id).execute()
-    except Exception as e:
-        _logger.warning(f"kakao_registered DB 업데이트 실패: {e}")
+    # 확인하지 못했으면(키 없음·API 오류·타임아웃) 저장된 값을 바꾸지 않는다 — 실패를 '미등록'으로 덮어쓰지 않는다(지침 9).
+    # 2026-11-01: 예전에는 실패도 False로 저장해, 카카오 API가 한 번 실패하면 등록된 가게가 미등록으로 바뀌었다.
+    if is_registered is not None:
+        try:
+            supabase.table("businesses").update(
+                {"kakao_registered": is_registered}
+            ).eq("id", biz_id).execute()
+        except Exception as e:
+            _logger.warning(f"kakao_registered DB 업데이트 실패: {e}")
 
+    if is_registered is None:
+        return {
+            "biz_id": biz_id,
+            "business_name": biz["name"],
+            "is_registered": None,
+            "checked": False,
+            "message": "지금은 카카오맵 등록 여부를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요. 기존 저장값은 바뀌지 않았습니다.",
+        }
     return {
         "biz_id": biz_id,
         "business_name": biz["name"],
         "is_registered": is_registered,
+        "checked": True,
         "message": (
             "카카오맵에 등록된 사업장입니다." if is_registered
             else "카카오맵 미등록 또는 검색 불일치입니다. 카카오 내 사업장(biz.kakao.com)에서 등록을 확인하세요."
@@ -130,13 +141,14 @@ async def save_kakao_checklist(
             business_name=biz["name"],
             region=biz.get("region", ""),
             user_checklist=user_checklist,
+            fallback_registered=biz.get("kakao_registered"),   # 확인 못 하면 직전 저장값으로 점수를 계산한다
         )
     except Exception as e:
         _logger.warning(f"build_kakao_checklist_with_auto 오류: {e}")
-        # fallback: API 실패 시 사용자 입력만으로 계산
-        user_checklist_fb = {**user_checklist, "is_registered": False}
+        # fallback: API 실패 시 직전 저장값 + 사용자 입력으로 계산하고, 등록 여부는 저장하지 않는다(None)
+        user_checklist_fb = {**user_checklist, "is_registered": bool(biz.get("kakao_registered"))}
         result = calculate_kakao_score(user_checklist_fb)
-        result["is_registered_auto"] = False
+        result["is_registered_auto"] = None
 
     # DB 저장
     try:
@@ -149,11 +161,14 @@ async def save_kakao_checklist(
             item["key"]: item["checked"]
             for item in result["checklist_result"]
         }
-        supabase.table("businesses").update({
+        update_row = {
             "kakao_checklist":  checklist_flat,
             "kakao_score":      result["score"],
-            "kakao_registered": result.get("is_registered_auto", False),
-        }).eq("id", biz_id).execute()
+        }
+        # 등록 여부는 API로 확인한 경우(True/False)에만 저장한다 — None(확인 못 함)이면 저장된 값을 그대로 둔다(지침 9)
+        if result.get("is_registered_auto") is not None:
+            update_row["kakao_registered"] = bool(result["is_registered_auto"])
+        supabase.table("businesses").update(update_row).eq("id", biz_id).execute()
     except Exception as e:
         _logger.warning(f"카카오 체크리스트 DB 저장 실패: {e}")
         # 저장 실패해도 계산 결과는 반환
@@ -164,7 +179,7 @@ async def save_kakao_checklist(
         "score":              result["score"],
         "checklist_result":   result["checklist_result"],
         "tips":               result["tips"],
-        "is_registered_auto": result.get("is_registered_auto", False),
+        "is_registered_auto": result.get("is_registered_auto"),   # True/False(확인함) 또는 None(확인 못 함) — 못 한 것을 False로 말하지 않는다
     }
 
 
