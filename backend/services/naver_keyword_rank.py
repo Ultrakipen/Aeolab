@@ -34,6 +34,7 @@ import os
 import re
 import asyncio
 import logging
+from contextvars import ContextVar
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -48,6 +49,19 @@ PAGE_TIMEOUT_MS = int(os.getenv("KEYWORD_RANK_TIMEOUT_MS", "15000"))
 RESULT_LIMIT = int(os.getenv("KEYWORD_RANK_LIMIT", "20"))
 
 _semaphore = asyncio.Semaphore(MAX_CONCURRENCY)
+
+# 채널(pc/mobile)을 "읽지 못했다"는 표시 — 키워드 한 개를 측정하는 동안만 유효하다(ContextVar라 동시 측정끼리 섞이지 않는다).
+# 이동 실패·카드 수집 예외·일일 상한 건너뜀은 순위 None으로 돌아오지만 "첫 화면 밖"이 아니라 "읽지 못함"이다.
+# 표시가 없으면(= 화면을 읽었는데 카드가 없거나 내 가게가 없음) 기존대로 미노출이다 — 플레이스 카드가 원래 없는
+# 업종 검색어를 실패로 만들지 않기 위해 "카드 0개"는 일부러 실패로 보지 않는다.
+# 함수 서명을 바꾸지 않아(테스트가 _measure_pc 등을 고정 인자 fake로 대체) 기존 호출·테스트는 그대로다.
+_READ_FAILS: ContextVar[Optional[dict]] = ContextVar("keyword_rank_read_fails", default=None)
+
+
+def _mark_unread(channel: str, reason: str) -> None:
+    d = _READ_FAILS.get()
+    if d is not None and channel:
+        d[channel] = reason
 
 # 선택적 재확인(목록이 비었을 때 새로고침 등)은 일일 상한의 이 비율 안에서만 한다 — 필수 측정이 우선
 RECHECK_QUOTA_RATIO = float(os.getenv("KEYWORD_RANK_RECHECK_QUOTA_RATIO", "0.8"))
@@ -244,6 +258,7 @@ async def _place_card_rank(
     biz_name_norm: str,
     place_id: Optional[str],
     cards_out: Optional[dict] = None,
+    channel: str = "",
 ) -> Optional[int]:
     """검색 결과 화면의 가게(플레이스) 카드 노출 순서에서 내 가게 순위를 구한다.
 
@@ -265,6 +280,7 @@ async def _place_card_rank(
         cards = await page.evaluate(_PLACE_CARD_JS)
     except Exception as e:
         _logger.warning(f"keyword_rank 카드 수집 실패: {e}")
+        _mark_unread(channel, "card_read_failed")
         return None
     def _find(cards_: list) -> Optional[int]:
         return rank_from_cards(cards_, biz_name_norm, place_id)
@@ -335,13 +351,15 @@ async def _measure_pc(
             await page.goto(url, wait_until="domcontentloaded", timeout=PAGE_TIMEOUT_MS)
         except Exception:
             _logger.warning(f"keyword_rank PC timeout: {keyword}")
+            _mark_unread("pc", "nav_failed")
             return None
     except Exception as e:
         _logger.warning(f"keyword_rank PC nav 실패 ({keyword}): {e}")
+        _mark_unread("pc", "nav_failed")
         return None
 
     _out: dict = {}
-    rank = await _place_card_rank(page, biz_name_norm, place_id, _out)
+    rank = await _place_card_rank(page, biz_name_norm, place_id, _out, channel="pc")
     _card_cache_put("pc", keyword, _out.get("cards"))
     return rank
 
@@ -389,13 +407,15 @@ async def _measure_mobile(
             await page.goto(url, wait_until="domcontentloaded", timeout=PAGE_TIMEOUT_MS)
         except Exception:
             _logger.warning(f"keyword_rank mobile timeout: {keyword}")
+            _mark_unread("mobile", "nav_failed")
             return None
     except Exception as e:
         _logger.warning(f"keyword_rank mobile nav 실패 ({keyword}): {e}")
+        _mark_unread("mobile", "nav_failed")
         return None
 
     _out: dict = {}
-    rank = await _place_card_rank(page, biz_name_norm, place_id, _out)
+    rank = await _place_card_rank(page, biz_name_norm, place_id, _out, channel="mobile")
     _card_cache_put("mobile", keyword, _out.get("cards"))
     return rank
 
@@ -486,6 +506,8 @@ async def _run_with_browser(
                                        "measured_at": _now_iso(), "search_query": search_query,
                                        "error": "naver_search_cooldown"}
                         continue
+                    _fails: dict = {}
+                    _fails_token = _READ_FAILS.set(_fails)
                     try:
                         # 2026-08-08: 기존 순차 실행 타이밍 패턴 유지(봇탐지 회피 목적 변경 없음) —
                         # place_rank만 Playwright→공식API로 교체, PC/모바일 순서·간격은 그대로.
@@ -497,10 +519,11 @@ async def _run_with_browser(
                         elif _pc_cards is not None:   # 같은 검색어를 최근에 읽었다 — 네이버 접속 없이 목록에서 순위만 구한다
                             pc_rank = rank_from_cards(_pc_cards, biz_name_norm, place_id)
                         else:
-                            pc_rank = (
-                                await _measure_pc(pc_page, search_query, biz_name_norm, place_id)
-                                if check_naver_playwright_quota("naver_keyword_rank.pc") else None
-                            )
+                            if check_naver_playwright_quota("naver_keyword_rank.pc"):
+                                pc_rank = await _measure_pc(pc_page, search_query, biz_name_norm, place_id)
+                            else:
+                                pc_rank = None
+                                _mark_unread("pc", "quota_skipped")
                         # 장소 API 실패가 PC·모바일 결과까지 버리지 않도록 채널별로 격리
                         # (2026-10-26: kind "local.json" ValueError가 전 채널을 None으로 만든 사고)
                         try:
@@ -513,10 +536,11 @@ async def _run_with_browser(
                         if _mob_cards is not None:
                             mobile_rank = rank_from_cards(_mob_cards, biz_name_norm, place_id)
                         else:
-                            mobile_rank = (
-                                await _measure_mobile(mobile_page, search_query, biz_name_norm, place_id)
-                                if check_naver_playwright_quota("naver_keyword_rank.mobile") else None
-                            )
+                            if check_naver_playwright_quota("naver_keyword_rank.mobile"):
+                                mobile_rank = await _measure_mobile(mobile_page, search_query, biz_name_norm, place_id)
+                            else:
+                                mobile_rank = None
+                                _mark_unread("mobile", "quota_skipped")
                         _logger.info(
                             f"keyword_rank '{search_query}': "
                             f"PC={pc_rank} Place={place_rank} Mobile={mobile_rank}"
@@ -528,6 +552,15 @@ async def _run_with_browser(
                             "measured_at": _now_iso(),
                             "search_query": search_query,
                         }
+                        # 순위를 하나도 못 찾았고 검색 화면 채널을 전부 읽지 못했다 — "첫 화면 밖"이 아니라 측정 실패다.
+                        # (지역검색 API의 상위 5곳에 없다는 것만으로는 화면 순위를 말할 수 없다.) error가 있으면 점수·평균·알림·CSV가
+                        # 모두 이 행을 미측정으로 건너뛴다. 모바일 전용 모드는 PC를 읽지 않는 것이 설계라 모바일만 본다.
+                        _screen = ["mobile"] if _mobile_only else ["pc", "mobile"]
+                        if (pc_rank is None and mobile_rank is None and place_rank is None
+                                and all(c in _fails for c in _screen)):
+                            results[kw]["error"] = "naver_list_unread"
+                            results[kw]["read_issues"] = dict(_fails)
+                            errors.append(f"{kw}: list_unread")
                         if _card_seen("pc", search_query) or _card_seen("mobile", search_query):
                             report_search_ok()      # 가게 카드가 있는 정상 화면을 읽었다 — 차단 회복 확인
                     except NaverSearchBlocked:
@@ -546,6 +579,8 @@ async def _run_with_browser(
                             "search_query": search_query,
                             "error": type(e).__name__,
                         }
+                    finally:
+                        _READ_FAILS.reset(_fails_token)
             finally:
                 await browser.close()
     except Exception as e:

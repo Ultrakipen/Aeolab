@@ -168,6 +168,11 @@ async def _get(kind: str, params: dict) -> dict:
     return {}
 
 
+def _local_items_ok(data) -> bool:
+    """지역검색 응답을 정상으로 읽었는가(결과 0건이어도 items 목록이 있으면 정상). 실패는 _get이 {}를 돌려준다."""
+    return isinstance(data, dict) and isinstance(data.get("items"), list)
+
+
 async def get_blog_doc_counts(keywords: list[str], max_concurrent: int = 5) -> dict[str, int]:
     """키워드별 네이버 블로그 검색 전체 문서수 조회 (포화도 계산용).
     실패한 키워드는 결과 dict에서 빠짐 — 0으로 오판하지 않도록."""
@@ -272,6 +277,9 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
     naver_competitors = []
     my_rank        = None
     is_smart_place = False
+    # 지역검색을 한 번이라도 정상으로 읽었는가 — _get은 실패(키 오류·429·타임아웃)하면 {}를 돌려주므로 items 목록 유무로 판단한다.
+    # 읽지 못했으면 "미등록"이 아니라 "확인 못 함"(is_smart_place=None)으로 돌려준다(error ≠ false).
+    local_checked = _local_items_ok(local_data)
 
     if isinstance(local_data, dict):
         for i, item in enumerate(local_data.get("items", [])):
@@ -296,6 +304,7 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
                 "display": 5,
                 "sort": "sim",
             })
+            local_checked = local_checked or _local_items_ok(direct_data)
             if isinstance(direct_data, dict):
                 for i, item in enumerate(direct_data.get("items", [])):
                     name = _strip_html(item.get("title", ""))
@@ -315,6 +324,7 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
                 "display": 5,
                 "sort": "sim",
             })
+            local_checked = local_checked or _local_items_ok(direct_data2)
             if isinstance(direct_data2, dict):
                 for i, item in enumerate(direct_data2.get("items", [])):
                     name = _strip_html(item.get("title", ""))
@@ -435,9 +445,11 @@ async def get_naver_visibility(business_name: str, keyword: str, region: str) ->
         "search_query":              search_query,
         "my_rank":                   my_rank,
         "naver_place_rank":          my_rank,       # 명확한 필드명 추가
-        "is_smart_place":            is_smart_place,
+        # True=지역검색에서 확인됨 / False=조회했고 없음 / None=조회 실패(확인 못 함 — 미등록으로 단정 금지)
+        "is_smart_place":            True if is_smart_place else (False if local_checked else None),
+        "local_checked":             local_checked,
         "blog_mentions":             blog_mentions,
-        "blog_mentions_capped":      blog_mentions_capped,   # 상위 100건이 거의 다 확인된 글 — 실제로는 100건 이상일 수 있음
+        "blog_mentions_capped":     blog_mentions_capped,   # 상위 100건이 거의 다 확인된 글 — 실제로는 100건 이상일 수 있음
         "blog_checked":              blog_checked,           # False = 조회 실패(blog_mentions 0은 "없음"이 아니라 "모름")
         "blog_count_method":         "name_in_title_or_snippet_region_confirmed_top100",
         "blog_name_count":           blog_name_count,
@@ -524,6 +536,14 @@ async def get_naver_visibility_multi(business_name: str, keywords: list[str], re
     best["blog_mentions_capped"] = any(r.get("blog_mentions_capped") for r in valid)
     # 한 키워드에서라도 블로그 조회에 성공했으면 확인된 것(실패한 키워드의 0은 위 최솟값 계산에서 이미 빠진다)
     best["blog_checked"] = any(r.get("blog_checked", True) for r in valid)
+    # 등록 여부는 키워드와 무관한 사실이다 — best로 뽑힌 키워드에서 조회가 실패했어도 다른 키워드에서 확인됐으면 그것을 쓴다.
+    best["local_checked"] = any(r.get("local_checked", True) for r in valid)
+    if any(r.get("is_smart_place") is True for r in valid):
+        best["is_smart_place"] = True
+    elif best["local_checked"]:
+        best["is_smart_place"] = False
+    else:
+        best["is_smart_place"] = None
     best["multi_query_count"] = len(valid)
     best["all_queries"] = [r.get("search_query", "") for r in valid]
     # 후기 많은 순 순위는 키워드마다 다르다 — 가장 좋은(작은) 순위를 그 검색어와 함께 쓴다. 한 곳이라도 확인했으면 checked.

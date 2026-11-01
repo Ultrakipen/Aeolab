@@ -329,6 +329,16 @@
 | T-16 | **랜딩 소셜 프루프·첫 화면 문구 정정**(근거: 11-01 랜딩 점검) | ① '77개 가게' 카운터에서 다량 사용 IP·관리자·개발 테스트 제외(또는 실제 외부 이용자가 쌓일 때까지 문구 제거) ② 과장 문구 3곳 완화("대신 챙겨드립니다", "매달 우상향", "광고 없이도 AI 추천 조건을 쌓아드립니다") ③ 첫 화면에 '스마트플레이스·리뷰·블로그·경쟁사를 함께 보고 고칠 순서를 알려준다'는 통합 메시지(**무료로 확인되는 것(네이버 검색·ChatGPT·구글 지도, 경쟁사·블로그 언급)과 가입 후(AI 브리핑·AI탭·소개글·FAQ·리뷰 답변 초안, 스마트플레이스 점검)를 구분**) ④ 변경 후 5초 테스트·베타 인터뷰 | PC·모바일 라이브 확인, 금지어 테스트 |
 | T-15 | 문서·컨텍스트 정리 | CLAUDE.md(약 37k 토큰)·MEMORY.md(약 13k) 압축 | 규칙 유지, 아카이브 원문 보존 |
 
+### 7.1 T-7 진행 결과 (2026-11-01 밤, 서버 반영·md5 일치 확인)
+- **확인된 결함 2건 수정**(근거 `naver_visibility.py:_get`이 실패 시 `{}` 반환, `score_engine.calc_keyword_search_rank_score`가 error 없는 전부-None 행을 '측정된 0점'으로 채점):
+  1. **순위 측정(`naver_keyword_rank.py`)**: 이동 실패·카드 수집 예외·일일 상한 건너뜀으로 PC/모바일을 둘 다 읽지 못했고 순위도 못 찾았으면 `error="naver_list_unread"`(+`read_issues`)로 저장 → 점수·평균·알림·CSV·카드가 이미 '측정 실패/미측정'으로 처리. 함수 서명은 그대로(ContextVar `_READ_FAILS`).
+  2. **가시성(`naver_visibility.py`)**: 지역검색 조회 실패 시 `is_smart_place=None`, `local_checked=False`(이전: False=미등록으로 단정). 다중 키워드는 한 곳이라도 확인되면 True. 체험 메일은 None이면 '미등록'도 '갖춰져 있습니다'도 말하지 않고 중립 문구.
+- **일부러 하지 않은 것**: '카드 0개'를 실패로 보지 않음 — 법무·세무처럼 플레이스 카드가 원래 없는 업종 검색어가 영구 '측정 실패'가 되어 순위 잡이 전부 저장 생략될 수 있음(반증으로 철회한 안).
+- **오탐 기각**: 등록 사업장 점수 경로는 이미 `_is_smart_place_unmeasured`가 '확인 전' 처리(수정 불필요), `scan.py:581` 체험 경쟁사 대조는 이미 `items is None` 구분 처리, 체험 프론트는 `is_smart_place === true`만 쓰고 그 외는 null 취급, 메일의 `improvements_section`/`evidence_section`은 템플릿에 안 쓰이는 죽은 코드(처음엔 이쪽을 고쳤다가 되돌림).
+- **미확인**: 실제 검색 화면 차단의 모양(카드 0개로 오는 차단은 여전히 '첫 화면 밖'으로 저장될 수 있음 — 로컬 Playwright 1페이지로만 확인 가능), 메일의 마지막 else가 has_intro/has_recent_post가 None이어도 '소개글·소식이 있습니다'라 말하는 기존 문구(이번 변경 범위 밖), `_get` 실패 시 호출부 중 `competitor_place_crawler.fetch_competitor_blog_mentions`(실패 시 0 반환, 문서화된 기존 동작)와 `blog.py` 등 미점검.
+- 테스트: `test_keyword_rank_unread_channels.py`(9), `test_visibility_local_unchecked.py`(8), `test_trial_email_registration_unknown.py`(4) — 수정 빼기 변이 검증 완료. 서버 전체 1,177 통과.
+
+
 ---
 
 ## 8. 사용자 몫·시간 대기 (재확인용)

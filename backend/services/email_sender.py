@@ -881,6 +881,7 @@ async def send_trial_claim_link(
     </div>"""
 
     # ── 핵심 발견 1가지 (우선순위 기반) ─────────────────────────────────────
+    _f_neutral = False
     if _sp_val is False:
         _f_title = "스마트플레이스 미등록"
         _f_desc = "스마트플레이스는 네이버 AI 브리핑 노출의 기본 조건입니다. 등록하지 않으면 소개글을 아무리 잘 써도 AI에 노출되지 않습니다."
@@ -901,14 +902,23 @@ async def send_trial_claim_link(
         _f_title = f"ChatGPT {_TRIAL_CHATGPT_SAMPLE_N}회 질의 — '{biz_name}' 0번 등장"
         _f_desc = "소개글 키워드 다양성을 높이면 수개월~1년 뒤 ChatGPT 학습 데이터에 포함될 가능성이 높아집니다."
         _f_neg = True
+    elif _sp_val is None and smart_place_completeness is None:
+        # 스마트플레이스 등록 여부를 읽지 못했다(지역검색 조회 실패 등) — 갖춰져 있다고도, 미등록이라고도 단정하지 않는다
+        _f_title = "스마트플레이스 등록 여부는 이번에 확인하지 못했습니다"
+        _f_desc = "정식 스캔에서 다시 확인합니다. 지금은 네이버 스마트플레이스 관리 화면에서 직접 확인해 보세요."
+        _f_neg = False
+        _f_neutral = True
     else:
         _f_title = "기본 설정이 갖춰져 있습니다"
         _f_desc = "소개글·소식이 있습니다. 다음 단계는 경쟁 가게 대비 블로그 언급 수를 늘리는 것입니다."
         _f_neg = False
 
-    _f_bg     = "#fef2f2" if _f_neg else "#f0fdf4"
-    _f_border = "#fecaca" if _f_neg else "#86efac"
-    _f_color  = "#991b1b" if _f_neg else "#14532d"
+    if _f_neutral:
+        _f_bg, _f_border, _f_color = "#f8fafc", "#e2e8f0", "#334155"
+    else:
+        _f_bg     = "#fef2f2" if _f_neg else "#f0fdf4"
+        _f_border = "#fecaca" if _f_neg else "#86efac"
+        _f_color  = "#991b1b" if _f_neg else "#14532d"
 
     # 경쟁사 블로그 비교 블록
     _comp_html = ""
