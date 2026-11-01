@@ -10,11 +10,13 @@ _logger = logger   # 대행 서비스 알림 함수(send_delivery_*)가 쓰는 �
 
 # ── 점수 → 텍스트 등급 변환 헬퍼 ────────────────────────────────────────────
 def _grade(score: float) -> str:
-    """점수를 사용자 친화적 등급 텍스트로 변환."""
-    if score >= 80: return "우수"
-    if score >= 60: return "양호"
-    if score >= 40: return "보통"
-    return "개선 필요"
+    """점수 → 단계 이름. 대시보드와 같은 단일 소스(services/stage_names)를 쓴다 — 시작 전/보강 단계/개선 중/양호, 경계 30/55/75.
+
+    2026-11-01: 알림톡만 우수/양호/보통/개선 필요, 경계 80/60/40을 따로 써서 같은 가게가 알림에서는 "양호"인데 대시보드에서는 "개선 중"으로
+    보였고(점수 62), 알림의 '등급 상승' 시점도 대시보드의 단계 변화와 어긋났다. 10-28 이름 통일에서 이 함수만 빠져 있었다.
+    """
+    from services.stage_names import stage_code_for_score, stage_name
+    return stage_name(stage_code_for_score(score))
 
 
 def _grade_label(score: float, rank: int = 0) -> str:
