@@ -43,11 +43,14 @@ async def comparable_to_previous_scan(supabase, business_id: str, naver_result) 
         return False
 
 
-async def window_comparison_unmeasured(supabase, business_id: str, since_iso: str) -> Optional[bool]:
-    """기간 [since_iso, 지금]의 점수 변화를 말하기 전에 — 비교의 양 끝 스캔 중 하나라도 네이버 측정이 빠졌는가. 조회 실패는 None.
+async def window_comparison_unmeasured(
+    supabase, business_id: str, since_iso: str, until_iso: Optional[str] = None,
+) -> Optional[bool]:
+    """기간 [since_iso, until_iso 또는 지금)의 점수 변화를 말하기 전에 — 비교의 양 끝 스캔 중 하나라도 네이버 측정이 빠졌는가. 조회 실패는 None.
 
     양 끝 = 기간 안에서 점수가 나온 첫 스캔과 마지막 스캔. 기간 안에 한 건뿐이면 기준이 되는 기간 이전의 가장 최근 스캔도 포함한다.
     기간 안에 점수 스캔이 없으면 False(판정할 스캔이 없다). 재방문 배너("그동안 점수가 내려갔어요/개선됐어요")처럼 큰 문구에 쓴다.
+    until_iso는 지난달 리포트처럼 끝이 '지금'이 아닌 비교에 쓴다 — 이 값이 없으면 새 달의 스캔이 양 끝으로 잡혀 엉뚱한 스캔을 판정한다.
     조회는 모두 limit 1이다(서버 1,000행 상한 규칙과 무관하게 안전).
     """
     try:
@@ -62,8 +65,12 @@ async def window_comparison_unmeasured(supabase, business_id: str, since_iso: st
                 .not_.is_("track1_score", "null")
             )
 
-        first = await execute(base().gte("scanned_at", since_iso).order("scanned_at", desc=False).limit(1))
-        last = await execute(base().gte("scanned_at", since_iso).order("scanned_at", desc=True).limit(1))
+        def windowed():
+            q = base().gte("scanned_at", since_iso)
+            return q.lt("scanned_at", until_iso) if until_iso else q
+
+        first = await execute(windowed().order("scanned_at", desc=False).limit(1))
+        last = await execute(windowed().order("scanned_at", desc=True).limit(1))
         f = (first.data if first else None) or []
         l = (last.data if last else None) or []
         if not f or not l:

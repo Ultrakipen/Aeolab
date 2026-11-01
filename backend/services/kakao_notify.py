@@ -3,6 +3,7 @@ import os
 import logging
 import re
 from datetime import date
+from typing import Optional
 
 logger = logging.getLogger("aeolab")
 _logger = logger   # 대행 서비스 알림 함수(send_delivery_*)가 쓰는 이름 — 2026-05-18부터 미정의라 "템플릿 미설정 건너뜀" 경로가 NameError였다
@@ -514,16 +515,22 @@ class KakaoNotifier:
         await self._send_raw(phone, message, template_code="AEOLAB_NOTICE_01")
 
     async def send_monthly_report(
-        self, phone: str, biz_name: str, score_change: float,
+        self, phone: str, biz_name: str, score_change: Optional[float],
         scan_count: int, citation_count: int, month_str: str,
     ):
-        """월간 성장 리포트 알림 (템플릿 코드: AEOLAB_MONTHLY_01)"""
+        """월간 성장 리포트 알림 (템플릿 코드: AEOLAB_MONTHLY_01)
+
+        score_change=None은 '비교할 수 없다'(기록이 한 건뿐이거나 없음, 또는 비교하는 스캔에 네이버 측정이 빠짐)는 뜻이다 —
+        0.0으로 넘기면 "변동 없음"이라는 거짓 단정이 되므로 별도 문구를 쓴다(스캔 횟수·인용 건수는 사실이라 그대로 보낸다).
+        """
         app_key = os.getenv("KAKAO_APP_KEY", "")
         if not app_key:
             masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
             logger.warning(f"send_monthly_report skipped (KAKAO_APP_KEY 미설정): {masked}")
-            return
-        if score_change > 5:
+            return False
+        if score_change is None:
+            trend = "비교 데이터 부족"          # 8자 — 알림톡 변수 14자 한도 이내
+        elif score_change > 5:
             trend = "뚜렷한 상승세"
         elif score_change > 0:
             trend = "소폭 상승"
@@ -534,7 +541,7 @@ class KakaoNotifier:
         else:
             trend = "하락 — 점검 필요"
         month = str(int(month_str)) if str(month_str).isdigit() else str(month_str)
-        await self._send(
+        resp = await self._send(
             phone,
             "monthly_report",
             {
@@ -545,6 +552,8 @@ class KakaoNotifier:
                 "#{인용건수}": str(citation_count),
             },
         )
+        # 실제로 전달됐을 때만 True — 호출부가 '보냈다'고 기록하는 근거다(지침 9: 발송 실패를 성공으로 기록하지 않는다)
+        return _kakao_response_ok(resp)
 
     async def send_delivery_received(
         self, order_id: str, user_phone: str, package_name: str, business_name: str

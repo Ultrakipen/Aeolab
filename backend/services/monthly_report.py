@@ -19,7 +19,7 @@ async def collect_monthly_stats(supabase, business_id: str, year: int, month: in
     # 점수 변화: 해당 월 첫 번째 vs 마지막 날 score_history
     first_score_row = (
         supabase.table("score_history")
-        .select("total_score")
+        .select("total_score, score_date")
         .not_.is_("total_score", "null")  # 순위 측정만 기록한 행(total_score NULL)은 비교 대상 아님
         .eq("business_id", business_id)
         .gte("score_date", first_day)
@@ -31,7 +31,7 @@ async def collect_monthly_stats(supabase, business_id: str, year: int, month: in
     )
     last_score_row = (
         supabase.table("score_history")
-        .select("total_score")
+        .select("total_score, score_date")
         .not_.is_("total_score", "null")  # 순위 측정만 기록한 행(total_score NULL)은 비교 대상 아님
         .eq("business_id", business_id)
         .gte("score_date", first_day)
@@ -41,11 +41,19 @@ async def collect_monthly_stats(supabase, business_id: str, year: int, month: in
         .execute()
         .data or []
     )
-    score_change = 0.0
-    if first_score_row and last_score_row:
-        score_change = round(
-            float(last_score_row[0]["total_score"]) - float(first_score_row[0]["total_score"]), 1
+    # None = '비교할 수 없다'. 예전에는 0.0이라 기록이 없거나 한 건뿐인 달도 "변동 없음"이라는 거짓 단정이 나갔다.
+    # 비교하려면 날짜가 다른 두 점수가 있어야 하고, 두 끝 스캔 모두 네이버 측정이 성공했어야 한다
+    # (측정 빠진 날은 항목이 제외·재정규화돼 척도가 다르다 — services/change_signal_guard). 확인하지 못해도 비교하지 않는다.
+    score_change = None
+    if first_score_row and last_score_row and first_score_row[0].get("score_date") != last_score_row[0].get("score_date"):
+        from services.change_signal_guard import window_comparison_unmeasured
+        _unmeasured = await window_comparison_unmeasured(
+            supabase, business_id, first_day + "T00:00:00", until_iso=next_month_first + "T00:00:00",
         )
+        if _unmeasured is False:
+            score_change = round(
+                float(last_score_row[0]["total_score"]) - float(first_score_row[0]["total_score"]), 1
+            )
 
     # 스캔 횟수: scan_results에서 해당 월 스캔 수
     scan_count_result = (
@@ -132,7 +140,7 @@ async def send_monthly_growth_report_to_all():
                 # 전화번호 조회
                 profile = (
                     supabase.table("profiles")
-                    .select("phone")
+                    .select("phone, kakao_scan_notify")
                     .eq("user_id", user_id)
                     .maybe_single()
                     .execute()
@@ -140,6 +148,11 @@ async def send_monthly_growth_report_to_all():
                 )
                 phone = (profile or {}).get("phone")
                 if not phone:
+                    skipped_count += 1
+                    continue
+                # 사용자가 설정에서 알림을 끈 경우는 보내지 않는다 — 같은 알림을 보내는 monthly_report_notify와 다른 알림 잡들은 이미 이 설정을 따랐는데
+                # 이 잡만 번호만 있으면 보냈다. 명시적 False만 막는다(다른 잡들의 관례, 미설정은 기본 발송).
+                if (profile or {}).get("kakao_scan_notify") is False:
                     skipped_count += 1
                     continue
 
@@ -150,6 +163,7 @@ async def send_monthly_growth_report_to_all():
                     .select("id", count="exact")
                     .eq("user_id", user_id)
                     .eq("type", "monthly_report")
+                    .eq("status", "sent")      # 전달 실패(failed) 기록은 '보냈다'가 아니다 — monthly_report_notify의 중복 방지와 같은 기준
                     .gte("created_at", month_start_ts)
                     .execute()
                 )
@@ -161,7 +175,7 @@ async def send_monthly_growth_report_to_all():
                 stats = await collect_monthly_stats(supabase, biz_id, prev_year, prev_month)
 
                 # 카카오 알림 발송
-                await notifier.send_monthly_report(
+                delivered = await notifier.send_monthly_report(
                     phone=phone,
                     biz_name=biz_name,
                     score_change=stats["score_change"],
@@ -170,7 +184,8 @@ async def send_monthly_growth_report_to_all():
                     month_str=month_str,
                 )
 
-                # 발송 이력 저장
+                # 발송 이력 저장 — 실제로 전달된 경우에만 'sent'로 기록한다(지침 9). 이 기록이 '이미 이번 달에 보냈다'는 중복 방지의 근거이므로
+                # 실패를 sent로 남기면 재시도(monthly_report_notify)도 막힌다.
                 supabase.table("notifications").insert({
                     "user_id": user_id,
                     "type": "monthly_report",
@@ -180,11 +195,16 @@ async def send_monthly_growth_report_to_all():
                         **stats,
                     },
                     "channel": "kakao",
-                    "status": "sent",
+                    "status": "sent" if delivered else "failed",
                 }).execute()
 
+                if not delivered:
+                    skipped_count += 1
+                    logger.warning(f"monthly_report 전달 실패(기록은 failed): {biz_name}")
+                    continue
                 sent_count += 1
-                logger.info(f"monthly_report sent: {biz_name} ({month_str}월 score_change={stats['score_change']:+.1f})")
+                _sc = stats["score_change"]
+                logger.info(f"monthly_report sent: {biz_name} ({month_str}월 score_change={'비교 불가' if _sc is None else format(_sc, '+.1f')})")
 
             except Exception as e:
                 logger.warning(f"monthly_report failed for biz={biz.get('id')}: {e}")

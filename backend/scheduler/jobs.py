@@ -3025,6 +3025,7 @@ async def monthly_growth_card_job():
                     .select("total_score, score_date")
                     .eq("business_id", biz_id)
                     .gte("score_date", month_start)
+                    .not_.is_("total_score", "null")   # 아래 '마지막 점수'와 같은 조건 — 월초가 순위 전용 행이면 float(None)로 이 사업장 카드가 조용히 빠졌다
                     .order("score_date", desc=False)
                     .limit(1)
                 )
@@ -3050,6 +3051,14 @@ async def monthly_growth_card_job():
 
                 if diff <= 0:
                     logger.debug(f"monthly_growth_card: {biz['name']} 상승 없음 ({diff:+.1f})")
+                    continue
+
+                # '좋아졌어요!' 카드는 공유되는 이미지다 — 월초 또는 월말 스캔의 네이버 측정이 빠졌다면 점수 차이는 상승이 아니다
+                # (측정 빠진 날은 항목이 제외·재정규화돼 척도가 다르다, services/change_signal_guard). 확인하지 못해도 만들지 않는다.
+                from services.change_signal_guard import window_comparison_unmeasured
+                _card_unmeasured = await window_comparison_unmeasured(supabase, biz_id, month_start)
+                if _card_unmeasured is None or _card_unmeasured:
+                    logger.info(f"monthly_growth_card: {biz['name']} 네이버 측정이 빠진 스캔이 비교에 섞여 카드 생략")
                     continue
 
                 # Pillow로 성장 카드 이미지 생성
@@ -3209,11 +3218,28 @@ async def monthly_report_notify():
                 biz_id = biz.data["id"]
                 biz_name = biz.data["name"]
 
+                # 같은 달에 월간 리포트(AEOLAB_MONTHLY_01)가 이미 나갔으면 다시 보내지 않는다 — 09:00 send_monthly_growth_report가 같은 템플릿을 먼저 보내고
+                # notifications에 type='monthly_report'로 기록하는데, 이 잡은 그 기록을 보지 않아 같은 사용자에게 같은 알림이 10분 간격으로 두 번 갔다.
+                _ms_dedupe = datetime.now().replace(day=1).strftime("%Y-%m-01T00:00:00")
+                _already = await _db(
+                    supabase.table("notifications")
+                    .select("id")
+                    .eq("user_id", user_id)
+                    .eq("type", "monthly_report")
+                    .eq("status", "sent")
+                    .gte("created_at", _ms_dedupe)
+                    .limit(1)
+                )
+                if _already and _already.data:
+                    skipped += 1
+                    continue
+
                 # 최근 60개 점수 조회 (약 2달치)
                 scores = await _db(
                     supabase.table("score_history")
-                    .select("unified_score, score_date")
+                    .select("unified_score, total_score, score_date")
                     .eq("business_id", biz_id)
+                    .not_.is_("total_score", "null")   # 순위만 기록한 행(점수 컬럼이 모두 NULL)은 점수가 아니다 — `or 0.0`으로 읽으면 0점이 돼 거짓 하락/상승이 나간다
                     .order("score_date", desc=True)
                     .limit(60)
                 )
@@ -3221,9 +3247,22 @@ async def monthly_report_notify():
                     skipped += 1
                     continue
 
-                latest = scores.data[0].get("unified_score") or 0.0
-                prev = scores.data[-1].get("unified_score") or 0.0
+                def _row_score(r: dict) -> float:
+                    _u = r.get("unified_score")      # 과거 행은 unified_score가 NULL일 수 있다 — total_score가 같은 값의 별칭이다
+                    return float(_u if _u is not None else r["total_score"])
+
+                latest = _row_score(scores.data[0])
+                prev = _row_score(scores.data[-1])
                 diff = round(latest - prev, 1)
+
+                # 비교의 양 끝 스캔 중 하나라도 네이버 측정이 빠졌다면 추세("뚜렷한 상승세/하락 — 점검 필요")는 변화가 아니다
+                # (services/change_signal_guard). 확인하지 못해도 마찬가지 — 이때는 추세를 단정하지 않고 '비교 데이터 부족'으로 보낸다
+                # (스캔 횟수·인용 건수는 사실이라 그대로 보낸다; monthly_report.collect_monthly_stats와 같은 규칙).
+                from services.change_signal_guard import window_comparison_unmeasured
+                _span_unmeasured = await window_comparison_unmeasured(supabase, biz_id, str(scores.data[-1].get("score_date")))
+                if _span_unmeasured is not False:
+                    _logger.info("monthly_report_notify: 비교하는 스캔에 네이버 측정이 빠졌거나 확인하지 못해 추세 없이 발송 biz=%s", biz_id)
+                    diff = None
 
                 # 이달 스캔 횟수
                 month_start = datetime.now().replace(day=1).strftime("%Y-%m-01T00:00:00")
@@ -4207,11 +4246,19 @@ async def weekly_score_report_job():
                     supabase.table("score_history")
                     .select("unified_score, total_score, score_date")
                     .eq("business_id", biz_id)
+                    .not_.is_("total_score", "null")   # 순위만 기록한 행(total_score NULL)은 점수가 아니다 — 거르지 않으면 아래 _hist_score가 0.0으로 바꿔 "0점"이 된다
                     .order("score_date", desc=True)
                     .limit(2)
                 )
                 history = hist_res.data or []
                 if not history:
+                    continue
+
+                # 비교하는 두 점수 중 하나라도 네이버 측정이 빠진 스캔의 점수면 '등급 변화·추세'는 변화가 아니다(services/change_signal_guard) — 보내지 않는다.
+                # 확인하지 못해도 보내지 않는다(잘못된 알림이 빠진 알림보다 신뢰를 더 깎는다).
+                from services.change_signal_guard import comparable_scans, recent_naver_unmeasured_flags
+                if not comparable_scans(await recent_naver_unmeasured_flags(supabase, biz_id)):
+                    logger.info("[weekly_score_report_job] 네이버 측정이 빠진 스캔이 비교에 섞여 주간 성적표 생략 biz=%s", biz_id)
                     continue
 
                 def _hist_score(row: dict) -> float:
@@ -4640,7 +4687,7 @@ async def send_monthly_performance_reports():
                 # 28일 전 점수
                 score_before_r = await _asyncio.to_thread(
                     supabase.table("score_history")
-                    .select("unified_score, total_score")
+                    .select("unified_score, total_score, score_date")
                     .eq("business_id", biz["id"])
                     .not_.is_("total_score", "null")
                     .lte("score_date", str(today - timedelta(days=28)))
@@ -4648,6 +4695,22 @@ async def send_monthly_performance_reports():
                     .limit(1)
                     .execute
                 )
+
+                # 비교할 두 시점의 점수가 모두 있어야 한다 — 없는 쪽을 0.0으로 읽으면 "시작 전 → 개선 중, 상승"처럼 거짓 비교가 나간다
+                # (28일 전에 아직 스캔 기록이 없던 구독자). 이력이 부족하면 이번에는 보내지 않는다.
+                if not (score_now_r and score_now_r.data) or not (score_before_r and score_before_r.data):
+                    logger.info(f"[monthly_perf] 비교할 점수 이력이 부족해 생략 biz={biz['id']} ({days_since}일)")
+                    continue
+
+                # 비교의 양 끝 스캔 중 하나라도 네이버 측정이 빠졌다면 '상승/하락/단계 변화'는 변화가 아니다(services/change_signal_guard).
+                # 기준 시점(28일 전 이전의 가장 최근 점수 행)의 날짜부터 지금까지를 본다. 확인하지 못해도 보내지 않는다.
+                from services.change_signal_guard import window_comparison_unmeasured
+                _perf_unmeasured = await window_comparison_unmeasured(
+                    supabase, biz["id"], str(score_before_r.data[0].get("score_date"))
+                )
+                if _perf_unmeasured is None or _perf_unmeasured:
+                    logger.info(f"[monthly_perf] 네이버 측정이 빠진 스캔이 비교에 섞여 생략 biz={biz['id']} ({days_since}일)")
+                    continue
 
                 def _get_score(r):
                     if not (r and r.data):
