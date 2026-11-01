@@ -5575,6 +5575,13 @@ async def get_visit_delta(
     if abs(delta) < 0.5:
         return {"show": False}
 
+    # 비교의 양 끝 스캔 중 하나라도 네이버 측정이 빠졌다면(차단·캡차·상한) 점수 차이는 변화가 아니다 — 항목이 제외·재정규화돼 척도가 다르다
+    # (services/change_signal_guard, 같은 가게 시험 64.5 ↔ 54.6). "내려갔습니다/개선됐어요"를 단정하지 않는다. 확인하지 못해도 보이지 않는다.
+    from services.change_signal_guard import window_comparison_unmeasured
+    _unmeasured_end = await window_comparison_unmeasured(supabase, biz_id, last_visit_iso)
+    if _unmeasured_end is None or _unmeasured_end:
+        return {"show": False}
+
     return {
         "show": True,
         "days_away": days_away,

@@ -43,6 +43,41 @@ async def comparable_to_previous_scan(supabase, business_id: str, naver_result) 
         return False
 
 
+async def window_comparison_unmeasured(supabase, business_id: str, since_iso: str) -> Optional[bool]:
+    """기간 [since_iso, 지금]의 점수 변화를 말하기 전에 — 비교의 양 끝 스캔 중 하나라도 네이버 측정이 빠졌는가. 조회 실패는 None.
+
+    양 끝 = 기간 안에서 점수가 나온 첫 스캔과 마지막 스캔. 기간 안에 한 건뿐이면 기준이 되는 기간 이전의 가장 최근 스캔도 포함한다.
+    기간 안에 점수 스캔이 없으면 False(판정할 스캔이 없다). 재방문 배너("그동안 점수가 내려갔어요/개선됐어요")처럼 큰 문구에 쓴다.
+    조회는 모두 limit 1이다(서버 1,000행 상한 규칙과 무관하게 안전).
+    """
+    try:
+        from db.supabase_client import execute
+        from services.score_engine import naver_result_unmeasured
+
+        def base():
+            return (
+                supabase.table("scan_results")
+                .select("naver_result, scanned_at")
+                .eq("business_id", business_id)
+                .not_.is_("track1_score", "null")
+            )
+
+        first = await execute(base().gte("scanned_at", since_iso).order("scanned_at", desc=False).limit(1))
+        last = await execute(base().gte("scanned_at", since_iso).order("scanned_at", desc=True).limit(1))
+        f = (first.data if first else None) or []
+        l = (last.data if last else None) or []
+        if not f or not l:
+            return False
+        ends = [f[0], l[0]]
+        if f[0].get("scanned_at") == l[0].get("scanned_at"):
+            before = await execute(base().lt("scanned_at", since_iso).order("scanned_at", desc=True).limit(1))
+            ends += ((before.data if before else None) or [])[:1]
+        return any(naver_result_unmeasured(r.get("naver_result")) for r in ends)
+    except Exception as e:
+        _logger.warning("[change_signal_guard] 기간 비교 가능 판정 실패(변화 표시 생략) biz=%s: %s", business_id, e)
+        return None
+
+
 async def recent_naver_unmeasured_flags(supabase, business_id: str) -> Optional[list]:
     """점수가 나온 최근 스캔 2건(최신순: 오늘/직전)의 네이버 '측정 못 함' 여부. 조회에 실패하면 None.
 
