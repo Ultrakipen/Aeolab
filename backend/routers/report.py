@@ -253,7 +253,9 @@ async def get_history(biz_id: str, user=Depends(get_current_user)):
     (rows, _), (_sh_rows, _) = await asyncio.gather(
         fetch_all_rows(
             lambda: supabase.table("scan_results")
-            .select("scanned_at, total_score, track1_score, track2_score, unified_score, exposure_freq, competitor_scores, score_breakdown")
+            # nr_* 세 값은 이 스캔의 네이버 측정이 빠졌는지(naver_unmeasured) 판정하려고 JSON 연산자로 필요한 필드만 읽는다 — 큰 naver_result 전체를 이력 행마다 읽지 않는다
+            .select("scanned_at, total_score, track1_score, track2_score, unified_score, exposure_freq, competitor_scores, score_breakdown, "
+                    "nr_error:naver_result->>error, nr_captcha:naver_result->>captcha_detected, nr_quota:naver_result->>quota_skipped")
             .eq("business_id", biz_id)
             .order("scanned_at", desc=True).order("id"),
             max_rows=limit_rows,
@@ -269,8 +271,11 @@ async def get_history(biz_id: str, user=Depends(get_current_user)):
     # score_date 별칭 추가 (하위 호환) — 아래 sh_by_date 조인이 score_history.score_date(KST
     # 기준)와 맞아떨어지려면 scanned_at(UTC 저장)도 KST로 변환해야 함. 일일 스캔이 02:00 KST
     # 고정 스케줄이라 단순 [:10] 슬라이싱 시 사실상 모든 계정에서 하루 전 행과 상시 오조인됨.
+    from services.score_engine import naver_unmeasured_from_json_fields as _nr_unmeasured
     for row in rows:
         row["score_date"] = _scanned_at_to_kst_date(row.get("scanned_at"))
+        # 이 스캔은 네이버 측정이 빠졌다(차단·캡차·상한·화면 변경) — 점수가 다른 스캔과 같은 척도가 아니라 '처음 대비 개선/하락' 같은 비교의 양 끝으로 쓰면 안 된다
+        row["naver_unmeasured"] = _nr_unmeasured(row.pop("nr_error", None), row.pop("nr_captcha", None), row.pop("nr_quota", None))
 
     # score_history에서 업종 내 순위·주간 변화 보완 (scan_results엔 없는 컬럼 — /pdf 엔드포인트와 동일 패턴)
     sh_by_date = {r["score_date"]: r for r in _sh_rows if r.get("score_date")}
@@ -2578,11 +2583,19 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
         _scans_res = await _scans_coro
     scans_raw = _scans_res.data or []
 
+    # 비교("처음 측정 대비")의 양 끝은 네이버까지 정상 측정된 스캔으로 잡는다. 네이버 측정이 빠진 스캔의 점수는 항목이 제외·재정규화돼
+    # 측정 성공일과 같은 척도가 아니다(같은 가게 시험 64.5 ↔ 54.6, services/change_signal_guard). 이전에는 첫/마지막 스캔을 그대로 비교해
+    # 마지막 스캔이 차단일이면 "노출이 줄었습니다. 가장 큰 원인은 …"을 단정했고, 첫 스캔이 차단일이면 그 어긋남이 영구히 남았다.
+    # 정상 측정 스캔이 하나도 없으면 전체 스캔으로 표시하되 추세 주장은 하지 않는다(아래 insufficient_trend_data).
+    from services.score_engine import naver_result_unmeasured as _nru_g
+    _measured_scans = [s for s in scans_raw if not _nru_g(s.get("naver_result"))]
+    _base_scans = _measured_scans or scans_raw
+
     # ── 3. 기준 점수 결정 ────────────────────────────────────────────
     trial_score      = _safe_float((trial_raw or {}).get("unified_score"))
-    first_scan_score = _safe_float((scans_raw[0] if scans_raw else {}).get("unified_score"))
+    first_scan_score = _safe_float((_base_scans[0] if _base_scans else {}).get("unified_score"))
     start_score      = trial_score if trial_raw else first_scan_score
-    current_score    = _safe_float((scans_raw[-1] if scans_raw else {}).get("unified_score"))
+    current_score    = _safe_float((_base_scans[-1] if _base_scans else {}).get("unified_score"))
 
     # ── 3-B. 추세 판단 최소 경과일 가드 ─────────────────────────────
     # 첫 스캔(또는 trial) vs 최신 스캔 간격이 짧으면(3일 미만) AI 샘플링 노이즈를 실제
@@ -2590,9 +2603,9 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
     # 동일하게 첫 스캔 vs 최신 스캔 비교라 여기로 끌어올려 3곳이 함께 쓴다
     # (2026-08-09 헤드라인 최초 도입 → 같은 날 재점검에서 나머지 2곳도 동일 원인 확인).
     headline_anchor_at = (trial_raw or {}).get("scanned_at") or (
-        scans_raw[0].get("scanned_at") if scans_raw else None
+        _base_scans[0].get("scanned_at") if _base_scans else None
     )
-    headline_latest_at = scans_raw[-1].get("scanned_at") if scans_raw else None
+    headline_latest_at = _base_scans[-1].get("scanned_at") if _base_scans else None
     headline_elapsed_days = None
     if headline_anchor_at and headline_latest_at:
         try:
@@ -2603,6 +2616,9 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
             _logger.warning(f"headline_elapsed_days parse failed: {e}")
     _MIN_TREND_DAYS = 3
     insufficient_trend_data = headline_elapsed_days is None or headline_elapsed_days < _MIN_TREND_DAYS
+    # 네이버까지 정상 측정된 스캔이 하나도 없으면(스캔은 있는데 전부 측정 빠짐) 방향을 말할 근거가 없다
+    if scans_raw and not _measured_scans:
+        insufficient_trend_data = True
 
     # ── 4. timeline 구성 ─────────────────────────────────────────────
     prev_score = start_score
@@ -2612,6 +2628,7 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
         delta = round(s - prev_score, 1)
         timeline.append({
             "scanned_at":      scan.get("scanned_at"),
+            "naver_unmeasured": _nru_g(scan.get("naver_result")),   # 이 스캔은 네이버 측정이 빠졌다 — 점수가 다른 스캔과 같은 척도가 아니다
             "unified_score":   s,
             "track1_score":    _safe_float(scan.get("track1_score")),
             "track2_score":    _safe_float(scan.get("track2_score")),
@@ -2635,9 +2652,9 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
 
     growth_drivers: list[dict] = []
     worst_driver: dict | None = None
-    if scans_raw:
-        first_bd   = scans_raw[0].get("score_breakdown")  or {}
-        latest_bd  = scans_raw[-1].get("score_breakdown") or {}
+    if _base_scans:
+        first_bd   = _base_scans[0].get("score_breakdown")  or {}
+        latest_bd  = _base_scans[-1].get("score_breakdown") or {}
         user_group = latest_bd.get("user_group") or first_bd.get("user_group") or "ACTIVE"
         drivers: list[dict] = []
         all_keys = set(first_bd.keys()) | set(latest_bd.keys())
@@ -2742,11 +2759,11 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
     # ── 6. summary ────────────────────────────────────────────────────
     start_stage = (
         (trial_raw or {}).get("growth_stage")
-        or (scans_raw[0].get("growth_stage") if scans_raw else None)
+        or (_base_scans[0].get("growth_stage") if _base_scans else None)
         or _STAGE_NAME["survival"]
     )
     current_stage = (
-        (scans_raw[-1].get("growth_stage") if scans_raw else None)
+        (_base_scans[-1].get("growth_stage") if _base_scans else None)
         or start_stage
     )
 
@@ -2762,7 +2779,7 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
     }
 
     # ── 7. 다음 목표 ──────────────────────────────────────────────────
-    latest_bd_for_goal = (scans_raw[-1].get("score_breakdown") if scans_raw else None) or {}
+    latest_bd_for_goal = (_base_scans[-1].get("score_breakdown") if _base_scans else None) or {}
     next_goal = _next_goal(current_score, latest_bd_for_goal)
 
     # ── 8. days_active ────────────────────────────────────────────────

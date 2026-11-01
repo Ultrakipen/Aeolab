@@ -534,6 +534,13 @@ def naver_result_unmeasured(naver_result) -> bool:
     return bool(naver_result.get("captcha_detected")) or bool(naver_result.get("error")) or naver_result.get("quota_skipped") is True
 
 
+def naver_unmeasured_from_json_fields(error, captcha, quota) -> bool:
+    """`naver_result->>error`, `->>captcha_detected`, `->>quota_skipped`(PostgREST JSON 연산자, 값은 문자열)로 가볍게 읽은 세 값으로
+    `naver_result_unmeasured`와 같은 판정을 한다. 이력처럼 행이 많은 목록에서 큰 naver_result JSON 전체를 읽지 않기 위한 것이다.
+    두 함수의 동치는 tests/test_history_unmeasured_flag.py가 고정한다 — 한쪽 규칙을 바꾸면 다른 쪽도 바꿔야 한다."""
+    return str(captcha).lower() == "true" or bool(error) or str(quota).lower() == "true"
+
+
 def calc_naver_exposure(scan_result: dict) -> float:
     """네이버 AI 브리핑 실제 노출 확인 점수 (0~100).
 

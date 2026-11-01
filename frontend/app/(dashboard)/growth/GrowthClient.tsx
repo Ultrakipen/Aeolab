@@ -46,6 +46,8 @@ interface HistoryEntry {
   total_in_category?: number;
   weekly_change?: number;
   score_breakdown?: Record<string, number>;
+  /** 이 스캔은 네이버 측정이 빠졌다(차단·캡차·상한 등) — 점수가 다른 스캔과 같은 척도가 아니다 */
+  naver_unmeasured?: boolean;
 }
 
 interface BenchmarkData {
@@ -233,9 +235,14 @@ export default function GrowthClient({
     globalScore: Math.round((entry.track2_score ?? 0) * 10) / 10,
   }));
 
-  // 최신 스코어 / 첫 스코어
-  const latest = historyData[historyData.length - 1];
-  const first = historyData[0];
+  // 최신 스코어 / 첫 스코어 — "첫 측정 대비 개선/하락"의 양 끝은 네이버까지 정상 측정된 스캔으로 잡는다.
+  // 네이버 측정이 빠진 스캔(차단·캡차·상한)의 점수는 항목이 제외·재정규화돼 다른 스캔과 척도가 다르므로, 그 점수를 끝점으로 쓰면
+  // 실제 변화가 없어도 "하락"이 나온다. 정상 측정 스캔이 하나도 없으면 전체를 쓰되 아래에서 방향 표시를 하지 않는다.
+  const measuredHistory = historyData.filter((e) => !e.naver_unmeasured);
+  const hasMeasuredPair = measuredHistory.length >= 2;
+  const baseHistory = measuredHistory.length > 0 ? measuredHistory : historyData;
+  const latest = baseHistory[baseHistory.length - 1];
+  const first = baseHistory[0];
   const currentScore = latest ? Math.round(latest.unified_score) : 0;
   const firstScore = first ? Math.round(first.unified_score) : 0;
   const totalDelta = latest && first ? Math.round((latest.unified_score - first.unified_score) * 10) / 10 : 0;
@@ -251,7 +258,7 @@ export default function GrowthClient({
     const d2 = new Date(latestAt).getTime();
     if (!isNaN(d1) && !isNaN(d2)) totalDeltaElapsedDays = (d2 - d1) / 86400000;
   }
-  const sufficientTrendData = totalDeltaElapsedDays !== null && totalDeltaElapsedDays >= 3;
+  const sufficientTrendData = hasMeasuredPair && totalDeltaElapsedDays !== null && totalDeltaElapsedDays >= 3;
 
   // weekly_change (최신 기록 기준)
   const latestWeeklyChange = latest?.weekly_change ?? null;
