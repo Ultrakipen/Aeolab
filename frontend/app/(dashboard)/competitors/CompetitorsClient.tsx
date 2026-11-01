@@ -3242,8 +3242,8 @@ export function CompetitorsClient({
           ) : (
             <div className="text-center py-5">
               <Search className="w-8 h-8 text-blue-200 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-gray-600">측정 후 경쟁사가 자동으로 발견됩니다</p>
-              <p className="text-sm text-gray-600 mt-1">측정을 먼저 시작해주세요</p>
+              <p className="text-sm font-semibold text-gray-600">지금 보여 드릴 추천이 없습니다</p>
+              <p className="text-sm text-gray-600 mt-1">근처 업체를 모두 등록했거나 추천을 숨겼을 수 있어요. 위의 검색으로 직접 추가할 수 있습니다.</p>
             </div>
           )}
         </div>
