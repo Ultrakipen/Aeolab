@@ -4325,6 +4325,11 @@ async def check_briefing_alert_job():
                     or prev_naver.get("ai_briefing_mentioned")
                 )
 
+                # 오늘이나 어제 측정이 실패한 스캔(차단·캡차·일일 상한)이면 mentioned=False가 '이탈'이 아니라 '모름'이다 — 알리지 않는다(지침 8: error≠false)
+                from services.score_engine import naver_result_unmeasured as _nru
+                if _nru(today_naver) or _nru(prev_naver):
+                    continue
+
                 if today_mentioned == prev_mentioned:
                     # 변화 없음 — 알림 불필요
                     continue
