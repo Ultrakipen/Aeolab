@@ -85,6 +85,41 @@ async def window_comparison_unmeasured(
         return None
 
 
+async def unmeasured_on_dates(supabase, business_id: str, dates) -> Optional[bool]:
+    """score_history의 점수 행 날짜(한국 날짜)에 해당하는 스캔 중 네이버 측정이 빠진 것이 있는가. 조회 실패는 None.
+
+    점수 이력 행 두 개를 비교하는 문구(주간 다이제스트의 ▲/▼ 등)가 정확히 그 두 날짜의 스캔을 판정하게 한다.
+    하루에 스캔이 여러 번이면 하나라도 빠졌을 때 True(보수적). 조회는 날짜마다 limit 10이다(리터럴; 서버 1,000행 상한 규칙과 무관).
+    """
+    try:
+        from datetime import date as _d, timedelta as _td
+        from db.supabase_client import execute
+        from services.score_engine import naver_result_unmeasured
+
+        for ds in dates:
+            day = _d.fromisoformat(str(ds)[:10])
+            start = f"{day.isoformat()}T00:00:00+09:00"          # scanned_at은 UTC 저장 — 야간 02:00 KST 스캔이 전날 UTC로 들어가므로 KST 하루로 자른다
+            end = f"{(day + _td(days=1)).isoformat()}T00:00:00+09:00"
+            res = await execute(
+                supabase.table("scan_results")
+                .select("naver_result")
+                .eq("business_id", business_id)
+                .not_.is_("track1_score", "null")
+                .gte("scanned_at", start)
+                .lt("scanned_at", end)
+                .limit(10)
+            )
+            rows = (res.data if res else None)
+            if rows is None:
+                return None
+            if any(naver_result_unmeasured(r.get("naver_result")) for r in rows):
+                return True
+        return False
+    except Exception as e:
+        _logger.warning("[change_signal_guard] 날짜별 비교 가능 판정 실패(변화 표시 생략) biz=%s: %s", business_id, e)
+        return None
+
+
 async def recent_naver_unmeasured_flags(supabase, business_id: str) -> Optional[list]:
     """점수가 나온 최근 스캔 2건(최신순: 오늘/직전)의 네이버 '측정 못 함' 여부. 조회에 실패하면 None.
 

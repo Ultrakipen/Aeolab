@@ -639,3 +639,152 @@ def test_performance_email_not_sent_when_current_score_is_missing(monkeypatch):
 def test_performance_email_not_sent_when_an_end_was_unmeasured_or_unknown(monkeypatch, window):
     sent, _ = _run_performance(monkeypatch, before_row=_BEFORE, now_row=_NOW, window=window)
     assert sent == []
+
+
+# ═══ I. 날짜별 판정(unmeasured_on_dates) ═══════════════════════════════════════════
+def _on_dates(monkeypatch, per_date_rows, dates=("2026-11-02", "2026-10-26"), fail_at=None):
+    import db.supabase_client as dbc
+    calls = []
+
+    class Q2(_Q):
+        pass
+
+    class SB2(_SB):
+        def table(self, name):
+            q = Q2(name)
+            calls.append(q)
+            return q
+
+    async def fake(q):
+        i = len(calls_done)
+        calls_done.append(q)
+        if fail_at is not None and i == fail_at:
+            raise RuntimeError("db down")
+        rows = per_date_rows[i] if i < len(per_date_rows) else []
+        return _R(rows)
+
+    calls_done = []
+    monkeypatch.setattr(dbc, "execute", fake)
+    r = asyncio.run(csg.unmeasured_on_dates(SB2(), "b1", list(dates)))
+    return r, calls
+
+
+def test_dates_all_measured(monkeypatch):
+    r, calls = _on_dates(monkeypatch, [[{"naver_result": _OK}], [{"naver_result": _OK}, {"naver_result": _OK}]])
+    assert r is False and len(calls) == 2
+
+
+def test_dates_one_unmeasured_scan_that_day_is_enough(monkeypatch):
+    r, _ = _on_dates(monkeypatch, [[{"naver_result": _OK}], [{"naver_result": _OK}, {"naver_result": _BLOCKED}]])
+    assert r is True
+
+
+def test_dates_stops_at_the_first_unmeasured_day(monkeypatch):
+    r, calls = _on_dates(monkeypatch, [[{"naver_result": _BLOCKED}], [{"naver_result": _OK}]])
+    assert r is True and len(calls) == 1
+
+
+def test_dates_lookup_failure_is_none(monkeypatch):
+    assert _on_dates(monkeypatch, [], fail_at=0)[0] is None
+    assert _on_dates(monkeypatch, [[{"naver_result": _OK}]], fail_at=1)[0] is None
+
+
+def test_dates_bad_date_is_none_not_a_crash(monkeypatch):
+    assert _on_dates(monkeypatch, [[]], dates=("not-a-date",))[0] is None
+
+
+def test_dates_window_is_one_kst_day_and_limit_is_a_literal(monkeypatch):
+    _, calls = _on_dates(monkeypatch, [[{"naver_result": _OK}], [{"naver_result": _OK}]])
+    q = calls[0]
+    assert q.has("gte", "scanned_at", "2026-11-02T00:00:00+09:00")
+    assert q.has("lt", "scanned_at", "2026-11-03T00:00:00+09:00")        # 야간 02:00 KST 스캔이 전날 UTC로 저장돼도 그 KST 날짜로 묶인다
+    assert q.has("is_", "track1_score", "null") and q.has("limit", 10)
+
+
+# ═══ J. 주간 다이제스트 메일 ═══════════════════════════════════════════════════════
+def test_digest_html_states():
+    import services.email_sender as es
+    _, up = es._weekly_digest_html("가게", 60.0, 50.0, 1, ["a"])
+    _, down = es._weekly_digest_html("가게", 40.0, 50.0, 1, ["a"])
+    _, same = es._weekly_digest_html("가게", 50.0, 50.0, 1, ["a"])
+    _, first = es._weekly_digest_html("가게", 50.0, None, 1, ["a"])
+    _, hold = es._weekly_digest_html("가게", 40.0, 50.0, 1, ["a"], comparable=False)
+    assert "▲ 개선됨" in up and "▼ 하락" in down and "변화 없음" in same and "첫 주 측정" in first
+    assert "전주와 비교 보류" in hold
+    assert "▼ 하락" not in hold and "▲ 개선됨" not in hold and "변화 없음" not in hold and "첫 주 측정" not in hold
+    # 전주 기록이 없으면(첫 주) 비교 가능 여부와 무관하게 '첫 주 측정'
+    assert "첫 주 측정" in es._weekly_digest_html("가게", 50.0, None, 1, ["a"], comparable=False)[1]
+
+
+def _run_digest(monkeypatch, *, prev_present=True, unmeasured=False):
+    import scheduler.jobs as jobs
+    import services.db_paging as dbp
+    import services.email_sender as es
+
+    today = date.today()
+    monday = today - timedelta(days=today.weekday())
+    rows = [{"unified_score": 40.0, "score_date": monday.isoformat()}]
+    if prev_present:
+        rows.append({"unified_score": 64.5, "score_date": (monday - timedelta(days=7)).isoformat()})
+    sent = []
+    asked = []
+
+    class Q2(_Q):
+        def insert(self, payload):
+            return self
+
+    class SB2(_SB):
+        def table(self, name):
+            q = Q2(name)
+            self.queries.append(q)
+            return q
+
+    async def fake_fetch(build, max_rows=None):
+        return [{"user_id": "u1", "plan": "basic"}], False
+
+    async def fake_db(q):
+        t = q.table_name
+        if t == "profiles":
+            return _R([{"user_id": "u1", "email": "owner@example.com"}])
+        if t == "businesses":
+            return _R([{"id": "b1", "name": "가게", "keywords": ["성수 맛집"]}])
+        if t == "score_history":
+            return _R(rows)
+        if t == "ai_citations":
+            return _R([], count=3)
+        return _R([])
+
+    async def fake_unmeasured(supabase, biz_id, dates):
+        asked.append(list(dates))
+        return unmeasured
+
+    async def fake_send_email(to, subject, html, *a, **k):
+        sent.append(html)
+        return True
+
+    import db.supabase_client as dbc
+    monkeypatch.setattr(dbc, "get_client", lambda: SB2())
+    monkeypatch.setattr(dbp, "fetch_all_rows", fake_fetch)
+    monkeypatch.setattr(jobs, "_db", fake_db)
+    monkeypatch.setattr(csg, "unmeasured_on_dates", fake_unmeasured)
+    monkeypatch.setattr(es, "RESEND_API_KEY", "x")
+    monkeypatch.setattr(es, "send_email", fake_send_email)
+    asyncio.run(jobs.weekly_digest_job())
+    return sent, asked, monday
+
+
+def test_digest_job_shows_a_real_decline_when_both_weeks_were_measured(monkeypatch):
+    sent, asked, monday = _run_digest(monkeypatch, unmeasured=False)
+    assert len(sent) == 1 and "▼ 하락" in sent[0]
+    assert asked == [[monday.isoformat(), (monday - timedelta(days=7)).isoformat()]]    # 정확히 비교하는 두 점수의 날짜를 판정한다
+
+
+@pytest.mark.parametrize("unmeasured", [True, None])
+def test_digest_job_holds_the_comparison_when_a_week_was_unmeasured_or_unknown(monkeypatch, unmeasured):
+    sent, _, _ = _run_digest(monkeypatch, unmeasured=unmeasured)
+    assert len(sent) == 1 and "전주와 비교 보류" in sent[0] and "▼ 하락" not in sent[0]
+
+
+def test_digest_job_first_week_needs_no_lookup(monkeypatch):
+    sent, asked, _ = _run_digest(monkeypatch, prev_present=False)
+    assert len(sent) == 1 and "첫 주 측정" in sent[0] and asked == []

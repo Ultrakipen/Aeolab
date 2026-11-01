@@ -1232,11 +1232,16 @@ def _weekly_digest_html(
     prev_score: float | None,
     ai_citations_count: int,
     top_keywords: list[str],
+    comparable: bool = True,
 ) -> tuple[str, str]:
     subject = f"[AEOlab] {business_name} 이번 주 AI 노출 현황"
 
     # 전주 대비 변화 표시
-    if prev_score is not None:
+    if prev_score is not None and not comparable:
+        # 비교하는 두 점수 중 하나가 네이버 측정이 빠진 스캔의 것이다 — 항목이 제외·재정규화돼 척도가 다르므로 ▲/▼를 단정하지 않는다
+        # (services/change_signal_guard). '첫 주 측정'도 아니므로(전주 기록이 있다) 별도 문구를 쓴다.
+        delta_html = '<span style="font-size:14px; color:#bfdbfe; margin-left:10px;">전주와 비교 보류</span>'
+    elif prev_score is not None:
         delta = current_score - prev_score
         if delta > 0:
             delta_html = (
@@ -1311,6 +1316,7 @@ async def send_weekly_digest(
     ai_citations_count: int,
     top_keywords: list[str],
     biz_id: str,
+    comparable: bool = True,
 ) -> bool:
     """구독자 주간 AI 노출 현황 다이제스트 이메일 발송.
 
@@ -1340,6 +1346,7 @@ async def send_weekly_digest(
             prev_score=prev_score,
             ai_citations_count=ai_citations_count,
             top_keywords=top_keywords,
+            comparable=comparable,
         )
         ok = await send_email(to_email, subject, html)
         if ok:

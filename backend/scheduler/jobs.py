@@ -5236,6 +5236,7 @@ async def weekly_digest_job():
 
                 current_score: float | None = None
                 prev_score: float | None = None
+                current_date = prev_date = None
                 for row in hist_rows:
                     row_date = (row.get("score_date") or "")[:10]
                     val = row.get("unified_score")
@@ -5245,9 +5246,11 @@ async def weekly_digest_job():
                     if row_date >= this_monday_str:
                         if current_score is None:
                             current_score = val
+                            current_date = row_date
                     else:
                         if prev_score is None:
                             prev_score = val
+                            prev_date = row_date
 
                 if current_score is None:
                     logger.warning(
@@ -5271,7 +5274,11 @@ async def weekly_digest_job():
                     else:
                         ai_citations_count = len(cite_res.data or [])
 
-                # 3-e) 발송
+                # 3-e) 발송 — 전주와 비교하는 두 점수 날짜의 스캔 중 네이버 측정이 빠진 것이 있으면(확인 못 해도) ▲/▼ 대신 '비교 보류'로 보낸다
+                _digest_comparable = True
+                if prev_score is not None:
+                    from services.change_signal_guard import unmeasured_on_dates
+                    _digest_comparable = (await unmeasured_on_dates(supabase, biz_id, [current_date, prev_date])) is False
                 ok = await send_weekly_digest(
                     to_email=email,
                     business_name=biz_name,
@@ -5280,6 +5287,7 @@ async def weekly_digest_job():
                     ai_citations_count=ai_citations_count,
                     top_keywords=keywords[:5],
                     biz_id=biz_id,
+                    comparable=_digest_comparable,
                 )
 
                 # 3-f) notifications 멱등 INSERT
