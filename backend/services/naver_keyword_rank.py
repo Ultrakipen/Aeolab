@@ -354,7 +354,10 @@ async def _measure_place_api(
     """네이버 플레이스 순위를 공식 지역검색 API(local.json)로 측정.
 
     2026-08-08: Playwright `where=place` 스크래핑 대신 공식 API로 전환(모듈 docstring 참조).
-    place_id가 검색결과 link에 포함되면 그걸 우선 신뢰(가장 정확), 없으면 상호명 매칭.
+    판정은 사실상 상호명 대조(naver_visibility._name_matches)뿐이다. 코드에는 'place_id가 link에 있으면 우선'이라는 분기가 있지만
+    지역검색 API의 link는 가게 홈페이지·SNS 주소라 /place/<숫자>가 없어(2026-11-01 실측: 22건 중 0건) 그 분기는 일치하지 않는다.
+    그래서 등록명이 네이버 표시명과 다르면 place_id가 있어도 '순위 밖'으로 나온다 — 등록명 표기(본점·본사 등)는 _name_matches가 일부 흡수한다.
+    상위 5곳만 돌려주므로 None은 '5곳 안에 없음'이지 '네이버에 없음'이 아니다.
     """
     data = await _naver_open_api_get(
         "local", {"query": keyword, "display": RESULT_LIMIT, "sort": "sim"}
