@@ -91,6 +91,21 @@ def _kakao_failure_summary(resp) -> str:
         return str(getattr(resp, "text", ""))[:200]
 
 
+_LONG_DIGITS_RE = re.compile(r"\d{9,}")
+
+
+def _failure_note(resp=None, exc: BaseException | None = None) -> str:
+    """notifications.content["error"]에 남길 실패 사유(전화번호처럼 긴 숫자는 가린다, 최대 240자).
+
+    2026-11-01: 실패한 알림 행에 사유가 없어(로그에만 있고 로그는 순환) 나중에 원인을 알 수 없었다.
+    """
+    try:
+        note = _kakao_failure_summary(resp) if resp is not None else f"{type(exc).__name__}: {exc}"
+    except Exception:
+        note = "사유 확인 불가"
+    return _LONG_DIGITS_RE.sub("***", note)[:240]
+
+
 def _grade_change(prev: float, curr: float) -> str:
     """등급 변화 방향 텍스트 — 알림톡 변수 값은 14자 이하여야 한다(15자부터 전체 실패, 안전망이 끝을 잘라 문장이 끊긴다).
 
@@ -677,6 +692,7 @@ class KakaoNotifier:
             return
         masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
         status = "sent"
+        fail_note = None
         try:
             async with httpx.AsyncClient(timeout=10) as c:
                 r = await c.post(
@@ -698,6 +714,7 @@ class KakaoNotifier:
                     body_ok = True
             if r.status_code >= 400 or not body_ok:
                 status = "failed"
+                fail_note = _failure_note(resp=r)
                 logger.warning(
                     f"[{log_tag}] 알림톡 발송 실패 {r.status_code} "
                     f"({masked}, template={template_code}): {r.text[:200]}"
@@ -706,14 +723,13 @@ class KakaoNotifier:
                 logger.info(f"[{log_tag}] 알림톡 발송 완료 → {masked}")
         except Exception as e:
             status = "failed"
+            fail_note = _failure_note(exc=e)
             logger.warning(f"[{log_tag}] 알림톡 발송 오류 ({masked}): {e}")
         finally:
-            self._log_notification(
-                None,
-                log_tag,
-                {"phone": masked, **{k: v for k, v in params.items() if "전화" not in k}},
-                status,
-            )
+            _content = {"phone": masked, **{k: v for k, v in params.items() if "전화" not in k}}
+            if fail_note:
+                _content["error"] = fail_note
+            self._log_notification(None, log_tag, _content, status)
 
     async def send_text(self, phone: str, message: str) -> bool:
         """단문 텍스트 알림 발송. 실제 발송 성공이면 True."""
@@ -796,6 +812,7 @@ class KakaoNotifier:
             return False
         masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
         status = "sent"
+        fail_note = None
         try:
             async with httpx.AsyncClient(timeout=10) as c:
                 r = await c.post(
@@ -820,14 +837,19 @@ class KakaoNotifier:
                     body_ok = True
             if r.status_code >= 400 or not body_ok:
                 status = "failed"
+                fail_note = _failure_note(resp=r)
                 logger.warning(f"Kakao _send_raw failed {r.status_code}: {r.text[:200]}")
             else:
                 logger.info(f"Kakao notify -> {masked}: {text[:50]}...")
         except Exception as e:
             status = "failed"
+            fail_note = _failure_note(exc=e)
             logger.warning(f"Kakao _send_raw error: {e}")
         finally:
-            self._log_notification(None, "notice", {"phone": masked, "text": text[:200]}, status)
+            _content = {"phone": masked, "text": text[:200]}
+            if fail_note:
+                _content["error"] = fail_note
+            self._log_notification(None, "notice", _content, status)
         return status == "sent"
 
     async def _send(self, phone: str, ttype: str, params: dict, user_id: str | None = None):
@@ -862,6 +884,7 @@ class KakaoNotifier:
             return None
         status = "sent"
         kakao_failed = False
+        fail_note = None
         try:
             async with httpx.AsyncClient(timeout=10) as c:
                 r = await c.post(
@@ -884,6 +907,7 @@ class KakaoNotifier:
             if r.status_code >= 400 or not body_ok:
                 status = "failed"
                 kakao_failed = True
+                fail_note = _failure_note(resp=r)
                 logger.warning(f"Kakao _send failed {r.status_code} ({ttype}): {_kakao_failure_summary(r)}")
                 # AEOLAB_SCORE_01 발송 실패 시 이메일 fallback
                 if ttype == "score_change" and user_id:
@@ -897,6 +921,7 @@ class KakaoNotifier:
         except Exception as e:
             status = "failed"
             kakao_failed = True
+            fail_note = _failure_note(exc=e)
             logger.warning(f"Kakao send failed ({ttype}): {e}")
             # 예외 발생 시에도 score_change 이메일 fallback
             if ttype == "score_change" and user_id:
@@ -909,7 +934,10 @@ class KakaoNotifier:
             raise
         finally:
             _fin_masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
-            self._log_notification(None, ttype, {"phone": _fin_masked, **params}, status)
+            _content = {"phone": _fin_masked, **params}
+            if fail_note:
+                _content["error"] = fail_note
+            self._log_notification(None, ttype, _content, status)
 
     async def send_weekly_score_report(
         self,
