@@ -615,11 +615,14 @@ async def get_qr_card(biz_id: str, user=Depends(get_current_user)):
             detail="QR 생성 패키지 미설치: pip install qrcode[pil]",
         )
 
-    filename = f"review_qr_{biz['name']}.png"
+    # 한글 사업장명을 헤더에 그대로 넣으면 starlette가 latin-1로 인코딩하다 UnicodeEncodeError → 500이 된다(2026-11-01 서버 end-to-end 호출로 발견,
+    # import 오류 뒤에 가려져 있었다). ASCII 대체 이름 + RFC 5987 filename*(UTF-8 퍼센트 인코딩)을 함께 보낸다.
+    import urllib.parse as _urlparse
+    filename_utf8 = _urlparse.quote(f"review_qr_{biz['name']}.png")
     return StreamingResponse(
         buf,
         media_type="image/png",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={"Content-Disposition": f"attachment; filename=\"review_qr.png\"; filename*=UTF-8''{filename_utf8}"},
     )
 
 
