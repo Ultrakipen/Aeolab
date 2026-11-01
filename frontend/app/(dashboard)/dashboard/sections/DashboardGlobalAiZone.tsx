@@ -27,6 +27,11 @@ interface Props {
   googleError?: boolean;
 }
 
+// 측정 표본이 이 값보다 적으면 결과를 '참고용'으로 표시한다. Gemini 무료 한도로 50회 중 1회만 성공한 스캔(2026-09-28)이
+// "1회 중 1회 언급"으로 보이던 것을 막기 위함 — 표본이 작으면 있음·없음 어느 쪽도 근거가 약하다.
+const THIN_SAMPLE = 10;
+const isThin = (n?: number | null) => n != null && n > 0 && n < THIN_SAMPLE;
+
 export default function DashboardGlobalAiZone({
   category,
   plan,
@@ -63,10 +68,12 @@ export default function DashboardGlobalAiZone({
               {chatgptFreq !== undefined ? (
                 <>
                   <p className={`text-sm font-bold leading-tight ${chatgptFreq > 0 ? "text-blue-700" : "text-gray-600"}`}>
-                    {chatgptFreq > 0 ? `${chatgptFreq}회 언급` : "미언급"}
+                    {chatgptFreq > 0 ? `${chatgptFreq}회 언급` : "0회 언급"}
                   </p>
                   {chatgptSampleSize != null && chatgptSampleSize > 0 && (
-                    <p className="text-xs text-gray-600 mt-0.5">{chatgptSampleSize}회 중</p>
+                    <p className="text-sm text-gray-600 mt-0.5 break-keep">
+                      {isThin(chatgptSampleSize) ? `${chatgptSampleSize}회 측정 · 참고용` : `${chatgptSampleSize}회 중`}
+                    </p>
                   )}
                 </>
               ) : (
@@ -79,10 +86,12 @@ export default function DashboardGlobalAiZone({
               {geminiFreq !== undefined ? (
                 <>
                   <p className={`text-sm font-bold leading-tight ${geminiFreq > 0 ? "text-blue-700" : "text-gray-600"}`}>
-                    {geminiFreq > 0 ? `${geminiFreq}회 언급` : "미언급"}
+                    {geminiFreq > 0 ? `${geminiFreq}회 언급` : "0회 언급"}
                   </p>
                   {geminiSampleSize != null && geminiSampleSize > 0 && (
-                    <p className="text-xs text-gray-600 mt-0.5">{geminiSampleSize}회 중</p>
+                    <p className="text-sm text-gray-600 mt-0.5 break-keep">
+                      {isThin(geminiSampleSize) ? `${geminiSampleSize}회 측정 · 참고용` : `${geminiSampleSize}회 중`}
+                    </p>
                   )}
                 </>
               ) : (
