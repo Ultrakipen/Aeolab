@@ -2858,7 +2858,7 @@ async def weekly_post_draft_job():
                     .select("id")
                     .eq("business_id", biz["id"])
                     .eq("context", "post_draft")
-                    .gte("created_at", _week_start)
+                    .gte("generated_at", _week_start)   # guides에는 created_at이 없다(generated_at) — 2026-11-01 스키마 검사로 발견
                     .limit(1)
                 )
                 if _existing and _existing.data:
@@ -4918,22 +4918,9 @@ async def conversion_followup_job():
             except Exception as e:
                 logger.warning(f"[conversion_followup] D+{day}: profiles.email 조회 실패: {e}")
 
-            # 이메일 없는 사용자 — waitlist 테이블에서 보완 시도
-            missing_ids = [uid for uid in target_user_ids if uid not in email_by_user]
-            if missing_ids:
-                try:
-                    wl_res = await _db(
-                        supabase.table("waitlist")
-                        .select("user_id, email")
-                        .in_("user_id", missing_ids)
-                    )
-                    for row in (wl_res.data or []):
-                        uid = row.get("user_id")
-                        em = row.get("email")
-                        if uid and em and uid not in email_by_user:
-                            email_by_user[uid] = em
-                except Exception as e:
-                    logger.warning(f"[conversion_followup] D+{day}: waitlist email 조회 실패: {e}")
+            # (제거 2026-11-01) 이메일 없는 사용자를 waitlist에서 보완하던 블록: waitlist 테이블에는 user_id 컬럼이 없어
+            # (business_name·category·created_at·email·id·region) 매번 42703으로 실패해 아무것도 보완하지 못했다(운영 로그 D+7 경고 2건).
+            # 이메일을 못 찾은 사용자는 그대로 이메일 발송 대상에서 빠진다(이전과 동일한 결과).
 
             # 6) 각 사용자에게 발송
             sent_count = 0
@@ -5155,7 +5142,7 @@ async def weekly_digest_job():
                     supabase.table("ai_citations")
                     .select("id", count="exact")
                     .eq("business_id", biz_id)
-                    .gte("cited_at", seven_days_ago)
+                    .gte("created_at", seven_days_ago)   # ai_citations에는 cited_at이 없다(created_at) — 2026-11-01 스키마 검사로 발견
                 )
                 ai_citations_count = 0
                 if cite_res:
@@ -6203,7 +6190,7 @@ async def delivery_30day_rescan_job():
                         "naver_channel_score, global_channel_score, query_used"
                     )
                     .eq("business_id", biz_id)
-                    .order("created_at", desc=True)
+                    .order("scanned_at", desc=True)   # scan_results에는 created_at이 없다(scanned_at) — 2026-11-01 스키마 검사로 발견
                     .limit(1)
                     .maybe_single()
                 )
@@ -6256,7 +6243,7 @@ async def delivery_30day_rescan_job():
                         "score_breakdown": score.get("breakdown"),
                         "naver_channel_score": prev_scan.get("naver_channel_score"),
                         "global_channel_score": prev_scan.get("global_channel_score"),
-                        "scan_type": "followup_rescan",
+                        # scan_results에는 scan_type 컬럼이 없다(scan_analytics에만 있음) — 넣으면 INSERT가 PGRST204로 실패한다(2026-11-01 스키마 검사로 발견)
                     })
                 )
                 new_scan_id = (

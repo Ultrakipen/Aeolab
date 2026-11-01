@@ -107,6 +107,22 @@ def _extract_top_keywords(citation_rows: list[dict], top_n: int = 10) -> list[st
     return [word for word, _ in counter.most_common(top_n)]
 
 
+# stage_names의 내부 코드 → 이 집계가 저장하는 키(기존 출력 키 유지)
+_STAGE_TO_DIST_KEY = {"survival": "survival", "stability": "stable", "growth": "growth", "dominance": "dominant"}
+
+
+def _with_derived_stage(rows: list[dict]) -> list[dict]:
+    """score_history 행에 growth_stage를 track1_score로 계산해 붙인다(GrowthStage 기준은 track1_score).
+    track1_score가 없는 행은 단계를 붙이지 않는다 — 측정 못 한 것을 '시작 단계'로 세지 않는다(지침 9)."""
+    from services.stage_names import stage_code_for_score
+    out = []
+    for r in rows:
+        t1 = r.get("track1_score")
+        stage = _STAGE_TO_DIST_KEY.get(stage_code_for_score(float(t1))) if t1 is not None else None
+        out.append({**r, "growth_stage": stage})
+    return out
+
+
 def _compute_growth_dist(rows: list[dict], col: str = "growth_stage") -> dict:
     """
     rows 내 growth_stage 컬럼 분포 계산.
@@ -223,7 +239,9 @@ async def compute_quarter_snapshot(
         history_rows = await _fetch_chunked(
             lambda ids: (
                 supabase.table("score_history")
-                .select("business_id, unified_score, track1_score, track2_score, growth_stage")
+                # score_history에는 growth_stage 컬럼이 없다 — 예전 select는 항상 42703으로 실패해 분기 집계 전체가 멈췄다(2026-11-01 스키마 검사).
+                # 단계는 track1_score에서 stage_names 단일 소스로 계산한다(아래 _with_derived_stage).
+                .select("business_id, unified_score, track1_score, track2_score")
                 .in_("business_id", ids)
                 .gte("score_date", start_date)
                 .lte("score_date", end_date)
@@ -267,7 +285,7 @@ async def compute_quarter_snapshot(
         pctiles = _safe_percentiles(unified_vals, [25, 50, 75, 90])
 
         # 4. growth_stage 분포
-        growth_dist = _compute_growth_dist(history_rows)
+        growth_dist = _compute_growth_dist(_with_derived_stage(history_rows))
 
         # 5. scan_results 조회 (플랫폼 통계용)
         scan_rows = await _fetch_chunked(

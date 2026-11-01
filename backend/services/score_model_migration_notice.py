@@ -234,7 +234,7 @@ async def send_v3_1_kakao_only(supabase) -> dict:
 
     _profiles_res = await execute(
         supabase.table("profiles")
-        .select("user_id, phone, full_name, kakao_scan_notify")
+        .select("user_id, phone, kakao_scan_notify")   # profiles에는 full_name이 없다 — 이름은 아래에서 "사장님"으로 대체된다(2026-11-01 스키마 검사)
         .in_("user_id", _user_ids)
         .not_.is_("phone", "null")
     )
