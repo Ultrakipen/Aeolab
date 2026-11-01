@@ -146,7 +146,8 @@ async def _email_fallback(
         if not to_email:
             # profiles.email 없으면 auth.users 조회 (supabase admin API)
             try:
-                from db.supabase_client import get_service_client
+                # get_client()는 서비스 롤 키로 만든 클라이언트다(get_service_client라는 함수는 없다)
+                from db.supabase_client import get_client as get_service_client
                 service_sb = get_service_client()
                 user_info = service_sb.auth.admin.get_user_by_id(user_id)
                 to_email = (user_info.user.email if user_info and user_info.user else None)

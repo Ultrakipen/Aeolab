@@ -2996,7 +2996,8 @@ async def monthly_growth_card_job():
                 try:
                     from PIL import Image, ImageDraw, ImageFont
                     from io import BytesIO
-                    from services.before_after_card import _FONT_BOLD, _FONT_REG  # 폰트 경로 재사용
+                    # 폰트 경로 재사용 — 실제 이름은 FONT_PATHS_*다(_FONT_BOLD/_FONT_REG는 없어 매달 ImportError로 이미지 생성이 실패했다, 2026-11-01)
+                    from services.before_after_card import FONT_PATHS_BOLD as _FONT_BOLD, FONT_PATHS_REGULAR as _FONT_REG
                     from services.share_card import _score_stage_label
                     from pathlib import Path
 

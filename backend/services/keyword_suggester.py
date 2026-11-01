@@ -74,33 +74,13 @@ _EXISTING_BLOCK_TMPL = """[이미 등록된 키워드 — 제외 대상]
 
 
 def _fallback_suggestions(category: str, region: str, count: int) -> list[dict]:
-    """외부 API 실패 시 keyword_taxonomy 베이스 키워드로 폴백.
-    임의 추천 금지 — taxonomy에 등록된 검증된 키워드만 사용.
+    """외부 API 실패 시 폴백 — 의도적으로 빈 목록을 돌려준다.
+
+    예전에는 keyword_taxonomy의 업종 키워드를 그대로 추천했으나 존재하지 않는 함수(get_category_keywords)를 불러와 항상 빈 목록이었다.
+    2026-11-01 이름을 맞춰 실제로 호출해 보니 "단체석 있음"·"단체 예약 가능"처럼 이 가게에 있는지 확인되지 않은 시설을
+    업종 전체에 추천하게 되어(사실 지어내기 금지 원칙 위반) 활성화하지 않고 빈 목록을 명시한다. 가게별 확인 없이 일반 키워드를 내놓지 않는다.
     """
-    try:
-        from services.keyword_taxonomy import get_category_keywords
-    except ImportError:
-        return []
-
-    try:
-        base = get_category_keywords(category) or []
-    except Exception as e:
-        _logger.warning("keyword_suggester fallback: get_category_keywords 실패 (%s): %s", category, e)
-        base = []
-
-    region_short = (region or "").split()[0] if region else ""
-    out: list[dict] = []
-    for kw in base[:count]:
-        if region_short and region_short not in kw:
-            kw_with_region = f"{region_short} {kw}"
-        else:
-            kw_with_region = kw
-        out.append({
-            "keyword": kw_with_region,
-            "rationale": "기본 추천 (수동 입력 권장)",
-            "source": "fallback",
-        })
-    return out
+    return []
 
 
 async def generate_keyword_suggestions(

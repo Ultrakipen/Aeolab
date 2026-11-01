@@ -563,7 +563,7 @@ async def delete_review_reply(
 async def get_qr_card(biz_id: str, user=Depends(get_current_user)):
     """리뷰 유도 QR 카드 PNG 반환 (인쇄용, Basic+ 전용)"""
     from fastapi.responses import StreamingResponse
-    from services.action_tools import build_qr_message
+    from services.keyword_taxonomy import build_qr_message
     from services.qr_generator import generate_review_qr_card
 
     supabase = get_client()
@@ -596,7 +596,8 @@ async def get_qr_card(biz_id: str, user=Depends(get_current_user)):
 
     # 업종 최우선 키워드
     top_keyword = (biz.get("keywords") or [None])[0]
-    qr_message = build_qr_message(biz.get("category", ""), top_keyword)
+    # 시그니처는 (핵심 키워드, 부족 키워드 목록, 사업장명) — 이전 호출은 (업종, 키워드)로 인자가 맞지 않았고 import 자체도 깨져 있었다(2026-11-01)
+    qr_message = build_qr_message(top_keyword, [], biz["name"])
 
     try:
         # QR+PIL 렌더링은 CPU 바운드 동기 작업 — 단일 uvicorn 워커에서 이벤트 루프에
