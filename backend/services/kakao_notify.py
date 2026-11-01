@@ -90,15 +90,29 @@ def _kakao_failure_summary(resp) -> str:
 
 
 def _grade_change(prev: float, curr: float) -> str:
-    """등급 변화 방향 텍스트."""
+    """등급 변화 방향 텍스트 — 알림톡 변수 값은 14자 이하여야 한다(15자부터 전체 실패, 안전망이 끝을 잘라 문장이 끊긴다).
+
+    2026-11-01: 이전 문구("↑ 보통 → 양호 한 단계 성장!" 18자 등)가 14자를 넘어 "…"로 잘려 나갔고, 같은 등급 안에서 점수가 조금 내려가도
+    "등급 하락"이라고 알렸다(등급이 바뀌지 않았는데 하락으로 단정). 이제 등급이 실제로 바뀐 경우에만 '등급 상승/하락'이라 한다.
+    점수 변화 알림은 이전·현재 등급을 본문에 따로 보여 주므로 여기서는 방향만 짧게 쓴다.
+    """
     pg, cg = _grade(prev), _grade(curr)
-    if pg != cg and curr > prev:
-        return f"↑ {pg} → {cg} 한 단계 성장!"
+    if pg != cg:
+        return "등급 상승" if curr > prev else "등급 하락"
     if curr > prev:
-        return f"↑ {cg} 등급 내 상승"
+        return "등급 내 상승"
     if curr < prev:
-        return f"↓ {pg} 등급 하락 — 점검 권장"
-    return "→ 변동 없음"
+        return "등급 내 하락"
+    return "변동 없음"
+
+
+def _grade_transition(prev: float, curr: float) -> str:
+    """"보통 → 양호"처럼 등급이 바뀐 경우를 그대로 보여 주는 값(14자 이하). 등급이 같으면 방향만."""
+    pg, cg = _grade(prev), _grade(curr)
+    if pg != cg:
+        return f"{pg} → {cg}"
+    return _grade_change(prev, curr)
+
 
 # ── 카카오 알림톡 실패 시 이메일 fallback (AEOLAB_SCORE_01 우선 적용) ─────────
 # 카카오 템플릿 코드 → 이메일 제목/본문 매핑
@@ -244,8 +258,10 @@ class KakaoNotifier:
             "score_change",
             {
                 "#{사업장명}": biz_name,
-                "#{이전점수}": _grade_label(prev, prev_r),
-                "#{현재점수}": _grade_label(curr, curr_r),
+                # 순위는 본문의 "지역 순위" 줄에 따로 나온다 — 값에 "· 업종 N위"를 넣으면 순위가 두 번 나오고 "점"이 붙은 문장이 어색해진다(2026-11-01).
+                # 승인 본문이 "#{이전점수}점"이라 값은 숫자 대신 등급 텍스트(점수 숫자 노출 금지 원칙)를 쓰며, 자연스러운 문장은 본문 개정(재신청)이 필요하다.
+                "#{이전점수}": _grade(prev),
+                "#{현재점수}": _grade(curr),
                 "#{변화}": _grade_change(prev, curr),
                 "#{이전순위}": str(prev_r) if prev_r else "-",
                 "#{현재순위}": str(curr_r) if curr_r else "-",
@@ -447,6 +463,13 @@ class KakaoNotifier:
         weekly_change: float, top_platform: str, top_improvement: str,
     ):
         """스캔 완료 즉시 알림 (템플릿 코드: AEOLAB_SCAN_01)"""
+        # 승인 본문에 "#{최다플랫폼}에서 가장 많이 언급됨" 줄이 고정으로 있어, 언급이 확인된 플랫폼이 없을 때 "AI 검색"(정기 스캔)·"없음"(수동 스캔)을
+        # 넣으면 한 번도 언급되지 않은 가게에도 "가장 많이 언급됨"이 나간다(2026-11-01 콘솔 본문 대조로 발견, 지침 9: 사실 아닌 문구 금지).
+        # 줄을 뺄 수 없으므로 근거가 없으면 보내지 않는다 — 본문을 바꾼 템플릿이 승인되면 이 조건을 다시 본다.
+        if (top_platform or "").strip() in ("", "없음", "AI 검색"):
+            logger.info("send_scan_complete skipped: 언급이 확인된 플랫폼이 없어 '가장 많이 언급됨' 줄을 채울 수 없다")
+            self._log_notification(None, "scan_complete", {"reason": "no_platform_mention"}, "skipped")
+            return
         curr_grade = _grade(score)
         grade_change_note = f"({grade} → {curr_grade})" if grade and grade != curr_grade else "(유지)"
         await self._send(
@@ -624,7 +647,7 @@ class KakaoNotifier:
             params={
                 "#{주문번호}": str(order_id)[:8],
                 "#{사업장명}": business_name,
-                "#{등급변화}": _grade_change(score_before, score_after),
+                "#{등급변화}": _grade_transition(score_before, score_after),
             },
             log_tag="delivery_rescan",
         )
