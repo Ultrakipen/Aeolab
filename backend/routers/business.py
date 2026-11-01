@@ -258,7 +258,7 @@ async def create_business(req: BusinessCreate, user=Depends(get_current_user)):
     # Trial 스캔 결과 자동 이전 (trial_scan_id 전달 시, 백그라운드)
     if req.trial_scan_id:
         try:
-            asyncio.create_task(_import_trial_scan(biz["id"], req.trial_scan_id))
+            asyncio.create_task(_import_trial_scan(biz["id"], req.trial_scan_id, user["id"]))
         except Exception as e:
             logger.warning(f"Trial import task failed to create: {e}")
 
@@ -1462,12 +1462,13 @@ async def generate_talktalk_faq(req: TalktalkFAQGenerateRequest, user=Depends(ge
         _intro_faq_generation_locks.discard(user_id)
 
 
-async def _import_trial_scan(business_id: str, trial_scan_id: str):
+async def _import_trial_scan(business_id: str, trial_scan_id: str, user_id: str | None = None):
     """무료 체험 스캔 결과를 사업장 스캔 결과로 이전.
 
     trial_scans 테이블의 total_score / track1_score 등을
     scan_results + score_history 에 복사하고,
-    trial_scans.imported_business_id 를 업데이트한다.
+    trial_scans.imported_business_id 를 업데이트한다. user_id가 있으면 converted_user_id도 함께 기록한다
+    (체험→가입 전환 계측 + 계정 삭제 시 익명화 대상 식별 — 2026-11-02 전까지 어디에서도 쓰지 않아 항상 비어 있었다).
     에러 발생 시 로그만 남기고 조용히 실패 (사업장 등록에 영향 없음).
     """
     try:
@@ -1534,9 +1535,12 @@ async def _import_trial_scan(business_id: str, trial_scan_id: str):
         )
 
         # trial_scans에 imported_business_id 마킹
+        mark = {"imported_business_id": business_id}
+        if user_id:
+            mark["converted_user_id"] = user_id
         await execute(
             supabase.table("trial_scans")
-            .update({"imported_business_id": business_id})
+            .update(mark)
             .eq("id", trial_scan_id)
         )
         logger.info(f"Trial import completed: trial_id={trial_scan_id} → business_id={business_id}")
