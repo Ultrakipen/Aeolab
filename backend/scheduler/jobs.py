@@ -559,6 +559,9 @@ async def daily_scan_all():
         full_scanner  = MultiAIScanner(mode="full")
 
         _naver_captcha_count = 0  # 연속 캡챠 감지 카운터 — 2회째에 운영자 알림 1회(스캔은 계속, 네이버 측정은 쿨다운이 건너뜀)
+        # 이번 실행의 네이버 측정 성공/실패 집계 — 끝난 뒤 여러 곳이 같이 실패했으면 운영자에게 한 번 알린다(services/naver_batch_health, T-3)
+        _nb_ok = 0
+        _nb_reasons: dict = {}
 
         # 2026-10-27 사용자 증가 대비(docs/naver_request_load_spreading_design_v1.0.md §3 A·D):
         #  - 처리 순서를 날짜 시드로 회전 — 상한에 도달해도 DB 순서상 뒤쪽 사업장이 매일 굶지 않게 한다(사용자에게 보이지 않음)
@@ -671,6 +674,12 @@ async def daily_scan_all():
                 # 쿨다운이 이미 IP를 지켜 주는데도 break는 남은 사업장의 글로벌 AI 스캔·점수·알림까지 그날 통째로 건너뛰게 하고,
                 # 현재 사업장의 이미 끝난 AI 스캔 결과(API 비용 지출)도 저장 전에 버렸다.
                 _naver_result = result.get("naver") or {}
+                try:
+                    from services.naver_batch_health import tally_scan_result
+                    if tally_scan_result(_naver_result, _nb_reasons):
+                        _nb_ok += 1
+                except Exception as _nb_e:  # 집계 실패가 스캔을 막으면 안 된다
+                    logger.warning("[daily_scan_all] 네이버 측정 집계 실패(무시) biz=%s: %s", biz.get("id"), _nb_e)
                 if _naver_result.get("captcha_detected"):
                     _naver_captcha_count += 1
                     if _naver_captcha_count == 2:
@@ -1294,6 +1303,9 @@ async def daily_scan_all():
                 if i % 5 == 4:
                     # 5개마다 1분 휴식 (메모리 GC 유도)
                     await asyncio.sleep(60)
+
+        from services.naver_batch_health import alert_if_mass_failure
+        await alert_if_mass_failure("야간 스캔(daily_scan_all)", _nb_ok, sum(_nb_reasons.values()), _nb_reasons)
 
     except Exception as e:
         logger.error(f"daily_scan_all failed: {e}")
@@ -3365,6 +3377,7 @@ async def competitor_place_sync_job():
 
         total_synced = 0
         total_errors = 0
+        _err_reasons: dict = {}      # 실패 사유 집계 — 끝난 뒤 대량 실패 알림에 사용(T-3)
         ip_banned = False
         for biz_id in business_ids:
             if ip_banned:
@@ -3374,6 +3387,9 @@ async def competitor_place_sync_job():
                 errors = [r for r in results if r.get("error")]
                 total_synced += len(results) - len(errors)
                 total_errors += len(errors)
+                from services.naver_batch_health import count_reason as _cr
+                for _r in errors:
+                    _cr(_err_reasons, _r.get("error"))
                 # 배치 내 ip_blocked/quota_exceeded 발생 시 남은 사업장 전체 중단
                 if any(r.get("error") in ("ip_blocked", "quota_exceeded", "naver_place_cooldown", "naver_rate_limited") for r in results):
                     ip_banned = True
@@ -3381,12 +3397,15 @@ async def competitor_place_sync_job():
             except Exception as e:
                 logger.warning(f"competitor_place_sync_job [{biz_id}] 오류: {e}")
                 total_errors += 1
+                _err_reasons["exception"] = _err_reasons.get("exception", 0) + 1
 
         logger.info(
             f"competitor_place_sync_job 완료: "
             f"성공={total_synced}, 오류={total_errors}"
             + (" [IP 차단으로 조기 종료]" if ip_banned else "")
         )
+        from services.naver_batch_health import alert_if_mass_failure
+        await alert_if_mass_failure("경쟁사 플레이스 동기화(competitor_place_sync_job)", total_synced, total_errors, _err_reasons)
 
     except Exception as e:
         logger.error(f"[competitor_place_sync_job] 실패: {e}")
@@ -3512,6 +3531,7 @@ async def enrich_competitor_details_job():
         logger.info(f"enrich_competitor_details_job: {len(rows)}개 경쟁사 상세 보강 시작")
         total_ok = 0
         total_err = 0
+        _enrich_reasons: dict = {}
         ip_banned = False
 
         for row in rows:
@@ -3531,12 +3551,14 @@ async def enrich_competitor_details_job():
                     logger.warning(f"enrich_competitor_details_job: {result['error']} 감지, 전체 잡 조기 종료")
                     ip_banned = True
                     total_err += 1
+                    _enrich_reasons[str(result["error"])[:40]] = _enrich_reasons.get(str(result["error"])[:40], 0) + 1
                     break
                 elif result.get("error"):
                     logger.warning(
                         f"enrich_competitor_details [{competitor_id}] 크롤링 실패: {result['error']}"
                     )
                     total_err += 1
+                    _enrich_reasons[str(result["error"])[:40]] = _enrich_reasons.get(str(result["error"])[:40], 0) + 1
                 else:
                     logger.debug(
                         f"enrich_competitor_details [{row['name']}] "
@@ -3547,6 +3569,7 @@ async def enrich_competitor_details_job():
             except Exception as e:
                 logger.warning(f"enrich_competitor_details [{competitor_id}] 스킵: {e}")
                 total_err += 1
+                _enrich_reasons["exception"] = _enrich_reasons.get("exception", 0) + 1
 
             # 크롤링 간 랜덤 딜레이 (균일 패턴 차단 회피)
             await asyncio.sleep(_random.uniform(7, 15))
@@ -3555,6 +3578,8 @@ async def enrich_competitor_details_job():
             f"enrich_competitor_details_job 완료: 성공={total_ok}, 오류={total_err}"
             + (" [IP 차단으로 조기 종료]" if ip_banned else "")
         )
+        from services.naver_batch_health import alert_if_mass_failure
+        await alert_if_mass_failure("경쟁사 상세 보강(enrich_competitor_details_job)", total_ok, total_err, _enrich_reasons)
 
     except Exception as e:
         logger.error(f"[enrich_competitor_details_job] 실패: {e}")
@@ -3669,6 +3694,7 @@ async def weekly_my_place_stats_job():
 
         success = 0
         errors = 0
+        _stat_reasons: dict = {}
         for biz in targets:
             try:
                 stats = await sync_naver_place_stats(biz["id"], biz["naver_place_id"])
@@ -3677,6 +3703,7 @@ async def weekly_my_place_stats_job():
                         f"weekly_my_place_stats [{biz['name']}]: {stats['error']}"
                     )
                     errors += 1
+                    _stat_reasons[str(stats["error"])[:40]] = _stat_reasons.get(str(stats["error"])[:40], 0) + 1
                     # 차단·쿨다운·상한이면 남은 가게에도 요청을 계속 보내지 않는다(차단 연장 방지)
                     if stats.get("error") in ("ip_blocked", "quota_exceeded", "naver_place_cooldown", "naver_rate_limited"):
                         logger.warning("weekly_my_place_stats: 접속 제한 감지 — 남은 사업장 중단")
@@ -3690,12 +3717,15 @@ async def weekly_my_place_stats_job():
             except Exception as e:
                 logger.warning(f"weekly_my_place_stats [{biz.get('name')}] 오류: {e}")
                 errors += 1
+                _stat_reasons["exception"] = _stat_reasons.get("exception", 0) + 1
             # Playwright 인스턴스 완전 해제 대기 (OOM 방지)
             await asyncio.sleep(5)
 
         logger.info(
             f"weekly_my_place_stats_job 완료: 성공={success}, 오류={errors}"
         )
+        from services.naver_batch_health import alert_if_mass_failure
+        await alert_if_mass_failure("내 가게 통계 수집(weekly_my_place_stats_job)", success, errors, _stat_reasons)
 
     except Exception as e:
         logger.error(f"[weekly_my_place_stats_job] 실패: {e}")
@@ -5253,6 +5283,7 @@ async def weekly_competitor_sync_job():
         import random as _random
         total_synced = 0
         total_errors = 0
+        _wcs_reasons: dict = {}
         ip_banned = False
 
         for biz_id, comps in biz_groups.items():
@@ -5274,18 +5305,21 @@ async def weekly_competitor_sync_job():
                         logger.warning(f"[weekly_competitor_sync] {result['error']} 감지, 전체 잡 조기 종료")
                         ip_banned = True
                         total_errors += 1
+                        _wcs_reasons[str(result["error"])[:40]] = _wcs_reasons.get(str(result["error"])[:40], 0) + 1
                         break
                     elif result and result.get("error"):
                         logger.warning(
                             f"[weekly_competitor_sync] 동기화 오류 comp={comp_id}: {result['error']}"
                         )
                         total_errors += 1
+                        _wcs_reasons[str(result["error"])[:40]] = _wcs_reasons.get(str(result["error"])[:40], 0) + 1
                     else:
                         total_synced += 1
                         logger.debug(f"[weekly_competitor_sync] 완료 comp={comp_id}")
                 except Exception as e:
                     logger.warning(f"[weekly_competitor_sync] 예외 comp={comp_id}: {e}")
                     total_errors += 1
+                    _wcs_reasons["exception"] = _wcs_reasons.get("exception", 0) + 1
                 # 경쟁사 간 랜덤 딜레이 (균일 패턴 차단 회피)
                 await asyncio.sleep(_random.uniform(7, 15))
             if not ip_banned:
@@ -5296,6 +5330,8 @@ async def weekly_competitor_sync_job():
             f"[weekly_competitor_sync] 완료 — 성공={total_synced}, 오류={total_errors}"
             + (" [IP 차단으로 조기 종료]" if ip_banned else "")
         )
+        from services.naver_batch_health import alert_if_mass_failure
+        await alert_if_mass_failure("경쟁사 주간 동기화(weekly_competitor_sync_job)", total_synced, total_errors, _wcs_reasons)
 
     except Exception as e:
         logger.error(f"[weekly_competitor_sync] 전체 실패: {e}")
