@@ -22,8 +22,9 @@ def test_no_score_history_query_uses_created_at():
 
 def test_gap_card_lowest_ignores_non_numeric_breakdown_values():
     src = (ROOT / "scheduler" / "jobs.py").read_text(encoding="utf-8")
-    assert "_num_items" in src and "isinstance(v, (int, float))" in src
-    # 같은 계산을 재현: 문자열·None이 섞여도 TypeError 없이 숫자 항목의 최솟값
-    breakdown = {"a": 12.5, "b": "n/a", "c": None, "d": 3, "e": True}
-    items = [(k, v) for k, v in breakdown.items() if isinstance(v, (int, float)) and not isinstance(v, bool)]
-    assert min(items, key=lambda x: x[1])[0] == "d"
+    # 2026-11-01: 인라인 `_num_items`를 공통 헬퍼(services/breakdown_utils)로 옮겼다 — 갭 카드도 헬퍼를 거쳐야 한다
+    assert "numeric_breakdown_items as _num_bd" in src and "min(_num_bd(breakdown)" in src
+    # 문자열·None·bool·목록이 섞여도 TypeError 없이 숫자 항목의 최솟값
+    from services.breakdown_utils import numeric_breakdown_items
+    breakdown = {"a": 12.5, "b": "n/a", "c": None, "d": 3, "e": True, "f": [1]}
+    assert min(numeric_breakdown_items(breakdown), key=lambda x: x[1])[0] == "d"

@@ -1168,7 +1168,10 @@ async def daily_scan_all():
                             "schema_score": "웹사이트 구조화", "online_mentions": "온라인 언급",
                             "info_completeness": "정보 완성도", "content_freshness": "콘텐츠 최신성",
                         }
-                        _lowest = min(_bd.items(), key=lambda x: x[1], default=(None, None))
+                        # breakdown에는 문자열·목록 값('user_group': 'INACTIVE' 등)이 섞여 있어 그대로 min()하면 TypeError로 이 알림이 통째로 실패한다(2026-11-01 점검).
+                        # 라벨이 있는 숫자 항목만 비교한다.
+                        from services.breakdown_utils import numeric_breakdown_items as _num_bd2
+                        _lowest = min(_num_bd2(_bd, allowed=_bd_labels), key=lambda x: x[1], default=(None, None))
                         _top_improvement = (
                             f"{_bd_labels.get(_lowest[0], _lowest[0])} 개선 시 점수 상승 예상"
                             if _lowest[0] else "가이드에서 개선 방법을 확인하세요"
@@ -1469,8 +1472,8 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
                 "content_freshness": "콘텐츠 최신성",
             }
             # score_breakdown에는 문자열·None 값도 섞여 있어 숫자 항목만 비교한다(2026-11-01 str↔float TypeError로 갭 카드가 매번 실패)
-            _num_items = [(k, v) for k, v in breakdown.items() if isinstance(v, (int, float)) and not isinstance(v, bool)]
-            lowest = min(_num_items, key=lambda x: x[1], default=(None, None))
+            from services.breakdown_utils import numeric_breakdown_items as _num_bd
+            lowest = min(_num_bd(breakdown), key=lambda x: x[1], default=(None, None))
             hint = f"{LABELS.get(lowest[0], '')} 개선 시 점수 상승 예상" if lowest[0] else ""
 
             from services.gap_card import generate_and_upload_gap_card

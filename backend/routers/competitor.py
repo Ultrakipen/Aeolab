@@ -499,8 +499,8 @@ async def add_competitor(req: CompetitorCreate, user=Depends(get_current_user)):
         "address": req.address,
         "is_active": True,
     }
-    if req.kakao_place_id:
-        insert_data["kakao_place_id"] = req.kakao_place_id
+    # req.kakao_place_id는 competitors 테이블에 컬럼이 없어 저장하지 않는다(2026-11-01 — 넣으면 INSERT가 42703/PGRST204로 실패한다).
+    # 프론트 경쟁사 추가 화면은 이 값을 보내지 않고, 경쟁사의 카카오 ID를 쓰는 코드도 없다.
     if req.naver_place_id:
         insert_data["naver_place_id"] = req.naver_place_id
     # 검색 결과에서 전달받은 좌표 저장 (있는 경우에만)
@@ -960,7 +960,7 @@ async def list_competitors(biz_id: str, user=Depends(get_current_user)):
         supabase.table("competitors")
         .select(
             "id, name, address, is_active, created_at, "
-            "kakao_place_id, naver_place_id, "
+            "naver_place_id, "
             "naver_review_count, naver_avg_rating, "
             "has_faq, has_recent_post, has_menu, "
             "naver_photo_count, naver_place_last_synced_at, "
@@ -1005,7 +1005,7 @@ async def get_competitor_detail(competitor_id: str, user=Depends(get_current_use
     # 소유권 검증: competitor → business_id → user_id
     _comp_base_fields = (
         "id, name, address, is_active, created_at, "
-        "kakao_place_id, naver_place_id, "
+        "naver_place_id, "
         "naver_review_count, naver_avg_rating, "
         "has_faq, has_recent_post, has_menu, "
         "naver_photo_count, naver_place_last_synced_at, "
@@ -1084,7 +1084,8 @@ async def update_competitor(competitor_id: str, payload: dict, user=Depends(get_
         raise HTTPException(status_code=403, detail="접근 권한이 없습니다")
 
     # 허용 필드만 업데이트 (화이트리스트)
-    allowed_fields = {"name", "address", "naver_place_id", "kakao_place_id"}
+    # competitors 테이블에는 kakao_place_id 컬럼이 없다(businesses에만 추가됨) — 넣으면 PostgREST 42703/PGRST204 오류가 난다
+    allowed_fields = {"name", "address", "naver_place_id"}
     update_data = {k: v for k, v in payload.items() if k in allowed_fields}
     if not update_data:
         raise HTTPException(status_code=400, detail="업데이트할 유효한 필드가 없습니다")
@@ -1097,7 +1098,7 @@ async def update_competitor(competitor_id: str, payload: dict, user=Depends(get_
     # update 후 변경된 행 재조회
     result = await execute(
         supabase.table("competitors")
-        .select("id, name, address, naver_place_id, kakao_place_id")
+        .select("id, name, address, naver_place_id")
         .eq("id", competitor_id)
         .maybe_single()
     )

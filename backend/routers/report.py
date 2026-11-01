@@ -4297,7 +4297,10 @@ async def get_score_explanation(biz_id: str, user=Depends(get_current_user)):
         "multi_ai_exposure": ("글로벌 AI 노출 확대", "pro"),
         "schema_seo": ("웹사이트 검색 노출 개선", "pro"),
     }
-    sorted_items = sorted(breakdown.items(), key=lambda x: float(x[1] or 0))
+    # score_breakdown에는 'user_group': 'INACTIVE'·'missing': [...]·'model_version'·'track1_detail': {...} 같은 숫자가 아닌 값이 섞여 있다
+    # (최근 스캔 60건 전부 확인, 2026-11-01). float()를 그대로 적용하면 모든 스캔에서 ValueError(500)라, 점수 항목(PRIORITY_MAP 키 + 숫자)만 정렬한다.
+    from services.breakdown_utils import numeric_breakdown_items
+    sorted_items = sorted(numeric_breakdown_items(breakdown, allowed=PRIORITY_MAP), key=lambda x: x[1])
     top_actions = []
     for k, v in sorted_items[:3]:
         label, needed_plan = PRIORITY_MAP.get(k, (k, "basic"))
