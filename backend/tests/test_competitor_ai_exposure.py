@@ -255,8 +255,12 @@ def test_basis_changed_detects_legacy_vs_new_and_ignores_same_basis():
 def test_competitor_change_alerts_skip_basis_transition():
     import inspect
     from scheduler import jobs
+    from services import competitor_alert
     src = inspect.getsource(jobs)
-    assert src.count("basis_changed(") >= 2   # 점수 변화 알림(≥5)과 급등 알림(≥15) 두 곳 모두
+    # 2026-11-01: 점수 변화 알림의 판정이 services/competitor_alert.pick_competitor_change로 옮겨 갔다 — 가드도 거기서 호출된다
+    assert "pick_competitor_change(" in src
+    assert "basis_changed(" in inspect.getsource(competitor_alert.pick_competitor_change)
+    assert src.count("basis_changed(") >= 1   # 급등 알림(기본 꺼짐이지만 켜면 같은 가드를 써야 한다)
 
 
 def test_transition_scan_would_have_triggered_alert_without_guard():

@@ -297,17 +297,28 @@ class KakaoNotifier:
             },
         )
 
-    async def send_competitor_change(self, phone: str, biz_name: str, comp_name: str, rank_change: int):
-        await self._send(
-            phone,
-            "competitor",
-            {
-                "#{사업장명}": biz_name,
-                "#{경쟁사명}": comp_name,
-                "#{순위변화}": str(rank_change),
-                "#{확인일시}": date.today().strftime("%Y-%m-%d"),
-            },
-        )
+    async def send_competitor_change(self, phone: str, biz_name: str, comp_name: str, change_text: str) -> bool:
+        """경쟁사 변화 알림(AEOLAB_COMP_01). `순위변화` 변수에는 점수 증감 숫자가 아니라 "AI 노출 상승/하락" 같은 텍스트를 넣는다.
+
+        이전에는 점수 증감(int)을 넣었고(점수 숫자 직접 노출 금지 위반) 주간 경로는 항상 0을 보냈다(2026-11-01 수정).
+        실제 전달 성공일 때만 True — 호출자가 '발송됨'으로 기록해도 되는지 판단하게 한다.
+        """
+        try:
+            resp = await self._send(
+                phone,
+                "competitor",
+                {
+                    "#{사업장명}": biz_name,
+                    "#{경쟁사명}": comp_name,
+                    "#{순위변화}": str(change_text),
+                    "#{확인일시}": date.today().strftime("%Y-%m-%d"),
+                },
+            )
+            return _kakao_response_ok(resp)
+        except Exception as e:
+            masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
+            logger.warning(f"send_competitor_change 실패 ({masked}): {e}")
+            return False
 
     async def send_action_items(self, phone: str, biz_name: str, items: list) -> bool:
         """이달 할 일 알림. 실제 발송 성공 여부를 돌려준다(호출자가 '발송됨'으로 기록해도 되는지 판단하게)."""

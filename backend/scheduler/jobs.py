@@ -105,11 +105,14 @@ def start_scheduler():
         id="enrich_competitor_keywords_job",
         replace_existing=True, max_instances=1, misfire_grace_time=300,
     )
-    # 신규 경쟁사 감지 (월요일 오전 4시)
-    scheduler.add_job(
-        detect_new_competitors, "cron", day_of_week="mon", hour=4, minute=30,
-        id="detect_new_competitors", replace_existing=True,
-    )
+    # 신규 경쟁사 감지 (월요일 오전 4시) — 2026-11-01 기본 꺼짐(NEW_COMPETITOR_ALERT_ENABLED=true일 때만 등록).
+    # "새로운 사업장"이라 부르지만 실제 판정은 카카오 지도 검색 상위 15곳 중 등록하지 않은 곳이라 매주 나올 수 있고(새로 생긴 곳이 아님),
+    # 지침 9의 '측정 한계를 결과처럼 말하지 않기'에 어긋난다. 대시보드의 경쟁사 후보 검색이 같은 가치를 정확한 표현으로 준다.
+    if os.getenv("NEW_COMPETITOR_ALERT_ENABLED", "false").lower() == "true":
+        scheduler.add_job(
+            detect_new_competitors, "cron", day_of_week="mon", hour=4, minute=30,
+            id="detect_new_competitors", replace_existing=True,
+        )
     # 분기 공개 인덱스 집계 — 분기 종료 후 8일째 새벽 3시
     # 1월 8일 → Q4 집계, 4월 8일 → Q1 집계, 7월 8일 → Q2 집계, 10월 8일 → Q3 집계
     scheduler.add_job(
@@ -1293,11 +1296,13 @@ async def daily_scan_all():
         logger.error(f"daily_scan_all failed: {e}")
         await send_slack_alert("daily_scan_all 실패", str(e), level="error")
 
-    # 경쟁사 점수 급등 FOMO 알림 (스캔 완료 후 실행, try-except 외부)
-    try:
-        await _detect_competitor_score_spike()
-    except Exception as _spike_e:
-        logger.warning(f"_detect_competitor_score_spike 호출 실패: {_spike_e}")
+    # 경쟁사 점수 급등 알림 (스캔 완료 후 실행, try-except 외부) — 2026-11-01 기본 꺼짐(COMPETITOR_SPIKE_ALERT_ENABLED=true일 때만).
+    # 매일 보내는 경쟁사 변화 알림(competitor_alert 규칙)의 부분집합이라 같은 사건을 두 번 알리고, 자유 문구 경로라 지금은 전달도 안 된다.
+    if os.getenv("COMPETITOR_SPIKE_ALERT_ENABLED", "false").lower() == "true":
+        try:
+            await _detect_competitor_score_spike()
+        except Exception as _spike_e:
+            logger.warning(f"_detect_competitor_score_spike 호출 실패: {_spike_e}")
 
 
 async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
@@ -1374,24 +1379,35 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
         )
         latest_scan = _scan_res.data or []
         if len(latest_scan) >= 2:
-            curr_scores = latest_scan[0].get("competitor_scores") or {}
-            prev_scores = latest_scan[1].get("competitor_scores") or {}
-            for comp_id, curr_data in curr_scores.items():
-                prev_data = prev_scores.get(comp_id, {})
-                if basis_changed(curr_data, prev_data):
-                    continue   # 측정 방식이 바뀐 구간의 점수 차이는 경쟁사의 실제 변화가 아니다
-                # 키가 있어도 값이 None일 수 있다(.get 기본값은 키 부재에만 적용) — `or 0`
-                prev_s = prev_data.get("score") or 0
-                curr_s = curr_data.get("score") or 0
-                delta = curr_s - prev_s
-                if abs(delta) >= 5:
-                    comp_name_str = curr_data.get("name", "경쟁사")
-                    await notifier.send_competitor_change(
-                        phone, biz_name,
-                        comp_name_str,
-                        int(delta),
-                    )
-                    break  # 첫 번째 변화만 알림
+            # 규칙은 services/competitor_alert.py — 같은 측정 방식·등급 구간 변경·변화폭 10 이상·값이 있는 경우만, 폭이 가장 큰 1건.
+            # 값이 None인 항목을 0으로 바꿔 '하락'으로 알리던 것, 5점짜리 흔들림을 변화로 알리던 것, 점수 숫자를 보내던 것을 모두 없앴다(2026-11-01).
+            from services.competitor_alert import pick_competitor_change, ALERT_TYPE, WEEKLY_CAP_DAYS
+            _picked = pick_competitor_change(
+                latest_scan[0].get("competitor_scores"), latest_scan[1].get("competitor_scores")
+            )
+            if _picked:
+                _cap_since = (datetime.now(timezone.utc) - timedelta(days=WEEKLY_CAP_DAYS)).isoformat()
+                _recent = await _db(
+                    supabase.table("notifications")
+                    .select("id")
+                    .eq("business_id", biz_id)
+                    .eq("type", ALERT_TYPE)
+                    .gte("sent_at", _cap_since)
+                    .limit(1)
+                )
+                if not (_recent and _recent.data):
+                    _comp_name, _change_text = _picked
+                    _delivered = await notifier.send_competitor_change(phone, biz_name, _comp_name, _change_text)
+                    if _delivered:
+                        # 실제로 전달된 경우에만 '보냈다'고 기록한다(지침 9) — 실패하면 다음 실행에 다시 시도
+                        await _db(
+                            supabase.table("notifications").insert({
+                                "business_id": biz_id,
+                                "type": ALERT_TYPE,
+                                "idempotency_key": f"{ALERT_TYPE}_{biz_id}_{date.today().isoformat()}",
+                                "payload": {"competitor": _comp_name, "change": _change_text},
+                            })
+                        )
 
     # 4. 이달 할 일 알림 (가이드 최신 항목 3개)
     if phone and scan_notify_on:
@@ -3883,34 +3899,9 @@ async def detect_competitor_changes():
                                 }
                             )
                         )
-                        # 카카오 알림 (kakao_competitor_notify ON 사용자)
-                        try:
-                            uid2 = biz_row.data["user_id"]
-                            prof2 = await _db(
-                                supabase.table("profiles")
-                                .select("phone, kakao_competitor_notify")
-                                .eq("user_id", uid2)
-                                .maybe_single()
-                            )
-                            if (
-                                prof2.data
-                                and prof2.data.get("kakao_competitor_notify")
-                                and prof2.data.get("phone")
-                            ):
-                                biz_nm2 = await _db(
-                                    supabase.table("businesses")
-                                    .select("name")
-                                    .eq("id", comp["business_id"])
-                                    .maybe_single()
-                                )
-                                biz_nm2_str = biz_nm2.data.get("name", "") if biz_nm2.data else ""
-                                from services.kakao_notify import KakaoNotifier as _KN2
-                                _notifier2 = _KN2()
-                                await _notifier2.send_competitor_change(
-                                    prof2.data["phone"], biz_nm2_str, comp["name"], 0
-                                )
-                        except Exception as _ke:
-                            logger.warning(f"[competitor_change] 카카오 알림 실패: {_ke}")
+                        # 카카오 알림은 보내지 않는다(2026-11-01). 이 경로는 변화 내용 없이 `순위변화`에 항상 0을 넣어
+                        # "경쟁사 X 순위변화 0"이 나갔다. 앱 내 알림(위 notifications INSERT)은 유지하고, 경쟁사 변화 카카오 알림은
+                        # 점수 기반 규칙(services/competitor_alert.py)이 한 곳에서만 보낸다.
 
                 await _db(
                     supabase.table("competitors").update(update_data).eq("id", comp_id)
