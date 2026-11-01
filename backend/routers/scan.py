@@ -349,6 +349,29 @@ def count_distinct_trial_places(rows: list) -> int:
     return len(seen)
 
 
+# 소셜 프루프에서 제외할 '다량 사용 IP' 기준 — 한 IP의 누적 체험이 이 횟수를 넘으면 개발·운영 테스트로 본다.
+# 비로그인 공개 한도는 IP당 하루 3회라 정상 방문자는 보통 1~3회다(2026-11-01 실데이터: IP 47개 중 평생 1회 30·2회 4·3회 6, 나머지는
+# 4~73회 — 가장 많은 IP는 개발자 본인으로 확인됨). 넘으면 제외하는 쪽이 실제보다 적게 세는 방향(보수적)이다. 환경변수로 조정.
+def _trial_count_max_runs_per_ip() -> int:
+    try:
+        v = int(os.getenv("TRIAL_COUNT_MAX_RUNS_PER_IP", "3"))
+        return v if v > 0 else 3
+    except ValueError:
+        return 3
+
+
+def exclude_heavy_ip_rows(rows: list, max_runs: int | None = None) -> list:
+    """누적 체험 횟수가 max_runs를 넘는 ip_hash의 행을 뺀다(개발·운영 테스트로 추정). ip_hash가 없는 행은 판단할 수 없어 남긴다."""
+    limit = max_runs if max_runs is not None else _trial_count_max_runs_per_ip()
+    per_ip: dict = {}
+    for r in rows or []:
+        h = r.get("ip_hash")
+        if h:
+            per_ip[h] = per_ip.get(h, 0) + 1
+    heavy = {h for h, n in per_ip.items() if n > limit}
+    return [r for r in (rows or []) if not (r.get("ip_hash") and r.get("ip_hash") in heavy)]
+
+
 @router.get("/trial-count")
 async def get_trial_count(request: Request):
     """무료 체험 누적 건수 (공개, 캐시 5분) — 랜딩 페이지 소셜 프루프용.
@@ -378,12 +401,13 @@ async def get_trial_count(request: Request):
         rows: list = []
         for page in range(20):
             chunk = (await execute(
-                supabase.table("trial_scans").select("business_name, region, scanned_at")
+                supabase.table("trial_scans").select("business_name, region, scanned_at, ip_hash")
                 .order("scanned_at", desc=True).range(page * 1000, page * 1000 + 999)
             )).data or []
             rows.extend(chunk)
             if len(chunk) < 1000:
                 break
+        rows = exclude_heavy_ip_rows(rows)   # 개발·운영 테스트로 보이는 다량 사용 IP는 소셜 프루프에서 뺀다(2026-11-01)
         count = count_distinct_trial_places(rows)
         today_count = count_distinct_trial_places(trial_rows_since(rows, today_start))
         result = {"count": count, "today": today_count}

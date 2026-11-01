@@ -215,7 +215,7 @@ export default function LandingPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <X className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={3} style={{ color: "#DC2626" }} aria-hidden="true" />
-                  AI 검색(ChatGPT·Gemini·Google AI·네이버 AI탭·AI 브리핑)엔 전혀 효과 없음
+                  AI 검색(ChatGPT·Gemini·Google AI·네이버 AI탭·AI 브리핑) 노출은 광고와 별개라, 광고만으로는 챙겨지지 않음
                 </li>
               </ul>
             </div>
@@ -235,7 +235,7 @@ export default function LandingPage() {
                   AEOlab → AI가 추천하기 좋게 차근차근 정리
                 </span>
                 <h3 className="text-base md:text-lg font-bold mb-0.5 break-keep">
-                  AI 검색에 잘 나오는 조건을 대신 챙겨드립니다
+                  AI 검색에 잘 나오는 조건을 알려 드리고, 챙기는 일을 도와드립니다
                 </h3>
                 <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.75)" }}>월 17,900원 (광고비 30만원 기준의 약 1/17) · 모든 업종</p>
                 <svg viewBox="0 0 300 100" className="w-full h-auto">
@@ -245,7 +245,7 @@ export default function LandingPage() {
                   <circle cx="100" cy="50" r="3" fill="white" />
                   <circle cx="200" cy="30" r="3" fill="white" />
                   <circle cx="300" cy="15" r="3" fill="white" />
-                  <text x="150" y="10" textAnchor="middle" fill="white" fontSize="8">매달 우상향</text>
+                  <text x="150" y="10" textAnchor="middle" fill="white" fontSize="8">주간 변화 추적 (예시)</text>
                 </svg>
                 <ul className="mt-3 space-y-1 text-sm" style={{ color: "rgba(255,255,255,0.88)" }}>
                   <li className="flex items-start gap-2">
@@ -262,7 +262,7 @@ export default function LandingPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={3} aria-hidden="true" />
-                    광고 없이도 AI 추천 조건을 쌓아드립니다
+                    광고와 별개로, AI가 추천하기 좋은 조건을 하나씩 정리합니다
                   </li>
                 </ul>
               </div>

@@ -54,3 +54,38 @@ def test_today_filter_uses_kst_midnight_not_utc_string_compare():
         {"business_name": "E", "scanned_at": "garbage"},
     ]
     assert [r["business_name"] for r in trial_rows_since(rows, start)] == ["A", "C"]
+
+
+# ── 개발·운영 테스트 IP 제외 (2026-11-01) ─────────────────────────────────────────────────────────
+# 랜딩 '지금까지 N개 가게 분석 완료'가 개발자 테스트로 부풀려져 있었다: 실데이터에서 서로 다른 가게 93곳 중 약 61곳이
+# 다량 사용 IP(73회·65회 등) 출신이었고, 가장 많은 IP는 개발자 본인으로 확인됐다.
+from routers.scan import exclude_heavy_ip_rows  # noqa: E402
+
+
+def _ip(name, ip, region="창원"):
+    return {"business_name": name, "region": region, "ip_hash": ip}
+
+
+def test_heavy_ip_rows_are_excluded_from_the_public_count():
+    rows = [_ip(f"가게{i}", "dev") for i in range(10)] + [_ip("손님가게A", "u1"), _ip("손님가게B", "u2")]
+    kept = exclude_heavy_ip_rows(rows, max_runs=3)
+    assert count_distinct_trial_places(rows) == 12          # 제외 전: 개발 테스트가 섞여 부풀려진 값
+    assert count_distinct_trial_places(kept) == 2           # 제외 후: 가끔 쓴 방문자만
+
+
+def test_a_visitor_within_the_public_limit_is_kept():
+    rows = [_ip("가게A", "u1"), _ip("가게B", "u1"), _ip("가게C", "u1")]   # 하루 3회 한도 안
+    assert count_distinct_trial_places(exclude_heavy_ip_rows(rows, max_runs=3)) == 3
+
+
+def test_rows_without_ip_hash_are_kept_not_guessed():
+    rows = [{"business_name": "가게A", "region": "창원", "ip_hash": None}, {"business_name": "가게B", "region": "창원"}]
+    assert count_distinct_trial_places(exclude_heavy_ip_rows(rows, max_runs=3)) == 2
+
+
+def test_default_limit_comes_from_env(monkeypatch):
+    monkeypatch.setenv("TRIAL_COUNT_MAX_RUNS_PER_IP", "1")
+    rows = [_ip("가게A", "u1"), _ip("가게B", "u1")]
+    assert exclude_heavy_ip_rows(rows) == []
+    monkeypatch.setenv("TRIAL_COUNT_MAX_RUNS_PER_IP", "abc")      # 잘못된 값은 기본 3
+    assert len(exclude_heavy_ip_rows(rows)) == 2

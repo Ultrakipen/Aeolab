@@ -3,6 +3,7 @@
 import { Check, X, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import TrackedCTA from "@/components/analytics/TrackedCTA";
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 
 const FLOAT_SHADOW = "var(--aeo-shadow-float)";
 
@@ -237,7 +238,7 @@ export function HowAeolabIntegrated() {
       border: "#C7D2FE",
       label: "STEP 02",
       title: "노출 현황 분석 + 개선 방향",
-      desc: "네이버 검색·ChatGPT·구글 지도 결과와 개선 방향 안내 · 가입하면 AI 브리핑·AI탭·제미나이·구글 AI까지 확인",
+      desc: GEMINI_LIVE ? "네이버 검색·ChatGPT·구글 지도 결과와 개선 방향 안내 · 가입하면 AI 브리핑·AI탭·제미나이·구글 AI까지 확인" : "네이버 검색·ChatGPT·구글 지도 결과와 개선 방향 안내 · 가입하면 AI 브리핑·AI탭·구글 AI까지 확인 (제미나이는 준비 중)",
       ui: (
         <div className="space-y-2 mb-3">
           {/* AI 노출 현황 카드 */}

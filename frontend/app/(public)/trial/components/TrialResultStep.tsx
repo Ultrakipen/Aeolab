@@ -2038,7 +2038,7 @@ function ChatGPTResultCard({
         <div>
           <p className="text-sm text-gray-600 mb-1.5 leading-snug">
             {queries.length > 1 ? `손님이 물을 법한 말투 ${queries.length}가지로` : "아래 질문으로"} {sampleSize}회 테스트했습니다
-            <span className="ml-1 text-slate-500">(구독 시엔 100회 — 표본이 많을수록 결과가 안정적입니다)</span>
+            <span className="ml-1 text-slate-500">(구독하면 100회로 더 넓게 확인해요)</span>
           </p>
           <ul className="space-y-0.5 mb-2">
             {queries.map((q, i) => (

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { mapNaverCategory } from "@/lib/categories";
 import { shortRegionFromAddress } from "@/lib/trialAutofill";
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 
 interface Candidate {
   title: string;
@@ -169,6 +170,25 @@ export default function HeroSection() {
               됐나요?
             </h1>
 
+            {/* 한 줄 설명 + 시작 버튼 (2026-11-01) — 무료 진단이 실제로 보여 주는 범위(결과 탭: 한눈에·경쟁 비교·네이버 현황·AI 검색·할 일)만 말한다 */}
+            <p
+              className="text-base md:text-lg leading-relaxed mb-4 max-w-lg break-keep"
+              style={{ color: "rgba(255,255,255,0.95)" }}
+            >
+              스마트플레이스·블로그·경쟁 가게를 함께 보고, 내 가게가 AI 검색에 나올 준비가 됐는지와{" "}
+              <strong className="whitespace-nowrap" style={{ color: "#FFFFFF" }}>먼저 고칠 것</strong>을 알려드려요.
+            </p>
+            <a
+              href="#trial-form"
+              className="lg:hidden inline-flex items-center justify-center gap-2 w-full sm:w-auto font-bold text-base px-6 py-3.5 rounded-xl mb-2"
+              style={{ background: "linear-gradient(90deg, #2563EB 0%, #4F46E5 100%)", color: "#FFFFFF" }}
+            >
+              무료로 내 가게 진단하기 <ArrowRight className="w-5 h-5" aria-hidden="true" />
+            </a>
+            <p className="lg:hidden text-sm mb-5" style={{ color: "rgba(255,255,255,0.75)" }}>
+              가입 없이 · 카드 없이 · 1분 안팎
+            </p>
+
             {/* KPI 지표 */}
             <div
               className="grid grid-cols-2 sm:flex sm:items-center gap-3 sm:gap-4 mb-6 pb-5 border-b"
@@ -264,7 +284,7 @@ export default function HeroSection() {
                 style={{ color: "rgba(255,255,255,0.80)" }}
               >
                 무료 진단은 <strong style={{ color: "#A5F3FC" }}>네이버 검색·ChatGPT·구글 지도</strong>를 직접 재 봅니다.
-                네이버 AI 브리핑·AI탭, 제미나이, 구글 AI·검색은 가입하면 확인해 드려요.
+                {GEMINI_LIVE ? "네이버 AI 브리핑·AI탭, 제미나이, 구글 AI·검색은 가입하면 확인해 드려요." : "네이버 AI 브리핑·AI탭, 구글 AI·검색은 가입하면 확인해 드려요. 제미나이 측정은 준비 중이에요."}
               </p>
             </div>
 
@@ -295,7 +315,7 @@ export default function HeroSection() {
             </div>
             <p className="text-sm font-semibold mb-1.5" style={{ color: "rgba(255,255,255,0.70)" }}>가입하면 확인하는 길</p>
             <div className="flex flex-wrap gap-2 mb-5">
-              {["네이버 AI 브리핑", "네이버 AI탭", "제미나이", "구글 AI·검색"].map((label) => (
+              {["네이버 AI 브리핑", "네이버 AI탭", GEMINI_LIVE ? "제미나이" : "제미나이 (준비 중)", "구글 AI·검색"].map((label) => (
                 <span
                   key={label}
                   className="inline-flex items-center gap-1.5 text-sm font-medium px-2.5 py-1 rounded-full"
@@ -332,7 +352,7 @@ export default function HeroSection() {
           </div>
 
           {/* ── 오른쪽: 진단 폼 ── */}
-          <div className="lg:sticky lg:top-[64px]">
+          <div id="trial-form" className="lg:sticky lg:top-[64px] scroll-mt-20">
             {/* 입력 카드 — 글래스모피즘 v3 */}
             <div
               className="rounded-xl relative overflow-hidden"
