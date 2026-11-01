@@ -157,9 +157,26 @@ export default function PrivacyPage() {
                     <td className="border border-gray-200 px-3 py-2">Sentry (Functional Software, Inc.)</td>
                     <td className="border border-gray-200 px-3 py-2">서비스 오류 모니터링 (오류 발생 시 코드 실행 정보 수집, 개인 식별정보는 수집하지 않도록 설정)</td>
                   </tr>
+                  <tr>
+                    <td className="border border-gray-200 px-3 py-2">Anthropic, PBC</td>
+                    <td className="border border-gray-200 px-3 py-2">AI 문장 생성 (개선 가이드·소개글·FAQ·리뷰 답변·위기 대응·AI 어시스턴트). 이용자가 등록·입력한 사업장 정보와 입력 문장(붙여 넣은 고객 리뷰 포함)이 전송됩니다.</td>
+                  </tr>
+                  <tr className="bg-gray-50">
+                    <td className="border border-gray-200 px-3 py-2">OpenAI, L.L.C.</td>
+                    <td className="border border-gray-200 px-3 py-2">AI 검색 노출 측정 (검색어 전송)</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 px-3 py-2">Google LLC</td>
+                    <td className="border border-gray-200 px-3 py-2">AI 검색 노출 측정 (검색어·가게명 전송, 전화번호·이메일 등 연락처는 제거 후 전송)</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
+            <p className="mt-3 text-sm">
+              Anthropic·OpenAI·Google은 해외 사업자이며, 위 AI 처리 업무를 위해 정보가 국외로 전송되어 처리될 수 있습니다.
+              이용자가 AI 기능에 입력하는 내용에 타인(고객 등)의 이름·연락처 등 개인정보를 포함하지 않도록 해 주시기 바랍니다.
+              이전 항목·이전받는 자·이전 국가·보유 기간 등 세부 사항은 문의 시 안내해 드립니다.
+            </p>
           </section>
 
           <section>
@@ -214,6 +231,9 @@ export default function PrivacyPage() {
             <p>
               이 개인정보처리방침은 2026년 4월 1일부터 시행됩니다.
               내용 추가·삭제 또는 수정이 있을 경우에는 변경사항 시행 최소 7일 전 서비스 공지사항을 통해 고지합니다.
+            </p>
+            <p className="mt-2">
+              제5항의 AI 처리 업체(Anthropic·OpenAI·Google) 및 국외 전송 안내는 2026년 11월 8일부터 시행됩니다.
             </p>
           </section>
 
