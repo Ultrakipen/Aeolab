@@ -48,7 +48,7 @@ export default function HowItWorksPage() {
               AI 검색에서<br />내 가게가 나오는 방법
             </h1>
             <p className="text-base md:text-lg text-gray-600 mb-3 leading-relaxed break-keep">
-              네이버·Gemini·ChatGPT·Google AI — 5곳에서 가게가 노출되는 조건을 점수로 보여주고,
+              {GEMINI_LIVE ? "네이버·Gemini·ChatGPT·Google AI" : "네이버·ChatGPT·Google AI(Gemini 측정은 준비 중)"} — 가게가 노출되는 조건을 단계로 보여주고,
               사장님이 바로 실행할 수 있는 콘텐츠 초안을 자동으로 만들어 드립니다.
             </p>
             <p className="text-sm text-gray-500 mb-5">
@@ -501,7 +501,7 @@ export default function HowItWorksPage() {
                 <span className="w-7 h-7 rounded-full bg-green-700 text-white text-sm font-bold flex items-center justify-center shrink-0">1</span>
                 <p className="text-sm md:text-base font-bold text-green-900">네이버 AI 브리핑·AI탭 — <span className="text-green-700">2~4주</span></p>
               </div>
-              <p className="text-sm text-gray-700 ml-9 leading-relaxed break-keep">소개글·소식·리뷰를 고치면 2~4주 내 반영됩니다. ACTIVE 업종(음식점·카페·숙박 등)에서 가장 빠른 경로입니다.</p>
+              <p className="text-sm text-gray-700 ml-9 leading-relaxed break-keep">소개글·소식·리뷰를 고치면 2~4주쯤부터 반영되는 경우가 있습니다(참고값, 보장 아님). ACTIVE 업종(음식점·카페·숙박 등)에서 상대적으로 빠른 경로입니다.</p>
               <MoreInfo summary="상세 액션 보기" tone="light" className="mt-2">
                 <ul className="space-y-1 text-sm text-gray-700">
                   <li>• 스마트플레이스 소개글·소식·리뷰 개선</li>
@@ -673,7 +673,7 @@ export default function HowItWorksPage() {
                 <span className="w-7 h-7 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-bold text-sm shrink-0">3</span>
                 <h3 className="font-bold text-gray-900 text-sm md:text-base break-keep">톡톡 채팅방 메뉴 자동 생성</h3>
               </div>
-              <p className="text-sm text-gray-700 ml-10 mb-2 leading-relaxed break-keep">채팅방 하단 메뉴 6개를 자동 생성합니다. 예약·메뉴·블로그로 즉시 연결.</p>
+              <p className="text-sm text-gray-700 ml-10 mb-2 leading-relaxed break-keep">채팅방 하단 메뉴 5개 초안을 자동 생성합니다. 예약·메뉴·블로그로 연결할 수 있어요.</p>
               <p className="text-sm text-gray-500 ml-10">* 소개글 AI 생성과 합산 한도 (Basic 10건, Pro 30건, Biz 60건)</p>
             </div>
             <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4">

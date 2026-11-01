@@ -1006,7 +1006,7 @@ export default function LandingPage() {
               {
                 Icon: Bell,
                 title: "카카오 노출 변화 알림",
-                desc: "노출 상태가 변화하면 카카오톡으로 즉시 알림. 경쟁사 변화도 감지해 알려드림",
+                desc: "노출 단계가 바뀌면 카카오톡으로 알려드려요(설정에서 알림 켜기). 경쟁 가게의 큰 변화도 감지해 알려드려요",
                 badge: null,
                 badgeColor: "",
               },

@@ -382,7 +382,7 @@ export default function PricingPage() {
                   <p className="font-semibold text-gray-900 text-sm">스마트플레이스 자동 점검</p>
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed break-keep">
-                  채팅방 메뉴·소개글·최근 소식 누락 자동 확인 · 즉시 쓸 수 있는 초안 제공
+                  소개글·최근 소식 누락은 자동으로 확인 · 톡톡 채팅방 메뉴·FAQ는 체크리스트와 바로 쓸 수 있는 초안 제공
                 </p>
               </div>
               <div className="bg-white rounded-xl border border-gray-200 p-4 sm:col-span-2">
@@ -522,7 +522,7 @@ export default function PricingPage() {
                   {
                     Icon: Bell,
                     title: "근처 경쟁 가게 AI 노출이 이번 주 올랐는지",
-                    why: "경쟁 가게의 변화를 자동으로 감지해 카카오톡으로 알려드립니다 (ChatGPT는 지속 추적 불가)",
+                    why: "경쟁 가게의 소식·리뷰·사진 변화를 매주 월요일에 감지해 대시보드로 알려드리고, 경쟁 가게의 노출 단계가 크게 바뀌면 카카오톡으로도 알려드려요(알림은 설정에서 켜야 해요, ChatGPT는 지속 추적 불가)",
                   },
                   {
                     Icon: CheckCircle2,

@@ -35,6 +35,14 @@ FORBIDDEN = [
     ("직접적인 연결 효과가 있습니다", "효과 단정(체험 결과는 기간·효과를 약속하지 않는다고 안내)"),
     ("2~4주 안에 변화가 나타납니다", "기간 단정(체험 결과는 \"어느 길도 기간을 약속할 수 없어요\"라고 안내)"),
     ("50~100회 같은 검색어", "실제는 여러 말투로 묻는다"),
+    ("소개글·소식·리뷰를 고치면 2~4주 내 반영됩니다", "기간 단정(참고값·보장 아님으로 써야 한다)"),
+    ("채팅방 하단 메뉴 6개", "실제 생성은 최대 5개(guide.py raw_menus[:5])"),
+    ("카카오톡으로 즉시 알림", "알림은 스캔 뒤 발송되고 설정에서 켜야 한다 — '즉시' 약속 금지"),
+    ("경쟁 가게의 변화를 자동으로 감지해 카카오톡으로 알려드립니다", "경쟁사 변화 감지는 대시보드 표시, 카카오 알림은 노출 단계가 크게 바뀔 때만(11-01 알림 규칙)"),
+    ("채팅방 메뉴·소개글·최근 소식 누락 자동 확인", "톡톡·FAQ 감지는 Q&A 탭 폐기로 중단됨(naver_place_stats.py has_faq=False)"),
+    ("ChatGPT + 네이버 AI 브리핑 확인", "무료 체험은 네이버 AI 브리핑을 측정하지 않는다(가입 후)"),
+    ("소개글·FAQ·소식 중 빠진 곳을 찾아드려요", "FAQ는 자동 감지가 아니라 체크리스트"),
+    ("Gemini 측정 도구 점수는", "제미나이 측정은 준비 중인 동안 도구가 있는 것처럼 쓰지 않는다"),
 ]
 
 
@@ -92,3 +100,16 @@ def test_hero_has_a_start_button_above_the_form_on_small_screens():
     """모바일 첫 화면에 진단 입력창이 보이지 않아(11-01 라이브 확인) 시작 버튼과 입력창 앵커가 있어야 한다."""
     text = (FRONTEND / "components/landing/HeroSection.tsx").read_text(encoding="utf-8", errors="ignore")
     assert 'href="#trial-form"' in text and 'id="trial-form"' in text
+
+
+def test_gemini_measurement_mentions_on_faq_page_state_the_status():
+    """FAQ 페이지가 'Gemini 측정'을 말할 때는 준비 중 상태를 함께 적어야 한다(랜딩·요금제와 같은 기준)."""
+    text = (FRONTEND / "app/(public)/faq/page.tsx").read_text(encoding="utf-8", errors="ignore")
+    offenders = [f"{i}: {ln.strip()[:80]}" for i, ln in enumerate(text.splitlines(), 1)
+                 if "Gemini 측정" in ln and "준비 중" not in ln and "GEMINI_LIVE" not in ln]
+    assert not offenders, offenders
+
+
+def test_how_it_works_headline_follows_the_gemini_flag():
+    text = (FRONTEND / "app/(public)/how-it-works/page.tsx").read_text(encoding="utf-8", errors="ignore")
+    assert "GEMINI_LIVE ? \"네이버·Gemini·ChatGPT·Google AI\"" in text
