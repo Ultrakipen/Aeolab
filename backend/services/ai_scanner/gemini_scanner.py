@@ -1,4 +1,5 @@
 import asyncio
+import contextvars
 import json
 import logging
 import re
@@ -68,6 +69,10 @@ def interactive_sample_count(default: int = 100) -> int:
     if GEMINI_MIN_INTERVAL <= 0:
         return default
     return max(GEMINI_INTERACTIVE_MIN_SAMPLES, min(default, int(GEMINI_INTERACTIVE_BUDGET_SEC / GEMINI_MIN_INTERVAL)))
+
+
+# 정기 스캔에서만 True — 시간 초과 1회 재시도·한도 초과 시 긴 대기. 기본값 True는 deadline 없는 호출(정기 스캔·재측정)용.
+_RETRY_SLOW: "contextvars.ContextVar[bool]" = contextvars.ContextVar("gemini_retry_slow", default=True)
 
 
 class GeminiBusy(Exception):
@@ -197,12 +202,17 @@ class GeminiScanner:
                 places = [str(p).strip() for p in raw if isinstance(p, (str, int)) and str(p).strip()]
                 return {"places": [p for p in places if len(p) <= 40][:5], "_measured": True}
             except asyncio.TimeoutError as e:
+                # 2026-11-01: 야간 스캔(02:00 KST)에서 같은 분 안에 성공과 시간 초과가 섞여 나왔다(34/109) — 일시 지연이라 한 번 더 시도한다.
+                # 사용자가 기다리는 수동 측정(deadline_sec 지정)은 90초 안전망이 있어 재시도하지 않는다.
+                if attempt == 0 and _RETRY_SLOW.get():
+                    continue
                 self._log_failure("scan_recommend", e)
                 return {"places": [], "_measured": False, "_error": "timeout"}
             except Exception as e:
                 is_rate_limit = "429" in str(e) or "ResourceExhausted" in type(e).__name__ or "rate limit" in str(e).lower()
                 if is_rate_limit and attempt == 0:
-                    await asyncio.sleep(1.5)
+                    # 분당 한도는 1.5초로는 풀리지 않는다 — 정기 스캔은 더 길게 쉰 뒤 재시도, 수동 측정은 기존대로 짧게
+                    await asyncio.sleep(8.0 if _RETRY_SLOW.get() else 1.5)
                     continue
                 self._log_failure("scan_recommend", e)
                 return {"places": [], "_measured": False, "_error": str(e)[:80]}
@@ -236,6 +246,8 @@ class GeminiScanner:
 
         all_results = list(cached_results)
         _t0 = time.monotonic()
+        # 시간 예산이 있는 수동 측정이면 느린 재시도를 끈다(gather가 만든 하위 작업이 이 값을 물려받는다)
+        _RETRY_SLOW.set(not deadline_sec)
         for batch_start in range(0, len(task_queries), GEMINI_BATCH_SIZE):
             if deadline_sec and batch_start > 0 and time.monotonic() - _t0 > deadline_sec:
                 break   # 시간 예산 초과 — 지금까지 모은 표본으로 결과를 낸다(모자란 표본은 failed_count로 드러난다)
