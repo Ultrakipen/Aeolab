@@ -259,12 +259,15 @@ def start_scheduler():
         id="naver_quota_daily_summary", replace_existing=True,
         max_instances=1, misfire_grace_time=300,
     )
-    # v1.1 §3.3 — 소식 14일 미작성 알림 (매일 09:10 KST)
-    scheduler.add_job(
-        inactive_post_alert_job, "cron", hour=9, minute=10,
-        id="inactive_post_alert", replace_existing=True,
-        max_instances=1, misfire_grace_time=600,
-    )
+    # v1.1 §3.3 — 소식 14일 미작성 알림 (매일 09:10 KST) — 2026-11-01 기본 꺼짐(INACTIVE_POST_ALERT_ENABLED=true일 때만 등록).
+    # 이유: last_post_at은 측정값이 아니라 사용자 입력이고 활성 사업장 8곳 중 2곳만 값이 있다. 값이 없으면 "14일 이상 미작성"으로 취급해
+    # 소식을 올리는 가게에도 "올라오지 않았습니다"가 나갈 수 있고(지침 9: 모르는 것을 0으로 보지 않기), 승인 템플릿(ACTION_01 이달 할 일)의 목적과도 다르다.
+    if os.getenv("INACTIVE_POST_ALERT_ENABLED", "false").lower() == "true":
+        scheduler.add_job(
+            inactive_post_alert_job, "cron", hour=9, minute=10,
+            id="inactive_post_alert", replace_existing=True,
+            max_instances=1, misfire_grace_time=600,
+        )
     # v5.8 대행 서비스 — 미결제 7일 방치 자동 취소 (매일 10:30 KST — 2026-08-23 타임존버그 수정,
     # 실제론 01:30 KST에 실행 중이었음)
     scheduler.add_job(
@@ -4773,17 +4776,8 @@ async def new_user_day7_rescan_job():
                 except Exception as e:
                     logger.warning(f"[day7_rescan] quick scan 실패 biz={biz_id}: {e}")
 
-                # 4-b) 카카오 알림 (phone 있을 때만)
-                phone = phone_by_user.get(uid)
-                if phone and _KAKAO_CONFIGURED:
-                    try:
-                        from services.kakao_notify import KakaoNotifier as _KN
-                        _notifier = _KN()
-                        biz_name = biz.get("name") or "내 가게"
-                        # 승인 템플릿 AEOLAB_ACTION_01(이달 할 일)의 변수로 보낸다 — 값은 14자 이내(자유 문구는 전달되지 않는다)
-                        await _notifier.send_action_items(phone, biz_name, ["추천 행동 확인"])
-                    except Exception as e:
-                        logger.warning(f"[day7_rescan] 카카오 발송 실패 user={uid}: {e}")
+                # 4-b) 카카오 알림은 보내지 않는다(2026-11-01). 내용이 "추천 행동 확인" 한 줄뿐이라 사용자가 얻는 정보가 없고,
+                #   ACTION_01(이달 할 일) 템플릿의 목적과도 다르다. 재스캔 결과와 앱 내 알림 기록(4-c)은 유지한다.
 
                 # 4-c) notifications INSERT — 멱등키 (user_id, type='day7_action')
                 try:
