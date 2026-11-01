@@ -108,8 +108,6 @@ export default async function DashboardPage({
   const todayISO = new Date().toISOString().split("T")[0];
 
   // ── 구독 ─────────────────────────────────────────────────────
-  const planLabel = ({ free:"Free", basic:"Basic", startup:"창업패키지", pro:"Pro", biz:"Biz", enterprise:"Enterprise" } as Record<string,string>)[_activePlan ?? "free"] ?? "Free";
-  const planFaqLimit = ({ free:0, basic:10, startup:20, pro:30, biz:60, enterprise:999 } as Record<string,number>)[_activePlan ?? "free"] ?? 0;
 
   // ── 온보딩 ───────────────────────────────────────────────────
   let onboardingDone = profileRow?.onboarding_done ?? false;
@@ -199,6 +197,10 @@ export default async function DashboardPage({
   const isAdmin = ADMIN_EMAILS_LIST.includes((user.email ?? "").toLowerCase());
   const plan = isAdmin ? "biz" : _activePlan;
   const subscriptionPlan = isAdmin ? "biz" : _activePlan;
+  // 플랜 표시·월 한도는 관리자 우회가 반영된 plan 기준이다 — 구독 기록(_activePlan)만 쓰면 관리자 계정에서
+  // 사이드바는 "Biz 요금제"인데 소개글 카드는 "Free 플랜은 사용할 수 없습니다"로 어긋났다(2026-11-01 라이브 확인). 일반 사용자는 plan==_activePlan이라 동일.
+  const planLabel = ({ free:"Free", basic:"Basic", startup:"창업패키지", pro:"Pro", biz:"Biz", enterprise:"Enterprise" } as Record<string,string>)[plan ?? "free"] ?? "Free";
+  const planFaqLimit = ({ free:0, basic:10, startup:20, pro:30, biz:60, enterprise:999 } as Record<string,number>)[plan ?? "free"] ?? 0;
   const isTrialUser = !!(profileRow?.basic_trial_used) && plan === "free";
   const devMode = process.env.NEXT_PUBLIC_DEV_MODE === "true";
   const scanLimit = (isAdmin || devMode) ? 999 : SCAN_DAILY_LIMITS[plan] ?? 0;
