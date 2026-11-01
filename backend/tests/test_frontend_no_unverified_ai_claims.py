@@ -113,3 +113,41 @@ def test_gemini_measurement_mentions_on_faq_page_state_the_status():
 def test_how_it_works_headline_follows_the_gemini_flag():
     text = (FRONTEND / "app/(public)/how-it-works/page.tsx").read_text(encoding="utf-8", errors="ignore")
     assert "GEMINI_LIVE ? \"네이버·Gemini·ChatGPT·Google AI\"" in text
+
+
+# ── 제미나이 '준비 중' 표기는 항상 측정 상태 플래그에 묶여야 한다 (2026-11-02) ─────────────────────────────
+# 유료화 후 GEMINI_MEASUREMENT_LIVE=true로 켜면 사이트 전체가 '정상 작동' 문구로 한 번에 바뀌어야 한다.
+# 고정으로 박힌 '준비 중' 문구가 하나라도 있으면 켠 뒤에도 "준비 중"이 남는다.
+import re as _re  # noqa: E402
+
+_GEM_WORD = _re.compile(r"Gemini|제미나이")
+
+
+def _unflagged_preparing_mentions(root: pathlib.Path):
+    found = []
+    for d in SCAN_DIRS:
+        base = root / d
+        if not base.exists():
+            continue
+        for p in base.rglob("*"):
+            if p.suffix not in (".ts", ".tsx") or any(part in p.parts for part in SKIP_PARTS) or p.name == "featureFlags.ts":
+                continue
+            lines = p.read_text(encoding="utf-8", errors="ignore").splitlines()
+            for i, ln in enumerate(lines):
+                # 같은 줄에 플래그가 있어야 한다 — 주변 줄에 플래그가 있다고 통과시키면 바로 옆 고정 문구를 놓친다
+                if "준비 중" in ln and _GEM_WORD.search(ln) and "GEMINI_LIVE" not in ln and "GEMINI_MEASUREMENT_LIVE" not in ln:
+                    found.append(f"{p.relative_to(root).as_posix()}:{i + 1} {ln.strip()[:90]}")
+    return found
+
+
+def test_gemini_preparing_text_is_always_tied_to_the_flag():
+    assert not _unflagged_preparing_mentions(FRONTEND)
+
+
+def test_the_flag_guard_catches_an_unflagged_preparing_line(tmp_path):
+    comp = tmp_path / "components"
+    comp.mkdir()
+    (comp / "Bad.tsx").write_text("<p>Gemini 측정은 준비 중이에요</p>\n", encoding="utf-8")
+    (comp / "Good.tsx").write_text('<p>{GEMINI_LIVE ? "Gemini 측정" : "Gemini 측정은 준비 중이에요"}</p>\n', encoding="utf-8")
+    got = _unflagged_preparing_mentions(tmp_path)
+    assert len(got) == 1 and "Bad.tsx" in got[0]

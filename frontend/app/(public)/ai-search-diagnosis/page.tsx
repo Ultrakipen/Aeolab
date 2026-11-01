@@ -3,11 +3,16 @@ import type { Metadata } from "next"
 import { ArrowRight, Check, Search, Bot, MapPin, MessageSquareText, Clock, AlertTriangle } from "lucide-react"
 import { SiteFooter } from "@/components/common/SiteFooter"
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient"
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags"
+
+// 측정 대상으로 말할 때만 쓴다(제미나이 측정 상태 플래그 연동). 일반 설명(AI 답변의 예)에는 쓰지 않는다.
+const GEM = GEMINI_LIVE ? "Gemini·" : ""
+const GEM_NOTE = GEMINI_LIVE ? "" : " (Gemini 측정은 준비 중입니다)"
 
 export const metadata: Metadata = {
   title: "AI 검색 노출 진단 도구 — 내 가게가 AI 답변에 나오는지 무료 확인 | AEOlab",
   description:
-    "네이버 AI 브리핑·ChatGPT·Gemini·구글 AI 검색에 내 가게가 나오는지 진단하는 도구입니다. 무엇을 어떻게 측정하는지, 무료로 확인되는 범위와 한계, 결과를 읽는 법을 정리했습니다.",
+    `네이버 AI 브리핑·ChatGPT·${GEM}구글 AI 검색에 내 가게가 나오는지 진단하는 도구입니다. 무엇을 어떻게 측정하는지, 무료로 확인되는 범위와 한계, 결과를 읽는 법을 정리했습니다.`,
   alternates: { canonical: "/ai-search-diagnosis" },
   openGraph: {
     title: "AI 검색 노출 진단 도구 — 내 가게가 AI 답변에 나오는지 확인",
@@ -25,11 +30,11 @@ const FAQS = [
   },
   {
     q: "AI 노출 진단 도구는 무엇을 측정하나요?",
-    a: "AEOlab은 가게 정보가 네이버 지도·검색에 어떻게 잡히는지, ChatGPT에 손님처럼 추천을 물었을 때 내 가게가 나오는지, 구글 지도에서의 노출·평점·리뷰 수를 직접 측정합니다. 네이버 AI 브리핑·AI탭·Gemini·구글 AI 개요는 가입 후 정기 스캔으로 확인합니다.",
+    a: `AEOlab은 가게 정보가 네이버 지도·검색에 어떻게 잡히는지, ChatGPT에 손님처럼 추천을 물었을 때 내 가게가 나오는지, 구글 지도에서의 노출·평점·리뷰 수를 직접 측정합니다. 네이버 AI 브리핑·AI탭·${GEM}구글 AI 개요는 가입 후 정기 스캔으로 확인합니다.${GEM_NOTE}`,
   },
   {
     q: "무료 진단으로 어디까지 확인할 수 있나요?",
-    a: "가입 없이 1회 체험할 수 있고, 네이버 지도·검색, ChatGPT 추천 여부, 구글 지도 노출을 확인합니다. AI 브리핑·AI탭·Gemini·구글 AI는 가입 후 확인합니다.",
+    a: `가입 없이 1회 체험할 수 있고, 네이버 지도·검색, ChatGPT 추천 여부, 구글 지도 노출을 확인합니다. AI 브리핑·AI탭·${GEM}구글 AI는 가입 후 확인합니다.${GEM_NOTE}`,
   },
   {
     q: "진단 결과는 항상 같게 나오나요?",
@@ -66,7 +71,7 @@ const CHANNELS = [
   },
   {
     icon: Bot,
-    title: "네이버 AI 브리핑·AI탭, Gemini, 구글 AI 개요",
+    title: `네이버 AI 브리핑·AI탭, ${GEMINI_LIVE ? "Gemini, " : ""}구글 AI 개요`,
     free: false,
     desc: "가입 후 정기 스캔으로 확인합니다. 네이버 AI 브리핑은 업종에 따라 노출 구조가 달라서 업종별로 안내가 달라집니다.",
   },

@@ -5,6 +5,7 @@ import { CHANNEL_ROWS } from "@/components/common/ChannelTimelineBox";
 import type { CompBlog } from "@/components/trial/TrialResultExtras";
 import type { TrialChatgptGroup, TrialGooglePlaces } from "@/types";
 import { maybeSameShop } from "@/lib/trialAutofill";
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 
 /**
  * 무료 체험 결과 — "손님이 가게를 찾는 5개 길" + 주변 비교 한 줄 결론 + 소개글·소식 확인 질문.
@@ -182,8 +183,8 @@ export function ChannelWaysCard({
     },
     {
       key: "google",
-      name: "제미나이·구글",
-      hint: "구글의 AI와 구글 검색",
+      name: GEMINI_LIVE ? "제미나이·구글" : "구글 AI·검색",
+      hint: GEMINI_LIVE ? "구글의 AI와 구글 검색" : "구글 검색 위의 AI 요약과 구글 검색(제미나이 측정은 준비 중)",
       state: "later",
       now: googleMapShown
         ? "구글의 AI 답변과 구글 검색에 내 가게가 나오는지는 아직 재 보지 않았어요. 구글 지도는 아래 \u2018구글 지도에서의 모습\u2019에서 직접 재 봤어요."
