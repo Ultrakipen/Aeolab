@@ -252,10 +252,15 @@ export default function OnboardingPage() {
           const items = await res.json() as Array<{
             name: string; naver_place_id: string; naver_place_url: string;
           }>;
-          // 이름이 가장 유사한 결과에서 naver_place_id 추출
-          const match = items.find(
-            (it) => it.naver_place_id && it.name.replace(/\s/g, "").includes(result.name.replace(/\s/g, "").slice(0, 3))
-          ) || items.find((it) => it.naver_place_id);
+          // 이름이 같은 결과에서만 naver_place_id를 가져온다. 이름이 맞는 결과가 없으면 아무 결과나 고르지 않고 아래의 서버 확정(카드 이름·주소 대조)으로 넘긴다
+          // (2026-11-01: 예전에는 이름이 달라도 ID가 있는 첫 결과를 써서, 카카오에만 있는 가게에 다른 가게의 네이버 ID가 붙을 수 있었다)
+          const compact = (v: string) => v.replace(/[\s\-_·&()]/g, "").toLowerCase();
+          const mine = compact(result.name);
+          const match = items.find((it) => {
+            if (!it.naver_place_id) return false;
+            const theirs = compact(it.name || "");
+            return theirs.length >= 2 && mine.length >= 2 && (theirs === mine || theirs.startsWith(mine) || mine.startsWith(theirs));
+          });
           if (match?.naver_place_id) {
             setForm(prev => ({
               ...prev,
