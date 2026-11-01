@@ -403,3 +403,10 @@
 - 가치·시장: `docs/v1_validity_result_partial_2026_11_01.md`, `docs/competitor_landscape_analysis_v1.0.md`, `docs/business_viability_audit_v1.0.md`, `docs/plan_limits_v1.0.md`, `docs/popular_shop_trust_improvement_handoff_v1.0.md`
 - 이번 세션: `docs/openai_model_migration_eval_2026_11_01.md`, `docs/ai_vendor_data_flow_privacy_check_2026_11_01.md`, `docs/first_customer_rehearsal_plan_2026_11_01.md`, `docs/kakao_alimtalk_template_plan_2026_11_01.md`
 - 점검·운영 도구: `scripts/check_nightly_after_model_switch.py`, `backend/scripts/rehearsal_watch.py`, `scripts/check_ai_providers.py`, `scripts/check_server_drift.sh`, `scripts/deploy_backend_files.sh`, `backend/scripts/route_smoke_readonly.py`, `backend/scripts/route_write_dryrun.py`
+
+## T-11 체험→가입 퍼널 분석 결과 (2026-11-02, 읽기 전용 `backend/scripts/trial_funnel_readonly.py`)
+- 체험 261건 / 고유 IP 51. **다량(>3회) IP 11개가 205건(79%)** — 개발·운영 테스트 추정(최다 IP 2개가 138건). 이를 뺀 실사용 추정 **56건 / 40 IP**.
+- 이메일 입력 47건(제외 후 21), 팔로업1 발송 19건(제외 후 7), claim_email 5건(제외 후 2).
+- **날짜 분포(제외 후)**: 6월 중순~7월 초 몰렸고 10월은 13·21·27·29일 각 1~2건. 즉 지금 병목은 전환율 이전에 **유입량 자체**(최근 2주 외부 체험 약 4건).
+- **`converted_user_id`·`imported_business_id` = 0건이지만 이것을 "전환 0"의 증거로 쓰면 안 된다**: `converted_user_id`는 코드 어디에서도 값을 쓰지 않고(`settings.py:482` 계정 삭제 시 비우기만) `imported_business_id`는 `business.py:1539`에서 쓰는 경로가 있으나 0건. 가입 연결 추적이 **연결되어 있지 않다**(미배선). 실제 가입 전환은 이 컬럼으로 알 수 없다 — 이메일 일치(`email`↔가입 이메일) 대조는 미확인.
+- 원인 가설(검증 전): ① 유입 부족(최근 광고·검색 유입 거의 없음) ② 체험 결과에서 가입 CTA까지 연결 미측정 ③ 가입 시 체험 결과 가져오기 경로 사용률 미측정. 다음 단계: 가입 시 `converted_user_id` 기록 배선(DB 컬럼은 이미 존재) + 이메일 일치로 과거 가입자 대조.
