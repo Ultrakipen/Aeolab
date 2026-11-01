@@ -2325,9 +2325,19 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
             .limit(1)
         )
     ).data
+    # 오늘 또는 직전 스캔의 네이버 측정이 빠졌다면 점수 차이는 변화가 아니다 — 항목이 제외·재정규화돼 척도가 다르다(services/change_signal_guard,
+    # 실측 64.5 ↔ 54.6). 변화로 보여 주지 않고(0.0=비교 보류) 스캔 완료 알림도 보내지 않는다.
+    from services.change_signal_guard import comparable_to_previous_scan as _cmp_prev
+    _cmp_ok = await _cmp_prev(supabase, business_id, results.get("naver"))
     weekly_change = round(
         score["total_score"] - prev_history[0]["total_score"], 2
-    ) if prev_history and prev_history[0].get("score_date") != str(_date.today()) else 0.0
+    ) if _cmp_ok and prev_history and prev_history[0].get("score_date") != str(_date.today()) else 0.0
+    # 스캔 완료 알림 본문의 '등급 변화 메모'용 직전 등급 — 알림이 쓰는 한글 단계명으로 만든다(score["grade"]는 A~D 문자라 비교하면 항상 다르다)
+    from services.kakao_notify import _grade as _kn_grade
+    _prev_grade_label = (
+        _kn_grade(prev_history[0]["total_score"])
+        if _cmp_ok and prev_history and prev_history[0].get("score_date") != str(_date.today()) else ""
+    )
 
     # 경쟁사 목록 조회 (스캔은 백그라운드에서 수행) — 크롤링 실측 필드도 함께 조회해
     # compute_competitor_score()가 Gemini "미언급" 판정 시에도 경쟁사별로 차등 점수를 낼 수 있게 함
@@ -2721,7 +2731,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
             ).data
             phone = (profile or {}).get("phone")
             notify_on = (profile or {}).get("kakao_scan_notify", False)
-            if phone and notify_on:
+            if phone and notify_on and _cmp_ok:
                 mention_platforms = [
                     ("Gemini", (results.get("gemini") or {}).get("mentioned", False)),
                     ("ChatGPT", (results.get("chatgpt") or {}).get("mentioned", False)),
@@ -2738,7 +2748,7 @@ async def _save_scan_results(business_id: str, req: ScanRequest, results: dict, 
                     phone=phone,
                     biz_name=(biz or {}).get("name", ""),
                     score=score["total_score"],
-                    grade=score["grade"],
+                    grade=_prev_grade_label,
                     weekly_change=weekly_change,
                     top_platform=top_platform,
                     top_improvement=top_improvement,
@@ -3082,9 +3092,12 @@ async def _run_quick_scan(scan_id: str, req: ScanRequest):
                 .limit(1)
             )
         ).data
+        # 네이버 측정이 빠진 스캔이 끼면 점수 차이는 변화가 아니다(services/change_signal_guard) — 비교 보류(0.0)
+        from services.change_signal_guard import comparable_to_previous_scan as _cmp_prev
+        _cmp_ok = await _cmp_prev(supabase, req.business_id, result.get("naver"))
         weekly_change = round(
             score["total_score"] - prev_history[0]["total_score"], 2
-        ) if prev_history and prev_history[0].get("score_date") != str(_date.today()) else 0.0
+        ) if _cmp_ok and prev_history and prev_history[0].get("score_date") != str(_date.today()) else 0.0
 
         await execute(
             supabase.table("scan_results").insert({
@@ -3354,9 +3367,12 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
                 .limit(1)
             )
         ).data
+        # 네이버 측정이 빠진 스캔이 끼면 점수 차이는 변화가 아니다(services/change_signal_guard) — 비교 보류(0.0)
+        from services.change_signal_guard import comparable_to_previous_scan as _cmp_prev
+        _cmp_ok = await _cmp_prev(supabase, req.business_id, result.get("naver"))
         weekly_change = round(
             score["total_score"] - prev_history[0]["total_score"], 2
-        ) if prev_history and prev_history[0].get("score_date") != str(_date.today()) else 0.0
+        ) if _cmp_ok and prev_history and prev_history[0].get("score_date") != str(_date.today()) else 0.0
 
         # 경쟁사 단일 스캔으로 competitor_scores 계산 — 크롤링 실측 필드도 함께 조회
         # (compute_competitor_score()가 Gemini "미언급" 판정 시에도 경쟁사별 차등 점수를 내는 데 사용)

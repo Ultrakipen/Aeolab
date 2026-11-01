@@ -23,6 +23,26 @@ def comparable_scans(flags) -> bool:
     return not any(flags)
 
 
+async def comparable_to_previous_scan(supabase, business_id: str, naver_result) -> bool:
+    """수동 스캔처럼 **오늘 스캔이 아직 scan_results에 저장되기 전에** 부르는 비교 가능 판정.
+
+    오늘 스캔의 네이버가 측정됐고(naver_result) 직전 점수 스캔의 네이버도 측정됐을 때만 True.
+    조회 실패는 False — 어떤 경우에도 예외를 올리지 않는다(스캔 응답을 막지 않기 위해).
+    (야간 스캔은 저장 뒤에 최근 2건을 읽는 recent_naver_unmeasured_flags를 쓴다 — 저장 시점이 달라 판정 함수를 나눴다.)
+    """
+    try:
+        from services.naver_batch_health import naver_failure_reason
+        if naver_failure_reason(naver_result) is not None:
+            return False
+        flags = await recent_naver_unmeasured_flags(supabase, business_id)
+        if flags is None:
+            return False
+        return comparable_scans(flags[:1])      # 아직 저장 전이라 가장 최근 1건이 '직전'이다
+    except Exception as e:
+        _logger.warning("[change_signal_guard] 수동 스캔 비교 가능 판정 실패(변화 표시 생략) biz=%s: %s", business_id, e)
+        return False
+
+
 async def recent_naver_unmeasured_flags(supabase, business_id: str) -> Optional[list]:
     """점수가 나온 최근 스캔 2건(최신순: 오늘/직전)의 네이버 '측정 못 함' 여부. 조회에 실패하면 None.
 
