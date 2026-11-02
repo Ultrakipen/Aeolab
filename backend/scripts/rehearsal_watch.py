@@ -3,7 +3,7 @@
 참가자 이메일을 받아 가입 → 사업장 → 구독 → 스캔 → 알림 진행 상태를 한 화면에 출력한다. DB 쓰기·외부 호출 없음.
 전화번호는 마스킹해 출력하고, 어떤 값도 파일로 저장하지 않는다(개인정보를 문서·메모리에 남기지 않는다).
 
-사용(서버): cd backend && set -a && . ./.env && set +a && PYTHONPATH=. python scripts/rehearsal_watch.py <참가자 이메일>
+사용(서버): cd /var/www/aeolab/backend && PYTHONPATH=. /var/www/aeolab/venv/bin/python scripts/rehearsal_watch.py <참가자 이메일>  (.env는 스크립트가 직접 읽는다 — source 금지)
 """
 import sys
 
@@ -73,4 +73,11 @@ def main(email: str):
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit("사용법: rehearsal_watch.py <참가자 이메일>")
+    try:  # .env를 source하지 않고 읽는다(값에 특수문자가 있으면 source가 깨진다 — 프로젝트 규칙)
+        import os
+        from dotenv import load_dotenv
+
+        load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
+    except ImportError:
+        pass
     main(sys.argv[1])
