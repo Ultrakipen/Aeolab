@@ -3217,7 +3217,7 @@ ALTER TABLE ai_usage_daily ENABLE ROW LEVEL SECURITY;   -- 서비스 키(백엔�
 
 
 -- ========================================
--- notifications.status 에 'skipped' 허용 (2026-11-02, SQL Editor 수동 실행 필요 — 아직 미실행)
+-- notifications.status 에 'skipped' 허용 (2026-11-02 SQL Editor로 실행 완료 — 서비스 DB 반영은 진단 INSERT로 확인)
 -- 문제: 알림 함수(KakaoNotifier._send 등)가 해지 차단·주간 상한·번호 없음·자유 문구 불가로 건너뛴 알림을 status='skipped'로 기록하는데
 --       위 CHECK(status IN ('sent','failed','pending'))가 거부(23514)해 기록이 전부 사라진다(서버 실측: skipped 0건). 상한·차단이 얼마나 막는지 볼 수 없다.
 -- 제약 이름은 기본 규칙(notifications_status_check)을 가정한 것 — 먼저 확인:
