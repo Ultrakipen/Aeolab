@@ -247,18 +247,20 @@ export function SettingsClient({
           </div>
           <div>
             <h3 className="text-base font-semibold text-gray-800">카카오 알림 수신 설정</h3>
-            <p className="text-sm text-gray-600">수신 번호가 등록된 경우에만 발송됩니다.</p>
+            <p className="text-sm text-gray-600 break-keep">수신 번호가 등록된 경우에만 발송됩니다. AI 노출 알림은 7일에 최대 3건까지만 보내며, 결제·구독 안내는 이 설정과 관계없이 발송됩니다.</p>
           </div>
         </div>
         <div className="space-y-2.5">
           {[
-            { label: "측정 완료 알림",     desc: "AI 측정이 완료되면 결과를 알림톡으로 받습니다.",       value: scanNotify,       field: "scan" as const },
-            { label: "경쟁사 순위변동 알림", desc: "경쟁사가 내 점수를 추월하면 즉시 알림을 받습니다.",  value: competitorNotify, field: "competitor" as const },
+            // 2026-11-02: 안내문을 실제 동작에 맞췄다 — 이 스위치는 점수 변화·AI 인용·이달 할 일·주간/월간 리포트도 함께 제어하고, 스캔 완료는 주 1회만 보낸다.
+            { label: "AI 노출 결과 알림",   desc: "측정 완료, 노출 변화, 주간·월간 리포트를 알림톡으로 받습니다. 측정 완료 알림은 주 1회까지만 보냅니다.", value: scanNotify,       field: "scan" as const },
+            // 경쟁사 점수는 간이 추정치이고 등급 구간이 달라졌을 때만 보낸다(즉시 알림이 아니다).
+            { label: "경쟁사 변화 알림",     desc: "경쟁사의 AI 노출 구간이 크게 달라졌거나 내 가게보다 높아졌을 때 알려드립니다. 경쟁사 점수는 추정치입니다.", value: competitorNotify, field: "competitor" as const },
           ].map(({ label, desc, value, field }) => (
             <div key={field} className="flex items-center justify-between gap-4 bg-white rounded-lg px-4 py-3.5 border border-gray-100">
               <div className="min-w-0">
                 <div className="text-sm md:text-base font-medium text-gray-700">{label}</div>
-                <div className="text-sm text-gray-600 mt-0.5">{desc}</div>
+                <div className="text-sm text-gray-600 mt-0.5 break-keep">{desc}</div>
               </div>
               <button
                 role="switch"
