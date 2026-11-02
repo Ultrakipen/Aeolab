@@ -49,6 +49,8 @@ async def generate_crisis_reply(
         return {**_fallback_response(business_name, rating), "is_fallback": True}
 
     client = _get_client(api_key)
+    from services.privacy_scrub import scrub_personal
+    review_text = scrub_personal(review_text)   # 고객이 남긴 리뷰의 연락처는 AI 업체로 보내지 않는다(2026-11-02)
 
     prompt = f"""당신은 한국 소상공인의 리뷰 위기관리 전문가입니다.
 

@@ -662,6 +662,9 @@ export default function ReviewInboxPage() {
           rows={4}
           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
         />
+        <p className="text-sm text-gray-600 mt-2 break-keep">
+          고객 이름·연락처처럼 개인을 알아볼 수 있는 정보는 지우고 붙여 넣어 주세요. 붙여 넣은 내용은 답변 초안을 만들기 위해 AI 처리 업체(Anthropic)로 전송되며, 전화번호·이메일은 자동으로 제거됩니다.
+        </p>
         <div className="flex items-center justify-between mt-3">
           <span className="text-sm text-gray-600">{reviewText.length} / 500자</span>
           <button

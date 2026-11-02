@@ -38,21 +38,8 @@ _next_slot = 0.0
 
 # Gemini 프롬프트에 개인정보를 넣지 않는다(2026-10-30 사용자 결정). 사업장 소개글 초안은 사장님이 쓴 글이라 전화번호·이메일 등이 섞일 수 있어
 # 조건 검색(_check_with_context)처럼 사용자 입력 텍스트를 보내는 지점은 이 함수를 거친다. 무료 등급은 입력이 제품 개선에 쓰일 수 있다(약관).
-_PII_PATTERNS = (
-    re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+"),                                    # 이메일
-    re.compile(r"\+82[-.\s]?\d{1,2}[-.\s]?\d{3,4}[-.\s]?\d{4}"),                    # 국제 표기 전화번호
-    re.compile(r"01[016-9][-.\s]?\d{3,4}[-.\s]?\d{4}"),                             # 휴대폰(010·011 등)
-    re.compile(r"0\d{1,2}[)\-.\s]\s?\d{3,4}[-.\s]\d{4}"),                           # 지역번호(구분자 필수 — "2020-2024" 같은 연도 범위는 건드리지 않는다)
-    re.compile(r"(?<!\d)\d{3}-\d{2}-\d{5}(?!\d)"),                                  # 사업자등록번호
-)
-
-
-def scrub_personal(text: str) -> str:
-    """전화번호·이메일·사업자등록번호를 제거한다(이름·주소 같은 자유 서술은 판별 불가라 건드리지 않는다)."""
-    out = text or ""
-    for pat in _PII_PATTERNS:
-        out = pat.sub("", out)
-    return out
+# 공용 함수로 옮겼다(2026-11-02, services/privacy_scrub.py) — 이 이름은 기존 호출·시험이 그대로 쓰도록 남긴다.
+from services.privacy_scrub import _PII_PATTERNS, scrub_personal  # noqa: E402,F401
 
 
 PLACE_COUNTS_CAP = 600   # place_counts에 담는 이름 수 상한 — 표본 100개×추천 5곳=500이 최대라 사실상 잘리지 않는다(저장 시 compact_for_storage로 줄임)

@@ -373,6 +373,8 @@ async def _generate_reply(biz: dict, review_text: str) -> tuple[str, str, bool]:
     import os
     from services.schema_generator import CATEGORY_KO
 
+    from services.privacy_scrub import scrub_personal
+    review_text = scrub_personal(review_text)   # 고객이 남긴 리뷰의 연락처는 AI 업체로 보내지 않는다(저장된 원문은 그대로, 프롬프트에만 적용 — 2026-11-02)
     client = _get_guide_ai_client(os.getenv("ANTHROPIC_API_KEY", ""))
     keywords = ", ".join((biz.get("keywords") or [])[:5])
     category = CATEGORY_KO.get(biz.get("category", ""), biz.get("category", ""))
