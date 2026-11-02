@@ -15,6 +15,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { getScoreTextLabel } from "@/lib/scoreLabels";
+import { displayActionLabel, showsScoreDeltaBadge, measurementFreshness } from "@/lib/actionLabel";
 import { CATEGORY_LABEL } from "@/lib/categories";
 import { spansScoreMethodChange } from "@/lib/scoreMethodChange";
 import ScoreMethodChangeNote from "@/components/dashboard/ScoreMethodChangeNote";
@@ -262,6 +263,8 @@ export default function GrowthClient({
 
   // weekly_change (최신 기록 기준)
   const latestWeeklyChange = latest?.weekly_change ?? null;
+  // 마지막 정상 측정일 — 7일이 지나면 "이번 주" 변화 문구를 숨기고 날짜를 보인다(차단·해지 등으로 측정이 끊겨도 옛 값이 "이번 주"로 보이지 않게)
+  const freshness = measurementFreshness(latest?.scanned_at ?? latest?.score_date);
 
   // exposure_freq / sample_size (최신 기록 기준)
   const latestExposureFreq = latest?.exposure_freq ?? null;
@@ -435,12 +438,16 @@ export default function GrowthClient({
                   {totalDelta > 0 ? "↑ 첫 측정 대비 개선됨" : "↓ 첫 측정 대비 하락"}
                 </p>
               )}
-              {latestWeeklyChange !== null && Math.abs(latestWeeklyChange) > 2 && (
+              {latestWeeklyChange !== null && Math.abs(latestWeeklyChange) > 2 && freshness.level === "fresh" && (
                 <p className={`text-sm font-semibold mt-1 ${latestWeeklyChange > 0 ? "text-emerald-700" : "text-red-700"}`}>
                   이번 주 {latestWeeklyChange > 0 ? "↑ 상승" : "↓ 하락"}
                 </p>
               )}
-              <p className="text-sm text-gray-600 mt-1">첫 측정부터 현재까지</p>
+              {freshness.level === "stale" || freshness.level === "old" ? (
+                <p className="text-sm text-gray-600 mt-1">첫 측정부터 마지막 측정({freshness.dateLabel})까지 · 최신 아님</p>
+              ) : (
+                <p className="text-sm text-gray-600 mt-1">첫 측정부터 현재까지{freshness.dateLabel ? ` (마지막 측정 ${freshness.dateLabel})` : ""}</p>
+              )}
             </>
           ) : (
             <>
@@ -449,12 +456,16 @@ export default function GrowthClient({
                 const cls = currentScore >= 75 ? 'text-emerald-700' : currentScore >= 55 ? 'text-blue-600' : currentScore >= 30 ? 'text-amber-700' : 'text-gray-600'
                 return <p className={`text-lg font-bold mb-1 ${cls}`}>{lbl}</p>
               })()}
-              {latestWeeklyChange !== null && Math.abs(latestWeeklyChange) > 2 && (
+              {latestWeeklyChange !== null && Math.abs(latestWeeklyChange) > 2 && freshness.level === "fresh" && (
                 <p className={`text-sm font-semibold mb-1 ${latestWeeklyChange > 0 ? "text-emerald-700" : "text-red-700"}`}>
                   이번 주 {latestWeeklyChange > 0 ? "↑ 상승" : "↓ 하락"}
                 </p>
               )}
-              <p className="text-sm text-gray-600 mt-1">측정 2회 이상부터 변화 추적</p>
+              {freshness.level === "stale" || freshness.level === "old" ? (
+                <p className="text-sm text-gray-600 mt-1">마지막 측정 {freshness.dateLabel} · 최신 아님</p>
+              ) : (
+                <p className="text-sm text-gray-600 mt-1">측정 2회 이상부터 변화 추적</p>
+              )}
             </>
           )}
           {latestExposureFreq !== null && (
@@ -673,13 +684,13 @@ export default function GrowthClient({
                           style={{ backgroundColor: getActionColor(log.action_type) }}
                         />
                         <span className="text-gray-600 shrink-0 text-sm">{formatDateKo(log.action_date)}</span>
-                        <span className="text-gray-700 font-medium">{log.action_label}</span>
-                        {scoreDelta !== null && (
+                        <span className="text-gray-700 font-medium">{displayActionLabel(log.action_label)}</span>
+                        {showsScoreDeltaBadge(log.action_type) && scoreDelta !== null && (
                           <span className={`text-sm font-semibold ${scoreDelta > 0 ? "text-emerald-700" : scoreDelta < 0 ? "text-red-700" : "text-gray-600"}`}>
                             {scoreDelta > 0 ? "↑ 점수 상승" : scoreDelta < 0 ? "↓ 점수 하락" : "변화 없음"}
                           </span>
                         )}
-                        {scoreDelta === null && log.score_after === null && (
+                        {showsScoreDeltaBadge(log.action_type) && scoreDelta === null && log.score_after === null && (
                           <span className="text-sm text-gray-600">(7일 후 효과 측정)</span>
                         )}
                       </div>
@@ -743,13 +754,13 @@ export default function GrowthClient({
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-0.5">
-                      <span className="text-sm font-semibold text-gray-800">{log.action_label}</span>
-                      {scoreDelta !== null && (
+                      <span className="text-sm font-semibold text-gray-800">{displayActionLabel(log.action_label)}</span>
+                      {showsScoreDeltaBadge(log.action_type) && scoreDelta !== null && (
                         <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${scoreDelta > 0 ? "bg-emerald-100 text-emerald-700" : scoreDelta < 0 ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-600"}`}>
                           {scoreDelta > 0 ? "↑ 상승" : scoreDelta < 0 ? "↓ 하락" : "변화 없음"}
                         </span>
                       )}
-                      {log.score_after === null && (
+                      {showsScoreDeltaBadge(log.action_type) && log.score_after === null && (
                         <span className="text-sm text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">측정 대기 중</span>
                       )}
                     </div>

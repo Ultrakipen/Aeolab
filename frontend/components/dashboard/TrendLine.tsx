@@ -5,6 +5,7 @@ import {
   Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea,
 } from 'recharts'
 import { getScoreTextLabel } from '@/lib/scoreLabels'
+import { displayActionLabel, showsScoreDeltaBadge } from '@/lib/actionLabel'
 import { spansScoreMethodChange } from '@/lib/scoreMethodChange'
 import ScoreMethodChangeNote from '@/components/dashboard/ScoreMethodChangeNote'
 
@@ -41,12 +42,14 @@ function movingAvg(values: (number | null)[], window = 7): (number | null)[] {
 
 /** score_after가 있을 때 방향 레이블 생성 — 점수 수치 미노출 */
 function deltaLabel(log: ActionLog): string {
-  if (log.score_after != null && log.score_before != null) {
+  const label = displayActionLabel(log.action_label)
+  // 경쟁사 상태 기록의 ↑/↓는 7일 뒤 '내 가게' 점수 변화라 경쟁사 상태와 무관해 혼동을 준다
+  if (showsScoreDeltaBadge(log.action_type) && log.score_after != null && log.score_before != null) {
     const diff = Math.round(log.score_after - log.score_before)
     const dir = diff > 0 ? '↑ 상승' : diff < 0 ? '↓ 하락' : '변화 없음'
-    return `${log.action_label} (${dir})`
+    return `${label} (${dir})`
   }
-  return log.action_label
+  return label
 }
 
 /** action_type별 색상 */

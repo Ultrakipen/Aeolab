@@ -1303,6 +1303,7 @@ async def daily_scan_all():
                                 float(_cdata.get("score", 0)),
                                 phone=_scan_phone if _comp_notify_ok else None,
                                 biz_name=biz.get("name", ""),
+                                comp_item=_cdata,
                             )
                 except Exception as _cle:
                     logger.warning(f"auto_log_competitor 호출 실패 biz={biz.get('id')}: {_cle}")
@@ -4068,16 +4069,27 @@ async def _auto_log_competitor_overtake(
     comp_score: float,
     phone: str | None = None,
     biz_name: str = "",
+    comp_item: dict | None = None,
 ) -> None:
-    """경쟁사가 내 가게보다 20점 이상 앞서면 business_action_log 기록.
+    """경쟁사가 내 가게보다 20점 이상 앞서고 **AI 노출 등급 구간도 더 높을 때** business_action_log 기록.
 
     phone이 주어지면(=kakao_competitor_notify ON) 최근 7일 내 동일 유형 알림이
     없었을 때만 AEOLAB_COMP_02 카카오 알림도 발송 — "지속되는 격차"가 아니라
     "새로 벌어진 격차"에만 알림이 가도록(매일 반복 알림 방지).
+
+    2026-11-02: 경쟁사 점수는 간이 추정치(같은 경쟁사가 3일 사이 49→41→39→33점)라 기록·알림에 점수 숫자를 쓰지 않고(등급 구간만),
+    ①경쟁사 등급 구간이 내 가게보다 높을 때만 ②경쟁사 항목이 새 측정 방식(ai_basis)일 때만 남긴다
+    (옛 방식=이름을 직접 물은 측정은 같은 경쟁사를 더 높게 채점해 가짜 역전을 만든다 — competitor_alert의 변화 알림과 같은 이유).
+    comp_item이 None이면 ②는 건너뛴다(항목 없이 부르는 옛 호출 호환).
     """
     from datetime import datetime as _dt, timezone as _tz
+    from services.stage_names import STAGE_ORDER, stage_code_for_score
     gap = comp_score - my_score
     if gap < 20.0:
+        return
+    if comp_item is not None and not comp_item.get("ai_basis"):
+        return
+    if STAGE_ORDER.index(stage_code_for_score(comp_score)) <= STAGE_ORDER.index(stage_code_for_score(my_score)):
         return
 
     today_dt = _dt.now(_tz.utc).date()
@@ -4118,7 +4130,8 @@ async def _auto_log_competitor_overtake(
             supabase.table("business_action_log").insert({
                 "business_id": business_id,
                 "action_type": "competitor_ahead",
-                "action_label": f"경쟁사 '{competitor_name}'가 {gap:.0f}점 앞서 있습니다",
+                # 점수 숫자는 쓰지 않는다(간이 추정치). 앞부분 "경쟁사 '이름'가"는 위 중복 방지 ilike 필터와 같아야 한다.
+                "action_label": f"경쟁사 '{competitor_name}'가 내 가게보다 높은 AI 노출 구간입니다 (추정)",
                 "action_date": today,
                 "score_before": round(my_score, 1),
                 "score_after": None,
