@@ -1848,6 +1848,23 @@ async def subscription_lifecycle_job():
             return True
         return await retry_billing(sub)
 
+    async def _alert_operator(subject: str, body: str) -> None:
+        """사람이 개입해야 하는 결제 사건(갱신 실패·정지)을 운영자에게 알린다 — 2026-11-02 신설.
+        이전에는 개별 갱신 실패 때 고객 알림톡만 갔고 운영자 알림은 잡 전체가 예외일 때뿐이라, 소프트 런치 초기에 결제 실패를 운영자가 놓칠 수 있었다.
+        알림이 실패해도 갱신 처리는 계속한다(자체 try/except — 호출부 per-sub 예외 처리에 기대지 않는다)."""
+        try:
+            from services.email_sender import send_operator_alert
+            await send_operator_alert(subject, body)
+        except Exception as e:
+            logger.warning(f"subscription_lifecycle_job 운영자 알림 실패: {e}")
+
+    def _sub_brief(sub: dict, has_phone: bool) -> str:
+        # 개인정보 최소화: 사용자 id 앞 8자·플랜·청구액만. 이메일·전화번호는 담지 않는다.
+        return (
+            f"사용자 {str(sub.get('user_id'))[:8]}… · 플랜 {sub.get('plan')} · 청구액 {compute_renewal_amount(sub)}원 · "
+            + ("전화번호 있음" if has_phone else "전화번호 없음 — 고객 알림톡이 가지 않음")
+        )
+
     try:
         supabase = get_client()
         notifier = KakaoNotifier()
@@ -1956,6 +1973,11 @@ async def subscription_lifecycle_job():
                     )
                     just_entered_grace_ids.add(sub["id"])
                     phone = phone_by_user.get(sub.get("user_id"))
+                    await _alert_operator(
+                        "구독 갱신 결제 실패 — 유예 진입",
+                        f"{_sub_brief(sub, bool(phone))}\n자동 갱신 결제가 실패해 유예 기간(~{today + timedelta(days=3)})에 들어갔습니다. "
+                        "유예 중 매일 재시도하고, 그때까지 성공하지 않으면 정지됩니다.\n확인: 관리자 /admin/payment-events",
+                    )
                     if phone:
                         await notifier.send_payment_failed(phone)
             except Exception as e:
@@ -1986,6 +2008,11 @@ async def subscription_lifecycle_job():
                         supabase.table("subscriptions").update(
                             {"status": "suspended"}
                         ).eq("id", sub["id"])
+                    )
+                    await _alert_operator(
+                        "구독 정지 — 유예 기간 종료",
+                        f"{_sub_brief(sub, bool(phone))}\n유예 기간 안에 결제가 회복되지 않아 구독이 정지됐습니다. "
+                        "고객 연락이 필요한지 확인하세요.\n확인: 관리자 /admin/payment-events",
                     )
                     if phone:
                         await notifier.send_suspended(phone)
