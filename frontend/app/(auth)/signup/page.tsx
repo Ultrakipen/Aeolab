@@ -17,9 +17,17 @@ const PLAN_LABELS: Record<string, string> = {
   biz: `Biz (월 ${PLAN_PRICES.biz.toLocaleString()}원)`,
 };
 
+// 결제 모달(PayButton)은 요금제 표시 이름("Basic"·"Pro"·"창업패키지")을 그대로 `?plan=`에 넣고, 추천기(PlanRecommender)는 소문자 키를 넣는다.
+// 키로만 찾으면 표시 이름으로 온 경우 플랜 배너·첫 달 혜택·완료 화면의 플랜명이 비었다(2026-11-02 실화면 점검) — 둘 다 키로 정규화한다.
+const PLAN_ALIASES: Record<string, string> = {
+  basic: "basic", startup: "startup", pro: "pro", biz: "biz",
+  "창업패키지": "startup", "창업 패키지": "startup",
+};
+
 function SignupForm() {
   const searchParams = useSearchParams();
-  const planParam = searchParams.get("plan") ?? "";
+  const planParamRaw = searchParams.get("plan") ?? "";
+  const planParam = PLAN_ALIASES[planParamRaw.trim().toLowerCase()] ?? "";   // 알 수 없는 값은 플랜 없음으로 다룬다
   const amountParam = searchParams.get("amount") ?? "";
 
   const [email, setEmail] = useState("");
@@ -145,8 +153,9 @@ function SignupForm() {
             )}
             {planParam ? (
               <>
+                {/* 실제 흐름: 인증 → /onboarding(사업장 등록) → 요금제 선택·결제. 인증 이동 경로와 온보딩은 plan을 이어받지 않으므로 "인증 후 결제가 진행된다"고 약속하지 않는다. */}
                 <div className="bg-blue-50 text-blue-700 text-base rounded-xl p-4 mb-4">
-                  인증 완료 후 <strong>{PLAN_LABELS[planParam]}</strong> 결제가 진행됩니다.
+                  인증 후 사업장을 등록하고, 요금제 화면에서 <strong>{PLAN_LABELS[planParam]}</strong> 결제를 이어서 진행하실 수 있습니다.
                   {planParam === "basic" && (
                     <p className="text-sm text-emerald-700 mt-2 font-semibold">
                       신규 가입 혜택: 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 (50% 할인) · 이후 월 {PLAN_PRICES.basic.toLocaleString()}원
@@ -154,7 +163,7 @@ function SignupForm() {
                   )}
                 </div>
                 <p className="text-sm text-blue-600 mt-4 font-medium mb-5">
-                  결제까지 2단계 남았습니다: 인증 → 결제
+                  진행 순서: 인증 → 사업장 등록 → 요금제 선택·결제
                 </p>
               </>
             ) : (

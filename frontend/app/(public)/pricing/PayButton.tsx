@@ -179,7 +179,10 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
       </button>
 
       {showConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/40">
+        // 2026-11-02 실화면 점검 수정: ①z-[60] — 모바일 하단 고정 CTA(MobileFloatingCTA, z-50, DOM상 뒤)가 모달 위에 그려져 모달이 열린 채 /trial로 이탈할 수 있었다
+        // ②overflow-y-auto + min-h-full — 높이 제한·스크롤이 없어 375x667(iPhone SE급)에서 카드 상단이 잘리고 결제 버튼이 화면 밖이라 누를 수 없었다.
+        <div className="fixed inset-0 z-[60] overflow-y-auto overscroll-contain bg-black/40" role="dialog" aria-modal="true" aria-label="결제 확인">
+          <div className="flex min-h-full items-center justify-center px-4 py-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 break-keep">
             <h2 className="text-lg font-bold text-gray-900 mb-1">결제 확인</h2>
             <p className="text-sm text-gray-600 mb-5">아래 내용을 확인하고 결제를 진행해주세요.</p>
@@ -267,26 +270,32 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
               결제 문자와 카드 명세서에는 가맹점명이 <strong className="font-semibold text-gray-800">(주)온프</strong>로 표시될 수 있습니다.
             </p>
 
-            <div className="mb-5">
-              <label htmlFor="pay-confirm-phone" className="block text-sm font-medium text-gray-700 mb-1.5">
-                카카오 알림 받을 전화번호 <span className="text-red-600">(필수)</span>
-              </label>
-              <input
-                id="pay-confirm-phone"
-                type="tel"
-                value={phone}
-                onChange={(e) => { setPhone(e.target.value); setPhoneError(""); }}
-                placeholder="010-1234-5678"
-                className={`w-full px-3 py-2.5 rounded-lg border bg-white text-gray-900 placeholder:text-gray-400 text-sm focus:outline-none focus:ring-2 ${
-                  phoneError ? "border-red-300 focus:ring-red-200" : "border-gray-200 focus:ring-blue-200"
-                }`}
-              />
-              {phoneError ? (
-                <p className="text-sm text-red-700 mt-1">{phoneError}</p>
-              ) : (
-                <p className="text-sm text-gray-600 mt-1">AI 노출 점수 변동·경쟁사 알림을 카카오톡으로 받습니다.</p>
-              )}
-            </div>
+            {isLoggedIn ? (
+              <div className="mb-5">
+                <label htmlFor="pay-confirm-phone" className="block text-sm font-medium text-gray-700 mb-1.5">
+                  카카오 알림 받을 전화번호 <span className="text-red-600">(필수)</span>
+                </label>
+                <input
+                  id="pay-confirm-phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => { setPhone(e.target.value); setPhoneError(""); }}
+                  placeholder="010-1234-5678"
+                  className={`w-full px-3 py-2.5 rounded-lg border bg-white text-gray-900 placeholder:text-gray-400 text-sm focus:outline-none focus:ring-2 ${
+                    phoneError ? "border-red-300 focus:ring-red-200" : "border-gray-200 focus:ring-blue-200"
+                  }`}
+                />
+                {phoneError ? (
+                  <p className="text-sm text-red-700 mt-1">{phoneError}</p>
+                ) : (
+                  // 이 번호는 결제 실패·만료 예정 같은 결제·구독 안내에도 쓰이고, AI 노출·경쟁사 알림은 설정에서 켠 경우에만 간다(주 상한은 notify_weekly_cap 기본값과 같다)
+                  <p className="text-sm text-gray-600 mt-1">결제·구독 안내를 받는 번호입니다. AI 노출·경쟁사 알림은 설정에서 켠 경우에만 보내며, 정기 알림은 7일에 최대 3건입니다.</p>
+                )}
+              </div>
+            ) : (
+              // 비로그인은 가입 화면으로 이동할 뿐 여기서 번호를 검증하지 않는다 — 입력란을 보이면 "(필수)"인데 실제론 입력 없이 넘어가 혼란스럽다
+              <p className="text-sm text-gray-600 mb-5">가입을 마친 뒤 결제 단계에서 알림 받을 전화번호를 입력합니다.</p>
+            )}
 
             <p className="text-sm text-gray-600 mb-3">
               구독 시작일로부터 7일 이내 청약철회를 신청할 수 있습니다. 단, 스캔·가이드 생성 등 서비스를 이용한 경우에는 청약철회가 제한될 수 있습니다.
@@ -323,6 +332,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
                 {loading ? "처리 중..." : "카드 등록 및 결제"}
               </button>
             </div>
+          </div>
           </div>
         </div>
       )}
