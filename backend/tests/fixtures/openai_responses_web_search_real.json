@@ -1,0 +1,324 @@
+[
+ {
+  "arm": "search",
+  "request": {
+   "model": "gpt-6-luna",
+   "input": "창원 일본가정식 추천",
+   "max_output_tokens": 1500,
+   "reasoning": {
+    "effort": "none"
+   },
+   "tools": [
+    {
+     "type": "web_search",
+     "user_location": {
+      "type": "approximate",
+      "country": "KR",
+      "city": "Changwon",
+      "region": "Gyeongsangnam-do"
+     }
+    }
+   ]
+  },
+  "response": {
+   "object": "response",
+   "created_at": 1793585995,
+   "status": "completed",
+   "access_programs": null,
+   "background": false,
+   "billing": {
+    "payer": "developer"
+   },
+   "completed_at": 1793586009,
+   "error": null,
+   "frequency_penalty": 0.0,
+   "incomplete_details": null,
+   "instructions": null,
+   "max_output_tokens": 1500,
+   "max_tool_calls": null,
+   "model": "gpt-6-luna",
+   "moderation": null,
+   "output": [
+    {
+     "id": "ws_046c6762086c087d006ae7f34c9d6887d2ba13ab611e532743",
+     "type": "web_search_call",
+     "status": "completed",
+     "action": {
+      "type": "search",
+      "queries": [
+       "창원 일본가정식 맛집",
+       "창원 일본 가정식 정식 식당",
+       "창원 일본가정식 추천 마산 진해"
+      ],
+      "query": "창원 일본가정식 맛집"
+     }
+    },
+    {
+     "id": "ws_046c6762086c087d006ae7f34e939887d28402256426a9170d",
+     "type": "web_search_call",
+     "status": "completed",
+     "action": {
+      "type": "search",
+      "queries": [
+       "\"일본가정식\" \"창원\" 식당",
+       "\"일본 가정식\" \"창원\" 맛집",
+       "창원 일본가정식 덮밥 정식 식당 상남동"
+      ],
+      "query": "\"일본가정식\" \"창원\" 식당"
+     }
+    },
+    {
+     "id": "ws_046c6762086c087d006ae7f350b65487d2b69ac0cbaca975ef",
+     "type": "web_search_call",
+     "status": "completed",
+     "action": {
+      "type": "search",
+      "queries": [
+       "모루식당 창원 가로수길 영업중",
+       "우마이규동 창원 상남점 영업시간",
+       "창원 빠렛토식당 현재 영업",
+       "창원 텐쇼카 성주동 영업시간 2026"
+      ],
+      "query": "모루식당 창원 가로수길 영업중"
+     }
+    },
+    {
+     "id": "ws_046c6762086c087d006ae7f352861887d2b1e9b4d1fb733111",
+     "type": "web_search_call",
+     "status": "completed",
+     "action": {
+      "type": "search",
+      "queries": [
+       "site:diningcode.com/profile 창원 일본가정식 정식 창원",
+       "\"창원\" \"일본가정식\" 맛집 -모루식당",
+       "\"창원\" \"가정식\" \"텐동\" 식당"
+      ],
+      "query": "site:diningcode.com/profile 창원 일본가정식 정식 창원"
+     }
+    },
+    {
+     "id": "ws_046c6762086c087d006ae7f3549cc087d2af64743343f094cd",
+     "type": "web_search_call",
+     "status": "completed",
+     "action": {
+      "type": "search",
+      "queries": [
+       "카쿠레가 창원 어반브릭스 영업시간 주소 전화",
+       "카쿠레가 창원어반브릭스점 2026 영업",
+       "창원 일본 가정식 카쿠레가 어반브릭스 영업시간"
+      ],
+      "query": "카쿠레가 창원 어반브릭스 영업시간 주소 전화"
+     }
+    },
+    {
+     "id": "msg_046c6762086c087d006ae7f356e62087d2b7dd7c865069d4a0",
+     "type": "message",
+     "status": "completed",
+     "content": [
+      {
+       "type": "output_text",
+       "annotations": [
+        {
+         "type": "url_citation",
+         "end_index": 226,
+         "start_index": 118,
+         "title": "[냠냠사거리] 창원 중동 일대 데이트 코스, <카쿠레가>와 <로꼬> - 창원대신문",
+         "url": "https://press.changwon.ac.kr/news/articleView.html?idxno=3051331&utm_source=openai"
+        },
+        {
+         "type": "url_citation",
+         "end_index": 421,
+         "start_index": 328,
+         "title": "모루식당 - 창원가로수길 카레, 치킨카레 맛집 - 다이닝코드",
+         "url": "https://www.diningcode.com/profile.php?rid=6tKAbnqyuGdP&utm_source=openai"
+        },
+        {
+         "type": "url_citation",
+         "end_index": 586,
+         "start_index": 493,
+         "title": "우마이규동 창원상남점 - 테이블링",
+         "url": "https://www.tabling.co.kr/place/677cc9a166de5f0698798655?utm_source=openai"
+        }
+       ],
+       "logprobs": [],
+       "text": "창원에서 **일본 가정식 느낌**으로 찾으시면 이 세 곳부터 추천해요.\n\n- **카쿠레가 창원어반브릭스점** — 규동·사케동·가츠동·텐동 같은 돈부리와 우동류가 있어요. 메뉴 선택 폭 넓은 곳 찾을 때 좋아요. ([press.changwon.ac.kr](https://press.changwon.ac.kr/news/articleView.html?idxno=3051331&utm_source=openai))\n- **모루식당** — 창원 가로수길 쪽. 일본식 카레가 중심이고, 반반카레나 오므카레를 많이 찾아요. 주소는 성산구 용지로265번길 7이며, 확인되는 영업정보상 월요일 휴무예요. ([diningcode.com](https://www.diningcode.com/profile.php?rid=6tKAbnqyuGdP&utm_source=openai))\n- **우마이규동 창원상남점** — 상남동 마이우스빌딩 1층. 규동·가츠동·가라아게동 등 덮밥 위주라 혼밥하기 편한 편이에요. ([tabling.co.kr](https://www.tabling.co.kr/place/677cc9a166de5f0698798655?utm_source=openai))\n\n**정갈한 덮밥·면 메뉴**면 카쿠레가, **카레**가 당기면 모루식당, **간단히 혼밥**이면 우마이규동 추천! 영업시간이나 휴무는 바뀔 수 있으니 가기 전에 지도에서 한 번 확인해 주세요."
+      }
+     ],
+     "phase": "final_answer",
+     "role": "assistant"
+    }
+   ],
+   "parallel_tool_calls": true,
+   "presence_penalty": 0.0,
+   "previous_response_id": null,
+   "prompt_cache_retention": "24h",
+   "reasoning": {
+    "context": "all_turns",
+    "effort": "none",
+    "mode": "standard",
+    "summary": null
+   },
+   "service_tier": "default",
+   "store": true,
+   "temperature": 1.0,
+   "text": {
+    "format": {
+     "type": "text"
+    },
+    "verbosity": "medium"
+   },
+   "tool_choice": "auto",
+   "tool_usage": {
+    "image_gen": {
+     "input_tokens": 0,
+     "input_tokens_details": {
+      "image_tokens": 0,
+      "text_tokens": 0
+     },
+     "output_tokens": 0,
+     "output_tokens_details": {
+      "image_tokens": 0,
+      "text_tokens": 0
+     },
+     "total_tokens": 0
+    },
+    "web_search": {
+     "num_requests": 5
+    }
+   },
+   "tools": [
+    {
+     "type": "web_search",
+     "return_token_budget": "default",
+     "search_content_types": [
+      "text"
+     ],
+     "search_context_size": "medium",
+     "user_location": {
+      "type": "approximate",
+      "city": "Changwon",
+      "country": "KR",
+      "region": "Gyeongsangnam-do",
+      "timezone": null
+     }
+    }
+   ],
+   "top_logprobs": 0,
+   "top_p": 0.98,
+   "truncation": "disabled",
+   "usage": {
+    "input_tokens": 45354,
+    "input_tokens_details": {
+     "cache_write_tokens": 4460,
+     "cached_tokens": 0
+    },
+    "output_tokens": 695,
+    "output_tokens_details": {
+     "reasoning_tokens": 371
+    },
+    "total_tokens": 46049
+   }
+  }
+ },
+ {
+  "arm": "nosearch",
+  "request": {
+   "model": "gpt-6-luna",
+   "input": "창원 일본가정식 추천",
+   "max_output_tokens": 1500,
+   "reasoning": {
+    "effort": "none"
+   }
+  },
+  "response": {
+   "object": "response",
+   "created_at": 1793586012,
+   "status": "completed",
+   "access_programs": null,
+   "background": false,
+   "billing": {
+    "payer": "developer"
+   },
+   "completed_at": 1793586016,
+   "error": null,
+   "frequency_penalty": 0.0,
+   "incomplete_details": null,
+   "instructions": null,
+   "max_output_tokens": 1500,
+   "max_tool_calls": null,
+   "model": "gpt-6-luna",
+   "moderation": null,
+   "output": [
+    {
+     "id": "msg_017690d8f6672ef7006ae7f35ec0f887d2b999f5eb15d0251d",
+     "type": "message",
+     "status": "completed",
+     "content": [
+      {
+       "type": "output_text",
+       "annotations": [],
+       "logprobs": [],
+       "text": "창원에서 **일본 가정식** 찾으시면 우선 이런 곳부터 확인해 보세요.\n\n- **토끼정 창원점** — 일본식 카레·함박·돈카츠와 정식 메뉴가 있어 처음 가기 무난해요.\n- **정돈** — 일본식 돈카츠 중심. 가정식보다는 돈카츠 한 끼에 가까워요.\n- **동경규동 창원점** — 규동·가츠동 등 일본식 덮밥을 간편하게 먹기 좋아요.\n\n영업시간이나 지점 입점 여부는 바뀔 수 있으니 방문 전 지도 앱에서 확인해 주세요. **창원 어느 쪽**(상남동·용호동·마산·진해 등)인지 알려주시면 가까운 곳 위주로 골라드릴게요."
+      }
+     ],
+     "phase": "final_answer",
+     "role": "assistant"
+    }
+   ],
+   "parallel_tool_calls": true,
+   "presence_penalty": 0.0,
+   "previous_response_id": null,
+   "prompt_cache_retention": "24h",
+   "reasoning": {
+    "context": "all_turns",
+    "effort": "none",
+    "mode": "standard",
+    "summary": null
+   },
+   "service_tier": "default",
+   "store": true,
+   "temperature": 1.0,
+   "text": {
+    "format": {
+     "type": "text"
+    },
+    "verbosity": "medium"
+   },
+   "tool_choice": "auto",
+   "tool_usage": {
+    "image_gen": {
+     "input_tokens": 0,
+     "input_tokens_details": {
+      "image_tokens": 0,
+      "text_tokens": 0
+     },
+     "output_tokens": 0,
+     "output_tokens_details": {
+      "image_tokens": 0,
+      "text_tokens": 0
+     },
+     "total_tokens": 0
+    },
+    "web_search": {
+     "num_requests": 0
+    }
+   },
+   "tools": [],
+   "top_logprobs": 0,
+   "top_p": 0.98,
+   "truncation": "disabled",
+   "usage": {
+    "input_tokens": 13,
+    "input_tokens_details": {
+     "cache_write_tokens": 0,
+     "cached_tokens": 0
+    },
+    "output_tokens": 189,
+    "output_tokens_details": {
+     "reasoning_tokens": 0
+    },
+    "total_tokens": 202
+   }
+  }
+ }
+]
