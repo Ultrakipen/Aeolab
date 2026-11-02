@@ -16,6 +16,7 @@ import {
 } from "recharts";
 import { getScoreTextLabel } from "@/lib/scoreLabels";
 import { displayActionLabel, showsScoreDeltaBadge, measurementFreshness } from "@/lib/actionLabel";
+import { CHANGE_DISPLAY_MIN, changeDirection, effectText, effectColorClass, effectPillClass, EFFECT_NOTE } from "@/lib/changeDirection";
 import { CATEGORY_LABEL } from "@/lib/categories";
 import { spansScoreMethodChange } from "@/lib/scoreMethodChange";
 import ScoreMethodChangeNote from "@/components/dashboard/ScoreMethodChangeNote";
@@ -109,10 +110,8 @@ function getDriverDirectionLabel(delta: number): string {
   return "— 유지";
 }
 
-// "↑ 상승 / ↓ 하락"을 말하는 최소 변화폭 — 백엔드 services/stage_names.HEADLINE_BIG_DELTA와 같은 값(테스트가 일치를 강제).
-// 같은 가게의 일간 점수 변화는 중앙값 3.9점·68%가 2점 이상이라(2026-11-02 실측 344건) 예전 ±2점 기준은 측정 오차를 변화로 말했다.
-// 저장된 weekly_change는 7일 변화가 아니라 직전 기록 대비 값이다.
-const CHANGE_DISPLAY_MIN = 10;
+// "↑ 상승 / ↓ 하락"을 말하는 최소 변화폭 CHANGE_DISPLAY_MIN은 lib/changeDirection.ts(백엔드 services/stage_names.HEADLINE_BIG_DELTA와 같은 값, 시험이 대조).
+// 같은 가게의 일간 점수 변화는 중앙값 3~4점·60% 이상이 2점 이상이라 예전 ±2점 기준은 측정 오차를 변화로 말했다. 저장된 weekly_change는 7일 변화가 아니라 직전 기록 대비 값이다.
 
 function getHeadlineStyle(headlineType: string | null | undefined): { box: string; text: string } {
   switch (headlineType) {
@@ -702,10 +701,8 @@ export default function GrowthClient({
                 <p className="text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wide">행동 이력</p>
                 <div className="space-y-1.5">
                   {actionLogs.slice(0, 5).map((log, i) => {
-                    const scoreDelta =
-                      log.score_after !== null && log.score_before !== null
-                        ? Math.round((log.score_after - log.score_before) * 10) / 10
-                        : null;
+                    // 행동 전·후 비교는 중립 표현으로(화살표 없음 — 작은 차이는 측정 오차 범위이고, 이 행동 때문이라고 단정할 수 없다). 시스템 자동 기록에는 붙이지 않는다.
+                    const effectDir = showsScoreDeltaBadge(log.action_type) ? changeDirection(log.score_before, log.score_after) : null;
                     return (
                       <div key={i} className="flex items-center gap-2 text-sm flex-wrap">
                         <span
@@ -714,18 +711,19 @@ export default function GrowthClient({
                         />
                         <span className="text-gray-600 shrink-0 text-sm">{formatDateKo(log.action_date)}</span>
                         <span className="text-gray-700 font-medium">{displayActionLabel(log.action_label)}</span>
-                        {showsScoreDeltaBadge(log.action_type) && scoreDelta !== null && (
-                          <span className={`text-sm font-semibold ${scoreDelta > 0 ? "text-emerald-700" : scoreDelta < 0 ? "text-red-700" : "text-gray-600"}`}>
-                            {scoreDelta > 0 ? "↑ 점수 상승" : scoreDelta < 0 ? "↓ 점수 하락" : "변화 없음"}
-                          </span>
+                        {effectDir !== null && (
+                          <span className={`text-sm font-semibold ${effectColorClass(effectDir)}`}>{effectText(effectDir)}</span>
                         )}
-                        {showsScoreDeltaBadge(log.action_type) && scoreDelta === null && log.score_after === null && (
-                          <span className="text-sm text-gray-600">(7일 후 효과 측정)</span>
+                        {showsScoreDeltaBadge(log.action_type) && effectDir === null && log.score_after === null && (
+                          <span className="text-sm text-gray-600">(7일 후 측정 비교)</span>
                         )}
                       </div>
                     );
                   })}
                 </div>
+                {actionLogs.slice(0, 5).some((l) => showsScoreDeltaBadge(l.action_type)) && (
+                  <p className="text-sm text-gray-600 mt-2 break-keep">{EFFECT_NOTE}</p>
+                )}
               </div>
             )}
           </>
@@ -768,10 +766,7 @@ export default function GrowthClient({
         {actionLogs.length > 0 ? (
           <div className="space-y-3">
             {actionLogs.map((log, i) => {
-              const scoreDelta =
-                log.score_after !== null && log.score_before !== null
-                  ? Math.round((log.score_after - log.score_before) * 10) / 10
-                  : null;
+              const effectDir = showsScoreDeltaBadge(log.action_type) ? changeDirection(log.score_before, log.score_after) : null;
               return (
                 <div
                   key={i}
@@ -784,10 +779,8 @@ export default function GrowthClient({
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-0.5">
                       <span className="text-sm font-semibold text-gray-800">{displayActionLabel(log.action_label)}</span>
-                      {showsScoreDeltaBadge(log.action_type) && scoreDelta !== null && (
-                        <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${scoreDelta > 0 ? "bg-emerald-100 text-emerald-700" : scoreDelta < 0 ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-600"}`}>
-                          {scoreDelta > 0 ? "↑ 상승" : scoreDelta < 0 ? "↓ 하락" : "변화 없음"}
-                        </span>
+                      {effectDir !== null && (
+                        <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${effectPillClass(effectDir)}`}>{effectText(effectDir)}</span>
                       )}
                       {showsScoreDeltaBadge(log.action_type) && log.score_after === null && (
                         <span className="text-sm text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">측정 대기 중</span>
@@ -798,6 +791,9 @@ export default function GrowthClient({
                 </div>
               );
             })}
+            {actionLogs.some((l) => showsScoreDeltaBadge(l.action_type)) && (
+              <p className="text-sm text-gray-600 break-keep">{EFFECT_NOTE}</p>
+            )}
           </div>
         ) : (
           <div className="text-center py-8 border border-dashed border-gray-200 rounded-xl">

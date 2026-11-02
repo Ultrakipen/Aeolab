@@ -17,9 +17,17 @@ export function displayActionLabel(label: string | null | undefined): string {
   return s;
 }
 
-/** 경쟁사 상태 기록 — 옆에 붙는 ↑/↓는 7일 뒤 '내 가게' 점수 변화라 경쟁사 상태와 무관해 혼동을 준다 */
+/**
+ * 시스템이 자동으로 남긴 기록 — 사용자가 한 행동이 아니라 '효과'를 말할 대상이 아니다(2026-11-02 확인):
+ * - competitor_ahead: 경쟁사 상태 기록 — 옆에 붙는 변화는 7일 뒤 '내 가게' 점수라 경쟁사 상태와 무관해 혼동을 준다
+ * - score_up / score_down: 점수 변화 자체를 기록한 로그(전·후 점수가 곧 그 변화) — 옆에 또 변화를 붙이면 같은 말을 되풀이하거나 엇갈린다
+ * - auto_recommended: 추천 카드를 열어 볼 때 남는 '추천됨' 기록(사용자가 그 행동을 했다는 뜻이 아니다)
+ */
+const SYSTEM_RECORD_TYPES = new Set(["competitor_ahead", "score_up", "score_down", "auto_recommended"]);
+
+/** 행동 전·후 비교 문구(효과 표시)를 붙일 기록인가 — 사용자가 직접 한 행동만 true */
 export function showsScoreDeltaBadge(actionType: string | null | undefined): boolean {
-  return actionType !== "competitor_ahead";
+  return !SYSTEM_RECORD_TYPES.has(actionType ?? "");
 }
 
 export type MeasurementFreshness = {

@@ -4,6 +4,7 @@ import { RefreshCw, CheckCircle2 } from "lucide-react";
 import { fmtMonthDay, type LastGoodNaver } from "@/lib/naverMeasure";
 import type { KeywordRankState } from "@/lib/keywordExposure";
 import { READINESS_NOTE } from "@/lib/scoreLabels";
+import { deltaDirection } from "@/lib/changeDirection";
 
 interface DashboardHeroCardProps {
   unifiedScore: number;
@@ -228,11 +229,12 @@ export default function DashboardHeroCard({
               </p>
             )}
           </div>
-          {scoreChangeDiff !== null && scoreChangeDiff !== 0 && (
+          {/* 큰 변화(공용 규칙, 10점 이상)일 때만 — 작은 차이는 측정 오차 범위라 말하지 않는다(2026-11-02) */}
+          {(deltaDirection(scoreChangeDiff) === "up" || deltaDirection(scoreChangeDiff) === "down") && (
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-              scoreChangeDiff > 0 ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+              deltaDirection(scoreChangeDiff) === "up" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
             }`}>
-              {scoreChangeDiff > 0 ? "↑ 개선됨" : "↓ 하락"}
+              {deltaDirection(scoreChangeDiff) === "up" ? "↑ 직전보다 높음" : "↓ 직전보다 낮음"}
             </span>
           )}
         </div>

@@ -9,6 +9,7 @@ import { History, ImageIcon, TrendingUp, Calendar, Download, Lock, AlertTriangle
 import Link from 'next/link'
 import { getActiveBusinessId } from '@/lib/active-business'
 import { getScoreTextLabel } from '@/lib/scoreLabels'
+import { deltaDirection } from '@/lib/changeDirection'
 import { spansScoreMethodChange } from '@/lib/scoreMethodChange'
 import ScoreMethodChangeNote from '@/components/dashboard/ScoreMethodChangeNote'
 
@@ -182,6 +183,9 @@ export default async function HistoryPage() {
   const currentVal = latestScore ? (latestScore.unified_score ?? latestScore.total_score ?? 0) : 0
   const prevVal = prevScore ? (prevScore.unified_score ?? prevScore.total_score ?? 0) : 0
   const diff = latestScore?.weekly_change ?? (currentVal - prevVal)
+  // 방향은 공용 규칙(lib/changeDirection)으로만 말한다 — 같은 가게의 일간 점수 변화 중앙값이 3~4점이라 ±2·±3점은 측정 오차 범위다(2026-11-02).
+  // 저장된 weekly_change는 7일 변화가 아니라 직전 기록 대비 값이다.
+  const diffDir = deltaDirection(diff)
   const maxScore = scores.length > 0
     ? Math.max(...scores.map(s => s.unified_score ?? s.total_score ?? 0))
     : 0
@@ -243,9 +247,9 @@ export default async function HistoryPage() {
               </p>
             </div>
             <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
-              <p className="text-sm text-gray-600 mb-2 font-medium">{latestScore?.weekly_change != null ? "지난주 대비" : "이전 측정 대비"}</p>
-              <p className={`text-base md:text-lg font-bold ${diff > 2 ? 'text-emerald-700' : diff < -2 ? 'text-red-700' : 'text-gray-600'}`}>
-                {diff > 2 ? '↑ 상승' : diff < -2 ? '↓ 하락' : '— 유지'}
+              <p className="text-sm text-gray-600 mb-2 font-medium">직전 측정 대비</p>
+              <p className={`text-base md:text-lg font-bold ${diffDir === 'up' ? 'text-emerald-700' : diffDir === 'down' ? 'text-red-700' : 'text-gray-600'}`}>
+                {diffDir === 'up' ? '↑ 상승' : diffDir === 'down' ? '↓ 하락' : '— 유지'}
               </p>
             </div>
             <div className="bg-white rounded-xl border p-3 md:p-4 text-center">
@@ -343,9 +347,9 @@ export default async function HistoryPage() {
                       </td>
                       <td className="px-4 md:px-6 py-3 text-gray-600 text-sm">{row.sample_size ? `${row.exposure_freq ?? 0}/${row.sample_size}` : '확인 전'}</td>
                       <td className="px-4 md:px-6 py-3">
-                        {(row.weekly_change ?? 0) > 2 ? (
+                        {deltaDirection(row.weekly_change) === 'up' ? (
                           <span className="text-green-700 font-semibold">↑ 상승</span>
-                        ) : (row.weekly_change ?? 0) < -2 ? (
+                        ) : deltaDirection(row.weekly_change) === 'down' ? (
                           <span className="text-red-700 font-semibold">↓ 하락</span>
                         ) : (
                           <span className="text-gray-600">—</span>
@@ -360,24 +364,25 @@ export default async function HistoryPage() {
         </div>
 
         {/* 점수 변화 행동 유도 메시지 */}
-        {scores.length >= 2 && diff < -3 && (
+        {scores.length >= 2 && diffDir === 'down' && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-red-700 shrink-0" aria-hidden={true} />
             <div>
-              <p className="font-semibold text-red-700">AI 노출 상태가 하락했습니다</p>
-              <p className="text-sm text-red-700 mt-1">경쟁사가 강화되었거나 내 가게 정보 업데이트가 필요할 수 있습니다.</p>
+              <p className="font-semibold text-red-700">이번 측정은 직전보다 낮게 나왔습니다</p>
+              {/* 원인("경쟁사가 강화되었거나…")은 측정으로 확인된 적이 없는 단정이라 쓰지 않는다 — 측정 시점에 따라 달라질 수 있다 */}
+              <p className="text-sm text-red-700 mt-1 break-keep">측정 시점·기기·로그인 상태에 따라 달라질 수 있어요. 가이드에서 보강할 항목을 확인해 보세요.</p>
               <Link href="/guide" className="mt-2 inline-flex items-center text-sm font-semibold text-red-700 hover:underline">
                 개선 방법 보기 →
               </Link>
             </div>
           </div>
         )}
-        {scores.length >= 2 && diff >= 3 && (
+        {scores.length >= 2 && diffDir === 'up' && (
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
             <PartyPopper className="w-5 h-5 shrink-0 text-emerald-700" aria-hidden={true} />
             <div>
-              <p className="font-semibold text-emerald-700">AI 노출 상태가 개선됐습니다!</p>
-              <p className="text-sm text-emerald-700 mt-1">지속적으로 유지하려면 FAQ와 소식 업데이트를 주 1회 이어가세요.</p>
+              <p className="font-semibold text-emerald-700">이번 측정은 직전보다 높게 나왔습니다</p>
+              <p className="text-sm text-emerald-700 mt-1 break-keep">측정 시점에 따라 달라질 수 있어요. 높은 상태를 이어가려면 FAQ와 소식 업데이트를 주 1회 이어가세요.</p>
             </div>
           </div>
         )}

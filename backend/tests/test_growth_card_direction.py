@@ -22,8 +22,10 @@ def test_card_no_longer_recomputes_direction_from_a_raw_score_difference():
 
 def test_weekly_change_display_threshold_equals_the_backend_big_change_constant():
     from services.stage_names import HEADLINE_BIG_DELTA
-    m = re.search(r"const CHANGE_DISPLAY_MIN = (\d+(?:\.\d+)?);", SRC)
+    lib = open(os.path.join(ROOT, "frontend", "lib", "changeDirection.ts"), encoding="utf-8").read()
+    m = re.search(r"export const CHANGE_DISPLAY_MIN = (\d+(?:\.\d+)?);", lib)
     assert m and float(m.group(1)) == HEADLINE_BIG_DELTA                                  # 한쪽만 바꾸면 화면 안에서 기준이 갈린다
+    assert "const CHANGE_DISPLAY_MIN" not in SRC and 'CHANGE_DISPLAY_MIN' in re.search(r'import \{[^}]*\} from "@/lib/changeDirection"', SRC).group(0)   # 화면은 공용 상수를 가져다 쓴다
 
 
 def test_no_arrow_is_shown_for_a_two_point_change_anywhere_on_the_growth_screen():

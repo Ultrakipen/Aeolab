@@ -12,6 +12,8 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
+import { showsScoreDeltaBadge } from "@/lib/actionLabel";
+import { changeDirection, effectText, effectColorClass, EFFECT_NOTE } from "@/lib/changeDirection";
 
 function scoreToLabel(score: number | null | undefined): string {
   if (score == null) return "측정 중";
@@ -19,14 +21,6 @@ function scoreToLabel(score: number | null | undefined): string {
   if (score < 55) return "보통";
   if (score < 75) return "성장 중";
   return "우수";
-}
-
-function getDeltaLabel(delta: number): string {
-  if (delta > 5)    return "크게 향상";
-  if (delta > 0.5)  return "소폭 향상";
-  if (delta < -5)   return "크게 하락";
-  if (delta < -0.5) return "소폭 하락";
-  return "변화 없음";
 }
 
 interface TimelinePoint {
@@ -111,10 +105,10 @@ export default function Action7DayChart({ bizId, accessToken }: Props) {
     점수: p.score,
   }));
 
-  const delta =
-    activeWindow?.score_before != null && activeWindow?.score_after != null
-      ? Number((activeWindow.score_after - activeWindow.score_before).toFixed(1))
-      : null;
+  // 행동 전·후 비교(2026-11-02): 예전 ±0.5점·±5점 단계("소폭 향상/크게 하락")는 측정 오차 범위를 변화로 말했다 → 공용 규칙. 시스템 자동 기록에는 붙이지 않는다.
+  const effectDir = showsScoreDeltaBadge(activeWindow?.action_type)
+    ? changeDirection(activeWindow?.score_before, activeWindow?.score_after)
+    : null;
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 md:p-6">
@@ -153,20 +147,21 @@ export default function Action7DayChart({ bizId, accessToken }: Props) {
           {activeWindow.score_before != null && (
             <>시점 <span className="font-semibold">{scoreToLabel(activeWindow.score_before)}</span></>
           )}
-          {delta != null && (
+          {effectDir != null && (
             <>
               {" → "}
               7일 후{" "}
-              <span className={delta >= 0 ? "font-bold text-emerald-700" : "font-bold text-red-700"}>
+              <span className={`font-bold ${effectColorClass(effectDir)}`}>
                 <span className="font-semibold">{scoreToLabel(activeWindow.score_after)}</span>
-                {" "}({getDeltaLabel(delta)})
+                {" "}({effectText(effectDir)})
               </span>
             </>
           )}
-          {activeWindow.score_after == null && activeWindow.score_before != null && (
+          {showsScoreDeltaBadge(activeWindow.action_type) && activeWindow.score_after == null && activeWindow.score_before != null && (
             <> · 7일 후 측정 대기 중</>
           )}
         </p>
+        {effectDir != null && <p className="text-sm text-blue-700 mt-1 break-keep">{EFFECT_NOTE}</p>}
       </div>
 
       {/* 차트 */}

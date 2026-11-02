@@ -5,6 +5,8 @@ import { TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react'
 import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts'
 import { PlanGate } from '@/components/common/PlanGate'
 import { getScoreTextLabel } from '@/lib/scoreLabels'
+import { showsScoreDeltaBadge } from '@/lib/actionLabel'
+import { changeDirection, effectText, effectColorClass, EFFECT_NOTE } from '@/lib/changeDirection'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -37,31 +39,18 @@ interface Props {
   currentPlan: string
 }
 
+// 행동 전·후 비교 — 0.1점만 달라도 "개선됨/하락"을 말하던 것을 공용 규칙(lib/changeDirection)으로 바꿨다(2026-11-02): 작은 차이는 측정 오차 범위다.
+// 하락도 경고색(빨강) 대신 주황 — 그 행동 때문이라고 단정할 수 없는 측정 비교다.
 function DeltaBadge({ before, after }: { before: number | null; after: number | null }) {
-  if (before === null || after === null) {
-    return <span className="text-sm text-gray-600">측정 중</span>
+  const dir = changeDirection(before, after)
+  if (dir === null) {
+    return <span className="text-sm text-gray-600">{effectText(null)}</span>
   }
-  const delta = after - before
-  if (Math.abs(delta) < 0.1) {
-    return (
-      <span className="flex items-center gap-0.5 text-sm text-gray-600 font-medium">
-        <Minus className="w-3.5 h-3.5" />
-        변화 없음
-      </span>
-    )
-  }
-  if (delta > 0) {
-    return (
-      <span className="flex items-center gap-0.5 text-sm text-green-700 font-semibold">
-        <TrendingUp className="w-3.5 h-3.5" />
-        개선됨
-      </span>
-    )
-  }
+  const Icon = dir === 'up' ? TrendingUp : dir === 'down' ? TrendingDown : Minus
   return (
-    <span className="flex items-center gap-0.5 text-sm text-red-700 font-semibold">
-      <TrendingDown className="w-3.5 h-3.5" />
-      하락
+    <span className={`flex items-center gap-0.5 text-sm font-semibold ${effectColorClass(dir)}`}>
+      <Icon className="w-3.5 h-3.5" />
+      {effectText(dir)}
     </span>
   )
 }
@@ -173,7 +162,7 @@ function ActionTimelineContent({ businessId, authToken }: { businessId: string; 
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <DeltaBadge before={w.score_before} after={w.score_after} />
+                  {showsScoreDeltaBadge(w.action_type) && <DeltaBadge before={w.score_before} after={w.score_after} />}
                 </div>
               </div>
               {(w.timeline ?? []).length >= 2 && <MiniChart data={w.timeline} />}
@@ -182,6 +171,9 @@ function ActionTimelineContent({ businessId, authToken }: { businessId: string; 
         </div>
       )}
 
+      {recentWindows.some((w) => showsScoreDeltaBadge(w.action_type)) && (
+        <p className="text-sm text-gray-600 mt-3 break-keep">{EFFECT_NOTE}</p>
+      )}
       <p className="text-sm text-gray-600 mt-3 text-center">
         더 많은 행동 기록은 대시보드에서 확인하세요
       </p>

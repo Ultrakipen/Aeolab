@@ -261,7 +261,11 @@ export default async function DashboardPage({
   const growthStageLabel = normalizeStageLabel(latestScan?.growth_stage_label as string | null, growthStage) || "보강 단계";
   const isKeywordEstimated = (latestScan?.is_keyword_estimated as boolean | null) ?? false;
 
-  const scoreChangeDiff = history && history.length >= 2
+  // 상단 카드의 "↑ 개선됨 / ↓ 하락" 배지(2026-11-02): 예전에는 최근 두 기록 차이를 반올림해 0이 아니기만 하면(0.5점 이상) 띄웠고 네이버 미측정일도 거르지 않았다 —
+  // 같은 가게의 일간 점수 변화 중앙값이 3~4점이라 사실상 항상 "개선됨/하락"이 떴고 성장 화면의 "큰 변화 없이 유지 중"과 모순됐다.
+  // 최신 스캔의 네이버 측정이 빠졌으면(점수가 다른 날과 같은 척도가 아님) 변화를 말하지 않고, 방향 판정은 카드 쪽에서 공용 규칙(lib/changeDirection)으로 한다.
+  const latestScanNaverMeasured = !isNaverUnmeasured(latestScan?.naver_result as NaverResultLike | null | undefined);
+  const scoreChangeDiff = history && history.length >= 2 && latestScanNaverMeasured
     ? Math.round(((history[0]?.unified_score ?? history[0]?.total_score ?? 0) as number) - ((history[1]?.unified_score ?? history[1]?.total_score ?? 0) as number))
     : null;
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { CheckCircle2, Clock, AlertCircle } from 'lucide-react'
+import { changeDirection, effectText, effectColorClass, EFFECT_NOTE } from '@/lib/changeDirection'
 
 export interface ActionCompletion {
   id: string
@@ -91,20 +92,18 @@ export default function ActionResultCard({ actions }: Props) {
                     {a.result_summary && (
                       <p className="text-sm text-gray-600 mt-1">{a.result_summary}</p>
                     )}
-                    {(a.before_score !== null && a.after_score !== null) && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        점수 변화:{" "}
-                        <span className={
-                          a.after_score > a.before_score
-                            ? "text-emerald-700 font-semibold"
-                            : a.after_score < a.before_score
-                            ? "text-amber-700 font-semibold"
-                            : "text-gray-600"
-                        }>
-                          {a.after_score > a.before_score ? "개선됨 ↑" : a.after_score < a.before_score ? "하락 ↓" : "변화 없음"}
-                        </span>
-                      </p>
-                    )}
+                    {/* 점수 비교는 공용 규칙으로(2026-11-02): 0.1점만 달라도 "개선됨 ↑/하락 ↓"을 말하던 것은 측정 오차를 변화로 말하는 것이었다 */}
+                    {(() => {
+                      const dir = changeDirection(a.before_score, a.after_score)
+                      if (dir === null) return null
+                      return (
+                        <p className="text-sm text-gray-600 mt-1">
+                          측정 비교:{" "}
+                          <span className={`font-semibold ${effectColorClass(dir)}`}>{effectText(dir)}</span>
+                          <span className="block text-gray-600 break-keep">{EFFECT_NOTE}</span>
+                        </p>
+                      )
+                    })()}
                   </div>
                   <span className="text-sm text-gray-600 shrink-0">{formatDate(a.completed_at)}</span>
                 </div>

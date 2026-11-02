@@ -17,7 +17,11 @@ def _read(*parts):
 def test_helper_hides_numbered_competitor_gap_and_same_stage_arrow_and_unverified_cause():
     s = _read("lib", "actionLabel.ts")
     assert "점\\s*앞서\\s*있습니다" in s and "경쟁사 강화 또는 정보 갱신 필요" in s and "단계 안에서" in s
-    assert 'actionType !== "competitor_ahead"' in s
+    # 효과(전·후 비교) 표시를 붙이지 않는 시스템 자동 기록 — 2026-11-02에 competitor_ahead 하나에서 네 종류로 넓힘(사용자가 한 행동이 아니다)
+    assert re.search(r'SYSTEM_RECORD_TYPES = new Set\(\[[^\]]*"competitor_ahead"[^\]]*\]\)', s)
+    for t in ("score_up", "score_down", "auto_recommended"):
+        assert f'"{t}"' in s, t
+    assert "!SYSTEM_RECORD_TYPES.has(actionType ?? \"\")" in s
 
 
 def test_growth_page_uses_helpers_everywhere_it_prints_a_log_label():
