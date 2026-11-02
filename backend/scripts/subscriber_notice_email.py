@@ -48,17 +48,17 @@ STAGE2_BODY = (
     "{시작일}부터 네이버 쪽 측정 항목을 확인하지 못하고 있으며, 블로그 진단·경쟁사 정보 갱신 같은 일부 기능도 늦어질 수 있습니다. "
     "원인은 확인 중이며, 확인되기 전에는 추정해서 말씀드리지 않겠습니다.\n"
     "그동안 네이버 항목은 마지막 확인값({날짜})으로 표시되며, 새 결과로 오해되지 않도록 '확인 전' 또는 날짜를 함께 보여 드리고 있습니다. 다른 기능은 정상입니다.\n"
-    "확인하지 못한 기간만큼 이용 기간을 일할 연장해 드리겠습니다(별도 신청 불필요).\n"
-    f"문의: {SUPPORT_EMAIL}"
+    "확인하지 못한 기간만큼 이용 기간을 일할 연장해 드리겠습니다(별도 신청 불필요)."
 )
-STAGE3_EXTRA = "\n네이버 항목 확인이 7일 이상 이어지지 않아, 원하시면 남은 기간 환불을 선택하실 수 있습니다. 이 메일에 회신해 주시면 처리해 드립니다."
+# 발신 주소가 noreply이고 Reply-To가 없어 '이 메일에 회신'은 문의로 전달되지 않는다 — 반드시 문의 주소를 적는다
+STAGE3_EXTRA = f"\n네이버 항목 확인이 7일 이상 이어지지 않아, 원하시면 남은 기간 환불을 선택하실 수 있습니다. {SUPPORT_EMAIL}로 메일 주시면 처리해 드립니다."
 STAGE4_BODY = (
     "안녕하세요, AEOlab입니다.\n"
     "네이버 항목 확인이 다시 시작되었습니다. 다음 측정부터 새 값으로 갱신되며, 복구 직후에는 값이 평소와 다르게 보일 수 있습니다. "
     "측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.\n"
-    "연장된 이용 기간은 {연장일}까지입니다.\n"
-    f"문의: {SUPPORT_EMAIL}"
+    "연장된 이용 기간은 {연장일}까지입니다."
 )
+CONTACT = f"\n문의: {SUPPORT_EMAIL}"  # 모든 단계 본문의 맨 끝
 
 STAGES = {
     2: ("[AEOlab] 네이버 항목 확인 지연 안내와 이용 기간 연장", STAGE2_BODY, ("시작일", "날짜")),
@@ -72,6 +72,7 @@ def render(stage: int, values: dict) -> tuple[str, str, str]:
     if stage not in STAGES:
         raise ValueError(f"지원하지 않는 단계: {stage} (2·3·4)")
     subject, body, needed = STAGES[stage]
+    body += CONTACT
     missing = [k for k in needed if not (values.get(k) or "").strip()]
     if missing:
         raise ValueError("문안 값이 비어 있음: " + ", ".join(missing))
@@ -79,9 +80,35 @@ def render(stage: int, values: dict) -> tuple[str, str, str]:
     left = _PLACEHOLDER.findall(text)
     if left:  # 정의되지 않은 자리표시자가 남으면 그대로 나가지 않게 막는다
         raise ValueError("치환되지 않은 자리표시자: " + ", ".join(left))
-    escaped = html.escape(text).replace("\n", "<br>")
-    page = f'<div style="font-family:sans-serif;font-size:15px;line-height:1.7;color:#222">{escaped}</div>'
-    return subject, text, page
+    return subject, text, _to_html(subject, text)
+
+
+_EMPHASIS = ("일할 연장", "남은 기간 환불", "다시 시작되었습니다")  # 본문에서 굵게 보일 핵심 구절
+
+
+def _to_html(subject: str, text: str) -> str:
+    """텍스트 본문을 다른 안내 메일과 같은 서식(폭 560px·맑은 고딕·문단 간격)으로 만든다. 값은 이스케이프한 뒤 강조·링크를 씌운다."""
+    title = html.escape(re.sub(r"^\[AEOlab\]\s*", "", subject))
+    paras = []
+    for line in text.split("\n"):
+        if not line.strip():
+            continue
+        esc = html.escape(line)
+        for phrase in _EMPHASIS:
+            esc = esc.replace(html.escape(phrase), f"<strong>{html.escape(phrase)}</strong>")
+        esc = esc.replace(SUPPORT_EMAIL, f'<a href="mailto:{SUPPORT_EMAIL}" style="color:#1d4ed8">{SUPPORT_EMAIL}</a>')
+        paras.append(f'<p style="margin:0 0 14px;font-size:15px;line-height:1.75;color:#1e293b;word-break:keep-all">{esc}</p>')
+    footer = (
+        "서비스 운영 안내 메일입니다. 이 주소(noreply)는 발신 전용이라 회신이 전달되지 않습니다."
+    )
+    return (
+        "<div style=\"font-family:'Apple SD Gothic Neo',Malgun Gothic,sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;color:#1e293b\">"
+        '<div style="font-size:13px;font-weight:700;color:#2563eb;letter-spacing:.02em;margin-bottom:6px">AEOlab</div>'
+        f'<h1 style="margin:0 0 20px;font-size:20px;line-height:1.4;color:#0f172a;word-break:keep-all">{title}</h1>'
+        + "".join(paras)
+        + f'<div style="margin-top:28px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:12.5px;line-height:1.6;color:#64748b;word-break:keep-all">{footer}</div>'
+        "</div>"
+    )
 
 
 def mask_email(email: str) -> str:

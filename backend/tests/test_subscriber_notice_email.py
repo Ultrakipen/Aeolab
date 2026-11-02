@@ -19,7 +19,7 @@ def test_render_fills_every_placeholder_and_never_leaves_braces():
     for stage in (2, 3, 4):
         subject, text, page = mod.render(stage, VALUES)
         assert "{" not in text and "}" not in text and "{" not in subject
-        assert "support@aeolab.co.kr" in text and "<br>" in page
+        assert "support@aeolab.co.kr" in text and "<p " in page
     assert "11월 5일" in mod.render(2, VALUES)[1] and "12월 10일" in mod.render(4, VALUES)[1]
 
 
@@ -35,6 +35,32 @@ def test_render_refuses_empty_value_instead_of_sending_a_raw_placeholder():
 def test_stage3_adds_refund_choice_and_stage2_does_not_promise_it():
     assert "환불" in mod.render(3, VALUES)[1]
     assert "환불" not in mod.render(2, VALUES)[1]
+
+
+def test_no_stage_tells_users_to_reply_to_a_noreply_sender():
+    # 발신 주소는 noreply이고 Reply-To도 없다 — '회신'을 안내하면 문의가 사라진다. 대신 문의 주소를 적는다.
+    for stage in (2, 3, 4):
+        text = mod.render(stage, VALUES)[1]
+        assert "회신" not in text and "support@aeolab.co.kr" in text
+    assert "support@aeolab.co.kr로 메일 주시면" in mod.render(3, VALUES)[1]
+
+
+def test_html_uses_the_same_layout_as_other_notice_mails_and_keeps_paragraphs():
+    _, text, page = mod.render(3, VALUES)
+    assert "max-width:560px" in page and "<h1" in page and "[AEOlab]" not in page.split("</h1>")[0]   # 제목은 머리말로, 접두어 제거
+    assert page.count("<p ") == len([ln for ln in text.split("\n") if ln.strip()])                  # 줄마다 문단
+    assert 'href="mailto:support@aeolab.co.kr"' in page and "<strong>남은 기간 환불</strong>" in page
+    assert "발신 전용" in page                                                                         # 푸터가 noreply임을 알린다
+    assert "<strong>일할 연장</strong>" in mod.render(2, VALUES)[2] and "다시 시작되었습니다</strong>" in mod.render(4, VALUES)[2]
+
+
+def test_contact_line_is_last_and_korean_words_are_not_split():
+    for stage in (2, 3, 4):
+        _, text, page = mod.render(stage, VALUES)
+        assert text.rstrip().split("\n")[-1] == "문의: support@aeolab.co.kr"          # 3단계에서 환불 문단 앞에 끼던 문제
+        assert text.count("support@aeolab.co.kr") == (2 if stage == 3 else 1)         # 3단계만 환불 안내에 한 번 더
+        paras = len([ln for ln in text.split("\n") if ln.strip()])
+        assert page.count("word-break:keep-all") == paras + 2                         # 문단 + 제목 + 푸터(모바일에서 '이|용'처럼 끊기던 제목)
 
 
 def test_values_are_html_escaped():
