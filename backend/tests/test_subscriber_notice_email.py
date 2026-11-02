@@ -32,6 +32,16 @@ def test_render_refuses_empty_value_instead_of_sending_a_raw_placeholder():
         mod.render(1, VALUES)                                                   # 1단계는 공지사항이라 이메일 문안이 없다
 
 
+def test_extension_is_a_fixed_three_days_not_prorated():
+    # 사용자 결정(11-02): 연장 일수는 3일 고정. '확인하지 못한 기간만큼(일할)'이라는 열린 약속을 하지 않는다.
+    assert mod.EXTENSION_DAYS == 3
+    for stage in (2, 3):
+        text = mod.render(stage, VALUES)[1]
+        assert "이용 기간을 3일 연장해 드리겠습니다" in text
+        assert "일할" not in text and "기간만큼" not in text
+    assert "연장" not in mod.render(4, VALUES)[1].replace("연장된 이용 기간", "")        # 4단계는 연장된 마지막 날({연장일})만 안내
+
+
 def test_stage3_adds_refund_choice_and_stage2_does_not_promise_it():
     assert "환불" in mod.render(3, VALUES)[1]
     assert "환불" not in mod.render(2, VALUES)[1]
@@ -51,7 +61,7 @@ def test_html_uses_the_same_layout_as_other_notice_mails_and_keeps_paragraphs():
     assert page.count("<p ") == len([ln for ln in text.split("\n") if ln.strip()])                  # 줄마다 문단
     assert 'href="mailto:support@aeolab.co.kr"' in page and "<strong>남은 기간 환불</strong>" in page
     assert "발신 전용" in page                                                                         # 푸터가 noreply임을 알린다
-    assert "<strong>일할 연장</strong>" in mod.render(2, VALUES)[2] and "다시 시작되었습니다</strong>" in mod.render(4, VALUES)[2]
+    assert "<strong>3일 연장</strong>" in mod.render(2, VALUES)[2] and "다시 시작되었습니다</strong>" in mod.render(4, VALUES)[2]
 
 
 def test_contact_line_is_last_and_korean_words_are_not_split():

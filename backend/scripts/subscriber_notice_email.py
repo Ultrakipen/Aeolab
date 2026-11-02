@@ -12,7 +12,7 @@
 - `--only 주소`로 한 명에게만 시험 발송할 수 있다(수신자 목록과 무관, 중복 기록 안 함). 이메일 주소는 로그·출력에 마스킹해서 쓴다.
 
 사용(서버): cd /var/www/aeolab/backend && /var/www/aeolab/venv/bin/python scripts/subscriber_notice_email.py --stage 2 --start-date 11월 5일 --last-date 11월 4일 --campaign naver-2026-11
-  --stage 2 : 3일 이상 지연 — 일할 연장 안내       --stage 3 : 7일 이상 — 2단계 + 환불 선택권
+  --stage 2 : 3일 이상 지연 — 3일 연장 안내      --stage 3 : 7일 이상 — 2단계 + 환불 선택권
   --stage 4 : 복구 안내(--extended-until 필요)
 """
 import argparse
@@ -40,6 +40,7 @@ def _load_env() -> None:
         pass
 
 
+EXTENSION_DAYS = 3  # 사용자 결정(2026-11-02): 장애 기간과 무관하게 고정 3일 연장 — 문안은 이 값에서 만든다
 SUPPORT_EMAIL = "support@aeolab.co.kr"  # 개인정보처리방침 페이지의 고객 문의 주소와 같다
 _PLACEHOLDER = re.compile(r"\{([^{}]+)\}")
 
@@ -48,7 +49,7 @@ STAGE2_BODY = (
     "{시작일}부터 네이버 쪽 측정 항목을 확인하지 못하고 있으며, 블로그 진단·경쟁사 정보 갱신 같은 일부 기능도 늦어질 수 있습니다. "
     "원인은 확인 중이며, 확인되기 전에는 추정해서 말씀드리지 않겠습니다.\n"
     "그동안 네이버 항목은 마지막 확인값({날짜})으로 표시되며, 새 결과로 오해되지 않도록 '확인 전' 또는 날짜를 함께 보여 드리고 있습니다. 다른 기능은 정상입니다.\n"
-    "확인하지 못한 기간만큼 이용 기간을 일할 연장해 드리겠습니다(별도 신청 불필요)."
+    f"불편을 드린 점에 대해 이용 기간을 {EXTENSION_DAYS}일 연장해 드리겠습니다(별도 신청 불필요)."
 )
 # 발신 주소가 noreply이고 Reply-To가 없어 '이 메일에 회신'은 문의로 전달되지 않는다 — 반드시 문의 주소를 적는다
 STAGE3_EXTRA = f"\n네이버 항목 확인이 7일 이상 이어지지 않아, 원하시면 남은 기간 환불을 선택하실 수 있습니다. {SUPPORT_EMAIL}로 메일 주시면 처리해 드립니다."
@@ -83,7 +84,7 @@ def render(stage: int, values: dict) -> tuple[str, str, str]:
     return subject, text, _to_html(subject, text)
 
 
-_EMPHASIS = ("일할 연장", "남은 기간 환불", "다시 시작되었습니다")  # 본문에서 굵게 보일 핵심 구절
+_EMPHASIS = (f"{EXTENSION_DAYS}일 연장","남은 기간 환불", "다시 시작되었습니다")  # 본문에서 굵게 보일 핵심 구절
 
 
 def _to_html(subject: str, text: str) -> str:
