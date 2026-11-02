@@ -4275,7 +4275,7 @@ async def weekly_score_report_job():
                 try:
                     gap = await analyze_gap_from_db(biz_id, supabase)
                     if gap and gap.dimensions:
-                        worst_dim = max(gap.dimensions, key=lambda d: d.gap_score)
+                        worst_dim = max(gap.dimensions, key=lambda d: d.gap_to_top)   # DimensionGap에는 gap_score가 없다(2026-11-02: 매주 AttributeError가 경고로만 남던 결함)
                         top_action = worst_dim.gap_reason or top_action
                 except Exception as gap_err:
                     logger.warning(
