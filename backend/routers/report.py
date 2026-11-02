@@ -2705,23 +2705,34 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
         latest_comp_raw = scans_raw[-1].get("competitor_scores") or {}
         prev_comp_raw   = scans_raw[-2].get("competitor_scores") if len(scans_raw) >= 2 else {}
         # 경쟁사 중 점수 상승한 곳 있는지 확인
-        comp_gaining = any(
-            (latest_comp_raw.get(cid) or {}).get("score", 0) >
-            (prev_comp_raw.get(cid) or {}).get("score", 0)
-            for cid in latest_comp_raw
-        )
+        # 2026-11-02: 이전 스캔에 점수가 없던 경쟁사(새로 등록)는 0점으로 취급돼 "올랐다"로 잡혔고, 측정 방식(ChatGPT 모델·표본 대조 여부)이 바뀐 구간의
+        # 점수 차이도 실제 변화로 잡혔다(11-01 gpt-6-luna 교체 직후 거짓 경고 위험). 알림(competitor_alert)과 같은 기준으로 둘 다 제외한다.
+        from services.competitor_ai_exposure import basis_changed as _basis_changed
+
+        def _comp_score_rose(cid) -> bool:
+            cur, prv = latest_comp_raw.get(cid), prev_comp_raw.get(cid)
+            if not (isinstance(cur, dict) and isinstance(prv, dict)):
+                return False
+            cs, ps = cur.get("score"), prv.get("score")
+            if not all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in (cs, ps)):
+                return False
+            return cs > ps and not _basis_changed(cur, prv)
+
+        comp_gaining = any(_comp_score_rose(cid) for cid in latest_comp_raw)
         if total_delta_val >= 2:
-            headline = "처음 측정한 이후 AI 검색 노출이 꾸준히 개선되고 있습니다. 잘 하고 계십니다!"
+            # "꾸준히"는 첫·마지막 점수 차이만으로는 말할 수 없고(중간 흔들림은 보지 않는다) 칭찬 느낌표도 근거보다 과하다.
+            headline = "처음 측정과 비교하면 AI 검색 노출이 올랐습니다. 측정 시점에 따라 달라질 수 있어 추이를 계속 확인해 보세요."
             headline_type = "growth"
         elif total_delta_val <= -2:
             if worst_driver:
                 label = worst_driver["label"]
-                headline = f"처음 측정한 이후 노출이 줄었습니다. 가장 큰 원인은 '{label}' 부족입니다."
+                # 가장 크게 줄어든 '항목'일 뿐 원인으로 확인된 것은 아니다(지침 9: 인과 단정 금지)
+                headline = f"처음 측정과 비교하면 노출이 줄었습니다. 가장 많이 줄어든 항목은 '{label}'입니다."
             else:
-                headline = "처음 측정한 이후 AI 검색 노출이 줄었습니다. 가이드에서 원인을 확인하세요."
+                headline = "처음 측정과 비교하면 AI 검색 노출이 줄었습니다. 가이드에서 보강할 항목을 확인하세요."
             headline_type = "decline"
         elif comp_gaining and total_delta_val < 1:
-            headline = "경쟁 가게가 점수를 올리고 있습니다. 지금 조치가 필요합니다."
+            headline = "경쟁 가게의 AI 노출이 올라간 것으로 추정됩니다(추정치). 내 가게 정보를 점검해 보세요."
             headline_type = "alert"
         else:
             headline = "큰 변화 없이 유지 중입니다. 스마트플레이스 소개글이나 키워드를 다듬어 다음 단계를 노려보세요."
