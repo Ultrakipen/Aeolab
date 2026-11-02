@@ -152,6 +152,8 @@ EMAIL_TEMPLATES: dict[str, dict] = {
         ),
     },
 }
+# 개정 템플릿(SCORE_02)은 같은 안내를 등급 텍스트로 보낸다 — 같은 이메일 본문을 쓴다(변수 이름만 다름: 이전등급·현재등급).
+EMAIL_TEMPLATES["AEOLAB_SCORE_02"] = EMAIL_TEMPLATES["AEOLAB_SCORE_01"]
 
 
 async def _email_fallback(
@@ -195,8 +197,8 @@ async def _email_fallback(
 
     # 이메일 제목·본문 렌더링
     biz_name = payload.get("#{사업장명}", "")
-    score_before = payload.get("#{이전점수}", "")
-    score_after = payload.get("#{현재점수}", "")
+    score_before = payload.get("#{이전점수}") or payload.get("#{이전등급}", "")
+    score_after = payload.get("#{현재점수}") or payload.get("#{현재등급}", "")
     subject = tmpl["subject"].format(biz_name=biz_name)
     html_body = tmpl["body_template"].format(
         biz_name=biz_name,
@@ -258,6 +260,26 @@ TEMPLATES = {
     "keyword_change":       os.getenv("KAKAO_TEMPLATE_KEYWORD_CHANGE", ""),
 }
 
+# 개정 템플릿 전환 스위치(2026-11-02, SCORE_02·SCAN_02 승인): 환경변수가 비어 있으면 기존 템플릿(SCORE_01·SCAN_01)을 쓴다.
+# 값이 알려진 개정 코드가 아니면 무시한다 — 변수 구성이 다른 템플릿에 엉뚱한 값을 보내면 전부 -3004로 실패하기 때문(코드가 변수를 채우는 방식은 템플릿별이다).
+_TEMPLATE_ENV_OVERRIDE = {
+    "score_change": ("KAKAO_TEMPLATE_SCORE_CHANGE", "AEOLAB_SCORE_02"),
+    "scan_complete": ("KAKAO_TEMPLATE_SCAN_COMPLETE", "AEOLAB_SCAN_02"),
+}
+
+
+def resolve_template_code(ttype: str) -> str:
+    """이 알림 종류로 지금 보낼 템플릿 코드. `_send` 안에서 `template_code` 지역변수와 이름이 겹치지 않게 다른 이름을 쓴다."""
+    spec = _TEMPLATE_ENV_OVERRIDE.get(ttype)
+    if spec:
+        env_name, allowed = spec
+        value = os.getenv(env_name, "").strip()
+        if value == allowed:
+            return value
+        if value:
+            logger.warning("%s=%r 는 알려진 개정 템플릿(%s)이 아니라 무시한다 — 기존 템플릿 유지", env_name, value, allowed)
+    return TEMPLATES[ttype]
+
 
 class KakaoNotifier:
     _BASE_TMPL = "https://kakaotalk-bizmessage.api.nhncloudservice.com/alimtalk/v2.3/appkeys/{appkey}"
@@ -268,9 +290,34 @@ class KakaoNotifier:
 
     async def send_score_change(
         self, phone: str, biz_name: str, prev: float, curr: float, prev_r: int, curr_r: int,
-        user_id: str | None = None,
+        user_id: str | None = None, curr_total: int | None = None,
     ):
-        """점수 변화 알림. 점수 수치 대신 등급+순위 텍스트로 발송. 실제 전달 성공 여부를 돌려준다(호출자의 발송 간격 기록용)."""
+        """점수 변화 알림. 점수 수치 대신 등급+순위 텍스트로 발송. 실제 전달 성공 여부를 돌려준다(호출자의 발송 간격 기록용).
+
+        `KAKAO_TEMPLATE_SCORE_CHANGE=AEOLAB_SCORE_02`이면 승인된 개정 본문(2026-11-02 콘솔 캡처: 고정 '점'·'위' 없음)의 변수로 채운다.
+        curr_total: 현재 업종 내 집계 사업장 수 — 3곳 미만이면 순위를 말하지 않는다(성장 화면의 '비교 데이터 수집 중'과 같은 기준).
+        """
+        if resolve_template_code("score_change") == "AEOLAB_SCORE_02":
+            # 승인 본문이 "등급 변동 안내 … 변경 내역이 확인될 경우 발송"이다 — 등급이 그대로인데 "이전 등급: 개선 중 → 현재 등급: 개선 중"을 보내면
+            # 본문 목적과 어긋나고(2026-11-02 재현 문장 점검), 측정이 흔들리는 가게는 같은 등급 안의 3점 변화가 거의 매일 나와 노이즈가 된다.
+            if _grade(prev) == _grade(curr):
+                logger.info("send_score_change(SCORE_02) 건너뜀: 등급이 바뀌지 않았다")
+                return False
+            ranked = bool(curr_r) and curr_total is not None and curr_total >= 3
+            resp = await self._send(
+                phone,
+                "score_change",
+                {
+                    "#{사업장명}": biz_name,
+                    "#{스캔일시}": date.today().strftime("%Y-%m-%d"),
+                    "#{이전등급}": _grade(prev),
+                    "#{현재등급}": _grade(curr),
+                    "#{변화}": _grade_change(prev, curr),
+                    "#{순위}": f"{curr_r}위" if ranked else "집계 전",   # 측정·집계가 안 된 것은 0위·-위가 아니라 '집계 전'(지침 9)
+                },
+                user_id=user_id,
+            )
+            return _kakao_response_ok(resp)
         resp = await self._send(
             phone,
             "score_change",
@@ -485,7 +532,27 @@ class KakaoNotifier:
         self, phone: str, biz_name: str, score: float, grade: str,
         weekly_change: float, top_platform: str, top_improvement: str,
     ):
-        """스캔 완료 즉시 알림 (템플릿 코드: AEOLAB_SCAN_01)"""
+        """스캔 완료 즉시 알림 (템플릿 코드: AEOLAB_SCAN_01, `KAKAO_TEMPLATE_SCAN_COMPLETE=AEOLAB_SCAN_02`이면 개정본)
+
+        grade: 직전 스캔의 단계 이름(비교할 수 없으면 빈 문자열). 개정본의 '지난 스캔 대비' 값이 된다.
+        """
+        if resolve_template_code("scan_complete") == "AEOLAB_SCAN_02":
+            # 승인 개정 본문(2026-11-02 콘솔 캡처)에는 '가장 많이 언급됨'·개선포인트·등급변화메모 줄이 없어 언급 플랫폼 조건이 필요 없다.
+            # 대신 이 알림은 스캔마다 가므로 주간 상한 모듈이 번호당 주 1건으로 막는다(services/notify_weekly_cap.PER_TYPE_WEEKLY).
+            curr_stage = _grade(score)
+            prev_stage = (grade or "").strip()
+            change = "비교 전" if not prev_stage else ("단계 유지" if prev_stage == curr_stage else f"{prev_stage} → {curr_stage}")
+            resp = await self._send(
+                phone,
+                "scan_complete",
+                {
+                    "#{사업장명}": biz_name,
+                    "#{스캔일시}": date.today().strftime("%Y-%m-%d"),
+                    "#{현재단계}": curr_stage,
+                    "#{변화}": change,
+                },
+            )
+            return _kakao_response_ok(resp)
         # 승인 본문에 "#{최다플랫폼}에서 가장 많이 언급됨" 줄이 고정으로 있어, 언급이 확인된 플랫폼이 없을 때 "AI 검색"(정기 스캔)·"없음"(수동 스캔)을
         # 넣으면 한 번도 언급되지 않은 가게에도 "가장 많이 언급됨"이 나간다(2026-11-01 콘솔 본문 대조로 발견, 지침 9: 사실 아닌 문구 금지).
         # 줄을 뺄 수 없으므로 근거가 없으면 보내지 않는다 — 본문을 바꾼 템플릿이 승인되면 이 조건을 다시 본다.
@@ -877,7 +944,7 @@ class KakaoNotifier:
             logger.warning(f"_send skipped: 수신번호 없음 또는 형식 오류 (ttype={ttype})")
             self._log_notification(None, ttype, dict(params), "skipped")
             if ttype == "score_change" and user_id:
-                template_code = TEMPLATES.get(ttype, "")
+                template_code = resolve_template_code(ttype) if ttype in TEMPLATES else ""
                 if template_code:
                     await _email_fallback(user_id, template_code, params)
             return None
@@ -892,7 +959,7 @@ class KakaoNotifier:
             self._log_notification(None, ttype, {"phone": masked, **params}, "skipped")
             # KAKAO_APP_KEY 미설정 시에도 score_change는 이메일 fallback 시도
             if ttype == "score_change" and user_id:
-                template_code = TEMPLATES.get(ttype, "")
+                template_code = resolve_template_code(ttype) if ttype in TEMPLATES else ""
                 if template_code:
                     await _email_fallback(user_id, template_code, params)
             return None
@@ -913,7 +980,7 @@ class KakaoNotifier:
                     headers={"X-Secret-Key": os.getenv("KAKAO_SECRET_KEY", "")},
                     json={
                         "senderKey": os.getenv("KAKAO_SENDER_KEY", ""),
-                        "templateCode": TEMPLATES[ttype],
+                        "templateCode": resolve_template_code(ttype),
                         "recipientList": [
                             {"recipientNo": phone, "templateParameter": _template_params(params)}
                         ],
@@ -932,7 +999,7 @@ class KakaoNotifier:
                 logger.warning(f"Kakao _send failed {r.status_code} ({ttype}): {_kakao_failure_summary(r)}")
                 # AEOLAB_SCORE_01 발송 실패 시 이메일 fallback
                 if ttype == "score_change" and user_id:
-                    template_code = TEMPLATES.get(ttype, "")
+                    template_code = resolve_template_code(ttype) if ttype in TEMPLATES else ""
                     if template_code:
                         await _email_fallback(user_id, template_code, params)
             else:
@@ -948,7 +1015,7 @@ class KakaoNotifier:
             # 예외 발생 시에도 score_change 이메일 fallback
             if ttype == "score_change" and user_id:
                 try:
-                    template_code = TEMPLATES.get(ttype, "")
+                    template_code = resolve_template_code(ttype) if ttype in TEMPLATES else ""
                     if template_code:
                         await _email_fallback(user_id, template_code, params)
                 except Exception as fb_e:

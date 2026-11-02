@@ -27,6 +27,11 @@ BODIES = {
     "AEOLAB_NEWS_01": "[AEOlab]\n#{사업장명} 이달의 업종 시장 동향\n고객님의 업종(#{업종}) 관련 이달의 시장 동향을 안내드립니다.\n#{시장동향}",
     "AEOLAB_SCAN_01": "[AEOlab]\n#{사업장명} AI 스캔 완료\nAI 노출 등급: #{현재등급} #{등급변화메모}\n지난주 대비: #{추세}\n#{최다플랫폼}에서 가장 많이 언급됨\n#{개선포인트}",
     "AEOLAB_WEEKLY_01": "[AEOlab 주간 성적표]\n#{사업장명}\n이번 주 AI 노출 등급: #{등급변화} #{추세방향}\n이번 주 할 일:\n#{할일}",
+    # 개정 템플릿 — 2026-11-02 콘솔 승인 본문 전문(사용자 캡처 스캔_02.png·스코어_02.png)
+    "AEOLAB_SCORE_02": ("[AEOlab]\n#{사업장명} AI 노출 등급 변동 안내\n\n해당 메시지는 고객님께서 신청하신 검색 노출 등급 변동 안내 알림으로, 변경 내역이 확인될 경우 발송됩니다.\n\n"
+                        "확인 일시: #{스캔일시}\n이전 등급: #{이전등급}\n현재 등급: #{현재등급}\n변화: #{변화}\n업종 내 순위: #{순위}"),
+    "AEOLAB_SCAN_02": ("[AEOlab]\n#{사업장명} AI 스캔 완료\n\n해당 메시지는 고객님께서 설정에서 켜신 스캔 완료 알림으로, AI 검색 노출 스캔이 완료될 경우 발송됩니다.\n\n"
+                       "스캔 일시: #{스캔일시}\nAI 검색 준비도: #{현재단계}\n지난 스캔 대비: #{변화}\n\n자세한 결과와 개선 가이드는 대시보드에서 확인하세요.\nhttps://aeolab.co.kr/dashboard"),
     "AEOLAB_EXPIRE_01": "[AEOlab]\n#{플랜명} 구독이 #{잔여일}일 후 만료됩니다.",
     "AEOLAB_PRICEUP_01": "[AEOlab]\n3일 후부터 정상가 월 #{정상가}원으로 자동 결제됩니다.",
     "AEOLAB_DELIVERY_01": "[AEOlab] 대행 서비스 접수가 완료되었습니다.\n■ 주문번호: #{주문번호}\n■ 패키지: #{패키지명}\n■ 사업장: #{사업장명}",
@@ -39,7 +44,7 @@ captured = []
 
 
 async def fake_send(self, phone, ttype, params, user_id=None):
-    captured.append((kn.TEMPLATES.get(ttype, ttype), params))
+    captured.append((kn.resolve_template_code(ttype) if ttype in kn.TEMPLATES else ttype, params))
     return None
 
 
@@ -99,7 +104,31 @@ async def run_all():
 
 
 asyncio.run(run_all())
+
+
+async def scenarios_revised():
+    """승인된 개정 템플릿(SCORE_02·SCAN_02)으로 전환했을 때 나가는 문장 — 환경변수를 켜고 같은 함수를 다시 부른다."""
+    os.environ["KAKAO_TEMPLATE_SCORE_CHANGE"] = "AEOLAB_SCORE_02"
+    os.environ["KAKAO_TEMPLATE_SCAN_COMPLETE"] = "AEOLAB_SCAN_02"
+    biz, long_biz = "홍뮤직스튜디오작곡교습소", "창원 성산구 하라식당 본점 직영점"
+    await N.send_score_change(P, biz, 48, 62, 5, 3, curr_total=12)        # 등급 상승, 순위 있음
+    await N.send_score_change(P, biz, 62, 48, 3, 5, curr_total=12)        # 등급 하락
+    await N.send_score_change(P, biz, 60, 65, 2, 2, curr_total=2)         # 같은 등급 안 상승 + 집계 2곳뿐(순위 말하지 않음)
+    await N.send_score_change(P, biz, 30, 31, 0, 0)                       # 순위 없음
+    await N.send_scan_complete(P, biz, 62, "보강 단계", 10.0, "", "")      # 단계 상승(언급 플랫폼 없어도 발송)
+    await N.send_scan_complete(P, biz, 62, "개선 중", 1.0, "", "")         # 단계 유지
+    await N.send_scan_complete(P, long_biz, 30, "", 0.0, "", "")           # 비교 전(첫 스캔)
+
+
+captured.append(("== 개정 템플릿 시나리오 ==", {}))
+try:
+    asyncio.run(scenarios_revised())
+except TypeError as e:
+    print("!! 개정 시나리오 호출 실패(시그니처 변경?):", e)
 for code, params in captured:
+    if code == "== 개정 템플릿 시나리오 ==":
+        print("\n############ 개정 템플릿(SCORE_02·SCAN_02) 전환 후 ############")
+        continue
     if code not in BODIES:
         print(f"-- {code}: 본문 미등록(변수 없음/생략)")
         continue

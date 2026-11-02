@@ -71,19 +71,28 @@ def _db():
     return get_client(), execute
 
 
-async def count_recent(phone, now: datetime | None = None) -> int | None:
-    """이 번호가 최근 7일에 받은 정기 알림 수. 읽지 못하면 None."""
+def per_type_weekly(ttype: str) -> int:
+    """이 종류 알림의 번호당 7일 최대 건수(0이면 종류별 제한 없음). 스캔마다 가는 '스캔 완료'가 주 상한의 낮은 가치 칸을 먼저 채우지 못하게 한다
+    (개정 템플릿 SCAN_02는 '언급 플랫폼 없으면 미발송' 조건이 사라져 스캔마다 갈 수 있다 — 2026-11-02, 제안값)."""
+    if ttype == "scan_complete":
+        return _int_env("NOTIFY_SCAN_COMPLETE_WEEKLY", 1)
+    return 0
+
+
+async def count_recent(phone, now: datetime | None = None, ttype: str | None = None) -> int | None:
+    """이 번호가 최근 7일에 받은 정기 알림 수(ttype을 주면 그 종류만). 읽지 못하면 None."""
     try:
         sb, run = _db()
         since = ((now or datetime.now(timezone.utc)) - timedelta(days=WINDOW_DAYS)).isoformat()
-        res = await run(
+        q = (
             sb.table("notifications")
             .select("id")
             .eq("type", LEDGER_TYPE)
             .eq("content->>phone_hash", phone_hash(phone))
-            .gte("sent_at", since)
-            .limit(50)
         )
+        if ttype:
+            q = q.eq("content->>ttype", ttype)
+        res = await run(q.gte("sent_at", since).limit(50))
         return len((res.data or []) if res else [])
     except Exception as e:
         _logger.warning("[notify_weekly_cap] 주간 건수 확인 실패(이번 알림 생략): %s", e)
@@ -98,7 +107,14 @@ async def allowed(phone, ttype: str, now: datetime | None = None) -> bool:
     n = await count_recent(phone, now)
     if n is None:
         return False
-    return n < limit_for(ttype, cap)
+    if n >= limit_for(ttype, cap):
+        return False
+    per_type = per_type_weekly(ttype)
+    if per_type > 0:
+        nt = await count_recent(phone, now, ttype)
+        if nt is None or nt >= per_type:
+            return False
+    return True
 
 
 async def record(phone, ttype: str, now: datetime | None = None) -> bool:

@@ -1366,7 +1366,7 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
     # 1. 점수 변화 알림
     _hist_res = await _db(
         supabase.table("score_history")
-        .select("total_score, score_date, rank_in_category")
+        .select("total_score, score_date, rank_in_category, total_in_category")
         .eq("business_id", biz_id)
         .not_.is_("total_score", "null")  # 순위 측정만 기록한 행(context=keyword_rank)은 total_score가 NULL — 비교 대상 아님
         .order("score_date", desc=True)
@@ -1389,6 +1389,7 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
                         prev_h["total_score"], curr_h["total_score"],
                         prev_h.get("rank_in_category", 0),
                         curr_h.get("rank_in_category", 0),
+                        curr_total=curr_h.get("total_in_category"),   # 개정 템플릿(SCORE_02)은 집계 3곳 미만이면 순위를 '집계 전'으로 보낸다
                     ):
                         await _cadence.mark_sent(_db, supabase, biz_id, "score_change")
                 else:

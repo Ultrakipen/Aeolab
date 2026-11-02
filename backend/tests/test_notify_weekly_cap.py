@@ -60,8 +60,9 @@ class Ledger:
             raise RuntimeError("read failed")
         out = self.rows
         for col, val in q.eqs.items():
-            if col == "content->>phone_hash":
-                out = [r for r in out if (r.get("content") or {}).get("phone_hash") == val]
+            if col.startswith("content->>"):                      # PostgREST JSON 경로 필터(content->>phone_hash, content->>ttype …)
+                key = col.split(">>", 1)[1]
+                out = [r for r in out if (r.get("content") or {}).get(key) == val]
             else:
                 out = [r for r in out if r.get(col) == val]
         for col, val in q.gtes.items():
