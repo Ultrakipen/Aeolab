@@ -175,7 +175,8 @@ async def _send_all(emails: list[str], subject: str, page: str, campaign: str, s
     ok = fail = 0
     for em in emails:
         if await send_email(em, subject, page):
-            record_sent(campaign, em, stage)
+            if campaign:  # --only 시험 발송은 기록하지 않는다(캠페인 중복 방지에 영향 없음)
+                record_sent(campaign, em, stage)
             ok += 1
         else:
             fail += 1
@@ -231,7 +232,7 @@ def main(argv=None) -> int:
     if a.confirm != len(emails):
         print(f"중단: --confirm 값({a.confirm})이 이번 수신자 수({len(emails)})와 다릅니다.")
         return 2
-    ok, fail = asyncio.run(_send_all(emails, subject, page, "_only_test" if a.only else a.campaign, a.stage))
+    ok, fail = asyncio.run(_send_all(emails, subject, page, "" if a.only else a.campaign, a.stage))
     print(f"완료: 성공 {ok} · 실패 {fail}")
     return 0 if fail == 0 else 1
 

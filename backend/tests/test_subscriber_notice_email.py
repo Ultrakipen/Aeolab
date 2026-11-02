@@ -149,3 +149,4 @@ def test_only_option_sends_to_one_address_without_touching_campaign_log(monkeypa
     monkeypatch.setattr(mod.asyncio, "sleep", lambda s: _noop())
     assert mod.main(ARGS + ["--only", "me@x.com", "--send", "--confirm", "1"]) == 0
     assert calls == ["me@x.com"] and mod.load_sent_hashes("t1") == set()
+    assert not list(tmp_path.iterdir())                                          # 어떤 기록 파일도 만들지 않는다
