@@ -91,3 +91,6 @@ backend/.naver_kill_switch
 
 # Git Bash 크래시 덤프(2026-11-02: 실수로 추적돼 있어 정리)
 *.stackdump
+
+# 구독자 안내 메일 발송 기록(이메일 해시) — 서버 로컬 전용
+backend/.notice_email_sent_*.jsonl
