@@ -306,9 +306,9 @@ def test_growth_report_sends_when_opted_in_and_records_sent(monkeypatch, notifie
     assert [i["status"] for i in inserts] == ["sent"]
 
 
-def test_growth_report_unset_preference_still_sends(monkeypatch, notifier):
+def test_growth_report_unset_preference_does_not_send(monkeypatch, notifier):
     n, _, _ = _run_growth_report(monkeypatch, notifier, {"phone": "01012345678", "kakao_scan_notify": None})
-    assert len(n.monthly) == 1                               # 명시적 False만 막는다(다른 알림 잡들의 관례)
+    assert len(n.monthly) == 0                               # 알림은 옵트인(2026-11-02 통일): 명시적 True가 아니면 보내지 않는다 — 신규 가입 기본값도 false
 
 
 def test_growth_report_failed_delivery_is_not_recorded_as_sent(monkeypatch, notifier):

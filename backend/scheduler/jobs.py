@@ -1182,7 +1182,7 @@ async def daily_scan_all():
                     logger.warning(f"[daily_scan_all] rank_in_category 계산 실패 biz={biz.get('id')}: {_rank_err}")
 
                 # ── 알림 프로필 1회 조회 (스캔완료·성장단계·경쟁사역전 알림 공용, P1과 동일 원칙 —
-                # kakao_scan_notify/kakao_competitor_notify 명시적 False만 차단) ──────────────
+                # kakao_scan_notify/kakao_competitor_notify 명시적 True일 때만 발송 — 미설정 NULL은 꺼짐(옵트인, 2026-11-02 통일)) ──────────────
                 _scan_phone = None
                 _scan_notify_ok = False
                 _comp_notify_ok = False
@@ -1195,8 +1195,8 @@ async def daily_scan_all():
                         )
                         _scan_profile = _sp_res.data or {}
                         _scan_phone = _scan_profile.get("phone")
-                        _scan_notify_ok = bool(_scan_phone) and _scan_profile.get("kakao_scan_notify") is not False
-                        _comp_notify_ok = bool(_scan_phone) and _scan_profile.get("kakao_competitor_notify") is not False
+                        _scan_notify_ok = bool(_scan_phone) and _scan_profile.get("kakao_scan_notify") is True
+                        _comp_notify_ok = bool(_scan_phone) and _scan_profile.get("kakao_competitor_notify") is True
                     except Exception as _spe:
                         logger.warning(f"[daily_scan_all] 알림 프로필 조회 실패 biz={biz.get('id')}: {_spe}")
 
@@ -1390,9 +1390,9 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
     biz_name = biz.get("name", "")
     _profile = user.get("profiles") or {}
     phone = _profile.get("phone")
-    # 다른 알림 잡들(day7_rescan_job 등)과 동일 관례: 명시적 False만 차단, 미설정(None)은 기본 발송
-    scan_notify_on = _profile.get("kakao_scan_notify") is not False
-    competitor_notify_on = _profile.get("kakao_competitor_notify") is not False
+    # 알림 설정 해석 통일(2026-11-02): 명시적 True일 때만 켜짐 — 미설정(NULL)은 꺼짐(옵트인). 신규 가입 기본값이 false이므로 같은 방향.
+    scan_notify_on = _profile.get("kakao_scan_notify") is True
+    competitor_notify_on = _profile.get("kakao_competitor_notify") is True
 
     if not biz_id:
         return
@@ -1858,6 +1858,15 @@ async def subscription_lifecycle_job():
         except Exception as e:
             logger.warning(f"subscription_lifecycle_job 운영자 알림 실패: {e}")
 
+    async def _email_customer(sub: dict, kind: str, grace_until: str | None = None) -> None:
+        """갱신 실패(유예 진입)·정지를 고객 이메일로도 알린다(2026-11-02, 알림톡 병행·전화번호 없는 고객 포함). 두 시점에만 1통씩 —
+        유예 중 매일 재시도가 실패해도 보내지 않는다. 실패해도 갱신 처리는 계속한다."""
+        try:
+            from services.payment_notice_email import send_payment_notice_email
+            await send_payment_notice_email(sub.get("user_id"), kind, grace_until)
+        except Exception as e:
+            logger.warning(f"subscription_lifecycle_job 고객 이메일 안내 실패: {e}")
+
     def _sub_brief(sub: dict, has_phone: bool) -> str:
         # 개인정보 최소화: 사용자 id 앞 8자·플랜·청구액만. 이메일·전화번호는 담지 않는다.
         return (
@@ -1978,6 +1987,7 @@ async def subscription_lifecycle_job():
                         f"{_sub_brief(sub, bool(phone))}\n자동 갱신 결제가 실패해 유예 기간(~{today + timedelta(days=3)})에 들어갔습니다. "
                         "유예 중 매일 재시도하고, 그때까지 성공하지 않으면 정지됩니다.\n확인: 관리자 /admin/payment-events",
                     )
+                    await _email_customer(sub, "grace", str(today + timedelta(days=3)))
                     if phone:
                         await notifier.send_payment_failed(phone)
             except Exception as e:
@@ -2014,6 +2024,7 @@ async def subscription_lifecycle_job():
                         f"{_sub_brief(sub, bool(phone))}\n유예 기간 안에 결제가 회복되지 않아 구독이 정지됐습니다. "
                         "고객 연락이 필요한지 확인하세요.\n확인: 관리자 /admin/payment-events",
                     )
+                    await _email_customer(sub, "suspended")
                     if phone:
                         await notifier.send_suspended(phone)
                     logger.info(f"Subscription suspended: {sub['id']}")
@@ -4491,8 +4502,8 @@ async def check_briefing_alert_job():
                     continue
 
                 phone = profile.get("phone")
-                # kakao_scan_notify가 명시적 False면 스킵, None이면 기본 발송
-                if profile.get("kakao_scan_notify") is False:
+                # kakao_scan_notify가 명시적 True가 아니면 스킵(NULL은 꺼짐 — 옵트인, 2026-11-02 통일)
+                if profile.get("kakao_scan_notify") is not True:
                     continue
                 if not phone:
                     continue
@@ -4668,7 +4679,7 @@ async def _detect_competitor_score_spike():
 
                 profile = profile_res.data
                 phone = profile.get("phone")
-                if not phone or profile.get("kakao_competitor_notify") is False:
+                if not phone or profile.get("kakao_competitor_notify") is not True:   # NULL은 꺼짐(옵트인, 2026-11-02 통일)
                     continue
 
                 # 가장 급등한 경쟁사 1개만 알림
@@ -6008,8 +6019,8 @@ async def inactive_post_alert_job() -> None:
             phone = profile.get("phone")
             if not phone:
                 continue
-            # 사용자 알림 옵트아웃 존중 (kakao_scan_notify=False면 skip)
-            if profile.get("kakao_scan_notify") is False:
+            # 사용자가 켠 경우에만 발송 (kakao_scan_notify가 명시적 True가 아니면 skip — NULL은 꺼짐, 2026-11-02 통일)
+            if profile.get("kakao_scan_notify") is not True:
                 continue
 
             try:

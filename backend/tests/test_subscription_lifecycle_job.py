@@ -101,6 +101,21 @@ class FakeKakao:
         return rec
 
 
+EMAILS: list = []   # 고객 안내 이메일 호출 기록 — 실제 메일·실제 사용자 조회는 절대 일어나지 않게 항상 가짜로 바꾼다(autouse)
+
+
+@pytest.fixture(autouse=True)
+def _no_real_customer_email(monkeypatch):
+    import services.payment_notice_email as pne
+    EMAILS.clear()
+
+    async def fake_send(user_id, kind, grace_until=None):
+        EMAILS.append((user_id, kind, grace_until))
+        return True
+    monkeypatch.setattr(pne, "send_payment_notice_email", fake_send)
+    yield
+
+
 def sub(i, uid, status="active", end_at=None, plan="basic", cycle="monthly", grace_until=None, disc=None, key="bk"):
     return {"id": i, "user_id": uid, "plan": plan, "status": status, "billing_cycle": cycle, "end_at": end_at,
             "grace_until": grace_until, "first_month_discount_until": disc, "billing_key": key}
@@ -293,6 +308,38 @@ def test_operator_is_alerted_when_a_subscription_is_suspended(env):
 def test_no_operator_alert_on_success_or_while_grace_is_still_waiting(env):
     _, _, ops, _ = env([sub(1, "a", end_at=D(0)), sub(2, "b", status="grace_period", end_at=D(-2), grace_until=D(1))], charge=lambda s: s["id"] == 1)
     assert ops == []                                                                # 성공·유예 대기(다음 날 재시도)는 사람이 개입할 일이 아니다
+
+
+# ── 고객 이메일 안내(알림톡 병행) ──────────────────────────────────────────────────────────────────────────
+
+def test_customer_gets_an_email_when_renewal_fails_even_without_a_phone(env):
+    env([sub(1, "u1xxxxxxxx", end_at=D(0))], charge=False, phones={"u1xxxxxxxx": ""})
+    assert EMAILS == [("u1xxxxxxxx", "grace", D(3))]                              # 전화번호가 없어 알림톡이 못 가는 고객도 이메일은 받는다
+    assert not any(c[0] == "send_payment_failed" for c in FakeKakao.calls)
+
+
+def test_customer_gets_an_email_when_suspended_and_not_while_grace_is_waiting(env):
+    env([sub(1, "u1xxxxxxxx", status="grace_period", end_at=D(-2), grace_until=D(1))], charge=False)
+    assert EMAILS == []                                                           # 유예 중 재시도 실패는 보내지 않는다(3일 동안 매일 보내면 불쾌)
+    env([sub(1, "u1xxxxxxxx", status="grace_period", end_at=D(-4), grace_until=D(0))], charge=False)
+    assert EMAILS == [("u1xxxxxxxx", "suspended", None)]
+
+
+def test_no_customer_email_on_successful_renewal_or_recovery(env):
+    env([sub(1, "a", end_at=D(0)), sub(2, "b", status="grace_period", end_at=D(-1), grace_until=D(2))])
+    assert EMAILS == []
+
+
+def test_customer_email_failure_never_breaks_renewal_processing(env, monkeypatch):
+    import services.payment_notice_email as pne
+
+    async def boom(user_id, kind, grace_until=None):
+        raise RuntimeError("메일 서버 오류")
+    monkeypatch.setattr(pne, "send_payment_notice_email", boom)
+    db, charged, ops, _ = env([sub(1, "u1", end_at=D(0)), sub(2, "u2", end_at=D(0))], charge=False)
+    assert all(row_of(db, i)["status"] == "grace_period" for i in (1, 2))          # 이메일이 터져도 둘 다 유예 처리
+    assert len(ops) == 2                                                            # 운영자 알림도 둘 다 나감
+    assert len([c for c in FakeKakao.calls if c[0] == "send_payment_failed"]) == 2   # 고객 알림톡도 둘 다 나감
 
 
 def test_alert_failure_never_breaks_renewal_processing(env, monkeypatch):

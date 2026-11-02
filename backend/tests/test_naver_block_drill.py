@@ -123,7 +123,8 @@ class _Notifier:
 
 
 _uploads: list = []         # 갭 카드 업로드 시도 기록(가짜) — 실제 Storage 호출은 없다
-_USER = {"businesses": [{"id": "b1", "name": "테스트식당"}], "profiles": {"phone": "01000000000"}}
+# 알림은 옵트인(2026-11-02 통일: NULL은 꺼짐) — 켠 사용자로 둬야 '차단된 날 억제' 시험이 알림 설정 때문이 아니라 차단 가드 때문에 통과한다
+_USER = {"businesses": [{"id": "b1", "name": "테스트식당"}], "profiles": {"phone": "01000000000", "kakao_scan_notify": True, "kakao_competitor_notify": True}}
 _HISTORY = [
     {"total_score": 54.6, "score_date": "2026-11-02", "rank_in_category": 3},
     {"total_score": 64.5, "score_date": "2026-10-30", "rank_in_category": 2},

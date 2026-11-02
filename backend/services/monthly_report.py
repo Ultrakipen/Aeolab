@@ -151,8 +151,8 @@ async def send_monthly_growth_report_to_all():
                     skipped_count += 1
                     continue
                 # 사용자가 설정에서 알림을 끈 경우는 보내지 않는다 — 같은 알림을 보내는 monthly_report_notify와 다른 알림 잡들은 이미 이 설정을 따랐는데
-                # 이 잡만 번호만 있으면 보냈다. 명시적 False만 막는다(다른 잡들의 관례, 미설정은 기본 발송).
-                if (profile or {}).get("kakao_scan_notify") is False:
+                # 이 잡만 번호만 있으면 보냈다. 명시적 True가 아니면 보내지 않는다(미설정 NULL은 꺼짐 — 옵트인, 2026-11-02 통일).
+                if (profile or {}).get("kakao_scan_notify") is not True:
                     skipped_count += 1
                     continue
 

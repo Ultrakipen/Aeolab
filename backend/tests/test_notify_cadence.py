@@ -90,7 +90,10 @@ class Notifier:
     async def send_competitor_change(self, *a, **k): self.calls.append("competitor"); return self.ok
 
 
-def _run(monkeypatch, db, notifier):
+_ON = {"phone": "01012345678", "kakao_scan_notify": True, "kakao_competitor_notify": True}
+
+
+def _run(monkeypatch, db, notifier, profile=None):
     import services.change_signal_guard as g
 
     async def flags(supabase, biz_id):
@@ -101,10 +104,19 @@ def _run(monkeypatch, db, notifier):
 
     monkeypatch.setattr(g, "recent_naver_unmeasured_flags", flags)
     monkeypatch.setattr(jobs, "_db", fake_db)
-    user = {"businesses": [{"id": "b1", "name": "내가게"}], "user_id": "u1",
-            "profiles": {"phone": "01012345678", "kakao_scan_notify": True, "kakao_competitor_notify": True}}
+    user = {"businesses": [{"id": "b1", "name": "내가게"}], "user_id": "u1", "profiles": dict(_ON if profile is None else profile)}
     asyncio.run(jobs._send_kakao_notifications(db, notifier, user))
     return notifier.calls
+
+
+def test_notifications_are_opt_in_null_and_false_send_nothing(monkeypatch):
+    """알림 설정 해석 통일(2026-11-02): 명시적 True일 때만 보낸다. 미설정(NULL)은 꺼짐 — 신규 가입 기본값(false)과 같은 방향."""
+    for off in (None, False):
+        db = FakeDB(_tables())
+        prof = {"phone": "01012345678", "kakao_scan_notify": off, "kakao_competitor_notify": off}
+        assert _run(monkeypatch, db, Notifier(), profile=prof) == [], off
+        assert db.tables["notifications"] == []                # 보내지 않았으니 간격 기록도 시작하지 않는다
+    assert sorted(_run(monkeypatch, FakeDB(_tables()), Notifier(), profile=_ON)) == ["action_items", "ai_citation", "score_change"]
 
 
 def test_first_run_sends_then_second_run_is_blocked(monkeypatch):
