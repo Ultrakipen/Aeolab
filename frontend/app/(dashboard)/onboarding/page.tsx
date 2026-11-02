@@ -1159,7 +1159,7 @@ export default function OnboardingPage() {
                   <Circle className="w-5 h-5 text-gray-300 shrink-0 mt-0.5" />
                   <span className="text-base font-medium text-gray-700">
                     카카오 알림 수신 번호 등록
-                    <span className="ml-1 text-sm text-gray-600 font-normal">(구독 후 설정에서 · 알림은 직접 켜야 해요)</span>
+                    <span className="ml-1 text-sm text-gray-600 font-normal">(구독 결제 때 입력 · 수신 여부는 설정에서 켜고 끌 수 있어요)</span>
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
