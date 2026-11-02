@@ -145,6 +145,10 @@ def _run_notify(monkeypatch, scan_flags):
         return None
 
     monkeypatch.setattr(gap_card, "generate_and_upload_gap_card", _no_upload)
+    # 5단계는 전달할 수 있을 때(자유 문구 발송이 켜진 때)만 갭 카드를 만든다(2026-11-02) — 이 하네스가 5단계까지 닿는지 확인하는 아래 단언을 유지하려면 켜 둔다.
+    # 업로드는 위 가짜라 실제 Storage 호출은 없다.
+    import services.kakao_notify as _kn_flag
+    monkeypatch.setattr(_kn_flag, "_FREE_TEXT_ENABLED", True)
     _uploads.clear()
     n = _Notifier()
     asyncio.run(jobs._send_kakao_notifications(_SB(), n, _USER))

@@ -1490,6 +1490,12 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
                     logger.info("[action_items] 최근 발송 간격 안이라 생략 biz=%s", biz_id)
 
     # 5. 갭 카드 PNG 생성 → Storage 업로드 → URL 알림
+    # 이 알림은 자유 문구 경로(_send_raw)라 승인 템플릿이 없는 동안(KAKAO_ALLOW_FREE_TEXT 꺼짐) 항상 건너뛴다(kakao_notify._send_raw).
+    # 전달도 못 할 알림을 위해 실행마다 PNG를 만들어 Storage에 올리면 사용자 수만큼 하루 한 장씩 쌓이고(무료 플랜 1GB) 이벤트 루프도 막는다(2026-11-02 점검).
+    # 받을 수 있는 번호·설정이고 자유 문구 발송이 켜진 때만 만든다. 이 단계는 함수의 마지막이라 바로 돌아가도 다른 단계에 영향이 없다.
+    from services import kakao_notify as _kn_gap
+    if not (phone and scan_notify_on and _kn_gap._FREE_TEXT_ENABLED):
+        return
     try:
         _ls_res = await _db(
             supabase.table("scan_results")
