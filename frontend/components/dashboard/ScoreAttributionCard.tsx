@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp } from "lucide-react";
+import { showsScoreDeltaBadge } from "@/lib/actionLabel";
+import { changeDirection, deltaDirection, effectText, EFFECT_NOTE } from "@/lib/changeDirection";
 
 interface DimensionChange {
   dimension: string;
@@ -37,14 +39,6 @@ interface Props {
   authToken: string;
 }
 
-function getDeltaLabel(delta: number): "크게 향상" | "소폭 향상" | "변화 없음" | "소폭 하락" | "크게 하락" {
-  if (delta > 5)   return "크게 향상";
-  if (delta > 0.5) return "소폭 향상";
-  if (delta < -5)  return "크게 하락";
-  if (delta < -0.5) return "소폭 하락";
-  return "변화 없음";
-}
-
 function getScoreLabel(score: number): string {
   if (score >= 75) return "양호";
   if (score >= 55) return "보통";
@@ -52,23 +46,17 @@ function getScoreLabel(score: number): string {
   return "시작 전";
 }
 
-function DeltaBadge({ delta }: { delta: number }) {
-  const label = getDeltaLabel(delta);
-  if (label === "크게 향상" || label === "소폭 향상")
-    return (
-      <span className="inline-flex items-center gap-1 text-green-700 bg-green-50 border border-green-200 rounded-full px-2 py-0.5 text-sm font-bold">
-        <TrendingUp size={13} /> {label}
-      </span>
-    );
-  if (label === "크게 하락" || label === "소폭 하락")
-    return (
-      <span className="inline-flex items-center gap-1 text-red-700 bg-red-50 border border-red-200 rounded-full px-2 py-0.5 text-sm font-bold">
-        <TrendingDown size={13} /> {label}
-      </span>
-    );
+// 행동 전·후 비교(2026-11-02): 예전 ±0.5점·±5점 단계("소폭 향상/크게 하락")는 같은 가게의 일간 점수 변화(중앙값 3~4점)보다 작아 측정 오차를 변화로 말했다 → 공용 규칙.
+// 하락도 경고색(빨강)이 아닌 주황 — 그 행동 때문이라고 단정할 수 없는 측정 비교다.
+function DeltaBadge({ before, after }: { before: number; after: number }) {
+  const dir = changeDirection(before, after) ?? "flat";
+  const Icon = dir === "up" ? TrendingUp : dir === "down" ? TrendingDown : Minus;
+  const tone = dir === "up" ? "text-green-700 bg-green-50 border-green-200 font-bold"
+    : dir === "down" ? "text-amber-800 bg-amber-50 border-amber-200 font-bold"
+    : "text-gray-600 bg-gray-50 border-gray-200";
   return (
-    <span className="inline-flex items-center gap-1 text-gray-600 bg-gray-50 border border-gray-200 rounded-full px-2 py-0.5 text-sm">
-      <Minus size={13} /> 변화 없음
+    <span className={`inline-flex items-center gap-1 border rounded-full px-2 py-0.5 text-sm ${tone}`}>
+      <Icon size={13} /> {effectText(dir)}
     </span>
   );
 }
@@ -132,7 +120,7 @@ function AttributionItem({ item }: { item: ActionAttribution }) {
           <span className="text-sm font-medium text-gray-800 truncate">{item.action_label}</span>
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-2">
-          <DeltaBadge delta={item.delta} />
+          <DeltaBadge before={item.score_before} after={item.score_after} />
           {open ? <ChevronUp size={14} className="text-gray-600" /> : <ChevronDown size={14} className="text-gray-600" />}
         </div>
       </button>
@@ -140,14 +128,14 @@ function AttributionItem({ item }: { item: ActionAttribution }) {
       {open && (
         <div className="px-4 pb-4 border-t border-gray-100 bg-gray-50 space-y-3">
           {/* attribution_text는 백엔드 생성 문자열 — 행동 설명만 표시 */}
-          <p className="text-sm text-gray-700 mt-3">
-            {item.action_label} 실행 후 노출 상태에 변화가 반영됐습니다.
-            {item.dimension_changes.length > 0 && " 아래에서 AI별 영향을 확인하세요."}
+          <p className="text-sm text-gray-700 mt-3 break-keep">
+            {item.action_label} 실행 전후의 측정 결과를 비교한 것입니다.
+            {item.dimension_changes.length > 0 && " 아래에서 AI별 변화를 참고하세요."}
           </p>
 
           {item.dimension_changes.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-600">AI별 영향</p>
+              <p className="text-sm font-medium text-gray-600">AI별 변화(참고)</p>
               {item.dimension_changes.map((d) => (
                 <DimBar key={d.dimension} change={d} maxAbs={maxAbs} />
               ))}
@@ -160,7 +148,7 @@ function AttributionItem({ item }: { item: ActionAttribution }) {
             </span>
             <span>→</span>
             <span>
-              이후: <strong className={sameLabel ? "text-gray-700" : item.delta > 0 ? "text-green-700" : "text-red-700"}>
+              이후: <strong className={sameLabel ? "text-gray-700" : item.delta > 0 ? "text-green-700" : "text-amber-700"}>
                 {afterLabel}
               </strong>
             </span>
@@ -201,7 +189,9 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
 
   if (!data) return null;
 
-  const { attributions, total_attributed_gain, top_effective_action, message } = data;
+  const { total_attributed_gain, top_effective_action, message } = data;
+  // 시스템 자동 기록(점수 변화 로그·'추천됨'·경쟁사 상태)은 사용자가 한 행동이 아니라 '내 행동의 효과'에 섞여 보이면 안 된다(2026-11-02)
+  const attributions = (data.attributions ?? []).filter((a) => showsScoreDeltaBadge(a.action_type));
 
   if (!attributions || attributions.length === 0) {
     return (
@@ -214,10 +204,8 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
     );
   }
 
-  const gainLabel = total_attributed_gain > 10 ? "크게 향상됨"
-    : total_attributed_gain > 3  ? "향상됨"
-    : total_attributed_gain > 0.5 ? "소폭 향상됨"
-    : "유지됨";
+  // 큰 변화(공용 규칙, 10점 이상)일 때만 요약 상자를 띄운다 — 예전 0.5점 초과는 측정 오차 범위였다
+  const gainUp = deltaDirection(total_attributed_gain) === "up";
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -242,16 +230,17 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
           </div>
         </div>
 
-        {total_attributed_gain > 0.5 && (
+        {gainUp && (
           <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-3">
             <TrendingUp className="text-green-700 shrink-0" size={18} />
             <div>
               <p className="text-sm font-semibold text-green-800">
-                최근 {days}일간 노출 상태 {gainLabel}
+                최근 {days}일간 측정에서 상승이 확인됐습니다
               </p>
-              {top_effective_action && (
-                <p className="text-sm text-green-700 mt-0.5">
-                  가장 효과적인 행동: <strong>{top_effective_action}</strong>
+              {/* "가장 효과적인 행동"은 인과 단정이라 쓰지 않는다. 남은(사용자가 한) 행동 중에서만 보인다 */}
+              {top_effective_action && attributions.some((a) => a.action_label === top_effective_action) && (
+                <p className="text-sm text-green-700 mt-0.5 break-keep">
+                  측정 변화가 가장 컸던 행동: <strong>{top_effective_action}</strong>
                 </p>
               )}
             </div>
@@ -266,8 +255,9 @@ export default function ScoreAttributionCard({ bizId, authToken }: Props) {
         ))}
       </div>
 
-      <div className="px-5 pb-4 text-sm text-gray-600">
-        다시 측정 후 최신 효과를 확인할 수 있습니다.
+      <div className="px-5 pb-4 text-sm text-gray-600 break-keep">
+        <p>{EFFECT_NOTE}</p>
+        <p className="mt-1">다시 측정 후 최신 비교를 확인할 수 있습니다.</p>
       </div>
     </div>
   );

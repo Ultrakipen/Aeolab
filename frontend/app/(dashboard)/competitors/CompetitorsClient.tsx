@@ -24,6 +24,7 @@ import PioneerKeywordsCard from '@/app/(dashboard)/competitors/PioneerKeywordsCa
 import CompetitorKeywordCompare from '@/components/dashboard/CompetitorKeywordCompare'
 import { PlaceCompareTable } from '@/components/dashboard/PlaceCompareTable'
 import type { GapAnalysis } from '@/types/gap'
+import { significantDelta } from '@/lib/changeDirection'
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -801,7 +802,8 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
     {
       name: bizName,
       score: Math.round(latest.total_score),
-      delta: prev && trendGapOk ? Math.round(latest.total_score) - Math.round(prev.total_score) : null,
+      // 변화는 큰 경우만 말한다(공용 규칙 lib/changeDirection, 2026-11-02) — 경쟁사 점수는 간이 추정치라 작은 차이는 측정 오차 범위다
+      delta: prev && trendGapOk ? significantDelta(Math.round(latest.total_score) - Math.round(prev.total_score)) : null,
       isMe: true,
     },
     ...compList.map(name => {
@@ -814,7 +816,7 @@ function CompetitorTrendChart({ trendScans, bizName }: { trendScans: TrendScan[]
       return {
         name,
         score: Math.round(latestVal),
-        delta: prevVal !== null && trendGapOk ? Math.round(latestVal) - Math.round(prevVal) : null,
+        delta: prevVal !== null && trendGapOk ? significantDelta(Math.round(latestVal) - Math.round(prevVal)) : null,
         isMe: false,
       }
     }),
@@ -1183,7 +1185,7 @@ function CompetitorSparkline({ competitorName, trendScans }: { competitorName: s
   })
   if (data.length < 2) return null
   const trendGapOk = hasSufficientTrendGap(data[data.length - 1].scanned_at, data[data.length - 2].scanned_at)
-  const trend = trendGapOk ? data[data.length - 1].v - data[data.length - 2].v : 0
+  const trend = trendGapOk ? (significantDelta(data[data.length - 1].v - data[data.length - 2].v) ?? 0) : 0
   const color = trend > 0 ? '#ef4444' : trend < 0 ? '#22c55e' : '#9ca3af'
   return (
     <div
@@ -2328,7 +2330,7 @@ export function CompetitorsClient({
               ? Object.values(prevScan.competitor_scores).find(x => x.name === c.name)?.score ?? null
               : null
             const csTrendGapOk = hasSufficientTrendGap(trendScans[0]?.scanned_at, prevScan?.scanned_at)
-            const csDelta = cs && prevCsScore !== null && csTrendGapOk ? Math.round(cs.score - prevCsScore) : null
+            const csDelta = cs && prevCsScore !== null && csTrendGapOk ? significantDelta(Math.round(cs.score - prevCsScore)) : null
 
             return (
               <li key={c.id} className="overflow-hidden transition-colors hover:bg-gray-50/50">
@@ -2369,7 +2371,7 @@ export function CompetitorsClient({
                           )}
                           {csDelta !== null && csDelta !== 0 && (
                             <span className={`hidden md:inline-flex text-sm font-bold px-1.5 py-0.5 rounded-full ${csDelta > 0 ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}
-                              title={csDelta > 0 ? '지난 측정 대비 상승 (경쟁사 강화)' : '지난 측정 대비 하락 (내 가게에 유리)'}>
+                              title={csDelta > 0 ? '지난 측정 대비 상승 (경쟁사 점수는 간이 추정치입니다)' : '지난 측정 대비 하락 (경쟁사 점수는 간이 추정치입니다)'}>
                               {csDelta > 0 ? '↑ 상승' : '↓ 하락'}
                             </span>
                           )}

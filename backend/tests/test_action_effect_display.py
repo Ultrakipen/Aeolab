@@ -109,3 +109,47 @@ def test_which_record_types_get_an_effect_badge_is_decided_by_the_real_code():
     got = dict(zip(map(str, types), json.loads(p.stdout)))
     assert [got[k] for k in ("smartplace_intro_qa", "faq_keyword", "naver_post", "None", "")] == [True] * 5      # 사용자 행동(과 종류를 모르는 기록)은 표시
     assert [got[k] for k in ("score_up", "score_down", "auto_recommended", "competitor_ahead")] == [False] * 4     # 시스템 자동 기록은 표시하지 않는다
+
+
+# ── 같은 유형의 나머지 화면 (2026-11-02, 위임 결정으로 추가 적용) ─────────────────────────────────────────────
+
+ATTRIBUTION = _read("components", "dashboard", "ScoreAttributionCard.tsx")
+COMPETITORS = _read("app", "(dashboard)", "competitors", "CompetitorsClient.tsx")
+
+
+def test_attribution_card_uses_the_shared_rule_and_drops_causal_wording():
+    a = _code(ATTRIBUTION)
+    assert "changeDirection(" in a and "deltaDirection(" in a and "EFFECT_NOTE" in a
+    assert "getDeltaLabel" not in a and "소폭 향상" not in a and "크게 하락" not in a    # 예전 ±0.5·±5점 단계
+    assert "가장 효과적인 행동" not in a and "total_attributed_gain > 0.5" not in a      # 인과 단정·0.5점 초과 요약
+    assert "노출 상태에 변화가 반영됐습니다" not in a                                       # '행동 때문에'로 읽히는 문장
+
+
+def test_attribution_card_lists_only_user_actions_and_only_names_a_top_action_that_is_listed():
+    assert "filter((a) => showsScoreDeltaBadge(a.action_type))" in ATTRIBUTION           # 점수 변화 로그·'추천됨' 같은 시스템 기록은 '내 행동의 효과'에 섞이지 않는다
+    assert "attributions.some((a) => a.action_label === top_effective_action)" in ATTRIBUTION
+
+
+def test_competitor_screen_shows_changes_only_when_they_are_big():
+    c = _code(COMPETITORS)
+    assert c.count("significantDelta(") >= 4                                              # 비교 표 2곳·스파크라인·화살표 배지(경쟁사 점수는 간이 추정치)
+    assert "from '@/lib/changeDirection'" in COMPETITORS
+
+
+def test_growth_driver_label_uses_the_shared_rule():
+    g = _code(GROWTH)
+    assert "const dir = deltaDirection(delta);" in g
+    assert "delta > 0.5" not in g and "delta < -0.5" not in g                             # 항목별 ±0.5점 기준
+
+
+def test_my_actions_list_hides_system_records():
+    g = _code(GROWTH)
+    assert "const userActionLogs = actionLogs.filter((l) => isUserActionRecord(l.action_type))" in g
+    assert "userActionLogs.length > 0 ?" in g and "userActionLogs.map((log, i)" in g       # "내가 한 행동 기록" 목록은 사용자 행동만
+    assert "{actionLogs.length > 0 ? (" not in g                                          # 옛 목록(시스템 기록 포함)이 남아 있지 않다
+
+
+def test_competitor_change_tooltip_does_not_interpret_an_estimate_as_a_cause():
+    c = _code(COMPETITORS)
+    assert "(경쟁사 강화)" not in c and "(내 가게에 유리)" not in c                          # 간이 추정치에서 끌어낸 해석 — "(추정)" 표기 원칙
+    assert c.count("경쟁사 점수는 간이 추정치입니다") >= 2

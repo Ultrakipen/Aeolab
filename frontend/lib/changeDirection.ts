@@ -35,6 +35,12 @@ export function deltaDirection(delta: number | null | undefined): ChangeDirectio
   return "flat";
 }
 
+/** 변화가 방향을 말할 만큼 크면 그 값을, 아니면 null — 이미 `delta !== null && delta !== 0`으로 화살표를 그리는 화면(경쟁사 비교 등)이 기준만 바꿔 쓰게 한다. */
+export function significantDelta(delta: number | null | undefined): number | null {
+  const dir = deltaDirection(delta);
+  return dir === "up" || dir === "down" ? (delta as number) : null;
+}
+
 /** 전·후 점수로 판정 — 어느 한쪽이 없으면 null(아직 측정 중). */
 export function changeDirection(before: number | null | undefined, after: number | null | undefined): ChangeDirection | null {
   if (!isNum(before) || !isNum(after)) return null;

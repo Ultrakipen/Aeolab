@@ -42,6 +42,14 @@ def test_extension_is_a_fixed_three_days_not_prorated():
     assert "연장" not in mod.render(4, VALUES)[1].replace("연장된 이용 기간", "")        # 4단계는 연장된 마지막 날({연장일})만 안내
 
 
+def test_compensation_is_stated_as_a_voluntary_company_policy_that_may_change():
+    # 약관 제5조(7일 경과 후 잔여 기간 환불 없음)·제8조(일시 중단은 사전·사후 고지)를 바꾸지 않으므로, 연장·환불 선택은 약관상 의무가 아니라 자체 정책임을 메일에서 밝힌다.
+    for stage in (2, 3):
+        text = mod.render(stage, VALUES)[1]
+        assert "이 보상은 회사의 자체 정책에 따른 것이며, 이후 정책은 달라질 수 있습니다" in text
+    assert "자체 정책" not in mod.render(4, VALUES)[1]                              # 복구 안내에는 불필요
+
+
 def test_stage3_adds_refund_choice_and_stage2_does_not_promise_it():
     assert "환불" in mod.render(3, VALUES)[1]
     assert "환불" not in mod.render(2, VALUES)[1]

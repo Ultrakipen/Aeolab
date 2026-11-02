@@ -15,8 +15,8 @@ import {
   ReferenceLine,
 } from "recharts";
 import { getScoreTextLabel } from "@/lib/scoreLabels";
-import { displayActionLabel, showsScoreDeltaBadge, measurementFreshness } from "@/lib/actionLabel";
-import { CHANGE_DISPLAY_MIN, changeDirection, effectText, effectColorClass, effectPillClass, EFFECT_NOTE } from "@/lib/changeDirection";
+import { displayActionLabel, showsScoreDeltaBadge, isUserActionRecord, measurementFreshness } from "@/lib/actionLabel";
+import { CHANGE_DISPLAY_MIN, changeDirection, deltaDirection, effectText, effectColorClass, effectPillClass, EFFECT_NOTE } from "@/lib/changeDirection";
 import { CATEGORY_LABEL } from "@/lib/categories";
 import { spansScoreMethodChange } from "@/lib/scoreMethodChange";
 import ScoreMethodChangeNote from "@/components/dashboard/ScoreMethodChangeNote";
@@ -105,8 +105,10 @@ interface Props {
 
 /** delta(원본 점수 차) → 방향 텍스트만. 원본 점수 숫자는 노출하지 않는다(점수 표시 원칙). */
 function getDriverDirectionLabel(delta: number): string {
-  if (delta > 0.5) return "↑ 개선됨";
-  if (delta < -0.5) return "↓ 하락";
+  // 항목별 변화도 공용 규칙으로(2026-11-02): 예전 ±0.5점은 측정 오차 범위라 대부분의 항목이 "개선됨/하락"으로 찍혔다
+  const dir = deltaDirection(delta);
+  if (dir === "up") return "↑ 개선됨";
+  if (dir === "down") return "↓ 하락";
   return "— 유지";
 }
 
@@ -235,6 +237,7 @@ export default function GrowthClient({
 
   const categoryLabel = CATEGORY_LABEL[category] ?? category;
   const hasMyScan = historyData.length > 0;
+  const userActionLogs = actionLogs.filter((l) => isUserActionRecord(l.action_type));
 
   // 차트용 데이터 변환
   // 네이버 측정이 빠진 날(차단·캡차·상한)의 통합·네이버 점수는 항목이 제외·재정규화돼 다른 날과 같은 척도가 아니다 — 그대로 찍으면 실제 변화가 없어도
@@ -582,7 +585,7 @@ export default function GrowthClient({
                 <span className="text-sm text-gray-600">{d.label}</span>
                 <span
                   className={`text-sm font-semibold shrink-0 ${
-                    d.delta > 0.5 ? "text-emerald-700" : d.delta < -0.5 ? "text-red-700" : "text-gray-600"
+                    deltaDirection(d.delta) === "up" ? "text-emerald-700" : deltaDirection(d.delta) === "down" ? "text-red-700" : "text-gray-600"
                   }`}
                 >
                   {getDriverDirectionLabel(d.delta)}
@@ -763,9 +766,10 @@ export default function GrowthClient({
         <p className="text-sm text-gray-600 mb-4">
           가이드에서 체크한 항목들이 여기에 기록됩니다. 7일 후 점수 변화를 자동으로 측정합니다.
         </p>
-        {actionLogs.length > 0 ? (
+        {/* 이 목록은 "내가 한 행동"만 — 시스템 자동 기록(점수 변화 로그·추천됨·경쟁사 상태)은 위 그래프의 행동 이력과 변화 기록 페이지에 있다 */}
+        {userActionLogs.length > 0 ? (
           <div className="space-y-3">
-            {actionLogs.map((log, i) => {
+            {userActionLogs.map((log, i) => {
               const effectDir = showsScoreDeltaBadge(log.action_type) ? changeDirection(log.score_before, log.score_after) : null;
               return (
                 <div
@@ -791,9 +795,7 @@ export default function GrowthClient({
                 </div>
               );
             })}
-            {actionLogs.some((l) => showsScoreDeltaBadge(l.action_type)) && (
-              <p className="text-sm text-gray-600 break-keep">{EFFECT_NOTE}</p>
-            )}
+            <p className="text-sm text-gray-600 break-keep">{EFFECT_NOTE}</p>
           </div>
         ) : (
           <div className="text-center py-8 border border-dashed border-gray-200 rounded-xl">

@@ -25,9 +25,14 @@ export function displayActionLabel(label: string | null | undefined): string {
  */
 const SYSTEM_RECORD_TYPES = new Set(["competitor_ahead", "score_up", "score_down", "auto_recommended"]);
 
+/** 사용자가 직접 한 행동의 기록인가(시스템 자동 기록이 아니다) — "내가 한 행동" 목록과 효과 표시의 기준 */
+export function isUserActionRecord(actionType: string | null | undefined): boolean {
+  return !SYSTEM_RECORD_TYPES.has(actionType ?? "");
+}
+
 /** 행동 전·후 비교 문구(효과 표시)를 붙일 기록인가 — 사용자가 직접 한 행동만 true */
 export function showsScoreDeltaBadge(actionType: string | null | undefined): boolean {
-  return !SYSTEM_RECORD_TYPES.has(actionType ?? "");
+  return isUserActionRecord(actionType);
 }
 
 export type MeasurementFreshness = {
