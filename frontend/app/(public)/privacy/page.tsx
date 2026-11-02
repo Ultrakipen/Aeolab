@@ -233,7 +233,8 @@ export default function PrivacyPage() {
               내용 추가·삭제 또는 수정이 있을 경우에는 변경사항 시행 최소 7일 전 서비스 공지사항을 통해 고지합니다.
             </p>
             <p className="mt-2">
-              제5항의 AI 처리 업체(Anthropic·OpenAI·Google) 및 국외 전송 안내는 2026년 11월 8일부터 시행됩니다.
+              제5항의 AI 처리 업체(Anthropic·OpenAI·Google) 및 국외 전송 안내는 2026년 11월 2일부터 시행됩니다.
+              다만 2026년 11월 2일 이전에 가입한 이용자에게는 변경 공지(2026년 11월 1일)로부터 7일이 지난 2026년 11월 8일부터 적용됩니다.
             </p>
           </section>
 

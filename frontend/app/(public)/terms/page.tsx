@@ -172,7 +172,7 @@ export default function TermsPage() {
           <section className="border-t border-gray-200 pt-6">
             <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">부칙</h2>
             <p>이 약관은 2026년 4월 1일부터 시행합니다.</p>
-            <p className="mt-2">제7조 제5항(타인 개인정보 입력 금지 및 AI 처리 업체 전송 안내)은 2026년 11월 8일부터 시행합니다.</p>
+            <p className="mt-2">제7조 제5항(타인 개인정보 입력 금지 및 AI 처리 업체 전송 안내)은 2026년 11월 2일부터 시행합니다. 다만 2026년 11월 2일 이전에 가입한 이용자에게는 변경 공지(2026년 11월 1일)로부터 7일이 지난 2026년 11월 8일부터 적용합니다.</p>
             <p className="mt-2">문의: <a href="mailto:support@aeolab.co.kr" className="text-blue-600 underline">support@aeolab.co.kr</a></p>
           </section>
 
