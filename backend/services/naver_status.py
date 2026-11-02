@@ -19,7 +19,10 @@ from typing import Optional
 _KST = timezone(timedelta(hours=9))
 
 # 모든 지연 상태에 공통으로 붙는 안내 — 사용자가 알아야 할 것: 값이 사라지지 않는다 / 글로벌 AI 측정은 정상.
-KEEP_NOTE = "그동안 네이버 항목은 마지막으로 확인한 값이 유지되거나 '확인 전'으로 표시돼요. ChatGPT·Gemini 등 AI 검색 측정은 그대로 진행돼요."
+# 2026-11-02 정정: 공개 화면에서 Gemini 측정은 '준비 중'(GEMINI_MEASUREMENT_LIVE=false)이라 여기서 "Gemini 측정은 그대로 진행"이라고 말하면 안 된다 —
+# 계속 되는 것으로 사실이 확인된 ChatGPT·구글(Serper) 측정만 쓴다. 네이버를 직접 확인하는 항목은 기능마다 접속 지점이 달라(순위·스마트플레이스·블로그 진단·경쟁사 정보 등)
+# 하나씩 나열하지 않고 "네이버를 직접 확인하는 항목"으로 말한다.
+KEEP_NOTE = "그동안 네이버를 직접 확인하는 항목은 마지막으로 확인한 값이 유지되거나 '확인 전'으로 표시돼요. ChatGPT·구글 AI 검색 측정은 그대로 진행돼요."
 
 
 def eta_label(seconds: int) -> str:
@@ -58,11 +61,12 @@ def user_status(now: Optional[float] = None) -> dict:
     if cooldown > 0:
         label = eta_label(cooldown)
         return {"state": "delayed", "reason": "cooldown", "resume_in_sec": cooldown, "eta_label": label,
-                "message": f"네이버 확인이 지연되고 있어요. {label} 다시 확인돼요.", "detail": KEEP_NOTE}
+                # '예상'임을 문장에 넣는다 — 복구 시점을 약속하지 않는다(재시도가 다시 막힐 수 있다). 라벨은 10분·1시간 단위 반올림.
+                "message": f"네이버 확인이 지연되고 있어요. {label} 다시 확인될 것으로 예상돼요.", "detail": KEEP_NOTE}
     if cap_hit:
         secs = _seconds_until_next_midnight_kst(t)
         return {"state": "delayed", "reason": "daily_limit", "resume_in_sec": secs, "eta_label": "내일",
-                "message": "오늘은 네이버 확인 요청이 많아 일부 항목이 내일 확인돼요.", "detail": KEEP_NOTE}
+                "message": "오늘은 네이버 확인 요청이 많아 일부 항목은 내일 확인될 예정이에요.", "detail": KEEP_NOTE}
     if recovering:
         return {"state": "recovering", "reason": "recovering", "resume_in_sec": None, "eta_label": "곧",
                 "message": "네이버 확인을 다시 시작하는 중이에요. 다음 측정 때 새 값으로 갱신돼요.", "detail": KEEP_NOTE}
