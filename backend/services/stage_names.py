@@ -120,6 +120,31 @@ def normalize_stage_label(label: Optional[str], code: Optional[str] = None) -> s
     return label or ""
 
 
+# ── 성장 리포트 헤드라인·카드의 "처음 측정 대비 올랐다/내렸다" 판정 (2026-11-02) ──────────────────────────────────────────────
+# 이전 기준은 첫 점수 대비 ±2점(백엔드)과 0이 아니기만 하면(프런트 카드)이었다. 같은 사업장의 연속한 날 점수 변화를 실측하니(측정 정상 스캔 344건·9곳)
+# 일간 변화폭 중앙값 3.9점·80분위 8.0점이고 68%가 2점 이상 움직였다 — 2점은 측정 오차 범위라 거의 매번 "올랐다/내렸다"가 나올 수 있었다.
+# 그래서 ① 등급 구간(단계)이 바뀌었고 변화가 HEADLINE_BAND_MIN_DELTA 이상이거나(단계 경계 근처 54.9→55.1 같은 흔들림은 제외),
+# ② 같은 구간이어도 HEADLINE_BIG_DELTA 이상 움직였을 때만 방향을 말한다. 구간 변경만 보면 같은 구간 안의 큰 개선(57→70)을 "변화 없음"으로 가린다.
+# 10은 경쟁사 변화 알림(competitor_alert)의 변화폭 기준과 같다. 두 값은 제안값 — 실사용 데이터가 쌓이면 보정할 것.
+HEADLINE_BIG_DELTA = 10.0
+HEADLINE_BAND_MIN_DELTA = 3.0
+
+
+def headline_direction(start_code: Optional[str], curr_code: Optional[str], delta: Optional[float]) -> str:
+    """'up' | 'down' | 'flat'. 단계 변화의 방향과 점수 변화의 부호가 엇갈리면(단계는 트랙1, 변화는 통합 점수 기준) 말하지 않는다."""
+    if delta is None:
+        return "flat"
+    if abs(delta) >= HEADLINE_BIG_DELTA:
+        return "up" if delta > 0 else "down"
+    if start_code in STAGE_ORDER and curr_code in STAGE_ORDER and start_code != curr_code and abs(delta) >= HEADLINE_BAND_MIN_DELTA:
+        moved_up = STAGE_ORDER.index(curr_code) > STAGE_ORDER.index(start_code)
+        if moved_up and delta > 0:
+            return "up"
+        if not moved_up and delta < 0:
+            return "down"
+    return "flat"
+
+
 # 이번 점수가 전체 가중치의 이 비율 미만으로만 계산됐으면(나머지는 '확인 전'으로 제외) 단계 변화는 실제 성장이 아니라
 # 측정 공백일 수 있다 → 성장 단계 상승 알림을 보내지 않는다. 근거 없는 제안값(2026-10-30, K 점검) — 실데이터로 보정할 것.
 STAGE_ALERT_MIN_COVERAGE = 0.4

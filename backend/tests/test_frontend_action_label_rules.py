@@ -30,7 +30,8 @@ def test_growth_page_uses_helpers_everywhere_it_prints_a_log_label():
 def test_weekly_change_requires_a_fresh_measurement_and_stale_dates_are_shown():
     s = _read("app", "(dashboard)", "growth", "GrowthClient.tsx")
     # "이번 주 ↑/↓"는 두 갈래(PC·모바일 구성) 모두 7일 이내 측정일 때만
-    assert len(re.findall(r'Math\.abs\(latestWeeklyChange\) > 2 && freshness\.level === "fresh"', s)) == 2
+    # (임계값은 2026-11-02에 ±2점→CHANGE_DISPLAY_MIN(10점)로 바뀌었다 — 측정 오차 범위. 이 시험의 목적은 '7일 이내일 때만'이라는 보호 장치다)
+    assert len(re.findall(r'Math\.abs\(latestWeeklyChange\) >= CHANGE_DISPLAY_MIN && freshness\.level === "fresh"', s)) == 2
     assert s.count("최신 아님") >= 2
     h = _read("lib", "actionLabel.ts")
     assert "days <= 7" in h and "days <= 13" in h

@@ -2719,11 +2719,22 @@ async def get_growth_report(biz_id: str, user=Depends(get_current_user)):
             return cs > ps and not _basis_changed(cur, prv)
 
         comp_gaining = any(_comp_score_rose(cid) for cid in latest_comp_raw)
-        if total_delta_val >= 2:
+        # 방향 판정(2026-11-02): ±2점은 측정 오차 범위(같은 가게 일간 변화 중앙값 3.9점)라 등급 구간 변경 또는 큰 변화(10점)일 때만 말한다 — services/stage_names.headline_direction
+        from services.stage_names import headline_direction as _headline_direction, STAGE_ORDER as _STAGE_ORDER, stage_code_for_score as _stage_code_for_score
+
+        def _stage_code_of(scan_row):
+            row = scan_row or {}
+            code = row.get("growth_stage")
+            return code if code in _STAGE_ORDER else _stage_code_for_score(_safe_float(row.get("track1_score")))
+
+        _start_code = _stage_code_of(trial_raw if trial_raw else (_base_scans[0] if _base_scans else None))
+        _curr_code = _stage_code_of(_base_scans[-1] if _base_scans else None)
+        _direction = _headline_direction(_start_code, _curr_code, total_delta_val)
+        if _direction == "up":
             # "꾸준히"는 첫·마지막 점수 차이만으로는 말할 수 없고(중간 흔들림은 보지 않는다) 칭찬 느낌표도 근거보다 과하다.
             headline = "처음 측정과 비교하면 AI 검색 노출이 올랐습니다. 측정 시점에 따라 달라질 수 있어 추이를 계속 확인해 보세요."
             headline_type = "growth"
-        elif total_delta_val <= -2:
+        elif _direction == "down":
             if worst_driver:
                 label = worst_driver["label"]
                 # 가장 크게 줄어든 '항목'일 뿐 원인으로 확인된 것은 아니다(지침 9: 인과 단정 금지)

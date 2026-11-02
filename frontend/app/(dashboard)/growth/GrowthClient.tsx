@@ -109,6 +109,11 @@ function getDriverDirectionLabel(delta: number): string {
   return "— 유지";
 }
 
+// "↑ 상승 / ↓ 하락"을 말하는 최소 변화폭 — 백엔드 services/stage_names.HEADLINE_BIG_DELTA와 같은 값(테스트가 일치를 강제).
+// 같은 가게의 일간 점수 변화는 중앙값 3.9점·68%가 2점 이상이라(2026-11-02 실측 344건) 예전 ±2점 기준은 측정 오차를 변화로 말했다.
+// 저장된 weekly_change는 7일 변화가 아니라 직전 기록 대비 값이다.
+const CHANGE_DISPLAY_MIN = 10;
+
 function getHeadlineStyle(headlineType: string | null | undefined): { box: string; text: string } {
   switch (headlineType) {
     case "growth":
@@ -178,10 +183,11 @@ function getWeakestFactorLabel(
 
 // 커스텀 툴팁
 interface TooltipPayload {
-  value: number;
+  value: number | null;
   dataKey: string;
   name: string;
   color: string;
+  payload?: { unmeasured?: boolean };   // Recharts가 넘기는 원본 행
 }
 
 interface CustomTooltipProps {
@@ -195,12 +201,16 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-4 py-3 text-sm min-w-[140px]">
       <p className="text-gray-600 text-sm mb-2">{label}</p>
-      {payload.map((p, i) => (
+      {/* 값이 없는(null) 선은 건너뛴다 — Math.round(null)=0이라 그대로 두면 "주의 필요"로 잘못 읽힌다 */}
+      {payload.filter((p) => typeof p.value === "number").map((p, i) => (
         <div key={i} className="flex items-center justify-between gap-3 mb-0.5">
           <span style={{ color: p.color }} className="font-medium text-sm">{p.name}</span>
-          <span className="font-bold text-gray-800">{getScoreTextLabel(Math.round(p.value))}</span>
+          <span className="font-bold text-gray-800">{getScoreTextLabel(Math.round(p.value as number))}</span>
         </div>
       ))}
+      {payload.some((p) => p.payload?.unmeasured) && (
+        <p className="text-sm text-gray-600 mt-1 max-w-[220px] break-keep">이 날은 네이버를 확인하지 못해 통합·네이버 점수를 표시하지 않았습니다.</p>
+      )}
     </div>
   );
 }
@@ -228,13 +238,21 @@ export default function GrowthClient({
   const hasMyScan = historyData.length > 0;
 
   // 차트용 데이터 변환
-  const chartData = historyData.map((entry) => ({
-    date: formatDateShort(entry.scanned_at ?? entry.score_date),
-    fullDate: formatDateFull(entry.scanned_at ?? entry.score_date),
-    score: Math.round(entry.unified_score * 10) / 10,
-    naverScore: Math.round(entry.track1_score * 10) / 10,
-    globalScore: Math.round((entry.track2_score ?? 0) * 10) / 10,
-  }));
+  // 네이버 측정이 빠진 날(차단·캡차·상한)의 통합·네이버 점수는 항목이 제외·재정규화돼 다른 날과 같은 척도가 아니다 — 그대로 찍으면 실제 변화가 없어도
+  // 급락한 것처럼 보이는 선이 생긴다. 그 날은 두 선을 끊고(null) 회색 점선 표시와 툴팁 안내로 "확인 전"임을 보인다. 글로벌 AI 점수는 네이버와 무관하게
+  // 측정되므로 그대로 둔다. (change_signal_guard의 "비교의 양 끝이 모두 정상 측정일 때만 변화로 말한다" 원칙을 그래프에도 적용)
+  const chartData = historyData.map((entry) => {
+    const unmeasured = !!entry.naver_unmeasured;
+    return {
+      date: formatDateShort(entry.scanned_at ?? entry.score_date),
+      fullDate: formatDateFull(entry.scanned_at ?? entry.score_date),
+      unmeasured,
+      score: unmeasured ? null : Math.round(entry.unified_score * 10) / 10,
+      naverScore: unmeasured ? null : Math.round(entry.track1_score * 10) / 10,
+      globalScore: Math.round((entry.track2_score ?? 0) * 10) / 10,
+    };
+  });
+  const hasUnmeasuredDays = chartData.some((d) => d.unmeasured);
 
   // 최신 스코어 / 첫 스코어 — "첫 측정 대비 개선/하락"의 양 끝은 네이버까지 정상 측정된 스캔으로 잡는다.
   // 네이버 측정이 빠진 스캔(차단·캡차·상한)의 점수는 항목이 제외·재정규화돼 다른 스캔과 척도가 다르므로, 그 점수를 끝점으로 쓰면
@@ -246,7 +264,6 @@ export default function GrowthClient({
   const first = baseHistory[0];
   const currentScore = latest ? Math.round(latest.unified_score) : 0;
   const firstScore = first ? Math.round(first.unified_score) : 0;
-  const totalDelta = latest && first ? Math.round((latest.unified_score - first.unified_score) * 10) / 10 : 0;
 
   // 첫 스캔 vs 최신 스캔 경과일 — 3일 미만이면 AI 샘플링 노이즈를 "개선됨/하락"으로 오판할 수 있음.
   // 이 값은 /api/report/history 기반이라 백엔드 headline_elapsed_days(별도 엔드포인트)와는
@@ -433,12 +450,14 @@ export default function GrowthClient({
                   return <span className={`text-lg font-bold ${cls}`}>{lbl}</span>
                 })()}
               </div>
-              {totalDelta !== 0 && sufficientTrendData && (
-                <p className={`text-sm font-semibold ${totalDelta > 0 ? "text-blue-600" : "text-red-700"}`}>
-                  {totalDelta > 0 ? "↑ 첫 측정 대비 개선됨" : "↓ 첫 측정 대비 하락"}
+              {/* 방향은 백엔드 헤드라인과 같은 판정만 따른다(등급 구간 변경 또는 큰 변화) — 예전에는 0.1점만 달라도 "개선됨/하락"을 띄워
+                  위쪽 헤드라인("큰 변화 없이 유지 중")과 모순됐다. 같은 가게의 일간 변화 중앙값이 3.9점이라 작은 차이는 측정 오차 범위다. */}
+              {sufficientTrendData && (headlineType === "growth" || headlineType === "decline") && (
+                <p className={`text-sm font-semibold ${headlineType === "growth" ? "text-blue-600" : "text-red-700"}`}>
+                  {headlineType === "growth" ? "↑ 첫 측정 대비 개선됨" : "↓ 첫 측정 대비 하락"}
                 </p>
               )}
-              {latestWeeklyChange !== null && Math.abs(latestWeeklyChange) > 2 && freshness.level === "fresh" && (
+              {latestWeeklyChange !== null && Math.abs(latestWeeklyChange) >= CHANGE_DISPLAY_MIN && freshness.level === "fresh" && (
                 <p className={`text-sm font-semibold mt-1 ${latestWeeklyChange > 0 ? "text-emerald-700" : "text-red-700"}`}>
                   이번 주 {latestWeeklyChange > 0 ? "↑ 상승" : "↓ 하락"}
                 </p>
@@ -456,7 +475,7 @@ export default function GrowthClient({
                 const cls = currentScore >= 75 ? 'text-emerald-700' : currentScore >= 55 ? 'text-blue-600' : currentScore >= 30 ? 'text-amber-700' : 'text-gray-600'
                 return <p className={`text-lg font-bold mb-1 ${cls}`}>{lbl}</p>
               })()}
-              {latestWeeklyChange !== null && Math.abs(latestWeeklyChange) > 2 && freshness.level === "fresh" && (
+              {latestWeeklyChange !== null && Math.abs(latestWeeklyChange) >= CHANGE_DISPLAY_MIN && freshness.level === "fresh" && (
                 <p className={`text-sm font-semibold mb-1 ${latestWeeklyChange > 0 ? "text-emerald-700" : "text-red-700"}`}>
                   이번 주 {latestWeeklyChange > 0 ? "↑ 상승" : "↓ 하락"}
                 </p>
@@ -635,6 +654,10 @@ export default function GrowthClient({
                       />
                     );
                   })}
+                  {/* 네이버를 확인하지 못한 날 — 통합·네이버 선이 끊기는 자리를 회색 점선으로 표시 */}
+                  {chartData.map((d, i) => d.unmeasured ? (
+                    <ReferenceLine key={`gap-${i}`} x={d.date} stroke="#d1d5db" strokeDasharray="2 3" strokeWidth={1.5} />
+                  ) : null)}
                   <Line
                     type="monotone"
                     dataKey="score"
@@ -666,6 +689,12 @@ export default function GrowthClient({
                 </LineChart>
               </ResponsiveContainer>
             </div>
+
+            {hasUnmeasuredDays && (
+              <p className="text-sm text-gray-600 mt-2 break-keep">
+                회색 점선은 네이버를 확인하지 못한 날입니다. 그 날의 통합·네이버 점수는 그래프에 표시하지 않았습니다.
+              </p>
+            )}
 
             {/* 행동 타임라인 목록 (차트 아래) */}
             {actionLogs.length > 0 && (
@@ -703,7 +732,7 @@ export default function GrowthClient({
         ) : chartData.length === 1 ? (
           <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
             <p className="text-sm font-semibold text-gray-700">
-              현재 AI 노출: <span className="text-blue-600 text-base font-bold">{getScoreTextLabel(chartData[0].score)}</span>
+              현재 AI 노출: <span className="text-blue-600 text-base font-bold">{chartData[0].score !== null ? getScoreTextLabel(chartData[0].score) : "네이버 확인 전"}</span>
             </p>
             <p className="text-sm text-gray-600">
               측정을 1회 더 하면 노출 변화 추이가 그래프로 나타납니다.
@@ -1119,8 +1148,8 @@ export default function GrowthClient({
                           ? (entry.sample_size != null ? `${Math.round(expFreq)}회 / ${entry.sample_size}` : `${Math.round(expFreq)}회`)
                           : "–"}
                       </td>
-                      <td className={`py-3 text-right font-semibold text-sm ${weeklyChange === null ? "text-gray-600" : weeklyChange > 2 ? "text-emerald-700" : weeklyChange < -2 ? "text-red-700" : "text-gray-600"}`}>
-                        {weeklyChange === null ? "–" : weeklyChange > 2 ? "↑ 상승" : weeklyChange < -2 ? "↓ 하락" : "— 유지"}
+                      <td className={`py-3 text-right font-semibold text-sm ${weeklyChange === null ? "text-gray-600" : weeklyChange >= CHANGE_DISPLAY_MIN ? "text-emerald-700" : weeklyChange <= -CHANGE_DISPLAY_MIN ? "text-red-700" : "text-gray-600"}`}>
+                        {weeklyChange === null ? "–" : weeklyChange >= CHANGE_DISPLAY_MIN ? "↑ 상승" : weeklyChange <= -CHANGE_DISPLAY_MIN ? "↓ 하락" : "— 유지"}
                       </td>
                     </tr>
                   );

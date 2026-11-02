@@ -202,7 +202,8 @@ def test_growth_latest_scan_blocked_uses_the_last_measured_scan(monkeypatch):
 def test_growth_first_scan_blocked_does_not_poison_the_baseline_forever(monkeypatch):
     r = _run_growth(monkeypatch, [_scan(1, 40.0, _BLOCKED), _scan(5, 60.0, _OK), _scan(10, 62.0, _OK)])
     assert r["summary"]["start_score"] == 60.0              # 첫 '정상 측정' 스캔이 기준 — 차단일 점수(40)가 기준으로 남지 않는다
-    assert r["summary"]["total_delta"] == 2.0 and r["headline_type"] == "growth"
+    # 2점 변화는 측정 오차 범위라 방향을 말하지 않는다(2026-11-02 기준 변경). 차단일 점수(40)가 기준으로 남았다면 변화가 22점으로 계산돼 "올랐다"가 나온다.
+    assert r["summary"]["total_delta"] == 2.0 and r["headline_type"] == "stable"
 
 
 def test_growth_a_real_decline_between_measured_scans_is_still_reported(monkeypatch):
