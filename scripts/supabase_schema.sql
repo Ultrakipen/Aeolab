@@ -3214,3 +3214,15 @@ CREATE TABLE IF NOT EXISTS ai_usage_daily (
 CREATE INDEX IF NOT EXISTS idx_ai_usage_daily_day ON ai_usage_daily(day DESC);
 
 ALTER TABLE ai_usage_daily ENABLE ROW LEVEL SECURITY;   -- 서비스 키(백엔드)만 접근
+
+
+-- ========================================
+-- notifications.status 에 'skipped' 허용 (2026-11-02, SQL Editor 수동 실행 필요 — 아직 미실행)
+-- 문제: 알림 함수(KakaoNotifier._send 등)가 해지 차단·주간 상한·번호 없음·자유 문구 불가로 건너뛴 알림을 status='skipped'로 기록하는데
+--       위 CHECK(status IN ('sent','failed','pending'))가 거부(23514)해 기록이 전부 사라진다(서버 실측: skipped 0건). 상한·차단이 얼마나 막는지 볼 수 없다.
+-- 제약 이름은 기본 규칙(notifications_status_check)을 가정한 것 — 먼저 확인:
+--   SELECT conname FROM pg_constraint WHERE conrelid = 'notifications'::regclass AND contype = 'c';
+-- 실행 후: 성공률 점검 잡이 skipped를 어떻게 세는지 확인할 것(sent/failed만 보면 영향 없음).
+-- ========================================
+ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_status_check;
+ALTER TABLE notifications ADD CONSTRAINT notifications_status_check CHECK (status IN ('sent','failed','pending','skipped'));
