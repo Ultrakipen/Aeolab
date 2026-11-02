@@ -48,3 +48,11 @@ def _isolate_naver_kill_switch(tmp_path, monkeypatch):
     격리하지 않으면 킬스위치를 켠 채 배포 스크립트의 서버 테스트가 돌 때 '접속이 허용돼야 하는' 테스트가 전부 실패해 긴급 수정 배포가 막힌다."""
     monkeypatch.setenv("NAVER_KILL_SWITCH_FILE", str(tmp_path / "no_kill_switch"))
     monkeypatch.delenv("NAVER_ACCESS_KILL_SWITCH", raising=False)
+
+
+@pytest.fixture(autouse=True)
+def _notify_weekly_cap_off_by_default(monkeypatch):
+    """정기 알림 주간 상한(services/notify_weekly_cap)은 `KakaoNotifier._send`에서 운영 DB(notifications)를 읽고 쓴다.
+    서버처럼 환경변수가 로드된 곳에서 `_send`를 실제로 부르는 테스트가 운영 DB에 기록을 남기거나(가짜 번호 해시 행), 읽기 실패로 알림을 막지 않게
+    기본은 끈다. 상한 자체를 시험하는 테스트(test_notify_weekly_cap)만 NOTIFY_WEEKLY_CAP을 직접 켠다."""
+    monkeypatch.setenv("NOTIFY_WEEKLY_CAP", "0")

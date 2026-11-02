@@ -896,6 +896,13 @@ class KakaoNotifier:
                 if template_code:
                     await _email_fallback(user_id, template_code, params)
             return None
+        # 사용자(번호)당 정기 알림 주간 상한(services/notify_weekly_cap, 사용자 결정 2026-11-02: 주 3건). 막히면 None을 돌려줘 호출자가 '전달 안 됨'으로 다룬다
+        # (종류별 발송 간격 기록도 시작되지 않아 다음 기회에 다시 시도). 결제·구독·대행 안내는 이 함수를 거치지 않는다.
+        from services import notify_weekly_cap as _wcap
+        if not await _wcap.allowed(phone, ttype):
+            logger.info("_send skipped: 주간 정기 알림 상한 (ttype=%s)", ttype)
+            self._log_notification(None, ttype, dict(params), "skipped")
+            return None
         status = "sent"
         kakao_failed = False
         fail_note = None
@@ -931,6 +938,7 @@ class KakaoNotifier:
             else:
                 masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
                 logger.info(f"Kakao notify ({ttype}) -> {masked}")
+                await _wcap.record(phone, ttype)       # 전달 성공이 확인된 때만 센다
             return r
         except Exception as e:
             status = "failed"
