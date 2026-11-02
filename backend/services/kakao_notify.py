@@ -942,7 +942,7 @@ class KakaoNotifier:
         phone = _normalize_phone(phone)
         if not phone:
             logger.warning(f"_send skipped: 수신번호 없음 또는 형식 오류 (ttype={ttype})")
-            self._log_notification(None, ttype, dict(params), "skipped")
+            self._log_notification(None, ttype, {"reason": "no_phone", **params}, "skipped")
             if ttype == "score_change" and user_id:
                 template_code = resolve_template_code(ttype) if ttype in TEMPLATES else ""
                 if template_code:
@@ -950,13 +950,13 @@ class KakaoNotifier:
             return None
         if await _subscription_ended(phone):
             logger.info("_send skipped: 서비스 기간이 끝난 계정 (ttype=%s)", ttype)
-            self._log_notification(None, ttype, dict(params), "skipped")
+            self._log_notification(None, ttype, {"reason": "subscription_ended", **params}, "skipped")
             return None
         app_key = os.getenv("KAKAO_APP_KEY", "")
         if not app_key:
             masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
             logger.warning(f"_send skipped: KAKAO_APP_KEY 미설정 ({masked}, ttype={ttype})")
-            self._log_notification(None, ttype, {"phone": masked, **params}, "skipped")
+            self._log_notification(None, ttype, {"reason": "no_app_key", "phone": masked, **params}, "skipped")
             # KAKAO_APP_KEY 미설정 시에도 score_change는 이메일 fallback 시도
             if ttype == "score_change" and user_id:
                 template_code = resolve_template_code(ttype) if ttype in TEMPLATES else ""
@@ -968,7 +968,7 @@ class KakaoNotifier:
         from services import notify_weekly_cap as _wcap
         if not await _wcap.allowed(phone, ttype):
             logger.info("_send skipped: 주간 정기 알림 상한 (ttype=%s)", ttype)
-            self._log_notification(None, ttype, dict(params), "skipped")
+            self._log_notification(None, ttype, {"reason": "weekly_cap", **params}, "skipped")
             return None
         status = "sent"
         kakao_failed = False
