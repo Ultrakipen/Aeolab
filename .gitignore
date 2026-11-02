@@ -94,3 +94,4 @@ backend/.naver_kill_switch
 
 # 구독자 안내 메일 발송 기록(이메일 해시) — 서버 로컬 전용
 backend/.notice_email_sent_*.jsonl
+backend/.subscription_extend_*.jsonl
