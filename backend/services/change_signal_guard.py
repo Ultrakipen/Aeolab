@@ -120,6 +120,55 @@ async def unmeasured_on_dates(supabase, business_id: str, dates) -> Optional[boo
         return None
 
 
+_SCORE_ROW_COLUMNS = (
+    "unified_score, total_score, "
+    "nr_error:naver_result->>error, nr_captcha:naver_result->>captcha_detected, nr_quota:naver_result->>quota_skipped"
+)
+
+
+def score_of_row_if_measured(row) -> Optional[float]:
+    """위 _SCORE_ROW_COLUMNS로 읽은 스캔 행의 점수. 그 스캔의 네이버 측정이 빠졌으면 None(전후 비교의 끝점으로 쓰지 않는다).
+
+    unified_score가 없는 과거 행은 같은 값의 별칭인 total_score를 쓴다. 점수 자체가 없으면 None.
+    """
+    from services.score_engine import naver_unmeasured_from_json_fields
+    if not isinstance(row, dict):
+        return None
+    if naver_unmeasured_from_json_fields(row.get("nr_error"), row.get("nr_captcha"), row.get("nr_quota")):
+        return None
+    val = row.get("unified_score")
+    if val is None:
+        val = row.get("total_score")
+    try:
+        return float(val) if val is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+async def latest_measured_score(supabase, business_id: str) -> Optional[float]:
+    """가장 최근 점수 스캔의 점수 — 그 스캔의 네이버 측정이 빠졌거나 조회에 실패하면 None.
+
+    '행동 전/후', '대행 전/후' 점수를 저장할 때 쓴다. 측정 빠진 스캔의 점수는 항목이 제외·재정규화돼 다른 스캔과 척도가 달라(같은 가게 시험
+    64.5 ↔ 54.6) 그 값을 끝점으로 저장하면 처방·대행의 효과가 거짓으로 보인다. None으로 두면 화면은 증감을 표시하지 않는다.
+    일부러 '그 전의 정상 스캔'으로 거슬러 올라가지 않는다 — 오래된 점수를 '지금'의 전/후 끝점으로 쓰면 그것도 거짓이다.
+    """
+    try:
+        from db.supabase_client import execute
+        res = await execute(
+            supabase.table("scan_results")
+            .select(_SCORE_ROW_COLUMNS)
+            .eq("business_id", business_id)
+            .not_.is_("track1_score", "null")
+            .order("scanned_at", desc=True)
+            .limit(1)
+        )
+        rows = (res.data if res else None) or []
+        return score_of_row_if_measured(rows[0]) if rows else None
+    except Exception as e:
+        _logger.warning("[change_signal_guard] 최근 점수 조회 실패(전/후 점수 비워 둠) biz=%s: %s", business_id, e)
+        return None
+
+
 async def recent_naver_unmeasured_flags(supabase, business_id: str) -> Optional[list]:
     """점수가 나온 최근 스캔 2건(최신순: 오늘/직전)의 네이버 '측정 못 함' 여부. 조회에 실패하면 None.
 

@@ -252,23 +252,10 @@ async def _get_latest_business_score(business_id: Optional[str]) -> Optional[flo
     if not business_id:
         return None
     try:
-        supabase = get_client()
-        res = await execute(
-            supabase.table("scan_results")
-            .select("unified_score, total_score")
-            .eq("business_id", business_id)
-            # scan_results에는 created_at이 없다(scanned_at) — 예전 코드는 항상 42703으로 실패해 except로 None을 돌려줬다(2026-11-01 스키마 검사로 발견)
-            .order("scanned_at", desc=True)
-            .limit(1)
-            .maybe_single()
-        )
-        row = res.data if (res and res.data) else None
-        if not row:
-            return None
-        val = row.get("unified_score")
-        if val is None:
-            val = row.get("total_score")
-        return float(val) if val is not None else None
+        # 최신 스캔의 네이버 측정이 빠졌다면 None — 측정 빠진 스캔의 점수는 척도가 달라 대행 전/후 비교(→ 공개 후기의 score_delta)의 끝점으로 쓰면 거짓이 된다.
+        # (scan_results에는 created_at이 없고 scanned_at이다 — 2026-11-01 스키마 검사로 발견; 조회는 services/change_signal_guard.latest_measured_score)
+        from services.change_signal_guard import latest_measured_score
+        return await latest_measured_score(get_client(), business_id)
     except Exception as _e:
         _logger.debug(f"[delivery] 최근 점수 조회 실패 (무시): {_e}")
         return None

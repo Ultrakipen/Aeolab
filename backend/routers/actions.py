@@ -72,7 +72,9 @@ async def complete_action(
     # 최신 스캔 결과에서 before 값 조회
     scan_row = (
         supabase.table("scan_results")
-        .select("id, unified_score, track1_score, gemini_result")
+        # nr_* 세 값은 이 스캔의 네이버 측정이 빠졌는지 판정하려고 JSON 연산자로 필요한 필드만 읽는다(services/change_signal_guard)
+        .select("id, unified_score, total_score, track1_score, gemini_result, "
+                "nr_error:naver_result->>error, nr_captcha:naver_result->>captcha_detected, nr_quota:naver_result->>quota_skipped")
         .eq("business_id", body.business_id)
         .order("scanned_at", desc=True)
         .limit(1)
@@ -84,8 +86,9 @@ async def complete_action(
     before_mentioned: Optional[bool] = None
 
     if scan_row.data:
-        _uni = scan_row.data.get("unified_score")
-        before_score = _uni if _uni is not None else scan_row.data.get("track1_score")
+        # 행동 '전' 점수 — 그 스캔의 네이버 측정이 빠졌다면 None(7일 후 점수와의 증감이 거짓이 되므로). Gemini 노출 여부는 네이버와 무관해 그대로 쓴다.
+        from services.change_signal_guard import score_of_row_if_measured
+        before_score = score_of_row_if_measured(scan_row.data)
         gemini = scan_row.data.get("gemini_result") or {}
         before_mentioned = bool(gemini.get("mentioned") or (gemini.get("exposure_freq", 0) > 0))
 

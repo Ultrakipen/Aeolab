@@ -3691,22 +3691,10 @@ async def log_business_action(
         .limit(1)
     ))
 
-    score_before = None
-    try:
-        latest_score = await execute(
-            supabase.table("score_history")
-            .select("unified_score, total_score")
-            .eq("business_id", biz_id)
-            .not_.is_("total_score", "null")
-            .order("score_date", desc=True)
-            .limit(1)
-            .maybe_single()
-        )
-        if latest_score and latest_score.data:
-            _uni = latest_score.data.get("unified_score")
-            score_before = _uni if _uni is not None else latest_score.data.get("total_score")
-    except Exception as e:
-        _logger.warning("[action_log] score_history 조회 실패: %s", e)
+    # 행동 '전' 점수 — 최신 스캔의 네이버 측정이 빠졌다면 None으로 둔다(이후 '후' 점수와의 증감이 거짓이 되므로; 화면은 둘 다 있을 때만 증감을 표시).
+    # 점수 이력이 아니라 스캔 행에서 읽는다 — 네이버 측정 여부(naver_result)는 scan_results에만 있다. 조회 실패도 None.
+    from services.change_signal_guard import latest_measured_score
+    score_before = await latest_measured_score(supabase, biz_id)
 
     try:
         existing = await _dup_task
