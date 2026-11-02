@@ -270,8 +270,8 @@ class KakaoNotifier:
         self, phone: str, biz_name: str, prev: float, curr: float, prev_r: int, curr_r: int,
         user_id: str | None = None,
     ):
-        """점수 변화 알림. 점수 수치 대신 등급+순위 텍스트로 발송."""
-        await self._send(
+        """점수 변화 알림. 점수 수치 대신 등급+순위 텍스트로 발송. 실제 전달 성공 여부를 돌려준다(호출자의 발송 간격 기록용)."""
+        resp = await self._send(
             phone,
             "score_change",
             {
@@ -288,6 +288,7 @@ class KakaoNotifier:
             },
             user_id=user_id,
         )
+        return _kakao_response_ok(resp)
 
     async def send_keyword_change(
         self, phone: str, biz_name: str, keyword: str, prev_rank: int, curr_rank: int
@@ -318,8 +319,9 @@ class KakaoNotifier:
 
     async def send_ai_citation(
         self, phone: str, biz_name: str, platform: str, query: str, excerpt: str
-    ):
-        await self._send(
+    ) -> bool:
+        """AI 인용 알림. 실제 전달 성공 여부를 돌려준다(호출자의 발송 간격 기록용)."""
+        resp = await self._send(
             phone,
             "ai_citation",
             {
@@ -330,6 +332,7 @@ class KakaoNotifier:
                 "#{확인일시}": date.today().strftime("%Y-%m-%d"),
             },
         )
+        return _kakao_response_ok(resp)
 
     async def send_competitor_change(self, phone: str, biz_name: str, comp_name: str, change_text: str) -> bool:
         """경쟁사 변화 알림(AEOLAB_COMP_01). `순위변화` 변수에는 점수 증감 숫자가 아니라 "AI 노출 상승/하락" 같은 텍스트를 넣는다.

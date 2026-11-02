@@ -1347,6 +1347,7 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
 
     weekly_kakao_notify / daily_kakao_notify 양쪽에서 공유.
     """
+    from services import notify_cadence as _cadence
     biz_list = user.get("businesses") or []
     if not biz_list:
         return
@@ -1381,12 +1382,17 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
             # 비교하는 두 점수 중 하나라도 네이버 측정이 빠진 스캔의 점수면 변화가 아니다(차단·캡차·상한 때의 재정규화 점수; 확인 못 하면 보내지 않는다)
             from services.change_signal_guard import comparable_scans, recent_naver_unmeasured_flags
             if comparable_scans(await recent_naver_unmeasured_flags(supabase, biz_id)):
-                await notifier.send_score_change(
-                    phone, biz_name,
-                    prev_h["total_score"], curr_h["total_score"],
-                    prev_h.get("rank_in_category", 0),
-                    curr_h.get("rank_in_category", 0),
-                )
+                # 발송 간격(services/notify_cadence): 측정이 흔들리는 가게는 3점 이상 변화가 거의 매일 나와 점수 알림이 매일 갔다 — 주 1회로 제한
+                if await _cadence.is_due(_db, supabase, biz_id, "score_change"):
+                    if await notifier.send_score_change(
+                        phone, biz_name,
+                        prev_h["total_score"], curr_h["total_score"],
+                        prev_h.get("rank_in_category", 0),
+                        curr_h.get("rank_in_category", 0),
+                    ):
+                        await _cadence.mark_sent(_db, supabase, biz_id, "score_change")
+                else:
+                    logger.info("[score_change] 최근 발송 간격 안이라 생략 biz=%s", biz_id)
             else:
                 logger.info("[score_change] 네이버 측정이 빠진 스캔이 비교에 섞여 점수 변화 알림 생략 biz=%s", biz_id)
 
@@ -1403,12 +1409,17 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
         citations = _cit_res.data or []
         if citations:
             c = citations[0]
-            await notifier.send_ai_citation(
-                phone, biz_name,
-                c.get("platform", "AI"),
-                c.get("query", ""),
-                c.get("excerpt", ""),
-            )
+            # 발송 간격: 24시간 안에 언급이 하나라도 있으면 매일 갔다 — 2주에 1회로 제한
+            if await _cadence.is_due(_db, supabase, biz_id, "ai_citation"):
+                if await notifier.send_ai_citation(
+                    phone, biz_name,
+                    c.get("platform", "AI"),
+                    c.get("query", ""),
+                    c.get("excerpt", ""),
+                ):
+                    await _cadence.mark_sent(_db, supabase, biz_id, "ai_citation")
+            else:
+                logger.info("[ai_citation] 최근 발송 간격 안이라 생략 biz=%s", biz_id)
 
     # 3. 경쟁사 순위 변화 알림
     if phone and competitor_notify_on:
@@ -1471,7 +1482,12 @@ async def _send_kakao_notifications(supabase, notifier, user: dict) -> None:
                     it.get("title", str(it)) if isinstance(it, dict) else str(it)
                     for it in items[:3]
                 ]
-                await notifier.send_action_items(phone, biz_name, titles)
+                # 발송 간격: 템플릿 이름이 "이달 할 일"인데 가이드가 있으면 실행할 때마다(Pro 이상은 매일) 갔다 — 28일에 1회로 제한
+                if await _cadence.is_due(_db, supabase, biz_id, "action_items"):
+                    if await notifier.send_action_items(phone, biz_name, titles):
+                        await _cadence.mark_sent(_db, supabase, biz_id, "action_items")
+                else:
+                    logger.info("[action_items] 최근 발송 간격 안이라 생략 biz=%s", biz_id)
 
     # 5. 갭 카드 PNG 생성 → Storage 업로드 → URL 알림
     try:
@@ -4287,13 +4303,17 @@ async def weekly_score_report_job():
                         "[weekly_score_report_job] gap 조회 실패 biz=%s: %s", biz_id, gap_err
                     )
 
-                await notifier.send_weekly_score_report(
+                _weekly_ok = await notifier.send_weekly_score_report(
                     phone=phone,
                     business_name=biz_name,
                     current_score=current_score,
                     prev_score=prev_score,
                     top_action=top_action,
                 )
+                if _weekly_ok:
+                    # 주간 성적표가 이번 주 등급 변화를 이미 알렸다 — 5분 뒤 매일 알림(09:10)이 같은 내용을 또 보내지 않게 점수 변화 알림의 발송 간격을 시작한다
+                    from services import notify_cadence as _cad_w
+                    await _cad_w.mark_sent(_exec, supabase, biz_id, "score_change")
 
             except Exception as e:
                 logger.warning("[weekly_score_report_job] 개별 처리 실패: %s", e)
