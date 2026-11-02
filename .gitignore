@@ -88,3 +88,6 @@ backend/.naver_usage_meter.json*
 backend/.naver_usage_meter_history.jsonl
 
 backend/.naver_kill_switch
+
+# Git Bash 크래시 덤프(2026-11-02: 실수로 추적돼 있어 정리)
+*.stackdump

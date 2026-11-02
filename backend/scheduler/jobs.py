@@ -93,6 +93,11 @@ def start_scheduler():
         purge_old_board_posts, "cron", hour=3, minute=40, id="board_purge",
         replace_existing=True,
     )
+    # 알림 보조 기록 정리 (매일 03:45 KST, DB만 쓰는 잡) — 건너뜀 기록·주간 상한 원장·발송 간격 기록이 무한히 쌓이지 않게(2026-11-02)
+    scheduler.add_job(
+        purge_old_notification_records, "cron", hour=3, minute=45, id="notification_records_purge",
+        replace_existing=True, max_instances=1, misfire_grace_time=3600,
+    )
     # 인메모리 캐시·SSE 토큰 주기 정리 (10분마다)
     scheduler.add_job(
         _cleanup_memory_stores, "interval", minutes=10, id="memory_cleanup",
@@ -455,6 +460,35 @@ async def purge_old_board_posts():
             logger.info(f"[board_purge] 보존기간 경과 게시글 {n}건 파기")
     except Exception as e:
         logger.warning(f"[board_purge] 실패: {e}")
+
+
+async def purge_old_notification_records():
+    """알림 보조 기록 중 쓸모가 끝난 것만 삭제한다 (2026-11-02). 사용자에게 가는 발송 이력(sent·failed)과 다른 종류는 건드리지 않는다.
+
+    - status='skipped' 건너뜀 기록: 30일 — 해지·상한·번호 없음으로 막힌 시도마다 쌓인다(사유 분석에는 한 달이면 충분).
+    - type='periodic_sent' 주간 상한 원장: 창(7일)의 2배(14일) 이후는 세지 않는다.
+    - type LIKE 'cadence_%' 종류별 발송 간격 기록: 가장 긴 간격의 2배, 최소 60일(환경변수로 간격을 늘려도 기록이 먼저 지워지지 않게).
+    삭제 조건은 항상 종류와 시각을 함께 건다(필터 없는 전체 삭제 방지). 실패해도 다음 날 다시 한다.
+    """
+    from db.supabase_client import get_client, execute
+    from services import notify_cadence as _cad
+    from services import notify_weekly_cap as _cap
+    now = datetime.utcnow()
+    longest = max(_cad.min_days(k) for k in _cad.MIN_INTERVAL_DAYS)
+    rules = [
+        ("skipped", lambda q: q.eq("status", "skipped"), "created_at", 30),
+        (_cap.LEDGER_TYPE, lambda q: q.eq("type", _cap.LEDGER_TYPE), "sent_at", max(14, 2 * _cap.WINDOW_DAYS)),
+        ("cadence", lambda q: q.like("type", "cadence_%"), "sent_at", max(60, 2 * longest)),
+    ]
+    for name, scope, col, days in rules:
+        try:
+            cutoff = (now - timedelta(days=days)).isoformat()
+            res = await execute(scope(get_client().table("notifications").delete()).lt(col, cutoff))
+            n = len(res.data) if (res and res.data) else 0
+            if n:
+                logger.info(f"[notification_records_purge] {name} {days}일 경과 {n}건 삭제")
+        except Exception as e:
+            logger.warning(f"[notification_records_purge] {name} 실패(다음 실행에서 재시도): {e}")
 
 
 async def _cleanup_memory_stores():
