@@ -244,8 +244,8 @@
 | 프론트엔드 | Next.js 16.2.1 App Router + Tailwind + shadcn/ui + Recharts | 포트 3000 |
 | 백엔드 | Python FastAPI + Pydantic v2 + APScheduler + aiohttp | 포트 8000 |
 | DB | Supabase Cloud Free Tier (PostgreSQL + Auth + Storage) | |
-| AI 스캔 | Gemini 2.5 Flash + OpenAI gpt-4.1-mini (Basic 자동 50/50 분할, Full 각 100회) + 네이버 AI 브리핑(Playwright) + Google AI Overview(Serper.dev API) | 4종 운영 |
-| AI 가이드 | Claude sonnet-4-6 (가이드 전용) + Claude Haiku (FAQ/감정분석) | |
+| AI 스캔(측정) | ChatGPT `gpt-6-luna`(`CHATGPT_MODEL` 기본값, 11-01 교체) + Gemini(서버 `GEMINI_MODEL=gemini-3.1-flash-lite`, 무료 등급 — 코드 기본값은 옛 `gemini-2.5-flash`) 각 100회(Pro 경량일 50회, 체험은 ChatGPT 50회만) + 네이버 AI 브리핑(Playwright) + Google AI Overview(Serper.dev API) | 4종 운영 |
+| AI 가이드·생성(처방 텍스트) | Claude Sonnet 4.6(`claude-sonnet-4-6`): 개선 가이드·네이버/글로벌 AI 소개글·AI 광고 대비·창업 리포트 / Claude Haiku 4.5(`claude-haiku-4-5-20251001`): FAQ·톡톡 메뉴·소개글 초안, 리뷰 답변·위기 대응, 리뷰 감정, 블로그 품질, 키워드 추천, 선점 키워드, 주간 소식 초안·월간 시장 뉴스, AI 도우미. **점수에는 관여하지 않는다**(점수는 ChatGPT·Gemini·네이버·구글 측정에서만) | |
 | 스크린샷 | Playwright 1.44+ | `PLAYWRIGHT_SEMAPHORE = Semaphore(int(os.getenv("PLAYWRIGHT_MAX_CONCURRENCY","1")))` 전역 공유 (6개 파일 통합 완료 2026-05-20) |
 | 결제 | 크렙(Creb) PG (심사 중, 테스트 키). 토스페이먼츠는 사용 중단·키 삭제(2026-10-25) | §"남은 작업" 참조 |
 | 알림 | 카카오 비즈API v2 알림톡 5유형 | |
@@ -256,8 +256,8 @@
 
 | 스캐너 | 파일 | 방식 | 용도 |
 |--------|------|------|------|
-| Gemini 2.5 Flash | `gemini_scanner.py` | API | sample_recommend(비유도, n=50/100) — scan_basic()은 50회, scan_all()은 100회 |
-| ChatGPT gpt-4.1-mini | `chatgpt_scanner.py` | API | **전 경로 `sample_recommend`(비유도형, 2026-09-28)** — scan_basic() 50회, scan_all() 100회, Quick 5회, Trial 50회. 유도형 `sample_n`은 호출처 없음(실사업장 43~95/100 부풀림·환각 인용문 확인) |
+| Gemini (`GEMINI_MODEL`, 서버 `gemini-3.1-flash-lite`) | `gemini_scanner.py` | API | sample_recommend(비유도) — scan_all() 100회, scan_basic()은 `sample_50`, 수동 측정은 시간 예산에 맞춰 줄임(`interactive_sample_count`). 조건 검색(Pro+, `condition_search_scanner.py`)·블로그 소재 추천(`routers/guide.py`)에도 쓴다. 공개 화면은 `GEMINI_MEASUREMENT_LIVE=false`라 "준비 중/참고용". 무료 등급이라 표본 성공률이 흔들린다(10-31 55/100) |
+| ChatGPT `gpt-6-luna`(`CHATGPT_MODEL`, 11-01 교체) | `chatgpt_scanner.py` | API | **전 경로 `sample_recommend`(비유도형, 2026-09-28)** — scan_basic() 50회, scan_all() 100회, Quick 5회, Trial 50회. 유도형 `sample_n`은 호출처 없음(실사업장 43~95/100 부풀림·환각 인용문 확인) |
 | 네이버 AI 브리핑 | `naver_scanner.py` | Playwright | 네이버 AI 브리핑 DOM 파싱 |
 | Google AI Overview | `google_scanner.py` | Serper.dev API | 구글 SGE + AI Overview 노출 확인 ($0.001/건, CAPTCHA 없음) |
 
@@ -439,14 +439,14 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 
 ## API 비용 관리 (BEP 20명 기준, A안 50/50 반영)
 
-> **단가 기준 (2026-06-25 공식 확인):** Gemini = Standard Tier (gemini_scanner.py가 실시간 `generate_content` 사용). 월 비용은 실측 데이터 미확보로 추정값 — 실구독자 확보 후 재산정 필요.
+> **단가 기준 (코드의 단일 소스 `services/ai_usage_logger._PRICES_PER_1M_USD`, 2026-11-02 대조):** 아래 단가는 그 표의 값이다(표에 없는 모델은 비용이 None으로 기록되며 추정 단가를 지어내지 않는다). 월 비용은 실측 데이터 미확보로 추정값 — 실구독자 확보 후 `ai_usage_log`로 재산정 필요. **모델이 11-01에 바뀌어(ChatGPT gpt-4.1-mini→gpt-6-luna, Gemini 2.5 Flash 유료→3.1 flash-lite 무료 등급) 아래 "합계" 추정은 옛 모델 기준이다.**
 > **2026-07-12 발견 (`docs/business_viability_audit_v1.0.md` §1):** 설치된 SDK(`google-generativeai==0.8.3`)는 protobuf `GenerationConfig`에 `thinking_config` 필드 자체가 없어 Gemini 2.5 Flash의 동적 사고(thinking, 기본값 Auto)를 코드로 끌 방법이 없었음 — 그리고 어떤 AI 호출에도 토큰 사용량 로깅이 전무해 아래 표 전체가 출시 이후 한 번도 실측 검증되지 않았음. `ai_usage_logger.py` 신설로 Gemini/ChatGPT 스캔 호출 계측 시작(배포 후 실측 누적 예정, `ai_usage_log` 테이블 — 아직 SQL 미실행 시 수동 실행 필요).
 
 | API | 단가 | 월 비용 (추정) | 용도 |
 |-----|------|--------------|------|
-| Gemini 2.5 Flash | **$0.30/1M in, $2.50/1M out** (Standard, thinking 포함) | ~$3~8 | scan_basic() 50회 / scan_all() 100회 (2026-05-31 2.0→2.5 마이그레이션) |
-| OpenAI gpt-4.1-mini | **$0.40/1M in, $1.60/1M out** | ~$1~3 | scan_basic() 50회 / scan_all() 100회 |
-| Claude Sonnet | $3/1M in | ~$3 | 가이드 생성 시만 |
+| Gemini `gemini-3.1-flash-lite`(현재 서버) | **무료 등급 $0**(분당 약 15회 제한 — `GEMINI_MIN_INTERVAL` 4.5초, 일 약 500회는 문서 기재값). 단가표에 없어 `ai_usage_log` 비용 None. 참고: 옛 `gemini-2.5-flash`는 $0.30/1M in·$2.50/1M out(thinking 포함) | 한도 안에서 $0 | 정기 스캔 표본(scan_all 100회)·조건 검색·블로그 소재. 유료 전환 시 단가표에 모델·단가를 먼저 추가 |
+| OpenAI `gpt-6-luna`(현재 기본) | **$0.10/1M in, $0.50/1M out**(11-01 공식 가격 페이지 확인, 추론 토큰은 출력으로 청구된다고 가정). 옛 gpt-4.1-mini는 $0.40/$1.60 | 실측 전(11-01 평가: 호출당 약 -75%) | 정기 스캔 표본 100회·체험 50회·경쟁사 AI 노출 대조 |
+| Claude Sonnet 4.6 / Haiku 4.5 | Sonnet $3/1M in·$15/1M out, Haiku $1/1M in·$5/1M out | 실측 전 | Sonnet: 가이드·소개글·광고 대비·창업 리포트 / Haiku: FAQ·리뷰 답변·위기 대응·감정·블로그 품질·키워드 추천·소식 초안 등 |
 | 카카오 알림톡 | 8~15원/건 | ~800원 | 변화 있을 때 |
 | iwinv 서버 | 고정 | 27,800원 | |
 | **합계** | | **~8~15만원** | Gemini thinking 토큰 실측 전 상단 불확실 |
@@ -455,7 +455,7 @@ cd backend && source venv/bin/activate && uvicorn main:app --reload --port 8000
 
 > **PG(결제대행) 수수료 — 2026-07-16 재확인, 카테고리·등급 2건 정정**: 2026-07-12엔 "정기결제(빌링) 4.3%+VAT"로 기재했으나, 이는 토스의 **브랜드페이** 상품 수수료였음 — AEOlab이 실제 쓰는 API(`webhook.py`의 `/v1/billing/authorizations/issue`, `/v1/billing/{billingKey}`)는 브랜드페이가 아닌 **표준 신용카드 자동결제(빌링키)** 상품이라 일반 등급은 **3.4%+VAT**가 맞는 카테고리(토스 공식 수수료 페이지 확인). 여기에 **사용자 확인 결과 AEOlab 사업자는 연매출 3억원 이하 "영세" 등급**(국세청 매년 1·7월 자동 산정·소급적용, 토스페이먼츠 공식 문서 확인) → 신용카드 **0.40%+VAT(실효 0.44%)**. 마진율 재계산은 `docs/business_viability_audit_v1.0.md` §2 참조.
 
-> ⚠️ **Gemini 2.5 Flash thinking 토큰 주의**: 출력 단가 $2.50에 thinking 토큰 포함. 단순 JSON 태스크에서 thinking이 최소화되면 실제 비용은 하단에 가까움. 구독자 확보 후 실측 필요. Batch Tier($0.15/$1.25) 전환 시 비용 절반 이하로 감소 가능.
+> ⚠️ **현재 Gemini는 무료 등급 `gemini-3.1-flash-lite`**(단가표에 없음 → 비용 None). 유료 전환(11-01 사용자 결정: 당분간 무료 유지) 시 `_PRICES_PER_1M_USD`에 모델·단가를 먼저 추가하고 `GEMINI_MEASUREMENT_LIVE`·동시 30건 시험·`GEMINI_MIN_INTERVAL` 조정을 함께 확인할 것. 옛 `gemini-2.5-flash`의 thinking 토큰·Batch Tier 메모는 모델 교체로 해당 없음(코드 기본값에만 남아 있고 서버 환경변수가 덮어쓴다).
 
 **마진율(2026-09-30 신가격+실측 단가 재계산, `docs/plan_limits_v1.0.md` 상단):** Basic 85.7%, 창업 86.7%, Pro 83.5%, Biz(1사업장) 89.8%(5사업장 풀사용 82.9%) — 한도 100% 사용 보수 기준, 평균 사용 시 86~93%. 이전 07-16 수치(83.8/83.9/86.4/91.4%)는 옛 가격 기준. 2026-07-12 수치(76.3/79.6/78.6/87.1%)는 PG 수수료 자체는 반영했으나 **상품 카테고리를 잘못 짚어(브랜드페이 4.3% 적용, 실제는 표준카드 3.4%) + 영세 우대등급 미확인 + 가격 인상 전(Basic 9,900→11,900원 등) 구가격**으로 계산된 값이었음. 위 수치도 API 비용 축(Gemini thinking 토큰 미실측)은 여전히 추정치 — PG 수수료 축만 확정 값(사용자 확인 완료)
 
@@ -666,7 +666,7 @@ row = res.data[0]               # NOT `res[0]` or `res.get()`
 - ⏳ **첫 고객 리허설(11-01 설계, 참가자 1명 필요)**: 제3자 계정으로 가입→결제→알림→해지→정리 전 경로를 한 번 — 알림 기본값이 `false`라 설정에서 번호 입력·알림 켜기가 필요(가입 화면에는 번호 입력 없음). 계획 `docs/first_customer_rehearsal_plan_2026_11_01.md`, 관찰 도구 `backend/scripts/rehearsal_watch.py <이메일>`(읽기 전용·번호 마스킹). 선행: Claude 크레딧 충전.
 - ⏳ **AI 업체로 나가는 데이터와 개인정보처리방침 점검(11-01 신규, 결정 필요)**: Claude 프롬프트(소개글·블로그 초안·FAQ·톡톡 메뉴)에 사업장 **주소·전화번호**, 리뷰 답변·위기 대응에 **고객 리뷰 본문**이 들어가는데 방침에는 AI 업체 위탁·국외 이전 항목이 없다. 사실·선택지·미확인은 `docs/ai_vendor_data_flow_privacy_check_2026_11_01.md`(법적 판단은 변호사 확인). **사용자 결정(11-01): 사업장 전화·주소는 개인정보가 아니므로 프롬프트 그대로 유지.** 남은 쟁점은 고객 리뷰 본문·자유 입력 문장(리뷰 붙여 넣기 입력란 안내 문구, 방침 갱신).
 - ✅ **Gemini는 당분간 무료 등급 유지(사용자 결정 2026-11-01)** — 11-01 동시 30건 시험에서 12건 한도 초과로 무료 등급 확인(OpenAI는 결제 등급, 조직 `aeolab`). 따라서 `lib/featureFlags.ts GEMINI_MEASUREMENT_LIVE=false` 유지, 공개 문구는 ChatGPT 기준, Gemini 표본은 '참고용'. 정기 스캔은 시간 초과 1회 재시도·한도 초과 8초 대기(`_RETRY_SLOW`). 유료 전환은 재시험(30건 동시 전부 성공) 후 true+재빌드+`GEMINI_MIN_INTERVAL` 조정. Claude 키는 11-01 교체·정상 확인(`check_ai_providers.py`).
-- ✅ **ChatGPT 측정 모델 `gpt-4.1-mini` → `gpt-6-luna` 교체 완료(2026-11-01)** — 4.1-mini는 2027-01-14 종료 예정(API `shutdown_date`). `services/ai_scanner/chatgpt_scanner.py`의 `CHATGPT_MODEL`(환경변수로 즉시 되돌림 가능, gpt-4* 이름이면 옛 파라미터)과 `completion_kwargs()`가 단일 소스: 새 계열은 `max_completion_tokens`+`reasoning_effort=none`(없으면 출력 토큰 5배·비용 더 비쌈), 결과에 `model` 기록, 경쟁사 비교(`basis_changed`)는 ChatGPT 모델이 다르면 변화로 보지 않음, 가게명 자리 설명 문장 필터(`is_plausible_place_name`). 근거 `docs/openai_model_migration_eval_2026_11_01.md`(실존 가게 87→100%, 호출당 비용 -75%, 현재 모델은 지역 소규모 질의에서 가게명을 지어냄 — 네이버 지역검색 대조 0/60). 영향: 결정적 응답이라 노출률이 0/1로 쏠리고 소규모 지역 질의의 경쟁사 목록이 빈다. 11-02 야간 스캔 뒤 확인할 것. (기술 스택 표의 gpt-4.1-mini 표기는 옛 값)
+- ✅ **ChatGPT 측정 모델 `gpt-4.1-mini` → `gpt-6-luna` 교체 완료(2026-11-01)** — 4.1-mini는 2027-01-14 종료 예정(API `shutdown_date`). `services/ai_scanner/chatgpt_scanner.py`의 `CHATGPT_MODEL`(환경변수로 즉시 되돌림 가능, gpt-4* 이름이면 옛 파라미터)과 `completion_kwargs()`가 단일 소스: 새 계열은 `max_completion_tokens`+`reasoning_effort=none`(없으면 출력 토큰 5배·비용 더 비쌈), 결과에 `model` 기록, 경쟁사 비교(`basis_changed`)는 ChatGPT 모델이 다르면 변화로 보지 않음, 가게명 자리 설명 문장 필터(`is_plausible_place_name`). 근거 `docs/openai_model_migration_eval_2026_11_01.md`(실존 가게 87→100%, 호출당 비용 -75%, 현재 모델은 지역 소규모 질의에서 가게명을 지어냄 — 네이버 지역검색 대조 0/60). 영향: 결정적 응답이라 노출률이 0/1로 쏠리고 소규모 지역 질의의 경쟁사 목록이 빈다. 11-02 야간 스캔 뒤 확인할 것. (기술 스택 표·스캐너 표·비용 표는 11-02에 실제 모델·단가로 고쳤다 — `tests/test_docs_model_names.py`가 코드와의 일치를 막는다)
 - ✅ **방침·약관 변경 공지 등록(11-01, 공지 id 6)** — 방침 5항 AI 업체(Anthropic·OpenAI·Google)·국외 전송, 약관 제7조 제5항(부칙에 시행일 명시). **시행일 정정(11-02 사용자 결정)**: 신규 가입자는 **2026-11-02부터**, 11-02 이전 가입자는 방침 9조의 "시행 최소 7일 전 공지" 약속에 따라 공지(11-01)로부터 7일 뒤인 **11-08부터** 적용(약관 부칙·방침 9조·공지 id 6 제목/본문·`tests/test_policy_effective_date.py`). 방침 9조의 7일 약속 문구를 바꾸면 이 날짜 규칙도 다시 판단할 것.
 - ⏳ **베타 후기 1~3개 확보** → `frontend/lib/testimonials.ts` `isPlaceholder: false`로 교체 (Phase 0 인터뷰 후)
 - ✅ **크렙 심사 승인·`CREB_TEST_PRICE_*` 삭제 완료(2026-10-27)** — 키 교체 불필요. 10-27 실결제 시험(Basic 8,950원 결제→환불·빌링키 삭제) 서버 기록으로 확인: 빌키 심사 포함 확인됨, 심사용 계정 삭제 완료(2026-10-29). 남은 것: 30일 뒤 정기 재결제 동작 미확인
