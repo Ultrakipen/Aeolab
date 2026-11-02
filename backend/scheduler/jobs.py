@@ -4022,12 +4022,15 @@ async def _auto_log_score_change(
     stage_old = _score_stage_label(old_score)
     stage_new = _score_stage_label(new_score)
 
+    # 등급 이름이 같으면 "시작 전 → 시작 전" 같은 모순된 표현이 나온다(2026-11-02 성장 리포트 실화면에서 확인) — 같은 단계 안의 움직임으로 쓴다.
+    # 하락 사유("경쟁사 강화 또는 정보 갱신 필요")는 측정으로 확인된 적이 없는 단정이라 쓰지 않는다.
+    stage_txt = f"{stage_old} → {stage_new}" if stage_old != stage_new else f"{stage_new} 단계 안에서"
     if diff > 0:
         action_type = "score_up"
-        action_label = f"AI 검색 노출 개선 ({stage_old} → {stage_new}, 자동 스캔)"
+        action_label = f"AI 검색 노출 개선 ({stage_txt}, 자동 스캔)"
     else:
         action_type = "score_down"
-        action_label = f"AI 검색 노출 하락 ({stage_old} → {stage_new}) — 경쟁사 강화 또는 정보 갱신 필요"
+        action_label = f"AI 검색 노출 하락 ({stage_txt}, 자동 스캔)"
 
     today = _dt.now(_tz.utc).date().isoformat()
 
