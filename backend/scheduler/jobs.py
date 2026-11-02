@@ -3862,18 +3862,10 @@ async def check_action_rescans():
                     continue
                 after_mentioned = bool(result.get("exposure_freq", 0) > 0)
 
-                score_row = await _db(
-                    supabase.table("scan_results")
-                    .select("unified_score, track1_score")
-                    .eq("business_id", biz_id)
-                    .order("scanned_at", desc=True)
-                    .limit(1)
-                    .maybe_single()
-                )
-                after_score = None
-                if score_row.data:
-                    _uni = score_row.data.get("unified_score")
-                    after_score = _uni if _uni is not None else score_row.data.get("track1_score")
+                # '후' 점수 — 최신 스캔의 네이버 측정이 빠졌다면 None(행동 전 점수와의 증감이 거짓이 되므로, services/change_signal_guard).
+                # 위의 노출 여부(after_mentioned)·요약 문구는 Gemini 표본에서 오므로 네이버와 무관하게 그대로 저장한다.
+                from services.change_signal_guard import latest_measured_score
+                after_score = await latest_measured_score(supabase, biz_id)
 
                 before_mentioned = action.get("before_mentioned")
 
@@ -4146,12 +4138,16 @@ async def _fill_action_score_after():
 
     supabase = get_client()
     target_date = (date.today() - timedelta(days=7)).isoformat()
+    # 7일째 하루만 보면, 그날 최신 스캔의 네이버 측정이 빠졌을 때(아래에서 점수를 채우지 않는다) 그 행동은 영원히 '후' 점수가 비게 된다 →
+    # 이미 7일이 지난 행동도 일주일 더 매일 다시 시도한다(채워진 행은 score_after IS NULL 조건에서 빠진다).
+    retry_from = (date.today() - timedelta(days=14)).isoformat()
 
     try:
         logs = await _execute(
             supabase.table("business_action_log")
             .select("id, business_id, action_date")
-            .eq("action_date", target_date)
+            .gte("action_date", retry_from)
+            .lte("action_date", target_date)
             .is_("score_after", "null")
         )
     except Exception as e:
@@ -4163,18 +4159,11 @@ async def _fill_action_score_after():
 
     for log in logs.data:
         try:
-            score_row = await _execute(
-                supabase.table("score_history")
-                .select("unified_score, total_score")
-                .eq("business_id", log["business_id"])
-                .not_.is_("total_score", "null")
-                .order("score_date", desc=True)
-                .limit(1)
-                .maybe_single()
-            )
-            if score_row and score_row.data:
-                _uni = score_row.data.get("unified_score")
-                score_val = _uni if _uni is not None else score_row.data.get("total_score")
+            # 최신 스캔의 네이버 측정이 빠졌다면 None — 측정 빠진 스캔의 점수는 척도가 달라 '행동 전' 점수와의 증감이 거짓이 된다(services/change_signal_guard).
+            # 채우지 않고 두면 위 재시도 창 안에서 다음 정상 측정 때 채워진다.
+            from services.change_signal_guard import latest_measured_score
+            score_val = await latest_measured_score(supabase, log["business_id"])
+            if score_val is not None:
                 await _execute(
                     supabase.table("business_action_log")
                     .update({"score_after": score_val})
@@ -6396,7 +6385,10 @@ async def delivery_30day_rescan_job():
                 _update_fields = {"followup_scan_id": new_scan_id}
                 if order.get("score_after") is None:
                     _new_unified = score.get("unified_score", score.get("total_score"))
-                    if _new_unified is not None:
+                    # 재계산에 쓴 기존 스캔의 네이버 측정이 빠졌다면 그 점수는 척도가 달라 '대행 후' 끝점으로 저장하지 않는다 —
+                    # 공개 후기의 score_delta가 거짓 증감이 된다. 비워 두면 후기 작성 시점에 최신 정상 측정 점수로 채워진다(delivery._get_latest_business_score).
+                    from services.score_engine import naver_result_unmeasured as _nru_d
+                    if _new_unified is not None and not _nru_d(prev_scan.get("naver_result")):
                         _update_fields["score_after"] = _new_unified
                 await _db(
                     supabase.table("delivery_orders")
