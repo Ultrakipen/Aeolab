@@ -544,8 +544,10 @@ export function AreaCompareCard({
 
 /** 구글 지도 검색에서 내 가게가 어떻게 보이는지 — 직접 재 본 값(Serper /places). 점수에는 반영하지 않는다. */
 export function GoogleMapCard({ businessName, data }: { businessName: string; data: TrialGooglePlaces }) {
-  const rate = (r: number | null, c: number | null) =>
-    r != null && c != null ? `평점 ${r} · 리뷰 ${c.toLocaleString()}개` : "평점·리뷰 정보 없음";
+  // 리뷰 수는 표시하지 않는다: Serper 값이 실제 구글 지도와 크게 달랐다(어니언 성수점 4 vs 3,570, 2026-11-03).
+  // 이미 저장된 옛 체험 결과에 들어 있는 rating_count도 무시한다.
+  const rate = (r: number | null, _c?: number | null) =>
+    r != null ? `평점 ${r} · 리뷰 수는 구글 지도에서 확인하세요` : "평점 정보 없음";
   const mine = data.my_place;
   let verdict: string;
   if (data.is_on_google === true && data.my_rank) {

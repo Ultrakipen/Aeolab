@@ -42,7 +42,9 @@ def _brief(i: int, p: dict) -> dict:
         "rank": i + 1,
         "name": p.get("title", ""),
         "rating": p.get("rating"),
-        "rating_count": p.get("ratingCount"),
+        # Serper의 ratingCount는 실제 구글 지도 리뷰 수와 크게 다르다(2026-11-03 어니언 성수점: Serper 4 vs 구글 지도 화면 3,570).
+        # 평점은 일치했다. 틀린 리뷰 수는 인기 가게를 저평가해 보이게 하므로 내보내지 않는다(키는 호환용으로 유지).
+        "rating_count": None,
         "address": p.get("address", ""),
     }
 

@@ -33,14 +33,16 @@ def test_found_in_top10_single_call(monkeypatch):
     calls = _patch(monkeypatch, [places])
     r = _run(gp.get_google_places_visibility("준오헤어 왕십리역점", "미용실", "서울 성동구"))
     assert r["my_rank"] == 5 and r["is_on_google"] is True and r["registration_checked"] is True
-    assert r["my_place"]["rating"] == 4.9 and r["my_place"]["rating_count"] == 459
+    # Serper ratingCount는 실제 구글 지도 리뷰 수와 달라(어니언 성수점 4 vs 3,570) 내보내지 않는다
+    assert r["my_place"]["rating"] == 4.9 and r["my_place"]["rating_count"] is None
+    assert all(t["rating_count"] is None for t in r["top"])
     assert len(r["top"]) == 5 and calls == ["서울 성동구 미용실"]
 
 
 def test_not_in_top10_found_by_name(monkeypatch):
     calls = _patch(monkeypatch, [[_place("다른가게")], [_place("어니언 성수", rating=4.5, count=3000)]])
     r = _run(gp.get_google_places_visibility("어니언 성수", "카페", "서울 성동구"))
-    assert r["my_rank"] is None and r["is_on_google"] is True and r["my_place"]["rating_count"] == 3000
+    assert r["my_rank"] is None and r["is_on_google"] is True and r["my_place"]["rating_count"] is None
     assert calls[1] == "서울 성동구 어니언 성수"
 
 
@@ -61,7 +63,7 @@ def test_street_only_address_still_matches_by_name(monkeypatch):
     street_only = {"title": "어니언 성수점", "address": "아차산로9길 8", "rating": 4.2, "ratingCount": 4}
     _patch(monkeypatch, [[_place("다른가게")], [street_only]])
     r = _run(gp.get_google_places_visibility("어니언 성수", "카페", "서울 성동구"))
-    assert r["is_on_google"] is True and r["my_place"]["rating_count"] == 4
+    assert r["is_on_google"] is True and r["my_place"]["rating_count"] is None and r["my_place"]["rating"] == 4.2
 
 
 def test_street_only_address_other_branch_still_rejected(monkeypatch):
