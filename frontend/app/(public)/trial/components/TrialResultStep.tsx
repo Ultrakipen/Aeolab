@@ -1241,7 +1241,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           {googlePlaces && (googlePlaces.top.length > 0 || googlePlaces.is_on_google !== null) && (
             <MobileCollapse
               title="구글 지도에서의 모습"
-              hint="구글 지도 검색 상위 가게와 평점·리뷰 수 보기"
+              hint="구글 지도 검색 상위 가게와 평점 보기"
               onOpen={() => trackEvent("trial_board_open", { board: "google_map", trial_id: (result as { trial_id?: string }).trial_id })}
             >
               <GoogleMapCard businessName={form.business_name || "내 가게"} data={googlePlaces} />

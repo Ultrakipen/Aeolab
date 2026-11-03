@@ -547,7 +547,7 @@ export function GoogleMapCard({ businessName, data }: { businessName: string; da
   // 리뷰 수는 표시하지 않는다: Serper 값이 실제 구글 지도와 크게 달랐다(어니언 성수점 4 vs 3,570, 2026-11-03).
   // 이미 저장된 옛 체험 결과에 들어 있는 rating_count도 무시한다.
   const rate = (r: number | null, _c?: number | null) =>
-    r != null ? `평점 ${r} · 리뷰 수는 구글 지도에서 확인하세요` : "평점 정보 없음";
+    r != null ? `평점 ${r}` : "평점 정보 없음";
   const mine = data.my_place;
   let verdict: string;
   if (data.is_on_google === true && data.my_rank) {
@@ -600,7 +600,7 @@ export function GoogleMapCard({ businessName, data }: { businessName: string; da
         </div>
       )}
       <p className="mt-3 text-sm text-slate-600 leading-snug break-keep">
-        구글 지도 검색 결과는 검색하는 사람의 위치·시점·로그인 상태에 따라 달라질 수 있어요. 구글 지도의 평점·리뷰 수는 네이버와 별개예요.
+        구글 지도 검색 결과는 검색하는 사람의 위치·시점·로그인 상태에 따라 달라질 수 있어요. 구글 지도의 평점은 네이버와 별개예요. 리뷰 수는 정확하게 가져오지 못해 표시하지 않았어요. 실제 리뷰 수는 구글 지도에서 확인해 주세요.
       </p>
     </section>
   );
