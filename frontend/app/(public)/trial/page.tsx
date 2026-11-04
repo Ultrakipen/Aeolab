@@ -43,6 +43,9 @@ interface TrialResultCache {
   hasFaq: boolean;
   hasRecentPost: boolean;
   hasIntro: boolean;
+  // 사장님이 직접 답한 값인지(true) 못 답한 기본값(false→없음으로 저장됨)인지 구분한다 — 옛 캐시에는 없어 "답 안 함"으로 본다
+  introAnswered?: boolean;
+  postAnswered?: boolean;
   cachedAt: number;
 }
 
@@ -336,8 +339,8 @@ export default function TrialPage() {
         setForm(cached.form);
         setBusinessType(cached.businessType);
         setHasFaq(cached.hasFaq);
-        setHasRecentPost(cached.hasRecentPost);
-        setHasIntro(cached.hasIntro);
+        setHasRecentPost(cached.postAnswered ? cached.hasRecentPost : undefined);
+        setHasIntro(cached.introAnswered ? cached.hasIntro : undefined);
         setIsRestored(true);
         setRestoreBanner("hidden");
         setStep("result");
@@ -683,6 +686,8 @@ export default function TrialPage() {
         hasFaq: hasFaq ?? false,
         hasRecentPost: hasRecentPost ?? false,
         hasIntro: hasIntro ?? false,
+        introAnswered: hasIntro !== undefined,
+        postAnswered: hasRecentPost !== undefined,
       });
       setStep("result");
       if (typeof window !== "undefined") window.scrollTo({ top: 0 });
@@ -751,8 +756,8 @@ export default function TrialPage() {
     setForm(cached.form);
     setBusinessType(cached.businessType);
     setHasFaq(cached.hasFaq);
-    setHasRecentPost(cached.hasRecentPost);
-    setHasIntro(cached.hasIntro);
+    setHasRecentPost(cached.postAnswered ? cached.hasRecentPost : undefined);
+    setHasIntro(cached.introAnswered ? cached.hasIntro : undefined);
     setIsRestored(true);
     setRestoreBanner("hidden");
     setStep("result");
@@ -917,6 +922,8 @@ export default function TrialPage() {
           hasFaq={hasFaq ?? false}
           hasRecentPost={hasRecentPost ?? false}
           hasIntro={hasIntro ?? false}
+          introAnswered={hasIntro !== undefined}
+          postAnswered={hasRecentPost !== undefined}
           isLoggedIn={isLoggedIn}
           apiBenchmark={apiBenchmark}
           onSaveTrialData={saveTrialData}

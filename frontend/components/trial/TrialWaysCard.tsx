@@ -271,7 +271,6 @@ export function CompareVerdictCard({
   myRank,
   competitorCount,
   myBlog,
-  myBlogCapped,
   competitors,
 }: {
   myRank: number | null;
@@ -291,14 +290,16 @@ export function CompareVerdictCard({
     // 잘린 값(capped)은 "이상"이므로 같은 값이면 앞선 것으로 본다(실제로는 더 많음)
     const ahead = competitors.filter((c) => c.count > myBlog || (c.capped && c.count >= myBlog)).length;
     const k = ahead + 1;
-    const lower = myBlogCapped ? "이상 " : "";
     blogGood = k <= Math.ceil(total / 2);
+    // 글이 부족하다는 식의 부정 결론은 하지 않는다 — 이 숫자는 블로그 검색 상위 100건 중 제목·요약에 가게 이름이 나온 글 수라
+    // 실제보다 적게 잡히고(유명 가게일수록), 비교 대상도 네이버 지역검색 상위 가게일 뿐 같은 급의 경쟁자가 아닐 수 있다(2026-11-04 어니언 성수).
+    // 적게 잡히는 쪽으로만 틀리므로 "앞선다"는 긍정 결론은 그대로 안전하고, 뒤처진다는 결론만 사실 그대로(순위+집계 기준)로 쓴다.
     blogPart =
       k === 1
         ? `블로그 글은 주변 ${total}곳 중 가장 많아요.`
         : blogGood
           ? `블로그 글은 주변 ${total}곳 중 ${k}번째로 많아요.`
-          : `블로그 글은 주변 ${total}곳 중 ${k}번째예요. ${lower}글이 적은 편이에요.`;
+          : `이름이 확인된 블로그 글 수는 주변 ${total}곳 중 ${k}번째로 집계됐어요(블로그 검색 상위 100건의 제목·요약 기준이라 실제 글 수와 다를 수 있어요).`;
   }
   let rankPart = "";
   if (hasRank) {
@@ -306,7 +307,8 @@ export function CompareVerdictCard({
       ? `네이버 지역 검색에서는 ${competitorCount}곳 중 ${myRank}위예요.`
       : `네이버 지역 검색 상위 ${competitorCount}곳 안에는 없어요.`;
   }
-  const tip = hasBlog && hasRank && blogGood && !myRank ? " 부족한 쪽은 네이버 지역 검색에 나오는 것이에요." : "";
+  // 지역 검색 상위 5곳 밖이라는 것은 "그 검색어에서 상위 5곳에 없다"는 뜻일 뿐 부족하다는 결론이 아니다
+  const tip = hasBlog && hasRank && blogGood && !myRank ? " 지역 검색은 상위 5곳까지만 볼 수 있어, 그 아래 순위는 알 수 없어요." : "";
 
   return (
     <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 mb-4">
@@ -325,16 +327,22 @@ export function DiagnosisFixCard({
   setIntro,
   post,
   setPost,
+  hideIntro = false,
+  hidePost = false,
 }: {
   intro: boolean | null;
   setIntro: (v: boolean) => void;
   post: boolean | null;
   setPost: (v: boolean) => void;
+  /** 이미 직접 읽었거나 답한 항목은 다시 묻지 않는다 */
+  hideIntro?: boolean;
+  hidePost?: boolean;
 }) {
-  const rows: Array<{ id: string; label: string; yes: string; no: string; value: boolean | null; set: (v: boolean) => void }> = [
+  const allRows: Array<{ id: string; label: string; yes: string; no: string; value: boolean | null; set: (v: boolean) => void }> = [
     { id: "intro", label: "가게 소개글", yes: "이미 써 뒀어요", no: "아직 안 썼어요", value: intro, set: setIntro },
     { id: "post", label: "최근 7일 안에 올린 소식", yes: "올렸어요", no: "아직 없어요", value: post, set: setPost },
   ];
+  const rows = allRows.filter((r) => !(r.id === "intro" && hideIntro) && !(r.id === "post" && hidePost));
   return (
     <section
       aria-labelledby="trial-fix-h"
@@ -349,7 +357,7 @@ export function DiagnosisFixCard({
         </span>
       </div>
       <p className="mt-1 text-sm md:text-base text-slate-700 leading-snug break-keep">
-        네이버 가게 소개글과 소식은 AEOlab이 직접 보지 못했어요. 이미 한 것을 눌러 주시면 아래 &lsquo;먼저 고칠 것&rsquo;에서 빼 드려요.
+        네이버 가게 소개글과 소식은 AEOlab이 직접 보지 못했어요. 눌러서 알려 주시면 아래 &lsquo;먼저 고칠 것&rsquo;이 정확해져요. 알려 주지 않으면 &ldquo;있다/없다&rdquo;로 단정하지 않고 확인하라고만 안내해요.
       </p>
       <div className="mt-3 grid gap-3 md:grid-cols-2">
         {rows.map((r) => (
@@ -546,6 +554,8 @@ export function AreaCompareCard({
 export function GoogleMapCard({ businessName, data }: { businessName: string; data: TrialGooglePlaces }) {
   // 리뷰 수는 표시하지 않는다: Serper 값이 실제 구글 지도와 크게 달랐다(어니언 성수점 4 vs 3,570, 2026-11-03).
   // 이미 저장된 옛 체험 결과에 들어 있는 rating_count도 무시한다.
+  // 평점은 내 가게 것만 보여 준다: 리뷰 수 없이 가게들의 평점을 나란히 두면 리뷰 몇 개뿐인 가게의 5.0이
+  // 수천 건의 4.2보다 강해 보인다(2026-11-04 어니언 성수 — 상위에 5·4.9·4.8, 내 가게 4.2). 순위(검색 결과 순서)는 그대로 보여 준다.
   const rate = (r: number | null, _c?: number | null) =>
     r != null ? `평점 ${r}` : "평점 정보 없음";
   const mine = data.my_place;
@@ -592,7 +602,6 @@ export function GoogleMapCard({ businessName, data }: { businessName: string; da
                 <span className="w-5 shrink-0 font-bold text-slate-500">{p.rank}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block line-clamp-2 break-words">{p.name}</span>
-                  <span className="block text-sm text-slate-600">{rate(p.rating, p.rating_count)}</span>
                 </span>
               </li>
             ))}
@@ -600,7 +609,7 @@ export function GoogleMapCard({ businessName, data }: { businessName: string; da
         </div>
       )}
       <p className="mt-3 text-sm text-slate-600 leading-snug break-keep">
-        구글 지도 검색 결과는 검색하는 사람의 위치·시점·로그인 상태에 따라 달라질 수 있어요. 구글 지도의 평점은 네이버와 별개예요. 리뷰 수는 정확하게 가져오지 못해 표시하지 않았어요. 실제 리뷰 수는 구글 지도에서 확인해 주세요.
+        구글 지도 검색 결과는 검색하는 사람의 위치·시점·로그인 상태에 따라 달라질 수 있어요. 구글 지도의 평점은 네이버와 별개예요. 리뷰 수를 정확하게 가져오지 못해, 리뷰 수 없이는 가게끼리 비교가 어려운 평점은 다른 가게 것을 표시하지 않았어요. 실제 리뷰 수와 평점은 구글 지도에서 확인해 주세요.
       </p>
     </section>
   );

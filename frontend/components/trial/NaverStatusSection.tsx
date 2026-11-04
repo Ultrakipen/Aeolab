@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, XCircle, AlertTriangle, MapPin, Image as ImageIcon, Star, BookOpen, Lock, Lightbulb } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, MapPin, Image as ImageIcon, Star, BookOpen, Lock, Lightbulb, HelpCircle } from "lucide-react";
 
 export interface NaverCompetitor {
   rank: number;
@@ -28,8 +28,12 @@ export interface NaverStatusSectionProps {
   myRank?: number | null;
   isSmartPlace: boolean;
   naverCompetitors?: NaverCompetitor[];
-  hasIntro: boolean;
-  hasRecentPost: boolean;
+  /** undefined = AEOlab이 직접 읽지도, 사장님이 답하지도 않음("없음"이 아니라 "확인 전") */
+  hasIntro?: boolean;
+  hasRecentPost?: boolean;
+  /** true면 위 값은 AEOlab이 읽은 것이 아니라 사장님이 직접 답한 값 — "입력하신 값"으로 따로 표시 */
+  introFromOwner?: boolean;
+  postFromOwner?: boolean;
   hasFaq: boolean;
   photoCount?: number | null;
   visitorReviewCount?: number;
@@ -53,14 +57,35 @@ function CheckRow({
   ok,
   okNote,
   failNote,
+  unknownNote,
   value,
 }: {
   label: string;
-  ok: boolean;
+  /** undefined면 "확인 전" — 성공도 실패도 아닌 중립 표시 */
+  ok: boolean | undefined;
   okNote?: string;
   failNote: string;
+  unknownNote?: string;
   value?: string;
 }) {
+  if (ok === undefined) {
+    return (
+      <div className="flex items-start gap-3 py-2.5 border-b border-slate-100 last:border-0">
+        <span className="shrink-0 mt-0.5">
+          <HelpCircle className="w-5 h-5 text-slate-400" aria-hidden="true" />
+        </span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm font-semibold text-slate-800">{label}</span>
+            <span className="text-sm font-semibold text-slate-600">확인 전</span>
+          </div>
+          <p className="text-sm text-slate-500 mt-0.5 leading-snug break-keep">
+            {unknownNote ?? "AEOlab이 직접 읽지 못했어요. 스마트플레이스에서 직접 확인해 보세요."}
+          </p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="flex items-start gap-3 py-2.5 border-b border-slate-100 last:border-0">
       <span className="shrink-0 mt-0.5">
@@ -97,6 +122,8 @@ export default function NaverStatusSection({
   naverCompetitors,
   hasIntro,
   hasRecentPost,
+  introFromOwner = false,
+  postFromOwner = false,
   hasFaq,
   photoCount,
   visitorReviewCount,
@@ -327,14 +354,18 @@ export default function NaverStatusSection({
           <CheckRow
             label="소개글"
             ok={hasIntro}
+            value={introFromOwner ? "입력하신 값" : undefined}
             okNote="AI가 참고할 내용이 있습니다"
             failNote="AI 브리핑이 참고할 내용이 없습니다 — 가게 특징·키워드를 200자 이상 작성하세요"
+            unknownNote="AEOlab이 소개글을 직접 읽지 못했어요. 스마트플레이스에서 가게 특징·키워드가 200자 이상 들어 있는지 확인해 보세요."
           />
           <CheckRow
             label="최근 소식"
             ok={hasRecentPost}
+            value={postFromOwner ? "입력하신 값" : undefined}
             okNote="신선도 점수가 높아집니다"
             failNote="소식이 없으면 신선도 점수가 낮아집니다 — 월 1회 이상 소식을 게시하세요"
+            unknownNote="AEOlab이 최근 소식을 직접 읽지 못했어요. 스마트플레이스에서 최근 7일 안에 올린 소식이 있는지 확인해 보세요."
           />
           {isSmartPlace && photoCount != null && (
             <CheckRow
@@ -408,7 +439,7 @@ export default function NaverStatusSection({
                 </div>
                 <div className="bg-amber-50 rounded-lg px-3 py-2.5 border border-amber-200">
                   <p className="text-sm font-semibold text-amber-800 mb-1">가장 빠른 개선 방법</p>
-                  {!hasIntro ? (
+                  {hasIntro === false ? (
                     <p className="text-sm text-amber-700 leading-snug break-keep">
                       소개글을 작성하세요 — AI가 참고할 내용이 필요합니다.
                       가게 특징·메뉴·키워드를 200자 이상 작성하면 2~4주 내 변화가 나타납니다.

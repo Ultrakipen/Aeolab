@@ -425,6 +425,8 @@ export default function TrialResultStep(props: TrialResultProps) {
     hasFaq,
     hasRecentPost,
     hasIntro,
+    introAnswered,
+    postAnswered,
     isLoggedIn,
     apiBenchmark,
     onSaveTrialData,
@@ -699,8 +701,19 @@ export default function TrialResultStep(props: TrialResultProps) {
   // ── 결과 화면 재구성용 파생 데이터 (2026-09-28) — 전부 실측·입력 기반, 더미 없음 ──
   const spCheck = result.smart_place_check ?? null;
   const spMeasured = !!(spCheck && !spCheck.error);
-  const introKnown = spMeasured ? (spCheck?.has_intro ?? hasIntro) : (introAnswer ?? hasIntro);
-  const postKnown = spMeasured ? (spCheck?.has_recent_post ?? hasRecentPost) : (postAnswer ?? hasRecentPost);
+  // 소개글·소식은 "AEOlab이 직접 읽음 → 사장님이 직접 답함 → 모름(undefined)" 순으로만 사실로 쓴다.
+  // 이전에는 못 읽고 답도 없으면 기본값 false("없음")로 떨어져, 이미 써 둔 유명 가게에도 "소개글 작성하기(우선순위 높음)"·
+  // "소개글 미작성" 같은 처방·단정이 나갔다(2026-11-04 어니언 성수 라이브). 차단으로 못 읽은 값(*_measured=false)도 "없음"이 아니라 모름이다.
+  const _spx = spCheck as { intro_measured?: boolean; recent_post_measured?: boolean } | null;
+  const _ownerIntro: boolean | undefined = introAnswer ?? (introAnswered ? hasIntro : undefined);
+  const _ownerPost: boolean | undefined = postAnswer ?? (postAnswered ? hasRecentPost : undefined);
+  const introRead = spMeasured && _spx?.intro_measured !== false && spCheck?.has_intro != null;
+  const postRead = spMeasured && _spx?.recent_post_measured !== false && spCheck?.has_recent_post != null;
+  const introFact: boolean | undefined = introRead ? (spCheck?.has_intro as boolean) : _ownerIntro;
+  const postFact: boolean | undefined = postRead ? (spCheck?.has_recent_post as boolean) : _ownerPost;
+  // 사장님이 답한 값은 측정값과 섞어 보이지 않게 "입력하신 값"으로 따로 표시한다(지침 9번)
+  const introFromOwner = !introRead && introFact !== undefined;
+  const postFromOwner = !postRead && postFact !== undefined;
   // 우선순위는 AEOlab 판단 기준(추정) — 화면에도 그렇게 표기
   // effect 문구는 TodayOneAction.tsx의 같은 항목과 동일한 반영 기간 근거를 재사용한다(새 주장 추가 금지)
   // 온라인·전문직(non_location) 업종은 naver_data 자체가 없어(scan.py non_location 분기, naver=null)
@@ -741,11 +754,18 @@ export default function TrialResultStep(props: TrialResultProps) {
         level: "높음", time: "10분",
         effect: "등록하면 네이버 지역 검색에 나타나기 시작합니다",
       });
-    } else if (!introKnown) {
+    } else if (introFact === false) {
       items.push({
         title: "소개글에 가게 특징·키워드를 200자 이상 작성하기",
         level: "높음", time: "5분",
         effect: "2~4주 내 네이버 검색·AI 브리핑 노출이 올라오기 시작합니다",
+      });
+    } else if (introFact === undefined) {
+      // 못 읽었고 답도 없다 — "없다"고 가정하지 않는다. 확인하는 일을 먼저 시킨다(이미 충분하면 할 일이 없다).
+      items.push({
+        title: "스마트플레이스 소개글을 열어 가게 특징·키워드가 들어 있는지 확인하기 (부족하면 보강)",
+        level: "보통", time: "5분",
+        effect: "AEOlab이 소개글을 직접 읽지 못했습니다 — 이미 충분히 써 두셨다면 이 항목은 건너뛰세요",
       });
     }
     if (effectiveMissingKws.length > 0) {
@@ -756,10 +776,15 @@ export default function TrialResultStep(props: TrialResultProps) {
         effect: "2~4주 내 네이버 검색 순위 변화가 시작될 수 있습니다 (네이버 안의 개선입니다 — ChatGPT·Gemini는 네이버 밖 정보가 있어야 반영됩니다)",
       });
     }
-    if (!postKnown) items.push({
+    if (postFact === false) items.push({
       title: "스마트플레이스 소식 1개 등록하기",
       level: "보통", time: "5분",
       effect: "네이버가 '운영 활발'로 인식해 2~4주 내 검색 순위에 도움이 됩니다",
+    });
+    else if (postFact === undefined) items.push({
+      title: "스마트플레이스에 최근 7일 안 소식이 있는지 확인하고, 없으면 1개 등록하기",
+      level: "보통", time: "5분",
+      effect: "AEOlab이 소식을 직접 읽지 못했습니다 — 이미 올리셨다면 건너뛰세요",
     });
     items.push({
       title: "리뷰 답변에 실제로 제공하는 특징을 한 문장 넣기",
@@ -899,10 +924,11 @@ export default function TrialResultStep(props: TrialResultProps) {
       if (_topName && typeof _topCnt === "number" && _topCnt > 0) {
         verdictBullets.push({
           label: "블로그",
+          // 글 수가 뒤처진다는 부정 결론은 쓰지 않는다 — 블로그 검색 상위 100건의 제목·요약 기준 집계라 유명 가게는 실제보다 적게 잡힌다
           text: `이름이 나온 글 — 내 가게 ${blogCount.toLocaleString()}건 · 경쟁 가게 중 가장 많은 곳(${_topName}) ${_topCnt.toLocaleString()}건 — ${
-            _topCnt > blogCount ? `${(_topCnt - blogCount).toLocaleString()}건 적습니다.` : "내 가게가 더 많습니다."
+            _topCnt > blogCount ? "집계된 글 수는 경쟁 가게가 더 많지만, 블로그 검색 상위 100건의 제목·요약 기준이라 실제 글 수와 다를 수 있습니다." : "내 가게가 더 많습니다."
           }`,
-          tone: _topCnt > blogCount ? "warn" : "ok",
+          tone: _topCnt > blogCount ? "neutral" : "ok",
         });
       } else {
         verdictBullets.push({ label: "블로그", text: `가게 이름이 나온 글 ${blogCount.toLocaleString()}건입니다(블로그 검색 상위 100건 기준).`, tone: "neutral" });
@@ -1145,8 +1171,10 @@ export default function TrialResultStep(props: TrialResultProps) {
         />
 
         {/* 소개글·소식은 직접 못 본 경우에만 — 사장님이 누른 답으로 "먼저 고칠 것"이 바뀐다 */}
-        {!spMeasured && !isNonLocationTrial && (
+        {(introFact === undefined || postFact === undefined) && !isNonLocationTrial && (
           <DiagnosisFixCard
+            hideIntro={introFact !== undefined}
+            hidePost={postFact !== undefined}
             intro={introAnswer}
             setIntro={(v) => {
               setIntroAnswer(v);
@@ -1358,8 +1386,8 @@ export default function TrialResultStep(props: TrialResultProps) {
               naverCompetitors={
                 (naver as { naver_competitors?: Array<{ rank: number; name: string; address?: string }> } | null)?.naver_competitors
               }
-              hasIntro={result.smart_place_check?.has_intro ?? hasIntro}
-              hasRecentPost={result.smart_place_check?.has_recent_post ?? hasRecentPost}
+              hasIntro={introFact}
+              hasRecentPost={postFact}
               hasFaq={result.smart_place_check?.has_faq ?? hasFaq}
               photoCount={(result.smart_place_check as { photo_count?: number } | null | undefined)?.photo_count}
               visitorReviewCount={(result.smart_place_check as { visitor_review_count?: number } | null | undefined)?.visitor_review_count}
@@ -1418,8 +1446,10 @@ export default function TrialResultStep(props: TrialResultProps) {
               naverCompetitors={
                 (naver as { naver_competitors?: Array<{ rank: number; name: string; address?: string }> } | null)?.naver_competitors
               }
-              hasIntro={result.smart_place_check?.has_intro ?? hasIntro}
-              hasRecentPost={result.smart_place_check?.has_recent_post ?? hasRecentPost}
+              hasIntro={introFact}
+              hasRecentPost={postFact}
+              introFromOwner={introFromOwner}
+              postFromOwner={postFromOwner}
               hasFaq={result.smart_place_check?.has_faq ?? hasFaq}
               photoCount={(result.smart_place_check as { photo_count?: number } | null | undefined)?.photo_count}
               visitorReviewCount={(result.smart_place_check as { visitor_review_count?: number } | null | undefined)?.visitor_review_count}
@@ -1508,7 +1538,7 @@ export default function TrialResultStep(props: TrialResultProps) {
               excerpt={chatgptResult?.excerpt}
               sampleSize={chatgptSampleSize}
               hasFaq={result.smart_place_check?.has_faq ?? hasFaq}
-              hasIntro={result.smart_place_check?.has_intro ?? hasIntro}
+              hasIntro={introFact}
               isSmartPlace={isSmartPlace}
               missingKws={effectiveMissingKws}
               confidence={chatgptConfidence}

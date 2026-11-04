@@ -3463,7 +3463,9 @@ function TodayKeywordHero({
 
   const placeLabel = getBizPlaceLabel(category)
   const faqText = active
-    ? `Q: ${active}${eunNeun(active)} 어떤가요?\nA: 저희 ${placeLabel}${eunNeun(placeLabel)} ${active} 관련 서비스를 제공하고 있습니다. 궁금한 점은 언제든지 문의해 주세요.`
+    // 이 키워드는 업종 표준 사전에서 뽑은 "부족 추정" 값이라 사장님이 실제로 제공하는지 모른다 — "제공하고 있습니다"로 단정하지 않고
+    // [ ] 안을 사장님이 직접 채우게 한다(2026-11-04. 확인 안 된 시설·서비스를 사장님이 그대로 게시하는 텍스트에 쓰지 않는다는 지침 7번).
+    ? `Q: ${active}${eunNeun(active)} 어떤가요?\nA: [${active}에 관해 실제로 제공하는 내용을 여기에 적어 주세요]. 궁금한 점은 언제든지 문의해 주세요.`
     : null
 
   if (!active) return null
@@ -3476,8 +3478,7 @@ function TodayKeywordHero({
           <p className="text-sm font-semibold text-amber-700 mb-1">지금 바로 할 것 1가지</p>
           <p className="text-base font-bold text-gray-900 mb-1">부족한 키워드를 선택해 소개글 안 Q&A에 추가하세요</p>
           <p className="text-sm text-gray-600 mb-3 leading-relaxed">
-            이 키워드들이 없으면 AI 브리핑 언급 후보에서 누락될 가능성이 있습니다. 키워드를 선택하면 FAQ 문구가 자동 생성됩니다.
-            관련 없는 키워드는 <strong>✕</strong>로 제외하세요.
+            이 키워드들이 없으면 AI 브리핑 언급 후보에서 누락될 가능성이 있습니다. 키워드를 선택하면 Q&A 틀이 만들어집니다. 실제로 제공하는 것만 남기고, 해당하지 않는 키워드는 <strong>✕</strong>로 제외하세요.
           </p>
 
           {/* 키워드 칩 선택 */}
@@ -3512,6 +3513,7 @@ function TodayKeywordHero({
             <div className="bg-white rounded-lg border border-amber-200 p-3 mb-3">
               <p className="text-sm text-amber-700 font-semibold mb-1.5">스마트플레이스 Q&A 복사 문구</p>
               <p className="text-base text-gray-700 whitespace-pre-wrap leading-relaxed break-words">{faqText}</p>
+              <p className="text-sm text-gray-600 mt-2 leading-snug">[ ] 안은 사장님이 직접 채워야 합니다. 실제로 제공하지 않는 내용은 적지 마세요.</p>
             </div>
           )}
 

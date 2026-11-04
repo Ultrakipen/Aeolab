@@ -36,6 +36,8 @@ interface Props {
   deprioritizeGlobal?: boolean;
   /** Basic 무료 체험 사용자 — 가이드 잠금 처리 */
   isTrialUser?: boolean;
+  /** 체험 측정이 만든 개선 가이드가 실제로 있는지 — 있으면 /guide에서 열람 가능(재생성만 막힘). 없는데 "준비됐다"고 말하지 않는다 */
+  hasGuide?: boolean;
 }
 
 /**
@@ -92,6 +94,7 @@ export default function DashboardActionZone({
   plan = "free",
   deprioritizeGlobal = false,
   isTrialUser = false,
+  hasGuide = false,
 }: Props) {
   const [showMore, setShowMore] = useState(false);
 
@@ -106,18 +109,37 @@ export default function DashboardActionZone({
               <Lock className="w-5 h-5 inline-block shrink-0" aria-hidden="true" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-gray-900 leading-snug">맞춤 AI 개선 가이드가 준비됐습니다</p>
-              <p className="text-sm text-gray-600 mt-1 leading-snug">
-                이번 측정 결과를 바탕으로 네이버 AI 브리핑 노출을 높이는<br />
-                3가지 우선 개선 항목이 생성됐습니다.
-              </p>
-              <Link
-                href="/pricing"
-                className="inline-flex items-center gap-1.5 mt-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
-              >
-                Basic 구독으로 가이드 확인 <ArrowRight className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
-              </Link>
-              <p className="text-sm text-gray-600 mt-1.5">첫 달 8,950원 · 이후 17,900원/월</p>
+              {hasGuide ? (
+                <>
+                  <p className="text-sm font-bold text-gray-900 leading-snug">체험으로 만든 개선 가이드를 지금 볼 수 있어요</p>
+                  <p className="text-sm text-gray-600 mt-1 leading-snug">
+                    이번 측정 결과로 만든 가이드 1건은 열람할 수 있습니다. 다시 만들기·오늘의 미션·매주 자동 측정은 Basic에서 이용할 수 있어요.
+                  </p>
+                  <Link
+                    href="/guide"
+                    className="inline-flex items-center gap-1.5 mt-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+                  >
+                    체험 가이드 보기 <ArrowRight className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
+                  </Link>
+                  <Link href="/pricing" className="block mt-2 text-sm text-blue-700 hover:underline">
+                    Basic 요금 보기 · 첫 달 8,950원, 이후 17,900원/월
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-bold text-gray-900 leading-snug">이번 체험 측정으로 만든 가이드가 아직 없어요</p>
+                  <p className="text-sm text-gray-600 mt-1 leading-snug">
+                    개선 가이드 생성과 오늘의 미션은 Basic에서 이용할 수 있습니다.
+                  </p>
+                  <Link
+                    href="/pricing"
+                    className="inline-flex items-center gap-1.5 mt-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Basic 요금 보기 <ArrowRight className="w-4 h-4 inline-block shrink-0" aria-hidden="true" />
+                  </Link>
+                  <p className="text-sm text-gray-600 mt-1.5">첫 달 8,950원 · 이후 17,900원/월</p>
+                </>
+              )}
             </div>
           </div>
         </div>

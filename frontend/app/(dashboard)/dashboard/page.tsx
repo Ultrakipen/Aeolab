@@ -660,6 +660,7 @@ export default async function DashboardPage({
               plan={plan}
               deprioritizeGlobal={true}
               isTrialUser={isTrialUser}
+              hasGuide={!!latestGuide}
             />
           </CollapseSectionWrapper>
 

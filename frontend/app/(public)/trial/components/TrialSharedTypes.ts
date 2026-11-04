@@ -36,6 +36,9 @@ export interface TrialResultProps {
   hasFaq: boolean;
   hasRecentPost: boolean;
   hasIntro: boolean;
+  /** 사장님이 소개글·소식 여부를 직접 답했는지 — false면 위 hasIntro/hasRecentPost는 "답 안 함" 기본값(없음)일 뿐 사실이 아니다 */
+  introAnswered?: boolean;
+  postAnswered?: boolean;
   isLoggedIn: boolean;
   apiBenchmark: { count: number; avg_score: number; top10_score: number; fallback?: string } | null;
   onSaveTrialData: () => void;
