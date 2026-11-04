@@ -764,7 +764,7 @@ export default function TrialResultStep(props: TrialResultProps) {
       // 못 읽었고 답도 없다 — "없다"고 가정하지 않는다. 확인하는 일을 먼저 시킨다(이미 충분하면 할 일이 없다).
       items.push({
         title: "스마트플레이스 소개글을 열어 가게 특징·키워드가 들어 있는지 확인하기 (부족하면 보강)",
-        level: "보통", time: "5분",
+        level: "보통", time: "5분", kind: "check",
         effect: "AEOlab이 소개글을 직접 읽지 못했습니다 — 이미 충분히 써 두셨다면 이 항목은 건너뛰세요",
       });
     }
@@ -783,7 +783,7 @@ export default function TrialResultStep(props: TrialResultProps) {
     });
     else if (postFact === undefined) items.push({
       title: "스마트플레이스에 최근 7일 안 소식이 있는지 확인하고, 없으면 1개 등록하기",
-      level: "보통", time: "5분",
+      level: "보통", time: "5분", kind: "check",
       effect: "AEOlab이 소식을 직접 읽지 못했습니다 — 이미 올리셨다면 건너뛰세요",
     });
     items.push({
@@ -865,20 +865,28 @@ export default function TrialResultStep(props: TrialResultProps) {
   // 같은 카드에 "후기 많은 순 2위"를 보여 주면서 제목이 "잘 보이지 않습니다"라고 말하는 모순을 막는다.
   const _reviewSortRank = (naver as { review_sort_rank?: number | null } | null)?.review_sort_rank ?? null;
   const naverWeak = naverMeasured && bestNaverRank === null && !_reviewSortRank;
-  const verdictHeadline =
-    chatgptMentioned === undefined && !naverMeasured
-      ? "지금 확인된 실측 결과가 부족합니다"
-      : aiWeak && naverWeak
-        ? "이번에 측정한 검색어로는 내 가게가 잘 보이지 않습니다"
-        : aiWeak && naverMeasured
-          ? "네이버 검색에서는 보이지만 AI(ChatGPT)에서는 아직 잘 보이지 않습니다"
-          : naverWeak && chatgptMentioned !== undefined
-            ? "ChatGPT에는 나오지만, 측정한 네이버 검색어의 상위 5곳에서는 찾지 못했습니다"
-            : aiWeak
-              ? "AI(ChatGPT)에서는 아직 잘 보이지 않습니다"
-              : naverWeak
-                ? "측정한 네이버 검색어의 상위 5곳에서는 찾지 못했습니다"
-                : "검색에서 내 가게가 보이고 있습니다 — 유지·강화할 점을 확인하세요";
+  // 네이버 지역 검색은 공식 API가 5곳까지만 알려 줘서(display 1~5) 대부분의 가게가 "상위 5곳에 없음"으로 나온다 — 정보가 거의 없는 결과라
+  // 그것만으로 첫 줄을 부정으로 만들지 않는다(2026-11-04: 최근 체험 기록 33건에서 내 가게를 5곳 안에서 찾은 건 0건). 확인된 것(ChatGPT·네이버 순위 발견)을 먼저 말한다.
+  const naverFound = bestNaverRank !== null || !!_reviewSortRank;
+  const verdictHeadline = (() => {
+    const aiKnown = chatgptMentioned !== undefined;
+    if (!aiKnown && !naverMeasured) return "지금 확인된 실측 결과가 부족합니다";
+    if (!aiKnown) {
+      return naverFound
+        ? "네이버 지역 검색에서 내 가게가 확인됩니다"
+        : "이번 체험에서는 네이버 지역 검색 상위 5곳에서 내 가게를 확인하지 못했습니다 (5곳까지만 볼 수 있어요)";
+    }
+    if (!aiWeak) {
+      if (naverFound) return "검색에서 내 가게가 보이고 있습니다 — 유지·강화할 점을 확인하세요";
+      return naverMeasured
+        ? "ChatGPT 추천 목록에는 나옵니다 — 네이버 순위는 이번 체험으로 확인하기 어려워요"
+        : "ChatGPT 추천 목록에는 나옵니다";
+    }
+    if (naverFound) return "네이버 검색에서는 확인되지만, 이번 측정에서 ChatGPT는 내 가게를 떠올리지 못했습니다";
+    return naverMeasured
+      ? "이번 측정에서는 ChatGPT와 네이버 지역 검색 상위 5곳 모두에서 내 가게가 확인되지 않았습니다 — 아래 ‘직접 확인’으로 먼저 확인해 보세요"
+      : "이번 측정에서는 ChatGPT가 내 가게를 떠올리지 못했습니다 — 검색을 켠 ChatGPT에서는 다를 수 있어요";
+  })();
   const verdictBullets: VerdictBullet[] = [];
   const _vq = chatgptDisplayQueries[0] ?? "";
   const _vname = form.business_name || "내 가게";
@@ -916,7 +924,8 @@ export default function TrialResultStep(props: TrialResultProps) {
         : _kr.length > 1
           ? `${_kr.length}개 검색어 모두에서 내 가게가 네이버 지역검색 상위 5곳에 나오지 않았습니다. 손님이 업종·동네로 찾을 때를 본 것이며, 이 측정은 상위 5곳까지만 볼 수 있어 그 아래 순위는 알 수 없습니다. 가게 이름으로 직접 검색하면 나올 수 있어요.`
           : "내 가게가 네이버 지역검색 상위 5곳에 나오지 않았습니다. 손님이 업종·동네로 찾을 때를 본 것이며, 이 측정은 상위 5곳까지만 볼 수 있어 그 아래 순위는 알 수 없습니다. 가게 이름으로 직접 검색하면 나올 수 있어요.",
-      tone: naverWeak ? "warn" : "ok",
+      // 5곳 한도라 거의 모든 가게가 여기 해당 — 경고 톤이 아니라 중립으로 쓴다
+      tone: naverWeak ? "neutral" : "ok",
     });
     const _topName = (naver as { top_competitor_name?: string | null } | null)?.top_competitor_name;
     const _topCnt = (naver as { top_competitor_blog_count?: number } | null)?.top_competitor_blog_count;

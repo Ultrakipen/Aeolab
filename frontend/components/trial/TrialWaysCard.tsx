@@ -114,8 +114,9 @@ export function ChannelWaysCard({
           state: "measured",
           now: myRank
             ? `지역 검색 ${competitorCount > 0 ? `${topWord} 중 ` : ""}${myRank}위예요.`
-            : `지역 검색 ${topWord} 안에 내 가게가 없어요.${competitorCount > 0 ? ` 이 측정은 ${topWord}까지만 볼 수 있어, 그 아래 순위는 알 수 없어요.` : ""}${reviewSortRank ? ` 다만 후기 많은 순(블로그·카페 후기 기준)으로는 ${reviewSortRank}위예요.` : ""}`,
-          nowTone: myRank ? "ok" : "warn",
+            : `이 검색어의 지역 검색 ${topWord}에는 내 가게가 없어요.${competitorCount > 0 ? ` 이 측정은 네이버 공식 지역 검색이 알려 주는 ${topWord}까지만 볼 수 있어서, 그 밖이라고 해서 손님이 못 찾는다는 뜻은 아니에요.` : ""}${reviewSortRank ? ` 다만 후기 많은 순(블로그·카페 후기 기준)으로는 ${reviewSortRank}위예요.` : ""}`,
+          // 상위 5곳은 공식 API의 한도(display 1~5)라 대부분의 가게가 여기에 없다 — 경고 톤이 아니라 중립으로 쓴다(2026-11-04)
+          nowTone: myRank ? "ok" : "calm",
           affects: "소개글·리뷰·소식",
           duration: durationOf("네이버 일반검색"),
         }
@@ -357,7 +358,7 @@ export function DiagnosisFixCard({
         </span>
       </div>
       <p className="mt-1 text-sm md:text-base text-slate-700 leading-snug break-keep">
-        네이버 가게 소개글과 소식은 AEOlab이 직접 보지 못했어요. 눌러서 알려 주시면 아래 &lsquo;먼저 고칠 것&rsquo;이 정확해져요. 알려 주지 않으면 &ldquo;있다/없다&rdquo;로 단정하지 않고 확인하라고만 안내해요.
+        네이버 가게 소개글과 소식은 네이버 플레이스 화면을 직접 읽어야 알 수 있는데, 이번 체험에서는 읽지 못했어요. 눌러서 알려 주시면 아래 &lsquo;먼저 고칠 것&rsquo;이 정확해져요. 알려 주지 않으면 &ldquo;있다/없다&rdquo;로 단정하지 않고 확인하라고만 안내해요. (처음 화면에 내 가게 네이버 지도 주소를 붙여 넣고 다시 진단하면 읽어 보지만, 읽지 못할 때도 있어요.)
       </p>
       <div className="mt-3 grid gap-3 md:grid-cols-2">
         {rows.map((r) => (

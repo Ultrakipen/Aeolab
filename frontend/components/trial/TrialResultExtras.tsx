@@ -203,6 +203,8 @@ export interface PriorityItem {
   time: string;
   /** 이 항목을 하면 무엇이 달라지는지 — 기존 개선 가이드(TodayOneAction 등)와 동일한 반영 기간 근거 재사용 */
   effect?: string;
+  /** "check" = AEOlab이 읽지 못해 사장님이 직접 확인해야 하는 항목(이미 했다면 건너뛰는 항목) — 측정 근거가 있는 처방과 구분해 표시한다 */
+  kind?: "check";
 }
 
 export function PriorityFixCard({
@@ -240,6 +242,11 @@ export function PriorityFixCard({
                 >
                   우선순위 {it.level}
                 </span>
+                {it.kind === "check" && (
+                  <span className="text-sm font-bold rounded-full px-2.5 py-0.5 border border-dashed border-slate-400 bg-white text-slate-700">
+                    직접 확인 필요
+                  </span>
+                )}
                 <span className="text-sm text-slate-700">{it.time}</span>
               </div>
               {it.effect && (

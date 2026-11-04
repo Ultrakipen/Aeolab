@@ -299,12 +299,12 @@ export default function NaverStatusSection({
               )}
               {/* 20위 밖 */}
               {!inTop20 && isSmartPlace && (
-                <li className="flex items-center gap-3 rounded-lg px-3 py-2 bg-red-50 border border-red-200">
-                  <span className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-black bg-red-400 text-white">
+                <li className="flex items-center gap-3 rounded-lg px-3 py-2 bg-slate-50 border border-slate-200">
+                  <span className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-sm font-black bg-slate-400 text-white">
                     ?
                   </span>
-                  <p className="text-sm font-semibold text-red-700">
-                    {businessName} — 지역 검색 상위 5곳 밖
+                  <p className="text-sm font-semibold text-slate-700 break-keep">
+                    {businessName} — 지역 검색 상위 5곳에는 없어요 (이 측정은 5곳까지만 볼 수 있어, 그 밖의 순위는 알 수 없어요)
                   </p>
                 </li>
               )}
@@ -317,10 +317,10 @@ export default function NaverStatusSection({
               </p>
             </div>
           ) : (
-            <div className="flex items-center gap-3 rounded-lg px-3 py-3 bg-amber-50 border border-amber-200">
-              <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0" />
-              <p className="text-sm font-semibold text-amber-700">
-                지역 검색 상위 5곳에서 찾지 못했습니다
+            <div className="flex items-center gap-3 rounded-lg px-3 py-3 bg-slate-50 border border-slate-200">
+              <HelpCircle className="w-5 h-5 text-slate-500 shrink-0" aria-hidden="true" />
+              <p className="text-sm font-semibold text-slate-700 break-keep">
+                지역 검색 상위 5곳에서는 확인되지 않았어요 (5곳까지만 볼 수 있어요)
               </p>
             </div>
           )}

@@ -489,12 +489,12 @@ function ConfirmView(p: TrialFindStepProps) {
                 />
                 <p className={`mt-1.5 text-sm break-keep ${placeParsed.status === "ok" ? "text-green-700 font-semibold" : placeParsed.status === "empty" ? "text-slate-500" : "text-amber-700"}`}>
                   {placeParsed.status === "ok"
-                    ? "주소를 확인했습니다 — 소개글·소식·사진·예약을 직접 확인해 진단합니다"
+                    ? "주소를 확인했습니다 — 소개글·소식·사진·예약을 직접 읽어 보겠습니다. 네이버 화면을 읽지 못하면 결과에 '읽지 못함'이라고 표시하고 위 답을 씁니다."
                     : placeParsed.status === "short"
                       ? "naver.me 짧은 주소는 확인할 수 없어요. 네이버 지도에서 내 가게를 열고 주소창의 주소를 붙여넣어 주세요."
                       : placeParsed.status === "invalid"
                         ? "네이버 지도의 가게 주소가 아니에요. 비워 두면 이름·지역으로 진단합니다."
-                        : "붙여넣으면 소개글·소식을 직접 확인해, 위 답 대신 그 결과를 씁니다."}
+                        : "붙여넣으면 소개글·소식을 직접 읽어 보고, 읽으면 위 답 대신 그 결과를 씁니다. 이 주소가 없으면 소개글·소식은 이번 체험에서 확인하지 못해요."}
                 </p>
               </div>
             </div>

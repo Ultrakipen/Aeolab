@@ -1125,7 +1125,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                         내 가게 네이버 지도 주소 <span className="font-normal text-slate-500">(선택)</span>
                       </label>
                       <p className="text-sm text-slate-500 mt-0.5 mb-2 break-keep">
-                        붙여넣으면 소개글·최근 소식·사진·예약 설정을 직접 확인해 진단합니다. 위 체크 대신 확인한 결과가 적용됩니다.
+                        붙여넣으면 소개글·최근 소식·사진·예약 설정을 직접 읽어 봅니다. 읽으면 위 체크 대신 그 결과가 적용되고, 네이버 화면을 읽지 못하면 결과에 &lsquo;읽지 못함&rsquo;이라고 표시합니다. 비워 두면 이 항목들은 이번 체험에서 확인하지 못해요.
                       </p>
                       <input
                         id="trial-place-url"

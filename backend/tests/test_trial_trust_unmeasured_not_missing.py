@@ -103,6 +103,41 @@ def test_guide_faq_copy_text_does_not_assert_unconfirmed_service():
     assert "[ ] 안은 사장님이 직접 채워야 합니다" in src
 
 
+def test_naver_top5_miss_does_not_drive_a_negative_headline_or_warning_tone():
+    """네이버 지역검색은 공식 API가 5곳까지만 알려 줘서(display 1~5) 거의 모든 가게가 '5곳에 없음'이다 — 정보가 없는 결과로 첫 줄·경고색을 만들지 않는다."""
+    step = _read(*RESULT_STEP)
+    for old in (
+        "이번에 측정한 검색어로는 내 가게가 잘 보이지 않습니다",
+        "AI(ChatGPT)에서는 아직 잘 보이지 않습니다",
+        "측정한 네이버 검색어의 상위 5곳에서는 찾지 못했습니다",
+    ):
+        assert old not in step, old
+    assert "const naverFound = bestNaverRank !== null || !!_reviewSortRank" in step
+    assert 'tone: naverWeak ? "neutral" : "ok"' in step
+    # ChatGPT가 확인되고 네이버 순위만 못 찾은 경우의 첫 줄은 확인된 것을 먼저 말한다
+    assert "ChatGPT 추천 목록에는 나옵니다" in step
+    ways = _read(*WAYS)
+    assert 'nowTone: myRank ? "ok" : "calm"' in ways and 'nowTone: myRank ? "ok" : "warn"' not in ways
+    status = _read(*STATUS)
+    assert "지역 검색 상위 5곳 밖" not in status                 # 빨간 '5곳 밖' 행
+
+
+def test_unread_items_are_marked_as_needing_direct_check():
+    extras = _read("components", "trial", "TrialResultExtras.tsx")
+    assert 'kind?: "check"' in extras and "직접 확인 필요" in extras
+    step = _read(*RESULT_STEP)
+    assert step.count('kind: "check"') == 2                      # 소개글·소식 확인형 처방 2개
+
+
+def test_place_url_copy_does_not_promise_a_reading_that_can_fail():
+    """주소를 붙여도 네이버 화면을 못 읽을 수 있다(체험 기록 1건은 home_load_failed) — '직접 확인해 진단합니다'로 약속하지 않는다."""
+    for parts in (("app", "(public)", "trial", "components", "TrialFindStep.tsx"),
+                  ("app", "(public)", "trial", "components", "TrialInputStep.tsx")):
+        src = _read(*parts)
+        assert "직접 확인해 진단합니다" not in src, parts[-1]
+        assert "읽지 못" in src, parts[-1]
+
+
 def test_trial_guide_lock_card_depends_on_real_guide():
     zone = _read(*ACTION_ZONE)
     assert "hasGuide" in zone
