@@ -472,6 +472,15 @@ async def delete_account(user: dict = Depends(get_current_user)):
         except Exception as e:
             logger.warning(f"delete_account competitors 삭제 실패 (user={user_id}): {e}")
 
+    # 4-1. Storage 파일 삭제 — DB 행만 지우면 스크린샷·카드 이미지가 버킷에 남는다(2026-11-04). 실패해도 탈퇴는 계속한다.
+    if biz_ids:
+        try:
+            from services.storage_cleanup import purge_business_files
+            _removed = await asyncio.to_thread(purge_business_files, supabase, biz_ids)
+            logger.info(f"delete_account Storage 파일 {_removed}개 삭제 (user={user_id})")
+        except Exception as e:
+            logger.warning(f"delete_account Storage 삭제 실패 (user={user_id}): {e}")
+
     # 5. businesses 삭제
     await execute(supabase.table("businesses").delete().eq("user_id", user_id))
 

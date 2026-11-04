@@ -58,6 +58,52 @@ def _briefing_strategy_header(eligibility: str, is_franchise: bool) -> str:
     )
 
 
+def _sp_num(v):
+    """숫자(정수·실수)만 돌려준다. None·문자열·bool은 None — 값이 없는 것을 0이나 비교 대상으로 쓰지 않는다."""
+    return v if isinstance(v, (int, float)) and not isinstance(v, bool) else None
+
+
+def format_smart_place_detail(sp_json) -> str:
+    """스마트플레이스 자동 분석 결과를 가이드 프롬프트 문단으로 만든다.
+
+    값이 None이거나 AEOlab이 읽지 못한 항목(*_measured=false·recent_post_state='unmeasured')은 숫자 비교에 쓰지 않고
+    "확인 전"으로 쓴다. `sp_json.get(key, 0)`은 키가 있고 값이 None이면 기본값을 주지 못해 `None >= 5`로 가이드 생성이 통째로 실패했고
+    (2026-11-04 가입 후 체험: 점검이 성공하자 처음 드러남), 읽지 못한 소식을 "소식 없음"으로 단정해 AI에 넘기고 있었다.
+    """
+    if not isinstance(sp_json, dict) or not sp_json or sp_json.get("error"):
+        return ""
+    intro_chars = _sp_num(sp_json.get("intro_char_count"))
+    photo_cnt = _sp_num(sp_json.get("photo_count"))
+    recent_post_date = sp_json.get("recent_post_date") or ""
+    intro_read = sp_json.get("intro_measured") is not False and intro_chars is not None
+    post_read = sp_json.get("recent_post_measured") is not False and sp_json.get("recent_post_state") != "unmeasured"
+
+    lines = ["\n## 스마트플레이스 자동 분석 결과 (체크박스 대신 이 실제 데이터 우선 사용)"]
+    unknown = False
+    # 소개글 Q&A 개수는 자동으로 확인하지 못한다 — 사장님 Q&A 탭 폐기(2026-05-01)로 감지를 중단해 faq_count는 항상 0인 상수다.
+    # 이 0을 "현재 Q&A 0개"로 AI에 넘기면 가이드가 측정하지 않은 사실을 말한다(2026-11-04). 개수는 말하지 않고 추가만 권하게 한다.
+    lines.append("- 소개글 Q&A: 자동으로 확인하지 못하는 항목 (개수는 언급하지 말고, 소개글 하단에 Q&A를 추가하라는 안내만 할 것)")
+    if intro_read:
+        intro_ok = "✅" if intro_chars >= 200 else f"❌ {200 - int(intro_chars)}자 부족 (최소 200자 권장)"
+        lines.append(f"- 소개글 길이: {int(intro_chars)}자 {intro_ok}")
+    else:
+        lines.append("- 소개글 길이: 확인 전 (읽지 못함)")
+        unknown = True
+    if post_read:
+        lines.append(f"- 최근 소식: {recent_post_date or '없음'} {'✅' if recent_post_date else '❌ 소식 없음'}")
+    else:
+        lines.append("- 최근 소식: 확인 전 (읽지 못함)")
+        unknown = True
+    if photo_cnt is None:
+        lines.append("- 사진 수: 확인 전")
+        unknown = True
+    else:
+        lines.append(f"- 사진 수: {int(photo_cnt)}장 {'✅' if photo_cnt >= 5 else '⚠️ 5장 이상 권장'}")
+    if unknown:
+        lines.append("- 주의: '확인 전'은 AEOlab이 읽지 못한 값이다. 있다/없다로 단정하지 말고, 사장님이 스마트플레이스에서 직접 확인하도록 안내할 것")
+    return "\n".join(lines)
+
+
 def _faq_missing_msg(eligibility: str) -> str:
     if eligibility == "inactive":
         return "FAQ는 ChatGPT·Gemini가 사용자 질문에 답변할 때 참고할 수 있는 정보입니다"
@@ -809,6 +855,7 @@ class GuideGenerator:
 
             keyword_section = f"""
 ## 리뷰 키워드 격차 분석 (AI 브리핑 조건 검색 기준)
+- ★ 아래 키워드는 업종 표준 사전에서 뽑은 "확보해야 할 검색어"이지, 이 가게가 실제로 갖춘 특징(분위기·시설·메뉴 등)이 아니다. 가게가 그런 특징을 가졌는지는 확인되지 않았으므로 예시 문장에서 가게의 특징으로 단정하지 말고, 사장님이 실제로 해당될 때만 쓰도록 "[실제로 해당하면 적으세요]"로 안내할 것
 - 업종 키워드 커버리지: {round(coverage * 100)}% ({len(covered)}개 보유)
 - 이미 보유한 키워드: {', '.join(covered[:5]) or '없음'}
 - 경쟁사엔 있고 내 리뷰에 없는 것 (긴급): {', '.join(comp_only) or '없음'}
@@ -924,22 +971,8 @@ class GuideGenerator:
                 _logger.warning(f"[guide_generator] sp_completeness_json 파싱 실패 — {_e}")
                 _sp_raw = {}
         sp_json = _sp_raw
-        if sp_json and not sp_json.get("error"):
-            faq_cnt = sp_json.get("faq_count", 0)
-            intro_chars = sp_json.get("intro_char_count", 0)
-            recent_post_date = sp_json.get("recent_post_date", "")
-            photo_count_sp = sp_json.get("photo_count", 0)
-            faq_ok = "✅" if faq_cnt >= 3 else "❌ 3개 이상 필요"
-            intro_ok = "✅" if intro_chars >= 200 else f"❌ {200 - intro_chars}자 부족 (최소 200자 권장)"
-            post_ok = "✅" if recent_post_date else "❌ 소식 없음"
-            photo_ok = "✅" if photo_count_sp >= 5 else "⚠️ 5장 이상 권장"
-            sp_detail_section = "\n".join([
-                "\n## 스마트플레이스 자동 분석 결과 (체크박스 대신 이 실제 데이터 우선 사용)",
-                f"- 소개글 Q&A 수: {faq_cnt}개 {faq_ok}",
-                f"- 소개글 길이: {intro_chars}자 {intro_ok}",
-                f"- 최근 소식: {recent_post_date or '없음'} {post_ok}",
-                f"- 사진 수: {photo_count_sp}장 {photo_ok}",
-            ])
+        # None·미측정 값을 숫자 비교에 쓰면 가이드 생성이 통째로 실패하고 읽지 못한 항목이 "없음"으로 단정된다 → format_smart_place_detail
+        sp_detail_section = format_smart_place_detail(sp_json)
 
         # ★ 외부 언급 전략 섹션 (업종별 맞춤 채널)
         try:
@@ -1035,6 +1068,8 @@ class GuideGenerator:
 - "이미 완료된 항목"에 있는 것은 절대 재추천하지 말 것 (예: 이미 스마트플레이스 등록됨 → 등록하라고 하지 말 것, 리뷰가 있음 → 리뷰가 없다고 하지 말 것)
 - "현재 미완성 항목"에서 우선순위를 정해 구체적 행동만 추천
 - action은 "네이버 스마트플레이스(place.naver.com) 접속 → [탭명] 클릭 → [구체적 내용]" 형태로 단계 명시. 반드시 "복사해서 붙여넣을 수 있는 예시 텍스트"를 포함할 것 (예: 소개글 Q&A 추가면 실제 질문·답변 예시 전문, 소개글 본문이면 완성 문장 예시) — Q&A는 반드시 "스마트플레이스 → 업체정보 → 소개글 안" 경로로 안내할 것 (Q&A 탭은 2026-05 폐기)
+- ★ 사실 지어내기 금지: 복사·붙여넣기 예시 텍스트(Q&A 답변·소개글·소식 문장)는 사장님이 그대로 게시한다. [사업장 정보]에 실제로 제공된 값(가게 이름·지역·주소·전화·실제 키워드)만 사실로 쓰고, 시설·좌석·분위기·메뉴·가격·영업시간·수용 인원·운영 기간·수상·예약 가능 여부처럼 확인되지 않은 내용은 쓰지 말 것. 그런 부분은 "[사장님이 실제 내용을 직접 적어 주세요]"처럼 빈칸으로 남기고, 답변을 "네, 가능합니다"처럼 단정하지 말 것
+- ★ "확인 전"으로 표시된 항목과 소개글 Q&A는 "현재 0개"·"없음"으로 단정하지 말고 "스마트플레이스에서 직접 확인해 보세요"로 안내할 것
 - 리뷰 키워드 갭이 있다면 rank 1은 반드시 그 키워드 확보 행동으로 작성
 - competitor_example은 제공된 데이터에 있는 경쟁사만 언급, 없으면 null
 - 근거 없는 수치 예측 절대 금지 — "노출률 XX% 향상", "순위 X위 진입" 같은 문구 삽입 금지

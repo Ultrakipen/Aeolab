@@ -3211,7 +3211,7 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         scanner = MultiAIScanner(mode="full")
 
         supabase = get_client()
-        biz = (await execute(supabase.table("businesses").select("id, name, category, region, business_type, website_url, naver_place_url, keywords, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, keyword_diversity, receipt_review_count, has_faq, has_recent_post, has_intro, review_sample, blog_keyword_coverage, blog_analysis_json, blog_latest_post_date, blog_analyzed_at, blog_url").eq("id", req.business_id).single())).data
+        biz = (await execute(supabase.table("businesses").select("id, name, category, region, address, business_type, website_url, naver_place_url, keywords, naver_place_id, google_place_id, kakao_place_id, review_count, avg_rating, keyword_diversity, receipt_review_count, has_faq, has_recent_post, has_intro, review_sample, blog_keyword_coverage, blog_analysis_json, blog_latest_post_date, blog_analyzed_at, blog_url").eq("id", req.business_id).single())).data
 
         # AI 스캔 + 카카오 가시성 + 웹사이트 SEO + 스마트플레이스 병렬 실행
         keyword_ko = _CATEGORY_KO.get((biz or {}).get("category", req.category), req.category)
@@ -3228,6 +3228,8 @@ async def _run_full_scan(scan_id: str, req: ScanRequest):
         # 플레이스 ID가 없으면 검색 화면에서 자동 확정(이름 일치 1곳일 때만, businesses에 저장) — 2026-10-26.
         # ID가 없으면 리뷰·소식·소개글·키워드 순위가 수집되지 않아 유명한 가게도 저평가된다.
         # scan_all() 호출 전이라 PLAYWRIGHT_SEMAPHORE를 쥔 상태가 아님(중첩 획득 없음).
+        # 위 businesses select에 address가 있어야 한다: 주소가 없으면 resolver가 이름이 1곳과 일치해도 "unverified"로 끝내 ID를 저장하지 않는다
+        # (2026-11-04 가입 후 체험에서 어니언 성수가 점검 없이 끝난 원인, tests/test_full_scan_place_resolution.py).
         if not naver_place_id_biz and biz:
             try:
                 from services.naver_place_resolver import ensure_naver_place_id, is_naver_place_url, canonical_place_url

@@ -826,15 +826,26 @@ def build_naver_post_template(biz: dict) -> str:
     kw1 = kw_list[0]
     kw_str = "·".join(kw_list)
 
-    return (
-        f"✨ {name} 소식\n\n"
-        f"{region_short} {kw1}{_select_josa(kw1, '을', '를')} 찾고 계신가요?\n\n"
-        f"{name}{_select_josa(name, '은', '는')} {kw_str} 전문으로 지역 고객분들께 꾸준히 사랑받고 있습니다.\n"
-        f"최신 메뉴와 이벤트 정보는 네이버 스마트플레이스에서 확인하세요!\n\n"
-        f"📌 예약: 네이버 예약\n"
-        f"📞 문의: {biz.get('phone', '전화 문의')}\n"
-        f"📍 위치: {biz.get('address', region)}"
-    )
+    # 확인되지 않은 사실을 사장님이 그대로 게시하는 글에 쓰지 않는다(지침 7번, 2026-11-04 체험 가이드 실측):
+    #  - biz.get('phone', 기본값)은 키가 있고 값이 None이면 기본값을 주지 못해 "📞 문의: None"이 그대로 게시됐다
+    #  - "📌 예약: 네이버 예약"은 예약 연동을 확인하지 않고 무조건 넣었다(점검 결과 has_reservation=False여도)
+    #  - "꾸준히 사랑받고 있습니다"는 근거 없는 평판 주장이다
+    phone = (biz.get("phone") or "").strip() if isinstance(biz.get("phone"), str) else ""
+    address = (biz.get("address") or "").strip() if isinstance(biz.get("address"), str) else ""
+    lines = [
+        f"✨ {name} 소식\n",
+        f"{region_short} {kw1}{_select_josa(kw1, '을', '를')} 찾고 계신가요?\n",
+        f"{name}{_select_josa(name, '은', '는')} {kw_str}{_select_josa(kw_str, '을', '를')} 다루는 곳입니다.",
+        "최신 메뉴와 이벤트 정보는 네이버 스마트플레이스에서 확인하세요!\n",
+    ]
+    if biz.get("naver_reservation_linked") is True:
+        lines.append("📌 예약: 네이버 예약")
+    if phone:
+        lines.append(f"📞 문의: {phone}")
+    where = address or (region or "").strip()
+    if where:
+        lines.append(f"📍 위치: {where}")
+    return "\n".join(lines)
 
 
 async def build_action_tools(
