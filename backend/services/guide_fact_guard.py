@@ -24,6 +24,11 @@ _NO_REVIEW = re.compile(r"리뷰\s*(?:[가는]\s*(?:아직\s*)?|아직\s*)(?:없
 # 제목에 조건을 붙여 사장님이 실제로 있을 때만 하게 한다. 이미 "실제"·"해당"이 있으면 건드리지 않고, 제목에 "리뷰"가 없으면(예: 안내 추가) 대상이 아니다.
 _FACILITY_KW_TITLE = re.compile(r"['‘’\"“”][^'‘’\"“”]{1,14}(?:있음|가능)['‘’\"“”]")
 _FACILITY_NOTE = " (실제로 있다면)"
+# 등록하지 않은 키워드(경쟁사·갭 키워드 — 예: "소수정예")를 리뷰로 유도하거나 글 제목에 쓰라는 처방 — 그 특징이 가게에 실제로 해당하는지는 확인된 적이 없다
+# (2026-11-05 라이브 가이드: 등록 키워드가 작곡·편곡·연습실뿐인 가게에 "'소수정예' 키워드 리뷰 확보" + 블로그 제목 "소수정예로 배우면"이 그대로 나옴).
+# 등록 키워드를 알 때만(facts["keywords"]) 적용 — 모르면 아무것도 바꾸지 않는다. 등록 키워드와 서로 포함 관계인 말(지역+업종 조합 등)은 대상이 아니다.
+_QUOTED_TOKEN = re.compile(r"['‘’\"“”]([^'‘’\"“”]{1,14})['‘’\"“”]")
+_UNREG_NOTE = " (실제로 해당한다면)"
 
 _SENT_SPLIT = re.compile(r"(?<=[.!?。])\s+")
 # 측정 결과를 절대 표현으로 쓰지 않는다(2026-11-01 방침: 0은 "이번 측정에서는 확인되지 않았다") — "전혀 등장하지 않고 있습니다" → "이번 측정에서는 등장하지 않았습니다"
@@ -82,7 +87,30 @@ def build_facts(biz: dict) -> dict:
     registered = bool(str(biz.get("naver_place_id") or "").strip()) or biz.get("is_smart_place") is True
     reviews_known = _pos(biz.get("review_count")) or _pos(biz.get("visitor_review_count"))
     post_known = bool(sp) and sp.get("recent_post_measured") is not False and sp.get("recent_post_state") != "unmeasured"
-    return {"registered": registered, "reviews_known": reviews_known, "post_known": post_known}
+    facts = {"registered": registered, "reviews_known": reviews_known, "post_known": post_known}
+    kws = []
+    for key in ("keywords", "custom_keywords"):
+        v = biz.get(key)
+        if isinstance(v, list):
+            kws += [str(x) for x in v if str(x).strip()]
+    if kws:   # 모르면 키를 두지 않는다(= 등록 키워드 기준 규칙을 적용하지 않음)
+        facts["keywords"] = kws
+    return facts
+
+
+def _norm_kw(s) -> str:
+    return re.sub(r"\s+", "", str(s or "")).lower()
+
+
+def _unregistered(token: str, keywords) -> bool:
+    t = _norm_kw(token)
+    if len(t) < 2 or not keywords:
+        return False
+    for k in keywords:
+        kn = _norm_kw(k)
+        if len(kn) >= 2 and (t in kn or kn in t):
+            return False
+    return True
 
 
 def _map_strings(obj, fn):
@@ -131,27 +159,52 @@ def guard_guide(guide: dict, facts: dict) -> tuple[dict, list[str]]:
 
     # 시설·서비스형 키워드 리뷰 유도 처방에 조건 붙이기
     cond = 0
+    kw_facts = facts.get("keywords") if isinstance(facts.get("keywords"), list) else []
+    unreg_tokens: list[str] = []
 
     def _add_cond(title):
         t = str(title or "")
-        if "리뷰" in t and _FACILITY_KW_TITLE.search(t) and "실제" not in t and "해당" not in t:
-            return t + _FACILITY_NOTE
+        if "리뷰" in t and "실제" not in t and "해당" not in t:
+            if _FACILITY_KW_TITLE.search(t):
+                return t + _FACILITY_NOTE
+            toks = [q for q in _QUOTED_TOKEN.findall(t) if _unregistered(q, kw_facts)]
+            if toks:
+                unreg_tokens.extend(toks)
+                return t + _UNREG_NOTE
         return title
 
-    for it in (g.get("priority_items") or []):
-        if isinstance(it, dict) and "title" in it:
-            new_t = _add_cond(it.get("title"))
-            if new_t != it.get("title"):
-                it["title"] = new_t
-                cond += 1
-    m = g.get("this_week_mission")
-    if isinstance(m, dict) and "title" in m:
-        new_t = _add_cond(m.get("title"))
-        if new_t != m.get("title"):
-            m["title"] = new_t
-            cond += 1
+    cond_u = 0
+    for holder in [it for it in (g.get("priority_items") or []) if isinstance(it, dict)] + [g.get("this_week_mission")]:
+        if isinstance(holder, dict) and "title" in holder:
+            new_t = _add_cond(holder.get("title"))
+            if new_t != holder.get("title"):
+                holder["title"] = new_t
+                if str(new_t).endswith(_UNREG_NOTE):
+                    cond_u += 1
+                else:
+                    cond += 1
     if cond:
         notes.append(f"시설형 키워드 리뷰 처방 {cond}개에 '(실제로 있다면)' 조건 추가")
+    if cond_u:
+        notes.append(f"미등록 키워드 리뷰 처방 {cond_u}개에 '(실제로 해당한다면)' 조건 추가")
+    # 조건을 붙인 미등록 키워드가 다른 항목 본문(블로그 제목 예시 등)에도 쓰였으면 그 항목 끝에 한 줄 안내 — 같은 키워드만, 항목당 1번
+    if unreg_tokens:
+        holders = [it for it in (g.get("priority_items") or []) if isinstance(it, dict)]
+        if isinstance(g.get("this_week_mission"), dict):
+            holders.append(g["this_week_mission"])
+        added = 0
+        for h in holders:
+            for fld in ("action", "why"):
+                body = h.get(fld)
+                if not isinstance(body, str) or "실제로 해당할 때만 쓰세요" in body:
+                    continue
+                hit = [tk for tk in dict.fromkeys(unreg_tokens) if tk in body]
+                if hit:
+                    h[fld] = body.rstrip() + " ※ " + ", ".join(f"'{tk}'" for tk in hit) + "은(는) 가게에 실제로 해당할 때만 쓰세요."
+                    added += 1
+                    break
+        if added:
+            notes.append(f"미등록 키워드 본문 사용 {added}곳에 '실제 해당할 때만' 안내 추가")
 
     # deep_link: 깨진·미확인 주소 정리
     fixed_links = 0
