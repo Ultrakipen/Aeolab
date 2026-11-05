@@ -1669,7 +1669,7 @@ async def get_basic_trial_status(user=Depends(get_current_user)):
 
 @router.post("/basic-trial")
 async def run_basic_trial(req: BasicTrialRequest, user=Depends(get_current_user)):
-    """Basic 1회 무료 Full Scan 체험 (백그라운드 실행 — 즉시 응답하고 진행은 /basic-trial/status로 조회, 보통 1~2분).
+    """Basic 1회 무료 Full Scan 체험 (백그라운드 실행 — 즉시 응답하고 진행은 /basic-trial/status로 조회, 보통 5분 안팎 — 2026-11-04 실측 296·311초. 가이드는 그 뒤 3~4분 더).
 
     - 활성 구독자 차단 (정식 API 경로 사용 유도)
     - profiles.basic_trial_used=True 이면 차단
@@ -1768,7 +1768,7 @@ async def run_basic_trial(req: BasicTrialRequest, user=Depends(get_current_user)
         "scan_id": scan_id,
         "business_id": biz_id,
         "status": "running",
-        "message": "Basic 무료 체험 측정을 시작했습니다. 보통 1~2분 걸리며, 창을 닫아도 측정은 계속됩니다.",
+        "message": "Basic 무료 체험 측정을 시작했습니다. 보통 5분 안팎 걸리고 개선 가이드는 그 뒤 몇 분 더 걸려 만들어집니다. 창을 닫아도 측정은 계속됩니다.",
     }
 
 
@@ -3189,8 +3189,12 @@ async def _auto_generate_guide(business_id: str, scan_id: str) -> None:
             return
 
         guide_req = GuideRequest(business_id=business_id, scan_id=scan_id)
-        await _generate_and_save(guide_req)
-        _logger.info(f"Auto guide generated: scan_id={scan_id}")
+        # _generate_and_save는 실패를 삼키고 False를 돌려준다 — 실패했는데 "생성됨"으로 기록하지 않는다(2026-11-04 가입 후 체험에서 None 비교 실패 뒤에도 성공 로그가 찍혔다)
+        _ok = await _generate_and_save(guide_req)
+        if _ok is False:
+            _logger.warning(f"Auto guide NOT generated: scan_id={scan_id} biz={business_id} (실패 사유는 'Guide generation failed' 로그 참고)")
+        else:
+            _logger.info(f"Auto guide generated: scan_id={scan_id}")
     except Exception as e:
         _logger.warning(f"Auto guide generation failed (biz={business_id}, scan={scan_id}): {e}")
 

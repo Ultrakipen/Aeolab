@@ -27,10 +27,11 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
     };
   }, []);
 
-  // 서버가 백그라운드로 돌리는 측정이 끝날 때까지 3초마다 상태를 확인한다(최대 6분). 창을 닫아도 측정은 계속되고, 다시 열면 이어서 확인한다.
+  // 서버가 백그라운드로 돌리는 측정이 끝날 때까지 3초마다 상태를 확인한다(최대 9분). 창을 닫아도 측정은 계속되고, 다시 열면 이어서 확인한다.
   const waitForTrial = useCallback(async () => {
     const startedAt = Date.now();
-    while (alive.current && Date.now() - startedAt < 6 * 60_000) {
+    // 실측 소요가 약 5분(2회: 296·311초)이라 6분 한도는 여유가 거의 없었다 — 9분까지 기다린다(2026-11-05)
+    while (alive.current && Date.now() - startedAt < 9 * 60_000) {
       await new Promise((r) => setTimeout(r, 3000));
       if (!alive.current) return;
       let st: BasicTrialStatus | null = null;
@@ -129,7 +130,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
               ChatGPT · 네이버 AI 브리핑 · 구글 AI{GEMINI_LIVE ? " · Gemini" : ""} 동시 분석 중
             </p>
             <p className="text-sm text-emerald-700 mt-2">
-              보통 1~2분 걸려요. 창을 닫아도 측정은 계속되고, 다시 열면 결과가 표시됩니다.
+              보통 5분 안팎 걸려요(네이버 AI 브리핑·AI탭을 하나씩 확인해요). 개선 가이드는 측정이 끝난 뒤 몇 분 더 걸려 만들어져요. 창을 닫아도 측정은 계속되고, 다시 열면 결과가 표시됩니다.
             </p>
           </div>
         </div>
@@ -179,7 +180,7 @@ export default function BasicTrialBanner({ businessId, businessName, authToken }
         ) : (
           <div className="bg-white border border-emerald-200 rounded-xl p-4">
             <p className="text-sm md:text-base text-gray-800 font-medium mb-3">
-              지금 한 번만 무료 체험이 가능합니다. 시작할까요?
+              지금 한 번만 무료 체험이 가능합니다. 측정에는 5분 안팎 걸립니다. 시작할까요?
             </p>
             <div className="flex flex-col sm:flex-row gap-2">
               <button

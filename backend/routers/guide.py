@@ -848,11 +848,11 @@ async def _generate_and_save(req: GuideRequest):
         biz = biz_res.data
         if not biz:
             _logger.error(f"Guide gen: business {req.business_id} not found")
-            return
+            return False
         scan = scan_res.data
         if not scan:
             _logger.error(f"Guide gen: scan {req.scan_id} not found")
-            return
+            return False
         competitors = comp_res.data or []
 
         # 경쟁사 점수 (scan_results.competitor_scores)
@@ -1011,10 +1011,12 @@ async def _generate_and_save(req: GuideRequest):
                 "falling back to legacy format"
             )
             await execute(supabase.table("guides").insert(base_payload))
+        return True
 
     except Exception as e:
         _logger.error(f"Guide generation failed (biz={req.business_id}, scan={req.scan_id}): {e}", exc_info=True)
         _guide_generation_failures[req.business_id] = time.time()
+        return False
 
 
 class SmartplaceFAQRequest(BaseModel):

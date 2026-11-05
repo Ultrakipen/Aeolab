@@ -722,6 +722,23 @@ function SmartPlaceStatusCard({
 }
 
 // ── 복사 버튼 ─────────────────────────────────────────────────────────────────
+// AI가 쓴 deep_link는 깨진 주소가 관측됐다(예: smartplace.naver.com/places/업체정보). 백엔드 sanitize_deep_link와 같은 규칙으로 화면에서도 한 번 더 거른다 —
+// 이미 저장된 옛 가이드 데이터도 이 함수를 거친다. 스마트플레이스는 하위 경로를 확인할 수 없어 루트로, 허용 목록 밖 주소는 버튼을 숨긴다(2026-11-05).
+function safeDeepLink(url?: string | null): string | undefined {
+  if (!url) return undefined
+  try {
+    const u = new URL(url.trim())
+    if (u.protocol !== 'https:') return undefined
+    const host = u.hostname.toLowerCase()
+    if (host === 'smartplace.naver.com' || host === 'new.smartplace.naver.com') return 'https://smartplace.naver.com/'
+    if (['business.google.com', 'map.kakao.com', 'map.naver.com'].includes(host)) {
+      const ascii = /^[\x00-\x7F]*$/.test(u.pathname) && !/[{}]/.test(url)
+      return `https://${host}${ascii ? u.pathname : ''}`
+    }
+  } catch { /* 형식이 잘못된 주소는 버튼을 숨긴다 */ }
+  return undefined
+}
+
 function CopyButton({ text, label = '복사' }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false)
   const copy = async () => {
@@ -819,9 +836,9 @@ function ThisWeekMissionCard({
           <Clock className="w-4 h-4" />
           <span>예상 {data.time_required || (data.estimated_minutes ? `${data.estimated_minutes}분` : '15분')}</span>
         </div>
-        {data.deep_link && (
+        {safeDeepLink(data.deep_link) && (
           <a
-            href={data.deep_link}
+            href={safeDeepLink(data.deep_link)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
@@ -3233,6 +3250,10 @@ function FAQSection({ faqs, title }: { faqs: FAQ[]; title: string }) {
       </button>
       {open && (
         <div className="border-t border-gray-100 divide-y divide-gray-100">
+          {/* 사장님이 그대로 게시하는 문장이다 — 확인되지 않은 칭찬·예약·주차 안내를 사실처럼 올리지 않게 한다(옛 가이드의 FAQ에도 해당, 2026-11-05) */}
+          <p className="px-4 py-3 text-sm text-amber-900 bg-amber-50 leading-snug">
+            복사하기 전에 사실과 다른 문장은 고치거나 지우세요. [ ] 안은 사장님이 직접 실제 내용을 채워야 합니다. 예전에 만든 가이드의 FAQ에는 확인되지 않은 칭찬·예약·주차 안내가 들어 있을 수 있어요.
+          </p>
           {faqs.map((faq, i) => (
             <div key={i} className="p-4">
               <div className="flex items-start justify-between gap-3 mb-2">
@@ -3358,13 +3379,14 @@ function GuideItemCard({
             <CopyButton text={copyable} />
           </div>
           <p className="text-base text-blue-800 leading-relaxed whitespace-pre-wrap break-words">{copyable}</p>
+          <p className="text-sm text-blue-900 mt-2 leading-snug">AI가 만든 초안입니다. [ ] 안은 사장님이 직접 채우고, 사실과 다른 내용은 고치거나 지운 뒤 쓰세요.</p>
         </div>
       )}
 
       {/* 바로 실행 버튼 */}
-      {item.deep_link && !done && (
+      {safeDeepLink(item.deep_link) && !done && (
         <a
-          href={item.deep_link}
+          href={safeDeepLink(item.deep_link)}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors mb-2"
@@ -3757,12 +3779,13 @@ function GuideTabView({
                       <span>{step}</span>
                     </div>
                   ))}
+                  <p className="text-sm opacity-90 leading-snug">예시 문장은 AI가 만든 초안입니다. [ ] 안은 직접 채우고, 사실과 다른 내용은 고치거나 지운 뒤 쓰세요.</p>
                 </div>
               )}
               <div className="flex items-center justify-between">
                 <span className="text-sm opacity-75 inline-flex items-center gap-1"><Clock className="w-4 h-4 shrink-0" aria-hidden="true" /> {thisWeekMission.time_required}</span>
-                {thisWeekMission.deep_link && (
-                  <a href={thisWeekMission.deep_link} target="_blank" rel="noopener noreferrer"
+                {safeDeepLink(thisWeekMission.deep_link) && (
+                  <a href={safeDeepLink(thisWeekMission.deep_link)} target="_blank" rel="noopener noreferrer"
                      className="bg-white text-blue-700 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors">
                     바로 가기 →
                   </a>

@@ -418,6 +418,8 @@ class GuideGenerator:
 
             _dia_validation = _run_dia(raw or "")
             _dia_score = _guide_quality_score(_dia_validation)
+            # 재생성이 오히려 점수를 낮추는 경우가 실제로 있었다(2026-11-04: 68.7 → 43.7 — 낮은 쪽이 저장됨). 가장 좋은 시도를 남긴다.
+            _best = (_dia_score, guide, _dia_validation)
 
             # 재생성 루프
             for _retry in range(_max_retries):
@@ -452,6 +454,12 @@ class GuideGenerator:
                 _dia_validation = _run_dia(raw or "")
                 _dia_score = _guide_quality_score(_dia_validation)
                 _dia_regenerated += 1
+                if _dia_score > _best[0]:
+                    _best = (_dia_score, guide, _dia_validation)
+
+            if _best[0] > _dia_score:
+                _logger.info(f"[guide_generator] 재생성 결과({_dia_score})보다 앞선 시도({_best[0]})를 사용")
+                _dia_score, guide, _dia_validation = _best
 
             # 최종 점수 로깅
             if _dia_score < 70:
@@ -480,6 +488,16 @@ class GuideGenerator:
                     _hint_elems.append(_elem)
             if _hint_elems and _dia_score < 90:
                 guide["dia_improvement_hints"] = _hint_elems[:2]
+
+        # 확인된 사실과 어긋나는 AI 문구를 걸러낸다(이미 등록된 가게에 "등록하세요", 소식·Q&A 개수 단정 등 — services/guide_fact_guard.py).
+        # 가드가 실패해도 가이드 생성은 막지 않는다(원본 사용 + 경고).
+        try:
+            from services.guide_fact_guard import build_facts, guard_guide
+            guide, _guard_notes = guard_guide(guide, build_facts(biz))
+            if _guard_notes:
+                _logger.info(f"[guide_generator] 사실 가드 적용 biz={biz.get('id')}: {'; '.join(_guard_notes)}")
+        except Exception as _guard_e:
+            _logger.warning(f"[guide_generator] 사실 가드 실패 — 원본 가이드 사용: {_guard_e}")
 
         # ActionItem 목록 구성
         items = self._build_action_items(guide, ctx)
@@ -1070,6 +1088,8 @@ class GuideGenerator:
 - action은 "네이버 스마트플레이스(place.naver.com) 접속 → [탭명] 클릭 → [구체적 내용]" 형태로 단계 명시. 반드시 "복사해서 붙여넣을 수 있는 예시 텍스트"를 포함할 것 (예: 소개글 Q&A 추가면 실제 질문·답변 예시 전문, 소개글 본문이면 완성 문장 예시) — Q&A는 반드시 "스마트플레이스 → 업체정보 → 소개글 안" 경로로 안내할 것 (Q&A 탭은 2026-05 폐기)
 - ★ 사실 지어내기 금지: 복사·붙여넣기 예시 텍스트(Q&A 답변·소개글·소식 문장)는 사장님이 그대로 게시한다. [사업장 정보]에 실제로 제공된 값(가게 이름·지역·주소·전화·실제 키워드)만 사실로 쓰고, 시설·좌석·분위기·메뉴·가격·영업시간·수용 인원·운영 기간·수상·예약 가능 여부처럼 확인되지 않은 내용은 쓰지 말 것. 그런 부분은 "[사장님이 실제 내용을 직접 적어 주세요]"처럼 빈칸으로 남기고, 답변을 "네, 가능합니다"처럼 단정하지 말 것
 - ★ "확인 전"으로 표시된 항목과 소개글 Q&A는 "현재 0개"·"없음"으로 단정하지 말고 "스마트플레이스에서 직접 확인해 보세요"로 안내할 것
+- ★ 구글 비즈니스 프로필·카카오맵·인스타그램처럼 등록 여부가 확인되지 않은 채널은 "등록하세요"로 단정하지 말고 "등록돼 있는지 먼저 확인하고, 없으면 등록"으로 안내할 것
+- ★ 측정 결과가 0회·미노출이어도 "전혀"·"절대" 같은 절대 표현을 쓰지 말고 "이번 측정에서는 확인되지 않았습니다"로 쓸 것(검색을 켠 화면에서는 다를 수 있다)
 - 리뷰 키워드 갭이 있다면 rank 1은 반드시 그 키워드 확보 행동으로 작성
 - competitor_example은 제공된 데이터에 있는 경쟁사만 언급, 없으면 null
 - 근거 없는 수치 예측 절대 금지 — "노출률 XX% 향상", "순위 X위 진입" 같은 문구 삽입 금지

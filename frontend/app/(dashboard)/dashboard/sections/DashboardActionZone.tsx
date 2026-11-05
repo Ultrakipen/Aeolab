@@ -129,7 +129,7 @@ export default function DashboardActionZone({
                 <>
                   <p className="text-sm font-bold text-gray-900 leading-snug">이번 체험 측정으로 만든 가이드가 아직 없어요</p>
                   <p className="text-sm text-gray-600 mt-1 leading-snug">
-                    개선 가이드 생성과 오늘의 미션은 Basic에서 이용할 수 있습니다.
+                    측정이 끝난 뒤 가이드가 만들어지기까지 몇 분 더 걸려요. 잠시 뒤 새로고침해 보세요. 10분이 지나도 보이지 않으면 support@aeolab.co.kr로 알려 주세요. 개선 가이드 다시 만들기와 오늘의 미션은 Basic에서 이용할 수 있습니다.
                   </p>
                   <Link
                     href="/pricing"

@@ -145,3 +145,42 @@ def test_trial_guide_lock_card_depends_on_real_guide():
     assert 'href="/guide"' in zone
     dash = _read("app", "(dashboard)", "dashboard", "page.tsx")
     assert "hasGuide={!!latestGuide}" in dash
+
+
+# ── 체험 소요 시간·가이드 안내·FAQ 경고 (2026-11-05) ─────────────────────────────────────
+BANNER = ("components", "dashboard", "BasicTrialBanner.tsx")
+
+
+def test_trial_duration_copy_matches_the_measured_time():
+    """가입 후 체험은 2회 실측 296·311초였고 가이드는 그 뒤 3~4분 더 걸렸다 — '보통 1~2분' 안내는 사실이 아니었다."""
+    banner = _read(*BANNER)
+    assert "1~2분" not in banner
+    assert "보통 5분 안팎" in banner and "개선 가이드는 측정이 끝난 뒤 몇 분 더" in banner
+    assert "측정에는 5분 안팎 걸립니다" in banner                       # 시작 전에 알린다
+    assert "9 * 60_000" in banner and "6 * 60_000" not in banner         # 대기 한도가 실측 소요보다 길어야 한다
+    with open(os.path.join(ROOT, "backend", "routers", "scan.py"), encoding="utf-8") as f:
+        scan = f.read()
+    assert "보통 1~2분 걸리며" not in scan and "보통 5분 안팎 걸리고" in scan
+
+
+def test_no_guide_card_explains_the_delay_instead_of_saying_nothing_exists():
+    zone = _read(*ACTION_ZONE)
+    assert "가이드가 만들어지기까지 몇 분 더 걸려요" in zone and "10분이 지나도 보이지 않으면" in zone
+
+
+def test_copyable_faq_sections_warn_before_copying():
+    """FAQSection(소개글 하단 추가용 Q&A·AI 검색 개선 FAQ)은 복사 버튼이 있다 — 옛 가이드의 확인 안 된 문장도 이 경고를 거친다."""
+    src = _read(*GUIDE)
+    i = src.index("function FAQSection")
+    assert "복사하기 전에 사실과 다른 문장은 고치거나 지우세요" in src[i:i + 2500]
+
+
+def test_guide_deep_links_go_through_the_safe_filter_and_examples_are_labeled_as_ai_drafts():
+    """AI가 쓴 deep_link(깨진 주소 관측: smartplace.naver.com/places/업체정보)는 옛 가이드 데이터까지 화면에서 한 번 더 거른다."""
+    src = _read(*GUIDE)
+    assert "function safeDeepLink" in src
+    for raw in ("href={item.deep_link}", "href={data.deep_link}", "href={thisWeekMission.deep_link}"):
+        assert raw not in src, raw
+    assert src.count("safeDeepLink(") >= 7                       # 정의 1 + 사용 3곳(조건·href 각 1)
+    assert "AI가 만든 초안입니다. [ ] 안은 사장님이 직접 채우고" in src
+    assert "예시 문장은 AI가 만든 초안입니다. [ ] 안은 직접 채우고" in src

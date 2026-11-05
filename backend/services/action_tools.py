@@ -118,21 +118,40 @@ def build_keyword_list(
     return result[:15]
 
 
+def _blank(hint: str) -> str:
+    """사장님이 직접 채워야 하는 빈칸 — 확인되지 않은 사실을 AEOlab이 지어 쓰지 않는다(지침 7번)."""
+    return f"[{hint}]"
+
+
+def _contact(biz: dict) -> str:
+    """전화번호를 알 때만 문의처 문장을 붙인다. biz.get('phone', 기본값)은 값이 None이면 기본값을 못 줘 'None'이 찍힌다."""
+    phone = biz.get("phone")
+    phone = phone.strip() if isinstance(phone, str) else ""
+    return f" 문의: {phone}" if phone else ""
+
+
 def build_faq_list(
     biz: dict,
     context: str,
     count: int = 7,
 ) -> list[FAQ]:
-    """AI 검색 최적화용 FAQ 생성 (context별 쿼리 형태 다름)"""
-    name = biz.get("name", "우리 가게")
+    """AI 검색 최적화용 FAQ 질문 세트 (context별 쿼리 형태 다름).
+
+    답변은 가게 이름·지역·사장님이 등록한 키워드 같은 확인된 값만 쓰고, 칭찬·예약·주차·경력·자격처럼 확인되지 않은 사실은
+    [ ] 빈칸으로 남겨 사장님이 실제 내용을 적게 한다(이전에는 "고객 만족도 높은 서비스"·"정평이 나 있습니다"·"인근 공영주차장도 이용 가능"을
+    그대로 복사해 게시할 수 있었다 — 2026-11-05 감사).
+    """
+    name = biz.get("name") or "우리 가게"
     category = biz.get("category", "")
-    region = biz.get("region", "")
+    region = biz.get("region") or ""
     keywords = biz.get("keywords") or []
     cat_ko = _ko_category(category)
-    # 키워드 최대 3개 (없으면 카테고리 한국어 레이블 사용)
     kw_list = keywords[:3] if keywords else [cat_ko]
     keyword_str = "·".join(kw_list) if kw_list else cat_ko
     kw1 = kw_list[0] if kw_list else cat_ko
+    contact = _contact(biz)
+    address = biz.get("address")
+    address = address.strip() if isinstance(address, str) else ""
 
     try:
         ctx = ScanContext(context)
@@ -144,62 +163,84 @@ def build_faq_list(
         faqs = [
             FAQ(
                 question=f"{region_short} {kw1} 어디가 좋아?",
-                answer=f"{name}{_select_josa(name, '을', '를')} 추천드립니다. {region_short} 지역에서 {keyword_str} 전문으로 운영하며, 고객 만족도 높은 서비스를 제공합니다.",
+                answer=(
+                    f"{name}{_select_josa(name, '을', '를')} 추천드립니다. {region_short}에서 {keyword_str}{_select_josa(keyword_str, '을', '를')} 다룹니다. "
+                    f"{_blank('추천하는 이유(대표 메뉴·강점 등)를 실제 내용으로 적어 주세요')}"
+                ),
             ),
             FAQ(
                 question=f"{region_short} {kw1} 추천해줘",
-                answer=f"{name}{_select_josa(name, '은', '는')} {region_short}에 위치한 {cat_ko}으로, {keyword_str} 분야의 전문 노하우로 많은 분들께 사랑받고 있습니다.",
+                answer=(
+                    f"{name}{_select_josa(name, '은', '는')} {region_short}에 있는 {cat_ko}입니다. "
+                    f"{_blank('다른 곳과 다른 점을 실제 내용으로 적어 주세요')}"
+                ),
             ),
             FAQ(
                 question=f"{name} 어때?",
-                answer=f"{name}{_select_josa(name, '은', '는')} {region_short} {cat_ko}으로, {keyword_str} 서비스를 제공합니다. 친절한 서비스와 합리적인 가격으로 정평이 나 있습니다.",
+                answer=(
+                    f"{name}{_select_josa(name, '은', '는')} {region_short}의 {cat_ko}입니다. {keyword_str}{_select_josa(keyword_str, '을', '를')} 다룹니다. "
+                    f"{_blank('분위기·가격대·손님 반응 등 실제로 말할 수 있는 내용을 적어 주세요')}"
+                ),
             ),
             FAQ(
                 question=f"{name} 영업시간은?",
-                answer=f"{name}의 영업시간은 네이버 스마트플레이스 또는 카카오맵에서 확인하실 수 있습니다. 방문 전 전화 문의를 권장합니다.",
+                answer=f"{name}의 영업시간은 네이버 스마트플레이스 또는 카카오맵에서 확인하실 수 있습니다. 방문 전 확인을 권장합니다.{contact}",
             ),
             FAQ(
                 question=f"{region_short} {kw1} 예약 방법은?",
-                answer=f"{name}{_select_josa(name, '은', '는')} 네이버 예약 또는 전화로 예약 가능합니다. 주말에는 사전 예약을 권장합니다.",
+                answer=f"{_blank('예약 방법을 실제로 가능한 것만 적어 주세요 — 네이버 예약·전화 등')}{contact}",
             ),
             FAQ(
                 question=f"{name} 주차 가능한가요?",
-                answer=f"{name} 주차 정보는 네이버 지도에서 확인하실 수 있습니다. 인근 공영주차장도 이용 가능합니다.",
+                answer=f"{_blank('주차 가능 여부와 위치를 실제 정보로 적어 주세요')}",
             ),
             FAQ(
-                question=f"{region_short}에서 {kw1} 1등은 어디야?",
-                answer=f"{name}{_select_josa(name, '은', '는')} {region_short} {cat_ko} 분야에서 AI 검색 노출 상위를 기록하고 있는 가게입니다. 실제 이용 고객의 리뷰를 참고해보세요.",
+                question=f"{name} 위치는 어디예요?",
+                answer=(f"{name}{_select_josa(name, '은', '는')} {address}에 있습니다." if address
+                        else f"{name}{_select_josa(name, '은', '는')} {region_short}에 있습니다. {_blank('주소와 찾아오는 길을 적어 주세요')}"),
             ),
         ]
     else:
+        website = biz.get("website_url")
+        website = website.strip() if isinstance(website, str) else ""
         faqs = [
             FAQ(
                 question=f"{kw1} 전문가 추천해줘",
-                answer=f"{name}{_select_josa(name, '은', '는')} {cat_ko} 분야 전문으로, {keyword_str} 서비스를 제공합니다. 다년간의 경험과 전문 지식을 바탕으로 최적의 솔루션을 제안합니다.",
+                answer=(
+                    f"{name}{_select_josa(name, '은', '는')} {cat_ko} 분야에서 {keyword_str} 서비스를 제공합니다. "
+                    f"{_blank('경력·전문 분야 등 실제 내용을 적어 주세요')}"
+                ),
             ),
             FAQ(
                 question=f"{cat_ko} 어디서 받는 게 좋아?",
-                answer=f"{name}에서 {keyword_str} 서비스를 이용해보세요. 개인 맞춤형 접근과 풍부한 사례로 높은 만족도를 제공합니다.",
+                answer=(
+                    f"{name}에서 {keyword_str} 서비스를 이용해 보실 수 있습니다. "
+                    f"{_blank('선택하실 때 도움이 될 실제 강점을 적어 주세요')}"
+                ),
             ),
             FAQ(
                 question=f"{name} 서비스는 어때?",
-                answer=f"{name}{_select_josa(name, '은', '는')} {keyword_str} 분야의 전문 서비스를 제공하며, 체계적인 프로세스와 전문 인력으로 고객 만족을 최우선으로 합니다.",
+                answer=(
+                    f"{name}{_select_josa(name, '은', '는')} {keyword_str} 분야의 서비스를 제공합니다. "
+                    f"{_blank('진행 방식·특징을 실제 내용으로 적어 주세요')}"
+                ),
             ),
             FAQ(
                 question=f"{kw1} 비용은 얼마야?",
-                answer=f"{name}의 서비스 비용은 상담 후 맞춤 견적을 제공합니다. 공식 홈페이지나 전화 문의를 통해 자세히 안내받으실 수 있습니다.",
+                answer=f"{_blank('비용 안내 방식(상담 후 견적·정가 등)을 실제 정책대로 적어 주세요')}{contact}",
             ),
             FAQ(
                 question=f"{kw1} 온라인으로 받을 수 있어?",
-                answer=f"{name}{_select_josa(name, '은', '는')} 비대면·온라인 서비스도 제공합니다. 전국 어디서나 이용 가능하며, 화상 상담을 통해 편리하게 서비스를 받으실 수 있습니다.",
+                answer=f"{_blank('온라인·비대면 가능 여부를 실제로 가능한 범위로 적어 주세요')}",
             ),
             FAQ(
                 question=f"{name} 포트폴리오 볼 수 있어?",
-                answer=f"{name}의 주요 서비스 사례와 포트폴리오는 공식 홈페이지에서 확인하실 수 있습니다.",
+                answer=(f"{name}의 주요 사례는 {website}에서 확인하실 수 있습니다." if website
+                        else f"{name}의 주요 사례는 {_blank('사례를 볼 수 있는 홈페이지·블로그 주소를 적어 주세요')}에서 확인하실 수 있습니다."),
             ),
             FAQ(
                 question=f"{cat_ko} 전문가 자격은?",
-                answer=f"{name}{_select_josa(name, '은', '는')} 관련 분야 자격증과 다수의 프로젝트 경험을 보유하고 있습니다. 전문성 있는 서비스로 신뢰할 수 있습니다.",
+                answer=f"{_blank('보유 자격·경력을 실제 확인 가능한 내용으로 적어 주세요')}",
             ),
         ]
 
@@ -503,55 +544,40 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
     네이버 AI 브리핑 인용 후보 경로:
     스마트플레이스 소개글 안 Q&A 답변이 브리핑 인용 후보가 됨.
     업종별로 고객이 실제로 궁금해하는 질문 세트를 사용.
+
+    답변은 확인된 값(가게 이름·전화번호)과 사장님이 채울 [ ] 빈칸만 쓴다. 단체 예약·포장·체험 수업·보험 적용·시술 시간처럼
+    확인되지 않은 사실을 "네, 가능합니다"로 단정하면 사장님이 그대로 게시한다(의료·보험 문구는 특히 위험) — 2026-11-05 감사.
     """
-    name = biz.get("name", "저희 가게")
+    name = biz.get("name") or "저희 가게"
     category = biz.get("category", "")
-    region = biz.get("region", "")
-    region_short = _strip_region(region)
-    cat_ko = _ko_category(category)
-    address = biz.get("address", f"{region} 위치")
-    phone = biz.get("phone", "")
     keywords = biz.get("keywords") or []
+    cat_ko = _ko_category(category)
     kw_list = keywords[:3] if keywords else [cat_ko]
     kw1 = kw_list[0]
-    kw2 = kw_list[1] if len(kw_list) > 1 else kw1
-    kw3 = kw_list[2] if len(kw_list) > 2 else kw2
     kw_str = "·".join(kw_list)
+    contact = _contact(biz)
 
     _parking_ans = (
-        f"{name} 주변 주차 정보는 네이버 지도에서 확인하실 수 있습니다. "
-        f"자세한 안내는 {phone or '전화 문의'}를 통해 확인해 주세요."
+        f"{name} 주변 주차 정보는 네이버 지도에서 확인하실 수 있습니다.{contact}"
     )
     _hours_ans = (
         f"{name}의 영업시간은 네이버 스마트플레이스에서 확인하실 수 있습니다. "
-        f"공휴일 및 임시 휴무는 네이버 공지사항을 참고해 주세요. 방문 전 확인을 권장드립니다."
+        f"공휴일·임시 휴무는 방문 전 확인을 권장드립니다.{contact}"
     )
 
     if category in ("restaurant", "cafe", "bakery", "bar"):
         return [
             FAQ(
                 question=f"{kw1} 특선 메뉴가 있나요?",
-                answer=(
-                    f"네, {name}의 대표 메뉴는 {kw1}입니다. "
-                    f"{kw2}도 많은 고객분들께 사랑받고 있습니다. "
-                    f"네이버 스마트플레이스 메뉴 탭에서 전체 메뉴를 확인하실 수 있습니다."
-                ),
+                answer=f"{name}의 대표 메뉴는 {_blank('대표 메뉴를 실제 이름으로 적어 주세요')}입니다. 전체 메뉴는 스마트플레이스에서 확인해 주세요.",
             ),
             FAQ(
                 question="포장·배달 되나요?",
-                answer=(
-                    f"{name}{_select_josa(name, '은', '는')} 포장 주문이 가능합니다. "
-                    f"배달 여부는 {phone or '전화'} 또는 네이버 예약으로 문의해 주세요. "
-                    f"포장 시 할인 혜택이 있을 수 있으니 사전 문의를 권장드립니다."
-                ),
+                answer=f"{_blank('포장·배달 가능 여부를 실제로 가능한 범위로 적어 주세요')}{contact}",
             ),
             FAQ(
                 question="단체 예약 가능한가요?",
-                answer=(
-                    f"네, {name}{_select_josa(name, '은', '는')} 단체 예약을 받고 있습니다. "
-                    f"10인 이상 방문 시 사전 예약을 권장드리며, "
-                    f"{phone or '전화'}로 문의하시면 자세히 안내해 드리겠습니다."
-                ),
+                answer=f"{_blank('단체 예약 가능 여부와 인원·조건을 실제 내용으로 적어 주세요')}{contact}",
             ),
             FAQ(question="주차 가능한가요?", answer=_parking_ans),
             FAQ(question="영업시간이 어떻게 되나요?", answer=_hours_ans),
@@ -561,67 +587,41 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
         return [
             FAQ(
                 question="예약 없이 방문 가능한가요?",
-                answer=(
-                    f"{name}{_select_josa(name, '은', '는')} 네이버 예약 또는 전화 예약을 권장드립니다. "
-                    f"당일 방문도 가능하지만 대기 시간이 발생할 수 있습니다. "
-                    f"주말·공휴일은 반드시 사전 예약을 부탁드립니다."
-                ),
+                answer=f"{_blank('예약 없이 방문 가능한지, 예약이 필요한지 실제 운영 방식을 적어 주세요')}{contact}",
             ),
             FAQ(
                 question=f"{kw1} 시술 시간은 얼마나 걸리나요?",
-                answer=(
-                    f"{name}의 {kw1} 시술 시간은 디자인과 개인 상태에 따라 다를 수 있습니다. "
-                    f"평균 1~2시간 정도 소요되며, 정확한 시간은 예약 시 안내해 드립니다."
-                ),
+                answer=f"{_blank('시술 시간을 실제 소요 시간으로 적어 주세요')}",
             ),
             FAQ(
                 question="가격은 어떻게 되나요?",
-                answer=(
-                    f"{name}의 가격은 시술 종류와 디자인에 따라 다릅니다. "
-                    f"자세한 가격표는 네이버 스마트플레이스 메뉴 탭 또는 "
-                    f"{phone or '전화 문의'}를 통해 확인하실 수 있습니다."
-                ),
+                answer=f"{_blank('가격 안내 방식(가격표 위치·상담 후 안내 등)을 실제대로 적어 주세요')}{contact}",
             ),
             FAQ(question="주차 가능한가요?", answer=_parking_ans),
             FAQ(
                 question=f"어떤 {kw1} 스타일이 가능한가요?",
-                answer=(
-                    f"{name}{_select_josa(name, '은', '는')} {kw1}·{kw2}·{kw3} 등 다양한 스타일이 가능합니다. "
-                    f"원하시는 디자인 사진을 가져오시면 상담 후 맞춤 시술을 진행해 드립니다."
-                ),
+                answer=f"{name}{_select_josa(name, '은', '는')} {kw_str} 관련 시술을 다룹니다. {_blank('가능한 스타일·상담 방식을 실제 내용으로 적어 주세요')}",
             ),
         ]
 
     elif category in ("medical", "pharmacy"):
+        # 의료·약국: 진료 항목·예약제·건강보험 적용 여부를 단정하면 의료광고 문제가 될 수 있어 전부 사장님 확인 내용으로 비워 둔다
         return [
             FAQ(
                 question=f"{kw1} 진료 가능한가요?",
-                answer=(
-                    f"네, {name}에서는 {kw_str} 진료를 제공하고 있습니다. "
-                    f"정확한 진료 항목은 {phone or '전화 문의'}를 통해 확인하실 수 있습니다."
-                ),
+                answer=f"{name}의 진료 항목은 {_blank('실제 진료 항목을 적어 주세요')}입니다.{contact}",
             ),
             FAQ(
                 question="예약 없이 방문 가능한가요?",
-                answer=(
-                    f"{name}{_select_josa(name, '은', '는')} 예약제를 운영하고 있습니다. "
-                    f"네이버 예약 또는 {phone or '전화'}로 사전 예약 후 방문하시면 대기 시간 없이 진료받으실 수 있습니다."
-                ),
+                answer=f"{_blank('예약제 여부와 방문 방법을 실제 운영 방식대로 적어 주세요')}{contact}",
             ),
             FAQ(
                 question="진료시간이 어떻게 되나요?",
-                answer=(
-                    f"{name}의 진료시간은 네이버 스마트플레이스에서 확인하실 수 있습니다. "
-                    f"공휴일 및 임시 휴진 안내는 네이버 공지사항을 참고해 주세요."
-                ),
+                answer=f"{name}의 진료시간은 네이버 스마트플레이스에서 확인하실 수 있습니다. 공휴일·임시 휴진은 방문 전 확인을 권장드립니다.{contact}",
             ),
             FAQ(
                 question="건강보험 적용 되나요?",
-                answer=(
-                    f"{name}{_select_josa(name, '은', '는')} 건강보험 적용 가능한 진료를 제공하고 있습니다. "
-                    f"보험 적용 범위는 진료 항목에 따라 다를 수 있으니 "
-                    f"{phone or '전화 문의'}로 사전 확인을 권장드립니다."
-                ),
+                answer=f"{_blank('건강보험 적용 여부를 진료 항목별로 정확히 적어 주세요 — 확인되지 않은 내용은 쓰지 마세요')}{contact}",
             ),
             FAQ(question="주차 가능한가요?", answer=_parking_ans),
         ]
@@ -630,33 +630,20 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
         return [
             FAQ(
                 question="첫 방문 체험 수업이 있나요?",
-                answer=(
-                    f"네, {name}{_select_josa(name, '은', '는')} 첫 방문 체험 수업을 운영하고 있습니다. "
-                    f"{phone or '전화'} 또는 네이버 예약으로 체험 수업을 신청하실 수 있습니다. "
-                    f"부담 없이 먼저 경험해 보세요!"
-                ),
+                answer=f"{_blank('체험 수업 운영 여부와 신청 방법을 실제 내용으로 적어 주세요')}{contact}",
             ),
             FAQ(
                 question="운동 강도는 어떻게 되나요?",
-                answer=(
-                    f"{name}의 {kw1} 수업은 초보자부터 고급자까지 레벨별로 운영됩니다. "
-                    f"처음 오시는 분들도 부담 없이 시작하실 수 있도록 개인 맞춤 지도를 제공합니다."
-                ),
+                answer=f"{_blank('수업 난이도와 대상(초보자 가능 여부 등)을 실제 내용으로 적어 주세요')}",
             ),
             FAQ(
                 question="월 수강료가 얼마인가요?",
-                answer=(
-                    f"{name}의 수강료는 프로그램 종류와 수업 횟수에 따라 다릅니다. "
-                    f"자세한 가격은 {phone or '전화 문의'}를 통해 상담 후 안내해 드립니다."
-                ),
+                answer=f"{_blank('수강료 안내 방식을 실제대로 적어 주세요')}{contact}",
             ),
             FAQ(question="주차 가능한가요?", answer=_parking_ans),
             FAQ(
                 question=f"어떤 {kw1} 프로그램이 있나요?",
-                answer=(
-                    f"{name}{_select_josa(name, '은', '는')} {kw1}·{kw2} 등 다양한 프로그램을 운영하고 있습니다. "
-                    f"개인 목표에 맞는 프로그램을 추천해 드리니 방문 또는 전화로 상담해 주세요."
-                ),
+                answer=f"{name}{_select_josa(name, '은', '는')} {kw_str} 관련 프로그램을 다룹니다. {_blank('프로그램별 특징을 실제 내용으로 적어 주세요')}",
             ),
         ]
 
@@ -664,38 +651,23 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
         return [
             FAQ(
                 question="수업 레벨은 어떻게 구분되나요?",
-                answer=(
-                    f"{name}의 {kw1} 수업은 초급·중급·고급으로 레벨이 구분됩니다. "
-                    f"입학 상담 후 개인 수준에 맞는 반을 배정해 드립니다."
-                ),
+                answer=f"{_blank('수업 레벨 구분 여부와 방식을 실제 내용으로 적어 주세요')}",
             ),
             FAQ(
                 question="체험 수업 가능한가요?",
-                answer=(
-                    f"네, {name}{_select_josa(name, '은', '는')} 체험 수업을 운영하고 있습니다. "
-                    f"{phone or '전화'} 또는 네이버 예약으로 신청하시면 첫 수업을 경험해 보실 수 있습니다."
-                ),
+                answer=f"{_blank('체험 수업 운영 여부와 신청 방법을 실제 내용으로 적어 주세요')}{contact}",
             ),
             FAQ(
                 question="수업료는 어떻게 되나요?",
-                answer=(
-                    f"{name}의 수업료는 수업 종류·횟수·기간에 따라 다릅니다. "
-                    f"{phone or '전화 문의'}로 상담하시면 자세한 안내와 맞춤 견적을 드립니다."
-                ),
+                answer=f"{_blank('수업료 안내 방식을 실제대로 적어 주세요')}{contact}",
             ),
             FAQ(
                 question="선생님 경력은 어떻게 되나요?",
-                answer=(
-                    f"{name}의 선생님들은 {kw1} 분야에서 풍부한 경험을 보유하고 있습니다. "
-                    f"자격증 및 경력 사항은 방문 상담 시 자세히 안내해 드립니다."
-                ),
+                answer=f"{_blank('강사 경력·자격을 실제 확인 가능한 내용으로 적어 주세요')}",
             ),
             FAQ(
                 question="온라인 수업도 되나요?",
-                answer=(
-                    f"{name}{_select_josa(name, '은', '는')} 온라인 수업 가능 여부를 {phone or '전화 문의'}로 확인하실 수 있습니다. "
-                    f"상황에 따라 비대면 수업을 지원하는 경우도 있습니다."
-                ),
+                answer=f"{_blank('온라인 수업 가능 여부를 실제대로 적어 주세요')}{contact}",
             ),
         ]
 
@@ -703,63 +675,43 @@ def build_smart_place_faq_answers(biz: dict) -> list[FAQ]:
         return [
             FAQ(
                 question=f"{kw1} 전문 서비스가 있나요?",
-                answer=(
-                    f"네, {name}{_select_josa(name, '은', '는')} {kw_str} 전문 서비스를 제공하고 있습니다. "
-                    f"소중한 반려동물에게 맞는 서비스를 상담 후 추천해 드립니다."
-                ),
+                answer=f"{name}의 서비스는 {_blank('제공하는 서비스를 실제 항목으로 적어 주세요')}입니다.{contact}",
             ),
             FAQ(
                 question="미용 예약 없이 방문 가능한가요?",
-                answer=(
-                    f"{name}{_select_josa(name, '은', '는')} 사전 예약을 권장드립니다. "
-                    f"네이버 예약 또는 {phone or '전화'}로 예약해 주시면 대기 없이 서비스를 받으실 수 있습니다."
-                ),
+                answer=f"{_blank('예약 필요 여부와 방문 방법을 실제 운영 방식대로 적어 주세요')}{contact}",
             ),
             FAQ(
                 question="반려동물 크기 제한이 있나요?",
-                answer=(
-                    f"{name}{_select_josa(name, '은', '는')} 소형·중형 반려동물 서비스를 제공합니다. "
-                    f"대형견의 경우 {phone or '전화 문의'}로 사전 상담을 권장드립니다."
-                ),
+                answer=f"{_blank('반려동물 크기·종 제한 여부를 실제 기준으로 적어 주세요')}{contact}",
             ),
             FAQ(question="주차 가능한가요?", answer=_parking_ans),
             FAQ(
                 question="어떤 브랜드 제품을 사용하나요?",
-                answer=(
-                    f"{name}{_select_josa(name, '은', '는')} 반려동물 친화적인 저자극 제품을 사용합니다. "
-                    f"사용 제품에 대한 자세한 정보는 방문 또는 {phone or '전화 문의'}로 확인하실 수 있습니다."
-                ),
+                answer=f"{_blank('사용하는 제품·브랜드를 실제 내용으로 적어 주세요')}",
             ),
         ]
 
     else:
         # other 및 나머지 업종 — keywords 반영한 기본 FAQ
+        region_short = _strip_region(biz.get("region") or "")
         return [
             FAQ(
                 question=f"{region_short} {kw1} 추천할 수 있나요?",
                 answer=(
-                    f"네, {name}{_select_josa(name, '을', '를')} 추천드립니다. {region_short}에서 {kw_str} 전문으로 운영하고 있으며, "
-                    f"지역 고객분들께 꾸준히 사랑받고 있습니다. "
-                    f"방문 전 전화 또는 네이버 예약을 이용해 주세요."
+                    f"{name}{_select_josa(name, '을', '를')} 추천드립니다. {region_short}에서 {kw_str}{_select_josa(kw_str, '을', '를')} 다룹니다. "
+                    f"{_blank('추천하는 이유를 실제 내용으로 적어 주세요')}"
                 ),
             ),
             FAQ(question="영업시간이 어떻게 되나요?", answer=_hours_ans),
             FAQ(question="주차가 가능한가요?", answer=_parking_ans),
             FAQ(
                 question="예약이 필요한가요?",
-                answer=(
-                    f"{name}{_select_josa(name, '은', '는')} 네이버 예약을 통해 편리하게 예약하실 수 있습니다. "
-                    f"주말·공휴일은 사전 예약을 권장드립니다. "
-                    f"당일 방문도 가능하지만, 대기 시간이 발생할 수 있습니다."
-                ),
+                answer=f"{_blank('예약 필요 여부와 방법을 실제 운영 방식대로 적어 주세요')}{contact}",
             ),
             FAQ(
                 question=f"{name}의 대표 서비스는 무엇인가요?",
-                answer=(
-                    f"{name}의 대표 서비스는 {kw1}입니다. "
-                    f"{kw2}·{kw3} 관련 서비스도 제공하고 있습니다. "
-                    f"자세한 내용은 네이버 스마트플레이스 메뉴 탭에서 확인하실 수 있습니다."
-                ),
+                answer=f"{name}{_select_josa(name, '은', '는')} {kw_str}{_select_josa(kw_str, '을', '를')} 다룹니다. {_blank('대표 서비스와 특징을 실제 내용으로 적어 주세요')}",
             ),
         ]
 
