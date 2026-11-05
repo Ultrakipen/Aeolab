@@ -739,6 +739,22 @@ def build_review_request_message(
         if naver_place_id else f"네이버 지도에서 '{name}' 검색 후 리뷰 작성"
     )
 
+    # 손님에게 "이용하신 경험을 남겨 주세요"라고 부탁하는 문구이므로 사장님이 등록한 키워드만 쓴다.
+    # 업종 키워드 풀의 '부족 키워드'(예: beauty 풀의 '염색 전문'·'탈모 케어')는 이 가게가 하지 않는 서비스일 수
+    # 있어, 마사지샵 손님에게 염색·탈모 경험을 부탁하는 문구가 나갔다(2026-11-05 실가이드 점검).
+    def _nk(s: object) -> str:
+        return str(s).replace(" ", "").lower()
+
+    _registered = {
+        _nk(k)
+        for k in list(biz.get("keywords") or []) + list(biz.get("custom_keywords") or [])
+        if isinstance(k, str) and k.strip()
+    }
+    if top_priority_keyword and _nk(top_priority_keyword) not in _registered:
+        top_priority_keyword = None
+    if missing_keywords:
+        missing_keywords = [k for k in missing_keywords if _nk(k) in _registered]
+
     # top_priority_keyword 없으면 biz.keywords[0]으로 자동 대체
     if not top_priority_keyword and biz.get("keywords"):
         top_priority_keyword = biz["keywords"][0]
