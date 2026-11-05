@@ -42,3 +42,31 @@ def test_no_registered_keywords_gives_generic_message_without_gap_keyword():
     msg = build_review_request_message(biz, "염색 전문", ["탈모 케어"])
     assert "염색" not in msg and "탈모" not in msg
     assert "테스트마사지" in msg
+
+
+# ── 제외 키워드(2026-11-05): 등록 키워드에 남아 있어도 쓰지 않는다 ─────────────────
+def test_excluded_keyword_still_in_registered_list_is_not_used():
+    biz = dict(BIZ, excluded_keywords=["상남동마사지"])  # 제외 API는 keywords에서 지우지 않는다
+    msg = build_review_request_message(biz, "상남동마사지", ["아로마마사지"])
+    assert "상남동마사지" not in msg
+    assert "아로마마사지" in msg
+
+
+def test_fallback_to_first_registered_skips_excluded():
+    biz = dict(BIZ, excluded_keywords=["상남동마사지"])
+    msg = build_review_request_message(biz, None, None)
+    assert "상남동마사지" not in msg
+    assert "아로마마사지" in msg
+
+
+def test_all_registered_excluded_gives_generic_message():
+    biz = dict(BIZ, excluded_keywords=list(BIZ["keywords"]))
+    msg = build_review_request_message(biz, None, None)
+    assert not any(k in msg for k in BIZ["keywords"])
+    assert "테스트마사지" in msg
+
+
+def test_generation_query_selects_excluded_keywords_for_the_tool():
+    import pathlib
+    src = (pathlib.Path(__file__).resolve().parents[1] / "routers" / "guide.py").read_text(encoding="utf-8")
+    assert '.select("id, name, category, region, keywords, excluded_keywords, custom_keywords,' in src

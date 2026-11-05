@@ -742,24 +742,29 @@ def build_review_request_message(
     # 손님에게 "이용하신 경험을 남겨 주세요"라고 부탁하는 문구이므로 사장님이 등록한 키워드만 쓴다.
     # 업종 키워드 풀의 '부족 키워드'(예: beauty 풀의 '염색 전문'·'탈모 케어')는 이 가게가 하지 않는 서비스일 수
     # 있어, 마사지샵 손님에게 염색·탈모 경험을 부탁하는 문구가 나갔다(2026-11-05 실가이드 점검).
+    # 사장님이 '제외'한 키워드는 등록 키워드에 남아 있어도 쓰지 않는다(제외 API는 keywords에서 지우지 않는다).
+    from services.keyword_taxonomy import drop_excluded
+
     def _nk(s: object) -> str:
         return str(s).replace(" ", "").lower()
 
+    _excl = biz.get("excluded_keywords")
+    _keywords = drop_excluded(biz.get("keywords"), _excl)
     _registered = {
         _nk(k)
-        for k in list(biz.get("keywords") or []) + list(biz.get("custom_keywords") or [])
-        if isinstance(k, str) and k.strip()
+        for k in _keywords + drop_excluded(biz.get("custom_keywords"), _excl)
+        if k.strip()
     }
     if top_priority_keyword and _nk(top_priority_keyword) not in _registered:
         top_priority_keyword = None
     if missing_keywords:
         missing_keywords = [k for k in missing_keywords if _nk(k) in _registered]
 
-    # top_priority_keyword 없으면 biz.keywords[0]으로 자동 대체
-    if not top_priority_keyword and biz.get("keywords"):
-        top_priority_keyword = biz["keywords"][0]
-    if not missing_keywords and biz.get("keywords"):
-        missing_keywords = biz["keywords"][1:3]
+    # top_priority_keyword 없으면 (제외 반영한) 등록 키워드[0]으로 자동 대체
+    if not top_priority_keyword and _keywords:
+        top_priority_keyword = _keywords[0]
+    if not missing_keywords and _keywords:
+        missing_keywords = _keywords[1:3]
 
     # 키워드 타겟팅 문구 (있을 경우)
     if top_priority_keyword:

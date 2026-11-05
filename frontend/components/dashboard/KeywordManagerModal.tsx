@@ -281,7 +281,7 @@ export function KeywordManagerModal({
                 내 키워드 설정
               </h2>
               <p className="text-sm md:text-base text-gray-600 mt-0.5 leading-relaxed">
-                추가한 키워드는 내 강점으로 반영되고, 제외한 키워드는 분석에서 빠집니다.
+                추가한 키워드는 내 강점으로 반영되고, 제외한 키워드는 내 추천에서 빠집니다.
               </p>
             </div>
           </div>
@@ -410,7 +410,7 @@ export function KeywordManagerModal({
               {activeTab === 'excluded' && (
                 <div className="space-y-4">
                   <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 md:p-4 text-sm md:text-base text-gray-700 leading-relaxed">
-                    제외한 키워드는 측정·블로그 진단·가이드·경쟁사 비교·QR 등 모든 분석에서 빠집니다. 내가 제공하지 않는 서비스나 관련 없는 키워드를 제외하세요.
+                    제외한 키워드는 내 추천(가이드·소개글 초안·리뷰 요청 문구·블로그 진단·경쟁사 대비 부족 키워드)에서 빠집니다. 경쟁사가 실제로 가진 키워드와 시장 검색 추세는 사실 정보라 그대로 보여 드립니다. 내가 제공하지 않는 서비스나 관련 없는 키워드를 제외하세요.
                   </div>
 
                   {/* Input row (excluded 추가) */}

@@ -830,7 +830,7 @@ async def _generate_and_save(req: GuideRequest):
         biz_res, scan_res, comp_res = await asyncio.gather(
             execute(
                 supabase.table("businesses")
-                .select("id, name, category, region, keywords, website_url, google_place_id, kakao_place_id, business_type, naver_place_id, address, phone, is_smart_place, has_faq, has_intro, has_recent_post, review_count, avg_rating, visitor_review_count, receipt_review_count, blog_analysis_json, sp_completeness_json, is_franchise")
+                .select("id, name, category, region, keywords, excluded_keywords, custom_keywords, website_url, google_place_id, kakao_place_id, business_type, naver_place_id, address, phone, is_smart_place, has_faq, has_intro, has_recent_post, review_count, avg_rating, visitor_review_count, receipt_review_count, blog_analysis_json, sp_completeness_json, is_franchise")
                 .eq("id", req.business_id).single()
             ),
             execute(
