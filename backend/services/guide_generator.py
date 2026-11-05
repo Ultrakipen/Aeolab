@@ -1090,7 +1090,7 @@ class GuideGenerator:
 ## AI 스캔 결과
 - 현재 AI 노출 빈도: {my_freq}/{my_freq_max}회 (종합 {my_score:.1f}점)
 - 네이버 AI 브리핑 노출: {_naver_briefing_exposure_msg(naver_in_briefing, eligibility, naver_unmeasured)}
-- ChatGPT 노출: {'있음' if ((scan_result.get('chatgpt_result') or {}).get('mentioned') or (scan_result.get('chatgpt_result') or {}).get('exposure_freq', 0) > 0) else '없음'}
+- ChatGPT 노출: {'있음' if ((scan_result.get('chatgpt_result') or {}).get('mentioned') or (scan_result.get('chatgpt_result') or {}).get('exposure_freq', 0) > 0) else ('측정하지 못함(확인 불가)' if (scan_result.get('chatgpt_result') or {}).get('error') else '이번 측정에서는 확인되지 않음')}
 
 {channel_section}{cross_ai_section}{track2_focus_section}{website_section}{kakao_section}{keyword_section}{v3_1_section}{stage_section}{blog_section}{sp_detail_section}{external_section}{seasonal_section}
 
@@ -1118,7 +1118,7 @@ class GuideGenerator:
 - JSON 문자열 값에 literal 줄바꿈 절대 금지 — 여러 문장은 한 줄에 공백으로 연결 (예: "1단계: 접속. 2단계: 클릭.")
 
 {{
-  "summary": "사장님이 바로 이해할 2문장: 반드시 'AI {my_freq}회/100회 노출' 빈도로 시작(점수·등급 숫자는 절대 언급 금지) → {_summary_briefing_hint} → 지금 당장 할 구체적 조치 1개. 수치 없는 일반론 금지.",
+  "summary": "사장님이 바로 이해할 2문장: 반드시 'AI {my_freq}회/{my_freq_max}회 노출' 빈도로 시작(분모는 이번 측정의 실제 표본 수이며 바꾸지 말 것. 표본이 10회 미만이면 '표본이 적어 참고용'이라고 덧붙일 것. 점수·등급 숫자는 절대 언급 금지) → {_summary_briefing_hint} → 지금 당장 할 구체적 조치 1개. 수치 없는 일반론 금지.",
   "priority_items": [
     {{
       "rank": 1,
