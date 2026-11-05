@@ -228,7 +228,8 @@ def test_talktalk_faq_regulated(monkeypatch):
 
 
 # ── 4-b. 세 번째 블로그 초안: 의료·법률은 후기 형식이 아니라 방문 전 안내 ─────────────────
-_THIRD_DRAFT_OLD = "고객 후기 형식의 본문"
+_THIRD_DRAFT_OLD = "고객 후기 형식의 본문"      # 수정 전 지시문 — 이제 어떤 업종의 프롬프트에도 없어야 한다(가공 후기를 만들게 했다)
+_OLD_TONE = "자연스러운 후기 톤"
 
 
 def _capture_smartplace_prompt(monkeypatch, category, label):
@@ -242,16 +243,18 @@ def _capture_smartplace_prompt(monkeypatch, category, label):
 @pytest.mark.parametrize("cat,label", [("dental", "치과"), ("medical", "병원·의원"), ("oriental_medicine", "한의원"), ("legal", "법률사무소")])
 def test_regulated_third_draft_is_visit_guide_not_review(monkeypatch, cat, label):
     p = _capture_smartplace_prompt(monkeypatch, cat, label)
-    assert _THIRD_DRAFT_OLD not in p and "고객 후기 중심 포스트" not in p
-    assert "방문 전 안내 본문" in p and "후기·경험담 톤 금지" in p
+    assert _THIRD_DRAFT_OLD not in p and _OLD_TONE not in p and "고객 후기 중심 포스트" not in p
+    assert "방문 전 안내 본문" in p and "후기·경험담 톤 금지" in p and "빈칸 틀" not in p
     assert "'가나다 이용 안내' 형식" in p and "'가나다 후기' 형식" not in p
     assert 'template_type": "리뷰_모음"' in p          # 프론트 탭 선택 키는 유지
 
 
 @pytest.mark.parametrize("cat,label", [("restaurant", "음식점"), ("cafe", "카페"), ("beauty", "미용실"), ("pharmacy", "약국"), ("accounting", "세무회계사무소")])
-def test_other_categories_keep_the_review_draft(monkeypatch, cat, label):
+def test_other_categories_get_a_blank_frame_not_a_fabricated_review(monkeypatch, cat, label):
     p = _capture_smartplace_prompt(monkeypatch, cat, label)
-    assert _THIRD_DRAFT_OLD in p and "'가나다 후기' 형식" in p and "방문 전 안내 본문" not in p
+    assert _THIRD_DRAFT_OLD not in p and _OLD_TONE not in p                    # 가공 후기를 쓰게 하던 지시가 사라졌다
+    assert "빈칸 틀" in p and "[실제 고객 후기 1:" in p and "후기 본문을 쓰지 않는다" in p
+    assert "'가나다 후기' 형식" in p and "방문 전 안내 본문" not in p              # 일반 업종은 후기 소개 틀, 방문 안내는 의료·법률만
 
 
 def _fallback(monkeypatch, cat, label):
@@ -273,10 +276,92 @@ def test_fallback_third_draft_regulated_is_not_a_first_person_review(monkeypatch
     assert "이용 안내" in third["title"] and "[예약 또는 상담 방법을 입력하세요]" in third["content"]
 
 
-def test_fallback_third_draft_other_category_is_unchanged(monkeypatch):
+def test_fallback_third_draft_other_category_is_a_blank_frame(monkeypatch):
     r = _fallback(monkeypatch, "cafe", "카페")
     third = next(d for d in r["blog_drafts"] if d["template_type"] == "리뷰_모음")
-    assert third["title"] == "가나다 방문 후기" and "방문했습니다" in third["content"]
+    assert third["title"] == "가나다 고객 후기 모음"
+    assert third["content"].count("[실제 고객 후기 ") == 3 and "방문했습니다" not in third["content"]
+    assert third["target_keyword"] == "창원 카페 후기"
+
+
+# ── 4-b'. 가공 후기 금지 정책(review_draft_policy): LLM이 지시를 어겨도 결과를 검사해 대체한다 ──────────
+from services import review_draft_policy as rdp
+
+_FABRICATED = {"template_type": "리뷰_모음", "title": "가나카페 후기",
+               "content": "남편 생일을 맞아 케이크를 찾다가 방문했어요. 직원분이 친절했고 정말 맛있었습니다. 재방문 의사 100%예요.",
+               "target_keyword": "창원 카페 후기"}
+_FRAME_OK = {"template_type": "리뷰_모음", "title": "가나카페 고객 후기",
+             "content": "소개입니다.\n\n[실제 고객 후기 1: 문구를 붙여넣으세요]\n\n[실제 고객 후기 2: 문구를 붙여넣으세요]\n\n방문 안내",
+             "target_keyword": "창원 카페 후기"}
+_OTHER = {"template_type": "신규_오픈", "title": "오픈 소식", "content": "소개 글입니다.", "target_keyword": "k"}
+
+
+def test_valid_review_draft_rules():
+    assert rdp.is_valid_review_draft("cafe", _FRAME_OK) is True
+    assert rdp.is_valid_review_draft("cafe", _FABRICATED) is False                       # 빈칸 0개
+    one = dict(_FRAME_OK, content="[실제 고객 후기 1: 붙여넣기] 만 있음")
+    assert rdp.is_valid_review_draft("cafe", one) is False                              # 빈칸 1개는 부족
+    assert rdp.is_valid_review_draft("cafe", None) is False
+    # 지어낸 후기에 섞인 무관한 대괄호는 빈칸이 아니다(우회 방지)
+    sneaky = dict(_FABRICATED, content="남편 생일에 방문했어요. [사진] 케이크가 정말 맛있었어요. [메뉴] 재방문 의사 있어요.")
+    assert rdp.is_valid_review_draft("cafe", sneaky) is False
+    # 후기 자리 빈칸이면 표현이 달라도 인정
+    assert rdp.is_valid_review_draft("cafe", dict(_FRAME_OK, content="[후기를 붙여넣으세요] 그리고 [후기 2를 입력하세요] 안내")) is True
+    # 의료·법률: 빈칸 틀이어도 '후기'가 들어 있으면 위반, 방문 안내면 통과
+    assert rdp.is_valid_review_draft("dental", _FRAME_OK) is False
+    assert rdp.is_valid_review_draft("legal", {"title": "한결 이용 안내", "content": "예약 방법을 안내합니다."}) is True
+    assert rdp.is_valid_review_draft("dental", {"title": "하나치과 이용 안내", "content": "치료 경험담을 소개합니다."}) is False
+
+
+def test_ensure_replaces_only_a_policy_violating_review_draft():
+    drafts = [_OTHER, _FABRICATED]
+    out, swapped = rdp.ensure_review_draft(drafts, "cafe", "가나카페", "창원", "카페", None, "055-1")
+    assert swapped is True and out[0] is _OTHER                                          # 다른 초안은 그대로(같은 객체)
+    assert out[1]["title"] == "가나카페 고객 후기 모음" and out[1]["content"].count("[실제 고객 후기 ") == 3
+    assert drafts[1] is _FABRICATED                                                      # 원본은 바꾸지 않는다
+
+
+def test_ensure_keeps_valid_drafts_and_handles_missing_review_draft():
+    out, swapped = rdp.ensure_review_draft([_OTHER, _FRAME_OK], "cafe", "n", "r", "c", None, None)
+    assert swapped is False and out[1] is _FRAME_OK
+    out2, swapped2 = rdp.ensure_review_draft([_OTHER], "cafe", "n", "r", "c", None, None)
+    assert swapped2 is False and out2 == [_OTHER]                                         # 리뷰_모음이 없으면 건드리지 않는다
+    assert rdp.ensure_review_draft(None, "cafe", "n", "r", "c", None, None) == (None, False)
+
+
+def test_generate_smartplace_intro_replaces_a_fabricated_testimonial_for_normal_categories(monkeypatch):
+    reply = json.dumps({"smartplace_intro": "소개", "blog_drafts": [_OTHER, _FABRICATED]}, ensure_ascii=False)
+    _patch(monkeypatch, reply)
+    out = asyncio.run(gg.generate_smartplace_intro(
+        business_name="가나카페", category_ko="카페", region="창원", address=None, phone=None,
+        opening_hours=None, menu_items=None, specialty=None, description=None, category="cafe"))
+    third = next(d for d in out["blog_drafts"] if d["template_type"] == "리뷰_모음")
+    assert "남편 생일" not in third["content"] and third["content"].count("[실제 고객 후기 ") == 3
+    assert out["blog_drafts"][0] == _OTHER
+
+
+def test_generate_smartplace_intro_keeps_a_compliant_frame(monkeypatch):
+    reply = json.dumps({"smartplace_intro": "소개", "blog_drafts": [_OTHER, _FRAME_OK]}, ensure_ascii=False)
+    _patch(monkeypatch, reply)
+    out = asyncio.run(gg.generate_smartplace_intro(
+        business_name="가나카페", category_ko="카페", region="창원", address=None, phone=None,
+        opening_hours=None, menu_items=None, specialty=None, description=None, category="cafe"))
+    assert out["blog_drafts"][1] == _FRAME_OK
+
+
+def test_generate_smartplace_intro_replaces_testimonial_style_for_regulated(monkeypatch):
+    bad = {"template_type": "리뷰_모음", "title": "하나치과 방문 후기", "content": "임플란트를 받았는데 아프지 않았어요.", "target_keyword": "k"}
+    _patch(monkeypatch, json.dumps({"smartplace_intro": "소개", "blog_drafts": [_OTHER, bad]}, ensure_ascii=False))
+    out = asyncio.run(gg.generate_smartplace_intro(
+        business_name="하나치과", category_ko="치과", region="창원", address=None, phone=None,
+        opening_hours=None, menu_items=None, specialty=None, description=None, category="dental"))
+    third = out["blog_drafts"][1]
+    assert third["title"] == "하나치과 이용 안내" and "후기" not in third["content"] and "아프지" not in third["content"]
+
+
+def test_frontend_warning_matches_the_blank_frame_policy():
+    src = (FRONT / "app" / "(dashboard)" / "schema" / "SchemaClient.tsx").read_text(encoding="utf-8")
+    assert "빈칸 틀" in src and "AI가 작성한 <strong>샘플 후기</strong>" not in src      # 더 이상 사실이 아닌 안내
 
 
 # ── 4-c. 라우트 실호출 (/api/schema/generate): 업종 팁·체크리스트·규제 플래그 ───────────────

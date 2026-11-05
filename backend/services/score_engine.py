@@ -145,7 +145,13 @@ DUAL_TRACK_RATIO: dict[str, dict[str, float]] = {
     "realestate": {"naver": 0.70, "global": 0.30},  # 부동산 = 지역·매물 검색 네이버 강세
     "interior":   {"naver": 0.55, "global": 0.45},  # 인테리어 = 포트폴리오 탐색 AI 비중 증가
     "auto":       {"naver": 0.70, "global": 0.30},  # 자동차 정비 = 지역 + 차종 검색 네이버 강세
-    # bakery·bar·nail은 _CATEGORY_ALIASES에 의해 cafe/restaurant/beauty로 normalize되므로 별도 키 불필요
+    # bar만 _CATEGORY_ALIASES에서 restaurant로 normalize되어 별도 키가 필요 없다.
+    # 2026-11-06: bakery·nail은 2026-05-18 alias 분리(bakery→bakery, nail→nail)로 더 이상 cafe/beauty로 합쳐지지 않는데
+    # 이 주석이 낡은 채 남아 비율표에 키가 없어 기본값 60/40이 적용되고 있었다 → 원래 주석이 의도한 형제 업종 비율로 등록.
+    # 근거: 네이버·글로벌 AI 채널 비중을 직접 측정한 자료는 없다(외부 조사에서도 못 찾음) — 형제 업종과의 일관성에 따른 추정값이며,
+    # 실제 고객 데이터가 쌓이면 보정한다. 대상 사업장이 0곳일 때 넣어 과거 점수 비교를 끊지 않는다.
+    "bakery":     {"naver": 0.75, "global": 0.25},  # 베이커리 = 즉시방문·포장·케이크 주문 → cafe(디저트·분위기 탐색)와 같은 계열 (추정)
+    "nail":       {"naver": 0.70, "global": 0.30},  # 네일샵 = 네이버 예약·시술 사진 탐색 → beauty·skincare·semi_permanent와 같은 계열 (추정)
     "accommodation": {"naver": 0.70, "global": 0.30},  # 숙박 = 네이버 AI 브리핑 ACTIVE 업종, 즉시예약형
     # 신규 업종 8개 (2026-05-13)
     "massage":    {"naver": 0.70, "global": 0.30},  # 마사지·스파 = 당일예약 네이버 강세

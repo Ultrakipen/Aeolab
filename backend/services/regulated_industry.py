@@ -111,48 +111,6 @@ def prompt_note(category: Any) -> str:
     return ""
 
 
-_REVIEW_DRAFT_SWAPS = (
-    ('"title": "고객 후기 중심 포스트 제목 (40자 이내)"',
-     '"title": "방문 안내 포스트 제목 (후기·경험담 표현 금지, 40자 이내)"'),
-    ('"content": "고객 후기 형식의 본문 (700-900자, 방문 동기→주문한 것→맛·분위기→장단점→재방문 의향 순서, 자연스러운 후기 톤)"',
-     '"content": "방문 전 안내 본문 (700-900자, 예약·상담 방법→준비물→진행 절차→소요 시간→위치·주차 순서, 입력된 정보 범위에서만, 후기·경험담 톤 금지)"'),
-    ("- 리뷰_모음: 실제 고객이 쓴 것처럼 꾸민 구체적 경험(맛·직원 응대·대기 시간 등)을 단정하지 말고, 제공된 메뉴·강점 범위 안에서 사장님이 실제 후기를 덧붙여 쓸 수 있는 틀로 작성한다",
-     "- 리뷰_모음: 이 업종은 환자·의뢰인 후기나 경험담 형식을 쓰지 않는다 — 위 방문 전 안내 형식으로 작성하고 제목에도 '후기'를 쓰지 않는다"),
-)
-
-
-def adapt_smartplace_prompt(prompt: str, category: Any, business_name: str = "") -> str:
-    """의료·법률 업종은 블로그 초안 3종의 세 번째(리뷰_모음)를 '고객 후기 형식'이 아니라 '방문 전 안내'로 바꾼다.
-
-    업체가 직접 쓴 환자·의뢰인 후기 글은 의료법 제56조 제2항의 치료경험담 유형과 닿고(실호출 확인: 치과·법률사무소 모두
-    "방문 후기" 글을 만들었다), 꾸민 후기는 그 자체로 허위 정보 문제가 된다. 템플릿 키(리뷰_모음)는 프론트가 탭 선택에 쓰므로 유지한다.
-    해당 업종이 아니면 그대로 돌려준다.
-    """
-    if regulated_group(category) is None:
-        return prompt
-    out = prompt
-    for old, new in _REVIEW_DRAFT_SWAPS:
-        out = out.replace(old, new)
-    if business_name:
-        out = out.replace(f"'{business_name} 후기' 형식", f"'{business_name} 이용 안내' 형식")
-    return out
-
-
-def fallback_review_draft(business_name: str, region: str, category_ko: str, address: str | None, phone: str | None) -> dict:
-    """LLM 실패 시 의료·법률 업종의 세 번째 대체 초안 — 후기 형식이 아니라 방문 전 안내(사장님이 채울 자리는 [ ]로 둔다)."""
-    return {
-        "template_type": "리뷰_모음",
-        "title": f"{business_name} 이용 안내",
-        "content": (
-            f"{region} {category_ko} {business_name} 이용 안내입니다.\n\n"
-            f"■ 예약·상담 방법\n[예약 또는 상담 방법을 입력하세요] (전화: {phone or '문의 주세요'})\n\n"
-            f"■ 방문 전 준비물\n[필요한 준비물을 입력하세요]\n\n"
-            f"■ 위치\n{address or region}"
-        ),
-        "target_keyword": f"{region} {category_ko} 이용 안내",
-    }
-
-
 # 확실히 금지/문제되는 유형만(오탐 방지: "100%"는 효과·결과 단어와 붙을 때만, "최초"는 '국내 최초'만)
 _MEDICAL_PATTERNS = [re.compile(p) for p in (
     r"완치",

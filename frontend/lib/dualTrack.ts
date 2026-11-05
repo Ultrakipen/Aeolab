@@ -13,12 +13,12 @@ const GLOBAL_WEIGHTS: Record<string, number> = {
   // 음식·음료
   restaurant: 0.20,
   cafe: 0.25,
-  bakery: 0.40,
+  bakery: 0.25,   // 2026-11-06 백엔드 DUAL_TRACK_RATIO에 bakery 75/25 등록과 함께(이전엔 기본값 0.40)
   bar: 0.20,
   accommodation: 0.30,
   // 뷰티·웰니스
   beauty: 0.30,
-  nail: 0.40,
+  nail: 0.30,   // 2026-11-06 백엔드 DUAL_TRACK_RATIO에 nail 70/30 등록과 함께(이전엔 기본값 0.40)
   skincare: 0.30,
   massage: 0.30,
   spa: 0.35,

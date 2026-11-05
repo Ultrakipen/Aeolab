@@ -37,7 +37,7 @@ export const CHANNEL_GUIDE: ChannelGuideEntry[] = [
   },
   {
     value: "bakery", label: "베이커리", group: "A",
-    briefing: "active", naverRatio: 60, globalRatio: 40,
+    briefing: "active", naverRatio: 75, globalRatio: 25,
     keyActions: ["스마트플레이스 소개글 200자 이상 (주력 제품 포함) 작성", "제품·진열·매장 사진 10장 이상 업로드", "당일 생산 시간·품목 소식 등록 (2주 이내 최소 1건)", "영업시간·마감 시간 정확히 입력", "포장 가능 여부·주문 방법 + 알레르기 유발 성분 안내"],
   },
   {
@@ -59,7 +59,7 @@ export const CHANNEL_GUIDE: ChannelGuideEntry[] = [
   },
   {
     value: "nail", label: "네일샵", group: "B",
-    briefing: "likely", naverRatio: 60, globalRatio: 40,
+    briefing: "likely", naverRatio: 70, globalRatio: 30,
     keyActions: ["스마트플레이스 소개글 200자 이상 + 디자인 포트폴리오 사진 10장 이상 등록", "시술별 가격표 입력 (젤·아트 등 유형별)", "네이버 예약 또는 카카오 예약 연동", "시술 소요 시간 안내 작성", "신규 디자인 소식 2주 이내 1건 작성"],
   },
   {

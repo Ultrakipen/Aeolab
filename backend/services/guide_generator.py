@@ -21,10 +21,9 @@ from services.industry_prompt_rules import build_industry_system_prompt
 from services.ai_usage_logger import log_ai_usage
 from services.briefing_engine import _select_josa
 # 의료·법률 업종 광고 규정 가드(2026-11-06): 해당 업종이 아니면 프롬프트·결과 모두 그대로다
-from services.regulated_industry import (
-    prompt_note as _reg_note, scrub_generated as _reg_scrub, regulated_group as _reg_group,
-    adapt_smartplace_prompt as _reg_adapt, fallback_review_draft as _reg_fallback_review,
-)
+from services.regulated_industry import prompt_note as _reg_note, scrub_generated as _reg_scrub
+# 블로그 초안 3번째(리뷰_모음) 정책(2026-11-06): 가공 후기 금지 — 일반 업종은 빈칸 틀, 의료·법률은 방문 안내
+from services.review_draft_policy import review_draft_specs, ensure_review_draft, fallback_review_draft
 
 _logger = logging.getLogger("aeolab")
 
@@ -1305,6 +1304,8 @@ async def generate_smartplace_intro(
       blog_title        : 하위호환 (blog_drafts[0].title)
       blog_content      : 하위호환 (blog_drafts[0].content)
     """
+    _reg_cat = category or category_ko     # 코드가 없으면 한글 라벨로도 판정(regulated_industry가 라벨 지원)
+    _rv = review_draft_specs(_reg_cat)     # 세 번째 초안: 의료·법률=방문 안내, 그 외=가공 후기 없는 빈칸 틀(review_draft_policy)
     prompt = f"""다음 사업장 정보로 네이버 스마트플레이스 소개글과 블로그 포스트 초안 3종을 작성해주세요.
 
 사업장 정보:
@@ -1337,8 +1338,8 @@ async def generate_smartplace_intro(
     }},
     {{
       "template_type": "리뷰_모음",
-      "title": "고객 후기 중심 포스트 제목 (40자 이내)",
-      "content": "고객 후기 형식의 본문 (700-900자, 방문 동기→주문한 것→맛·분위기→장단점→재방문 의향 순서, 자연스러운 후기 톤)",
+      "title": "{_rv['title']}",
+      "content": "{_rv['content']}",
       "target_keyword": "이 포스트가 타겟하는 핵심 키워드 1개 (예: 강남 음식점 후기)"
     }}
   ]
@@ -1346,13 +1347,11 @@ async def generate_smartplace_intro(
 
 작성 기준:
 - 사실 지어내기 금지: 위 [사업장 정보]에 실제로 적힌 값만 사실로 쓴다. "미입력"·"없음"인 항목(가격·영업시간·재료·좌석/수용 인원·주차·시설·운영 기간·수상·인증)은 지어내지 말고 그 부분을 생략하거나 "스마트플레이스에서 확인해 주세요"로 안내한다. 메뉴·서비스 가격, 재료·원산지, 자주 묻는 질문의 답도 제공된 정보 안에서만 쓰고 근거가 없으면 확인 안내로 답한다
-- 리뷰_모음: 실제 고객이 쓴 것처럼 꾸민 구체적 경험(맛·직원 응대·대기 시간 등)을 단정하지 말고, 제공된 메뉴·강점 범위 안에서 사장님이 실제 후기를 덧붙여 쓸 수 있는 틀로 작성한다
+{_rv['rule']}
 - 소개글: 스마트플레이스 소개글 칸에 그대로 붙여넣을 수 있는 완성 텍스트
-- 블로그 제목: '{region} {category_ko} 추천', '{business_name} 후기' 형식, 각각 다른 키워드 타겟
+- 블로그 제목: {_rv['blog_title_fmt'].format(region=region, category_ko=category_ko, business_name=business_name)}, 각각 다른 키워드 타겟
 - 블로그 본문: 사장님이 약간만 수정해 바로 올릴 수 있는 완성 텍스트
 - target_keyword는 실제 네이버 검색에서 사용될 법한 구체적인 구문"""
-    _reg_cat = category or category_ko     # 코드가 없으면 한글 라벨로도 판정(regulated_industry가 라벨 지원)
-    prompt = _reg_adapt(prompt, _reg_cat, business_name)   # 의료·법률: 세 번째 초안을 후기 형식 → 방문 전 안내로
     prompt += _reg_note(_reg_cat)
 
     try:
@@ -1384,6 +1383,11 @@ async def generate_smartplace_intro(
         result, _reg_notes = _reg_scrub(_reg_cat, result)     # 의료·법률: 확실히 금지되는 유형의 문장만 뺀다
         if _reg_notes:
             _logger.info("smartplace_intro 규제 표현 정리(%s): %s", _reg_cat, _reg_notes)
+        # 세 번째 초안이 정책(가공 후기 금지)을 어기면 대체 초안으로 — 프롬프트 지시는 LLM이 어길 수 있다(서버 실호출 5/5가 가공 후기)
+        _drafts, _swapped = ensure_review_draft(result.get("blog_drafts"), _reg_cat, business_name, region, category_ko, address, phone)
+        if _swapped:
+            result["blog_drafts"] = _drafts
+            _logger.info("smartplace_intro 리뷰_모음 초안이 정책 위반이라 대체(%s)", _reg_cat)
         return result
     except Exception as e:
         _logger.warning(f"generate_smartplace_intro failed: {e}")
@@ -1423,18 +1427,7 @@ async def generate_smartplace_intro(
                     ),
                     "target_keyword": f"{region} {category_ko} 메뉴",
                 },
-                (_reg_fallback_review(business_name, region, category_ko, address, phone)
-                 if _reg_group(_reg_cat) else {
-                    "template_type": "리뷰_모음",
-                    "title": f"{business_name} 방문 후기",
-                    "content": (
-                        f"{region}에서 {category_ko}{_select_josa(category_ko, '을', '를')} 찾다가 "
-                        f"{business_name}{_select_josa(business_name, '을', '를')} 방문했습니다.\n\n"
-                        f"{description or '[실제 방문 경험을 직접 적어 주세요]'}\n\n"
-                        f"[주문한 것, 분위기, 아쉬웠던 점 등 직접 겪은 내용을 적어 주세요]"
-                    ),
-                    "target_keyword": f"{region} {category_ko} 후기",
-                }),
+                fallback_review_draft(_reg_cat, business_name, region, category_ko, address, phone),
             ],
             "blog_title": fallback_title,
             "blog_content": fallback_blog_content,

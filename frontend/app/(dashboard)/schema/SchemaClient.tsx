@@ -604,7 +604,7 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                       </div>
                     ) : (
                       <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
-                        <AlertTriangle className="w-4 h-4 inline-block mr-1 shrink-0" aria-hidden="true" /> 이 초안은 AI가 작성한 <strong>샘플 후기</strong>입니다. 실제 고객 방문 경험을 바탕으로 수정한 뒤 사용하세요. 가상 후기를 그대로 올리면 허위 정보로 처리될 수 있습니다.
+                        <AlertTriangle className="w-4 h-4 inline-block mr-1 shrink-0" aria-hidden="true" /> 이 초안은 실제 고객 후기를 넣는 <strong>빈칸 틀</strong>입니다. [ ] 자리에 고객 동의를 받은 실제 후기를 붙여 넣으세요. 후기를 지어내거나 AI가 쓴 후기를 그대로 올리면 허위 정보로 처리될 수 있습니다.
                       </div>
                     )
                   )}
