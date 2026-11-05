@@ -1639,7 +1639,7 @@ async def get_keyword_completeness(
     # 사업장 category, keywords, blog_analysis_json 조회
     biz_row = await execute(
         supabase.table("businesses")
-        .select("category, keywords, blog_analysis_json")
+        .select("category, keywords, excluded_keywords, blog_analysis_json")
         .eq("id", biz_id)
         .maybe_single()
     )
@@ -1649,6 +1649,13 @@ async def get_keyword_completeness(
     biz = biz_row.data
     category: str = biz.get("category") or "restaurant"
     my_keywords: list[str] = biz.get("keywords") or []
+    # 사장님이 '제외'한 키워드는 추천·충족도 계산(분모)에서 뺀다 — gap_analyzer와 같은 규칙(띄어쓰기·대소문자 무시).
+    # 이 엔드포인트가 읽지 않아 제외한 키워드가 게이지에 계속 추천되던 누락(2026-11-05 '스웨디시' 제외 요청으로 발견).
+    _excluded_norm = {
+        k.strip().replace(" ", "").lower()
+        for k in (biz.get("excluded_keywords") or [])
+        if isinstance(k, str) and k.strip()
+    }
 
     # 블로그 분석에서 이미 발견된 키워드도 "보유" 키워드로 포함
     blog_covered: list[str] = []
@@ -1676,7 +1683,10 @@ async def get_keyword_completeness(
     classified_tax_keywords: set[str] = set()
 
     for cat_name, cat_data in taxonomy_dict.items():
-        tax_keywords: list[str] = cat_data.get("keywords") or []
+        tax_keywords: list[str] = [
+            k for k in (cat_data.get("keywords") or [])
+            if k.replace(" ", "").lower() not in _excluded_norm
+        ]
         weight: float = cat_data.get("weight") or 0.0
         condition_example: str = cat_data.get("condition_search_example") or ""
 
