@@ -6,6 +6,7 @@ from services.schema_generator import (
     build_keywords, build_script_tag, score_intro_for_ai_briefing,
 )
 from services.guide_generator import generate_smartplace_intro
+from services.regulated_industry import regulated_group
 from db.supabase_client import get_client
 from utils import cache as _cache
 
@@ -160,6 +161,8 @@ async def generate_schema(req: SchemaRequest, user: dict = Depends(get_current_u
             "smartplace_checklist": SMARTPLACE_CHECKLIST,
             # Claude 호출 실패로 일반 템플릿이 대신 반환된 경우 — 사용자에게 반드시 고지
             "is_fallback": bool(ai_content.get("is_fallback", False)),
+            # 의료·법률은 광고 규정 가드를 적용해 생성했다 — 프론트가 세 번째 초안 탭을 "방문 안내"로 보여준다(생성 시점 판정)
+            "regulated_industry": regulated_group(req.category) is not None,
         }
 
         # 소개글 AI 브리핑 키워드 포함 점수

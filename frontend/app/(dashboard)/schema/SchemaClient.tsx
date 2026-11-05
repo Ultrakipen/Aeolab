@@ -591,16 +591,22 @@ export default function SchemaPageContent({ userId, prefill }: { userId: string;
                         onClick={() => setBlogDraftType(key)}
                         className={`text-sm px-3 py-2 rounded-lg font-medium transition-colors ${blogDraftType === key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                       >
-                        {val.label}
+                        {key === 'review' && result?.regulated_industry ? '방문 안내' : val.label}
                       </button>
                     ))}
                   </div>
 
-                  {/* 리뷰 모음 선택 시 경고 */}
+                  {/* 리뷰 모음 선택 시 경고 — 의료·법률은 후기 형식을 쓰지 않고 방문 안내 글로 만든다(광고 규정) */}
                   {blogDraftType === 'review' && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
-                      <AlertTriangle className="w-4 h-4 inline-block mr-1 shrink-0" aria-hidden="true" /> 이 초안은 AI가 작성한 <strong>샘플 후기</strong>입니다. 실제 고객 방문 경험을 바탕으로 수정한 뒤 사용하세요. 가상 후기를 그대로 올리면 허위 정보로 처리될 수 있습니다.
-                    </div>
+                    result?.regulated_industry ? (
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+                        <AlertTriangle className="w-4 h-4 inline-block mr-1 shrink-0" aria-hidden="true" /> 이 업종은 환자·의뢰인 후기나 경험담 형식이 광고 규정상 문제가 될 수 있어, 이 초안을 <strong>방문 전 안내 글</strong>로 만들었습니다. 실제 운영 내용과 다른 부분은 수정한 뒤 사용하세요.
+                      </div>
+                    ) : (
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+                        <AlertTriangle className="w-4 h-4 inline-block mr-1 shrink-0" aria-hidden="true" /> 이 초안은 AI가 작성한 <strong>샘플 후기</strong>입니다. 실제 고객 방문 경험을 바탕으로 수정한 뒤 사용하세요. 가상 후기를 그대로 올리면 허위 정보로 처리될 수 있습니다.
+                      </div>
+                    )
                   )}
 
                   {/* 선택된 초안 */}

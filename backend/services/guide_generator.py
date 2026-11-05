@@ -21,7 +21,10 @@ from services.industry_prompt_rules import build_industry_system_prompt
 from services.ai_usage_logger import log_ai_usage
 from services.briefing_engine import _select_josa
 # 의료·법률 업종 광고 규정 가드(2026-11-06): 해당 업종이 아니면 프롬프트·결과 모두 그대로다
-from services.regulated_industry import prompt_note as _reg_note, scrub_generated as _reg_scrub
+from services.regulated_industry import (
+    prompt_note as _reg_note, scrub_generated as _reg_scrub, regulated_group as _reg_group,
+    adapt_smartplace_prompt as _reg_adapt, fallback_review_draft as _reg_fallback_review,
+)
 
 _logger = logging.getLogger("aeolab")
 
@@ -1349,6 +1352,7 @@ async def generate_smartplace_intro(
 - 블로그 본문: 사장님이 약간만 수정해 바로 올릴 수 있는 완성 텍스트
 - target_keyword는 실제 네이버 검색에서 사용될 법한 구체적인 구문"""
     _reg_cat = category or category_ko     # 코드가 없으면 한글 라벨로도 판정(regulated_industry가 라벨 지원)
+    prompt = _reg_adapt(prompt, _reg_cat, business_name)   # 의료·법률: 세 번째 초안을 후기 형식 → 방문 전 안내로
     prompt += _reg_note(_reg_cat)
 
     try:
@@ -1419,7 +1423,8 @@ async def generate_smartplace_intro(
                     ),
                     "target_keyword": f"{region} {category_ko} 메뉴",
                 },
-                {
+                (_reg_fallback_review(business_name, region, category_ko, address, phone)
+                 if _reg_group(_reg_cat) else {
                     "template_type": "리뷰_모음",
                     "title": f"{business_name} 방문 후기",
                     "content": (
@@ -1429,7 +1434,7 @@ async def generate_smartplace_intro(
                         f"[주문한 것, 분위기, 아쉬웠던 점 등 직접 겪은 내용을 적어 주세요]"
                     ),
                     "target_keyword": f"{region} {category_ko} 후기",
-                },
+                }),
             ],
             "blog_title": fallback_title,
             "blog_content": fallback_blog_content,

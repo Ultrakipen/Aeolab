@@ -599,6 +599,8 @@ export interface SchemaResult {
   extended_checklist?: Array<{ item: string; tip: string }>;
   no_website_guide?: string;
   is_fallback?: boolean;
+  /** 의료·법률 업종이라 광고 규정 가드를 적용해 생성한 결과(세 번째 블로그 초안이 후기가 아니라 방문 안내) — 백엔드가 생성 시점에 판정 */
+  regulated_industry?: boolean;
 }
 
 // ── 블로그 진단 (GuideClient BlogDiagnosisCard) ──────────────────────────────

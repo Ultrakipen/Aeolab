@@ -227,6 +227,132 @@ def test_talktalk_faq_regulated(monkeypatch):
     assert out["chat_menus"] == ["상담 예약"]
 
 
+# ── 4-b. 세 번째 블로그 초안: 의료·법률은 후기 형식이 아니라 방문 전 안내 ─────────────────
+_THIRD_DRAFT_OLD = "고객 후기 형식의 본문"
+
+
+def _capture_smartplace_prompt(monkeypatch, category, label):
+    seen = _patch(monkeypatch, json.dumps({"smartplace_intro": "소개", "blog_drafts": []}, ensure_ascii=False))
+    asyncio.run(gg.generate_smartplace_intro(
+        business_name="가나다", category_ko=label, region="창원", address=None, phone=None,
+        opening_hours=None, menu_items=None, specialty=None, description=None, category=category))
+    return seen["prompt"]
+
+
+@pytest.mark.parametrize("cat,label", [("dental", "치과"), ("medical", "병원·의원"), ("oriental_medicine", "한의원"), ("legal", "법률사무소")])
+def test_regulated_third_draft_is_visit_guide_not_review(monkeypatch, cat, label):
+    p = _capture_smartplace_prompt(monkeypatch, cat, label)
+    assert _THIRD_DRAFT_OLD not in p and "고객 후기 중심 포스트" not in p
+    assert "방문 전 안내 본문" in p and "후기·경험담 톤 금지" in p
+    assert "'가나다 이용 안내' 형식" in p and "'가나다 후기' 형식" not in p
+    assert 'template_type": "리뷰_모음"' in p          # 프론트 탭 선택 키는 유지
+
+
+@pytest.mark.parametrize("cat,label", [("restaurant", "음식점"), ("cafe", "카페"), ("beauty", "미용실"), ("pharmacy", "약국"), ("accounting", "세무회계사무소")])
+def test_other_categories_keep_the_review_draft(monkeypatch, cat, label):
+    p = _capture_smartplace_prompt(monkeypatch, cat, label)
+    assert _THIRD_DRAFT_OLD in p and "'가나다 후기' 형식" in p and "방문 전 안내 본문" not in p
+
+
+def _fallback(monkeypatch, cat, label):
+    async def boom(**k):
+        raise RuntimeError("llm down")
+
+    monkeypatch.setattr(gg, "_create_message_with_retry", boom)
+    monkeypatch.setattr(gg, "log_ai_usage", lambda *a, **k: None)
+    return asyncio.run(gg.generate_smartplace_intro(
+        business_name="가나다", category_ko=label, region="창원", address=None, phone="055-000-0000",
+        opening_hours=None, menu_items=None, specialty=None, description=None, category=cat))
+
+
+def test_fallback_third_draft_regulated_is_not_a_first_person_review(monkeypatch):
+    r = _fallback(monkeypatch, "dental", "치과")
+    third = next(d for d in r["blog_drafts"] if d["template_type"] == "리뷰_모음")
+    assert r["is_fallback"] is True
+    assert "후기" not in third["title"] and "방문했습니다" not in third["content"] and "후기" not in third["target_keyword"]
+    assert "이용 안내" in third["title"] and "[예약 또는 상담 방법을 입력하세요]" in third["content"]
+
+
+def test_fallback_third_draft_other_category_is_unchanged(monkeypatch):
+    r = _fallback(monkeypatch, "cafe", "카페")
+    third = next(d for d in r["blog_drafts"] if d["template_type"] == "리뷰_모음")
+    assert third["title"] == "가나다 방문 후기" and "방문했습니다" in third["content"]
+
+
+# ── 4-c. 라우트 실호출 (/api/schema/generate): 업종 팁·체크리스트·규제 플래그 ───────────────
+@pytest.fixture()
+def schema_client(monkeypatch):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    import routers.schema_gen as sg
+    from middleware.plan_gate import get_current_user
+
+    async def fake_plan(*a, **k):
+        return "basic"
+
+    async def fake_intro(**k):
+        return {"smartplace_intro": "소개글입니다.", "blog_drafts": [{"template_type": "리뷰_모음", "title": "t", "content": "c", "target_keyword": "k"}],
+                "is_fallback": False}
+
+    monkeypatch.setattr(sg, "get_user_plan", fake_plan)
+    monkeypatch.setattr(sg, "get_client", lambda: object())
+    monkeypatch.setattr(sg, "generate_smartplace_intro", fake_intro)
+    app = FastAPI()
+    app.include_router(sg.router, prefix="/api/schema")
+    counter = {"n": 0}
+
+    def _user():
+        counter["n"] += 1
+        return {"id": f"u-industry-test-{counter['n']}"}
+
+    app.dependency_overrides[get_current_user] = _user
+    return TestClient(app)
+
+
+def _post(client, category):
+    r = client.post("/api/schema/generate", json={"business_name": "가나다", "category": category, "region": "창원"})
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+def test_route_accounting_gets_professional_tips_not_lawyer_checklist(schema_client):
+    d = _post(schema_client, "accounting")
+    assert d["category_tips"] == CATEGORY_TIPS["professional_service"]
+    assert not any("승소" in x["item"] or "승소" in x["tip"] for x in d["extended_checklist"])
+    assert d["regulated_industry"] is False
+
+
+def test_route_skincare_and_optics_do_not_get_clinic_checklist(schema_client):
+    for cat, key in (("skincare", "beauty_care"), ("optics", "optics")):
+        d = _post(schema_client, cat)
+        assert d["category_tips"] == CATEGORY_TIPS[key]
+        assert not any("건강보험" in x["item"] for x in d["extended_checklist"])
+        assert d["regulated_industry"] is False
+
+
+def test_route_nail_massage_do_not_get_hair_salon_tips(schema_client):
+    for cat in ("nail", "massage", "spa", "jjimjil"):
+        tip = _post(schema_client, cat)["category_tips"]["smartplace_tip"]
+        assert "염색" not in tip and "펌" not in tip, (cat, tip)
+
+
+def test_route_regulated_flag_and_music_studio_tips(schema_client):
+    assert _post(schema_client, "dental")["regulated_industry"] is True
+    assert _post(schema_client, "legal")["regulated_industry"] is True
+    assert _post(schema_client, "restaurant")["regulated_industry"] is False
+    assert _post(schema_client, "music_studio")["category_tips"]       # 팁이 없던 업종
+    assert _post(schema_client, "other")["category_tips"] == {}         # 기타는 업종 팁을 만들지 않는다
+
+
+def test_frontend_reads_the_generation_time_flag():
+    src = (FRONT / "app" / "(dashboard)" / "schema" / "SchemaClient.tsx").read_text(encoding="utf-8")
+    # 탭 라벨과 경고 박스 두 곳 모두 생성 시점 플래그를 써야 한다(드롭다운 값 form.category는 생성 후 바뀔 수 있다)
+    assert src.count("result?.regulated_industry") == 2
+    assert "방문 안내" in src and "방문 전 안내 글" in src
+    assert "isRegulatedCategory" not in src
+    assert "regulated_industry" in (FRONT / "types" / "index.ts").read_text(encoding="utf-8")
+
+
 # ── 5. 업종 규칙 조회 ───────────────────────────────────────────────────────────
 @pytest.mark.parametrize("cat", ["other", "기타", "", "zzz_unknown", None])
 def test_other_and_unknown_do_not_get_restaurant_rules(cat):
