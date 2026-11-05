@@ -2488,6 +2488,19 @@ def get_all_keywords_flat(category: str) -> list[str]:
     return result
 
 
+def drop_excluded(keywords: list[str] | None, excluded: list | None) -> list[str]:
+    """사장님이 '제외'한 키워드를 뺀 목록(순서 유지). 띄어쓰기·대소문자 차이는 무시한다.
+
+    excluded가 None·빈 값이거나 문자열이 아닌 값이 섞여 있어도 안전하다. 제외가 없으면 입력과 같은 내용을 돌려준다.
+    설정 화면이 "제외한 키워드는 모든 분석에서 빠집니다"라고 약속하므로, 추천·게시 텍스트에 쓰일 키워드는 이 함수를 거친다.
+    """
+    excl = {_norm_kw(k) for k in (excluded or []) if isinstance(k, str) and k.strip()}
+    items = [k for k in (keywords or []) if isinstance(k, str)]
+    if not excl:
+        return items
+    return [k for k in items if _norm_kw(k) not in excl]
+
+
 def get_missing_keywords_for_query(
     selected_keyword: str,
     taxonomy_key: str,

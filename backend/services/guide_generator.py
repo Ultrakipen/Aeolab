@@ -1573,6 +1573,7 @@ async def generate_naver_intro(
     avg_rating: float | None = None,
     awards: str | None = None,
     signature: str | None = None,
+    excluded_keywords: list[str] | None = None,
 ) -> str:
     """네이버 스마트플레이스 소개글 생성 (Claude Sonnet — guide_generator.py 허용 경로).
 
@@ -1581,15 +1582,19 @@ async def generate_naver_intro(
     Args:
         lsi_keywords: 자연 배치할 LSI 키워드. None이면 category로부터 자동 추출.
         category: lsi_keywords가 None일 때 LSI 자동 추출에 사용할 업종 코드.
+        excluded_keywords: 사장님이 '제외'한 키워드 — LSI 후보에서 뺀다(자동 추출·전달값 모두). 소개글은 사장님이
+            그대로 게시하는 텍스트라, 제공하지 않는다고 밝힌 시설·서비스 키워드가 들어가면 안 된다.
     """
+    from services.keyword_taxonomy import drop_excluded
     if lsi_keywords is None and category:
         try:
             from services.keyword_taxonomy import get_all_keywords_flat
-            lsi_keywords = get_all_keywords_flat(category)[:8]
+            # 제외분을 먼저 빼고 8개를 고른다 — 뺀 만큼 다른 후보로 채워 LSI 수가 줄지 않게
+            lsi_keywords = drop_excluded(get_all_keywords_flat(category), excluded_keywords)[:8]
         except Exception as e:
             _logger.warning(f"generate_naver_intro LSI auto extract failed: {e}")
             lsi_keywords = []
-    lsi_keywords = lsi_keywords or []
+    lsi_keywords = drop_excluded(lsi_keywords or [], excluded_keywords)
 
     now_kst = datetime.now(timezone.utc) + timedelta(hours=9)
     prompt = _INTRO_PROMPT_TMPL.format(

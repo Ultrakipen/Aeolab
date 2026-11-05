@@ -1004,7 +1004,7 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
     # 소유권 검증
     # 2026-09-02: awards_certifications/signature_points는 SQL 미실행 환경 대비 폴백 포함
     # (없어도 생성 자체는 계속 — 두 필드가 "(미입력)"으로 처리되어 소개글 지어내기 방지 원칙 유지)
-    _intro_biz_cols = "id, name, category, region, keywords, user_id, address, phone, review_count, avg_rating, awards_certifications, signature_points"
+    _intro_biz_cols = "id, name, category, region, keywords, excluded_keywords, user_id, address, phone, review_count, avg_rating, awards_certifications, signature_points"
     try:
         biz_res = await execute(
             supabase.table("businesses")
@@ -1086,6 +1086,7 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
                 avg_rating=biz.get("avg_rating"),
                 awards=biz.get("awards_certifications"),
                 signature=biz.get("signature_points"),
+                excluded_keywords=biz.get("excluded_keywords"),
             )
         except Exception as e:
             logger.warning(f"intro-generate Claude call failed [biz={req.biz_id}]: {e}")
@@ -1095,8 +1096,9 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
         dia_score: dict | None = None
         try:
             from services.content_validator import validate_intro_dia
-            from services.keyword_taxonomy import get_all_keywords_flat
-            _lsi = get_all_keywords_flat(biz.get("category", "other"))[:8]
+            from services.keyword_taxonomy import get_all_keywords_flat, drop_excluded
+            # 제외 키워드를 먼저 빼고 8개 선택 — 생성기(generate_naver_intro)와 같은 목록이어야 D.I.A. 판정이 어긋나지 않는다
+            _lsi = drop_excluded(get_all_keywords_flat(biz.get("category", "other")), biz.get("excluded_keywords"))[:8]
             dia_score = validate_intro_dia(intro_text, keywords=keywords, lsi_keywords=_lsi)
             _dia_cur = float(dia_score.get("score", 0))
             _MAX_DIA_RETRIES = 2
@@ -1122,6 +1124,7 @@ async def generate_intro(req: IntroGenerateRequest, user=Depends(get_current_use
                         avg_rating=biz.get("avg_rating"),
                         awards=biz.get("awards_certifications"),
                         signature=biz.get("signature_points"),
+                        excluded_keywords=biz.get("excluded_keywords"),
                     )
                     _regen_dia = validate_intro_dia(_regen, keywords=keywords, lsi_keywords=_lsi)
                     _regen_score = float(_regen_dia.get("score", 0))
