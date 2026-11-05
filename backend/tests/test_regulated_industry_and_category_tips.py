@@ -359,6 +359,13 @@ def test_generate_smartplace_intro_replaces_testimonial_style_for_regulated(monk
     assert third["title"] == "하나치과 이용 안내" and "후기" not in third["content"] and "아프지" not in third["content"]
 
 
+@pytest.mark.parametrize("cat,label", [("cafe", "카페"), ("bakery", "베이커리"), ("accounting", "세무회계사무소"), ("dental", "치과"), ("legal", "법률사무소")])
+def test_smartplace_prompt_forbids_unfounded_reputation_claims_for_every_category(monkeypatch, cat, label):
+    # 서버 실호출 6회에서 입력에 없는 "입소문이 난"·"많은 고객이 사랑하는" 등이 16개(호출당 2.7개) 나왔다 — 모든 업종 공통 규칙
+    p = _capture_smartplace_prompt(monkeypatch, cat, label)
+    assert "근거 없는 평판·인기 표현 금지" in p and "입소문이 난" in p and "'특징·강점'·'추가 설명'에 있는 내용만" in p
+
+
 def test_frontend_warning_matches_the_blank_frame_policy():
     src = (FRONT / "app" / "(dashboard)" / "schema" / "SchemaClient.tsx").read_text(encoding="utf-8")
     assert "빈칸 틀" in src and "AI가 작성한 <strong>샘플 후기</strong>" not in src      # 더 이상 사실이 아닌 안내
