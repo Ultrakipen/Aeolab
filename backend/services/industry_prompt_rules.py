@@ -200,7 +200,7 @@ _RULES: dict[str, dict] = {
         "naver": [
             "커리큘럼·강사 소개 텍스트 — AI 브리핑 학원 선택 기준 질문 인용",
             "FAQ에 '수강료', '레벨별 반 구성', '체험 수업 가능한가요' 포함",
-            "합격·성과 후기 리뷰 — 결과 중심 키워드로 AI 브리핑 매칭",
+            "합격·성과는 실제이고 수강생 동의를 받은 사례만, 집계 기준과 함께 — 기준 없는 합격률 표기는 오해를 부를 수 있음",
         ],
         "chatgpt": [
             "강사 자격·경력 페이지 URL — ChatGPT 교육 전문성 신호(E-E-A-T)",
@@ -216,7 +216,7 @@ _RULES: dict[str, dict] = {
         "naver": [
             "과목별·레벨별 수업 내용 — AI 브리핑 과외 선택 기준 인용",
             "FAQ에 '시간당 비용', '온라인 가능한가요', '첫 수업 체험' 포함",
-            "선생님 자격·합격 실적 — 신뢰도 검색 매칭",
+            "선생님 자격·합격 실적은 실제 확인된 것만, 집계 기준과 함께 — 근거 없는 실적 표기 금지",
         ],
         "chatgpt": [
             "선생님 학력·합격 실적 텍스트 — ChatGPT 과외 추천 신뢰도",
@@ -764,9 +764,27 @@ _RULES: dict[str, dict] = {
 
 
 def get_industry_rules(category: str) -> dict:
-    """업종 코드로 AI 플랫폼별 최적화 규칙 반환. 미등록 업종은 'other' fallback."""
+    """업종 코드로 AI 플랫폼별 최적화 규칙 반환. 미등록·기타 업종은 'other' fallback.
+
+    2026-11-06 수정 — 실행으로 확인된 결함 3가지:
+    1) normalize_category는 알 수 없는 값·"other"·"기타"를 "restaurant"로 돌려주므로 기타 업종이 음식점 규칙을 받았다.
+    2) education·tutoring·music_studio는 정규화 키(academy·music)가 _RULES에 없어 전용 규칙이 있는데도 'other'로 떨어졌다.
+    3) bar는 "restaurant"로 합쳐져 전용 규칙이 도달 불가였다.
+    순서: 기타·미등록 → other / 정규화 키가 restaurant로 합쳐진 업종에 전용 raw 키가 있으면 raw / 정규화 키 / raw 키 / other.
+    """
+    raw = (category or "").lower().strip()
+    # 기타·빈 값·alias에 없는 값: restaurant 폴백으로 새지 않게 먼저 other로 보낸다
+    if raw in ("", "other", "기타"):
+        return _RULES["other"]
+    from services.keyword_taxonomy import _CATEGORY_ALIASES
+    if raw not in _CATEGORY_ALIASES:
+        return _RULES["other"]
     key = normalize_category(category)
-    return _RULES.get(key, _RULES["other"])
+    if key == "restaurant" and raw != "restaurant" and raw in _RULES:
+        return _RULES[raw]            # bar 등: restaurant로 합쳐졌지만 전용 규칙이 있는 업종
+    if key in _RULES:
+        return _RULES[key]
+    return _RULES.get(raw) or _RULES["other"]    # education·tutoring·music_studio 등
 
 
 def build_industry_system_prompt(category: str) -> str:
@@ -789,4 +807,6 @@ def build_industry_system_prompt(category: str) -> str:
 ### Cross-AI 진단 기준:
   - {rules["cross_ai_note"]}"""
 
-    return _BASE_SYSTEM_PROMPT + industry_section
+    # 의료·법률은 광고 규정상 쓰면 안 되는 표현 지침을 덧붙인다(그 외 업종은 빈 문자열이라 프롬프트가 그대로다)
+    from services.regulated_industry import prompt_note
+    return _BASE_SYSTEM_PROMPT + industry_section + prompt_note(category)

@@ -11,6 +11,49 @@ from utils import cache as _cache
 
 router = APIRouter()
 
+# 업종 → CATEGORY_TIPS/CHECKLIST_BY_CATEGORY 키 (alias 정규화). 모듈 수준 상수라 테스트가 직접 검증한다(2026-11-06).
+# 키가 category_tips_data의 CATEGORY_TIPS에 없으면 팁이 비어 나가므로 새 그룹을 만들면 양쪽을 함께 고칠 것.
+TIPS_ALIAS: dict[str, str] = {
+    "hospital": "clinic", "dental": "clinic", "oriental": "clinic",
+    "rehab": "clinic", "checkup": "clinic", "mental": "clinic", "eye": "clinic",
+    "oriental_medicine": "clinic", "medical": "clinic",
+    # 2026-11-06: 의원이 아닌 업종(안경원·피부관리실)이 의원 체크리스트("건강보험·비급여")를 받던 묶음을 분리
+    "optics": "optics",
+    # 네일·피부관리·반영구·메이크업은 미용실 팁("염색·펌·두피")이 아니라 시술·관리 팁, 마사지·스파·찜질방은 코스 팁
+    "skincare": "beauty_care", "nail": "beauty_care", "makeup": "beauty_care", "semi_permanent": "beauty_care",
+    "spa": "relax", "massage": "relax", "jjimjil": "relax",
+    "hair": "beauty",
+    "yoga": "fitness", "swimming": "fitness",
+    "dance": "fitness", "ballet": "fitness", "golf": "fitness", "swim": "fitness",
+    "martial_arts": "fitness", "climbing": "fitness",
+    "language": "academy", "coding": "academy", "art_studio": "academy",
+    "art_edu": "academy", "sports_edu": "academy", "driving": "academy",
+    "tutoring": "academy", "music_edu": "academy",
+    "education": "academy", "music_class": "academy",
+    "music_lesson": "academy", "cooking": "academy", "art_class": "academy",
+    # 2026-11-06: 어린이집·스터디카페는 학원의 "합격·성과 사례" 팁이 맞지 않아 분리
+    "daycare": "childcare", "childcare": "childcare", "study": "study",
+    "chicken": "restaurant", "bbq": "restaurant", "seafood": "restaurant",
+    "bar": "restaurant", "snack": "restaurant", "delivery": "restaurant",
+    # 2026-11-06: 세무·회계·건축·부동산이 변호사 체크리스트("승소 결과 게시")를 받던 묶음을 분리 — legal은 변호사 업종만
+    "law": "legal", "lawyer": "legal",
+    "tax": "professional_service", "architecture": "professional_service",
+    "accounting": "professional_service", "realestate": "professional_service",
+    "vet": "pet",
+    "clothing": "shopping", "shoes": "shopping", "grocery": "shopping",
+    "electronics": "shopping", "furniture": "shopping", "stationery": "shopping",
+    "book": "shopping", "supplement": "shopping", "baby": "shopping",
+    "fashion": "shopping", "footwear": "shopping", "flower": "shopping",
+    # 생활서비스(출장·시공형) — 2026-07-14 신설 그룹
+    "interior": "service", "auto": "service", "cleaning": "service",
+    "car_wash": "service", "electronics_repair": "service",
+    # 사진·영상·디자인(포트폴리오형) — 2026-07-14 신설 그룹 (music_studio=작곡·레코딩 스튜디오는 2026-11-06 추가 — 팁이 없던 업종)
+    "photo": "creative", "video": "creative", "design": "creative", "music_studio": "creative",
+    # 여가·오락·공방(공간 예약형) — 2026-07-14 신설 그룹
+    "norebang": "leisure", "billiards": "leisure", "workshop": "leisure",
+    "escape": "leisure", "experience": "leisure",
+}
+
 # schema 생성은 PLAN_LIMITS["schema"]가 True/False 게이트일 뿐 월별 횟수 제한이 없어
 # review-reply/crisis-reply와 달리 요청속도 제한·중복생성 락이 전혀 없었음. Claude Haiku
 # 호출(max_tokens=4096, 소개글+블로그 3종이라 review-reply보다 길게 걸림)이라 동시 사용자
@@ -100,6 +143,7 @@ async def generate_schema(req: SchemaRequest, user: dict = Depends(get_current_u
             menu_items=req.menu_items,
             specialty=req.specialty,
             description=req.description,
+            category=req.category,   # 의료·법률 광고 규정 가드(regulated_industry)가 업종 코드로 판정한다
         )
 
         smartplace_intro = ai_content.get("smartplace_intro", "")
@@ -121,42 +165,8 @@ async def generate_schema(req: SchemaRequest, user: dict = Depends(get_current_u
         # 소개글 AI 브리핑 키워드 포함 점수
         result["intro_score"] = score_intro_for_ai_briefing(smartplace_intro, req.category)
 
-        # 업종별 맞춤 팁 (업종 alias 정규화 — CATEGORY_TIPS/CHECKLIST 키는 대표 업종군으로 통합)
-        _TIPS_ALIAS: dict[str, str] = {
-            "hospital": "clinic", "dental": "clinic", "oriental": "clinic", "skincare": "clinic",
-            "rehab": "clinic", "checkup": "clinic", "mental": "clinic", "eye": "clinic",
-            "oriental_medicine": "clinic", "optics": "clinic", "medical": "clinic",
-            "nail": "beauty", "makeup": "beauty", "spa": "beauty",
-            "semi_permanent": "beauty", "massage": "beauty", "jjimjil": "beauty",
-            "yoga": "fitness", "swimming": "fitness",
-            "dance": "fitness", "ballet": "fitness", "golf": "fitness", "swim": "fitness",
-            "martial_arts": "fitness", "climbing": "fitness",
-            "language": "academy", "coding": "academy", "art_studio": "academy",
-            "art_edu": "academy", "sports_edu": "academy", "driving": "academy",
-            "daycare": "academy", "tutoring": "academy", "music_edu": "academy",
-            "education": "academy", "study": "academy", "music_class": "academy",
-            "music_lesson": "academy", "cooking": "academy", "art_class": "academy",
-            "childcare": "academy",
-            "chicken": "restaurant", "bbq": "restaurant", "seafood": "restaurant",
-            "bar": "restaurant", "snack": "restaurant", "delivery": "restaurant",
-            "bakery": "cafe",
-            "tax": "legal", "architecture": "legal", "accounting": "legal",
-            "realestate": "legal",
-            "vet": "pet",
-            "clothing": "shopping", "shoes": "shopping", "grocery": "shopping",
-            "electronics": "shopping", "furniture": "shopping", "stationery": "shopping",
-            "book": "shopping", "supplement": "shopping", "baby": "shopping",
-            "fashion": "shopping", "footwear": "shopping", "flower": "shopping",
-            # 생활서비스(출장·시공형) — 2026-07-14 신설 그룹
-            "interior": "service", "auto": "service", "cleaning": "service",
-            "car_wash": "service", "laundry": "service", "electronics_repair": "service",
-            # 사진·영상·디자인(포트폴리오형) — 2026-07-14 신설 그룹
-            "photo": "creative", "video": "creative", "design": "creative",
-            # 여가·오락·공방(공간 예약형) — 2026-07-14 신설 그룹
-            "norebang": "leisure", "billiards": "leisure", "workshop": "leisure",
-            "escape": "leisure", "experience": "leisure",
-        }
-        _tips_key = _TIPS_ALIAS.get(req.category, req.category)
+        # 업종별 맞춤 팁 (업종 alias 정규화 — 모듈 수준 TIPS_ALIAS)
+        _tips_key = TIPS_ALIAS.get(req.category, req.category)
         result["category_tips"] = CATEGORY_TIPS.get(_tips_key, {})
 
         # 표준 체크리스트 + 업종별 추가 체크리스트

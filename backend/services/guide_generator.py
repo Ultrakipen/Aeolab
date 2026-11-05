@@ -20,6 +20,8 @@ from services.action_tools import build_action_tools
 from services.industry_prompt_rules import build_industry_system_prompt
 from services.ai_usage_logger import log_ai_usage
 from services.briefing_engine import _select_josa
+# 의료·법률 업종 광고 규정 가드(2026-11-06): 해당 업종이 아니면 프롬프트·결과 모두 그대로다
+from services.regulated_industry import prompt_note as _reg_note, scrub_generated as _reg_scrub
 
 _logger = logging.getLogger("aeolab")
 
@@ -1288,6 +1290,7 @@ async def generate_smartplace_intro(
     menu_items: str | None,
     specialty: str | None,
     description: str | None,
+    category: str | None = None,
 ) -> dict:
     """
     스마트플레이스 소개글 + 블로그 포스트 초안 3종 생성 (Claude Haiku 4.5 — 2026-06-17 Sonnet→Haiku 전환)
@@ -1345,6 +1348,8 @@ async def generate_smartplace_intro(
 - 블로그 제목: '{region} {category_ko} 추천', '{business_name} 후기' 형식, 각각 다른 키워드 타겟
 - 블로그 본문: 사장님이 약간만 수정해 바로 올릴 수 있는 완성 텍스트
 - target_keyword는 실제 네이버 검색에서 사용될 법한 구체적인 구문"""
+    _reg_cat = category or category_ko     # 코드가 없으면 한글 라벨로도 판정(regulated_industry가 라벨 지원)
+    prompt += _reg_note(_reg_cat)
 
     try:
         try:
@@ -1372,6 +1377,9 @@ async def generate_smartplace_intro(
             result.setdefault("blog_title", drafts[0].get("title", ""))
             result.setdefault("blog_content", drafts[0].get("content", ""))
         result["is_fallback"] = False
+        result, _reg_notes = _reg_scrub(_reg_cat, result)     # 의료·법률: 확실히 금지되는 유형의 문장만 뺀다
+        if _reg_notes:
+            _logger.info("smartplace_intro 규제 표현 정리(%s): %s", _reg_cat, _reg_notes)
         return result
     except Exception as e:
         _logger.warning(f"generate_smartplace_intro failed: {e}")
@@ -1453,7 +1461,7 @@ async def generate_faq_drafts(
         f"- {count}개 답변의 문장 길이·시작 방식을 서로 다르게 쓸 것 (전부 같은 어투·같은 구조로 시작하지 말 것)\n\n"
         f"반드시 아래 JSON 형식으로만 응답:\n"
         '[{"question": "질문1", "answer": "답변1"}]'
-    )
+    ) + _reg_note(category)
     try:
         try:
             msg = await _create_message_with_retry(
@@ -1471,7 +1479,10 @@ async def generate_faq_drafts(
         raw = msg.content[0].text.strip()
         m = re.search(r"\[.*\]", raw, re.DOTALL)
         if m:
-            return json.loads(m.group())
+            drafts, _reg_notes = _reg_scrub(category, json.loads(m.group()))
+            if _reg_notes:
+                _logger.info("faq_drafts 규제 표현 정리(%s): %s", category, _reg_notes)
+            return drafts
         return []
     except Exception as e:
         _logger.warning("generate_faq_drafts error: %s", e)
@@ -1614,6 +1625,8 @@ async def generate_naver_intro(
         current_year=now_kst.year,
         current_month=now_kst.month,
     )
+    _reg_cat = category or category_label
+    prompt += _reg_note(_reg_cat)
     try:
         try:
             message = await _create_message_with_retry(
@@ -1630,6 +1643,9 @@ async def generate_naver_intro(
         except Exception as _le:
             _logger.debug("naver_intro usage 로깅 실패(무시): %s", _le)
         text = message.content[0].text.strip()
+        text, _reg_notes = _reg_scrub(_reg_cat, text)    # 의료·법률: 확실히 금지되는 유형의 문장만 뺀다
+        if _reg_notes:
+            _logger.info("naver_intro 규제 표현 정리(%s): %s", _reg_cat, _reg_notes)
         # 적시성 마커 폴백 (Claude가 누락한 경우 자동 보강)
         if not re.search(r"\[20\d{2}년\s*\d{1,2}월", text):
             text = text.rstrip() + f"\n\n[{now_kst.year}년 {now_kst.month}월 기준]"
@@ -1684,6 +1700,7 @@ async def generate_global_ai_intro(
     phone: str | None = None,
     review_count: int | None = None,
     avg_rating: float | None = None,
+    category: str | None = None,
 ) -> str:
     """ChatGPT·Gemini·Google AI 노출 최적화 소개글 생성.
 
@@ -1703,6 +1720,8 @@ async def generate_global_ai_intro(
         current_year=now_kst.year,
         current_month=now_kst.month,
     )
+    _reg_cat = category or category_label
+    prompt += _reg_note(_reg_cat)
     try:
         try:
             message = await _create_message_with_retry(
@@ -1719,6 +1738,9 @@ async def generate_global_ai_intro(
         except Exception as _le:
             _logger.debug("global_ai_intro usage 로깅 실패(무시): %s", _le)
         text = message.content[0].text.strip()
+        text, _reg_notes = _reg_scrub(_reg_cat, text)    # 의료·법률: 확실히 금지되는 유형의 문장만 뺀다
+        if _reg_notes:
+            _logger.info("global_ai_intro 규제 표현 정리(%s): %s", _reg_cat, _reg_notes)
         if not re.search(r"\[20\d{2}년\s*\d{1,2}월", text):
             text = text.rstrip() + f"\n\n[{now_kst.year}년 {now_kst.month}월 기준]"
         return text
@@ -1733,6 +1755,7 @@ async def generate_talktalk_faq(
     region: str,
     services: str,
     count: int = 10,
+    category: str | None = None,
 ) -> dict:
     """톡톡 채팅방 메뉴 + 자주 묻는 질문 생성 (Claude Haiku — guide_generator.py 허용 경로).
 
@@ -1745,6 +1768,8 @@ async def generate_talktalk_faq(
         services=services,
         count=count,
     )
+    _reg_cat = category or category_label
+    prompt += _reg_note(_reg_cat)
     try:
         try:
             message = await _create_message_with_retry(
@@ -1774,7 +1799,10 @@ async def generate_talktalk_faq(
         start = clean.find("{")
         end = clean.rfind("}")
         if start != -1 and end > start:
-            return json.loads(clean[start:end + 1])
+            parsed, _reg_notes = _reg_scrub(_reg_cat, json.loads(clean[start:end + 1]))
+            if _reg_notes:
+                _logger.info("talktalk_faq 규제 표현 정리(%s): %s", _reg_cat, _reg_notes)
+            return parsed
     except Exception as parse_err:
         _logger.warning(f"generate_talktalk_faq JSON parse failed: {parse_err}. raw={raw[:200]}")
 

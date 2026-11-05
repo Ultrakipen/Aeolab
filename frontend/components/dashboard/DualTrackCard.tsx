@@ -83,7 +83,7 @@ const CATEGORY_MESSAGES: Record<string, { track1Tip: string; track2Tip: string }
     track2Tip: "체형 교정 결과 사례 콘텐츠 발행 (10-20대 타겟)",
   },
   clinic: {
-    track1Tip: "소개글 하단에 야간 진료·전문의 직접 진료 Q&A 추가",
+    track1Tip: "소개글 하단에 야간 진료·진료 과목 Q&A 추가 (실제 운영 기준으로)",
     track2Tip: "자체 웹사이트·구글 비즈니스 프로필에 전문성 콘텐츠 등록 (ChatGPT·Gemini 참조 소스)",
   },
   pet: {
@@ -91,12 +91,12 @@ const CATEGORY_MESSAGES: Record<string, { track1Tip: string; track2Tip: string }
     track2Tip: "수의사 전문성 콘텐츠 발행",
   },
   academy: {
-    track1Tip: "소개글 하단에 합격 사례·원어민 강사 Q&A 추가",
+    track1Tip: "소개글 하단에 수강 대상·체험 수업 Q&A 추가 (실제 운영 기준으로)",
     track2Tip: "ChatGPT·Gemini 노출을 위한 자체 웹사이트·구글 비즈니스 프로필 개선",
   },
   legal: {
     track1Tip: "소개글 하단에 전문 분야·무료 상담 Q&A 추가",
-    track2Tip: "블로그 칼럼 + 승소 사례 발행",
+    track2Tip: "블로그 칼럼 + 업무 분야별 법률 정보 발행 (승소율·결과 보장 표현 제외)",
   },
   shopping: {
     track1Tip: "소개글 하단에 배송·AS 중심 Q&A 추가 (당일 배송, 무료 반품)",
@@ -111,11 +111,11 @@ const DEFAULT_MESSAGE = {
 
 // INACTIVE 업종 전용 — 블로그 + 스마트플레이스 중심 팁
 const INACTIVE_NAVER_SEARCH_TIPS: Record<string, string> = {
-  medical:    "건강 정보 블로그 주 1~2회 발행 + 스마트플레이스 전문의·진료 과목 소개 업데이트",
+  medical:    "건강 정보 블로그 주 1~2회 발행 (치료 효과 보장·후기 표현 제외) + 스마트플레이스 의료진·진료 과목 소개 업데이트",
   pharmacy:   "약 복용·건강 팁 블로그 발행 + 스마트플레이스 약사 소개·영업시간 업데이트",
-  education:  "합격 사례·학습법 블로그 발행 + 스마트플레이스 강사·커리큘럼 소개 업데이트",
+  education:  "학습법·커리큘럼 블로그 발행 (합격·성과는 실제 사례만) + 스마트플레이스 강사·커리큘럼 소개 업데이트",
   tutoring:   "과목별 학습 팁 블로그 발행 + 스마트플레이스 강사 경력·수업 방식 소개",
-  legal:      "법률 칼럼·판례 해설 블로그 발행 + 스마트플레이스 전문 분야·상담 방법 업데이트",
+  legal:      "법률 칼럼·판례 해설 블로그 발행 (승소율·결과 보장 표현 제외) + 스마트플레이스 전문 분야·상담 방법 업데이트",
   realestate: "지역 매물 소식·부동산 정보 블로그 발행 + 스마트플레이스 취급 지역·매물 소개",
   interior:   "시공 사례·인테리어 팁 블로그 발행 + 스마트플레이스 포트폴리오 사진 추가",
   auto:       "차량 관리 팁·정비 사례 블로그 발행 + 스마트플레이스 서비스 항목·가격 업데이트",
