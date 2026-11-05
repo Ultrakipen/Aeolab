@@ -14,12 +14,26 @@ interface Citation {
   mentioned: boolean
   sentiment: string
   mention_type?: string
+  created_at?: string | null
 }
 
 interface AICitationResponse {
   citations: Citation[]
   total: number
   has_data: boolean
+  /** 백엔드 단일 소스(get_briefing_eligibility) — 'active' | 'likely' | 'inactive' */
+  eligibility?: string
+}
+
+/** 측정 시각(UTC ISO)을 한국 날짜 "11/5 측정"으로. 해석 못 하면 null(표시 생략). */
+function measuredOn(iso?: string | null): string | null {
+  if (!iso) return null
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return null
+  const parts = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' }).formatToParts(d)
+  const m = parts.find((p) => p.type === 'month')?.value
+  const day = parts.find((p) => p.type === 'day')?.value
+  return m && day ? `${m}/${day} 측정` : null
 }
 
 interface Props {
@@ -88,7 +102,11 @@ function AICitationContent({ businessId, authToken, isInactive }: { businessId: 
   const totalMentioned = allCitations.filter((c) => c.mentioned).length
   const totalNotMentioned = allCitations.filter((c) => !c.mentioned && c.mention_type !== 'synthetic').length
 
-  const title = isInactive
+  // 제목·"비대상" 문구는 백엔드 판정(eligibility)이 inactive일 때만 쓴다. 화면 prop(isInactive)은 '확대 예상(likely)'
+  // 업종까지 포함하므로 그대로 쓰면 같은 화면의 "확대 예상 업종" 안내와 모순된다. 응답에 값이 없으면 prop으로 폴백.
+  const strictInactive = data.eligibility ? data.eligibility === 'inactive' : !!isInactive
+
+  const title = strictInactive
     ? 'ChatGPT·Gemini가 내 가게를 이렇게 말했습니다'
     : 'AI가 내 가게를 이렇게 말했습니다'
 
@@ -104,7 +122,7 @@ function AICitationContent({ businessId, authToken, isInactive }: { businessId: 
             <Sparkles className="w-4 h-4 text-indigo-500" />
             <span className="text-sm font-semibold text-gray-900">{title}</span>
           </div>
-          {isInactive && (
+          {strictInactive && (
             <span className="text-sm text-gray-600 pl-6">플레이스형 AI 브리핑 비대상 업종 · 정보형 AI 브리핑·ChatGPT·Gemini·Google 기준</span>
           )}
         </div>
@@ -131,6 +149,9 @@ function AICitationContent({ businessId, authToken, isInactive }: { businessId: 
                     {c.platform_label || c.platform}
                   </span>
                   <span className="text-sm text-gray-600 truncate max-w-[200px]">"{c.query}"</span>
+                  {measuredOn(c.created_at) && (
+                    <span className="text-sm text-gray-600">· {measuredOn(c.created_at)}</span>
+                  )}
                 </div>
                 {c.excerpt && (
                   <div className="border-l-4 border-blue-400 pl-3 py-1 bg-blue-50/60 rounded-r-lg">
