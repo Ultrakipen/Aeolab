@@ -374,6 +374,9 @@ async def _generate_reply(biz: dict, review_text: str) -> tuple[str, str, bool]:
     from services.schema_generator import CATEGORY_KO
 
     from services.privacy_scrub import scrub_personal
+    from services.regulated_industry import (
+        reply_note as _reg_reply_note, scrub_generated as _reg_scrub, BLANK_MARK as _REG_BLANK,
+    )
     review_text = scrub_personal(review_text)   # 고객이 남긴 리뷰의 연락처는 AI 업체로 보내지 않는다(저장된 원문은 그대로, 프롬프트에만 적용 — 2026-11-02)
     client = _get_guide_ai_client(os.getenv("ANTHROPIC_API_KEY", ""))
     keywords = ", ".join((biz.get("keywords") or [])[:5])
@@ -389,7 +392,7 @@ async def _generate_reply(biz: dict, review_text: str) -> tuple[str, str, bool]:
 
 [답변 필수 조건] 리뷰에서 언급된 구체적 내용(메뉴명·서비스명·장소·불만 요인 등)을 답변에 반드시 1개 이상 직접 반영할 것. "소중한 의견 감사합니다" 같은 일반론적 문구만으로 구성하지 말 것.
 [문체] 문장 길이에 자연스러운 변화를 줄 것(짧은 문장+긴 문장 혼합). 마무리 어미를 매번 "~하겠습니다"로 고정하지 말고 리뷰 내용에 맞게 다르게 쓸 것.
-
+{_reg_reply_note(biz.get("category"))}
 형식:
 sentiment: <값>
 reply: <답변 내용>
@@ -433,6 +436,12 @@ reply: <답변 내용>
         reply = "\n".join(reply_lines).strip()
         if not reply:
             reply = text
+        # 의료·법률: 효과·결과 보장 등 확실히 금지되는 유형의 문장을 뺀다(그 외 업종은 그대로). 다 지워지면 일반 답변으로 대체
+        reply, _reg_notes = _reg_scrub(biz.get("category"), reply)
+        if _reg_notes:
+            _logger.info("review_reply 규제 표현 정리(%s): %s", biz.get("category"), _reg_notes)
+            if not reply.strip() or reply == _REG_BLANK:
+                return "소중한 리뷰 감사드립니다. 더 나은 서비스로 보답하겠습니다.", sentiment, True
         return reply, sentiment, False
     except Exception as e:
         _logger.error(f"review reply generation failed: {e}")

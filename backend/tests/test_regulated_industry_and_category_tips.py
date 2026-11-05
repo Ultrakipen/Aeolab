@@ -353,6 +353,87 @@ def test_frontend_reads_the_generation_time_flag():
     assert "regulated_industry" in (FRONT / "types" / "index.ts").read_text(encoding="utf-8")
 
 
+# ── 4-d. 리뷰 답글·위기 대응·주간 소식: 사장님이 공개로 게시·전송하는 다른 생성 경로 ───────────
+def _fake_reply_llm(monkeypatch, text):
+    import services.anthropic_retry as ar
+    seen = {}
+
+    async def fake(client, **kw):
+        seen["prompt"] = kw["messages"][0]["content"]
+        return SimpleNamespace(content=[SimpleNamespace(text=text)],
+                               usage=SimpleNamespace(input_tokens=1, output_tokens=1))
+
+    monkeypatch.setattr(ar, "create_message_with_retry", fake)
+    return seen
+
+
+def _reply(monkeypatch, category, llm_text):
+    import routers.guide as g
+    monkeypatch.setattr(g, "_get_guide_ai_client", lambda key: object())
+    seen = _fake_reply_llm(monkeypatch, llm_text)
+    out = asyncio.run(g._generate_reply({"name": "가나", "category": category, "keywords": ["창원"]}, "친절했어요"))
+    return seen["prompt"], out
+
+
+def test_review_reply_medical_prompt_forbids_repeating_treatment_details_and_scrubs(monkeypatch):
+    p, (reply, sentiment, fb) = _reply(monkeypatch, "dental", "sentiment: positive\nreply: 100% 완치를 약속합니다. 방문해 주셔서 감사합니다.")
+    assert "진료 항목·병명·치료 내용" in p and "조건보다 우선" in p
+    assert fb is False and "완치" not in reply and "방문해 주셔서 감사합니다." in reply
+
+
+def test_review_reply_legal_prompt_forbids_repeating_case_details(monkeypatch):
+    p, _ = _reply(monkeypatch, "legal", "sentiment: neutral\nreply: 상담해 주셔서 감사합니다.")
+    assert "사건·상담 내용" in p and "승소율·성공률" in p
+
+
+def test_review_reply_all_bad_falls_back_to_generic_thanks(monkeypatch):
+    _, (reply, _s, fb) = _reply(monkeypatch, "dental", "sentiment: positive\nreply: 100% 완치를 보장합니다.")
+    assert fb is True and "완치" not in reply and "감사" in reply
+
+
+def test_review_reply_other_category_is_untouched(monkeypatch):
+    llm = "sentiment: positive\nreply: 100% 완치를 약속합니다. 감사합니다."
+    p, (reply, _s, fb) = _reply(monkeypatch, "restaurant", llm)
+    assert "진료 항목·병명" not in p and "사건·상담 내용" not in p
+    assert reply == "100% 완치를 약속합니다. 감사합니다." and fb is False
+
+
+_CRISIS_JSON = json.dumps({"public_reply": "치료 효과를 100% 완치로 보장합니다.", "ai_impact_tips": ["팁"],
+                           "do_not_do": ["삭제 요청"], "offline_steps": ["전화"]}, ensure_ascii=False)
+
+
+def _crisis(monkeypatch, label, text):
+    import services.crisis_guide as cg
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-not-real")
+    monkeypatch.setattr(cg, "_get_client", lambda key: object())
+    seen = _fake_reply_llm(monkeypatch, text)
+    out = asyncio.run(cg.generate_crisis_reply("불만입니다", "가나치과", label, 2))
+    return seen["prompt"], out
+
+
+def test_crisis_reply_medical_gets_note_and_blank_reply_becomes_generic_apology(monkeypatch):
+    p, out = _crisis(monkeypatch, "치과", _CRISIS_JSON)
+    assert "진료 항목·병명·치료 내용" in p
+    assert "완치" not in out["public_reply"] and "사과" in out["public_reply"]
+    assert out["do_not_do"] == ["삭제 요청"] and out["is_fallback"] is False       # 나머지 필드는 그대로
+
+
+def test_crisis_reply_other_category_is_untouched(monkeypatch):
+    p, out = _crisis(monkeypatch, "음식점", _CRISIS_JSON)
+    assert "진료 항목·병명" not in p and out["public_reply"] == "치료 효과를 100% 완치로 보장합니다."
+
+
+def test_weekly_post_draft_job_is_guarded_and_uses_all_korean_names():
+    src = (ROOT / "backend" / "scheduler" / "jobs.py").read_text(encoding="utf-8")
+    seg = src[src.index("async def weekly_post_draft_job") if "async def weekly_post_draft_job" in src else src.index("[weekly_post_draft_job]"):]
+    seg = seg[:seg.index("guides 테이블에 저장 (guide_type='post_draft')")]
+    assert "prompt += _reg_note(category)" in seg
+    assert "_reg_scrub(category, draft)" in seg and "continue" in seg[seg.index("_reg_scrub(category, draft)"):]
+    assert "cat_ko = _ALL_CATEGORY_KO.get(category) or _CATEGORY_KO.get(category, category)" in seg   # import만이 아니라 실제 대입
+    from services.schema_generator import CATEGORY_KO
+    assert CATEGORY_KO["massage"] == "마사지" and CATEGORY_KO["dental"] == "치과"      # 이전엔 영문 코드가 프롬프트에 들어간 업종
+
+
 # ── 5. 업종 규칙 조회 ───────────────────────────────────────────────────────────
 @pytest.mark.parametrize("cat", ["other", "기타", "", "zzz_unknown", None])
 def test_other_and_unknown_do_not_get_restaurant_rules(cat):

@@ -2979,7 +2979,9 @@ async def weekly_post_draft_job():
         for biz in businesses:
             try:
                 category = biz.get("category", "")
-                cat_ko = _CATEGORY_KO.get(category, category)
+                # 8개뿐인 지역 변환표 대신 전 업종 한글명(CATEGORY_KO)을 우선 쓴다 — 그 밖의 업종은 'massage'·'dental' 같은 영문 코드가 프롬프트에 그대로 들어갔다(2026-11-06)
+                from services.schema_generator import CATEGORY_KO as _ALL_CATEGORY_KO
+                cat_ko = _ALL_CATEGORY_KO.get(category) or _CATEGORY_KO.get(category, category)
                 keywords = ", ".join((biz.get("keywords") or [])[:3])
                 week = date.today().isocalendar()[1]
 
@@ -3009,6 +3011,9 @@ async def weekly_post_draft_job():
                     f"- 계절/주간 관련 내용 포함\n"
                     f"초안만 출력 (설명 없이):"
                 )
+                # 의료·법률 업종은 광고 규정상 쓰면 안 되는 표현 지침을 덧붙인다(그 외 업종은 빈 문자열)
+                from services.regulated_industry import prompt_note as _reg_note, scrub_generated as _reg_scrub, BLANK_MARK as _REG_BLANK
+                prompt += _reg_note(category)
 
                 if _claude_call_count >= MAX_CLAUDE_CALLS:
                     logger.warning(f"[weekly_post_draft_job] MAX_CLAUDE_CALLS({MAX_CLAUDE_CALLS}) 도달 — 조기 종료")
@@ -3032,6 +3037,12 @@ async def weekly_post_draft_job():
                 except Exception as _le:
                     logger.debug("weekly_post_draft usage 로깅 실패(무시): %s", _le)
                 draft = msg.content[0].text.strip()
+                draft, _reg_notes = _reg_scrub(category, draft)
+                if _reg_notes:
+                    logger.info("[weekly_post_draft_job] 규제 표현 정리(%s): %s", category, _reg_notes)
+                    if not draft.strip() or draft == _REG_BLANK:
+                        logger.warning("[weekly_post_draft_job] %s 초안이 규제 표현으로 전부 지워져 저장·알림 생략", biz.get("id"))
+                        continue
 
                 # guides 테이블에 저장 (guide_type='post_draft')
                 await _db(

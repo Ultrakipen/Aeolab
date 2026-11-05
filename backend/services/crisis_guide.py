@@ -83,6 +83,9 @@ async def generate_crisis_reply(
 - ai_impact_tips는 "네이버 AI 브리핑은 답변 진정성을 감지합니다" 등 AI 검색 최적화 구체적 팁
 - do_not_do에는 "삭제 요청", "감정적 반박", "허위 사실 주장" 등 역효과 행동
 - offline_steps는 실제로 할 수 있는 오프라인/온라인 조치"""
+    # 의료·법률 업종은 공개 답글에서 진료·상담 내용을 되풀이하지 않고 효과·결과를 약속하지 않게 한다(그 외 업종은 빈 문자열이라 그대로)
+    from services.regulated_industry import reply_note, scrub_generated, BLANK_MARK
+    prompt += reply_note(category)
 
     try:
         from services.anthropic_retry import create_message_with_retry
@@ -109,6 +112,12 @@ async def generate_crisis_reply(
             return {**_fallback_response(business_name, rating), "is_fallback": True}
         result = json.loads(text[start:end])
         result["is_fallback"] = False
+        result, _reg_notes = scrub_generated(category, result)
+        if _reg_notes:
+            _logger.info("crisis_reply 규제 표현 정리(%s): %s", category, _reg_notes)
+            pr = result.get("public_reply") if isinstance(result, dict) else None
+            if not isinstance(pr, str) or not pr.strip() or pr == BLANK_MARK:
+                result["public_reply"] = _fallback_response(business_name, rating)["public_reply"]    # 공개 답변이 다 지워지면 일반 사과문으로
         return result
     except json.JSONDecodeError as e:
         _logger.warning("crisis_guide: JSON decode error: %s", e)
