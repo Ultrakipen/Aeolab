@@ -58,6 +58,25 @@ def _briefing_strategy_header(eligibility: str, is_franchise: bool) -> str:
     )
 
 
+def _regen_config() -> tuple[int, float]:
+    """(최대 재생성 횟수, 재생성 기준 점수) — 가이드 전용 환경변수 (2026-11-05).
+
+    가이드 1건은 Sonnet 호출당 약 118원이고, 예전 설정(70점 미만이면 최대 2회 재생성)은 관측 6건에서 평균 2.5회·약 295원을 썼다.
+    재생성이 점수를 올린 것은 첫 점수가 43.7로 아주 낮던 1건뿐이고 68.7처럼 애매한 점수에서는 올린 적이 없다(표본 작음).
+    그래서 기본값은 "60점 미만일 때만 최대 1회". GUIDE_MAX_REGEN=0이면 재생성 안 함, GUIDE_REGEN_BELOW로 기준 조정, 잘못된 값은 기본값으로 돌아간다.
+    ⚠ MAX_CLAUDE_CALLS_PER_JOB은 jobs.py 3곳(기본 50)이 같이 쓰는 변수라 가이드 때문에 줄이면 그 잡들의 한도까지 줄어든다 — 여기서 쓰지 않는다.
+    """
+    try:
+        n = int(os.getenv("GUIDE_MAX_REGEN", "1"))
+    except ValueError:
+        n = 1
+    try:
+        below = float(os.getenv("GUIDE_REGEN_BELOW", "60"))
+    except ValueError:
+        below = 60.0
+    return max(0, min(n, 2)), below
+
+
 def _sp_num(v):
     """숫자(정수·실수)만 돌려준다. None·문자열·bool은 None — 값이 없는 것을 0이나 비교 대상으로 쓰지 않는다."""
     return v if isinstance(v, (int, float)) and not isinstance(v, bool) else None
@@ -407,8 +426,7 @@ class GuideGenerator:
         _dia_score: float = 0.0
         _dia_validation: dict = {}
         _dia_regenerated: int = 0
-        _MAX_CLAUDE_CALLS = int(os.getenv("MAX_CLAUDE_CALLS_PER_JOB", "3"))
-        _max_retries = min(2, max(0, _MAX_CLAUDE_CALLS - 1))  # 초기 1회 + 재생성 최대
+        _max_retries, _regen_below = _regen_config()   # 초기 1회 + 재생성 최대 _max_retries회, _regen_below 미만일 때만
         try:
             from services.content_validator import validate_intro_dia
             _biz_keywords = biz.get("keywords") or []
@@ -423,7 +441,7 @@ class GuideGenerator:
 
             # 재생성 루프
             for _retry in range(_max_retries):
-                if _dia_score >= 70:
+                if _dia_score >= _regen_below:
                     break
                 # 부족 요소 분석
                 _weak_elements = []
@@ -462,7 +480,7 @@ class GuideGenerator:
                 _dia_score, guide, _dia_validation = _best
 
             # 최종 점수 로깅
-            if _dia_score < 70:
+            if _dia_score < _regen_below:
                 _logger.error(
                     f"[guide_generator] 콘텐츠 품질 재생성 {_dia_regenerated}회 후에도 "
                     f"점수 미달 ({_dia_score}/100) — 현재 가이드 반환 (서비스 가용성 우선)"

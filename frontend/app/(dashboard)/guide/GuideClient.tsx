@@ -295,6 +295,8 @@ interface GuideItem {
 
 interface Guide {
   id: string
+  /** 이 가이드를 만든 측정(scan_results.id) — 같은 측정 결과로 다시 만들 때 확인창을 띄우는 데 쓴다(없는 옛 가이드는 묻지 않는다) */
+  scan_id?: string | null
   summary: string
   items_json: GuideItem[]
   priority_json: string[]
@@ -4445,6 +4447,8 @@ export function GuideClient({
   const searchParams = useSearchParams()
   const highlightKeyword = searchParams.get('keyword')
   const [guide, setGuide] = useState<Guide | null>(initialGuide)
+  // 현재 보이는 가이드가 어느 측정으로 만들어졌는지 — 화면에서 다시 만들면 그 측정 ID로 갱신한다
+  const [guideScanId, setGuideScanId] = useState<string | null>(initialGuide?.scan_id ?? null)
   const [loading, setLoading] = useState(false)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [error, setError] = useState('')
@@ -4652,6 +4656,13 @@ export function GuideClient({
       setError('먼저 AI 측정을 실행하세요.')
       return
     }
+    // 같은 측정 결과로 만든 가이드가 이미 있으면 한 번 확인한다 — 다시 만들어도 입력이 같아 내용이 비슷한데 월 횟수는 차감되고 AI 비용이 든다(2026-11-05)
+    if (guide && guideScanId && guideScanId === latestScanId) {
+      const limitNote = guideLimit > 0 && guideLimit < 999
+        ? ` 다시 만들면 이번 달 횟수(${guideUsed}/${guideLimit}회)가 1회 차감돼요.`
+        : ''
+      if (!window.confirm(`이 측정 결과로 만든 가이드가 이미 있어요.${limitNote} 측정을 새로 하지 않으면 내용이 크게 다르지 않을 수 있어요. 그래도 다시 만들까요?`)) return
+    }
     setLoading(true)
     setElapsedSeconds(0)
     setError('')
@@ -4719,6 +4730,7 @@ export function GuideClient({
       }
       if (guideData) {
         setGuide(guideData)
+        setGuideScanId(latestScanId)
         router.refresh()
         // 행동 기록 — 변화 기록 페이지 타임라인 반영 (best-effort, 실패해도 무시)
         fetch(`${BACKEND}/api/report/action-log/${business.id}`, {
