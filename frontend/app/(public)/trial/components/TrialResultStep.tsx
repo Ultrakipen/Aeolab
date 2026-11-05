@@ -1442,6 +1442,7 @@ export default function TrialResultStep(props: TrialResultProps) {
           {(result as { business_type?: string }).business_type !== "non_location" && (
             <NaverStatusSection
               part="place"
+              signupHint={!isLoggedIn}
               businessName={form.business_name || "내 가게"}
               searchQuery={(naver as { search_query?: string } | null)?.search_query}
               region={form.region}
@@ -1655,7 +1656,7 @@ function MergedScanInfoBox({ chatgptSampleSize }: { chatgptSampleSize: number })
             이번 체험 측정 기준
           </p>
           <p className="text-sm text-slate-300 leading-relaxed">
-            네이버 스마트플레이스 자동 점검 + ChatGPT <strong className="text-white font-semibold">{chatgptSampleSize}회 질문</strong>으로 측정한 결과입니다.
+            네이버 검색·스마트플레이스 등록 확인 + ChatGPT <strong className="text-white font-semibold">{chatgptSampleSize}회 질문</strong>으로 측정한 결과입니다. 소개글·소식은 읽을 수 있을 때만 확인합니다.
           </p>
         </div>
       </div>
@@ -1665,13 +1666,13 @@ function MergedScanInfoBox({ chatgptSampleSize }: { chatgptSampleSize: number })
         <div className="bg-slate-600 rounded-lg px-3 py-2">
           <p className="text-sm text-slate-200 font-semibold mb-0.5">① 지금 (비회원 체험)</p>
           <p className="text-sm text-slate-300 leading-relaxed">
-            ChatGPT {chatgptSampleSize}회 + 스마트플레이스 자동 점검
+            ChatGPT {chatgptSampleSize}회 + 네이버 검색·스마트플레이스 등록 확인 (소개글·소식은 읽을 수 있을 때만)
           </p>
         </div>
         <div className="bg-slate-600 rounded-lg px-3 py-2">
           <p className="text-sm text-emerald-300 font-semibold mb-0.5">② 가입하면 (결제 없이 1회 무료)</p>
           <p className="text-sm text-slate-300 leading-relaxed">
-            {AI_NAMES}{GEMINI_LIVE ? " 각 " : " "}<span className="text-white font-semibold">{GEMINI_LIVE ? "50회씩(총 100회)" : "50회"}</span> + 네이버 AI 브리핑 + Google 검색 노출까지 {AI_COUNT_N}개 AI 서비스 전체 분석
+            {AI_NAMES}{GEMINI_LIVE ? " 각 " : " "}<span className="text-white font-semibold">{GEMINI_LIVE ? "50회씩(총 100회)" : "50회"}</span> + 네이버 AI 브리핑 + Google 검색 노출까지 {AI_COUNT_N}개 AI 서비스 전체 분석 + 스마트플레이스 소개글·소식·리뷰 수 읽기(읽지 못하면 '확인 전')
           </p>
         </div>
         <div className="bg-slate-600 rounded-lg px-3 py-2">

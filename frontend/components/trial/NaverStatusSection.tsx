@@ -50,6 +50,8 @@ export interface NaverStatusSectionProps {
    * place = 스마트플레이스 체크리스트(B) + AI 브리핑(C), all = 전부(기본값, 기존 동작)
    */
   part?: "all" | "compete" | "place";
+  /** true(비회원)면 '확인 전' 항목에 "가입하면 직접 읽어 확인해요(못 읽으면 확인 전)" 한 줄을 덧붙인다. 로그인 사용자에게는 보이지 않는다. */
+  signupHint?: boolean;
 }
 
 function CheckRow({
@@ -136,7 +138,11 @@ export default function NaverStatusSection({
   keywordRanks,
   keywordBlogComparison,
   part = "all",
+  signupHint = false,
 }: NaverStatusSectionProps) {
+  const SIGNUP_NOTE = signupHint
+    ? " 가입하면 스마트플레이스를 직접 읽어 확인해 보고, 읽지 못하면 '확인 전'으로 표시해요."
+    : "";
   const showCompete = part !== "place";
   const showPlace = part !== "compete";
   // 지역명이 searchQuery 앞에 중복되면 제거 (form.region이 이미 상단에 표시됨)
@@ -357,7 +363,7 @@ export default function NaverStatusSection({
             value={introFromOwner ? "입력하신 값" : undefined}
             okNote="AI가 참고할 내용이 있습니다"
             failNote="AI 브리핑이 참고할 내용이 없습니다 — 가게 특징·키워드를 200자 이상 작성하세요"
-            unknownNote="AEOlab이 소개글을 직접 읽지 못했어요. 스마트플레이스에서 가게 특징·키워드가 200자 이상 들어 있는지 확인해 보세요."
+            unknownNote={"AEOlab이 소개글을 직접 읽지 못했어요. 스마트플레이스에서 가게 특징·키워드가 200자 이상 들어 있는지 확인해 보세요." + SIGNUP_NOTE}
           />
           <CheckRow
             label="최근 소식"
@@ -365,7 +371,7 @@ export default function NaverStatusSection({
             value={postFromOwner ? "입력하신 값" : undefined}
             okNote="신선도 점수가 높아집니다"
             failNote="소식이 없으면 신선도 점수가 낮아집니다 — 월 1회 이상 소식을 게시하세요"
-            unknownNote="AEOlab이 최근 소식을 직접 읽지 못했어요. 스마트플레이스에서 최근 7일 안에 올린 소식이 있는지 확인해 보세요."
+            unknownNote={"AEOlab이 최근 소식을 직접 읽지 못했어요. 스마트플레이스에서 최근 7일 안에 올린 소식이 있는지 확인해 보세요." + SIGNUP_NOTE}
           />
           {isSmartPlace && photoCount != null && (
             <CheckRow
