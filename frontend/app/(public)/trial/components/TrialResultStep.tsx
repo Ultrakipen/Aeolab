@@ -1,6 +1,5 @@
 "use client";
 
-import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE, AI_NAMES, AI_COUNT_N } from "@/lib/featureFlags";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useBriefingCategories } from "@/lib/useBriefingCategories";
@@ -1635,60 +1634,6 @@ export default function TrialResultStep(props: TrialResultProps) {
       {/* ── 18. 하단 고정 가입 배너 ─────────────────────────────── */}
       <StickySignupBanner isLoggedIn={isLoggedIn} onSave={onSaveTrialData} />
     </>
-  );
-}
-
-// ── 체험 스캔 기준 + 측정 시점 통합 박스 ─────────────────────────────
-function MergedScanInfoBox({ chatgptSampleSize }: { chatgptSampleSize: number }) {
-  const now = new Date().toLocaleString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  return (
-    <div className="bg-slate-700 rounded-xl px-4 py-4 mb-4">
-      <div className="flex items-start gap-3 mb-3">
-        <Info className="w-5 h-5 text-slate-300 shrink-0 mt-0.5" />
-        <div className="flex-1 min-w-0">
-          <p className="text-base text-white font-bold leading-snug mb-1.5">
-            이번 체험 측정 기준
-          </p>
-          <p className="text-sm text-slate-300 leading-relaxed">
-            네이버 검색·스마트플레이스 등록 확인 + ChatGPT <strong className="text-white font-semibold">{chatgptSampleSize}회 질문</strong>으로 측정한 결과입니다. 소개글·소식은 읽을 수 있을 때만 확인합니다.
-          </p>
-        </div>
-      </div>
-
-      {/* 3단계 비교 — 비회원 체험 / 가입 후 1회 무료체험 / 구독 */}
-      <div className="space-y-2 mb-3">
-        <div className="bg-slate-600 rounded-lg px-3 py-2">
-          <p className="text-sm text-slate-200 font-semibold mb-0.5">① 지금 (비회원 체험)</p>
-          <p className="text-sm text-slate-300 leading-relaxed">
-            ChatGPT {chatgptSampleSize}회 + 네이버 검색·스마트플레이스 등록 확인 (소개글·소식은 읽을 수 있을 때만)
-          </p>
-        </div>
-        <div className="bg-slate-600 rounded-lg px-3 py-2">
-          <p className="text-sm text-emerald-300 font-semibold mb-0.5">② 가입하면 (결제 없이 1회 무료)</p>
-          <p className="text-sm text-slate-300 leading-relaxed">
-            {AI_NAMES}{GEMINI_LIVE ? " 각 " : " "}<span className="text-white font-semibold">{GEMINI_LIVE ? "50회씩(총 100회)" : "50회"}</span> + 네이버 AI 브리핑 + Google 검색 노출까지 {AI_COUNT_N}개 AI 서비스 전체 분석 + 스마트플레이스 소개글·소식·리뷰 수 읽기(읽지 못하면 '확인 전')
-          </p>
-        </div>
-        <div className="bg-slate-600 rounded-lg px-3 py-2">
-          <p className="text-sm text-blue-300 font-semibold mb-0.5">③ Basic 구독하면</p>
-          <p className="text-sm text-slate-300 leading-relaxed">
-            같은 {AI_COUNT_N}개 AI 서비스를 {GEMINI_LIVE ? "각 " : "ChatGPT "}<span className="text-white font-semibold">{GEMINI_LIVE ? "100회씩(총 200회)" : "100회"}</span>로 정확도를 높여 매주 2회 자동 반복 + 점수 변화 추적 + 경쟁사 비교
-          </p>
-        </div>
-      </div>
-
-      <div className="border-t border-slate-500 pt-2.5">
-        <p className="text-sm text-slate-400">
-          측정 시점: <span className="text-slate-300">{now}</span>
-        </p>
-      </div>
-    </div>
   );
 }
 

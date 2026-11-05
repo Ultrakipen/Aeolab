@@ -141,7 +141,7 @@ export default function NaverStatusSection({
   signupHint = false,
 }: NaverStatusSectionProps) {
   const SIGNUP_NOTE = signupHint
-    ? " 가입하면 스마트플레이스를 직접 읽어 확인해 보고, 읽지 못하면 '확인 전'으로 표시해요."
+    ? " 가입하면 직접 읽어 보고, 못 읽으면 '확인 전'으로 표시해요."
     : "";
   const showCompete = part !== "place";
   const showPlace = part !== "compete";
