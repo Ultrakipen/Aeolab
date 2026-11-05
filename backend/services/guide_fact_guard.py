@@ -20,6 +20,11 @@ _FIRST_POST = re.compile(r"첫\s*(?:번째\s*)?(게시물|소식|포스팅|공�
 _FIRST_REVIEW = re.compile(r"첫\s*(?:번째\s*)?리뷰")
 _QA_COUNT = re.compile(r"Q\s*&\s*A\s*(?:[은는이가]\s*)?(?:현재\s*)?(?:0\s*개|비어)|Q\s*&\s*A\s*[은는이가]\s*(?:현재\s*)?없")
 _NO_REVIEW = re.compile(r"리뷰\s*(?:[가는]\s*(?:아직\s*)?|아직\s*)(?:없|0\s*건|0\s*개)")
+# 시설·서비스형 키워드("단체석 있음"·"주차 가능")를 리뷰로 유도하라는 처방 — 그 시설이 없는 가게에는 맞지 않는다(음식점 가이드 6회 중 6회 관측, 2026-11-05).
+# 제목에 조건을 붙여 사장님이 실제로 있을 때만 하게 한다. 이미 "실제"·"해당"이 있으면 건드리지 않고, 제목에 "리뷰"가 없으면(예: 안내 추가) 대상이 아니다.
+_FACILITY_KW_TITLE = re.compile(r"['‘’\"“”][^'‘’\"“”]{1,14}(?:있음|가능)['‘’\"“”]")
+_FACILITY_NOTE = " (실제로 있다면)"
+
 _SENT_SPLIT = re.compile(r"(?<=[.!?。])\s+")
 # 측정 결과를 절대 표현으로 쓰지 않는다(2026-11-01 방침: 0은 "이번 측정에서는 확인되지 않았다") — "전혀 등장하지 않고 있습니다" → "이번 측정에서는 등장하지 않았습니다"
 _ABSOLUTE_NEG = re.compile(r"전혀\s*(등장하|노출되|언급되|인용되|나오)지\s*않(?:고\s*있습니다|았습니다|습니다|아요|고 있어요)")
@@ -123,6 +128,30 @@ def guard_guide(guide: dict, facts: dict) -> tuple[dict, list[str]]:
             if len(kept_qw) < len(qw):
                 notes.append(f"빠른 실행 {len(qw) - len(kept_qw)}개 제외(이미 등록된 가게)")
                 g["quick_wins"] = kept_qw
+
+    # 시설·서비스형 키워드 리뷰 유도 처방에 조건 붙이기
+    cond = 0
+
+    def _add_cond(title):
+        t = str(title or "")
+        if "리뷰" in t and _FACILITY_KW_TITLE.search(t) and "실제" not in t and "해당" not in t:
+            return t + _FACILITY_NOTE
+        return title
+
+    for it in (g.get("priority_items") or []):
+        if isinstance(it, dict) and "title" in it:
+            new_t = _add_cond(it.get("title"))
+            if new_t != it.get("title"):
+                it["title"] = new_t
+                cond += 1
+    m = g.get("this_week_mission")
+    if isinstance(m, dict) and "title" in m:
+        new_t = _add_cond(m.get("title"))
+        if new_t != m.get("title"):
+            m["title"] = new_t
+            cond += 1
+    if cond:
+        notes.append(f"시설형 키워드 리뷰 처방 {cond}개에 '(실제로 있다면)' 조건 추가")
 
     # deep_link: 깨진·미확인 주소 정리
     fixed_links = 0

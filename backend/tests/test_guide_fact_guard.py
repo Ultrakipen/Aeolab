@@ -172,3 +172,39 @@ def test_guard_cleans_deep_links_in_items_and_mission_without_touching_other_fie
     # 이미 정상인 값은 그대로(메모도 없음)
     ok = {"this_week_mission": {"title": "x", "deep_link": "https://smartplace.naver.com/"}}
     assert guard_guide(ok, UNKNOWN_SHOP) == (ok, [])
+
+
+# ── 시설·서비스형 키워드 리뷰 유도 ───────────────────────────────────────────────
+def _titles(guide):
+    return [i["title"] for i in guide["priority_items"]]
+
+
+def test_facility_keyword_review_prescription_gets_a_condition():
+    """실제 가이드(음식점 6회 중 6회): "'단체석 있음' 키워드 리뷰 확보" — 단체석이 없는 가게에는 맞지 않는 처방."""
+    g = {"priority_items": [
+        {"rank": 1, "title": "'단체석 있음' 키워드 리뷰 확보"},
+        {"rank": 2, "title": "‘주차 가능’ 리뷰 유도"},                        # 곡선 따옴표
+        {"rank": 3, "title": "\"예약 가능\" 후기·리뷰 요청"},
+    ]}
+    out, notes = guard_guide(g, UNKNOWN_SHOP)
+    assert _titles(out) == ["'단체석 있음' 키워드 리뷰 확보 (실제로 있다면)", "‘주차 가능’ 리뷰 유도 (실제로 있다면)", "\"예약 가능\" 후기·리뷰 요청 (실제로 있다면)"]
+    assert any("시설형 키워드 리뷰 처방 3개" in n for n in notes)
+
+
+def test_facility_condition_is_not_added_to_unrelated_or_already_conditional_titles():
+    """오탐 방지: 감성 키워드·리뷰와 무관한 안내·이미 조건이 있는 제목은 그대로 둔다."""
+    keep = ["'감성 인테리어' 키워드 리뷰 확보", "'주차 가능' 안내 문구 추가", "'단체석 있음' 리뷰 확보 (실제로 해당할 때만)",
+            "실제로 있는 '단체석 있음' 리뷰 확보", "소개글 하단에 Q&A 추가", "단체석 있음 리뷰 확보"]   # 마지막: 따옴표 없는 일반 문장
+    g = {"priority_items": [{"rank": i + 1, "title": t} for i, t in enumerate(keep)]}
+    out, notes = guard_guide(g, UNKNOWN_SHOP)
+    assert _titles(out) == keep and notes == []
+
+
+def test_facility_condition_is_idempotent_and_applies_to_the_mission_title():
+    g = {"priority_items": [{"rank": 1, "title": "'단체석 있음' 키워드 리뷰 확보"}],
+         "this_week_mission": {"title": "'주차 가능' 리뷰 유도하기"}}
+    once, _ = guard_guide(g, UNKNOWN_SHOP)
+    twice, notes2 = guard_guide(once, UNKNOWN_SHOP)
+    assert once["priority_items"][0]["title"].count("(실제로 있다면)") == 1
+    assert once["this_week_mission"]["title"] == "'주차 가능' 리뷰 유도하기 (실제로 있다면)"
+    assert twice == once and notes2 == []
