@@ -115,12 +115,12 @@ def prompt_note(category: Any) -> str:
 _MEDICAL_PATTERNS = [re.compile(p) for p in (
     r"완치",
     r"100\s*%\s*(?:완치|효과|만족|성공|안전|치료|보장)",
-    r"부작용\s*(?:이|은|도)?\s*(?:전혀\s*|거의\s*)?(?:없|제로)",
-    r"통증\s*(?:이|은)?\s*(?:전혀\s*)?없",
+    r"부작용\s*(?:이|은|도)?\s*(?:전혀\s*|거의\s*)?(?:없(?!도록|더라도|어도|는\s*것은)|제로)",
+    r"통증\s*(?:이|은)?\s*(?:전혀\s*)?없(?!더라도|도록|어도|는\s*(?:경우|것은|날))",
     r"(?:반드시|무조건|확실히)\s*(?:낫|나아|치료|효과)",
     r"(?:치료|진료|시술|수술)\s*(?:후기|경험담)",
     r"국내\s*(?:최초|최고|1위|유일)",
-    r"(?:지역|동네|업계)\s*(?:최고|1위|유일)",
+    r"(?:지역|동네|업계)\s*(?:최고|1위|유일)(?!령)",
     r"(?:최고|최상)의\s*(?:의료|진료|치료|의료진|실력|병원|의원|치과|한의원)",
 )]
 _LEGAL_PATTERNS = [re.compile(p) for p in (
@@ -128,12 +128,33 @@ _LEGAL_PATTERNS = [re.compile(p) for p in (
     r"(?:100\s*%|무조건|반드시)\s*(?:승소|환불|무죄|성공|이깁니다|이길)",
     r"(?:성공|승소)\s*사례\s*\d",
     r"\d[\d,]*\s*건\s*(?:의\s*)?(?:성공|승소)",
-    r"(?:국내|지역|업계)\s*(?:최고|1위|유일)",
+    r"(?:국내|지역|업계)\s*(?:최고|1위|유일)(?!령)",
     r"(?:최고|최상)의\s*(?:변호사|법무법인|로펌|실력|법률)",
 )]
 
 BLANK_MARK = "[확인 필요: 이 업종 광고 규정상 사용하기 어려운 표현이 있어 삭제했습니다]"
 _SENT_SPLIT = re.compile(r"(?<=[.!?。])\s+")
+
+# 부정·면책 문장("승소율을 보장하지 않습니다", "완치를 약속할 수는 없습니다")은 금지 표현을 언급해도 광고가 아니라 지켜야 할 안내다(11-06 오탐 점검에서 11/32 문장이 걸렸다).
+# 숫자가 든 문장은 면책 표현이 같이 있어도 면제하지 않는다("보장할 수는 없지만 승소율 95%" 우회 방지).
+# '않으면'은 면제하지 않는다("보장하지 않으면 100% 환불"은 약속이다).
+_DISCLAIM = re.compile(
+    r"(?:보장|약속|장담)(?:드릴|할|해\s*드릴)?\s*수(?:는|도)?\s*없"
+    r"|(?:보장|약속|장담)(?:하거나|하지)\s*(?:는\s*)?(?:약속하지\s*)?않(?:습니다|으며|지만|는다|고|아요|음)"
+    r"|것은\s*아니"
+)
+
+
+def _hit(sentence: str, pats) -> bool:
+    if not any(pt.search(sentence) for pt in pats):
+        return False
+    if _DISCLAIM.search(sentence) and not re.search(r"\d", sentence):
+        return False
+    return True
+
+
+def _text_hit(text: str, pats) -> bool:
+    return any(_hit(p, pats) for ln in text.split("\n") for p in _SENT_SPLIT.split(ln))
 _Q_LINE = re.compile(r"^\s*Q\s*[.:：]")
 _A_LINE = re.compile(r"^\s*A\s*[.:：]")
 
@@ -144,7 +165,7 @@ def _patterns(group: str | None):
 
 def has_regulated_expression(category: Any, text: str) -> bool:
     pats = _patterns(regulated_group(category))
-    return bool(pats) and isinstance(text, str) and any(p.search(text) for p in pats)
+    return bool(pats) and isinstance(text, str) and _text_hit(text, pats)
 
 
 def _scrub_text(text: str, pats) -> tuple[str, int]:
@@ -158,7 +179,7 @@ def _scrub_text(text: str, pats) -> tuple[str, int]:
             keep.append(True)
             continue
         parts = _SENT_SPLIT.split(ln)
-        bad = [any(pt.search(p) for pt in pats) for p in parts]
+        bad = [_hit(p, pats) for p in parts]
         n_bad = sum(bad)
         if n_bad == 0:
             out.append(ln)
@@ -218,7 +239,7 @@ def scrub_generated(category: Any, obj: Any) -> tuple[Any, list[str]]:
                 if isinstance(el, dict):
                     pair = next(((qk, ak) for qk, ak in _QA_KEYS if qk in el and ak in el), None)
                     if pair and any(
-                        isinstance(el.get(k), str) and any(p.search(el[k]) for p in pats) for k in pair
+                        isinstance(el.get(k), str) and _text_hit(el[k], pats) for k in pair
                     ):
                         counter["items"] += 1     # 질문·답변 한 쌍은 통째로 뺀다(짝이 안 맞는 항목을 남기지 않는다)
                         continue

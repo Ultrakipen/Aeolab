@@ -664,3 +664,43 @@ def test_frontend_source_has_no_prohibited_phrases(rel, forbidden):
     text = (FRONT / rel).read_text(encoding="utf-8")
     for f in forbidden:
         assert f not in text, f"{rel}: {f}"
+
+
+# ── 11-06 오탐 점검: 면책·부정 문장은 지우지 않고, 면책을 끼운 우회는 여전히 지운다 ─────────────────────────
+_SAFE_DISCLAIMERS = [
+    ("dental", "통증이 없더라도 6개월마다 정기검진을 받으세요."),
+    ("dental", "통증이 없는 경우에도 충치가 진행될 수 있습니다."),
+    ("dental", "부작용이 없도록 시술 전 상담을 충분히 합니다."),
+    ("dental", "모든 치료에는 부작용이 없는 것은 아니므로 상담이 필요합니다."),
+    ("dental", "완치를 약속할 수는 없으며 개인차가 있습니다."),
+    ("dental", "반드시 치료가 필요한 것은 아니며 상담 후 결정합니다."),
+    ("dental", "지역 최고령 환자도 편안하게 진료받으십니다."),
+    ("legal", "승소율을 보장하거나 약속하지 않습니다."),
+    ("legal", "반드시 성공을 약속드릴 수는 없지만 최선을 다합니다."),
+    ("legal", "무조건 환불을 약속하지 않습니다."),
+]
+_STILL_FORBIDDEN = [
+    ("legal", "승소를 보장할 수는 없지만 승소율 95%입니다."),      # 숫자가 있으면 면책으로 면제하지 않는다
+    ("legal", "결과를 보장하지 않으면 100% 환불해 드립니다."),     # '않으면'은 약속이다
+    ("legal", "결과를 보장하지 않으면 무조건 환불해 드립니다."),   # 숫자 없이도 '않으면'은 면제하지 않는다
+    ("legal", "무조건 승소합니다."),
+    ("dental", "완치를 약속합니다."),
+    ("dental", "부작용이 없는 안전한 시술입니다."),
+    ("dental", "통증이 없는 시술입니다."),
+    ("dental", "통증 없이 치료합니다."),
+    ("dental", "지역 최고 치과입니다."),
+]
+
+
+@pytest.mark.parametrize("cat,text", _SAFE_DISCLAIMERS)
+def test_disclaimer_sentences_are_not_scrubbed(cat, text):
+    assert not ri.has_regulated_expression(cat, text)
+    cleaned, notes = ri.scrub_generated(cat, text)
+    assert cleaned == text and notes == []
+
+
+@pytest.mark.parametrize("cat,text", _STILL_FORBIDDEN)
+def test_forbidden_sentences_still_scrubbed_even_with_disclaimer_wording(cat, text):
+    assert ri.has_regulated_expression(cat, text)
+    cleaned, notes = ri.scrub_generated(cat, text)
+    assert cleaned != text and notes
