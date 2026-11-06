@@ -250,6 +250,9 @@ export default function BusinessQuickEditPanel({
         role="dialog"
         aria-modal="true"
         aria-label="가게 정보 빠른 수정"
+        // 닫힌 패널은 화면 밖에 있을 뿐 DOM에 남아 Tab 키·스크린리더가 닿는다(포커스 가능 요소 19개) — 닫힐 때 inert로 막는다
+        inert={!isOpen}
+        aria-hidden={!isOpen}
       >
         {/* 헤더 */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 shrink-0">

@@ -179,9 +179,10 @@ export default function DashboardHeader({
 
           {/* 헤더: 가게명 + 수정/공유 버튼 */}
           <div className="flex items-start justify-between gap-3 mb-3">
-            <div>
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 break-keep">{business.name}</h1>
+                {/* 띄어쓰기 없는 긴 상호명이 break-keep 때문에 줄바꿈되지 않아 오른쪽 버튼을 화면 밖으로 미는 것을 막는다 */}
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 break-keep [overflow-wrap:anywhere]">{business.name}</h1>
                 <span className={`text-sm font-semibold px-3 py-1 rounded-full ${planBadgeClass}`}>
                   {planBadgeText}
                 </span>
@@ -231,9 +232,10 @@ export default function DashboardHeader({
                 href={`/share/${business.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="공유"
                 className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-blue-600 border border-gray-200 hover:border-blue-300 px-3 py-2 rounded-lg transition-colors"
               >
-                <Share2 className="w-4 h-4" /> 공유
+                <Share2 className="w-4 h-4" /> <span className="hidden sm:inline">공유</span>
               </a>
             </div>
           </div>

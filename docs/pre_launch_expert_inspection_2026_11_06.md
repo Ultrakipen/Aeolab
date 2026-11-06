@@ -25,6 +25,25 @@
 - **미확인**: `support_tickets.public_answered_tickets`는 공개 답변 티켓의 `body`·`attachment_urls`·`user_id`를 익명에게 노출 — 공개 전환이 사용자 선택인지, 첨부 URL이 공개돼도 되는지 확인 안 함. **야간 스캔 사전 스캔 재사용이 정책 삭제 뒤에도 정상인지는 다음 01:00 KST 실행 후 로그로 확인 필요.**
 - **결정 필요**: `.github/workflows/naver_scan.yml`('IP Rotation')이 매일 GitHub 서버 IP로 네이버를 스캔 중(최근 6회 success). CLAUDE.md의 '네이버 접속 IP 단일 유지(분산은 차단됐을 때만)' 방침과 충돌 가능, 서버 쿼터·회로를 거치는지 미확인.
 
+## 로그인 후 화면 실측 (2026-11-07, 사용자 제공 개발자 계정 · 읽기 전용)
+**방법**: 비밀번호는 문서·메모리에 적지 않음. 스캔·새로고침·결제·저장 버튼은 누르지 않았고 네트워크 요청은 GET 위주로 확인. PC 1440 / 모바일 390.
+- **정상**: PC·모바일 모두 가로 넘침 없음, 본문 대부분 14px 이상(12px는 괄호 보조문구·차트 범례), 점수 숫자 직접 노출 없음(텍스트 레이블), 측정 한계 표시 정직("순위 측정 전", "9월 29일 확인·최신 아님", "38일 전·다시 측정 권장"). `/growth`·`/history`·`/guide`는 모바일 잘림·넘침 없음.
+- **오탐으로 기각**: ①측정 스크립트에 '화면 밖'으로 잡힌 PC 요소 다수 = 닫힌 슬라이드 패널(`translate-x-full`)이라 시각적 잘림 아님. ②Recharts 콘솔 경고 76건("차트 너비·높이 0") = 초기 렌더 측정 경고, 차트는 실제로 그려짐. ③`/blog-analysis` 모바일의 짧은 문서(909px) = 자동 재분석 진행 중 화면.
+- **수정·배포(5파일, 서버 빌드 exit=0, 라이브 실측 확인)**:
+  - 모바일 접이식 카드 부제목이 "노…"·"네이…"·"Go…"처럼 조각만 남던 말줄임 → 모바일은 다음 줄 전체 폭(`CollapseSectionWrapper`), sm 이상은 기존 유지.
+  - 긴 한글 상호명이 `break-keep` 때문에 줄바꿈 안 돼 '공유' 버튼이 화면 밖으로 40px 밀림(공유 right 415 > 375) → `min-w-0`+`overflow-wrap:anywhere`, 공유 버튼은 모바일 아이콘만(수정 후 right 359). 긴 이름은 2줄로 감싼다.
+  - 3칸 카드 상태 문구 "9월 29일 확/인" 어절 중간 줄바꿈 → `break-keep`(`DashboardHeroCard`).
+  - 닫힌 '가게 정보 빠른 수정' 패널이 `role=dialog aria-modal`인 채 Tab으로 닿는 요소 19개 → 닫히면 `inert`+`aria-hidden`.
+  - 경쟁사 카드 아이콘 새로고침 버튼 터치 영역 확대 + `aria-label` 추가(네이버 접속을 일으키는 버튼이라 오터치 방지).
+- **미해결(디자인 결정)**: ①모바일 우하단 플로팅 버튼 2개(AI 도우미 56px·도움말 48px)가 카드 우측 내용·배지를 가림(현재 FAB는 제거하지 않음). ②카드 상세 문구 12px(`text-xs`) — 3열 격자에서 14px로 올리면 줄이 늘어남. ③경쟁사 주소 4건이 모바일에서 약간 말줄임.
+- **미확인**: `/settings`, `/review-inbox`, `/ad-defense`, `/delivery`, `/startup`, `/schema` 및 가이드·히스토리·블로그의 PC 실측, 로그인 상태 헤더의 40px 링크.
+- **부수 효과(내 방문)**: `/blog-analysis`는 열기만 해도 결과가 없거나 구 형식·오래된 경우 `POST /api/blog/analyze`를 자동 실행한다(`BlogClient.tsx` 자동 분석 effect). 개발 계정(Biz, 월 한도 무제한·쿨다운 없음)의 블로그 분석이 1회 실행됐다. 코드상 이 경로는 공식 검색 API+RSS(aiohttp)만 쓰고 Playwright 호출은 없다. **구독자는 자동 분석이 월 한도(Basic 3회)와 24시간 쿨다운을 소모하는지 확인 필요**(분석은 `notifications.type=blog_analysis`로 집계됨 — 자동·수동 구분 없음).
+
+## 보안: 공개 저장소의 점검용 계정 비밀번호 (조치 필요)
+- GitHub `Ultrakipen/Aeolab`은 **PUBLIC**이고, 추적 문서 2개(`commercial_inspection_standard_v1.0.md`, `six_pages_prelaunch_inspection_v1.0.md`)에 점검용 계정 이메일+비밀번호가 평문으로 기록돼 `origin/main`에 올라가 있었다(최초 커밋 `c44b1960`).
+- 작업본에서는 문서의 비밀번호를 지웠다(추적 파일 전체 0건). **git 이력에는 남아 있으므로 비밀번호 교체가 실질적 해결**이다. 해당 계정과 같은 비밀번호를 쓰는 다른 계정(관리자 포함)도 같이 바꿔야 한다. 이력 정리(`git filter-repo`+force push)는 공개 저장소 이력 변경이라 사용자 결정 사항.
+- 규칙: 점검용 계정 정보는 문서·메모리·커밋에 적지 않는다(점검 때마다 사용자에게 받는다). `.playwright-mcp/`는 gitignore지만 스냅샷 파일에 폼 값이 남을 수 있다.
+
 ## 기각(오탐·과장) — 사유
 - **save-email P0**: 속도 제한이 없는 것은 맞지만 메일은 체험당 1회(`scan.py` first_email)이고 체험 생성이 IP당 일 3회 → P2.
 - **report.py IP 제한이 Cloudflare 뒤에서 무력화**: nginx `cloudflare-realip.conf`로 실제 IP가 복원됨.

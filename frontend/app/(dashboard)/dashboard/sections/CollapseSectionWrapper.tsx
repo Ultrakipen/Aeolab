@@ -56,10 +56,11 @@ export default function CollapseSectionWrapper({
         }`}
         aria-expanded={isOpen}
       >
-        <div className="flex items-center gap-2 min-w-0">
+        {/* 모바일: 부제목을 다음 줄 전체 폭으로 내려 "노…"처럼 조각만 남는 말줄임을 막는다. sm 이상은 한 줄 유지 */}
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-x-2 gap-y-0.5 min-w-0">
           <span className={`w-2 h-2 rounded-full ${iconColor.replace("text-", "bg-")} shrink-0`} />
           <span className="text-base font-bold text-gray-800 shrink-0 whitespace-nowrap">{title}</span>
-          {description && <span className="text-sm text-gray-600 truncate min-w-0">{description}</span>}
+          {description && <span className="text-sm text-gray-600 min-w-0 order-last basis-full pl-4 break-keep sm:order-none sm:basis-auto sm:pl-0 sm:truncate">{description}</span>}
           {highlight && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold shrink-0 whitespace-nowrap">
               핵심

@@ -212,7 +212,7 @@ docs/six_pages_prelaunch_inspection_v1.0.md 기준 — §2의 [경쟁사 관리]
 ### 8.1 접속 정보
 
 - **점검 URL**: `https://aeolab.co.kr` (로컬호스트 아님 — 라이브 우선)
-- **로그인 계정(점검용)**: `hoozdev@gmail.com` / `sw309824!@`
+- **로그인 계정(점검용)**: `hoozdev@gmail.com` / `<비밀번호는 문서에 적지 않음 — 점검 때마다 사용자에게 받는다>`
 - 6페이지는 모두 로그인 필요(`/competitors`, `/guide`, `/guide/ai-info-tab`, `/blog-analysis`, `/review-inbox`, 대시보드 콘텐츠 영역). 로그인 후 진입.
 
 ### 8.2 브라우저 점검 도구

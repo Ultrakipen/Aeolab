@@ -512,8 +512,9 @@ export function CompetitorPlaceCard({
           <button
             onClick={handleSync}
             disabled={syncing}
-            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-700 transition-colors disabled:opacity-50"
+            className="p-2.5 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-700 transition-colors disabled:opacity-50"
             title="수동 새로고침"
+            aria-label="수동 새로고침"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} />
           </button>

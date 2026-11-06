@@ -259,7 +259,7 @@ export default function DashboardHeroCard({
               </span>
               <div>
                 <p className="text-sm font-medium text-gray-600 leading-tight break-keep">{card.platform}</p>
-                <p className={`text-sm font-bold mt-0.5 leading-tight ${card.statusClass}`}>{card.status}</p>
+                <p className={`text-sm font-bold mt-0.5 leading-tight break-keep ${card.statusClass}`}>{card.status}</p>
                 <p className="text-xs text-gray-600 mt-0.5 leading-tight break-keep group-hover:text-blue-700 transition-colors">{card.detail}</p>
               </div>
             </a>
