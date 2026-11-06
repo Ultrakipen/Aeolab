@@ -103,6 +103,41 @@ PLAN_NAME_TO_KEY = {
 }
 
 
+async def _already_subscribed_same_plan(user_id: str, amount: int) -> bool:
+    """이미 같은 플랜·같은 결제 주기로 이용 중인(status=active, 만료 전) 구독이 있으면 True.
+
+    이 엔드포인트는 서버에서 활성 구독을 확인하지 않아, 구독자가 결제 화면에 다시 들어와 결제하면
+    같은 금액이 한 번 더 청구되고 end_at이 덮어써졌다(2026-11-06 점검). 막는 범위는 '같은 플랜·같은 주기'뿐이다:
+    - 다른 플랜 결제 = 현재 유일한 업그레이드·변경 경로라 그대로 허용한다(이월·일할 계산은 별도 결정 사항).
+    - grace_period(결제 실패 유예)·cancelled(해지 후 잔여기간) = 재결제로 복구·재구독해야 하므로 허용한다.
+    - 카드 변경은 /card/update 별도 경로라 영향 없음.
+    조회 실패는 막지 않는다(결제 불능이 이중 청구보다 큰 피해이고, 10분 내 재시도 가드가 남아 있다) — 경고 로그만 남긴다.
+    """
+    plan = PLAN_PRICES.get(amount)
+    if not plan:
+        return False   # 유효하지 않은 금액은 뒤쪽 검증이 400으로 거부한다
+    cycle = "yearly" if amount in YEARLY_AMOUNTS else "monthly"
+    try:
+        res = await execute(
+            get_client().table("subscriptions")
+            .select("plan, status, billing_cycle, end_at")
+            .eq("user_id", user_id)
+            .limit(1)
+        )
+    except Exception as e:
+        logger.warning(f"issue_billing 기존 구독 조회 실패(가드 생략): user_id={user_id}: {e}")
+        return False
+    if not (res and res.data):
+        return False
+    row = res.data[0]
+    if row.get("status") != "active" or row.get("plan") != plan:
+        return False
+    if (row.get("billing_cycle") or "monthly") != cycle:
+        return False
+    from middleware.plan_gate import _end_at_in_future
+    return _end_at_in_future(row.get("end_at"))
+
+
 @router.post("/creb/billing/issue")
 async def issue_billing(body: BillingIssueRequest, request: Request, user: dict = Depends(get_current_user)):
     """빌링키 발급 + 첫 결제 → 구독 활성화 (크렙). 카드 등록자는 Bearer 토큰으로 확정한다
@@ -118,6 +153,14 @@ async def issue_billing(body: BillingIssueRequest, request: Request, user: dict 
     _blocked = await new_subscriber_blocked(user_id)
     if _blocked:
         raise HTTPException(status_code=409, detail=_blocked)
+
+    # 0-1. 이미 같은 플랜을 이용 중이면 빌링키 발급·결제 이전에 거부 (이중 청구 방지)
+    if await _already_subscribed_same_plan(user_id, body.amount):
+        logger.warning(f"issue_billing 중복 결제 차단 — 이미 같은 플랜 이용 중: user_id={user_id}, amount={body.amount}")
+        raise HTTPException(
+            status_code=409,
+            detail="이미 같은 플랜을 이용 중입니다. 결제는 진행되지 않았고 청구되지 않았습니다. 대시보드로 이동해 주세요.",
+        )
 
     # 1. 빌링키 발급
     issue_res = await creb_client.issue_billkey(body.authKey)

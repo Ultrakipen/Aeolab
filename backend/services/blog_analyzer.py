@@ -1786,9 +1786,11 @@ async def _analyze_external_blog(
         _logger.warning(f"SSRF attempt blocked: {url}")
         return _error_result(platform, "허용되지 않는 URL입니다. 공개 블로그 주소를 입력해주세요.")
 
+    # 도메인이 내부 주소로 해석되거나 리다이렉트가 내부 주소로 향하면 연결 전에 거부(2026-11-06 점검)
+    from services.website_checker import _new_session, _get_following_safe, _UnsafeUrl
     try:
-        async with aiohttp.ClientSession(timeout=_TIMEOUT, headers=_HEADERS) as session:
-            async with session.get(url, allow_redirects=True, ssl=False) as resp:
+        async with _new_session(_TIMEOUT, _HEADERS) as session:
+            async with await _get_following_safe(session, url, is_blocked=_is_ssrf_blocked) as resp:
                 if resp.status >= 400:
                     return _error_result(platform, f"HTTP {resp.status}")
                 content_type = resp.headers.get("Content-Type", "")
@@ -1796,6 +1798,9 @@ async def _analyze_external_blog(
                     return _error_result(platform, "HTML 페이지가 아님")
                 raw = await resp.content.read(_MAX_BODY_BYTES)
                 html = raw.decode("utf-8", errors="replace")
+    except _UnsafeUrl:
+        _logger.warning(f"SSRF redirect/DNS blocked: {url}")
+        return _error_result(platform, "허용되지 않는 URL입니다. 공개 블로그 주소를 입력해주세요.")
     except aiohttp.ClientConnectorError:
         return _error_result(platform, "사이트 접속 불가")
     except aiohttp.ServerTimeoutError:
