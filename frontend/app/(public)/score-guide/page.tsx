@@ -9,7 +9,7 @@ import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 export const metadata: Metadata = {
   title: "점수 계산 방식 | AEOlab",
   description:
-    "AEOlab AI 가시성 점수가 어떻게 계산되는지 알아보세요. 업종별 네이버/글로벌 AI 비율, 5개 점수 항목과 별도로 보여주는 키워드 순위, 등급 기준을 설명합니다.",
+    "AEOlab AI 가시성 점수가 어떻게 계산되는지 알아보세요. 업종별 네이버/글로벌 AI 비율, 5개 점수 항목과 별도로 보여주는 키워드 순위, 성장 단계 기준을 설명합니다.",
 };
 
 export default function ScoreGuidePage() {
@@ -532,70 +532,8 @@ export default function ScoreGuidePage() {
         </div>
       </div>
 
-      {/* 7. 등급 기준 */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
-        <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">
-          등급 기준
-        </h2>
-        <p className="text-sm text-slate-500 mb-3">
-          상위/하위 순위는 초기 서비스 추정값입니다. 사용자 데이터가 쌓이면 실측 기반으로 자동 갱신됩니다.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-          {[
-            {
-              grade: "A",
-              range: "80점 이상",
-              label: "AI 검색 최상위 노출",
-              rank: "상위 20%",
-              bg: "bg-emerald-50 border-emerald-200",
-              textGrade: "text-emerald-700",
-              textRange: "text-emerald-700",
-            },
-            {
-              grade: "B",
-              range: "60~79점",
-              label: "AI 검색 양호",
-              rank: "상위 40%",
-              bg: "bg-blue-50 border-blue-200",
-              textGrade: "text-blue-700",
-              textRange: "text-blue-600",
-            },
-            {
-              grade: "C",
-              range: "40~59점",
-              label: "AI 검색 개선 필요",
-              rank: "중간 40%",
-              bg: "bg-amber-50 border-amber-200",
-              textGrade: "text-amber-700",
-              textRange: "text-amber-700",
-            },
-            {
-              grade: "D",
-              range: "40점 미만",
-              label: "AI 검색 미흡 — 기초 작업 필요",
-              rank: "하위 20%",
-              bg: "bg-red-50 border-red-200",
-              textGrade: "text-red-700",
-              textRange: "text-red-700",
-            },
-          ].map((g, i) => (
-            <div
-              key={i}
-              className={`rounded-xl border p-4 text-center ${g.bg}`}
-            >
-              <div className={`text-3xl font-black mb-1 ${g.textGrade}`}>
-                {g.grade}
-              </div>
-              <div className={`text-sm font-bold mb-1 ${g.textRange}`}>
-                {g.rank}
-              </div>
-              <div className="text-sm text-gray-600 mb-1">{g.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 8. 성장 단계 */}
+      {/* 7. 성장 단계 (사용자 화면에 실제 표시되는 4단계. 구 A~D 등급 블록은 화면에 쓰이지 않고
+          '상위 N%'·'자동 갱신' 근거가 없어 2026-11-06 제거) */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
         <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1">
           성장 단계
