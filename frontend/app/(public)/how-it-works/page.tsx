@@ -482,8 +482,15 @@ export default function HowItWorksPage() {
             <h2 className="text-xl md:text-2xl font-bold text-gray-900 break-keep">AI별 노출 속도 — 빠른 순서로</h2>
           </div>
           <p className="text-sm md:text-base text-gray-600 mb-5 leading-relaxed break-keep">
-            소개글·소식·리뷰는 네이버 AI 쪽에 효과적입니다. ChatGPT·Gemini는 구글·마이크로소프트 검색 정보를 바탕으로 해서 별도 경로가 필요합니다.
+            소개글·소식·리뷰는 네이버 AI 쪽에 효과적입니다. ChatGPT는 미리 공부한 자료가 중심이고(검색을 켜면 웹 검색 정보도 쓸 수 있음), Gemini는 구글 검색을 참고합니다. 둘 다 네이버용 개선과는 별도 경로가 필요합니다.
           </p>
+
+          <MoreInfo summary="ChatGPT 노출은 어떻게 측정하나요?" tone="soft" className="mb-5">
+            <div className="space-y-2 text-sm md:text-base text-gray-700 leading-relaxed break-keep">
+              <p>정기 측정에서는 <strong>가게 이름을 넣지 않고</strong>, &lsquo;지역 + 등록한 키워드&rsquo;로 손님이 물을 법한 질문을 짧은 말투와 긴 자연어 등 여러 표현으로 바꿔 ChatGPT에 여러 번 묻습니다. ChatGPT가 스스로 추천한 가게 목록(질문당 최대 5곳)에 내 가게가 나오는지 셉니다. 응답이 실패했거나 형식이 맞지 않은 시도는 계산에서 뺍니다.</p>
+              <p>이 측정은 검색 기능을 쓰지 않고, ChatGPT가 미리 공부한 자료를 바탕으로 한 답을 봅니다. 그래서 이번 측정에서 나오지 않았다고 해서 ChatGPT에 아예 나오지 않는다는 뜻은 아니며, 검색을 켠 화면에서는 결과가 다를 수 있습니다.</p>
+            </div>
+          </MoreInfo>
 
           <MoreInfo summary="네이버가 외부 AI를 막았는데, 네이버 AI에는 어떻게 나오나요?" tone="soft" className="mb-5">
             <div className="space-y-2 text-sm md:text-base text-gray-700 leading-relaxed break-keep">
