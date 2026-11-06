@@ -27,7 +27,7 @@ export function AuthNavControlClient() {
     return (
       <Link
         href="/login"
-        className="text-sm text-gray-600 hover:text-gray-900 whitespace-nowrap"
+        className="inline-flex items-center min-h-[40px] -my-1 px-1 text-sm text-gray-600 hover:text-gray-900 whitespace-nowrap"
       >
         로그인
       </Link>

@@ -12,6 +12,12 @@
 | 블로그 초안 템플릿 | 구조 지시가 가격·영업시간을 필수 단계처럼 요구해 '사실 지어내기 금지'와 충돌 → 입력에 있을 때만 쓰도록 정정 | `services/guide_generator.py` / `test_blog_template_no_forced_facts.py` |
 | UI | 로그인·가입 `<title>` 분리, 랜딩 PC 차트 라벨 viewBox 7~8→9(렌더 10.5~12→13.6px), 체험 결과의 '오늘 할 일 보기 ↓'·'네이버 플레이스 →' 터치 영역 40px·12→14px | `app/(auth)/*/layout.tsx`, `app/page.tsx`, `TrialResultStep.tsx` |
 
+## 후속 확인 (같은 날 저녁)
+- **서버/git drift**: `scripts/check_server_drift.sh` → `[내용DRIFT]` 0건(출력의 ⚠ 줄은 고정 안내문). `[로컬에만]`은 서버 git이 추적하지 않는 새 테스트·문서뿐. 서버 working tree == 로컬 HEAD 내용이라 push 시 `reset --hard`가 서버 내용을 되돌릴 위험은 확인되지 않음. **push는 미실행**(자동 배포 트리거 — 사용자 확인 후).
+- **환불 자격 실태(코드 추적, DB 미조회)**: 사업장 등록은 풀 스캔을 자동 실행하지 않는다(`business.py` create 후 작업: 체험 이전·Before 스크린샷·플레이스 동기화·블로그 분석·웰컴 메일). 대시보드에도 자동 측정 없음(첫 측정은 사용자가 직접 누르는 단계). `scan_results` 행이 결제 전에 생기는 경로는 ①체험 결과 이전(`_import_trial_scan`, trial_scan_id 전달 시) ②사용자가 무료 첫 측정을 실행한 경우. 환불 자격은 이 행이 하나도 없어야 하므로(`settings._check_refund_eligibility`) **체험→가입 전환 경로와 무료 첫 측정 이용자는 7일 이내여도 자동 환불 대상에서 제외**된다. 비중은 데이터 미확인. 정책 변경(예: 구독 시작 이후의 이용만 집계)은 사업·법무 결정이라 코드 미변경.
+- **로그인 링크**: 모바일 헤더 '로그인' 20px → 클릭 영역 40px(`-my-1`로 헤더 높이 57px 유지, 처음엔 `-my-1` 없이 배포해 헤더가 65px로 커지는 회귀를 라이브 측정으로 잡아 수정). 라이브 확인 시 브라우저가 60초 캐시된 HTML을 받아 구버전처럼 보임 → 쿼리스트링으로 캐시 우회 후 측정.
+- **/demo 실측**: PC 텍스트 265개·모바일 262개 모두 14px 이상, 가로 넘침·화면 밖 요소 없음. 로그인 후 실제 대시보드는 계정이 없어 미실측.
+
 ## 기각(오탐·과장) — 사유
 - **save-email P0**: 속도 제한이 없는 것은 맞지만 메일은 체험당 1회(`scan.py` first_email)이고 체험 생성이 IP당 일 3회 → P2.
 - **report.py IP 제한이 Cloudflare 뒤에서 무력화**: nginx `cloudflare-realip.conf`로 실제 IP가 복원됨.
