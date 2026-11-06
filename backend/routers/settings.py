@@ -21,7 +21,7 @@ router = APIRouter()
 
 async def _check_refund_eligibility(user_id: str, supabase, start_at, first_payment_key) -> bool:
     """7일 청약철회 자동환불 자격 확인 — terms/page.tsx 제5조: 구독 시작일로부터 7일 이내
-    + 서비스 미이용(스캔·가이드 생성 등). 판단은 보수적으로(애매하면 환불 거부) — 활성 여부와
+    + 서비스 미이용(스캔·가이드 생성 등) — 구독 시작 이후의 이용만 센다. 판단은 보수적으로(애매하면 환불 거부) — 활성 여부와
     무관하게 사용자 소유의 모든 사업장을 대상으로 스캔·가이드 이력을 확인한다."""
     if not first_payment_key or not start_at:
         return False
@@ -39,16 +39,35 @@ async def _check_refund_eligibility(user_id: str, supabase, start_at, first_paym
     if not biz_ids:
         return True  # 사업장이 없으면 스캔·가이드 생성 자체가 불가능 → 미이용
 
-    scan_res = await execute(
-        supabase.table("scan_results").select("id", count="exact").in_("business_id", biz_ids).limit(1)
-    )
-    if (scan_res.count or 0) > 0:
-        return False
+    # '이용'은 구독 시작 이후의 이용만 센다(2026-11-07). 결제 전에 이미 있던 기록 — 체험 결과 가져오기, 무료 첫 측정 — 때문에
+    # 7일 환불이 막히면 사용자는 "무료 체험을 했더니 환불이 안 된다"고 느낀다. 시각은 '…Z' 형식으로 보내 URL의 '+'(시간대) 인코딩 문제를 피한다.
+    since = start_dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    guide_res = await execute(
-        supabase.table("guides").select("id", count="exact").in_("business_id", biz_ids).limit(1)
-    )
-    if (guide_res.count or 0) > 0:
+    # 체험 결과 가져오기 행(routers/business.py _import_trial_scan)은 gemini·chatgpt·naver 결과가 모두 비어 있다 —
+    # 결제 후 사업장을 등록하며 자동 생성돼도 사용자가 한 일이 아니므로 이용으로 세지 않는다. 실제 스캔은 적어도 한 결과를 저장한다.
+    # 이 판정은 구독 해지 경로(cancel_subscription)에서 예외 처리 없이 호출된다 — 조회가 실패해도 해지 자체가 500이 되지 않게
+    # 막고, 확인하지 못한 것은 보수적으로 환불 불가로 둔다(이 함수의 원칙: 애매하면 환불 거부). 수동 확인은 운영자 알림 경로가 맡는다.
+    try:
+        scan_res = await execute(
+            supabase.table("scan_results").select("id", count="exact")
+            .in_("business_id", biz_ids)
+            .gte("scanned_at", since)
+            .or_("chatgpt_result.not.is.null,gemini_result.not.is.null,naver_result.not.is.null")
+            .limit(1)
+        )
+        if (scan_res.count or 0) > 0:
+            return False
+
+        guide_res = await execute(
+            supabase.table("guides").select("id", count="exact")
+            .in_("business_id", biz_ids)
+            .gte("generated_at", since)
+            .limit(1)
+        )
+        if (guide_res.count or 0) > 0:
+            return False
+    except Exception as e:
+        logger.warning(f"환불 자격 이용 이력 조회 실패 — 보수적으로 환불 불가 처리 (user={user_id}): {e}")
         return False
 
     return True

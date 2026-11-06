@@ -456,16 +456,42 @@ export default async function DashboardPage({
                     <p className="text-sm text-gray-600 font-medium mt-2">이번 달 무료 측정을 사용했어요 · 다음 달에 다시 가능</p>
                   )
                 )}
-                <div className="mt-3 pt-3 border-t border-gray-100 space-y-0.5">
-                  <p className="text-sm font-semibold text-slate-600 leading-snug flex items-center gap-1.5">
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <p className="text-sm font-semibold text-slate-700 leading-snug flex items-center gap-1.5 mb-2">
                     <Calendar className="w-4 h-4 shrink-0" aria-hidden="true" />
                     개선 후 반영 예상 기간
                   </p>
-                  <p className="text-sm text-slate-500 leading-snug">· 스마트플레이스 정보 업데이트: <strong className="text-slate-700">즉시~수일</strong></p>
-                  <p className="text-sm text-slate-500 leading-snug">· 네이버 검색 순위 변화: <strong className="text-slate-700">2~4주</strong> <span className="text-xs text-gray-600">(경쟁·지역 따라 다름)</span></p>
-                  <p className="text-sm text-slate-500 leading-snug">· 네이버 AI 브리핑·AI탭: <strong className="text-slate-700">2~4주</strong> <span className="text-xs text-gray-600">(추정, 네이버 미공개)</span></p>
-                  <p className="text-sm text-slate-500 leading-snug">· Gemini: <strong className="text-slate-700">2~4주 내 시작, 안정적 언급까지 수개월</strong> <span className="text-xs text-gray-600">(Google 실시간 검색 연동)</span></p>
-                  <p className="text-sm text-slate-500 leading-snug">· ChatGPT: <strong className="text-slate-700">수개월~1년</strong> <span className="text-xs text-gray-600">(AI가 미리 공부한 자료 기반 측정)</span></p>
+                  {/* 본문은 "무엇이 · 얼마나" 두 가지만 14px로. 괄호로 붙이던 근거·단서는 아래 접이식으로 옮겼다(추정 표시는 본문에 남긴다) */}
+                  <ul className="space-y-1.5 text-sm text-slate-600 leading-snug">
+                    <li className="flex flex-wrap items-baseline justify-between gap-x-3">
+                      <span>스마트플레이스 정보</span><strong className="text-slate-800">즉시~수일</strong>
+                    </li>
+                    <li className="flex flex-wrap items-baseline justify-between gap-x-3">
+                      <span>네이버 검색 순위</span><strong className="text-slate-800">2~4주</strong>
+                    </li>
+                    <li className="flex flex-wrap items-baseline justify-between gap-x-3">
+                      <span className="break-keep">네이버 AI 브리핑·AI탭</span><strong className="text-slate-800">2~4주 <span className="font-medium text-slate-600">(추정)</span></strong>
+                    </li>
+                    {GEMINI_LIVE && (
+                      <li className="flex flex-wrap items-baseline justify-between gap-x-3">
+                        <span>Gemini</span><strong className="text-slate-800 break-keep">2~4주 내 시작 · 안정까지 수개월</strong>
+                      </li>
+                    )}
+                    <li className="flex flex-wrap items-baseline justify-between gap-x-3">
+                      <span>ChatGPT</span><strong className="text-slate-800">수개월~1년</strong>
+                    </li>
+                  </ul>
+                  <details className="mt-2 text-sm text-slate-600 group">
+                    <summary className="cursor-pointer min-h-[36px] flex items-center font-medium text-blue-700 hover:text-blue-800">
+                      기간이 이렇게 잡힌 이유
+                    </summary>
+                    <ul className="mt-1 space-y-1 pl-4 list-disc leading-snug break-keep">
+                      <li>네이버 검색 순위: 경쟁 가게 수와 지역에 따라 달라집니다.</li>
+                      <li>네이버 AI 브리핑·AI탭: 네이버가 반영 기간을 공개하지 않아 추정한 값입니다.</li>
+                      {GEMINI_LIVE && <li>Gemini: Google 실시간 검색과 연동되어 있어 비교적 먼저 반영되기 시작합니다.</li>}
+                      <li>ChatGPT: AI가 미리 공부한 자료를 바탕으로 답하기 때문에 반영이 가장 느립니다.</li>
+                    </ul>
+                  </details>
                 </div>
               </div>
             </div>

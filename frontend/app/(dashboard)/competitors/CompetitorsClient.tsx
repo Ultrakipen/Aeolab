@@ -2408,9 +2408,10 @@ export function CompetitorsClient({
                           </div>
                         )}
                         {c.address && (
-                          <div className="flex items-center gap-1 text-sm text-gray-600 mt-0.5">
-                            <MapPin className="w-3 h-3 shrink-0" />
-                            <span className="truncate">{c.address}</span>
+                          <div className="flex items-start gap-1 text-sm text-gray-600 mt-0.5">
+                            <MapPin className="w-3 h-3 shrink-0 mt-1" />
+                            {/* 주소는 경쟁사를 구분하는 단서라 한 줄 말줄임으로 번지를 잘라내지 않고 두 줄까지 보여 준다 */}
+                            <span className="line-clamp-3 break-keep">{c.address}</span>
                           </div>
                         )}
 
@@ -3029,9 +3030,9 @@ export function CompetitorsClient({
                                   )}
                                 </div>
                                 {r.address && (
-                                  <div className="flex items-center gap-1 text-sm text-gray-600 mt-0.5">
-                                    <MapPin className="w-3 h-3 shrink-0" />
-                                    <span className="truncate">{r.address}</span>
+                                  <div className="flex items-start gap-1 text-sm text-gray-600 mt-0.5">
+                                    <MapPin className="w-3 h-3 shrink-0 mt-1" />
+                                    <span className="line-clamp-3 break-keep">{r.address}</span>
                                   </div>
                                 )}
                                 <div className="flex items-center gap-2 mt-1">

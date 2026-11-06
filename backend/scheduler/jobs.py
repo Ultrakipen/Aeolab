@@ -640,7 +640,9 @@ async def daily_scan_all():
                         logger.warning("[daily_scan_all] 플레이스 ID 자동 확정 실패(무시) biz=%s: %s", biz.get("id"), _pr_e)
 
                 # GitHub Actions prescan 결과 재사용 (naver_prescan 테이블, 있으면 네이버 재스캔 생략)
-                # github_naver_scan.py가 01:00 KST에 실행 → 이 함수(02:00 KST) 도달 시 이미 저장됨
+                # ⚠️ 설계 의도는 "github_naver_scan.py가 01:00 KST에 실행 → 02:00 KST에 이미 저장돼 있음"이지만, 실측(2026-10-30~11-06)상
+                # GitHub 예약 지연으로 실제 시작은 04:35~08:13 KST라 이 시점(02:00)에는 오늘 행이 아직 없다 → 정기 스캔은 이 값을 재사용하지 못하고
+                # 서버가 직접 측정한다(같은 날 늦게 저장된 행은 수동 스캔만 쓴다). 중단 스위치: GitHub 저장소 변수 NAVER_SCAN_DISABLED=true.
                 _prescan_naver: dict = {}
                 try:
                     _ps = supabase.table("naver_prescan").select("naver_result").eq(

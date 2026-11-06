@@ -20,11 +20,18 @@ name: Naver Nightly Scan (IP Rotation)
 
 on:
   schedule:
-    - cron: "0 16 * * *"   # 매일 16:00 UTC = 다음날 01:00 KST
+    # 의도: 매일 16:00 UTC = 다음날 01:00 KST. 실측(2026-10-30~11-06 `gh run list`): GitHub 예약 지연으로 실제 시작은 04:35~08:13 KST —
+    # 서버 정기 스캔(02:00 KST)보다 늦어 그 스캔에는 재사용되지 못하고(조회가 scan_date=오늘, 02:00 시점엔 행 없음) 같은 날 수동 스캔에만 쓰인다.
+    - cron: "0 16 * * *"
   workflow_dispatch:         # 수동 실행 버튼
 
 jobs:
   naver-scan:
+    # 긴급 중단 스위치(2026-11-07): 저장소 변수 NAVER_SCAN_DISABLED=true 이면 이 잡 전체를 건너뛴다. 변수가 없으면 지금처럼 실행된다.
+    #   중단:  gh variable set NAVER_SCAN_DISABLED --body true
+    #   재개:  gh variable delete NAVER_SCAN_DISABLED
+    # 서버의 킬스위치 파일(backend/.naver_kill_switch)은 서버 밖(GitHub 서버)에서 도는 이 잡을 멈추지 못한다.
+    if: ${{ vars.NAVER_SCAN_DISABLED != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 90       # 구독자 60명 기준 약 60분, 여유 30분
 

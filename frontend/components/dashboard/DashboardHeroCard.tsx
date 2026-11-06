@@ -98,6 +98,10 @@ export default function DashboardHeroCard({
   // 단, in_briefing 실측이 true면 "가능합니다"(가정형) 대신 "노출 중입니다"(확정형)로 — 실측과 문구가
   // 어긋나 보이지 않도록 통일(2026-07-14, 그리드는 이미 "정보형 노출 중"으로 실측 분기하고 있었음).
   const infoBriefingExposed = isInactiveOrFranchise && naverInBriefing;
+  // 7일 이상 지난 측정이거나 직전 성공값을 쓰는 경우, 위 positiveDetail 규칙대로 "노출 중"을 현재형으로 단정하지 않고 측정일을 붙인다
+  // (이 문구와 아래 정보형 카드만 규칙에서 빠져, 38일 전 측정인데도 "노출 중입니다"로 보였다 — 2026-11-07 로그인 화면 실측).
+  const infoAsOf = useLast ? (fmtMonthDay(lastGoodNaver!.measuredAt) ?? "직전") : (scanMd ?? "마지막");
+  const infoExposedIsStale = useLast || oldScan;
   const headerView = isInactiveOrFranchise
     ? {
         label: "네이버 검색·플레이스가 핵심 무기",
@@ -105,7 +109,9 @@ export default function DashboardHeroCard({
         bg: "bg-green-50",
         cardBorder: "border-green-300",
         sub: infoBriefingExposed
-          ? "네이버 검색·플레이스·AI탭이 주요 노출 경로 — 블로그·콘텐츠 기반 '정보형 AI 브리핑'에도 노출 중입니다"
+          ? (infoExposedIsStale
+              ? `네이버 검색·플레이스·AI탭이 주요 노출 경로 — ${infoAsOf} 측정에서는 블로그·콘텐츠 기반 '정보형 AI 브리핑'에 노출이 확인됐습니다`
+              : "네이버 검색·플레이스·AI탭이 주요 노출 경로 — 블로그·콘텐츠 기반 '정보형 AI 브리핑'에도 노출 중입니다")
           : isFranchise
           ? "네이버 검색·플레이스·AI탭 집중 전략 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다"
           : "네이버 검색·플레이스·AI탭이 주요 노출 경로 — 블로그·콘텐츠로 '정보형 AI 브리핑' 노출도 가능합니다",
@@ -156,11 +162,11 @@ export default function DashboardHeroCard({
   const naverBriefingCard = unmeasured
     ? unknownCard
     : isInactiveOrFranchise && naverInBriefing
-    ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "정보형 노출 중",   statusClass: "text-emerald-700", detail: "콘텐츠 기반 AI 브리핑 노출" }
+    ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "정보형 노출 중",   statusClass: "text-emerald-700", detail: positiveDetail("콘텐츠 기반 AI 브리핑 노출") }
     : isInactiveOrFranchise
     ? { icon: "–", iconClass: "bg-gray-200 text-gray-600", status: "이 업종 해당 없음", statusClass: "text-gray-600",    detail: "네이버 검색·AI탭으로 노출 가능" }
     : briefingEligibility === "likely" && naverInBriefing
-    ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "정보형 노출 중",   statusClass: "text-emerald-700", detail: "콘텐츠 기반 AI 브리핑 노출" }
+    ? { icon: "✓", iconClass: "bg-emerald-700 text-white", status: "정보형 노출 중",   statusClass: "text-emerald-700", detail: positiveDetail("콘텐츠 기반 AI 브리핑 노출") }
     : briefingEligibility === "likely"
     ? { icon: "△", iconClass: "bg-yellow-400 text-white",  status: "확대 예정",        statusClass: "text-yellow-700",  detail: "지금 준비 중" }
     : naverInBriefing
@@ -219,7 +225,7 @@ export default function DashboardHeroCard({
               <p className="text-sm font-bold text-gray-800 mt-1 break-keep">{evidenceText}</p>
             )}
             {(lastScannedLabel || staleRescan) && (
-              <p className="text-xs text-gray-600 mt-0.5 flex items-center gap-1.5 flex-wrap">
+              <p className="text-sm text-gray-700 mt-1 flex items-center gap-1.5 flex-wrap">
                 {lastScannedLabel && <span>{lastScannedLabel}</span>}
                 {staleRescan && (
                   <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-100 font-semibold px-1.5 py-0.5 rounded">
@@ -247,20 +253,21 @@ export default function DashboardHeroCard({
           <p className="text-sm font-bold text-gray-700">{isInactiveOrFranchise ? "네이버 노출 현황" : "네이버 AI 현황"}</p>
           <span className="ml-1 text-xs text-gray-600 hidden sm:inline">소상공인에게 가장 중요한 곳</span>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        {/* 모바일은 한 줄에 카드 하나(아이콘 | 이름·상태·설명) — 3열이면 카드 폭이 약 93px라 "확/인"처럼 어절이 끊기고 설명을 12px로 줄여야 했다. sm 이상은 기존 3열 */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {naverChannels.map((card) => (
             <a
               key={card.id}
               href={ANCHOR_MAP[card.id] ?? "#section-naver"}
-              className="bg-white rounded-xl border border-gray-200 shadow-sm px-2 py-3 flex flex-col items-center gap-1.5 text-center hover:border-blue-300 hover:shadow-md transition-all group"
+              className="bg-white rounded-xl border border-gray-200 shadow-sm px-3 py-3 flex flex-row sm:flex-col items-center gap-3 sm:gap-1.5 text-left sm:text-center hover:border-blue-300 hover:shadow-md transition-all group"
             >
               <span className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-black shrink-0 ${card.iconClass}`}>
                 {card.icon}
               </span>
-              <div>
-                <p className="text-sm font-medium text-gray-600 leading-tight break-keep">{card.platform}</p>
-                <p className={`text-sm font-bold mt-0.5 leading-tight break-keep ${card.statusClass}`}>{card.status}</p>
-                <p className="text-xs text-gray-600 mt-0.5 leading-tight break-keep group-hover:text-blue-700 transition-colors">{card.detail}</p>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-600 leading-snug break-keep">{card.platform}</p>
+                <p className={`text-sm font-bold mt-0.5 leading-snug break-keep ${card.statusClass}`}>{card.status}</p>
+                <p className="text-sm text-gray-600 mt-0.5 leading-snug break-keep group-hover:text-blue-700 transition-colors">{card.detail}</p>
               </div>
             </a>
           ))}

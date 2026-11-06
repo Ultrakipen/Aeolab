@@ -965,8 +965,6 @@ def _make_post_content(
             f"{emoji} {business_name} 소식\n\n"
             f"{region_short}에서 {category_ko}{_select_josa(category_ko, '을', '를')} 찾고 계신가요? "
             f"{business_name}에서 {cta}\n\n"
-            f"📌 네이버 예약으로 원하는 시간 직접 선택 가능\n"
-            f"📞 전화·카카오톡 문의도 언제든지 환영합니다\n\n"
             f"#{region_short}{_hashtag_safe(category_ko)} #{_hashtag_safe(business_name)} "
             f"#{region_short}{_hashtag_safe(category_ko)}추천"
         )
@@ -998,7 +996,6 @@ def _make_post_content(
     return (
         f"{emoji} {business_name} 소식\n\n"
         f"{body_str}\n\n"
-        f"방문 전 네이버 예약으로 원하는 시간에 편하게 오실 수 있습니다.\n\n"
         f"{' '.join(tags)}"
     )
 
@@ -1153,12 +1150,8 @@ def _make_intro_content(
         f"■ 주요 서비스\n"
         f"· {feature_str}\n\n"
         f"{interest_sentence}"
-        f"■ 이용 안내\n"
-        f"· 네이버 예약으로 원하는 시간 직접 선택 가능\n"
-        f"· 방문 전 전화·카카오톡 문의 환영\n\n"
         f"{region_short}에서 {category_ko}{_select_josa(category_ko, '을', '를')} 찾으신다면 "
-        f"{business_name}{_select_josa(business_name, '을', '를')} 추천드립니다. "
-        f"네이버 예약으로 간편하게 방문 예약하세요."
+        f"{business_name}{_select_josa(business_name, '을', '를')} 추천드립니다."
     )
 
 
@@ -1409,7 +1402,6 @@ def _make_list_content_draft(
         f"[소개] {business_name}\n"
         f"· 위치: {region_short}\n"
         f"· 특징: {keyword1} · {keyword2} 전문\n"
-        f"· 이용 안내: 네이버 예약 또는 전화로 간편하게 예약하실 수 있습니다\n"
         f"· 정보 기준일: {now.strftime('%Y.%m.%d')}\n\n"
         f"[마무리] {region_short}에서 {category_ko}로 고민 중이시라면 "
         f"{business_name}{_select_josa(business_name, '을', '를')} 방문해 주세요.\n"
@@ -1486,15 +1478,13 @@ def _make_community_drafts(
     cafe_text = (
         f"안녕하세요~ {region_short}에서 {category_ko} 운영 중인 {business_name} 사장입니다!\n"
         f"저희 {noun}{_select_josa(noun, '은', '는')} {keyword1} · {keyword2} 서비스를 제공하고 있어요.\n"
-        f"{region_short}에서 {category_ko} 찾고 계신 분들께 안내드립니다 :)\n"
-        f"네이버 예약으로 간편하게 방문하실 수 있습니다."
+        f"{region_short}에서 {category_ko} 찾고 계신 분들께 안내드립니다 :)"
     )
 
     jiskin_text = (
         f"안녕하세요, {business_name} 운영자입니다.\n"
         f"{region_short}에서 {category_ko}{_select_josa(category_ko, '을', '를')} 찾으신다면 저희 {noun}{_select_josa(noun, '을', '를')} 추천드립니다.\n"
-        f"{keyword1} · {keyword2} 전문으로 운영하고 있으며, {region_short} 위치라 접근하기 편합니다.\n"
-        f"궁금한 점은 네이버 예약 또는 전화로 문의해 주세요."
+        f"{keyword1} · {keyword2} 전문으로 운영하고 있으며, {region_short} 위치라 접근하기 편합니다."
     )
 
     ready_text = (

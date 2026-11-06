@@ -359,9 +359,49 @@ async def _get_monthly_blog_count(user_id: str, supabase) -> int:
         return 0
 
 
+_AUTO_FREE_TYPE = "blog_analysis_auto"
+
+
+def _auto_free_per_month() -> int:
+    """화면이 사용자 요청 없이 시작한(오래됨·구형식 감지) 분석 중 월 횟수에서 빼 주는 최대 횟수.
+    제안값 2회(분석 형식을 개선해 재분석이 필요해지는 달 + 7일 경과 자동 갱신 1회 정도). BLOG_AUTO_FREE_PER_MONTH로 조정·0이면 끔."""
+    try:
+        return max(0, int(os.getenv("BLOG_AUTO_FREE_PER_MONTH", "2")))
+    except ValueError:
+        return 2
+
+
+async def _auto_analysis_is_free(user_id: str, supabase, requested: bool) -> bool:
+    """자동 분석을 사용자의 월 분석 횟수에서 빼 줄지 판정한다.
+
+    `auto`는 클라이언트가 보내는 값이라 그대로 믿지 않는다 — 월 상한(_auto_free_per_month)을 서버가 집계해 넘으면 일반 분석으로 센다.
+    집계를 읽지 못하면 면제하지 않는다(실패 시 일반 분석으로 처리 = 남용 방지 쪽으로 닫힘).
+    24시간 쿨다운과 동시 실행 제한은 면제 대상이 아니며 그대로 적용된다(네이버 접속 보호)."""
+    if not requested:
+        return False
+    cap = _auto_free_per_month()
+    if cap <= 0:
+        return False
+    today = datetime.now(timezone.utc)
+    month_start = f"{today.year:04d}-{today.month:02d}-01"
+    try:
+        res = await execute(
+            supabase.table("notifications")
+            .select("id", count="exact")
+            .eq("user_id", user_id)
+            .eq("type", _AUTO_FREE_TYPE)
+            .gte("sent_at", month_start)
+        )
+        return (res.count or 0) < cap
+    except Exception as e:
+        _logger.warning(f"auto blog analysis count query failed for user={user_id}: {e}")
+        return False
+
+
 class BlogAnalyzeRequest(BaseModel):
     business_id: str = Field(..., description="사업장 ID")
     blog_url: str = Field(..., max_length=300, description="블로그 URL")
+    auto: bool = Field(False, description="화면이 사용자 요청 없이 자동으로 시작한 분석(월 횟수 일부 면제, 서버가 상한을 다시 검사)")
 
 
 @router.post("/analyze")
@@ -433,9 +473,15 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
 
     now_utc = datetime.now(timezone.utc)
 
+    # 자동 분석의 월 횟수 면제 여부 — 사용자가 누르지 않은 분석이 월 한도(Basic 3회)를 갉아먹지 않게 한다(2026-11-07).
+    # 무제한 플랜(limit>=999)은 어차피 세지 않으므로 판정하지 않는다.
+    auto_free = False
+    if limit < 999:
+        auto_free = await _auto_analysis_is_free(user_id, supabase, request.auto)
+
     # 월별 사용량 체크 (free 이외 플랜: basic=3, pro=10, startup=5)
     monthly_used = 0
-    if limit < 999:
+    if limit < 999 and not auto_free:
         monthly_used = await _get_monthly_blog_count(user_id, supabase)
         if monthly_used >= limit:
             raise HTTPException(
@@ -637,7 +683,7 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
         "analyzed_at": now_iso,
         "error": analysis.get("error"),
         # 월 사용량 — 실패 시 소비하지 않으므로 +1 하지 않음
-        "monthly_used": monthly_used if analysis.get("error") else monthly_used + 1,
+        "monthly_used": monthly_used if (analysis.get("error") or auto_free) else monthly_used + 1,
         "monthly_limit": limit,
         # A~D 기본값 — 아래 블록에서 실제 값으로 덮어씀 (실패해도 키 존재 보장)
         "multi_channel_citations": {},
@@ -765,7 +811,8 @@ async def _run_blog_analysis(request: BlogAnalyzeRequest, user_id: str, supabase
             supabase.table("notifications")
             .insert({
                 "user_id": user_id,
-                "type": "blog_analysis",
+                # 면제된 자동 분석은 별도 종류로 기록 — 월 사용량 집계(type=blog_analysis)에 들어가지 않는다
+                "type": _AUTO_FREE_TYPE if auto_free else "blog_analysis",
                 "channel": "internal",
                 "status": "sent",
                 "content": {"business_id": request.business_id},

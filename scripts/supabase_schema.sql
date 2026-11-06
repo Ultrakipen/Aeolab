@@ -3243,3 +3243,23 @@ BEGIN
     DROP POLICY IF EXISTS "service_role_all" ON system_status;
   END IF;
 END $$;
+
+-- ===========================================================
+-- 2026-11-07 (상업 출시 전 점검 — 개인정보): 공개 답변 티켓의 익명 직접 조회 차단
+-- support_tickets.public_answered_tickets(SELECT, roles={public}, visibility='public' AND status='answered')는 anon 키만으로
+-- body·attachment_urls·user_id까지 읽을 수 있었다. 공개 게시판은 백엔드 GET /api/support/public(service role)이 id·category·title·
+-- status·view_count·created_at·answered_at만 돌려주고, 프런트는 support_tickets·support_replies를 anon 클라이언트로 직접 읽지 않는다
+-- (frontend app/lib/components grep 0건). service_role은 RLS를 우회하므로 이 정책은 앱 동작에 필요 없다.
+-- support_replies.user_see_own_replies는 같은 '공개 답변' 분기를 빼고 본인 티켓의 답글만 보이게 다시 만든다.
+-- 검증: tests/test_support_public_columns.py
+-- ===========================================================
+DROP POLICY IF EXISTS "public_answered_tickets" ON support_tickets;
+DROP POLICY IF EXISTS "user_see_own_replies" ON support_replies;
+CREATE POLICY "user_see_own_replies" ON support_replies
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM support_tickets t
+      WHERE t.id = support_replies.ticket_id
+        AND t.user_id = (SELECT auth.uid())
+    )
+  );

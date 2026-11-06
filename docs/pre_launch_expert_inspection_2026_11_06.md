@@ -44,6 +44,69 @@
 - 작업본에서는 문서의 비밀번호를 지웠다(추적 파일 전체 0건). **git 이력에는 남아 있으므로 비밀번호 교체가 실질적 해결**이다. 해당 계정과 같은 비밀번호를 쓰는 다른 계정(관리자 포함)도 같이 바꿔야 한다. 이력 정리(`git filter-repo`+force push)는 공개 저장소 이력 변경이라 사용자 결정 사항.
 - 규칙: 점검용 계정 정보는 문서·메모리·커밋에 적지 않는다(점검 때마다 사용자에게 받는다). `.playwright-mcp/`는 gitignore지만 스냅샷 파일에 폼 값이 남을 수 있다.
 
+## 2차 개선 — 결정 실행과 정정 (2026-11-07 새벽)
+방침: 사용자가 쉽게 이해하는 방향 · 오판/오탐/누락을 매번 점검 · Gemini 유료 연결은 보류(`GEMINI_MEASUREMENT_LIVE=false` 유지).
+
+### 정정 (이전 제안·보고에서 틀렸던 것)
+- **플로팅 버튼 병합 권고 철회**: 2026-07-25에 같은 이유(우하단 버튼 3개 겹침)로 이미 하나를 제거했고(`DashboardShell.tsx` 주석), 남은 두 개 중 도움말 검색은 모바일의 유일한 도움말 검색 진입점(PC 헤더 검색창은 `lg` 미만 숨김, `HelpFAQFloat.tsx`)이다. 합치면 접근성이 줄어 변경하지 않음.
+- **9번(측정 방식 안내 추가) 철회**: `how-it-works`에 이미 있다("서울 기준 비로그인 PC/모바일로 측정", "실제로 뜨는지 직접 확인"), 대시보드에도 "어떻게 조사했나요?" 접이식이 있다.
+- **`silent`는 자동 실행 표시가 아니다**: `handleAnalyze({silent:true})`는 자동 갱신·재분석 버튼·키워드 변경 3곳에서 쓰인다 → 자동 경로에만 별도 `auto`를 단다.
+- **환불 "이용" 판정 보정**: 결제 후 사업장 등록 때 자동 생성되는 체험 가져오기 행(`gemini·chatgpt·naver 결과 전부 NULL`)은 사용자가 한 일이 아니므로 이용으로 세지 않는다(그냥 `scanned_at >= start_at`만 쓰면 오히려 환불이 막힌다).
+
+### 코드로 반영한 것 (서버 배포·라이브 확인 완료, 모두 변이 검증된 테스트 동반)
+| 항목 | 내용 | 테스트 |
+|---|---|---|
+| 자동 블로그 분석 | 화면이 사용자 요청 없이 시작한 분석은 월 한도에서 최대 2회/월 면제(`BLOG_AUTO_FREE_PER_MONTH`, 0이면 끔). `auto`는 클라이언트 값이라 서버가 월 상한을 다시 집계, 집계 실패 시 면제 안 함. 24시간 쿨다운·동시 실행 제한은 그대로(네이버 접속 보호). 면제분은 `notifications.type=blog_analysis_auto`로 별도 기록 | `test_blog_auto_analysis_free.py` |
+| 환불 자격 | 구독 시작 이후 + 측정 결과가 있는 스캔, 시작 이후 생성한 가이드만 이용으로 센다. 조회 실패는 해지 500이 아니라 환불 불가로 처리(해지 경로가 예외 처리 없이 호출) | `test_refund_eligibility_scope.py` |
+| 공개 티켓 | 백엔드 `/api/support/public` 컬럼 고정 테스트 + 익명 직접 조회 정책 닫는 SQL을 스키마 기록에 추가(**DB 반영은 사용자 SQL 실행 필요, 아래**) | `test_support_public_columns.py` |
+| GitHub 야간 스캔 | 저장소 변수 `NAVER_SCAN_DISABLED=true`로 잡 전체 중단 스위치(변수 없으면 기존대로 실행) | `test_naver_scan_workflow_switch.py` |
+| 사실 단정 제거 | 소식·소개글·블로그·카페·지식인 초안의 "네이버 예약으로 … 가능", "전화·카카오톡 문의 환영" 등 확인 안 된 영업 사실 7곳 삭제(예약 보유 여부 입력이 없어 문장 자체를 넣지 않음) | `test_briefing_drafts_no_unverified_channel_claims.py` (원본에서 33건 실패) |
+| 오래된 측정의 긍정 단정 | 38일 전 측정인데 "정보형 AI 브리핑에도 노출 중입니다"로 현재형 단정하던 맨 위 문구·카드 2곳에 측정일 표기(기존 `positiveDetail` 규칙에서 빠져 있었음) | `test_ui_render_hero_stale_claims.py`(실제 렌더) |
+
+### 사용자 이해 개선 (라이브 모바일·PC 실측 확인)
+- **개선 후 반영 예상 기간 패널**: 한 줄에 12px 괄호 설명 4개가 섞이던 5행 → 라벨·기간만 14px 4행, 근거는 "기간이 이렇게 잡힌 이유" 접이식. `(추정)` 표시는 본문에 남김. **Gemini 행은 `GEMINI_LIVE`일 때만**(다른 곳은 이미 그렇게 숨겼는데 이 패널만 항상 보였음).
+- **모바일 3칸 카드**: 폭 약 93px에서 "확/인"·"정보형 노출/중"처럼 끊기던 3열 → 모바일은 카드 한 줄씩(아이콘 | 이름·상태·설명 14px), `sm` 이상은 기존 3열.
+- **측정 신선도 줄**("38일 전 · 다시 측정 권장") 12px → 14px. 접이식 카드 부제목은 모바일에서 다음 줄 전체 폭. 경쟁사 주소는 말줄임 대신 최대 3줄.
+- 12px 텍스트(모바일 대시보드): 13개 → 6개(남은 것: 배지 3종, "오늘의 개선 미션" 라벨).
+
+### 네이버 차단 대응
+**현재 상태(11-07 01시 KST)**: `GET /api/status/naver` = `ok`, 서버 킬스위치 파일 없음, 서버 `.env`의 네이버 관련 설정은 `NAVER_SCAN_SLOT_SPREAD=true`뿐(나머지는 코드 기본값). 사용자 보고: 차단 위험 때문에 스캔 횟수를 조정함 — 그 조정 내용은 이 점검에서 코드로 확인하지 못함.
+
+**확인된 구멍 2개** (둘 다 코드·`gh run list`로 확인):
+1. **GitHub 야간 스캔(`naver_scan.yml`)이 서버 안전장치 밖이다.** 서버의 쿼터·회로는 프로세스 메모리, 킬스위치는 서버 파일이라 서버 밖(GitHub 서버)에서 도는 이 잡에는 적용되지 않는다. 스크립트는 요금제별 스캔 일정을 보지 않고 **모든 활성 사업장을 매일 밤** 네이버 검색 + 플레이스 페이지까지 스캔한다(서버 정기 스캔은 `NAVER_SCAN_SLOT_SPREAD`로 요일을 나눔). 코드 주석에도 "iwinv IP 차단 우회"라고 적혀 있어 IP 분산 성격이며, 우리 문서상 법적 민감 항목이다.
+2. **재사용 설계가 실제로는 작동하지 않는 것으로 보인다.** 서버 정기 스캔(02:00 KST)은 `scan_date=오늘` 사전 스캔 행을 찾는데, GitHub 예약 지연으로 실제 시작은 **04:35~08:13 KST**(최근 8회) → 02:00 시점엔 행이 없다 → 서버가 직접 네이버를 스캔하고 GitHub도 같은 날 늦게 한 번 더 스캔한다(같은 날 늦게 저장된 행은 수동 스캔만 사용). 추정 근거 = 실행 시각 + 조회 날짜 로직. **미확인**: 재사용 로그는 debug 레벨이라 직접 확인 못 함.
+
+**조치**: 중단 스위치만 추가(기본 동작 불변). `gh variable set NAVER_SCAN_DISABLED --body true` / 재개 `gh variable delete NAVER_SCAN_DISABLED`. **끄는 것은 권고하지만 실행하지 않았다** — CLAUDE.md 8번(법적 민감·기능 축소는 사용자 결정 없이 실행 금지). 끄면 서버가 02:00에 직접 하는 접속은 지금과 같고(어차피 재사용 못 함), GitHub 쪽 추가 접속만 사라진다.
+
+**단계별 대응(제안, 11-04 S-1~S-3 문서와 정합)**
+- 평시: 상태 `ok` 확인, GitHub 스캔 중복 접속 제거(위 권고).
+- S-1 일시(0~3일): 서버 킬스위치 + **GitHub 변수 스위치 둘 다** 켠다(이번에 두 번째가 생김). 측정은 건너뛰고 화면은 "확인 전", 복구 후 가짜 변화 금지(`change_signal_guard`).
+- S-2 지속(수 주): 네이버 항목 제외·재정규화, 공식 API·ChatGPT·구글 측정 중심 안내.
+- S-3 영구: 제품 정의 재결정 — 사용자 판단.
+- **미착수(사용자 결정)**: GitHub 스캔을 끌지, 서버 02:00 이후로 일정을 옮겨 실제로 재사용되게 할지(예: 서버 스캔 시각 조정), 네이버 공식 경로 탐색.
+
+### 사용자가 실행해야 하는 SQL (Supabase SQL Editor)
+```sql
+DROP POLICY IF EXISTS "public_answered_tickets" ON support_tickets;
+DROP POLICY IF EXISTS "user_see_own_replies" ON support_replies;
+CREATE POLICY "user_see_own_replies" ON support_replies
+  FOR SELECT USING (
+    EXISTS (SELECT 1 FROM support_tickets t
+            WHERE t.id = support_replies.ticket_id AND t.user_id = (SELECT auth.uid()))
+  );
+```
+근거: 프런트는 `support_tickets`·`support_replies`를 anon 클라이언트로 직접 읽지 않고(frontend app/lib/components grep 0건), 공개 게시판은 백엔드(service role)가 `id, category, title, status, view_count, created_at, answered_at`만 돌려준다. 확인: `select policyname from pg_policies where tablename in ('support_tickets','support_replies');`에서 `public_answered_tickets`가 사라지고 `user_see_own_replies`의 조건에 `visibility`가 없어야 한다.
+
+### 이번 라운드의 오판·오탐·누락 점검
+| 구분 | 내용 | 결과 |
+|---|---|---|
+| 오판 | 플로팅 버튼 병합, 9번 안내 추가 | 둘 다 근거로 철회(위) |
+| 오판 | `silent`=자동 | 3곳 호출 확인 후 `auto` 신설 |
+| 오탐 | 변이 검증에서 내가 틀린 곳을 지움(`replace(...,1)`이 옛 DROP을 지움) | 마지막 일치를 지워 재검증, 테스트는 정상 |
+| 오탐 | 스크립트 한글 깨짐으로 치환 0건 | 파일 기반 UTF-8 실행, 쓰기 전 검증으로 파일 무변경 확인 |
+| 누락 | CI의 PyYAML 의존, 환불 쿼리 실패 시 해지 500, 서버 `schema.sql`이 로컬 HEAD와 달라 `--force` 필요했던 점 | 각각 `importorskip`, try/except+테스트, 서버 git HEAD 버전과 일치 확인 후 진행 |
+| 미확인 | FAQ 템플릿(`briefing_engine.py` 138~393행)에도 "네이버 예약", "당일 방문 가능" 같은 단정이 있을 수 있음(이번엔 소식·소개글·블로그·카페·지식인만 정리) / 6개 로그인 후 페이지·PC 일부 실측 / 자동 분석 면제 상한 2회는 제안값 / 환불 쿼리를 실제 DB에서 실행해 본 적 없음(PostgREST 요청 렌더로만 검증) | 후속 |
+
 ## 기각(오탐·과장) — 사유
 - **save-email P0**: 속도 제한이 없는 것은 맞지만 메일은 체험당 1회(`scan.py` first_email)이고 체험 생성이 IP당 일 3회 → P2.
 - **report.py IP 제한이 Cloudflare 뒤에서 무력화**: nginx `cloudflare-realip.conf`로 실제 IP가 복원됨.

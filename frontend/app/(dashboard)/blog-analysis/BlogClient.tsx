@@ -1951,7 +1951,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [business.id, savedBlogUrl, isDashboardReanalyze]);
 
-  const handleAnalyze = useCallback(async (opts?: { silent?: boolean }) => {
+  const handleAnalyze = useCallback(async (opts?: { silent?: boolean; auto?: boolean }) => {
     if (!savedBlogUrl) {
       setError("등록된 블로그 주소가 없습니다. 사업장 설정에서 먼저 등록해 주세요.");
       return;
@@ -1985,6 +1985,8 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
           blog_url: savedBlogUrl,
           category: business.category,
           keywords: business.keywords ?? [],
+          // 화면이 사용자 요청 없이 시작한 분석만 true — 서버가 월 횟수 일부를 면제한다(상한은 서버가 다시 검사)
+          auto: opts?.auto === true,
         }),
       });
       if (!res.ok) {
@@ -2068,7 +2070,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
     if (oldFormatDetected || isStale(lastAnalyzedAt)) {
       setAutoTriggered(true);
       setAutoAnalyzing(true);
-      handleAnalyze({ silent: true });
+      handleAnalyze({ silent: true, auto: true });
     }
   }, [selectedBiz, savedBlogUrl, lastAnalyzedAt, autoTriggered, handleAnalyze, result, resultLoading, oldFormatDetected]);
 
