@@ -334,7 +334,7 @@ function ScanConclusionCard({
         <p className="text-sm text-slate-500 leading-relaxed">
           측정 시점·기기·검색어 구성에 따라 결과가 달라질 수 있습니다
         </p>
-        <a href="#today-action" className="shrink-0 text-sm font-bold text-blue-600 hover:text-blue-700 whitespace-nowrap ml-3">
+        <a href="#today-action" className="shrink-0 inline-flex items-center min-h-[40px] text-sm font-bold text-blue-600 hover:text-blue-700 whitespace-nowrap ml-3">
           오늘 할 일 보기 ↓
         </a>
       </div>
@@ -1139,7 +1139,7 @@ export default function TrialResultStep(props: TrialResultProps) {
                       href={result.place_match.naver_place_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition-colors whitespace-nowrap"
+                      className="inline-flex items-center min-h-[40px] text-sm font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-lg transition-colors whitespace-nowrap"
                     >
                       네이버 플레이스 →
                     </a>

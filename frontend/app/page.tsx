@@ -197,11 +197,11 @@ export default function LandingPage() {
                 {/* 광고비 충전 바 (ON 구간 시각화) */}
                 <rect x="4" y="60" width="155" height="12" rx="3" fill="#FEE2E2" />
                 <rect x="4" y="60" width="155" height="12" rx="3" fill="#DC2626" opacity="0.7" />
-                <text x="82" y="70" textAnchor="middle" fill="#FFFFFF" fontSize="7" fontWeight="bold">광고비 소진 중</text>
+                <text x="82" y="70" textAnchor="middle" fill="#FFFFFF" fontSize="9" fontWeight="bold">광고비 소진 중</text>
                 {/* OFF 수직선 */}
                 <line x1="169" y1="6" x2="169" y2="77" stroke="#CBD5E1" strokeWidth="1" strokeDasharray="2,2" />
-                <text x="65" y="12" textAnchor="middle" fill="#DC2626" fontSize="8">광고비 ON</text>
-                <text x="230" y="90" textAnchor="middle" fill="#45556C" fontSize="8">OFF → 노출 0</text>
+                <text x="65" y="12" textAnchor="middle" fill="#DC2626" fontSize="9">광고비 ON</text>
+                <text x="230" y="90" textAnchor="middle" fill="#45556C" fontSize="9">OFF → 노출 0</text>
                 <circle cx="169" cy="27" r="3.5" fill="#DC2626" />
               </svg>
               <ul className="mt-3 space-y-1 text-sm" style={{ color: "#475569" }}>
@@ -245,7 +245,7 @@ export default function LandingPage() {
                   <circle cx="100" cy="50" r="3" fill="white" />
                   <circle cx="200" cy="30" r="3" fill="white" />
                   <circle cx="300" cy="15" r="3" fill="white" />
-                  <text x="150" y="10" textAnchor="middle" fill="white" fontSize="8">주간 변화 추적 (예시)</text>
+                  <text x="150" y="10" textAnchor="middle" fill="white" fontSize="9">주간 변화 추적 (예시)</text>
                 </svg>
                 <ul className="mt-3 space-y-1 text-sm" style={{ color: "rgba(255,255,255,0.88)" }}>
                   <li className="flex items-start gap-2">
