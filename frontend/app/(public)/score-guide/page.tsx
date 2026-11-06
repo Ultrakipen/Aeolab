@@ -354,7 +354,8 @@ export default function ScoreGuidePage() {
           업종별 네이버 / 글로벌 비율
         </h2>
         <p className="text-sm text-gray-600 mb-3">
-          업종 특성에 따라 두 경로의 비율이 다르게 적용됩니다.
+          업종 특성에 따라 두 경로의 비율이 다르게 적용됩니다. 아래 표에는 대표 업종만 실었고,
+          표에 없는 업종도 대부분 업종별 비율이 따로 정해져 있으며 정해지지 않은 업종만 기본값(60/40)을 씁니다.
         </p>
         <div className="overflow-x-auto" tabIndex={0}>
           <table className="w-full text-sm border-collapse min-w-[480px]">
