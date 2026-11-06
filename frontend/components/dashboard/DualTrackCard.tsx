@@ -506,23 +506,10 @@ export default function DualTrackCard({
               AI 검색 준비도 · 일부 항목 확인 전
             </span>
           ) : (<>
-          <div className={`text-sm font-semibold px-2 py-1 rounded-lg ${
-            unifiedScore >= 70
-              ? "bg-emerald-50 text-emerald-700"
-              : unifiedScore >= 50
-              ? "bg-amber-50 text-amber-700"
-              : benchmarkAvg && unifiedScore >= benchmarkAvg
-              ? "bg-amber-50 text-amber-700"
-              : "bg-red-50 text-red-700"
-          }`}>
-            {unifiedScore >= 70
-              ? "업종 상위권"
-              : unifiedScore >= 50
-              ? "업종 중위권 — 개선 여지 있음"
-              : benchmarkAvg && unifiedScore >= benchmarkAvg
-              ? "평균 이상 — 추가 개선 가능"
-              : "AI 노출 개선 여지 큼"}
-          </div>
+          {/* 2026-11-06: 통합 점수의 절대 문턱(70/50)으로 "업종 상위권/중위권/개선 여지 큼"을 말하던 배지를 제거했다.
+              활성 사업장 8곳·체험 252건 전부 통합 50 미만이라 모든 사업장에 같은 "개선 여지 큼"이 나와 구별력이 없었고,
+              순위 근거 없이 "업종 상위권"이라고 말할 수 있는 문구였다. 상태는 아래 성장 단계 배지(트랙1 기준)가 말한다.
+              업종 평균 비교는 같은 기준(total_score==unified_score, 서버 DB 확인)끼리의 실제 벤치마크일 때만 남긴다. */}
           {benchmarkAvg && benchmarkAvg > 0 && !isEstimatedBenchmark && (
             <div className={`px-2 py-1 rounded-lg text-sm font-semibold ${
               unifiedScore >= benchmarkAvg
