@@ -3226,3 +3226,20 @@ ALTER TABLE ai_usage_daily ENABLE ROW LEVEL SECURITY;   -- 서비스 키(백엔�
 -- ========================================
 ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_status_check;
 ALTER TABLE notifications ADD CONSTRAINT notifications_status_check CHECK (status IN ('sent','failed','pending','skipped'));
+
+
+-- ===========================================================
+-- 2026-11-07 (상업 출시 전 점검 — 보안): 역할 제한 없는 "모두 허용" 정책 제거
+-- naver_prescan의 service_naver_prescan_all(USING true WITH CHECK true)은 TO 절이 없어 roles={public}, cmd=ALL로 적용돼
+-- 공개 anon 키만으로 행 조회·삽입·수정·삭제가 가능했다(라이브 pg_policies로 확인). GitHub Actions 사전 스캔과 백엔드는 모두
+-- SUPABASE_SERVICE_ROLE_KEY를 쓰고 service_role은 BYPASSRLS라 정책이 필요 없다(scripts/github_naver_scan.py:44-49, db/supabase_client.py:22-24).
+-- system_status의 service_role_all도 같은 형태(라이브 정책 목록에는 없음 — 스키마를 다시 실행해도 되살아나지 않게 함께 정리).
+-- RLS는 켜진 채 유지, 정책이 없으면 anon/authenticated는 전면 차단된다. 검증: tests/test_schema_no_open_policies.py
+-- ===========================================================
+DROP POLICY IF EXISTS "service_naver_prescan_all" ON naver_prescan;
+DO $$
+BEGIN
+  IF to_regclass('public.system_status') IS NOT NULL THEN
+    DROP POLICY IF EXISTS "service_role_all" ON system_status;
+  END IF;
+END $$;
