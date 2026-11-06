@@ -27,6 +27,28 @@ def row(i, uid, status, end_at=FUT, grace_until=None, disc=None):
     return {"id": i, "user_id": uid, "status": status, "end_at": end_at, "grace_until": grace_until, "first_month_discount_until": disc}
 
 
+@pytest.fixture(autouse=True)
+def _frozen_clock(monkeypatch):
+    """'해지했지만 아직 이용 기간이 남은 구독' 판정(plan_gate._end_at_in_future)의 시계를 테스트 기준일(TODAY)로 고정한다.
+
+    2026-11-06 발견된 시한폭탄: 이 파일의 날짜 리터럴(2026-11-05·11-20·12-01 …)은 실제 날짜가 지나면 의미가 바뀐다.
+    plan_changes(today=TODAY)로 오늘만 고정하고 entitled_user_ids는 실제 시계(UTC)를 썼기 때문에, 한국 시간 09시(UTC 날짜가 바뀌는 때)
+    이후 'cancelled end_at=2026-11-05' 행이 자격을 잃어 IndexError로 실패했다(01시대 전체 실행은 통과 → 시간대에 따라 결과가 달랐다).
+    같은 원리로 11-20·12-01에도 터질 예정이었다. 날짜만 있는 end_at은 그 날 하루를 포함하는 실제 규칙(≥ 오늘)을 그대로 따른다.
+    """
+    import middleware.plan_gate as pg
+
+    def _in_future(end_at):
+        if not end_at:
+            return False
+        try:
+            return date.fromisoformat(str(end_at)[:10]) >= TODAY
+        except ValueError:
+            return False
+
+    monkeypatch.setattr(pg, "_end_at_in_future", _in_future)
+
+
 def test_extension_days_match_the_promise_in_the_email():
     assert ext.EXTENSION_DAYS == mail.EXTENSION_DAYS == 3
     assert f"{ext.EXTENSION_DAYS}일 연장" in mail.render(2, {"시작일": "a", "날짜": "b", "연장일": "c"})[1]
