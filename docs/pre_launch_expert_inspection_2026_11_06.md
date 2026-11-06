@@ -18,6 +18,13 @@
 - **로그인 링크**: 모바일 헤더 '로그인' 20px → 클릭 영역 40px(`-my-1`로 헤더 높이 57px 유지, 처음엔 `-my-1` 없이 배포해 헤더가 65px로 커지는 회귀를 라이브 측정으로 잡아 수정). 라이브 확인 시 브라우저가 60초 캐시된 HTML을 받아 구버전처럼 보임 → 쿼리스트링으로 캐시 우회 후 측정.
 - **/demo 실측**: PC 텍스트 265개·모바일 262개 모두 14px 이상, 가로 넘침·화면 밖 요소 없음. 로그인 후 실제 대시보드는 계정이 없어 미실측.
 
+## RLS 전수 확인 결과 (2026-11-07, 사용자 SQL 실행)
+- 뷰 `score_trend_30d`·`weekly_scores`: `security_invoker=true` → 원본 RLS 적용, 안전.
+- **`naver_prescan` P1 확정·조치 완료**: 정책 `service_naver_prescan_all`이 `roles={public}`, `cmd=ALL`, `qual=true`라 공개 anon 키로 조회·쓰기·삭제 가능했음(09-22 `trial_scans`와 같은 패턴). 테이블은 GitHub Actions `Naver Nightly Scan`이 매일 채우고 백엔드 정기·수동 스캔이 재사용하므로 가짜 결과 주입 시 사용자 점수에 가짜 '미노출'이 저장될 수 있었음(실제 악용 흔적은 미확인). 사용자가 `DROP POLICY IF EXISTS "service_naver_prescan_all" ON public.naver_prescan;` 실행·`pg_policies` 재조회 '행 없음' 확인(11-07). 백엔드와 GitHub Actions는 service role(BYPASSRLS)이라 영향 없음(`supabase_client.py:22-24`, `github_naver_scan.py:44-49`). 스키마 파일 끝에 같은 DROP 마이그레이션 + `test_schema_no_open_policies.py`(열린 정책이 뒤에서 닫히는지 검사) 추가.
+- 의도된 공개로 판단: `competitor_snapshots`·`scan_analytics`·`index_snapshots`(사업장 식별 컬럼 없는 집계), `notices`·`faqs`·`success_stories`. 낮은 위험: `waitlist`·`inquiries` 익명 INSERT(읽기 불가).
+- **미확인**: `support_tickets.public_answered_tickets`는 공개 답변 티켓의 `body`·`attachment_urls`·`user_id`를 익명에게 노출 — 공개 전환이 사용자 선택인지, 첨부 URL이 공개돼도 되는지 확인 안 함. **야간 스캔 사전 스캔 재사용이 정책 삭제 뒤에도 정상인지는 다음 01:00 KST 실행 후 로그로 확인 필요.**
+- **결정 필요**: `.github/workflows/naver_scan.yml`('IP Rotation')이 매일 GitHub 서버 IP로 네이버를 스캔 중(최근 6회 success). CLAUDE.md의 '네이버 접속 IP 단일 유지(분산은 차단됐을 때만)' 방침과 충돌 가능, 서버 쿼터·회로를 거치는지 미확인.
+
 ## 기각(오탐·과장) — 사유
 - **save-email P0**: 속도 제한이 없는 것은 맞지만 메일은 체험당 1회(`scan.py` first_email)이고 체험 생성이 IP당 일 3회 → P2.
 - **report.py IP 제한이 Cloudflare 뒤에서 무력화**: nginx `cloudflare-realip.conf`로 실제 IP가 복원됨.
