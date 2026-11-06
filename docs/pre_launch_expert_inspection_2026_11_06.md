@@ -33,7 +33,7 @@
 - **체험·Quick 점수의 Gemini 미실행 처리**: `calc_multi_ai_exposure`는 `gemini={}`이면 0점으로 계산해 그 항목이 절반이 됨(예: ChatGPT 10/50 → 10, 제외 재정규화면 20). 그런데 `test_keyword_rank_regression.py:300`이 이 동작을 '기존 동작 유지'로 명시 고정. 고치면 Quick 스캔 점수 이력의 기준이 배포 전후로 달라져 가짜 변화 신호가 생길 수 있어 **점수 모델 결정 사항**으로 남김(영향: restaurant 기준 최대 수 점, 점수 숫자는 사용자에게 비노출).
 - **환불 자격이 사실상 거의 없을 가능성**: 환불 조건이 '스캔 이력 없음'인데 가입 직후 첫 측정이 자동 실행되면 7일 이내에도 환불 불가. 약관 문구와 코드는 일치하나 청약철회 제한 범위의 적법성은 변호사 확인 사항(신규 구독자의 첫 스캔 시점은 미확인).
 - **개인정보처리방침에 네이버 접속(스크래핑) 고지 없음**(확인됨, '네이버' 언급 0건) — 고지 필요 여부는 변호사 확인.
-- **`trial_scans` RLS의 이메일 anon 조회 여부**: 자동 모드가 운영 DB 직접 조회를 거부해 미확인. Supabase SQL Editor에서 `select * from pg_policies where tablename='trial_scans'`로 확인.
+- **`trial_scans` RLS의 이메일 anon 조회 여부 — 사용자 SQL 실행으로 확인(2026-11-06 저녁)**: `trial_scans`는 RLS 켜짐 + 정책 0개 → anon·로그인 사용자 모두 행 접근 불가(서버 service role만). `businesses`·`profiles`·`scan_results`·`subscriptions`·`trial_scans` 5개 모두 `rls_on=true`, `public` 스키마에서 RLS 꺼진 일반 테이블 0개. anon의 테이블 권한(INSERT/SELECT/UPDATE/DELETE/TRUNCATE 등)은 Supabase 기본 부여이며 RLS가 막는다(TRUNCATE는 REST API로 호출 불가라는 일반 구조 판단 — 이 프로젝트에서 실측하지는 않음). **미확인 잔여: ①`trial_scans` 외 테이블의 정책 내용(09-22 사고는 RLS 켜짐인데 정책이 `qual=true`였음) ②뷰(`weekly_scores` 등)가 RLS를 우회하는지(`security_invoker`·anon 권한).** 확인용 SQL은 `pg_policies`에서 `qual='true'` 또는 roles에 anon/public, `pg_views`+`reloptions`+`role_table_grants`.
 - 점검하지 못한 것: 구독 갱신 실패→유예→정지 잡·알림톡 변수 대조·AI 비용 상한·백업·Sentry의 라이브 동작은 점검하지 못함.
 - UI: 로그인 후 화면(대시보드·성장·가이드) 실측, 색 대비 수치, 360px 체험 화면, 일부 공개 라우트, 이번 UI 수정 중 체험 결과 화면의 실제 렌더(체험 재실행 시 네이버 접속이 발생해 하지 않음).
 - 죽은 코드(`OneLineConclusion`·`CompetitorGapHighlightCard`·`TrialStatusSummary`)는 점수 숫자를 출력하지만 렌더되지 않아 사용자 영향 없음. 삭제는 프론트 재빌드 대비 이득이 작아 보류.
