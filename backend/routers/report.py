@@ -5233,6 +5233,29 @@ def _extract_place_id(naver_place_url: str) -> str | None:
     return None
 
 
+_SMARTPLACE_CHECK_WINDOW = 3600  # seconds
+
+
+def _check_smartplace_user_cap(user_id: str) -> None:
+    """사용자별 시간당 스마트플레이스 점검 횟수 제한. 프로세스 메모리(workers=1) 카운터 — 재시작 시 초기화되는 느슨한 상한."""
+    import os
+    try:
+        cap = int(os.getenv("SMARTPLACE_CHECK_HOURLY_CAP", "6"))
+    except ValueError:
+        cap = 6
+    if cap <= 0:
+        return
+    key = f"smartplace_check:{user_id}"
+    count: int = _cache.get(key) or 0
+    if count >= cap:
+        raise HTTPException(
+            status_code=429,
+            detail="스마트플레이스 점검을 짧은 시간에 여러 번 요청하셨습니다. 잠시 후 다시 시도해 주세요. 직접 확인은 스마트플레이스 파트너센터에서 바로 가능합니다.",
+        )
+    # _cache.set은 TTL을 새로 걸므로 창은 '마지막으로 허용된 호출로부터 1시간'이다(한도에 걸린 요청은 카운트·TTL을 건드리지 않는다)
+    _cache.set(key, count + 1, _SMARTPLACE_CHECK_WINDOW)
+
+
 @router.post("/smartplace-check")
 async def post_smartplace_check(
     payload: dict = Body(...),
@@ -5273,6 +5296,10 @@ async def post_smartplace_check(
             status_code=403,
             detail={"code": "PLAN_REQUIRED", "message": "Basic 이상 플랜에서 이용할 수 있습니다", "upgrade_url": "/pricing"},
         )
+
+    # 사용자별 시간당 호출 한도 — 호출 1회가 네이버 플레이스 페이지 4~5개를 쓰므로 반복 클릭이 하루 접속 예산을 혼자 소진하지 못하게 한다
+    # (2026-11-06 점검). 6회는 제안값(정상 사용은 사업장 1~3곳 확인 후 결과를 브라우저에 캐시), SMARTPLACE_CHECK_HOURLY_CAP로 조정·0이면 끔.
+    _check_smartplace_user_cap(user["id"])
 
     place_id = _extract_place_id(naver_place_url)
     base_sp_url = "https://smartplace.naver.com"
