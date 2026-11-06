@@ -88,14 +88,14 @@ export default function ScoreGuidePage() {
       {/* 3-0. 모든 업종 공통 가치 — 네이버 SEO 상위노출 */}
       <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 mb-4">
         <h2 className="text-base md:text-lg font-bold text-emerald-800 mb-2">
-          업종과 무관하게 — 점수를 올리면 네이버 검색 상위노출이 개선됩니다
+          업종과 무관하게 — 소개글·리뷰·소식 개선은 네이버 검색에서 가게를 찾기 쉽게 만드는 방향입니다
         </h2>
         <p className="text-sm md:text-base text-emerald-900 leading-relaxed">
-          소개글·리뷰·소식·키워드 개선은 <strong>모든 업종 공통</strong>으로 네이버 플레이스·검색 순위를 끌어올립니다.
-          '플레이스형' AI 브리핑 비대상 업종(병원·법무·학원·쇼핑몰 등)도 동일하게 수혜를 받으며,
-          블로그·콘텐츠를 통해 <strong>'정보형 AI 브리핑'</strong> 노출도 가능합니다.
-          ChatGPT·Gemini·Google AI 노출 개선까지 함께 진행됩니다. 즉, AI 브리핑 대상 여부와 상관없이
-          <strong> 네이버 검색 상위노출이라는 공통 이득</strong>은 항상 확보됩니다.
+          소개글·리뷰·소식·키워드 개선은 <strong>모든 업종 공통</strong>으로 네이버 플레이스·검색에서 가게를 찾기 쉽게 만드는 방향입니다(순위 상승을 보장하지는 않습니다).
+          '플레이스형' AI 브리핑 비대상 업종(병원·법무·학원·쇼핑몰 등)도 같은 개선이 필요하며,
+          블로그·콘텐츠를 통해 <strong>'정보형 AI 브리핑'</strong> 노출 가능성도 있습니다.
+          다만 ChatGPT·Gemini·Google AI는 구글 비즈니스 프로필·웹사이트 정보 같은 <strong>별도 경로</strong>가 필요해,
+          네이버용 개선이 곧바로 반영되지는 않습니다.
         </p>
       </div>
 
@@ -109,10 +109,11 @@ export default function ScoreGuidePage() {
             <span className="shrink-0 text-slate-600 font-bold mt-0.5" aria-hidden="true">→</span>
             <p className="text-sm md:text-base text-slate-700 leading-relaxed">
               <strong>지표 개선</strong>은 AI 검색 노출 가능성을 높이는 방향입니다.
-              AI 서비스별 반영 속도가 다릅니다 — 네이버 AI 브리핑·AI탭은 콘텐츠 개선 후
-              <strong>2~4주</strong> 내 반영되며, Gemini·ChatGPT는
-              AI 재학습 주기 특성상 <strong>수개월~1년</strong> 후 측정 점수에 반영됩니다.
-              그 결과 새 손님이 가게를 발견할 접점이 늘어납니다.
+              AI 서비스마다 원리와 반영 시간이 다르고, 아래는 모두 보장이 아닌 참고값입니다 —
+              네이버 AI 브리핑·AI탭은 <strong>2~4주(추정, 네이버 미공개)</strong>,
+              Gemini는 구글 비즈니스 프로필 등록 후 <strong>2~4주 내 반영 시작·안정적으로 소개되기까지 수개월</strong>,
+              ChatGPT는 AI가 미리 공부한 자료 기반이라 <strong>수개월~1년 이상</strong> 걸릴 수 있습니다.
+              노출이 늘면 새 손님이 가게를 발견할 접점이 늘어날 수 있습니다.
             </p>
           </div>
           <div className="bg-white border border-slate-200 rounded-xl px-4 py-3">
@@ -153,6 +154,22 @@ export default function ScoreGuidePage() {
           업종에 따라 네이버와 글로벌 AI의 비율이 다릅니다. 즉시 방문이
           많은 음식점·카페는 네이버 비율이 높고, 교육·법률·온라인몰은 글로벌 AI
           비율이 높습니다.
+        </p>
+      </div>
+
+      {/* 3-2. 측정하지 못한 항목 처리 — score_engine 항목 제외·재정규화(0점 아님) 설명 */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
+        <h2 className="text-base md:text-lg font-bold text-gray-900 mb-2">
+          측정하지 못한 항목은 어떻게 계산하나요?
+        </h2>
+        <p className="text-sm md:text-base text-gray-700 leading-relaxed">
+          네이버가 접속을 막았거나 일시적인 오류로 측정하지 못한 항목, 아직 확인 전인 항목은{" "}
+          <strong>0점으로 넣지 않습니다.</strong> 그 항목을 계산에서 빼고, 나머지 항목의 비율을 합쳐 100%로 맞춥니다.
+        </p>
+        <p className="text-sm md:text-base text-gray-700 leading-relaxed mt-2">
+          그래서 일부 항목이 빠진 날의 점수는 모든 항목을 측정한 날과 기준이 다릅니다.
+          AEOlab은 점수의 오르내림을 말할 때 <strong>비교하는 양쪽이 모두 정상적으로 측정된 경우에만</strong> 변화로 보여 드리고,
+          확인하지 못했을 때는 변화를 말하지 않습니다.
         </p>
       </div>
 
