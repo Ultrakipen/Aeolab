@@ -333,16 +333,10 @@ def start_scheduler():
         id="briefing_expansion_monitor", replace_existing=True,
         max_instances=1, misfire_grace_time=3600,
     )
-    # AI탭 정식 출시일 당일 선제 점검 — 2026-06-01 10:00 KST 일회성
-    # 기존 월/목 09:00 잡과 별도로 출시 당일 1시간 빠른 시점에 즉시 점검.
-    # 감지 시 ai_tab_enabled=true 자동 설정 (pm2 restart 불필요).
-    scheduler.add_job(
-        ai_tab_trigger_check_job, "date",
-        run_date=datetime(2026, 6, 1, 10, 0, 0),
-        id="ai_tab_june1_launch_check",
-        replace_existing=True,
-        misfire_grace_time=3600,
-    )
+    # (2026-11-08 제거) "AI탭 정식 출시일(2026-06-01 10:00 KST) 일회성 점검"은 날짜가 160일 전에 지났는데도 시작할 때마다 다시 등록돼
+    # 재시작마다 "Run time of job ... was missed by 157 days" 경고(이틀간 37건)만 남기는 죽은 작업이었다. 월·목 09:00 정기 점검
+    # (ai_tab_trigger_check)은 그대로 유지된다. 일회성(date) 작업을 새로 추가하면 run_date가 미래여야 한다
+    # (tests/test_scheduler_no_past_one_shot_jobs.py).
     # 네이버 NID_AUT 쿠키 유효성 검사 + 자동 갱신 — 매주 월요일 09:30 KST (2026-08-23
     # 타임존버그 수정, 실제론 월요일 00:30 KST에 실행 중이었음)
     scheduler.add_job(

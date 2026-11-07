@@ -51,6 +51,7 @@ interface Props {
   competitorCount?: number;
   actionCount?: number;
   refundEligible?: boolean;
+  refundWindowOpenButNotEligible?: boolean;
   cardDisplay?: string | null;
 }
 
@@ -65,6 +66,7 @@ export function SettingsClient({
   competitorCount = 0,
   actionCount = 0,
   refundEligible = false,
+  refundWindowOpenButNotEligible = false,
   cardDisplay = null,
 }: Props) {
   const [cancelling, setCancelling] = useState(false);
@@ -406,6 +408,14 @@ export function SettingsClient({
               <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 mb-4">
                 <p className="text-sm text-emerald-800 font-medium">
                   구독 시작 7일 이내 + 서비스 미이용 상태로 확인되어, 해지 시 결제한 금액이 전액 환불됩니다.
+                </p>
+              </div>
+            )}
+            {refundWindowOpenButNotEligible && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4">
+                <p className="text-sm text-amber-800">
+                  구독 시작 7일 이내이지만 자동 환불 조건(스캔·가이드 생성 이력이 없을 것 — 정기 자동 측정도 스캔에 포함됩니다)을 충족하지 않아
+                  자동 환불 대상이 아닙니다. 해지하면 현재 결제 기간 만료일까지 계속 이용할 수 있습니다. 이의가 있으시면 고객센터의 결제·환불 문의로 알려 주세요.
                 </p>
               </div>
             )}

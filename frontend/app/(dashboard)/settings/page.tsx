@@ -89,14 +89,23 @@ export default async function SettingsPage({
   // 잘못 약속하는 배너를 보여주게 됨(자기점검 중 발견해 수정)
   const { data: allBizForRefund } = await supabase.from("businesses").select("id").eq("user_id", user.id);
   const bizIdsForRefundCheck = (allBizForRefund ?? []).map((b) => b.id);
-  const [{ count: scanCountForRefund }, { count: guideCountForRefund }] = bizIdsForRefundCheck.length
+  // '이용'은 백엔드 _check_refund_eligibility()와 같은 기준으로 센다(2026-11-08): 구독 시작 이후의 기록만, 스캔은 측정 결과가
+  // 하나라도 저장된 행만. 백엔드만 11-07에 고쳐져 있어, 가입 후 무료 첫 측정(결제 전 기록)·체험 가져오기 행이 있는 사용자는
+  // 실제로는 환불되는데 이 화면에는 환불 안내가 뜨지 않았다(환불 못 받는다고 오해해 해지를 미룰 수 있음).
+  const refundSince = sub?.start_at ? new Date(sub.start_at).toISOString().replace(/\.\d{3}Z$/, "Z") : null;
+  const [{ count: scanCountForRefund }, { count: guideCountForRefund }] = bizIdsForRefundCheck.length && refundSince
     ? await Promise.all([
-        supabase.from("scan_results").select("id", { count: "exact", head: true }).in("business_id", bizIdsForRefundCheck),
-        supabase.from("guides").select("id", { count: "exact", head: true }).in("business_id", bizIdsForRefundCheck),
+        supabase.from("scan_results").select("id", { count: "exact", head: true }).in("business_id", bizIdsForRefundCheck)
+          .gte("scanned_at", refundSince)
+          .or("chatgpt_result.not.is.null,gemini_result.not.is.null,naver_result.not.is.null"),
+        supabase.from("guides").select("id", { count: "exact", head: true }).in("business_id", bizIdsForRefundCheck)
+          .gte("generated_at", refundSince),
       ])
     : [{ count: 0 }, { count: 0 }];
   const withinSevenDays = !!sub?.start_at && (Date.now() - new Date(sub.start_at).getTime()) <= 7 * 24 * 60 * 60 * 1000;
   const refundEligible = !isAdminUser && withinSevenDays && (scanCountForRefund ?? 0) === 0 && (guideCountForRefund ?? 0) === 0;
+  // 7일 이내인데 자동 환불 조건을 못 채운 경우 — 해지 모달에서 이유를 알려 준다(조용한 거부는 분쟁이 되기 쉽다)
+  const refundWindowOpenButNotEligible = !isAdminUser && withinSevenDays && !refundEligible;
 
   // 해지 모달 데이터: 경과일, 경쟁사 수, 행동 수
   const primaryBizId = businesses?.[0]?.id ?? null;
@@ -341,6 +350,7 @@ export default async function SettingsPage({
                   competitorCount={competitorCount ?? 0}
                   actionCount={actionCount ?? 0}
                   refundEligible={refundEligible}
+                  refundWindowOpenButNotEligible={refundWindowOpenButNotEligible}
                   cardDisplay={cardDisplay}
                 />
               </div>
