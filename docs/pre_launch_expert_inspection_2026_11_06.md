@@ -170,6 +170,12 @@ CREATE POLICY "user_see_own_replies" ON support_replies
 - 검증: 타입 검사 0, `test_frontend_f3_f4_name_and_touch_targets.py` 6개(변이 6종 실패 확인), 로컬 2197·서버 2195(+1 스킵), 프런트 md5·빌드·재시작·라이브 재측정.
 - **미확인**: 사업장이 5곳 이상이고 이름이 모두 길 때 설정 탭 줄의 가로 스크롤·넘침(이번엔 2개 탭 기준), 요약 줄이 좁은 폭에서 3줄로 늘어나는 것의 보기 좋음(내용은 모두 보임).
 
+### 내일 확인 절차 (11-08 이후) — 스캔 중단·섀도 표본
+- 11-07 22:30 KST 시점 기준선: `NAVER_SCAN_DISABLED=true`(12:10 UTC 설정), GitHub 예약 실행 마지막 기록 11-06 21:06 UTC(성공), **섀도 반영 이후 `scan_results` 0건**(서버 정기 스캔 02:00 KST·GitHub 21:00 UTC 전후 모두 아직 안 돎). `naver_prescan` 11-07자 4건은 섀도 반영 이전 GitHub 결과라 섀도 필드가 없는 것이 정상.
+- **GitHub skipped 확인**: 다음 예약 실행은 약 21:00 UTC(11-08 06:00 KST 전후, 지연 가능 — 11-02~06은 19:55~23:13 UTC에 시작). `gh run list --workflow=naver_scan.yml --limit 3` 에서 11-07 21:00 UTC 이후 항목이 `conclusion: skipped`(job 단위 `if`라 run은 생기되 job이 skipped)여야 한다. 성공(`success`)으로 돌았으면 변수가 안 먹은 것.
+- **섀도 표본**: `ssh root@115.68.231.57 "cd /var/www/aeolab/backend && /var/www/aeolab/venv/bin/python scripts/shadow_place_list_report.py"` (읽기 전용). 서버 정기 스캔은 02:00 KST 시작·네이버 측정은 약 17:08 UTC(02:08 KST)에 시작하며 대상은 관리자 제외 사업장 약 1곳 → **하루 1건 안팎**이라 단계 3 비교용 표본은 며칠~몇 주 걸린다(접속을 늘려 앞당기지 않는다). `comparable_rows`와 `text_only`·`old_missed`·`unreadable` 비율을 본다.
+- 해석 주의: `unreadable`이 많으면 구조 규칙이 서버 로그인 화면 DOM과 안 맞는 것(미확인 항목) — 그때는 점수 반영 논의 전에 그 DOM부터 확인.
+
 ## 기각(오탐·과장) — 사유
 - **save-email P0**: 속도 제한이 없는 것은 맞지만 메일은 체험당 1회(`scan.py` first_email)이고 체험 생성이 IP당 일 3회 → P2.
 - **report.py IP 제한이 Cloudflare 뒤에서 무력화**: nginx `cloudflare-realip.conf`로 실제 IP가 복원됨.
