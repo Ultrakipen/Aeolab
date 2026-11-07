@@ -46,11 +46,11 @@ function OpeningHoursBuilder({ rows, onChange }: { rows: HoursRow[]; onChange: (
                 {d.label}
               </button>
             ))}
-            <button type="button" onClick={() => removeRow(row.id)} className="ml-auto text-sm text-gray-600 hover:text-red-700 px-2">삭제</button>
+            <button type="button" onClick={() => removeRow(row.id)} className="ml-auto min-h-[36px] text-sm text-gray-600 hover:text-red-700 px-3">삭제</button>
           </div>
           <div className="flex items-center gap-2">
-            <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
-              <input type="checkbox" checked={row.closed} onChange={(e) => updateRow(row.id, 'closed', e.target.checked)} className="accent-red-500" />
+            <label className="flex items-center gap-1.5 min-h-[36px] pr-2 text-sm text-gray-600 cursor-pointer">
+              <input type="checkbox" checked={row.closed} onChange={(e) => updateRow(row.id, 'closed', e.target.checked)} className="accent-red-500 w-5 h-5" />
               휴무
             </label>
             {!row.closed && (

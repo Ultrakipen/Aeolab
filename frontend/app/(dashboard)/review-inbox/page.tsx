@@ -633,7 +633,8 @@ export default function ReviewInboxPage() {
               type="button"
               onClick={() => setBizDropdownOpen(v => !v)}
               aria-expanded={bizDropdownOpen}
-              className="flex items-center gap-1.5 text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white hover:bg-gray-50 transition-colors max-w-[160px]"
+              title={bizName ?? undefined}
+              className="flex items-center gap-1.5 min-h-[40px] text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white hover:bg-gray-50 transition-colors max-w-[200px] sm:max-w-[260px]"
             >
               <span className="truncate font-medium text-gray-800">{bizName ?? '사업장 선택'}</span>
               <ChevronDown className="w-3.5 h-3.5 text-gray-600 shrink-0" />
@@ -803,7 +804,7 @@ export default function ReviewInboxPage() {
             <button
               type="button"
               onClick={() => document.querySelector('textarea')?.focus()}
-              className="text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2 transition-colors"
+              className="min-h-[44px] px-3 text-sm text-blue-600 hover:text-blue-700 underline underline-offset-2 transition-colors"
             >
               리뷰 붙여넣고 첫 답변 만들기 →
             </button>

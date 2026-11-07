@@ -279,7 +279,7 @@ export default async function SettingsPage({
                   <div className="pt-3 border-t border-gray-100">
                     <a
                       href="/pricing"
-                      className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                      className="inline-flex items-center gap-2 min-h-[44px] text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
                     >
                       <Zap className="w-4 h-4" />
                       플랜 변경 · 업그레이드

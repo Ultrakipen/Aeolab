@@ -341,7 +341,8 @@ function KeywordEditor({
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); removeKeyword(kw); }}
-              className="ml-0.5 text-blue-100 hover:text-white text-base leading-none"
+              aria-label={`${kw} 삭제`}
+              className="ml-0.5 -mr-2 -my-1 w-8 h-8 inline-flex items-center justify-center rounded-full text-blue-100 hover:text-white hover:bg-blue-500 text-base leading-none"
             >×</button>
           </span>
         ))}
@@ -734,6 +735,7 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
               key={biz.id}
               type="button"
               onClick={() => handleTabChange(biz.id)}
+              title={biz.name}
               className={[
                 "flex items-center gap-1.5 px-3 py-2.5 shrink-0 border-t border-l border-r transition-colors",
                 roundedClass,
@@ -749,8 +751,8 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                   : <span className="text-sm">{biz.category.slice(0, 1).toUpperCase()}</span>
                 }
               </div>
-              {/* 이름: 모바일에서도 표시 (최대 8자 truncate) */}
-              <span className="text-sm max-w-[7rem] truncate">{biz.name}</span>
+              {/* 이름: 모바일에서도 표시 — 한글 12자 안팎까지 보이게 넉넉히(2026-11-07, 7rem에서 "홍뮤직스튜디오작곡교습소"가 잘림), 더 길면 말줄임 + 툴팁(title) */}
+              <span className="text-sm max-w-[10.5rem] sm:max-w-[14rem] truncate">{biz.name}</span>
               {/* 미저장 변경 표시 점 */}
               {isActive && isDirty && (
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" title="저장되지 않은 변경사항" />
@@ -780,8 +782,9 @@ export function BusinessManager({ businesses, userId, autoEdit, autoEditId, auto
                 );
               })()}
               <div className="min-w-0">
-                <div className="text-sm font-semibold text-gray-900 truncate">{activeBiz.name}</div>
-                <div className="text-sm text-gray-600 truncate">
+                <div className="text-sm font-semibold text-gray-900 truncate" title={activeBiz.name}>{activeBiz.name}</div>
+                {/* 요약 줄은 말줄임 대신 줄바꿈 — 모바일에서 등록일까지 잘리던 것(2026-11-07) */}
+                <div className="text-sm text-gray-600 break-keep">
                   {activeBiz.region} · {getCategoryLabel(activeBiz.category)} · {formatDate(activeBiz.created_at)}
                 </div>
               </div>
