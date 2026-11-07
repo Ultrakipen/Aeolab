@@ -207,6 +207,14 @@ CREATE POLICY "user_see_own_replies" ON support_replies
 - 그대로 둔 것(완화형·정당): `report.py` 1632·2047·2493·3203·5810·5837·5891의 "가능성이 높아집니다/올라갑니다/확률이 높아집니다", `email_sender` 903·940, `pdf_generator` 318·323·1278, `score_engine.py:235`.
 - **미확인**: `get_conversion_tips`의 수정 문구가 실제 대시보드에 렌더링된 것(이 계정에선 팁 카드 데이터 조건 불충족 가능), 환불 거부 화면의 안내 문구, 수동 스캔 한도(`check_manual_scan_limit`)가 사용 이력을 어디에 남기는지(코드를 끝까지 읽지 않음).
 
+### 환불 경로 운영자 알림 보강 (11-08, 서버 반영)
+- `settings._check_refund_eligibility(..., alert_on_lookup_failure=False)`: 해지 경로(`cancel_subscription`)에서만 True — 7일 이내·결제키 있음 상태에서 **이용 이력 조회가 실패해 환불이 보류되면 운영자 알림**(user_id·start_at·오류 포함). 대시보드 조회(`/me`)는 알림 없음(폭주 방지). 알림 발송 실패는 해지를 막지 않는다.
+- 사업장 조회(`businesses`)가 try 밖이어서 DB 오류가 나면 해지·`/me`가 500이 되던 것을 같은 보호(보수적 환불 보류) 안으로 이동.
+- 자동 환불 성공은 `system_alerts`(level=info, source=refund)에 기록만(이메일 없음) — 환불 빈도(남용 신호)를 관리자 알림 이력에서 확인.
+- 테스트 `test_refund_eligibility_scope.py` 14개(변이 5종 실패 확인). 로컬 2322·서버 2320(+1 스킵).
+- **사용자 결정 대기(변경 없음)**: 자동 스캔을 환불의 '이용'으로 볼지 — ①현행 유지(가장 보수적) ②자동 스캔 제외(수동 측정·가이드 생성만 이용; 출처 구분 신호 필요) ③환불 가능 기간 중 자동 스캔 보류. 구독자 0명인 지금은 ①로 두고 첫 구독자 전에 확정.
+- **미확인**: 알림 이메일의 실제 도착(조회 실패를 인위로 재현하지 않음 — 운영 DB 장애 주입 금지), 환불 거부 시 사용자 화면의 안내 문구.
+
 ## 기각(오탐·과장) — 사유
 - **save-email P0**: 속도 제한이 없는 것은 맞지만 메일은 체험당 1회(`scan.py` first_email)이고 체험 생성이 IP당 일 3회 → P2.
 - **report.py IP 제한이 Cloudflare 뒤에서 무력화**: nginx `cloudflare-realip.conf`로 실제 IP가 복원됨.

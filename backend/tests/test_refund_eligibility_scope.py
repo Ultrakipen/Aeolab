@@ -113,3 +113,74 @@ def test_usage_lookup_failure_does_not_raise_and_denies_refund(monkeypatch):
     start = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
     ok = asyncio.run(settings._check_refund_eligibility("u1", _Sb([]), start, "pay_1"))
     assert ok is False
+
+
+# ── 2026-11-08: 조회 실패로 환불이 보류될 때 운영자 알림(해지 경로 전용) + 사업장 조회도 보호 안으로 ──
+
+def _fail_run(monkeypatch, *, fail_table, alert_flag, alert_raises=False):
+    alerts = []
+
+    async def boom(q):
+        if q.table_name == fail_table:
+            raise RuntimeError("postgrest 400")
+        if q.table_name == "businesses":
+            return _Res(data=[{"id": "b1"}])
+        return _Res(count=0)
+
+    async def fake_alert(subject, message):
+        alerts.append((subject, message))
+        if alert_raises:
+            raise RuntimeError("resend down")
+        return True
+
+    monkeypatch.setattr(settings, "execute", boom)
+    monkeypatch.setattr(settings, "send_operator_alert", fake_alert)
+    start = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+    ok = asyncio.run(settings._check_refund_eligibility("u1", _Sb([]), start, "pay_1", alert_on_lookup_failure=alert_flag))
+    return ok, alerts, start
+
+
+def test_lookup_failure_alerts_operator_only_when_asked(monkeypatch):
+    for table in ("scan_results", "guides"):
+        ok, alerts, start = _fail_run(monkeypatch, fail_table=table, alert_flag=True)
+        assert ok is False and len(alerts) == 1, table
+        subject, message = alerts[0]
+        assert "수동 확인" in subject and "u1" in message and start in message           # 누가·언제 구독했는지가 알림에 있다
+        ok2, alerts2, _ = _fail_run(monkeypatch, fail_table=table, alert_flag=False)       # /me(대시보드) 경로는 알림 폭주 방지
+        assert ok2 is False and alerts2 == [], table
+
+
+def test_business_lookup_failure_is_now_protected_and_alerts(monkeypatch):
+    """사업장 조회가 try 밖이어서 DB 오류가 나면 해지(또는 /me)가 500이 되던 것."""
+    ok, alerts, _ = _fail_run(monkeypatch, fail_table="businesses", alert_flag=True)
+    assert ok is False and len(alerts) == 1
+    ok2, alerts2, _ = _fail_run(monkeypatch, fail_table="businesses", alert_flag=False)
+    assert ok2 is False and alerts2 == []
+
+
+def test_alert_failure_never_breaks_cancellation(monkeypatch):
+    ok, alerts, _ = _fail_run(monkeypatch, fail_table="guides", alert_flag=True, alert_raises=True)
+    assert ok is False and len(alerts) == 1                                              # 알림이 실패해도 예외 없이 환불 보류로 끝난다
+
+
+def test_no_alert_for_normal_denial_or_eligibility(monkeypatch):
+    alerts = []
+
+    async def fake_alert(subject, message):
+        alerts.append(subject)
+
+    monkeypatch.setattr(settings, "send_operator_alert", fake_alert)
+    for kw in (dict(scans=1), dict(guides=1), dict(), dict(start_days_ago=8), dict(key=None), dict(biz=())):
+        _run(monkeypatch, **kw)
+    assert alerts == []                                                                  # 정상 판정에는 알림이 없다
+
+
+def test_cancel_path_enables_alert_and_me_path_does_not_and_success_is_recorded():
+    import inspect
+    src = inspect.getsource(settings)
+    assert "sub.get(\"first_payment_key\"), alert_on_lookup_failure=True" in src         # 해지 경로
+    import re
+    calls = re.findall(r"await _check_refund_eligibility\((.*?)\n\s*\)", src, flags=re.S)    # 실제 호출(정의·설명 제외)
+    assert len(calls) == 2 and sum("alert_on_lookup_failure=True" in c for c in calls) == 1   # /me 경로는 기본값(False)
+    assert "await _check_refund_eligibility(\n            user_id, supabase, sub.get(\"start_at\"), sub.get(\"first_payment_key\")\n        )" in src
+    assert "7일 청약철회 자동환불 완료" in src and 'level="info", source="refund"' in src      # 성공은 이메일 없이 기록만

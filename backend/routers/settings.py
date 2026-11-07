@@ -19,10 +19,16 @@ logger = logging.getLogger("aeolab")
 router = APIRouter()
 
 
-async def _check_refund_eligibility(user_id: str, supabase, start_at, first_payment_key) -> bool:
+async def _check_refund_eligibility(
+    user_id: str, supabase, start_at, first_payment_key, alert_on_lookup_failure: bool = False
+) -> bool:
     """7일 청약철회 자동환불 자격 확인 — terms/page.tsx 제5조: 구독 시작일로부터 7일 이내
     + 서비스 미이용(스캔·가이드 생성 등) — 구독 시작 이후의 이용만 센다. 판단은 보수적으로(애매하면 환불 거부) — 활성 여부와
-    무관하게 사용자 소유의 모든 사업장을 대상으로 스캔·가이드 이력을 확인한다."""
+    무관하게 사용자 소유의 모든 사업장을 대상으로 스캔·가이드 이력을 확인한다.
+
+    alert_on_lookup_failure=True(해지 경로 전용)이면 이용 이력 조회가 실패해 환불이 보류될 때 운영자에게 알린다 — 7일 안에 아무것도
+    안 쓴 사용자가 시스템 오류로 환불을 거부당해도 운영자가 모르던 구멍(2026-11-08). 대시보드 조회 경로(/me)는 페이지를 열 때마다
+    불리므로 알림을 보내지 않는다(알림 폭주 방지)."""
     if not first_payment_key or not start_at:
         return False
     try:
@@ -34,11 +40,6 @@ async def _check_refund_eligibility(user_id: str, supabase, start_at, first_paym
     if datetime.now(timezone.utc) - start_dt > timedelta(days=7):
         return False
 
-    biz_res = await execute(supabase.table("businesses").select("id").eq("user_id", user_id))
-    biz_ids = [b["id"] for b in (biz_res.data or [])]
-    if not biz_ids:
-        return True  # 사업장이 없으면 스캔·가이드 생성 자체가 불가능 → 미이용
-
     # '이용'은 구독 시작 이후의 이용만 센다(2026-11-07). 결제 전에 이미 있던 기록 — 체험 결과 가져오기, 무료 첫 측정 — 때문에
     # 7일 환불이 막히면 사용자는 "무료 체험을 했더니 환불이 안 된다"고 느낀다. 시각은 '…Z' 형식으로 보내 URL의 '+'(시간대) 인코딩 문제를 피한다.
     since = start_dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -48,6 +49,12 @@ async def _check_refund_eligibility(user_id: str, supabase, start_at, first_paym
     # 이 판정은 구독 해지 경로(cancel_subscription)에서 예외 처리 없이 호출된다 — 조회가 실패해도 해지 자체가 500이 되지 않게
     # 막고, 확인하지 못한 것은 보수적으로 환불 불가로 둔다(이 함수의 원칙: 애매하면 환불 거부). 수동 확인은 운영자 알림 경로가 맡는다.
     try:
+        # 사업장 조회도 이 보호 안에서 한다 — 예전엔 try 밖이라 DB 오류가 나면 해지(또는 /me)가 500이 됐다
+        biz_res = await execute(supabase.table("businesses").select("id").eq("user_id", user_id))
+        biz_ids = [b["id"] for b in (biz_res.data or [])]
+        if not biz_ids:
+            return True  # 사업장이 없으면 스캔·가이드 생성 자체가 불가능 → 미이용
+
         scan_res = await execute(
             supabase.table("scan_results").select("id", count="exact")
             .in_("business_id", biz_ids)
@@ -68,6 +75,15 @@ async def _check_refund_eligibility(user_id: str, supabase, start_at, first_paym
             return False
     except Exception as e:
         logger.warning(f"환불 자격 이용 이력 조회 실패 — 보수적으로 환불 불가 처리 (user={user_id}): {e}")
+        if alert_on_lookup_failure:
+            try:
+                await send_operator_alert(
+                    "7일 청약철회 환불 자격 확인 실패 — 환불 보류, 수동 확인 필요",
+                    f"user_id={user_id}\nstart_at={start_at}\nerror={e}\n"
+                    "※ 구독 후 7일 이내라 환불 대상일 수 있습니다. 이용 이력(scan_results·guides)을 직접 확인한 뒤 필요하면 수동 환불해 주세요.",
+                )
+            except Exception as alert_err:   # 알림 실패가 해지를 막으면 안 된다
+                logger.warning(f"환불 자격 확인 실패 알림 발송 실패 (user={user_id}): {alert_err}")
         return False
 
     return True
@@ -203,7 +219,9 @@ async def _cancel_subscription_core(user_id: str) -> dict:
     # 7일 청약철회 자동환불 판정 — terms/page.tsx 제5조 근거 (docs/subscription_lifecycle_inspection_v1.0.md §5/§6)
     refunded = False
     refund_amount = None
-    if await _check_refund_eligibility(user_id, supabase, sub.get("start_at"), sub.get("first_payment_key")):
+    if await _check_refund_eligibility(
+        user_id, supabase, sub.get("start_at"), sub.get("first_payment_key"), alert_on_lookup_failure=True
+    ):
         try:
             cancel_resp = await creb_client.cancel_full(
                 sub["first_payment_key"], int(sub.get("first_payment_amount") or 0), "7일 이내 청약철회"
@@ -212,6 +230,16 @@ async def _cancel_subscription_core(user_id: str) -> dict:
                 refunded = True
                 refund_amount = sub.get("first_payment_amount")
                 logger.info(f"7일 청약철회 자동환불 성공 (user={user_id}, amount={refund_amount})")
+                # 환불 빈도(남용 신호)를 관리자 알림 이력에서 볼 수 있게 정보 수준으로만 기록한다 — 이메일은 보내지 않는다
+                try:
+                    from utils.system_alert_log import record_alert
+                    await record_alert(
+                        "7일 청약철회 자동환불 완료",
+                        f"user_id={user_id}\namount={refund_amount}",
+                        level="info", source="refund",
+                    )
+                except Exception as rec_err:
+                    logger.warning(f"자동환불 이력 기록 실패 (환불은 정상 처리됨, user={user_id}): {rec_err}")
             else:
                 # 동시 요청 경쟁조건 방어: 이 요청과 거의 동시에 도착한 다른 요청이 먼저 환불을
                 # 완료시켰다면(크렙은 이미 취소된 거래를 ALREADY_FULLY_CANCELED로 거부) status가 이미 cancelled로
