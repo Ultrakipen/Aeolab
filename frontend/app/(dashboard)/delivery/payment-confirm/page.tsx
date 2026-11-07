@@ -18,6 +18,7 @@ function PaymentConfirmInner() {
 
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState("");
+  const [alreadyPaid, setAlreadyPaid] = useState(false);
 
   useEffect(() => {
     if (!orderId || !paymentKey || !pgOrderId) {
@@ -52,8 +53,28 @@ function PaymentConfirmInner() {
         });
 
         if (!res.ok) {
+          // 결제 완료 화면을 새로고침하거나 뒤로가기로 다시 열면 같은 확정 요청이 한 번 더 나가고, 서버는 이미 결제된
+          // 주문이라 409를 돌려준다. 돈은 정상 결제된 상태이므로 실패 화면 대신 '이미 결제됨'으로 안내한다.
+          // 409라도 주문이 실제로 결제 이후 상태일 때만 그렇게 본다(환불·취소 상태 등은 그대로 오류).
+          if (res.status === 409) {
+            try {
+              const orderRes = await fetch(`${BACKEND_URL}/api/delivery/orders/${orderId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              if (orderRes.ok) {
+                const o = (await orderRes.json()) as { order?: { status?: string } };
+                if (["paid", "in_progress", "completed"].includes(o.order?.status ?? "")) {
+                  setAlreadyPaid(true);
+                  setStatus("success");
+                  return;
+                }
+              }
+            } catch {
+              /* 상태 조회 실패 — 아래 오류 안내로 */
+            }
+          }
           const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.detail ?? "결제 확인에 실패했습니다.");
+          throw new Error(typeof errData.detail === "string" ? errData.detail : "결제 확인에 실패했습니다.");
         }
 
         setStatus("success");
@@ -82,7 +103,9 @@ function PaymentConfirmInner() {
         </div>
         <div className="text-center">
           <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">결제 완료!</h1>
-          <p className="text-base text-gray-600">의뢰가 접수되었습니다.</p>
+          <p className="text-base text-gray-600">
+            {alreadyPaid ? "이미 결제가 확인된 의뢰입니다. 중복 결제되지 않았습니다." : "의뢰가 접수되었습니다."}
+          </p>
           <p className="text-sm text-gray-600 mt-1">아래 버튼을 눌러 의뢰 상세 페이지로 이동하세요.</p>
         </div>
         <button

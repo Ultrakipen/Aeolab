@@ -51,6 +51,9 @@ function CrisisGuidePanel({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [rating, setRating] = useState<1 | 2 | 3>(1)
+  // 가이드는 사용자가 '만들기'를 눌렀을 때만 생성한다(2026-11-07). 예전에는 패널이 열리자마자 기본 1점으로 한 번,
+  // 실제 별점을 누르면 또 한 번 생성해 Basic(월 20회)이 의도와 무관하게 2회 차감되고 첫 결과는 틀린 별점 기준이었다.
+  const [run, setRun] = useState<{ n: number; rating: 1 | 2 | 3 } | null>(null)
   const [copiedSection, setCopiedSection] = useState<string | null>(null)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     reply: true, tips: true, doNot: false, offline: false,
@@ -66,6 +69,7 @@ function CrisisGuidePanel({
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }))
 
   useEffect(() => {
+    if (!run) return   // 아직 '만들기'를 누르지 않았다 — 자동 생성하지 않는다
     const generate = async () => {
       setLoading(true)
       setError('')
@@ -77,7 +81,7 @@ function CrisisGuidePanel({
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ review_text: reviewText, rating }),
+          body: JSON.stringify({ review_text: reviewText, rating: run.rating }),
         })
         if (!res.ok) {
           const err = await res.json().catch(() => ({})) as { detail?: string | { message?: string; code?: string } }
@@ -95,7 +99,7 @@ function CrisisGuidePanel({
       }
     }
     generate()
-  }, [reviewText, businessId, token, rating])
+  }, [run, reviewText, businessId, token])
 
   return (
     <div className="mt-3 bg-red-50 border border-red-200 rounded-xl overflow-hidden">
@@ -138,6 +142,25 @@ function CrisisGuidePanel({
             </button>
           ))}
         </div>
+
+        {/* 만들기 — 누를 때만 생성(이용 횟수 1회 사용) */}
+        {!loading && (run === null || run.rating !== rating) && (
+          <div className="space-y-2">
+            {run !== null && (
+              <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                아래 가이드는 {run.rating}점 기준입니다. 별점을 바꾸셨다면 다시 만들어야 맞는 내용이 나옵니다.
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => setRun((prev) => ({ n: (prev?.n ?? 0) + 1, rating }))}
+              className="w-full min-h-[44px] rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
+            >
+              {run === null ? `${rating}점 기준으로 가이드 만들기` : `${rating}점 기준으로 다시 만들기`}
+            </button>
+            <p className="text-sm text-gray-600">만들 때마다 이번 달 이용 횟수가 1회 사용됩니다. 요금제에 따라 월 한도가 있습니다.</p>
+          </div>
+        )}
 
         {/* 로딩 */}
         {loading && (

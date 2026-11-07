@@ -154,6 +154,14 @@ CREATE POLICY "user_see_own_replies" ON support_replies
 - **기각(오탐)**: 설정의 "다음 결제일 10월 29일(과거)"는 관리자 이메일이면 플랜을 Biz·활성으로 강제(`settings/page.tsx:122`)하고 날짜는 계정 본인의 취소된 Basic 행에서 읽는 **관리자 전용 표시**. `subscriptions.user_id`가 UNIQUE라 실제 사용자는 한 행뿐 — 영향 없음. 서버 구독 행 6건뿐(유료 실구독 0, 활성 3건은 만료 2036·2027의 테스트·관리 계정).
 - **미확인**: 로그인 후 화면을 실제 결과가 있는 사업장으로 끝까지 눌러 대조한 것(이번엔 구조·측정 위주, 실행 버튼은 누르지 않음), /delivery/new·/orders 상세·/settings/team·/api-keys의 시각 점검.
 
+### F1·F2 수정 (11-07, 서버 반영 완료)
+- **F2** `delivery/payment-confirm/page.tsx`: 확정 POST가 409일 때만 `GET /api/delivery/orders/{id}`로 실제 주문 상태를 읽어 `paid·in_progress·completed`이면 "이미 결제가 확인된 의뢰입니다. 중복 결제되지 않았습니다."로 안내(그 외 409·다른 오류는 기존대로 실패 화면, 상태 조회가 실패해도 실패 화면). 서버 방어(409)는 그대로라 중복 확정은 여전히 불가.
+- **F1(추천안)** `review-inbox/page.tsx` `CrisisGuidePanel`: 열 때 자동 생성 제거 → 별점 선택 → "N점 기준으로 가이드 만들기" 버튼(누른 때만 호출, 이용 횟수 1회 사용 안내, 버튼 44px). 별점을 바꾸면 기존 결과 위에 "N점 기준입니다" 안내와 "다시 만들기"가 뜨고 자동 재호출 없음. 원래 문제의 두 번째 결함도 해소: 기본 1점으로 먼저 생성돼 첫 결과가 틀린 별점 기준이었다.
+- 검증: 타입 검사 0 오류(`node node_modules/typescript/lib/tsc.js --noEmit`), `test_frontend_crisis_manual_and_payment_reload.py` 5개(변이 4종 실패 확인), 로컬 2191·서버 2189(+1 스킵) 통과, 프런트 md5 일치·빌드·pm2 재시작·빌드 산출물에 새 문구 확인.
+- **라이브 확인(F1)**: 테스트 계정으로 리뷰 답변 1건 생성 → 패널 열기: `crisis-reply` 호출 0건 → 별점 3점 클릭: 0건 → 만들기 클릭: 정확히 1건(200) → 별점 1점 클릭: 추가 호출 없음 + 안내·"다시 만들기" 표시, 모바일 390px 넘침 없음. 이때 생긴 `review_replies` 1행·`guides`(crisis_reply) 1행은 id·시각·문구를 대조한 뒤 그 2건만 삭제(잔존 0 확인). Haiku 호출 2회 소모.
+- **F2 라이브는 미확인**: 결제된 대행 주문이 없어(실주문 0건) 새로고침 시나리오를 실제로 재현하지 못했고, 구조 테스트·코드 대조로만 검증. 크렙이 같은 `paymentId`로 재승인할 때의 응답도 미확인(서버는 상태 검사로 PG 호출 전에 409를 반환).
+- 남음: F3(긴 사업장명 잘림), F4(작은 터치 영역).
+
 ## 기각(오탐·과장) — 사유
 - **save-email P0**: 속도 제한이 없는 것은 맞지만 메일은 체험당 1회(`scan.py` first_email)이고 체험 생성이 IP당 일 3회 → P2.
 - **report.py IP 제한이 Cloudflare 뒤에서 무력화**: nginx `cloudflare-realip.conf`로 실제 IP가 복원됨.
