@@ -293,7 +293,7 @@ export default async function HistoryPage() {
                     최근 30일간 측정 기록이 없습니다. (마지막 측정: {new Date(lastScanDateEver).toLocaleDateString('ko-KR')})
                   </p>
                   <p className="text-gray-600 text-sm mb-3">다시 측정하면 최신 AI 검색 노출 상태가 여기에 기록됩니다.</p>
-                  <Link href="/dashboard" className="inline-block text-sm font-semibold text-blue-600 hover:underline">
+                  <Link href="/dashboard" className="inline-flex items-center min-h-[44px] text-sm font-semibold text-blue-600 hover:underline">
                     대시보드에서 지금 측정 →
                   </Link>
                 </>

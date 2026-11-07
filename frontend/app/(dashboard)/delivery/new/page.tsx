@@ -201,7 +201,7 @@ function DeliveryNewForm() {
         {/* 헤더 */}
         <div className="mb-6">
           <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-            <a href="/delivery" className="hover:text-blue-600 transition-colors">대행 서비스</a>
+            <a href="/delivery" className="inline-flex items-center min-h-[44px] -my-3 hover:text-blue-600 transition-colors">대행 서비스</a>
             <ChevronRight className="w-4 h-4" />
             <span className="text-gray-700">의뢰 작성</span>
           </div>

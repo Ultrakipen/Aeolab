@@ -184,6 +184,13 @@ CREATE POLICY "user_see_own_replies" ON support_replies
 - **검증 방법 교훈**: 첫 라이브 시도가 실패한 것은 검증 문구가 중립이라 위기 버튼이 안 붙은 내 실수 — 그 시도가 만든 `review_replies` 행도 id·문구 대조 후 삭제(잔존 0). 라이브 검증 중 만든 행(`review_replies` 4·`guides` 1)은 모두 삭제 확인. Haiku 호출 3회.
 - **남은 추가 작업(정리)**: ①내일: GitHub `skipped`·섀도 첫 표본(서버 로그인 화면 DOM에서 `place_list_found`가 True로 읽히는지가 핵심) ②사용자 결정: 환불 규칙 정책, 섀도 데이터가 모이면 점수 반영 여부 ③낮은 우선순위: `action_tools`의 "AI 브리핑 인용 후보 가능성이 높아집니다" 효과 문구(프런트 금지 문구 테스트는 frontend만 검사), 소식 초안 CTA "예약해 보세요"류(예약 가능 여부 단정 — 전화 예약도 예약이라 낮음), 설정 탭이 5곳 이상·긴 이름일 때 가로 스크롤 미확인, CLAUDE.md 701줄(기준 700 초과는 이전부터).
 
+### 남은 로그인 후 페이지 점검 결과 (11-07 밤: /delivery/new·/settings/team·/settings/api-keys·/guide·/history, PC·모바일)
+- **자동 호출(useEffect·라우트 함수 단위)**: guide·history·delivery/new·team·api-keys 모두 마운트 시 읽기 GET뿐. guide의 격차 5분 캐시·키워드 검색량은 네이버 **공식 검색광고 API**(DB 캐시·7일 캐시), history의 blog-analysis GET은 Playwright/네이버 접속 코드 0. POST(blog-analysis·capture-blog)는 버튼 핸들러에서만. `/blog-analysis`는 열기만 해도 자동 분석 효과(전례 있음)가 있어 이번 화면 측정에서 **제외(미확인)**. `/delivery/orders/[id]`는 결제된 주문이 없어 시각 점검 불가.
+- **측정(양호)**: 5개 페이지 PC·모바일 모두 가로 넘침 0, 12px 미만 글자 0, 이름 없는 아이콘 버튼 0.
+- **수정(P3, 서버 반영)**: history '1위 블로그' 열 제목이 PC 188px에서 잘리고 확인 수단 없음 → 폭 260px(lg)+`title` 툴팁, history 빈 상태 CTA 링크 20→44px, delivery/new 상단 이동 링크 20→44px(행 높이 불변), history 새로고침 아이콘 버튼 40×28→40×40+`aria-label`. 회귀 테스트 `test_frontend_remaining_pages_touch_and_titles.py`(변이 4종 실패 확인).
+- **오탐 기각**: guide 답변 예시의 말줄임(접힌 아코디언 헤더 미리보기, 펼치면 전문 표시), history 모바일의 '글자 없는 207×32 버튼'(닫힌 모바일 서랍의 로그아웃 — `textContent`는 있으나 숨김 상태라 `innerText`가 빔), guide 키워드 칩 28px 높이 39개(WCAG 2.2 AA 최소 24px 충족, 개별 효과 대비 변경 범위가 커서 보류).
+- **미확인**: `/blog-analysis` 화면, 주문 상세, 결제 후 화면의 실제 사용 흐름.
+
 ## 기각(오탐·과장) — 사유
 - **save-email P0**: 속도 제한이 없는 것은 맞지만 메일은 체험당 1회(`scan.py` first_email)이고 체험 생성이 IP당 일 3회 → P2.
 - **report.py IP 제한이 Cloudflare 뒤에서 무력화**: nginx `cloudflare-realip.conf`로 실제 IP가 복원됨.

@@ -536,8 +536,9 @@ export default function BlogScreenshotSection({
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleRefresh}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 min-h-[40px] min-w-[40px] text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               title="최신 분석 결과 불러오기"
+              aria-label="최신 분석 결과 불러오기"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">새로고침</span>
@@ -690,8 +691,9 @@ export default function BlogScreenshotSection({
                             </span>
                           )}
                         </td>
-                        <td className="px-4 md:px-6 py-4 text-sm text-gray-600 hidden sm:table-cell max-w-[180px]">
-                          <span className="truncate block">{top1?.blog_name || top1?.title || "—"}</span>
+                        <td className="px-4 md:px-6 py-4 text-sm text-gray-600 hidden sm:table-cell max-w-[180px] lg:max-w-[260px]">
+                          {/* 말줄임으로 잘려도 전체 이름을 볼 수 있게 title(툴팁) 제공 — PC 표에서 제목이 188px에서 잘리고 확인 수단이 없었다(2026-11-07) */}
+                          <span className="truncate block" title={top1?.blog_name || top1?.title || undefined}>{top1?.blog_name || top1?.title || "—"}</span>
                         </td>
                         <td className="px-4 md:px-6 py-4 text-sm text-gray-600 hidden md:table-cell whitespace-nowrap">
                           {formatAnalyzedAt(analysis.analyzed_at)}
