@@ -331,7 +331,7 @@ function MethodologyDisclosureBar({
           <> · {channelCount}개 AI 서비스 총 <strong className="text-gray-700">{totalMeasurements}회</strong> 실측 기반</>
         )}
       </span>
-      <Link href="/how-it-works" className="text-indigo-600 hover:underline ml-auto shrink-0">
+      <Link href="/how-it-works" className="inline-flex items-center min-h-[44px] -my-3 text-indigo-600 hover:underline ml-auto shrink-0">
         측정 방법론 보기
       </Link>
     </div>
@@ -408,7 +408,7 @@ function InfoBriefingReadinessCard({
               href={blogUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
+              className="inline-flex items-center gap-1 min-h-[40px] text-sm text-blue-600 hover:underline"
             >
               블로그 열기 <ExternalLink className="w-3.5 h-3.5" />
             </a>
@@ -1035,7 +1035,7 @@ function TopicSuggestionsV2Card({
                 setCopiedIdx(idx);
                 setTimeout(() => setCopiedIdx(null), 2000);
               }}
-              className="self-start inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800 font-medium mt-1"
+              className="self-start inline-flex items-center gap-1 min-h-[40px] text-sm text-indigo-600 hover:text-indigo-800 font-medium"
             >
               {copiedIdx === idx ? (
                 <>
@@ -1728,7 +1728,7 @@ function BlogMentionBenchmarkCard({
               label={{
                 value: `평균 ${data.avg_count}건`,
                 position: "top",
-                fontSize: 11,
+                fontSize: 13,   // 11px로 렌더링되던 차트 라벨(배율 1 실측) — 12px 미만 글자 금지(2026-11-07)
                 fill: "#b45309",
               }}
             />
@@ -2165,7 +2165,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                 setMonthlyLimit(null);
                 setIsMonthlyLimitReached(false);
               }}
-              className="ml-auto inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors shrink-0 whitespace-nowrap"
+              className="ml-auto inline-flex items-center gap-1 min-h-[40px] text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors shrink-0 whitespace-nowrap"
             >
               <X className="w-4 h-4" />
               사업장 변경
@@ -2494,7 +2494,7 @@ export function BlogClient({ businesses, currentPlan, accessToken: initialToken,
                               disabled={excludingKws.has(kw)}
                               aria-label={`${kw} 제외`}
                               title="이 키워드 제외 (다음 분석부터 미표시)"
-                              className="ml-0.5 w-4 h-4 rounded-full hover:bg-red-300 text-red-700 hover:text-red-800 flex items-center justify-center disabled:opacity-40 transition-colors"
+                              className="ml-0.5 -mr-2 -my-2 w-8 h-8 rounded-full hover:bg-red-300 text-red-700 hover:text-red-800 flex items-center justify-center disabled:opacity-40 transition-colors"
                             >
                               {excludingKws.has(kw) ? (
                                 <Loader2 className="w-3 h-3 animate-spin" />

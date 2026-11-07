@@ -572,7 +572,7 @@ def _calc_posting_frequency(post_dates: list) -> dict:
 
     if monthly_avg >= 2 and is_bursty:
         consistency = "bursty"
-        consistency_message = "특정 시기에 몰아서 발행했습니다 — 네이버가 저품질로 오인할 수 있는 패턴입니다. 매월 2~3개씩 고르게 발행하면 AI 검색 신뢰도가 높아집니다."
+        consistency_message = "특정 시기에 몰아서 발행했습니다 — 네이버가 저품질로 오인할 수 있는 패턴입니다. 매월 2~3개씩 고르게 발행하면 AI 검색 신뢰도에 도움이 될 수 있습니다."
     elif monthly_avg >= 2:
         consistency = "active"
         consistency_message = "꾸준히 발행하고 있습니다. 월 2회 이상 발행으로 AI 검색 노출을 유지하세요."

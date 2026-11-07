@@ -1318,7 +1318,7 @@ def build_direct_briefing_paths(
             "urgency": "this_week",
             "urgency_label": "이번 주",
             "reason": (
-                "AI 검색 결과에 '예약' 버튼이 붙으면 방문 전환율이 높아집니다. "
+                "AI 검색 결과에 '예약' 버튼이 붙으면 방문 예약으로 이어지는 데 도움이 될 수 있습니다. "
                 "외부 예약 시스템(셀렉트스퀘어·캐치테이블 등)도 URL 연결로 동일하게 적용됩니다."
             ),
             "target_keywords": [],

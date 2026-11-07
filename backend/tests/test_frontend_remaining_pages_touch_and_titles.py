@@ -36,3 +36,24 @@ def test_history_refresh_icon_button_has_touch_size_and_accessible_name():
     block = BLOG[i:i + 420]
     assert "min-h-[40px] min-w-[40px]" in block                 # 모바일에서 아이콘만 보일 때 40×28이던 것
     assert 'aria-label="최신 분석 결과 불러오기"' in block
+
+
+BC = (FE / "blog-analysis" / "BlogClient.tsx").read_text(encoding="utf-8")
+
+
+def test_blog_analysis_chart_label_is_not_below_12px_and_touch_targets_are_larger():
+    # 차트 라벨 '평균 N건'이 SVG 배율 1로 11px 렌더링되던 것(2026-11-07 실측)
+    i = BC.index('value: `평균 ${data.avg_count}건`')
+    assert "fontSize: 13" in BC[i:i + 160] and "fontSize: 11" not in BC[i:i + 160]
+    # 제외(×) 버튼 16px → 32px(+음수 마진으로 칩 높이 유지), 접근성 이름은 유지
+    j = BC.index("handleExcludeKeyword(kw)")
+    chip = BC[j:j + 520]
+    assert "w-8 h-8" in chip and "w-4 h-4 rounded-full hover:bg-red-300" not in chip and "aria-label={`${kw} 제외`}" in chip
+    # 단독 링크·버튼 높이 20px → 40~44px
+    assert "inline-flex items-center min-h-[44px] -my-3 text-indigo-600 hover:underline ml-auto shrink-0" in BC      # 측정 방법론 보기
+    k = BC.index("블로그 열기 <ExternalLink")
+    assert "min-h-[40px]" in BC[k - 220:k]
+    m = BC.index("주제 복사")
+    assert "min-h-[40px]" in BC[m - 700:m]
+    n = BC.index("사업장 변경\n")
+    assert "min-h-[40px]" in BC[n - 400:n]
