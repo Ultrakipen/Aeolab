@@ -52,3 +52,16 @@ def test_drafts_are_still_well_formed_after_removal():
     jisikin = be._make_community_drafts("한결식당", "경상남도 창원시 성산구", "restaurant", ["창원 맛집", "점심"])["jiskin_text"] if "jiskin_text" in be._make_community_drafts("한결식당", "경상남도 창원시 성산구", "restaurant", ["창원 맛집", "점심"]) else ""
     if jisikin:
         assert jisikin.rstrip().endswith("접근하기 편합니다.")
+
+
+POST_CATEGORIES = ["legal", "realestate", "medical", "clinic", "dental", "pharmacy", "interior", "auto", "cleaning", "education",
+                   "tutoring", "academy", "accommodation", "beauty", "nail", "fitness", "yoga", "pilates", "pet", "restaurant", "cafe", "unknown_cat"]
+
+
+@pytest.mark.parametrize("cat", POST_CATEGORIES)
+def test_post_closing_line_does_not_assert_free_offers_or_trials(cat):
+    """소식 초안 마지막 문장(_FALLBACK_CTA)이 '무료 체험 수업 신청'·'무료 견적' 같은 확인되지 않은 혜택을 단정하지 않는다 (2026-11-07)."""
+    for kw in ([], ["창원 학원", "성산구 수업"]):
+        t = be._make_post_content(kw, "한결상점", cat, "경상남도 창원시 성산구")
+        hit = [w for w in ("무료", "체험", "체험권", "할인", "이벤트") if w in t]
+        assert not hit, f"{cat}: 확인되지 않은 혜택 단정 {hit}\n{t[:300]}"

@@ -68,3 +68,12 @@ def test_payment_confirm_other_errors_still_fail():
     # 처음 성공(2xx) 경로는 그대로
     assert PAY.count('setStatus("success")') == 2
     assert "이미 결제가 확인된 의뢰입니다" in PAY and "중복 결제되지 않았습니다" in PAY
+
+
+def test_failed_generation_can_be_retried_with_same_rating():
+    panel = _panel()
+    # 실패(error) 뒤에도 같은 별점으로 다시 시도하는 버튼이 보여야 한다 — 없으면 별점을 바꿨다 되돌려야만 재시도된다
+    assert "run === null || run.rating !== rating || !!error" in panel
+    assert "다시 시도" in panel
+    # '아래 가이드는 N점 기준' 안내는 결과가 있을 때만(실패 상태에선 가이드가 없다)
+    assert "run !== null && result && run.rating !== rating" in panel

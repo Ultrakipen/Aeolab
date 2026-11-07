@@ -67,3 +67,20 @@ def test_action_tool_faq_copy_does_not_assert_naver_reservation():
     src = (Path(__file__).resolve().parents[1] / "services" / "action_tools.py").read_text(encoding="utf-8")
     assert "네이버 예약으로 가능합니다" not in src
     assert "네, {top_kw} 가능합니다" not in src
+
+
+def test_count_placeholders_counts_top_level_blanks_including_long_and_nested():
+    c = be.count_placeholders
+    assert c("") == 0 and c(None) == 0 and c("빈칸 없음") == 0
+    assert c("전화([전화번호])") == 1                                            # 예전 규칙도 세던 짧은 빈칸
+    assert c("[확인한 뒤 작성하세요. 예: 소규모 당일 방문 가능]. [문의 방법은 실제 운영 중인 것만 적어 주세요]") == 2   # 20자를 넘는 긴 빈칸
+    assert c("[예약 방법은 실제 운영 중인 것만 적어 주세요. 예: 전화([전화번호]), 네이버 예약]") == 1   # 중첩은 바깥 하나
+    assert c("[예: 10,000원] 안내") == 0                                          # 예시 설명은 빈칸이 아니다
+    assert c("[a] [] [  ]") == 0                                                 # 너무 짧거나 빈 묶음
+    assert c("닫는 대괄호만 ] 있음 [열기만") == 0                                   # 짝이 안 맞아도 깨지지 않는다
+
+
+def test_every_unverified_faq_template_answer_counts_at_least_one_blank():
+    # 사실 단정을 빈칸으로 바꾼 답변은 '채울 곳이 있다'고 세어져야 한다(약국 일반의약품 안내 같은 일반 사실은 제외)
+    no_blank = [(k, it["q"]) for k, items in be._FAQ_TEMPLATES.items() for it in items if be.count_placeholders(it["a"]) == 0]
+    assert len(no_blank) <= 3, no_blank

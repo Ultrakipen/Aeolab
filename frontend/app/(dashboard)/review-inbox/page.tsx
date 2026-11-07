@@ -144,9 +144,10 @@ function CrisisGuidePanel({
         </div>
 
         {/* 만들기 — 누를 때만 생성(이용 횟수 1회 사용) */}
-        {!loading && (run === null || run.rating !== rating) && (
+        {/* 실패(error)했을 때도 같은 별점으로 다시 시도할 수 있어야 한다 — 안 그러면 별점을 바꿨다 되돌려야만 재시도됨 */}
+        {!loading && (run === null || run.rating !== rating || !!error) && (
           <div className="space-y-2">
-            {run !== null && (
+            {run !== null && result && run.rating !== rating && (
               <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
                 아래 가이드는 {run.rating}점 기준입니다. 별점을 바꾸셨다면 다시 만들어야 맞는 내용이 나옵니다.
               </p>
@@ -156,7 +157,7 @@ function CrisisGuidePanel({
               onClick={() => setRun((prev) => ({ n: (prev?.n ?? 0) + 1, rating }))}
               className="w-full min-h-[44px] rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
             >
-              {run === null ? `${rating}점 기준으로 가이드 만들기` : `${rating}점 기준으로 다시 만들기`}
+              {run === null ? `${rating}점 기준으로 가이드 만들기` : error ? `${rating}점 기준으로 다시 시도` : `${rating}점 기준으로 다시 만들기`}
             </button>
             <p className="text-sm text-gray-600">만들 때마다 이번 달 이용 횟수가 1회 사용됩니다. 요금제에 따라 월 한도가 있습니다.</p>
           </div>

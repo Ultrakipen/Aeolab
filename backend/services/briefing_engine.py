@@ -100,6 +100,29 @@ _ACTION_STEPS = {
 }
 
 
+def count_placeholders(text: str) -> int:
+    """사장님이 직접 채워야 할 빈칸 `[ ... ]`의 개수 — 바깥(최상위) 대괄호 묶음만 센다.
+
+    예전 정규식(`\\[(?!예:)[^\\]]{2,20}\\]`)은 2~20자짜리만 세서, 2026-11-07 FAQ 정리로 "[… 확인한 뒤 작성하세요. 예: …]"처럼 길어진
+    빈칸과 `[… 전화([전화번호]) …]` 같은 중첩 빈칸을 놓쳤다. `예:`로 시작하는 묶음(예시 설명)은 빈칸이 아니라 제외한다.
+    """
+    if not text:
+        return 0
+    n, depth, start = 0, 0, -1
+    for i, ch in enumerate(text):
+        if ch == "[":
+            if depth == 0:
+                start = i
+            depth += 1
+        elif ch == "]" and depth > 0:
+            depth -= 1
+            if depth == 0:
+                inner = text[start + 1:i]
+                if len(inner.strip()) >= 2 and not inner.lstrip().startswith("예:"):
+                    n += 1
+    return n
+
+
 def _compat_chat_menus(raw) -> list[dict]:
     """talktalk_faq_draft 하위 호환 변환.
 
@@ -935,18 +958,18 @@ def _make_post_content(
         "clinic": "진료 예약을 해주세요.",
         "dental": "진료 예약을 해주세요.",
         "pharmacy": "방문해 주세요.",
-        "interior": "무료 견적 상담을 받아보세요.",
+        "interior": "견적 상담을 받아보세요.",   # '무료'는 확인되지 않은 혜택이라 쓰지 않는다(2026-11-07)
         "auto": "방문 점검을 예약해 보세요.",
         "cleaning": "서비스 예약을 해주세요.",
         "education": "수강 문의를 주세요.",
         "tutoring": "수강 문의를 주세요.",
-        "academy": "무료 체험 수업 신청해 보세요.",
+        "academy": "수강 문의를 주세요.",           # 체험 수업·무료 제공 여부를 모르므로 단정하지 않는다(2026-11-07)
         "accommodation": "예약해 보세요.",
         "beauty": "예약해 보세요.",
         "nail": "예약해 보세요.",
-        "fitness": "무료 체험권 신청해 보세요.",
-        "yoga": "체험 수업 신청해 보세요.",
-        "pilates": "체험 수업 신청해 보세요.",
+        "fitness": "이용 문의를 주세요.",
+        "yoga": "수업 문의를 주세요.",
+        "pilates": "수업 문의를 주세요.",
         "pet": "미용 예약해 보세요.",
     }
     cta = _FALLBACK_CTA.get(category.lower(), "방문해 보세요.")
@@ -1183,7 +1206,7 @@ def build_direct_briefing_paths(
 
     def _placeholder_count(text: str) -> int:
         """[전화번호], [위치], [대표 메뉴명] 등 사장님이 직접 채워야 할 미완성 항목 수."""
-        return len(_re_ph.findall(r'\[(?!예:)[^\]]{2,20}\]', text))
+        return count_placeholders(text)
 
     name = biz.get("name", "우리 가게")
     category = biz.get("category", "")
