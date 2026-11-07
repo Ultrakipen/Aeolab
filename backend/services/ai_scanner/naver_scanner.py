@@ -7,6 +7,7 @@ import re
 from services.keyword_taxonomy import log_ad_only_mismatch
 from services.ai_scanner import apply_stealth, get_proxy_config, get_random_ua, get_naver_cookies, build_chrome_ua, block_heavy_resources, attach_bandwidth_counter, note_proxy_result, note_naver_auth_result, check_naver_playwright_quota
 from services.ai_scanner.bandwidth_tracker import record_usage_mb
+from services.ai_scanner.place_list_parser import shadow_place_list
 
 logger = logging.getLogger("aeolab")
 
@@ -130,6 +131,7 @@ class NaverAIBriefingScanner:
         source_blog_ids: list[str] = []
         source_image_map: dict[str, bool] = {}  # blog_id -> 이미지 썸네일과 함께 인용됐는지
         nav_ok = False  # goto 성공 여부 — 실패 시 "미노출"이 아니라 "측정 실패"로 반환하기 위함
+        shadow: dict = {}   # 플레이스 목록 섀도 기록(점수 미반영) — 아래 shadow_place_list
 
         try:
             url = f"{search_base}{query}"
@@ -372,6 +374,11 @@ class NaverAIBriefingScanner:
             if not mentioned and page_text and _name_in_text(target, page_text):
                 mentioned = True
 
+            # ── 플레이스 목록 섀도 기록 (2026-11-07 단계 2) ───────────────
+            # 위 PLACE_SELECTORS가 실제 화면에서 0개라 rank가 거의 비어 있다(docs 11-07). 점수 의미를 바꾸기 전에
+            # 구조 기반 판정(place_list_parser)을 추가 필드로만 쌓아 기존 mentioned와 비교한다. 점수·mentioned·rank에는 쓰지 않는다.
+            shadow = await shadow_place_list(page, target)
+
         except Exception as e:
             logger.warning(f"NaverAIBriefingScanner page check error for '{query}': {e}")
             note_proxy_result(e)
@@ -406,6 +413,7 @@ class NaverAIBriefingScanner:
             # 이 검색어에서 AI 브리핑이 떴는가(없음/있음)와 유형 — "브리핑 없음"과 "있는데 가게 미포함"을 구분
             "briefing_present": briefing_present,
             "briefing_type":    briefing_type,
+            **shadow,
         }
         # "AI 브리핑" 머리글은 있는데 본문 상자를 못 찾음 → 미노출로 단정하지 않고 측정 불가 처리
         if briefing_unrecognized and not briefing_present and not in_briefing:

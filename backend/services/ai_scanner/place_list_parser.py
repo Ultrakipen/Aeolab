@@ -110,6 +110,48 @@ def names_match(target: str, shown: str) -> bool:
     return bool(ca) and ca == cb
 
 
+# 이미 열려 있는 페이지의 DOM만 읽는다(추가 네이버 요청 없음). 스크립트·이미지·불필요 속성은 제거해 크기를 줄인다.
+PLACE_LIST_HTML_JS = """() => {
+  const ok = h => /map\\.naver\\.com\\/p\\/search|place\\.naver\\.com/.test(h || '');
+  const a = [...document.querySelectorAll('li a[role="button"]')].find(x => ok(x.href));
+  if (!a) return '';
+  const li = a.closest('li');
+  const list = li && li.parentElement;
+  if (!list) return '';
+  const c = list.cloneNode(true);
+  c.querySelectorAll('script,style,img,svg,source,picture').forEach(e => e.remove());
+  c.querySelectorAll('*').forEach(e => { [...e.attributes].forEach(t => { if (t.name !== 'href' && t.name !== 'role') e.removeAttribute(t.name); }); });
+  return c.outerHTML;
+}"""
+
+SHADOW_MAX_HTML = 1_500_000
+SHADOW_MAX_NAMES = 10
+
+
+async def shadow_place_list(page, target: str) -> dict:
+    """플레이스 목록 판정을 '섀도'로만 기록한다 — 점수·mentioned·rank 어디에도 쓰지 않는 추가 필드.
+
+    절대 예외를 내지 않는다(측정 본 경로를 막지 않기 위해). 반환 필드:
+      place_list_found  True=목록을 읽음 / False=페이지에 목록이 없거나 못 읽음 / None=읽는 중 오류
+      place_list_rank   목록 안 순위(없으면 None) — found가 True일 때만 '목록 밖'의 의미
+      place_list_names  읽은 이름 앞 10개(대조·디버그용)
+    """
+    try:
+        html = await page.evaluate(PLACE_LIST_HTML_JS)
+        if not isinstance(html, str):
+            return {"place_list_found": None, "place_list_rank": None, "place_list_names": []}
+        if len(html) > SHADOW_MAX_HTML:
+            html = ""
+        j = judge_place_list(html, target)
+        return {
+            "place_list_found": bool(j["list_found"]),
+            "place_list_rank": j["rank"],
+            "place_list_names": j["names"][:SHADOW_MAX_NAMES],
+        }
+    except Exception:
+        return {"place_list_found": None, "place_list_rank": None, "place_list_names": []}
+
+
 def judge_place_list(html: str, target: str, limit: int = 15) -> dict:
     """{"list_found": 목록을 읽었는가, "rank": 1부터의 순위 또는 None, "names": 읽은 이름 앞 limit개}.
 

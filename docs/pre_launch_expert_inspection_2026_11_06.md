@@ -137,6 +137,13 @@ CREATE POLICY "user_see_own_replies" ON support_replies
 - **2번 검증 결과(11-07, 로컬 PC 1페이지 + 서버 DB 읽기 전용)**: ①같은 화면에 `PLACE_SELECTORS` 10개를 그대로 적용하면 **전부 0개** — 실제 플레이스 목록은 난독화 클래스(`li.UEzoS`·이름 `.TYaxT`)에 링크가 `map.naver.com/p/search`다. ②최근 scan_results 600행 중 측정 성공 행에서 `rank`가 채워진 것은 **3건(2026-06 1·07 2, 이후 0)** → 플레이스 순위 판정은 사실상 작동하지 않는다. ③따라서 `mentioned`는 `in_briefing`이거나 **페이지 전체 텍스트에 등록명이 들어 있음**(372행 폴백)이다. 텍스트만으로 True인 행(`mentioned and not in_briefing and rank None`): 2026-11 1/8, 10월 2/33, 9월 1/86, 7월 2/64. ④`calc_naver_exposure`는 `mentioned`에 100점 중 60점(`score_engine.py:565`) — 브리핑이 아닌 블로그 글 속 이름도 점수를 받고, 등록명이 "하라식당 본점"처럼 화면 이름("하라식당")과 다르면 받지 못한다. 현재 영향 행은 소수지만 방향은 양쪽(과대·과소) 모두다.
 - **한계/미확인**: 비로그인 로컬 PC 화면 1질의 기준(서버는 쿠키 로그인 상태라 DOM이 다를 수 있음 — 그러나 DB의 rank 3/350 이상이 같은 결론을 뒷받침). Aug·Sep의 in_briefing 90%대 → Oct·Nov 15~25%로 떨어진 원인은 **미확인**(표본 구성·`briefing_present` 필드 도입(10-26)·셀렉터/DOM 변화 모두 가능). 수정하려면 실제 DOM 픽스처·변이 검증·점수 의미 변경에 따른 가짜 변화 방지(`change_signal_guard`)·유명 가게 대조가 필요해 **사용자 결정 대기**.
 
+### 플레이스 목록 판정 — C 단계 진행 기록 (A 유지: 점수는 그대로)
+- 단계 1(`a65def36`): `services/ai_scanner/place_list_parser.py`(구조 기반 목록 판정·보수적 이름 일치) + 실제 DOM 픽스처 `tests/fixtures/naver_place_list_2026_11_07.html` + `test_place_list_parser.py`.
+- **단계 2(11-07, 서버 반영)**: `naver_scanner._check_single_page`가 이미 열린 페이지에서 `page.evaluate` 한 번으로 목록 DOM을 읽어 **추가 필드만** 저장 — `place_list_found`(True 읽음 / False 목록 없음·못 읽음 / None 읽는 중 오류), `place_list_rank`, `place_list_names`(앞 10개). `mentioned`·`rank`·점수·`prescan_usable`에는 쓰지 않는다. 네이버 요청은 늘지 않는다(goto 1회 그대로, 테스트로 고정). 실제 페이지에서 같은 JS를 돌려 파서에 넣으면 6곳이 정확히 읽히고 순위 판정이 맞음(로컬 확인).
+- 검증: `test_place_list_shadow.py` 11개(가짜 페이지로 `_check_single_page` 끝까지 실행, 변이 4종 실패 확인), 전체 로컬 2186·서버 2184(+1 스킵) 통과, 재시작·`/health` 정상.
+- **데이터가 쌓이는 속도(중요)**: 섀도 필드는 서버가 네이버 검색을 실제로 돌릴 때만 생긴다. GitHub 스캔은 중단했고 02:00 KST 정기 스캔은 관리자 계정을 제외하므로 **하루 약 1개 사업장 + 사용자 수동 스캔**뿐이다. 단계 3의 비교(텍스트 폴백만으로 True였던 건·이름 불일치 건)는 표본이 모일 때까지 걸린다. **비교 표본을 만들려고 네이버 접속을 늘리지 않는다**(지침 8번). 확인 쿼리: `scan_results.naver_result` 의 `place_list_found / place_list_rank / mentioned / in_briefing`.
+- **미확인**: 모바일·로그인 상태·광고 카드 구조, 난독화 클래스가 바뀔 때 구조 규칙이 유지되는지, 섀도 필드가 `naver_result` JSON 크기·다른 소비처(관리자 화면·내보내기 등)에 미치는 영향(저장 키가 늘 뿐 읽는 쪽이 모르는 키를 무시하는지는 코드 전수 확인 안 함).
+
 ## 기각(오탐·과장) — 사유
 - **save-email P0**: 속도 제한이 없는 것은 맞지만 메일은 체험당 1회(`scan.py` first_email)이고 체험 생성이 IP당 일 3회 → P2.
 - **report.py IP 제한이 Cloudflare 뒤에서 무력화**: nginx `cloudflare-realip.conf`로 실제 IP가 복원됨.
