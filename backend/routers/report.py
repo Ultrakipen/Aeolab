@@ -2046,10 +2046,10 @@ async def get_conversion_tips(biz_id: str, user=Depends(get_current_user)):
         if top_kw_clean:
             reason = f"'{top_kw_clean}' 키워드가 경쟁사 리뷰엔 있지만 내 가게엔 아직 없습니다. 소개글 안 Q&A 섹션에 이 키워드를 포함하면 AI 브리핑에 노출될 가능성이 높아집니다."
         elif "네이버 AI 브리핑" in missing_platforms_ko:
-            reason = "네이버 AI 브리핑 측정에서 내 가게가 확인되지 않았습니다. 소개글 안 Q&A 섹션은 AI 브리핑에 가장 자주 노출되는 콘텐츠입니다."
+            reason = "네이버 AI 브리핑 측정에서 내 가게가 확인되지 않았습니다. 소개글 안 Q&A 섹션을 채우면 AI 브리핑 노출에 도움이 될 수 있습니다."
         else:
             sp_score = float(breakdown.get("smart_place_completeness", 100))
-            reason = f"스마트플레이스 완성도가 {'낮습니다' if sp_score < 40 else '보통 수준입니다'} — FAQ 미등록이 가장 큰 감점 요인입니다." if sp_score < 70 else "FAQ에 5개 이상 답변이 있으면 AI 브리핑에 나올 가능성이 크게 높아집니다."
+            reason = f"스마트플레이스 완성도가 {'낮습니다' if sp_score < 40 else '보통 수준입니다'}. 소개글 안 Q&A 섹션을 채우는 것부터 시작해 보세요." if sp_score < 70 else "소개글 안 Q&A 섹션을 더 채우면 AI 브리핑에 나올 가능성이 높아질 수 있습니다."
         tips.append({
             "id": "faq_from_gap",
             "title": faq_path["path_name"],

@@ -92,3 +92,21 @@ def test_remaining_user_facing_claims_are_hedged():
     ba = (root / "blog_analyzer.py").read_text(encoding="utf-8")
     assert "방문 전환율이 높아집니다" not in be and "방문 예약으로 이어지는 데 도움이 될 수 있습니다" in be
     assert "AI 검색 신뢰도가 높아집니다" not in ba and "AI 검색 신뢰도에 도움이 될 수 있습니다" in ba
+
+
+def test_other_user_facing_claims_found_in_second_sweep_are_hedged_and_accurate():
+    """직전 점검이 services 일부만 읽어 놓친 곳(routers·scheduler·score_engine·email_sender)의 확정형·사실 불일치 문구 (2026-11-08)."""
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    rp = (root / "routers" / "report.py").read_text(encoding="utf-8")
+    jb = (root / "scheduler" / "jobs.py").read_text(encoding="utf-8")
+    se = (root / "services" / "score_engine.py").read_text(encoding="utf-8")
+    em = (root / "services" / "email_sender.py").read_text(encoding="utf-8")
+    # FAQ 항목은 2026-05-01 Q&A 탭 폐기 이후 점수 가중치 0 — '가장 큰 감점 요인'이라고 말하면 사실과 다르다
+    assert "has_faq: 2026-05-01 스마트플레이스 Q&A 탭 폐기 이후 가중치 0" in se
+    assert "FAQ 미등록이 가장 큰 감점 요인" not in rp and "가능성이 크게 높아집니다" not in rp
+    assert "AI 브리핑에 가장 자주 노출되는 콘텐츠" not in rp               # 근거 없는 최상급
+    assert "소개글 안 Q&A 섹션을 더 채우면 AI 브리핑에 나올 가능성이 높아질 수 있습니다." in rp
+    assert "AI 브리핑 노출이 늘어납니다" not in jb and "AI 브리핑 노출에 도움이 될 수 있습니다" in jb
+    assert "AI 이미지 필터 노출이 늘어납니다" not in se and "AI 이미지 필터 노출에 도움이 될 수 있습니다" in se
+    assert "노출이 더 늘어납니다" not in em and "더 많이 확보하면 노출에 도움이 될 수 있습니다" in em

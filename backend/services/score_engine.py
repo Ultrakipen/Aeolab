@@ -673,7 +673,7 @@ def _build_missing_items(biz: dict, naver_data: dict, category: str, eligibility
             missing.append({
                 "item": f"사진_{_cat}_없음",
                 "gain": 0,
-                "desc": f"'{_cat}' 카테고리 사진을 등록하면 AI 이미지 필터 노출이 늘어납니다.",
+                "desc": f"'{_cat}' 카테고리 사진을 등록하면 AI 이미지 필터 노출에 도움이 될 수 있습니다.",
                 "type": "photo_category",
             })
 

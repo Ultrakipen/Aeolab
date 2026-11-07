@@ -817,7 +817,7 @@ async def send_trial_claim_link(
         else:
             _findings.append(("✅", True,
                 f"블로그 후기 {_bm}건 발견됐습니다",
-                "어느 정도 쌓여 있습니다. 경쟁 가게 대비 더 많이 확보하면 노출이 더 늘어납니다."))
+                "어느 정도 쌓여 있습니다. 경쟁 가게 대비 더 많이 확보하면 노출에 도움이 될 수 있습니다."))
 
     # Finding 2: 키워드 갭
     if missing_kws:

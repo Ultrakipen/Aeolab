@@ -2755,7 +2755,7 @@ async def keyword_alert_job():
                         f"[AEOlab] {biz['name']} 키워드 알림\n\n"
                         f"오늘 AI 검색에서 새 키워드로 언급됐습니다!\n\n"
                         f"신규 키워드: {kw_str}\n\n"
-                        f"이 키워드가 포함된 리뷰를 더 받으면 AI 브리핑 노출이 늘어납니다.\n"
+                        f"이 키워드가 포함된 리뷰를 더 받으면 AI 브리핑 노출에 도움이 될 수 있습니다.\n"
                         f"https://aeolab.co.kr/guide"
                     ),
                 )
