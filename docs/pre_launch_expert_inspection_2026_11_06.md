@@ -223,6 +223,11 @@ CREATE POLICY "user_see_own_replies" ON support_replies
 - **보류(기록)**: `scheduler/jobs.py`의 `SELECT *` 5곳(568·1887·1900·1910·2061) — 컬럼을 줄이면 뒤쪽 코드가 쓰는 컬럼이 빠질 위험이 이득보다 커서 손대지 않음(필요 시 호출처별 사용 컬럼을 확인한 뒤 개별 수정).
 - **백엔드 로그 건강(11-06·07 전수 분류)**: ERROR/CRITICAL 0건, 경고는 위 missed 42건(재시작과 시각 일치)·네이버 API 오류 2건·이메일 없는 사용자 1건뿐.
 
+### 11-08 02:00 KST 서버 정기 스캔 — 섀도 첫 표본 (핵심 미확인 항목 1건 확인)
+- 서버 `daily_scan_all`(17:00 UTC)이 관리자 3곳 제외·대상 1곳(`9a8cdd6e`, GitHub 스캔 4곳 중 하나 — "4 = 관리자 3 + 1" 추정이 **확인됨**)을 5개 질의로 측정(17:08~17:12, 로그인 쿠키 NID_AUT·NID_SES, 캡차·오류 없음, 17:12:49 성공 종료).
+- 섀도 행 1건(질의 '창원 상남동마사지 추천'): `place_list_found=True`, 이름 6개 읽음, `place_list_rank=None`, `mentioned=False`, `in_briefing=False` → 분류 `absent_both`(목록·브리핑 모두 없음, 기존 판정과 일치). **서버의 로그인 화면에서도 구조 기반 판정이 목록을 읽는다(표본 1건)** — 미확인이던 DOM 차이 우려는 이 1건 기준으로 해소.
+- 한계: 표본 1건이라 `text_only`·`old_missed`·`unreadable` 비율은 아직 알 수 없다(하루 1곳 안팎이라 계속 쌓이는 중). 점수 반영 논의는 표본이 쌓인 뒤.
+
 ## 기각(오탐·과장) — 사유
 - **save-email P0**: 속도 제한이 없는 것은 맞지만 메일은 체험당 1회(`scan.py` first_email)이고 체험 생성이 IP당 일 3회 → P2.
 - **report.py IP 제한이 Cloudflare 뒤에서 무력화**: nginx `cloudflare-realip.conf`로 실제 IP가 복원됨.
