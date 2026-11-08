@@ -210,7 +210,7 @@ export default function LandingPage() {
                   <X className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={3} style={{ color: "#DC2626" }} aria-hidden="true" />
                   끄는 순간 검색 결과에서 사라짐
                 </li>
-                <li className="flex items-start gap-2">
+                <li className="flex items-start gap-2 break-keep">
                   <X className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={3} style={{ color: "#DC2626" }} aria-hidden="true" />
                   AI 검색(ChatGPT·Gemini·Google AI·네이버 AI탭·AI 브리핑)에 나오는지는 광고와 별개로 정해져, 광고만으로는 챙겨지지 않음
                 </li>
@@ -253,7 +253,7 @@ export default function LandingPage() {
                     <Check className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={3} aria-hidden="true" />
                     {GEMINI_LIVE ? "ChatGPT·Gemini·Google AI" : "ChatGPT·Google AI"} 현황 정기 측정 — 모든 업종
                   </li>
-                  <li className="flex items-start gap-2">
+                  <li className="flex items-start gap-2 break-keep">
                     <Check className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={3} aria-hidden="true" />
                     스마트플레이스·블로그 개선 → 네이버 검색 노출 가능성도 함께 높아집니다
                   </li>

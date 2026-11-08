@@ -181,6 +181,13 @@ body.js-anim .slide-right {
   transform: translateX(24px);
   transition: opacity 0.55s cubic-bezier(.22,1,.36,1), transform 0.55s cubic-bezier(.22,1,.36,1);
 }
+/* 모바일: 카드가 화면 폭을 꽉 채워서 옆에서 밀려 들어오면(translateX 24px) 등장 전까지 페이지가 가로로 8px 넘친다(2026-11-08 라이브 측정: scrollWidth 383 > 375) → 아래에서 올라오게 한다 */
+@media (max-width: 767px) {
+  body.js-anim .slide-left,
+  body.js-anim .slide-right {
+    transform: translateY(16px);
+  }
+}
 .slide-left.visible, .slide-right.visible {
   opacity: 1 !important;
   transform: translateX(0) !important;
