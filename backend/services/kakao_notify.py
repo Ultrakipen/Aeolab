@@ -20,6 +20,20 @@ def _grade(score: float) -> str:
     return stage_name(stage_code_for_score(score))
 
 
+def _weekly_direction(prev: float, curr: float) -> str:
+    """주간 성적표의 추세 화살표 — 오차 범위의 점수 차이로 ▲/▼를 말하지 않는다(2026-11-08).
+
+    같은 가게 일간 변화 중앙값이 약 3.9점이라 ±2점은 오차인데, 이전에는 점수가 0.1만 올라도 ▲를 보냈다.
+    화면과 같은 규칙(stage_names.headline_direction): 변화폭이 HEADLINE_BIG_DELTA 이상이거나, 등급이 바뀌고 변화폭이
+    HEADLINE_BAND_MIN_DELTA 이상일 때만 방향을 말하고 나머지는 '→'(변화 없음)이다.
+    """
+    from services.stage_names import HEADLINE_BIG_DELTA, HEADLINE_BAND_MIN_DELTA
+    delta = curr - prev
+    if abs(delta) >= HEADLINE_BIG_DELTA or (_grade(prev) != _grade(curr) and abs(delta) >= HEADLINE_BAND_MIN_DELTA):
+        return "▲" if delta > 0 else "▼"
+    return "→"
+
+
 def _grade_label(score: float, rank: int = 0) -> str:
     """등급 + 순위 조합 레이블. rank=0이면 등급만."""
     g = _grade(score)
@@ -1044,7 +1058,7 @@ class KakaoNotifier:
         curr_grade = _grade(current_score)
         prev_grade = _grade(prev_score)
         grade_note = f"{prev_grade} → {curr_grade}" if curr_grade != prev_grade else curr_grade
-        direction = "▲" if current_score > prev_score else ("▼" if current_score < prev_score else "→")
+        direction = _weekly_direction(prev_score, current_score)
 
         app_key = os.getenv("KAKAO_APP_KEY", "")
         masked = f"{phone[:3]}****{phone[-2:]}" if len(phone) >= 5 else "***"
