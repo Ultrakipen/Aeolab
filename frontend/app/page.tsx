@@ -176,10 +176,10 @@ export default function LandingPage() {
                 네이버 광고만 의존 시
               </span>
               <h3 className="text-base md:text-lg font-bold mb-0.5 break-keep" style={{ color: "#0F172A" }}>
-                광고 끊으면 즉시 사라짐
+                광고는 멈추면 노출도 멈춥니다
               </h3>
               <p className="text-sm mb-3" style={{ color: "#45556C" }}>
-                광고를 멈추면 광고 노출도 멈춥니다
+                비용을 쓰는 동안만 광고 영역에 노출됩니다
               </p>
               {/* 광고비 소진 SVG */}
               <svg viewBox="0 0 300 100" className="w-full h-auto">

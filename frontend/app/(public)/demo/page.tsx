@@ -1041,7 +1041,7 @@ export default function DemoPage() {
             <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
               <p className="text-sm font-semibold text-gray-700 mb-1">ChatGPT·Google AI에도 노출되려면?</p>
               <p className="text-sm text-gray-600 leading-relaxed">
-                네이버는 주요 AI 수집 봇을 막아두고 있어(2026-10-07 확인), 네이버 스마트플레이스 정보는 해외 AI가 직접 읽기 어렵습니다.
+                네이버는 주요 AI 수집 봇을 막아두고 있어(2026-11-08 확인), 네이버 스마트플레이스 정보는 해외 AI가 직접 읽기 어렵습니다.
                 <a href="https://business.google.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-600 font-medium hover:underline ml-1">
                   Google 비즈니스 프로필 무료 등록 <ArrowRight className="w-4 h-4" aria-hidden="true" />
                 </a>

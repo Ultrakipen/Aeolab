@@ -1522,7 +1522,7 @@ export default function TrialResultStep(props: TrialResultProps) {
                     네이버 블로그·카페·지도는 AI 수집 프로그램 접근을 차단하고 있어, 네이버에만 있는 정보는 잘 반영되지 않습니다. 구글 비즈니스 프로필·자체 사이트·외부 언급을 따로 준비하세요 (반영 기간 보장 아님)
                   </p>
                   <MoreInfo summary="왜 네이버 정보가 ChatGPT에 잘 안 나오나요?" tone="soft" className="mt-2 text-sm">
-                    네이버는 ChatGPT·Gemini 같은 AI가 블로그·지도·카페 글을 가져가지 못하게 막아 두었습니다(2026-10-07 확인). 그래서 네이버에만 등록한 정보는 ChatGPT·Gemini에 바로 반영되지 않습니다. 구글 비즈니스 프로필이나 자체 홈페이지처럼 네이버 밖에서 정보를 갖추는 게 도움이 됩니다.
+                    네이버는 ChatGPT·Gemini 같은 AI가 블로그·지도·카페 글을 가져가지 못하게 막아 두었습니다(2026-11-08 확인). 그래서 네이버에만 등록한 정보는 ChatGPT·Gemini에 바로 반영되지 않습니다. 구글 비즈니스 프로필이나 자체 홈페이지처럼 네이버 밖에서 정보를 갖추는 게 도움이 됩니다.
                   </MoreInfo>
                 </div>
               </div>

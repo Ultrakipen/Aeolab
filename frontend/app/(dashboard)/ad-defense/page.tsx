@@ -27,7 +27,7 @@ export default async function AdDefensePage() {
       {
         Icon: TrendingUp,
         title: "유기적 노출 강화 전략",
-        desc: "광고 없이도 AI 검색에 지속 노출되는 콘텐츠·AI 노출 전략을 제시합니다.",
+        desc: "광고와 별개로 AI 검색에 나올 준비를 높이는 콘텐츠·AI 노출 전략을 제시합니다.",
       },
       {
         Icon: BarChart2,
@@ -96,7 +96,7 @@ export default async function AdDefensePage() {
         description="2026년 8월 11일 한국에도 도입된 ChatGPT 광고 속에서 유기적 AI 노출을 유지하는 전략을 제공합니다."
         features={[
           { Icon: Bot,        title: "AI 광고 환경 분석",     desc: "ChatGPT 광고 도입이 내 사업장에 미치는 영향을 분석합니다." },
-          { Icon: TrendingUp, title: "유기적 노출 강화 전략", desc: "광고 없이도 AI 검색에 지속 노출되는 콘텐츠·Schema 전략을 제시합니다." },
+          { Icon: TrendingUp, title: "유기적 노출 강화 전략", desc: "광고와 별개로 AI 검색에 나올 준비를 높이는 콘텐츠·Schema 전략을 제시합니다." },
           { Icon: BarChart2,  title: "경쟁사 대비 리스크 평가", desc: "현재 AI 점수를 기반으로 광고 경쟁 리스크 수준을 진단합니다." },
           { Icon: Shield,     title: "즉시 실행 액션 플랜",   desc: "지금 당장 실행할 수 있는 우선순위별 대응 방안을 제공합니다." },
         ]}

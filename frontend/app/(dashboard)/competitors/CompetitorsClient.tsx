@@ -3289,7 +3289,7 @@ export function CompetitorsClient({
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-amber-800">웹사이트 없음 — ChatGPT·Gemini 노출 제한</p>
             <p className="text-sm text-amber-700 mt-0.5 leading-relaxed">
-              네이버 블로그·지도는 ChatGPT 같은 AI가 글을 가져가지 못하게 막혀 있습니다(2026-10-07 확인). 독립 웹사이트가 없으면 ChatGPT·Gemini에서 내 가게를 찾기 어렵습니다.
+              네이버 블로그·지도는 ChatGPT 같은 AI가 글을 가져가지 못하게 막혀 있습니다(2026-11-08 확인). 독립 웹사이트가 없으면 ChatGPT·Gemini에서 내 가게를 찾기 어렵습니다.
               {gapAnalysis.naver_only_risk_score_impact > 0 && (
                 <span className="font-semibold"> 웹사이트 구축 시 AI 검색 노출 수준이 향상될 수 있습니다.</span>
               )}

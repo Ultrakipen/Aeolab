@@ -195,7 +195,7 @@ export function AdDefenseClient({
           <span className="font-semibold">왜 지금 대비해야 할까요?</span>{" "}
           ChatGPT 광고는 2026년 8월 11일부터 한국에서도 노출이 시작됐습니다(무료·Go 등급 사용자 대상).
           유료 광고가 AI 답변 아래 "Sponsored" 카드로 끼어들 수 있는 만큼, 지금 유기적 노출 경쟁력을
-          높여두면 광고 없이도 AI 검색 상위에 지속 노출될 수 있습니다.
+          높여두면 광고와 별개로 AI 답변에 나올 가능성을 높일 수 있습니다(노출은 보장되지 않습니다).
         </p>
       </div>
 

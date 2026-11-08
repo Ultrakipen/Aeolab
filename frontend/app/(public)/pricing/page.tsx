@@ -507,7 +507,7 @@ export default function PricingPage() {
                   {
                     Icon: Radar,
                     title: "지금 당장 내 가게가 네이버 AI에 나오는지",
-                    why: "네이버는 블로그 글을 ChatGPT 같은 AI가 가져가지 못하게 막아 두었어요(2026-10-07 확인) — ChatGPT로는 네이버 AI 노출을 확인할 수 없습니다",
+                    why: "네이버는 블로그 글을 ChatGPT 같은 AI가 가져가지 못하게 막아 두었어요(2026-11-08 확인) — ChatGPT로는 네이버 AI 노출을 확인할 수 없습니다",
                   },
                   {
                     Icon: Search,

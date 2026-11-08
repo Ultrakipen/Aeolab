@@ -234,7 +234,7 @@ export default function ChatGptSearchGuidePage() {
                   {isWarning && (
                     <MoreInfo summary="네이버 AI 수집 제한 관련" tone="soft">
                       <p className="text-sm text-gray-700 leading-relaxed">
-                        네이버 블로그·지도·카페는 ChatGPT 같은 AI가 글을 읽어 가는 것을 제한하고 있습니다(2026-10-07 확인).
+                        네이버 블로그·지도·카페는 ChatGPT 같은 AI가 글을 읽어 가는 것을 제한하고 있습니다(2026-11-08 확인).
                         이로 인해 ChatGPT 등 글로벌 AI가 네이버 콘텐츠를 직접 읽어가기 어렵습니다.
                       </p>
                     </MoreInfo>

@@ -265,7 +265,7 @@ export default function AIProblemDiagnosis({
   if (!hasIntro && isSmartPlace) {
     rawProblems.push({
       text: "스마트플레이스 소개글 없음",
-      impact: "키워드 기반 영구 노출 기회 놓침",
+      impact: "키워드 노출 기회를 놓칠 수 있음",
       priority: 3,
     });
   }
@@ -315,7 +315,7 @@ export default function AIProblemDiagnosis({
       num: solutions.length + 1,
       title: "해당 키워드를 소개글에 추가",
       time: "3분",
-      tag: "영구 효과",
+      tag: "한 번 작성",
       copyText: null,  // 자동 복사 텍스트 제거 — 직접 확인 후 작성 유도
       hint: `경쟁사 분석에서 추출된 키워드: ${missingKeywords.slice(0, 3).join(", ")} — 내 가게에 해당하는 것만 소개글에 자연스럽게 포함하세요.`,
     });
