@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>크몽 편집기 붙여넣기용</title>
+<style>
+  body { font-family: "Noto Sans KR", "Malgun Gothic", sans-serif; background: #eef1f7; color: #1a2233; margin: 0; padding: 24px; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  .panel { background: #fff; border: 1px solid #d3dcee; border-radius: 12px; padding: 20px 24px; margin-bottom: 18px; }
+  .panel h2 { font-size: 18px; margin: 0 0 10px; color: #1b2a6b; }
+  .panel p, .panel li { font-size: 15px; line-height: 1.7; margin: 4px 0; }
+  .titlebox { font-size: 20px; font-weight: 700; padding: 12px 14px; background: #f3f6fc; border-radius: 8px; }
+  .count { font-size: 14px; color: #55627a; margin-top: 6px; }
+  button { font-size: 16px; padding: 10px 18px; border: 0; border-radius: 8px; background: #1b2a6b; color: #fff; cursor: pointer; }
+  .msg { margin-left: 12px; font-size: 14px; color: #19805f; }
+  .preview { margin-top: 14px; padding: 16px 20px; border: 1px dashed #b9c4de; border-radius: 8px; background: #fafbfe; font-size: 15px; line-height: 1.7; max-height: 420px; overflow: auto; }
+  .preview h3 { margin: 0; }
+  textarea { width: 100%; height: 110px; margin-top: 10px; font-size: 12px; box-sizing: border-box; }
+  .meta { font-size: 14px; color: #55627a; }
+  table { border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+  td, th { border: 1px solid #d3dcee; padding: 6px 12px; text-align: left; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="panel">
+    <h2>사용 순서</h2>
+    <ol>
+      <li>① 서비스 제목 → ② 서비스 설명 → ③ 서비스 제공 절차 → ④ 가격 입력 → ⑤ 메인·상세 이미지 순서로 입력합니다.</li>
+      <li>②와 ③은 아래 <b>복사 버튼</b>을 누른 뒤, 크몽 편집기를 클릭하고 <b>Ctrl+V</b>로 붙여넣습니다. (이 버튼은 편집기가 받는 형식 그대로 복사합니다)</li>
+      <li>붙여넣은 뒤 줄이 달라 보이면 아래 「직접 복사용 HTML」 칸이 아니라 <b>이 파일의 설명</b>을 다시 알려주세요.</li>
+    </ol>
+  </div>
+
+  <div class="panel">
+    <h2>① 서비스 제목</h2>
+    <div class="titlebox" id="title-text">나의 가게·블로그·경쟁사·구글·제미나이·GPT 진단</div>
+    <div class="count" id="title-count"></div>
+  </div>
+
+  <div class="panel">
+    <h2>② 서비스 설명 (편집기에 붙여넣기)</h2>
+    <p class="meta">크몽 편집기 제한: 최소 100자, 최대 20,000자, 특수문자 &lt; 와 ` 사용 불가 · 번호/글머리 목록 기능 없음(항목마다 문단으로 분리). 상세 이미지는 본문이 아니라 별도 「상세 이미지」 칸에 올립니다.</p>
+    <button type="button" data-tpl="tpl-body" data-msg="msg-body">서비스 설명 복사</button><span class="msg" id="msg-body"></span>
+    <div class="count" id="cnt-body"></div>
+    <div class="preview" id="pv-body"></div>
+    <textarea id="raw-body" readonly></textarea>
+  </div>
+
+  <div class="panel">
+    <h2>③ 서비스 제공 절차 (편집기에 붙여넣기)</h2>
+    <p class="meta">크몽 제한: 최소 50자 이상.</p>
+    <button type="button" data-tpl="tpl-steps" data-msg="msg-steps">서비스 제공 절차 복사</button><span class="msg" id="msg-steps"></span>
+    <div class="count" id="cnt-steps"></div>
+    <div class="preview" id="pv-steps"></div>
+    <textarea id="raw-steps" readonly></textarea>
+  </div>
+
+  <div class="panel">
+    <h2>④ 기본 가격 칸 (직접 입력)</h2>
+    <table>
+      <tr><th>항목</th><th>입력값</th></tr>
+      <tr><td>가격</td><td>17,900원</td></tr>
+      <tr><td>작업 기간</td><td>2일</td></tr>
+      <tr><td>수정 횟수</td><td>2회</td></tr>
+    </table>
+    <p class="meta">패키지는 만들지 않는 단일 상품이라 「패키지로 설정」은 사용하지 않습니다.</p>
+  </div>
+
+  <div class="panel">
+    <h2>⑥ 수정 및 재진행 안내 (편집기에 붙여넣기)</h2>
+    <p class="meta">입력칸이 일반 텍스트 칸이어도 줄바꿈이 유지되도록 텍스트 형식도 함께 복사됩니다.</p>
+    <button type="button" data-tpl="tpl-rev" data-msg="msg-rev">수정 및 재진행 안내 복사</button><span class="msg" id="msg-rev"></span>
+    <div class="count" id="cnt-rev"></div>
+    <div class="preview" id="pv-rev"></div>
+    <textarea id="raw-rev" readonly></textarea>
+  </div>
+
+  <div class="panel">
+    <h2>⑤ 이미지 업로드 (같은 폴더의 파일)</h2>
+    <table>
+      <tr><th>칸</th><th>파일</th><th>규격</th></tr>
+      <tr><td>메인 이미지</td><td>01_thumbnail_652x488.png (또는 .jpg)</td><td>652×488px, PNG/JPG</td></tr>
+      <tr><td rowspan="11">상세 이미지<br>(이 순서대로)</td><td>02_intro.png</td><td rowspan="11">가로 652~2000px, 세로 3000px 이하, PNG/JPG/GIF</td></tr>
+      <tr><td>03_features.png</td></tr>
+      <tr><td>07_blog_mock.png (블로그 진단 화면 예시)</td></tr>
+      <tr><td>08_competitor_mock.png (경쟁 가게 진단 화면 예시)</td></tr>
+      <tr><td>09_report_1.png (결과 보고서 샘플 1/4: 요약·포털 검색)</td></tr>
+      <tr><td>10_report_2.png (샘플 2/4: 나의 가게·블로그)</td></tr>
+      <tr><td>11_report_3.png (샘플 3/4: 경쟁 가게·AI 도구 노출)</td></tr>
+      <tr><td>12_report_4.png (샘플 4/4: 받게 되는 자료)</td></tr>
+      <tr><td>04_process.png</td></tr>
+      <tr><td>05_info.png</td></tr>
+      <tr><td>06_notice.png</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<!-- ② 서비스 설명: 크몽 편집기(TipTap)가 만드는 구조만 사용 — h3 + span font-size + strong, p, br. 목록·표·이미지·링크 없음 -->
+<template id="tpl-body"><h3><span style="font-size: 24px;"><strong>내 가게, AI 검색에 나올까요?</strong></span></h3><p>손님이 포털이나 AI에게 “근처 맛집(카페·미용실…) 추천해줘”라고 물을 때 <strong>내 가게가 실제로 나오는지 측정</strong>하고, 무엇부터 고칠지 순서대로 알려드립니다.</p><p>추측이 아니라 실제로 물어보고 측정한 결과를 정리해 드립니다.</p><p><br></p><h3><span style="font-size: 20px;"><strong>이런 분께 맞습니다</strong></span></h3><p>· 포털 지도에 가게를 등록했거나 준비 중인 소상공인 사장님</p><p>· 광고 전에 지금 검색·AI 추천에서 내 가게가 어디쯤인지 알고 싶은 분</p><p>· 근처 경쟁 가게와 다른 점이 궁금한 분</p><p>· 소개글·리뷰 응대 문구·블로그를 어떻게 써야 할지 막막한 분</p><p><br></p><h3><span style="font-size: 20px;"><strong>이 상품이 하는 일</strong></span></h3><p>AI 검색 노출 점검의 <strong>가게 점검 기능 전체</strong>를 판매자가 직접 진행해, 사장님 가게 기준으로 점검하고 결과를 전달해 드립니다. 별도 준비 없이 대화창으로 정보만 보내 주시면 됩니다.</p><p><strong>주문 시점의 가게 상태를 1회 점검해 결과를 전달하는 단발성 상품입니다.</strong> 정기 점검이나 이후 변화 추적은 포함되지 않습니다.</p><p>첫 결과 전달은 영업일 기준 2일 이내이며, 수정과 추가 질문은 대화창에서 2회까지 지원합니다.</p><p><br></p><h3><span style="font-size: 20px;"><strong>제공 내용</strong></span></h3><p>1. <strong>포털 검색 순위</strong> — 대표 키워드로 포털 지도 검색에서 몇 번째에 보이는지 확인</p><p>2. <strong>포털 AI 브리핑</strong> — 포털 AI 답변에 내 가게가 나오는지 확인 (업종에 따라 대상이 달라요)</p><p>3. <strong>ChatGPT 노출 측정</strong> — “○○동 맛집 추천” 같은 질문을 반복해 내 가게가 얼마나 자주 나오는지 측정</p><p>4. <strong>구글 AI 개요·구글 지도</strong> — 구글 검색의 AI 개요와 지도에 나오는지 확인</p><p>5. <strong>Gemini 참고 측정</strong> — 같은 방식의 참고용 지표</p><p>6. <strong>내 가게 성장 단계</strong> — 시작 전 · 보강 단계 · 개선 중 · 양호 중 어디쯤인지 안내</p><p>7. <strong>근처 가게 3곳 비교</strong> — “저쪽엔 있고 내 가게엔 없는 검색어”를 찾아 정리</p><p>8. <strong>개선 안내서</strong> — 무엇부터 고칠지 순서대로 정리 (3건 이내)</p><p>9. <strong>붙여넣는 문구</strong> — 나의 가게 소개글·소식·FAQ·채팅방 메뉴 초안 (합산 10건 이내)</p><p>10. <strong>리뷰 응대 문구 초안</strong> — 50건 이내, 부정 리뷰 대응 문구 포함</p><p>11. <strong>블로그 점검</strong> — 홍보·정보 글 비율을 보고 더 잘 찾히는 제목·소재 제안 (5회 이내, 블로그 주소 필요)</p><p>12. <strong>검색어 추천</strong> — 업종·지역에 맞는 검색어 추천 (5회 이내)</p><p>13. <strong>나의 가게 점검</strong> — 소개글·소식·FAQ 중 빠진 곳을 찾아 안내</p><p>14. <strong>채널 정보 일치 점검</strong> — 이름·주소·전화번호가 포털 지도·구글 지도에서 같은지 확인</p><p>15. <strong>홈페이지 점검</strong> — 홈페이지가 있는 경우 AI 검색과 방문자가 읽기 쉬운 기본 구조인지 확인</p><p>16. <strong>가게 정보 코드와 엑셀 파일</strong> — 홈페이지가 있는 경우 AI가 읽기 쉬운 가게 정보 코드와 점검 결과 엑셀 제공</p><p>※ 소개글·응대 문구·블로그·검색어 항목은 사장님이 대화창으로 요청하신 만큼, 위 한도 안에서 작성합니다.</p><p>※ 문구에는 알려 주신 사실만 사용합니다. 가격·영업시간·시설·수상 등 확인되지 않은 내용은 넣지 않거나 “직접 확인 후 기재”로 남깁니다.</p><p><br></p><h3><span style="font-size: 20px;"><strong>주문 후 대화창으로 보내 주실 정보</strong></span></h3><p>1. 가게 이름 / 업종 / 지역(동네)</p><p>2. 나의 가게 주소(링크) — 없으면 “없음”</p><p>3. 대표 검색 키워드 3~5개 (예: “창원 성산구 파스타”)</p><p>4. 비교하고 싶은 근처 가게 2~3곳 (선택)</p><p>5. 대표 메뉴·서비스, <strong>게시해도 되는</strong> 영업시간·가격·시설</p><p>6. 블로그·홈페이지 주소 (있는 경우)</p><p>7. 응대 문구가 필요한 고객 리뷰 (이름·전화번호 등 개인정보는 지우고 붙여넣기)</p><p><strong>보내지 마세요:</strong> 비밀번호, 주민등록번호, 결제 정보, 포털·구글 로그인 정보, 개인 연락처</p><p>보내 주신 정보는 점검과 문구 작성에만 사용하며, 작성 과정에 AI 서비스(Anthropic·OpenAI·Google)가 활용됩니다. 주문하시면 이에 동의하신 것으로 봅니다. 보관·삭제: 구매 확정 후 30일 이내 삭제합니다.</p><p><br></p><h3><span style="font-size: 20px;"><strong>꼭 읽어 주세요</strong></span></h3><p>· 결과는 <strong>측정 시점·기기·로그인 상태에 따라 달라질 수 있습니다.</strong></p><p>· ChatGPT 측정은 AI 학습 데이터 기반이며 <strong>실시간 웹 검색 결과와 다를 수 있습니다.</strong> 이번 측정에서 나오지 않았다고 해서 검색을 켠 화면에서도 나오지 않는다는 뜻은 아닙니다.</p><p>· 포털·AI 서비스의 사양 변경이나 접속 제한으로 일부 항목은 “확인 전”으로 표시될 수 있으며, 이 경우 추정값으로 채우지 않습니다.</p><p>· 프랜차이즈 가맹점은 포털 AI 브리핑 대상에서 제외될 수 있습니다.</p><p>· <strong>포함되지 않는 것:</strong> 노출·순위·매출 상승 약속, 홈페이지 직접 수정·제작, 나의 가게 정보 직접 입력·수정, 사진 촬영, 광고 집행, 블로그 글 대행 작성</p><p><br></p><h3><span style="font-size: 20px;"><strong>자주 묻는 질문</strong></span></h3><p><strong>Q. 제가 따로 준비하거나 설치해야 하나요?</strong><br>A. 필요 없습니다. 대화창으로 정보만 보내 주세요.</p><p><br></p><p><strong>Q. 홈페이지가 없어도 되나요?</strong><br>A. 가능합니다. 홈페이지가 없으면 홈페이지 점검 항목만 제외하고 나머지를 점검합니다.</p><p><br></p><p><strong>Q. 업종 제한이 있나요?</strong><br>A. 음식점·카페·미용 등 대부분의 지역 가게를 지원합니다. 일부 업종은 포털 AI 브리핑 대상이 아니어서 해당 항목이 “대상 아님”으로 안내됩니다.</p><p><br></p><p><strong>Q. 포털에 등록된 가게 정보가 아직 없어요.</strong><br>A. 점검은 가능하지만 포털 관련 항목은 “확인 전”으로 표시됩니다. 등록 후 다시 점검하시는 것을 권해 드립니다.</p><p><br></p><p><strong>Q. 수정은 되나요?</strong><br>A. 입력하신 정보가 잘못된 경우와 문구 톤은 대화창에서 수정해 드립니다. 측정 결과의 수치 자체는 실측값이라 수정 대상이 아닙니다.</p></template>
+
+<template id="tpl-rev"><p><strong>[수정 가능한 범위]</strong></p><p>수정과 추가 질문은 크몽 대화창에서 총 2회까지 지원합니다.</p><p>1. 문구 수정: 소개글·응대 문구·검색어 등 작성해 드린 문구의 표현과 순서 수정</p><p>2. 정보 정정: 보내 주신 가게 정보(이름, 지역, 키워드, 영업시간 등)가 달라 결과에 영향을 준 경우의 정정 반영</p><p>3. 설명 요청: 결과 내용 중 이해가 어려운 부분의 추가 설명</p><p><br></p><p><strong>[재작업 조건]</strong></p><p>· 판매자의 실수로 정보가 잘못 반영된 경우: 수정 횟수에 포함하지 않고 바로 다시 작업합니다.</p><p>· 보내 주신 정보가 잘못되어 다시 점검이 필요한 경우: 수정 1회로 계산해 다시 점검합니다.</p><p>· 수정 요청은 주문일로부터 7일 이내에 크몽 대화창으로 부탁드립니다.</p><p><br></p><p><strong>[수정이 어려운 경우]</strong></p><p>· 측정 결과의 수치 자체는 실측값이라 수정 대상이 아닙니다.</p><p>· 납품 후 사장님이 포털이나 홈페이지를 직접 고친 뒤의 변화 확인은 새로운 점검(새 주문)이 필요합니다.</p><p>· 처음 요청하신 범위를 벗어나는 추가 항목(다른 가게 추가, 키워드 전면 변경 등)은 새 주문으로 진행합니다.</p><p>· 수정 2회를 넘는 요청은 새 주문으로 진행합니다.</p></template>
+
+<!-- ③ 서비스 제공 절차 -->
+<template id="tpl-steps"><p><strong>1. 주문 후 정보 전달</strong><br>주문하시면 크몽 대화창으로 가게 정보(가게 이름·업종·지역, 대표 검색 키워드, 비교할 근처 가게, 블로그·홈페이지 주소 등)를 보내 주세요.</p><p><br></p><p><strong>2. 가게 등록과 측정</strong><br>판매자가 가게를 등록하고 전체 점검을 실행합니다.</p><p><br></p><p><strong>3. 요청하신 문구 작성</strong><br>소개글·응대 문구·블로그·검색어는 대화창으로 요청하신 만큼 작성합니다.</p><p><br></p><p><strong>4. 결과 정리 전달</strong><br>점검 결과와 개선 순서를 정리해 크몽 대화창으로 전달합니다. 첫 결과는 영업일 기준 2일 이내이며, 수정과 추가 질문은 대화창에서 2회까지 지원합니다. 모든 소통은 크몽 대화창에서만 이루어집니다.</p></template>
+
+<script>
+(function () {
+  function plain(root) {
+    var out = [];
+    root.childNodes.forEach(function (n) {
+      var t = (n.innerText !== undefined ? n.innerText : n.textContent) || "";
+      out.push(t.replace(/ /g, " ").trim());
+    });
+    return out.join("\n");
+  }
+  function setup(tplId, pvId, rawId, cntId) {
+    var tpl = document.getElementById(tplId);
+    var html = tpl.innerHTML.trim();
+    var pv = document.getElementById(pvId);
+    pv.innerHTML = html;
+    document.getElementById(rawId).value = html;
+    var textLen = Array.from(pv.textContent.replace(/\s+/g, " ").trim()).length;
+    var bad = /[<`]/.test(pv.textContent) ? " ⚠ 사용 불가 문자(< 또는 `)가 있음" : "";
+    document.getElementById(cntId).textContent = "글자 수(공백 포함, 대략): " + textLen + "자" + bad;
+    return html;
+  }
+  var htmlBody = setup("tpl-body", "pv-body", "raw-body", "cnt-body");
+  var htmlSteps = setup("tpl-steps", "pv-steps", "raw-steps", "cnt-steps");
+  var htmlRev = setup("tpl-rev", "pv-rev", "raw-rev", "cnt-rev");
+  var store = { "tpl-body": htmlBody, "tpl-steps": htmlSteps, "tpl-rev": htmlRev };
+
+  var t = document.getElementById("title-text").textContent.trim();
+  document.getElementById("title-count").textContent = "글자 수: " + Array.from(t).length + "자 (30자 이내)";
+
+  // 선택 복사는 브라우저가 계산된 스타일(글자 크기·색)을 끼워 넣을 수 있어서,
+  // copy 이벤트에서 원본 HTML 문자열을 그대로 클립보드에 넣는다.
+  document.querySelectorAll("button[data-tpl]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var id = btn.getAttribute("data-tpl");
+      var html = store[id];
+      var tmp = document.createElement("div");
+      tmp.innerHTML = html;
+      var text = plain(tmp);
+      var handler = function (e) {
+        e.clipboardData.setData("text/html", html);
+        e.clipboardData.setData("text/plain", text);
+        e.preventDefault();
+      };
+      document.addEventListener("copy", handler, { once: true });
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (err) { ok = false; }
+      document.removeEventListener("copy", handler);
+      document.getElementById(btn.getAttribute("data-msg")).textContent = ok ? "복사됨 — 크몽 편집기에 Ctrl+V" : "복사 실패 — 아래 HTML 칸을 직접 복사해 주세요";
+    });
+  });
+})();
+</script>
+</body>
+</html>

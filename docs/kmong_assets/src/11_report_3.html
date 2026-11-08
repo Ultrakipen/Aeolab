@@ -1,0 +1,45 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="report.css"><style>
+.mask { position: relative; margin-top: 12px; }
+.mask .blur { filter: blur(6px); user-select: none; pointer-events: none; }
+.mask .lock { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); background: #14205c; color: #fff; font-size: 21px; font-weight: 800; padding: 9px 20px; border-radius: 999px; white-space: nowrap; box-shadow: 0 4px 14px rgba(20,32,92,.3); }
+.mask table, .mask .doc { margin-top: 0; }
+.give { background:#eef3ff; border-radius: 12px; padding: 12px 16px; font-size: 21px; font-weight: 700; color:#2b3f9e; line-height: 1.5; margin-top: 12px; }
+.give b { color:#14205c; }
+</style></head><body><div class="frame"><div class="cap"><div class="k">결과 보고서(PDF) 샘플 · 3/4 · 경쟁 가게·AI 도구 노출</div><div class="ex">샘플 · 가상의 가게</div></div><div class="paper">
+<div class="h2">경쟁 가게 비교</div>
+<div class="d">근처 경쟁 가게 3곳과 항목별로 비교했습니다. 점 개수는 비교용 상대 수준입니다 (많을수록 충실).</div>
+<table>
+<tr><th></th><th style="color:#a35a00">내 가게</th><th>경쟁 A</th><th>경쟁 B</th><th>경쟁 C</th></tr>
+<tr><td class="b">현재 단계</td><td><span class="st s1">보강 단계</span></td><td><span class="st s3">양호</span></td><td><span class="st s2">개선 중</span></td><td><span class="st s2">개선 중</span></td></tr>
+<tr><td class="b">검색어 보유</td><td><span class="lv me"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></td></tr>
+<tr><td class="b">소개글·소식 최신성</td><td><span class="lv me"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="lv"><i class="on"></i><i></i><i></i><i></i><i></i></span></td></tr>
+<tr><td class="b">리뷰·평점</td><td><span class="lv me"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td></tr>
+<tr><td class="b">블로그 언급</td><td><span class="lv me"><i class="on"></i><i></i><i></i><i></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td></tr>
+<tr><td class="b">홈페이지</td><td class="chk n">✕</td><td class="chk y">✓</td><td class="chk n">✕</td><td class="chk y">✓</td></tr>
+</table>
+<div class="two"><div class="box good"><b>내 가게가 앞서 있어요</b>리뷰·평점</div><div class="box gap"><b>경쟁 가게가 앞서 있어요</b>검색어 보유 · 블로그 언급</div></div>
+
+<div class="h3">검색어 격차 — 경쟁 가게에는 있고 내 가게에는 없는 검색어</div>
+<table>
+<tr><th>검색어</th><th>보유 가게</th><th>반영 위치 제안</th></tr>
+<tr><td class="b">상남동 데이트 맛집</td><td>경쟁 A·B</td><td class="fx">소개글 첫 문장 + 블로그 1번 주제</td></tr>
+</table>
+<div class="mask"><div class="blur"><table><tr><td class="b">창원 점심 맛집</td><td>경쟁 A·C</td><td class="fx">점심 메뉴 소식 + FAQ</td></tr><tr><td class="b">창원 브런치</td><td>경쟁 A</td><td class="fx">블로그 3번 주제</td></tr><tr><td class="b">성산구 단품 파스타</td><td>경쟁 B</td><td class="fx">소개글 메뉴 설명</td></tr></table></div><div class="lock">구매 후 제공</div></div>
+
+<div class="h2">AI 도구 질의와 노출</div>
+<div class="d">가게 이름을 넣지 않고 "추천해 줘" 질문을 반복해, AI가 내 가게를 스스로 추천하는지 확인합니다.</div>
+<table>
+<tr><th>질문 (ChatGPT)</th><th>내 가게 언급</th><th>함께 나온 가게</th></tr>
+<tr><td class="b">성산구 파스타 맛집 추천해 줘</td><td><span class="st s0">확인되지 않음</span></td><td>경쟁 A · 경쟁 B</td></tr>
+<tr><td class="b">창원 점심 파스타 어디가 좋아?</td><td><span class="st s0">확인되지 않음</span></td><td>경쟁 A</td></tr>
+<tr><td class="b">상남동 데이트 식사 장소 추천</td><td><span class="st s0">확인되지 않음</span></td><td>경쟁 B · 경쟁 C</td></tr>
+</table>
+<div class="note">※ 이 측정은 AI의 학습 기억을 바탕으로 하며 실시간 검색 결과와 다를 수 있습니다. 이번 측정에서 확인되지 않았다고 해서 검색을 켠 화면에서도 나오지 않는다는 뜻은 아닙니다. 제미나이는 참고용입니다.</div>
+<table>
+<tr><th>구글·채널 점검</th><th>결과</th></tr>
+<tr><td class="b">구글 AI 개요</td><td><span class="st s0">확인 전</span> 이번 측정에서 노출 확인되지 않음</td></tr>
+<tr><td class="b">구글 지도 등록</td><td><span class="st s3">등록됨</span> 평점 표시 확인</td></tr>
+<tr><td class="b">주소 표기 (포털↔구글)</td><td><span class="st s1">표기 차이</span> 같은 가게로 인식되도록 맞추는 것을 권장</td></tr>
+<tr><td class="b">홈페이지 가게 정보 코드</td><td><span class="st s1">없음</span> 공유 미리보기·모바일 대응은 양호</td></tr>
+</table>
+<div class="pg">3 / 4</div></div><div class="foot2">※ 전달 형태를 보여 드리는 <b>샘플</b>입니다. 가게 이름·순위·문구는 모두 가상이며, 실제 보고서는 주문하신 가게의 진단 결과에 따라 달라집니다. 흐리게 처리된 부분은 구매 후 보고서에 담겨 전달됩니다.</div></div></body></html>

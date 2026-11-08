@@ -1,0 +1,44 @@
+body { background: #d9dfee; margin:0; }
+.frame { width: 1000px; padding: 36px 44px 34px; background: #d9dfee; box-sizing: border-box; }
+.cap { display:flex; justify-content: space-between; align-items:center; margin-bottom: 14px; }
+.cap .k { font-size: 24px; font-weight: 800; color: #2b3f9e; }
+.cap .ex { background: #ffd24a; color: #14205c; font-weight: 800; font-size: 20px; padding: 6px 14px; border-radius: 999px; }
+.paper { background:#fff; border-radius: 6px; box-shadow: 0 10px 34px rgba(20,32,92,.2); padding: 40px 44px 30px; }
+.top { display:flex; justify-content: space-between; align-items:flex-start; border-bottom: 4px solid #14205c; padding-bottom: 16px; }
+.top .tt { font-size: 36px; font-weight: 800; color: #14205c; letter-spacing: -0.03em; }
+.top .ss { font-size: 21px; color:#6a768d; margin-top: 6px; }
+.top .dt { font-size: 20px; color:#6a768d; text-align:right; line-height:1.5; }
+.info { display:grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 18px; }
+.info div { background:#f3f5fb; border-radius: 12px; padding: 12px 16px; }
+.info .l { font-size: 18px; color:#6a768d; font-weight:700; }
+.info .v { font-size: 22px; font-weight: 800; color: #14205c; margin-top: 2px; white-space: nowrap; }
+.h2 { font-size: 29px; font-weight: 800; color: #14205c; margin-top: 30px; padding-left: 12px; border-left: 6px solid #4a63c9; }
+.h2:first-child { margin-top: 0; }
+.h3 { font-size: 24px; font-weight: 800; color: #2b3f9e; margin-top: 22px; }
+.d { font-size: 20px; color:#6a768d; margin-top: 6px; line-height: 1.45; }
+table { width:100%; border-collapse: collapse; margin-top: 12px; font-size: 21px; }
+th { background:#eef3ff; color:#2b3f9e; font-size: 19px; font-weight:800; padding: 9px 10px; text-align:left; }
+td { padding: 12px 10px; border-bottom: 2px solid #e8edf8; vertical-align: top; line-height: 1.45; font-weight:600; color:#1f2a44; }
+td.b { font-weight: 800; color:#14205c; white-space: nowrap; }
+.st { display:inline-block; font-size: 18px; font-weight: 800; padding: 3px 11px; border-radius: 999px; white-space: nowrap; }
+.s1 { background:#ffe9d0; color:#a35a00; } .s2 { background:#e0e8ff; color:#2b3f9e; } .s3 { background:#e3f6ef; color:#0b7a62; } .s0 { background:#eceff6; color:#5a667f; }
+.fx { color:#2b3f9e; }
+.chips { display:flex; flex-wrap:wrap; gap:10px; margin-top: 12px; }
+.c { font-size: 21px; font-weight: 700; padding: 6px 14px; border-radius: 999px; }
+.ok { background:#e3f6ef; color:#0b7a62; } .miss { background:#fff4dc; color:#a35a00; border:2px dashed #f0b64d; } .nu { background:#eef3ff; color:#2b3f9e; }
+.doc { margin-top: 12px; border: 2px solid #e2e8f6; border-radius: 14px; background:#fafbff; padding: 14px 18px; font-size: 21px; line-height: 1.55; font-weight:600; color:#1f2a44; }
+.doc .lb { display:inline-block; font-size: 17px; font-weight: 800; background:#14205c; color:#fff; border-radius: 7px; padding: 2px 9px; margin-bottom: 6px; }
+em { font-style:normal; color:#b3243f; font-weight:800; }
+.note { font-size: 19px; color:#5a667f; line-height:1.55; background:#f3f5fb; border-radius: 12px; padding: 12px 16px; margin-top: 16px; }
+.pg { text-align:right; font-size: 18px; color:#8a95aa; margin-top: 18px; border-top: 2px solid #e8edf8; padding-top: 8px; }
+.foot2 { font-size: 19px; color:#4b5876; margin-top: 14px; line-height: 1.5; }
+.row3 { display:grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 12px; }
+.mini { background:#f5f7fd; border:2px solid #e2e8f6; border-radius: 14px; padding: 14px 16px; }
+.mini .l { font-size: 18px; color:#6a768d; font-weight:700; } .mini .v { font-size: 26px; font-weight: 800; color:#14205c; margin-top: 4px; } .mini .s { font-size: 19px; font-weight:700; margin-top:4px; color:#c25a00; }
+.bar { height: 14px; border-radius: 8px; background:#dfe6f6; overflow:hidden; display:flex; margin-top: 10px; } .bar i { display:block; height:100%; }
+.lv { display:inline-flex; gap:4px; } .lv i { width:16px; height:16px; border-radius:50%; background:#dfe6f6; display:block; } .lv i.on { background:#4a63c9; } .lv.me i.on { background:#e0873a; }
+.two { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.box { border-radius: 14px; padding: 14px 16px; font-size: 21px; line-height:1.45; font-weight:600; }
+.box b { display:block; font-size: 22px; margin-bottom: 4px; }
+.good { background:#eaf8f2; color:#0b6a54; } .gap { background:#fff4e0; color:#8a4f00; }
+.chk { font-size: 24px; font-weight: 800; } .y { color:#0f8a70; } .n { color:#b3243f; }

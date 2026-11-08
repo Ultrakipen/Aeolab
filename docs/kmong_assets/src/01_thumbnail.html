@@ -1,0 +1,33 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="common.css">
+<style>
+html,body { width: 652px; height: 488px; overflow: hidden; }
+body { background: linear-gradient(135deg, #14205c 0%, #243b9c 62%, #3150c9 100%); position: relative; color: #fff; }
+/* 장식(여백 영역 밖 요소는 장식만) */
+.orb1 { position:absolute; right:-70px; top:-70px; width:260px; height:260px; border-radius:50%; background: radial-gradient(circle at 30% 30%, rgba(120,160,255,.50), rgba(120,160,255,0) 70%); }
+.orb2 { position:absolute; left:-90px; bottom:-90px; width:300px; height:300px; border-radius:50%; background: radial-gradient(circle at 60% 40%, rgba(25,179,148,.45), rgba(25,179,148,0) 70%); }
+.safe { position: absolute; left: 50px; top: 50px; right: 50px; bottom: 50px; display: flex; flex-direction: column; justify-content: space-between; }
+.title { font-size: 60px; line-height: 1.14; font-weight: 800; letter-spacing: -0.04em; }
+.title em { font-style: normal; color: #ffd24a; }
+.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.tile { display: flex; align-items: center; gap: 9px; background: #fff; color: #14205c; border-radius: 16px; padding: 0 12px; height: 58px; font-size: 34px; font-weight: 800; letter-spacing: -0.04em; box-shadow: 0 4px 0 rgba(10,20,70,.35); white-space: nowrap; }
+.tile.wide { grid-column: span 2; }
+.ic { flex: none; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.ic svg { width: 25px; height: 25px; }
+.c1 { background: #e8f0ff; } .c2 { background: #fff0d6; } .c3 { background: #e6f8f2; }
+.c4 { background: #ffe9ee; } .c5 { background: #efe9ff; } .c6 { background: #e3f6fb; }
+.line { font-size: 31px; font-weight: 700; color: #d6deff; letter-spacing: -0.02em; }
+.line b { color: #ffd24a; }
+</style></head><body>
+<div class="orb1"></div><div class="orb2"></div>
+<div class="safe">
+  <div class="title">내 가게,<br><em>AI 검색</em>에 나올까요?</div>
+  <div class="grid">
+    <div class="tile"><span class="ic c1"><svg viewBox="0 0 24 24" fill="none" stroke="#2b3f9e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.6"/></svg></span>나의 가게</div>
+    <div class="tile"><span class="ic c6"><svg viewBox="0 0 24 24" fill="none" stroke="#0a7da0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg></span>홈페이지</div>
+    <div class="tile"><span class="ic c2"><svg viewBox="0 0 24 24" fill="none" stroke="#c77a00" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h10l4 4v12H5z"/><path d="M9 12h6M9 16h6"/></svg></span>블로그</div>
+    <div class="tile"><span class="ic c3"><svg viewBox="0 0 24 24" fill="none" stroke="#0f8a70" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3 20c0-3.4 2.7-6 6-6s6 2.6 6 6M15 15c3 0 6 1.6 6 5"/></svg></span>경쟁사</div>
+    <div class="tile wide"><span class="ic c5"><svg viewBox="0 0 24 24" fill="#6a4cd6" stroke="none"><path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></svg></span>구글·제미나이·GPT</div>
+  </div>
+  <div class="line"><b>진단</b>부터 <b>개선</b> 안내까지 한 번에</div>
+</div>
+</body></html>

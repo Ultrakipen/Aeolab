@@ -1,0 +1,96 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="common.css">
+<style>
+body { background: #e9edf6; }
+.frame { width: 1000px; padding: 44px 44px 40px; background: #e9edf6; }
+.cap { display:flex; justify-content: space-between; align-items:flex-end; margin-bottom: 18px; }
+.cap .k { font-size: 24px; font-weight: 800; color: var(--navy2); }
+.cap .ex { background: #ffd24a; color: #14205c; font-weight: 800; font-size: 20px; padding: 6px 14px; border-radius: 999px; }
+.h { font-size: 40px; font-weight: 800; color: var(--navy); letter-spacing: -0.03em; }
+.note0 { font-size: 20px; color: #6a768d; margin-top: 8px; }
+.win { background:#fff; border-radius: 24px; box-shadow: 0 8px 30px rgba(20,32,92,.12); padding: 30px 30px 26px; margin-top: 18px; }
+.row3 { display:grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+.mini { background: #f5f7fd; border: 2px solid #e2e8f6; border-radius: 18px; padding: 18px 18px; }
+.mini .l { font-size: 20px; color: #6a768d; font-weight: 700; }
+.mini .v { font-size: 31px; font-weight: 800; color: var(--navy); margin-top: 6px; letter-spacing: -0.03em; }
+.mini .s { font-size: 20px; margin-top: 6px; font-weight: 700; }
+.warn-t { color: #c25a00; } .ok-t { color: #0f8a70; }
+.bar { height: 16px; border-radius: 9px; background: #dfe6f6; overflow: hidden; display:flex; margin-top: 12px; }
+.bar i { display:block; height:100%; }
+.sec { margin-top: 26px; }
+.sec .t { font-size: 29px; font-weight: 800; color: var(--navy); }
+.sec .d { font-size: 21px; color: #6a768d; margin-top: 4px; }
+.chips { display:flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.c { font-size: 23px; font-weight: 700; padding: 8px 16px; border-radius: 999px; }
+.c.ok { background: #e3f6ef; color: #0b7a62; }
+.c.miss { background: #fff4dc; color: #a35a00; border: 2px dashed #f0b64d; }
+.tt { margin-top: 12px; border: 2px solid #e2e8f6; border-radius: 16px; overflow: hidden; }
+.tt .r { padding: 14px 18px; border-top: 2px solid #e8edf8; }
+.tt .r:first-child { border-top: 0; }
+.tt .o { font-size: 21px; color: #8a95aa; text-decoration: line-through; }
+.tt .n { font-size: 25px; font-weight: 800; color: var(--navy); margin-top: 4px; }
+.tt .w { font-size: 20px; color: #c25a00; font-weight: 700; margin-top: 4px; }
+.act { display:flex; gap: 14px; align-items:flex-start; padding: 14px 0; border-top: 2px dashed #e2e8f6; }
+.act:first-of-type { border-top: 0; }
+.pri { flex:none; width: 70px; text-align:center; font-size: 19px; font-weight: 800; padding: 5px 0; border-radius: 9px; }
+.pri.hi { background: #fde3e8; color: #b3243f; } .pri.md { background: #fff0d1; color: #9a6200; }
+.act .a { font-size: 24px; font-weight: 800; color: var(--ink); line-height: 1.4; }
+.act .r { font-size: 20px; color: #6a768d; margin-top: 3px; }
+.chart { display:flex; align-items:flex-end; gap: 14px; height: 130px; margin-top: 14px; }
+.chart .col { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
+.chart .b { width: 100%; background: #4a63c9; border-radius: 8px 8px 0 0; }
+.chart .m { font-size: 19px; color:#6a768d; margin-top: 6px; }
+.foot2 { font-size: 20px; color:#6a768d; margin-top: 18px; line-height: 1.5; }
+</style></head><body>
+<div class="frame">
+  <div class="cap"><div class="k">블로그 진단</div><div class="ex">화면 예시 · 가상의 가게</div></div>
+  <div class="h">블로그가 AI 검색에 얼마나 읽히는지 진단합니다</div>
+  <div class="note0">분석 시점 기준 — 측정 시점·기기에 따라 달라질 수 있음</div>
+
+  <div class="win">
+    <div class="row3">
+      <div class="mini"><div class="l">최근 글 작성</div><div class="v">3주 전</div><div class="s warn-t">최신성 보강 필요</div></div>
+      <div class="mini"><div class="l">글 성격</div><div class="v">홍보 위주</div>
+        <div class="bar"><i style="width:70%; background:#e0873a"></i><i style="width:30%; background:#4a63c9"></i></div>
+        <div class="s" style="font-size:19px;color:#6a768d">홍보형 70% · 정보형 30%</div></div>
+      <div class="mini"><div class="l">발행 주기</div><div class="v">불규칙</div><div class="s warn-t">월 2회 이상 권장</div></div>
+    </div>
+
+    <div class="sec">
+      <div class="t">키워드 커버리지</div>
+      <div class="d">내 블로그 제목·본문에서 확인된 검색어와, 아직 없는 검색어</div>
+      <div class="chips"><span class="c ok">✓ 성산구 파스타</span><span class="c ok">✓ 창원 맛집 추천</span></div>
+      <div class="chips"><span class="c miss">없음 — 선점 기회 · 상남동 데이트 맛집</span><span class="c miss">없음 · 창원 점심 맛집</span><span class="c miss">없음 · 창원 브런치</span></div>
+    </div>
+
+    <div class="sec">
+      <div class="t">제목 개선 제안</div>
+      <div class="d">AI와 검색에서 언급되기 쉬운 제목으로 바꾸는 제안입니다</div>
+      <div class="tt">
+        <div class="r"><div class="o">오늘의 점심 ㅎㅎ</div><div class="n">성산구 파스타 맛집 추천 | 점심 메뉴 후기</div><div class="w">지역명이 없어 로컬 검색에서 언급되기 어렵습니다</div></div>
+        <div class="r"><div class="o">신메뉴 출시!</div><div class="n">창원 파스타 신메뉴 소개 | 재료와 맛 정리</div><div class="w">메뉴·지역 정보가 제목에 없습니다</div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="t">이번 주 할 일</div>
+      <div class="act"><span class="pri hi">우선</span><div><div class="a">‘오늘의 점심 ㅎㅎ’ 제목을 지역·메뉴가 들어간 제목으로 수정</div><div class="r">AI가 언급하기 어려운 제목입니다</div></div></div>
+      <div class="act"><span class="pri hi">우선</span><div><div class="a">‘상남동 데이트 맛집’ 키워드로 새 글 1개 작성</div><div class="r">이 키워드가 블로그에 없어 AI 검색 노출에서 빠집니다</div></div></div>
+      <div class="act"><span class="pri md">보통</span><div><div class="a">다음 3개 글은 ‘추천’, ‘비교’, ‘총정리’ 형식으로 작성</div><div class="r">홍보 위주 글이 많아 정보형 글을 늘리면 좋습니다</div></div></div>
+    </div>
+
+    <div class="sec">
+      <div class="t">발행 주기</div>
+      <div class="d">최근 6개월 월별 발행 수 · 권장은 월 2회 이상</div>
+      <div class="chart">
+        <div class="col"><div class="b" style="height:34%"></div><div class="m">6월</div></div>
+        <div class="col"><div class="b" style="height:0%"></div><div class="m">7월</div></div>
+        <div class="col"><div class="b" style="height:68%"></div><div class="m">8월</div></div>
+        <div class="col"><div class="b" style="height:0%"></div><div class="m">9월</div></div>
+        <div class="col"><div class="b" style="height:34%"></div><div class="m">10월</div></div>
+        <div class="col"><div class="b" style="height:0%"></div><div class="m">11월</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot2">※ 서비스의 블로그 진단 항목 구성을 보여 드리는 <b>화면 예시</b>입니다. 가게 이름·글 제목·수치는 모두 가상이며, 실제 결과는 주문하신 가게의 블로그에 따라 달라집니다.</div>
+</div>
+</body></html>

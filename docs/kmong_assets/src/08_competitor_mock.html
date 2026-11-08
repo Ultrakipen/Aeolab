@@ -1,0 +1,82 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><link rel="stylesheet" href="common.css">
+<style>
+body { background: #e9edf6; }
+.frame { width: 1000px; padding: 44px 44px 40px; background: #e9edf6; }
+.cap { display:flex; justify-content: space-between; align-items:flex-end; margin-bottom: 18px; }
+.cap .k { font-size: 24px; font-weight: 800; color: var(--navy2); }
+.cap .ex { background: #ffd24a; color: #14205c; font-weight: 800; font-size: 20px; padding: 6px 14px; border-radius: 999px; }
+.h { font-size: 40px; font-weight: 800; color: var(--navy); letter-spacing: -0.03em; }
+.note0 { font-size: 20px; color: #6a768d; margin-top: 8px; }
+.win { background:#fff; border-radius: 24px; box-shadow: 0 8px 30px rgba(20,32,92,.12); padding: 30px 30px 26px; margin-top: 18px; }
+.sec { margin-top: 26px; } .sec:first-child { margin-top: 0; }
+.sec .t { font-size: 29px; font-weight: 800; color: var(--navy); }
+.sec .d { font-size: 21px; color: #6a768d; margin-top: 4px; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 14px; font-size: 22px; }
+th { font-size: 20px; color: #6a768d; font-weight: 700; padding: 8px 6px; text-align: center; }
+th:first-child, td:first-child { text-align: left; padding-left: 4px; }
+td { padding: 13px 6px; border-top: 2px solid #e8edf8; text-align: center; color: var(--ink); font-weight: 700; }
+td:first-child { font-weight: 800; color: var(--navy); width: 31%; }
+.me { background: #eef3ff; }
+.stage { display:inline-block; font-size: 18px; font-weight: 800; padding: 3px 10px; border-radius: 999px; margin-top: 4px; }
+.s1 { background:#ffe9d0; color:#a35a00; } .s2 { background:#e3f6ef; color:#0b7a62; } .s3 { background:#e0e8ff; color:#2b3f9e; }
+.lv { display:inline-flex; gap: 5px; }
+.lv i { width: 20px; height: 20px; border-radius: 50%; background: #dfe6f6; display:block; }
+.lv i.on { background: #4a63c9; } .lv.me i.on { background: #e0873a; }
+.chk { font-size: 28px; font-weight: 800; } .y { color:#0f8a70; } .n { color:#b3243f; }
+.gap { display:flex; align-items:center; justify-content:space-between; padding: 14px 18px; border-radius: 16px; margin-top: 10px; }
+.gap .a { font-size: 25px; font-weight: 800; color: var(--ink); }
+.gap .b { font-size: 21px; font-weight: 800; padding: 6px 14px; border-radius: 999px; }
+.g-win { background: #eaf8f2; } .g-win .b { background: #c9efdf; color: #0b6a54; }
+.g-eq { background: #f3f5fb; } .g-eq .b { background: #e2e8f6; color: #44506a; }
+.g-lose { background: #fff4e0; } .g-lose .b { background: #ffe0a8; color: #8a4f00; }
+.chips { display:flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.c { font-size: 23px; font-weight: 700; padding: 8px 16px; border-radius: 999px; background: #fff4dc; color: #a35a00; border: 2px dashed #f0b64d; }
+.act { display:flex; gap: 14px; padding: 12px 0; border-top: 2px dashed #e2e8f6; font-size: 24px; font-weight: 800; color: var(--ink); line-height: 1.4; }
+.act:first-of-type { border-top: 0; }
+.act span { flex:none; width: 34px; height: 34px; border-radius: 50%; background: var(--navy); color:#fff; display:flex; align-items:center; justify-content:center; font-size: 20px; }
+.foot2 { font-size: 20px; color:#6a768d; margin-top: 18px; line-height: 1.5; }
+</style></head><body>
+<div class="frame">
+  <div class="cap"><div class="k">경쟁 가게 진단</div><div class="ex">화면 예시 · 가상의 가게</div></div>
+  <div class="h">근처 경쟁 가게 3곳과 항목별로 비교합니다</div>
+  <div class="note0">분석 시점 기준 — 측정 시점·기기에 따라 달라질 수 있음</div>
+
+  <div class="win">
+    <div class="sec">
+      <div class="t">항목별 비교</div>
+      <div class="d">점 개수는 비교용 상대 수준입니다 (많을수록 해당 항목이 충실)</div>
+      <table>
+        <tr><th></th><th class="me">내 가게</th><th>경쟁 A</th><th>경쟁 B</th><th>경쟁 C</th></tr>
+        <tr><td>현재 단계</td><td class="me"><span class="stage s1">보강 단계</span></td><td><span class="stage s2">양호</span></td><td><span class="stage s3">개선 중</span></td><td><span class="stage s3">개선 중</span></td></tr>
+        <tr><td>검색어(키워드) 보유</td><td class="me"><span class="lv me"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></td></tr>
+        <tr><td>소개글·소식 최신성</td><td class="me"><span class="lv me"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="lv"><i class="on"></i><i></i><i></i><i></i><i></i></span></td></tr>
+        <tr><td>리뷰·평점</td><td class="me"><span class="lv me"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td></tr>
+        <tr><td>블로그 언급</td><td class="me"><span class="lv me"><i class="on"></i><i></i><i></i><i></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></td><td><span class="lv"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td></tr>
+        <tr><td>홈페이지</td><td class="me chk n">✕</td><td class="chk y">✓</td><td class="chk n">✕</td><td class="chk y">✓</td></tr>
+      </table>
+    </div>
+
+    <div class="sec">
+      <div class="t">경쟁사와 차이가 나는 항목</div>
+      <div class="gap g-win"><span class="a">리뷰·평점</span><span class="b">내 가게가 앞서 있어요</span></div>
+      <div class="gap g-eq"><span class="a">소개글·소식 최신성</span><span class="b">비슷해요</span></div>
+      <div class="gap g-lose"><span class="a">검색어(키워드) 보유</span><span class="b">경쟁사가 앞서 있어요</span></div>
+      <div class="gap g-lose"><span class="a">블로그 언급</span><span class="b">경쟁사가 앞서 있어요</span></div>
+    </div>
+
+    <div class="sec">
+      <div class="t">경쟁 가게는 갖고 있고, 내 가게엔 없는 검색어</div>
+      <div class="d">이 검색어를 소개글·소식에 반영하면 차이를 줄일 수 있습니다</div>
+      <div class="chips"><span class="c">상남동 데이트 맛집</span><span class="c">창원 점심 맛집</span><span class="c">성산구 단품 파스타</span><span class="c">창원 브런치</span></div>
+    </div>
+
+    <div class="sec">
+      <div class="t">지금 할 일</div>
+      <div class="act"><span>1</span><div>없는 검색어 중 가게 사실과 맞는 것만 소개글에 반영</div></div>
+      <div class="act"><span>2</span><div>블로그 언급이 많은 경쟁 가게의 글 형식(추천·비교·정리)을 참고해 글 작성</div></div>
+      <div class="act"><span>3</span><div>이미 앞서 있는 리뷰·평점은 소개글·소식에서 함께 알리기</div></div>
+    </div>
+  </div>
+  <div class="foot2">※ 서비스의 경쟁 가게 진단 항목 구성을 보여 드리는 <b>화면 예시</b>입니다. 가게 이름·수준은 모두 가상이며, 실제 결과는 주문하신 가게와 근처 경쟁 가게에 따라 달라집니다.</div>
+</div>
+</body></html>
