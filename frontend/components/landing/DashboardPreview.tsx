@@ -1,4 +1,4 @@
-import { Check, X, Pin, Sprout, Timer, ArrowRight } from "lucide-react";
+import { Check, X, Pin, Timer, ArrowRight } from "lucide-react";
 
 export default function DashboardPreview() {
   return (
@@ -42,13 +42,12 @@ export default function DashboardPreview() {
                   <div className="relative">
                     <div className="absolute -left-1.5 top-2.5 w-0 h-0" style={{ borderTop: "4px solid transparent", borderBottom: "4px solid transparent", borderRight: "6px solid #fff" }} />
                     <div className="rounded-2xl rounded-tl-sm p-2.5 text-sm" style={{ background: "#fff", maxWidth: "200px" }}>
-                      <p className="font-bold mb-1" style={{ color: "#0F172A" }}>[AEOlab] 주간 노출 리포트 <span className="text-sm font-normal text-gray-600">(예시)</span></p>
+                      <p className="font-bold mb-1" style={{ color: "#0F172A" }}>[AEOlab] 주간 성적표 <span className="text-sm font-normal text-gray-600">(예시)</span></p>
                       <div className="mb-1.5 pb-1.5 border-b" style={{ borderColor: "#E2E8F0" }}>
                         <p style={{ color: "#475569" }}>이번 주 AI 노출 등급</p>
                         <p className="text-sm font-black" style={{ color: "#2563EB" }}>보통 → 양호 <span className="text-sm text-green-700">↑ 한 단계 성장!</span></p>
                       </div>
-                      <p style={{ color: "#475569" }}>ChatGPT 언급: <span className="font-bold text-gray-800">+8회 증가</span></p>
-                      <p style={{ color: "#475569" }}>경쟁사 대비: <span className="font-bold text-indigo-600">업종 3위 → 2위</span></p>
+                      <p style={{ color: "#475569" }}>이번 주 할 일: <span className="font-bold text-gray-800">소개글에 빠진 검색어 추가</span></p>
                     </div>
                     <div className="mt-1 rounded-xl overflow-hidden" style={{ maxWidth: "200px" }}>
                       <div className="w-full py-1.5 text-sm font-bold text-center inline-flex items-center justify-center gap-1" style={{ background: "#FAE100", color: "#3B2800" }}>
@@ -83,7 +82,7 @@ export default function DashboardPreview() {
               양호
             </span>
             <p className="text-sm mb-1 break-keep" style={{ color: "#1D4ED8", fontWeight: 600 }}>
-              <Check className="inline w-4 h-4 -mt-0.5 mr-1" strokeWidth={3} aria-hidden="true" />업종 평균보다 높은 노출
+              <Check className="inline w-4 h-4 -mt-0.5 mr-1" strokeWidth={3} aria-hidden="true" />AI 브리핑에서 확인되는 상태
             </p>
             <p className="text-sm break-keep" style={{ color: "#475569" }}>AI 브리핑 노출 현황 · 예시</p>
             <div className="mt-2 flex items-center gap-1 mb-2">
@@ -91,7 +90,7 @@ export default function DashboardPreview() {
                 className="text-sm font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: "#BFDBFE", color: "#1D4ED8" }}
               >
-                업종 2위
+                경쟁사와 비교
               </span>
               <span
                 className="text-sm font-semibold px-2 py-0.5 rounded-full"
@@ -133,7 +132,7 @@ export default function DashboardPreview() {
                 className="text-sm font-semibold px-2 py-0.5 rounded-full"
                 style={{ background: "#E2E8F0", color: "#475569" }}
               >
-                업종 3위
+                경쟁사와 비교
               </span>
               <span
                 className="text-sm font-semibold px-2 py-0.5 rounded-full"
@@ -152,9 +151,6 @@ export default function DashboardPreview() {
               <p className="text-sm break-keep" style={{ color: "#475569" }}>
                 <span className="font-semibold" style={{ color: "#047857" }}>ChatGPT</span>
                 {" — "}미리 공부한 자료 기반 · 노출까지 <strong>수개월~1년</strong> 소요
-              </p>
-              <p className="text-sm break-keep" style={{ color: "#45556C" }}>
-                <Sprout className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden="true" />대부분의 가게가 아직 준비 중 — 지금 시작하면 선점 유리
               </p>
             </div>
           </div>

@@ -71,16 +71,15 @@ export function HowAeolabIntegrated() {
               }} />
               <div className="rounded-2xl rounded-tl-sm p-3 text-sm leading-relaxed overflow-hidden" style={{ background: "#ffffff", maxWidth: "220px" }}>
                 <p className="font-bold mb-1.5" style={{ color: "#0F172A" }}>
-                  [AEOlab] 주간 노출 리포트
+                  [AEOlab] 주간 성적표
                 </p>
                 <div className="mb-2 pb-2 border-b" style={{ borderColor: "#E2E8F0" }}>
-                  <p className="mb-0.5" style={{ color: "#475569" }}>이번 주 AI 노출 현황</p>
+                  <p className="mb-0.5" style={{ color: "#475569" }}>이번 주 AI 노출 등급</p>
                   <p className="text-base font-black" style={{ color: "#2563EB" }}>
-                    노출 늘었어요 ↑ <span className="text-sm text-green-700 font-bold">(양호 단계 진입)</span>
+                    보통 → 양호 ↑
                   </p>
                 </div>
-                <p className="mb-0.5" style={{ color: "#475569" }}>ChatGPT 언급: <span className="font-bold text-gray-800">31회 → 38회</span></p>
-                <p style={{ color: "#475569" }}>경쟁사 대비: <span className="font-bold text-indigo-600">상위 35%</span></p>
+                <p style={{ color: "#475569" }}>이번 주 할 일: <span className="font-bold text-gray-800">소개글에 빠진 검색어 추가</span></p>
               </div>
 
               {/* 버튼 */}
@@ -201,7 +200,7 @@ export function HowAeolabIntegrated() {
       border: "#BFDBFE",
       label: "STEP 01",
       title: "우리 가게 입력",
-      desc: "가게 이름만 입력하면 네이버 검색·ChatGPT·구글 지도에서 내 가게가 나오는지 바로 재 봅니다",
+      desc: "동네와 가게 이름을 입력하면 네이버 검색·ChatGPT·구글 지도에서 내 가게가 나오는지 바로 재 봅니다",
       ui: (
         <div className="space-y-1.5 mb-3">
           {[
@@ -288,7 +287,7 @@ export function HowAeolabIntegrated() {
       border: "#DDD6FE",
       label: "STEP 03",
       title: "매주 자동 점검 + 카카오 알림",
-      desc: "매주 자동 재측정. 노출 변화가 생기면 카카오 알림톡으로 바로 알려드립니다",
+      desc: "요금제에 따라 주 2~3회 자동 재측정. 등급이 바뀌면 카카오 알림톡으로 알려드려요(설정에서 알림 켜기)",
       ui: (
         <div className="space-y-2 mb-3">
           <div
@@ -296,10 +295,10 @@ export function HowAeolabIntegrated() {
             style={{ background: "#F5F3FF", borderColor: "#DDD6FE" }}
           >
             <p className="text-xl font-black leading-none mb-0.5" style={{ color: "#7C3AED" }}>
-              AI 노출 1단계 성장 ↑
+              성장 단계 한 칸 ↑
             </p>
             <p className="text-sm" style={{ color: "#475569" }}>
-              노출 상태 개선 · 예시
+              보강 단계 → 개선 중 · 예시
             </p>
             <p className="text-sm mt-1" style={{ color: "#475569" }}>
               실제 변화는 업종·지역에 따라 다릅니다
@@ -310,7 +309,7 @@ export function HowAeolabIntegrated() {
             style={{ background: "#FFFBEB", borderColor: "#FDE68A" }}
           >
             <p className="text-sm font-bold" style={{ color: "#92400E" }}>
-              카카오 알림톡 자동 발송
+              카카오 알림톡 (설정에서 켜면 받아요)
             </p>
           </div>
         </div>
@@ -331,7 +330,7 @@ export function HowAeolabIntegrated() {
             className="text-2xl md:text-3xl font-black tracking-tight break-keep"
             style={{ color: "#0F172A", letterSpacing: "-0.6px" }}
           >
-            무료 진단,{" "}
+            무료 진단 후,{" "}
             <span
               style={{
                 background: "linear-gradient(90deg,#2563EB 0%,#7C3AED 100%)",
@@ -340,13 +339,13 @@ export function HowAeolabIntegrated() {
                 backgroundClip: "text",
               }}
             >
-              7일 뒤 재측정
+              구독하면 매주 재측정
             </span>
           </h2>
           <p className="text-sm mt-2 break-keep" style={{ color: "#475569" }}>
             복잡한 설정 없이 3단계로 시작합니다 ·{" "}
             <span style={{ color: "#475569" }}>
-              가이드를 실행한 날부터 7일 뒤 다시 측정합니다 · 효과는 2~4주 이상 걸릴 수 있고 지역·업종별로 다릅니다
+              무료 진단은 1회이며, 구독하면 요금제에 따라 주 2~3회(Biz는 매일) 자동 재측정하고 가이드 실행 7일 뒤 변화도 기록합니다 · 효과는 2~4주 이상 걸릴 수 있고 보장되지 않습니다
             </span>
           </p>
         </div>

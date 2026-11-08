@@ -1,7 +1,10 @@
 /**
  * Gemini 측정 정상 가동 여부 (2026-10-27).
  *
- * ⚠️ 2026-10-30: **false로 되돌림.** 2026-10-27에는 사용자 지시로 true였으나(결제·크레딧 곧 연결 가정) 2026-10-30에 사용자가
+ * ✅ 2026-11-08: **사용자 지시로 true** — "제미나이 사용은 정상적으로 동작하는 것으로 보고 안내문을 작성"(랜딩 문구 개정, docs/landing_copy_revision_2026_11_08.md).
+ * 아래 '켜는 절차' 5개 확인은 사용자 판단으로 생략하고 켰다. 표본 성공률이 다시 흔들리면(무료 등급 한도) 이 값을 false로 되돌리고 재빌드한다.
+ *
+ * (이전 기록) 2026-10-30: false로 되돌림. 2026-10-27에는 사용자 지시로 true였으나(결제·크레딧 곧 연결 가정) 2026-10-30에 사용자가
  * Gemini 결제 연결을 차후로 결정했고, 같은 날 서버 `ai_usage_log` 최근 24시간 Gemini 측정이 4 성공/96 실패(ResourceExhausted)였다.
  * 결제를 연결한 직후 `scripts/check_ai_providers.py`로 Gemini 10회 중 9회 이상 성공하는지 확인하고 true로 바꿔 재빌드할 것.
  *
@@ -24,7 +27,7 @@
  * 켠 뒤: 프론트를 빌드·재시작하고 랜딩·요금제·FAQ·체험 결과·결제 완료 화면에서 '준비 중'이 사라졌는지 확인한다.
  * 켜는 순간부터 공개 문구가 "각 100회", "4곳 측정"으로 바뀌므로 위 확인 전에 켜지 말 것.
  */
-export const GEMINI_MEASUREMENT_LIVE = false;
+export const GEMINI_MEASUREMENT_LIVE = true;
 
 const G = GEMINI_MEASUREMENT_LIVE;
 /** "ChatGPT·Gemini" 또는 "ChatGPT" */

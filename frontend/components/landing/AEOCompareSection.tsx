@@ -1,13 +1,13 @@
 import { Check as CheckIcon, Lightbulb, Target, ArrowRight } from "lucide-react";
 
 const FEATURES = [
-  { label: "AI가 추천하기 좋게 개선", seo: false, naver: false, aeo: true },
+  { label: "AI 노출 개선 방법 안내", seo: false, naver: false, aeo: true },
   { label: "AI 브리핑에 필요한 검색어 분석", seo: false, naver: false, aeo: true },
-  { label: "네이버 AI탭 노출 개선", seo: false, naver: false, aeo: true },
+  { label: "네이버 AI탭 노출 개선 방법 안내", seo: false, naver: false, aeo: true },
   { label: "경쟁사 AI 노출 비교", seo: false, naver: false, aeo: true },
   { label: "주간 자동 추적", seo: false, naver: false, aeo: true },
-  { label: "ChatGPT·Gemini 관리", seo: false, naver: false, aeo: true },
-  { label: "네이버 플레이스 탭 순위 개선", seo: false, naver: true, aeo: true },
+  { label: "ChatGPT·Gemini 측정·관리", seo: false, naver: false, aeo: true },
+  { label: "플레이스 탭 순위 개선 방법 안내", seo: false, naver: true, aeo: true },
   { label: "블로그→VIEW탭 검색 노출 안내", seo: false, naver: false, aeo: true },
   { label: "검색 키워드 관리", seo: true, naver: false, aeo: true },
 ];
@@ -166,7 +166,7 @@ export default function AEOCompareSection() {
               {FEATURES.filter((f) => f.naver || f.seo).map((f) => (
                 <div key={f.label} className="flex items-center gap-2.5">
                   <CheckIcon className="w-4 h-4 shrink-0" style={{ color: "#007a55" }} />
-                  <span className="text-sm" style={{ color: "#475569" }}>{f.label} (기존 포함)</span>
+                  <span className="text-sm" style={{ color: "#475569" }}>{f.label} (기존 서비스에도 있음)</span>
                 </div>
               ))}
             </div>

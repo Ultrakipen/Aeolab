@@ -148,7 +148,7 @@ export default function HeroSection() {
                 className="w-1.5 h-1.5 rounded-full animate-pulse"
                 style={{ background: "#2563EB" }}
               />
-              AI 검색 노출 진단 서비스 — AI 브리핑·AI탭·네이버 검색·ChatGPT
+              내 가게 AI 검색 노출 진단 — 무료 1회 체험 + 구독 시 매주 자동 추적
             </div>
 
             {/* 메인 타이틀 */}
@@ -185,13 +185,16 @@ export default function HeroSection() {
             >
               무료로 내 가게 진단하기 <ArrowRight className="w-5 h-5" aria-hidden="true" />
             </a>
-            <p className="lg:hidden text-sm mb-5" style={{ color: "rgba(255,255,255,0.75)" }}>
-              가입 없이 · 카드 없이 · 1분 안팎
+            <p className="lg:hidden text-sm mb-5 break-keep" style={{ color: "rgba(255,255,255,0.75)" }}>
+              가입 없이 · 카드 없이 · 무료 진단 · 구독은 월 17,900원부터(첫 달 8,950원)
             </p>
 
-            {/* KPI 지표 */}
+            {/* KPI 지표 — 네이버가 AI 브리핑 적용 업체를 대상으로 발표한 수치만(AEOlab 이용 효과 아님, 가격은 이 줄에 섞지 않는다) */}
+            <p className="text-sm font-semibold mb-2 break-keep" style={{ color: "rgba(255,255,255,0.88)" }}>
+              네이버가 AI 브리핑 적용 업체를 대상으로 발표한 수치 (적용 전후 비교)
+            </p>
             <div
-              className="grid grid-cols-2 sm:flex sm:items-center gap-3 sm:gap-4 mb-6 pb-5 border-b"
+              className="grid grid-cols-3 sm:flex sm:items-center gap-3 sm:gap-4 mb-6 pb-5 border-b"
               style={{ borderColor: "rgba(255,255,255,0.12)" }}
             >
               {[
@@ -213,12 +216,6 @@ export default function HeroSection() {
                   highlight: false,
                   source: "네이버 발표 2025.8",
                 },
-                {
-                  num: "17,900원",
-                  label: "월 최저 요금",
-                  highlight: false,
-                  source: null,
-                },
               ].map(({ num, label, highlight, source }, i) => (
                 <div
                   key={i}
@@ -239,7 +236,7 @@ export default function HeroSection() {
                     {num}
                   </p>
                   <p
-                    className="text-sm mt-0.5 font-medium"
+                    className="text-sm mt-0.5 font-medium break-keep"
                     style={{ color: "rgba(255,255,255,0.88)" }}
                   >
                     {label}
@@ -257,9 +254,9 @@ export default function HeroSection() {
             </div>
             <p
               className="text-sm mb-5 -mt-3 break-keep"
-              style={{ color: "rgba(255,255,255,0.65)" }}
+              style={{ color: "rgba(255,255,255,0.88)" }}
             >
-              식당·카페 등 AI 브리핑 적용 업체의 네이버 발표 수치(적용 전후 비교)이며 AEOlab 이용 효과가 아닙니다 · 업종·지역에 따라 다를 수 있습니다
+              위 수치는 식당·카페 등 AI 브리핑 적용 업체에 대한 네이버 발표이며 AEOlab 이용 효과가 아닙니다 · 업종·지역에 따라 다를 수 있습니다
             </p>
 
             {/* 서브텍스트 */}
@@ -272,7 +269,7 @@ export default function HeroSection() {
                   className="inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded-md mr-1"
                   style={{ background: "rgba(37,99,235,0.35)", color: "#93C5FD" }}
                 >
-                  음식점·카페·숙박업 등
+                  음식점·카페·베이커리·바·숙박
                 </span>
                 은 검색 상단 <strong style={{ color: "#FFFFFF" }}>AI 브리핑</strong>으로,{" "}
                 그 외 모든 업종은{" "}
@@ -283,8 +280,8 @@ export default function HeroSection() {
                 className="text-sm leading-relaxed break-keep"
                 style={{ color: "rgba(255,255,255,0.80)" }}
               >
-                무료 진단은 <strong style={{ color: "#A5F3FC" }}>네이버 검색·ChatGPT·구글 지도</strong>를 직접 재 봅니다.
-                {GEMINI_LIVE ? "네이버 AI 브리핑·AI탭, 제미나이, 구글 AI·검색은 가입하면 확인해 드려요." : "네이버 AI 브리핑·AI탭, 구글 AI·검색은 가입하면 확인해 드려요. 제미나이 측정은 준비 중이에요."}
+                무료 진단은 <strong style={{ color: "#A5F3FC" }}>네이버 검색·ChatGPT·구글 지도</strong>
+                {GEMINI_LIVE ? "를 직접 재 봅니다. 네이버 AI 브리핑·AI탭, 제미나이, 구글 AI·검색은 가입하면 확인해 드려요." : "를 직접 재 봅니다. 네이버 AI 브리핑·AI탭, 구글 AI·검색은 가입하면 확인해 드려요. 제미나이 측정은 준비 중이에요."}
               </p>
             </div>
 

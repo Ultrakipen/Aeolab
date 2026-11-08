@@ -52,7 +52,7 @@ const PACKAGES: Package[] = [
       "1:1 화상 코칭 60분",
       "30일 후 자동 재진단 보고서",
     ],
-    extra: "개별 구매 시 158,000원 → 13% 할인",
+    extra: "개별 구매 시 158,000원 → 12% 할인",
     badge: "추천",
     highlight: true,
   },
@@ -86,7 +86,7 @@ export default function AgencyServiceSection() {
             {" "}전문가가 대신 해드립니다
           </h2>
           <p className="text-sm" style={{ color: "#78716C" }}>
-            AEOlab 진단 결과 그대로 실행 대행 — 결과로 증명합니다
+            AEOlab 진단 결과에 맞춰 실행을 대신합니다
           </p>
         </div>
 
@@ -150,7 +150,7 @@ export default function AgencyServiceSection() {
                 ))}
               </ul>
 
-              {/* 서비스 제공 주기 (토스페이먼츠 단건결제 심사 요건) */}
+              {/* 서비스 제공 주기 (단건결제 심사 요건 — 토스는 폐기, 크렙 기준 유지) */}
               <div className="rounded-lg p-3" style={{ background: "#F8FAFC", border: "1px solid #E2E8F0" }}>
                 <p className="text-sm font-bold mb-1" style={{ color: "#0F172A" }}>제공 주기 · {DELIVERY_FREQUENCY}</p>
                 <ul className="flex flex-col gap-1 text-sm" style={{ color: "#45556C" }}>
