@@ -16,7 +16,7 @@ function FeatureCheck({ ok }: { ok: boolean }) {
   return ok ? (
     <CheckIcon className="w-4 h-4" style={{ color: "#007a55" }} />
   ) : (
-    <span className="block w-4 border-t mx-auto" style={{ borderColor: "#CBD5E1" }} />
+    <span className="block w-4 border-t shrink-0" style={{ borderColor: "#CBD5E1" }} />
   );
 }
 
@@ -105,7 +105,7 @@ export default function AEOCompareSection() {
             </div>
             <a
               href="/trial"
-              className="block w-full mt-5 py-2.5 rounded-xl text-sm font-bold text-white text-center transition-all hover:scale-105 hover:opacity-90"
+              className="flex items-center justify-center gap-1 w-full mt-5 py-2.5 rounded-xl text-sm font-bold text-white text-center transition-all hover:scale-105 hover:opacity-90"
               style={{ background: "linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)", boxShadow: "0 4px 16px rgba(124,58,237,0.25)" }}
             >
               무료로 시작하기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -160,13 +160,13 @@ export default function AEOCompareSection() {
               {FEATURES.filter((f) => f.aeo && !f.naver && !f.seo).map((f) => (
                 <div key={f.label} className="flex items-center gap-2.5">
                   <CheckIcon className="w-4 h-4 shrink-0" style={{ color: "#007a55" }} />
-                  <span className="text-sm font-medium" style={{ color: "#0F172A" }}>{f.label}</span>
+                  <span className="text-sm font-medium break-keep" style={{ color: "#0F172A" }}>{f.label}</span>
                 </div>
               ))}
               {FEATURES.filter((f) => f.naver || f.seo).map((f) => (
                 <div key={f.label} className="flex items-center gap-2.5">
                   <CheckIcon className="w-4 h-4 shrink-0" style={{ color: "#007a55" }} />
-                  <span className="text-sm" style={{ color: "#475569" }}>{f.label} (기존 서비스에도 있음)</span>
+                  <span className="text-sm break-keep" style={{ color: "#475569" }}>{f.label} (기존 서비스에도 있음)</span>
                 </div>
               ))}
             </div>

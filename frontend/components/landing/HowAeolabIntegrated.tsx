@@ -76,7 +76,7 @@ export function HowAeolabIntegrated() {
                 <div className="mb-2 pb-2 border-b" style={{ borderColor: "#E2E8F0" }}>
                   <p className="mb-0.5" style={{ color: "#475569" }}>이번 주 AI 노출 등급</p>
                   <p className="text-base font-black" style={{ color: "#2563EB" }}>
-                    보통 → 양호 ▲
+                    개선 중 → 양호 ▲
                   </p>
                 </div>
                 <p style={{ color: "#475569" }}>이번 주 할 일: <span className="font-bold text-gray-800">소개글에 빠진 검색어 추가</span></p>

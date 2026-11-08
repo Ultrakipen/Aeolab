@@ -45,7 +45,7 @@ export default function DashboardPreview() {
                       <p className="font-bold mb-1" style={{ color: "#0F172A" }}>[AEOlab] 주간 성적표 <span className="text-sm font-normal text-gray-600">(예시)</span></p>
                       <div className="mb-1.5 pb-1.5 border-b" style={{ borderColor: "#E2E8F0" }}>
                         <p style={{ color: "#475569" }}>이번 주 AI 노출 등급</p>
-                        <p className="text-sm font-black" style={{ color: "#2563EB" }}>보통 → 양호 <span className="text-sm text-green-700">↑ 한 단계 성장!</span></p>
+                        <p className="text-sm font-black" style={{ color: "#2563EB" }}>개선 중 → 양호 <span className="text-sm text-green-700">↑ 한 단계 성장!</span></p>
                       </div>
                       <p style={{ color: "#475569" }}>이번 주 할 일: <span className="font-bold text-gray-800">소개글에 빠진 검색어 추가</span></p>
                     </div>
@@ -165,7 +165,7 @@ export default function DashboardPreview() {
               <div>
                 <p className="text-sm font-bold mb-2" style={{ color: "#0F172A" }}>7주 변화 · 노출 단계 변화</p>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-semibold px-2.5 py-1 rounded-full" style={{ background: "#FEF9C3", color: "#92400E" }}>보통</span>
+                  <span className="text-sm font-semibold px-2.5 py-1 rounded-full" style={{ background: "#FEF9C3", color: "#92400E" }}>개선 중</span>
                   <span className="text-sm font-medium" style={{ color: "#475569" }}>→ 7주 후 →</span>
                   <span className="text-sm font-semibold px-2.5 py-1 rounded-full" style={{ background: "#DBEAFE", color: "#1D4ED8" }}>양호</span>
                   <span className="text-sm font-semibold" style={{ color: "#15803D" }}>↑ 한 단계 성장</span>
@@ -205,15 +205,15 @@ export default function DashboardPreview() {
                 <circle key={i} cx={cx} cy={cy} r="3.5" fill="#FFFFFF" stroke="#2563EB" strokeWidth="1.8" />
               ))}
 
-              {/* 시작점 (보통) */}
+              {/* 시작점 (개선 중) */}
               <circle cx="40" cy="105" r="5.5" fill="#FFFFFF" stroke="#94A3B8" strokeWidth="2" />
 
               {/* 끝점 (양호) */}
               <circle cx="400" cy="22" r="7" fill="#2563EB" stroke="#FFFFFF" strokeWidth="2.5" />
 
-              {/* 시작점 라벨 칩 "보통" */}
+              {/* 시작점 라벨 칩 "개선 중" */}
               <rect x="8" y="82" width="50" height="18" rx="9" fill="#FEF9C3" />
-              <text x="33" y="95" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#92400E">보통</text>
+              <text x="33" y="95" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#92400E">개선 중</text>
 
               {/* 끝점 라벨 칩 "양호" */}
               <rect x="365" y="5" width="50" height="18" rx="9" fill="#DBEAFE" />

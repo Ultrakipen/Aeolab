@@ -344,7 +344,7 @@ export default function LandingPage() {
                   }}
                 >
                   {item.isAiTab && (
-                    <p className="text-sm font-bold mb-0.5" style={{ color: "#4F46E5" }}>AI탭 · 글로벌 AI</p>
+                    <p className="text-sm font-bold mb-0.5" style={{ color: "#4F46E5" }}>AEOlab 측정 범위</p>
                   )}
                   <p
                     className="text-2xl md:text-3xl font-black leading-none"
@@ -443,7 +443,7 @@ export default function LandingPage() {
                   <div>
                     <p className="text-sm font-bold text-gray-800">네이버 AI 브리핑 (글 모음형)</p>
                     <p className="text-sm text-gray-600">블로그·콘텐츠가 출처로 채택되면 지금도 노출 가능</p>
-                    <p className="text-sm text-gray-600 mt-0.5">가게 요약형은 업종을 넓혀 갈 계획이라고 네이버가 밝혔습니다(적용 현황은 네이버 공지 기준)</p>
+                    <p className="text-sm text-gray-600 mt-0.5 break-keep">가게 요약형은 업종을 넓혀 갈 계획이라고 네이버가 밝혔습니다(적용 현황은 네이버 공지 기준)</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 rounded-xl bg-white border border-blue-100 px-4 py-3">
@@ -1024,8 +1024,8 @@ export default function LandingPage() {
                     </span>
                   )}
                 </div>
-                <h3 className="text-sm font-bold text-gray-900 mb-1">{title}</h3>
-                <p className="text-sm text-gray-600 leading-snug break-keep line-clamp-3 sm:line-clamp-none">{desc}</p>
+                <h3 className="text-sm font-bold text-gray-900 mb-1 break-keep">{title}</h3>
+                <p className="text-sm text-gray-600 leading-snug break-keep [overflow-wrap:anywhere]">{desc}</p>
               </div>
             ))}
           </div>
@@ -1110,7 +1110,7 @@ export default function LandingPage() {
               <p className="text-sm md:text-base break-keep" style={{ color: "#45556C" }}>
                 월·연 광고 지출을 계산해 보고 AEOlab 구독료(월 {PLAN_PRICES.basic.toLocaleString()}원부터)와 나란히 비교해 보세요.
               </p>
-              <p className="text-sm mt-1" style={{ color: "#45556C" }}>
+              <p className="text-sm mt-1 break-keep" style={{ color: "#45556C" }}>
                 AEOlab은 광고를 대신하지 않습니다. 광고와 별개로 AI 답변에 나올 준비 상태를 점검하는 서비스입니다.
               </p>
             </div>

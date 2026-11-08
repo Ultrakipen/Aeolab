@@ -137,7 +137,7 @@ export default function HeroSection() {
           <div>
             {/* Eyebrow 배지 */}
             <div
-              className="inline-flex items-center gap-2 text-sm font-bold px-3 py-1.5 rounded-full mb-5"
+              className="inline-flex items-center gap-2 text-sm font-bold px-3 py-1.5 rounded-full mb-5 break-keep"
               style={{
                 background: "rgba(255,255,255,0.10)",
                 color: "#93C5FD",
@@ -145,7 +145,7 @@ export default function HeroSection() {
               }}
             >
               <span
-                className="w-1.5 h-1.5 rounded-full animate-pulse"
+                className="w-1.5 h-1.5 rounded-full animate-pulse shrink-0"
                 style={{ background: "#2563EB" }}
               />
               내 가게 AI 검색 노출 진단 — 무료 1회 체험 + 구독 시 매주 자동 추적
