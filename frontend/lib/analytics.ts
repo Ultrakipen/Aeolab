@@ -98,6 +98,14 @@ export function trackScrollDepth(percent: 25 | 50 | 75 | 100): void {
   trackEvent("scroll_depth", { percent, page: "landing" });
 }
 
+/**
+ * 랜딩 섹션별 도달 — 페이지 전체 스크롤 깊이만으로는 어느 섹션에서 이탈하는지 알 수 없어 추가(2026-11-08).
+ * index: 페이지 위에서부터 몇 번째 섹션인지(1부터), label: 섹션 제목 앞 30자, viewport: m(모바일)/pc. 개인정보 없음.
+ */
+export function trackSectionView(index: number, label: string, viewport: "m" | "pc"): void {
+  trackEvent("landing_section_view", { section_index: index, section_label: label, viewport, page: "landing" });
+}
+
 // ── 모바일 전환 깔때기 (v1.1) ────────────────────────────────────────
 //
 // 신규 이벤트:

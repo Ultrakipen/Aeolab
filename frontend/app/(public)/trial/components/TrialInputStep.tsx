@@ -429,7 +429,7 @@ export default function TrialInputStep(props: TrialInputStepProps) {
                       <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" aria-hidden="true" />
                       <div className="flex-1">
                         <p className="text-sm font-bold text-blue-900 mb-1">
-                          '플레이스형' 네이버 AI 브리핑 대상 업종이 아닙니다 — 그래도 개선 효과가 있습니다
+                          '플레이스형' 네이버 AI 브리핑 대상 업종이 아닙니다 — 그래도 개선에 도움이 될 수 있습니다
                         </p>
                         <ul className="space-y-1.5 mt-2">
                           <li className="flex items-start gap-1.5">

@@ -98,7 +98,7 @@ function buildIssues(result: TrialScanResult, track1: number, track2: number, ca
         : {
             icon: MapPin,
             title: "네이버 지역·블로그 검색 노출 부족",
-            desc: "이 업종은 '플레이스형' AI 브리핑 대상이 아니지만, 스마트플레이스·블로그 콘텐츠를 갖추면 '정보형 AI 브리핑'과 네이버 지역 검색 노출에 효과가 있습니다.",
+            desc: "이 업종은 '플레이스형' AI 브리핑 대상이 아니지만, 스마트플레이스·블로그 콘텐츠를 갖추면 '정보형 AI 브리핑'과 네이버 지역 검색 노출에 도움이 될 수 있습니다.",
           }
     );
   }

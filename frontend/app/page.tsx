@@ -22,6 +22,7 @@ import { LandingHeaderNav } from "./LandingHeaderNav";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import LandingScrollAnimation from "@/components/landing/LandingScrollAnimation";
 import ScrollDepthTracker from "@/components/analytics/ScrollDepthTracker";
+import SectionViewTracker from "@/components/analytics/SectionViewTracker";
 import HeaderHelpSearch from "@/components/landing/HeaderHelpSearch";
 import HelpFAQFloat from "@/components/landing/HelpFAQFloat";
 import { PLAN_PRICES, PLANS, FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans";
@@ -36,6 +37,7 @@ export default function LandingPage() {
     <main className="min-h-screen" style={{ background: "#FFFFFF" }}>
       <LandingScrollAnimation />
       <ScrollDepthTracker />
+      <SectionViewTracker />
 
       {/* ── 헤더 ── */}
       <header
@@ -479,7 +481,7 @@ export default function LandingPage() {
             {/* SEO + AI 연결 메시지 */}
             <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 mb-4 text-center">
               <p className="text-sm font-semibold text-green-800 break-keep">
-                스마트플레이스·블로그를 잘 관리하면 <strong>네이버 검색 상위노출</strong>에도 효과가 있습니다
+                스마트플레이스·블로그를 잘 관리하면 <strong>네이버 검색 상위노출</strong>에도 도움이 될 수 있습니다
               </p>
               <p className="text-sm text-green-700 mt-1 break-keep">
                 스마트플레이스 → 네이버 플레이스 탭 순위 상승 / 블로그 → VIEW탭 상위 노출 → AI 브리핑·AI탭 노출 가능성도 함께 높아집니다

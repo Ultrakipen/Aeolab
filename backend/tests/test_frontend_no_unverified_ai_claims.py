@@ -164,3 +164,11 @@ def test_the_flag_guard_catches_an_unflagged_preparing_line(tmp_path):
     (comp / "Good.tsx").write_text('<p>{GEMINI_LIVE ? "Gemini 측정" : "Gemini 측정은 준비 중이에요"}</p>\n', encoding="utf-8")
     got = _unflagged_preparing_mentions(tmp_path)
     assert len(got) == 1 and "Bad.tsx" in got[0]
+
+
+def test_landing_mounts_both_depth_and_section_trackers():
+    """랜딩 이탈 지점을 데이터로 보려면 스크롤 깊이와 섹션별 도달 계측이 모두 붙어 있어야 한다(2026-11-08)."""
+    text = (FRONTEND / "app/page.tsx").read_text(encoding="utf-8", errors="ignore")
+    assert "<ScrollDepthTracker />" in text and "<SectionViewTracker />" in text
+    analytics = (FRONTEND / "lib/analytics.ts").read_text(encoding="utf-8", errors="ignore")
+    assert "landing_section_view" in analytics
