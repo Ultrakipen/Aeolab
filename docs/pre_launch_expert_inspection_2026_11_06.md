@@ -228,6 +228,11 @@ CREATE POLICY "user_see_own_replies" ON support_replies
 - 섀도 행 1건(질의 '창원 상남동마사지 추천'): `place_list_found=True`, 이름 6개 읽음, `place_list_rank=None`, `mentioned=False`, `in_briefing=False` → 분류 `absent_both`(목록·브리핑 모두 없음, 기존 판정과 일치). **서버의 로그인 화면에서도 구조 기반 판정이 목록을 읽는다(표본 1건)** — 미확인이던 DOM 차이 우려는 이 1건 기준으로 해소.
 - 한계: 표본 1건이라 `text_only`·`old_missed`·`unreadable` 비율은 아직 알 수 없다(하루 1곳 안팎이라 계속 쌓이는 중). 점수 반영 논의는 표본이 쌓인 뒤.
 
+### 11-08 저녁 — 미확인 항목 확인 결과와 재점검
+- **GitHub 스캔 중단 확인**: 변수 설정(11-07 12:10 UTC) 이후 첫 예약 실행(11-07 19:41 UTC, run 42407419874)이 **`skipped`**, job `naver-scan` 스텝 0개, `naver_prescan`에 11-08자 행 없음(최신 11-07 ×4는 변수 설정 이전 실행분). 변수가 실제로 동작한다. 크론은 매일 계속 돌아 빈 실행(skipped)을 남긴다(무해).
+- **섀도 표본**: 1건 그대로(다음 서버 정기 스캔 17:00 UTC). 서버 로그인 화면에서 목록 판독 확인(n=1).
+- **재점검(코드로 확인)**: ①월·목 AI탭 정기 점검은 재시작마다 정상 등록(`Added job ai_tab_trigger_check_job`), 제거한 일회성 작업의 "missed"는 제거 배포 이후 0건. ②`gap_analyzer.py` 전체에 확정형·점수 숫자 문구 잔존 0(테스트가 안 보는 함수 포함 grep). ③결제(빌링 발급) 직후·사업장 등록 직후에 **측정을 즉시 시작하는 경로는 없다**(등록 시 시작되는 것: 블로그 자동 분석→`businesses.blog_analysis_json`, 네이버 통계 동기화, 환영 메일, 체험 결과 가져오기(결과 비어 있어 이용 아님)) → 환불 ①의 가능 구간 = 첫 자동 스캔(basic 월·목, startup 월, pro 월·수·금, biz 매일) 또는 수동 측정·가이드 생성 전까지. ④서버·저장소 drift 0, 추적 파일 미커밋 0.
+
 ## 기각(오탐·과장) — 사유
 - **save-email P0**: 속도 제한이 없는 것은 맞지만 메일은 체험당 1회(`scan.py` first_email)이고 체험 생성이 IP당 일 3회 → P2.
 - **report.py IP 제한이 Cloudflare 뒤에서 무력화**: nginx `cloudflare-realip.conf`로 실제 IP가 복원됨.
