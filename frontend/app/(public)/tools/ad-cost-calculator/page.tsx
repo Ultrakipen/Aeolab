@@ -7,19 +7,13 @@ import { PLAN_PRICES } from "@/lib/plans";
 import { SiteFooter } from "@/components/common/SiteFooter";
 
 const AEOLAB_MONTHLY = PLAN_PRICES.basic;
-const AI_REPLACE_RATIO = 0.3; // 광고비의 30%를 AI 노출로 대체 가정
 
 export default function AdCostCalculatorPage() {
   const [adCost, setAdCost] = useState(300000); // 기본 30만원
 
   const adCostManWon = Math.round(adCost / 10000);
-  const aeolab6mo = AEOLAB_MONTHLY * 6;
   const aeolab12mo = AEOLAB_MONTHLY * 12;
-
-  // 6개월 절감 = 광고비 * 30% * 6개월 - AEOlab 6개월 구독료
-  const saving6mo = Math.round(adCost * AI_REPLACE_RATIO * 6 - aeolab6mo);
-  // 1년 절감
-  const saving12mo = Math.round(adCost * AI_REPLACE_RATIO * 12 - aeolab12mo);
+  const adCost12mo = adCost * 12;
 
   const formatWon = (v: number) =>
     v >= 10000
@@ -40,10 +34,10 @@ export default function AdCostCalculatorPage() {
           </Link>
           <div className="flex items-center gap-2 mb-2">
             <Calculator className="w-6 h-6 text-blue-600" />
-            <h1 className="text-2xl md:text-3xl font-black text-gray-900">광고비 절감 계산기</h1>
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900">광고비 vs 구독료 비교</h1>
           </div>
           <p className="text-sm md:text-base text-gray-600">
-            AI 검색 노출로 광고비를 절감하면?
+            내 광고비와 AEOlab 구독료를 나란히 비교해 보세요
           </p>
         </div>
       </div>
@@ -88,7 +82,7 @@ export default function AdCostCalculatorPage() {
           <div className="bg-red-50 border border-red-100 rounded-xl p-5">
             <p className="text-sm font-semibold text-red-700 mb-1">현재 월 광고비</p>
             <p className="text-2xl md:text-3xl font-black text-red-700">{formatWon(adCost)}</p>
-            <p className="text-sm text-red-700 mt-1">광고 끄면 노출 0</p>
+            <p className="text-sm text-red-700 mt-1">광고를 멈추면 광고 노출도 멈춥니다</p>
           </div>
 
           {/* AEOlab 구독료 */}
@@ -104,53 +98,33 @@ export default function AdCostCalculatorPage() {
           </div>
         </div>
 
-        {/* 절감 예상 카드 */}
+        {/* 연간 비교 (절감 약속 아님 — 단순 금액 비교) */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 md:p-6">
           <div className="flex items-center gap-2 mb-5">
             <TrendingDown className="w-5 h-5 text-emerald-700" />
-            <h2 className="text-base font-bold text-gray-900">절감 예상 금액</h2>
+            <h2 className="text-base font-bold text-gray-900">1년 금액 비교</h2>
           </div>
-
-          <div className="space-y-4">
-            {/* 6개월 */}
-            <div className="flex items-center justify-between gap-4 py-4 border-b border-gray-50">
-              <div>
-                <p className="text-sm font-semibold text-gray-700">6개월 절감 예상</p>
-                <p className="text-sm text-gray-600 mt-0.5">
-                  광고비 {formatWon(adCost)} × 30% × 6개월 − AEOlab {formatWon(aeolab6mo)}
-                </p>
-              </div>
-              <span className={`text-xl font-black shrink-0 ${saving6mo > 0 ? "text-emerald-700" : "text-gray-600"}`}>
-                {saving6mo > 0 ? `+${formatWon(saving6mo)}` : "효과 미미"}
-              </span>
+          <div className="space-y-3 text-sm text-gray-700">
+            <div className="flex items-center justify-between gap-4">
+              <span>광고비 {formatWon(adCost)} × 12개월</span>
+              <span className="font-bold text-gray-900 shrink-0">{formatWon(adCost12mo)}</span>
             </div>
-
-            {/* 1년 */}
-            <div className="flex items-center justify-between gap-4 py-4">
-              <div>
-                <p className="text-sm font-semibold text-gray-700">1년 절감 예상</p>
-                <p className="text-sm text-gray-600 mt-0.5">
-                  광고비 {formatWon(adCost)} × 30% × 12개월 − AEOlab {formatWon(aeolab12mo)}
-                </p>
-              </div>
-              <span className={`text-xl font-black shrink-0 ${saving12mo > 0 ? "text-emerald-700" : "text-gray-600"}`}>
-                {saving12mo > 0 ? `+${formatWon(saving12mo)}` : "효과 미미"}
-              </span>
+            <div className="flex items-center justify-between gap-4">
+              <span>AEOlab Basic {formatWon(AEOLAB_MONTHLY)} × 12개월</span>
+              <span className="font-bold text-gray-900 shrink-0">{formatWon(aeolab12mo)}</span>
             </div>
           </div>
-
-          {/* 가정 표시 */}
           <div className="mt-4 bg-amber-50 border border-amber-100 rounded-xl p-3">
-            <p className="text-sm text-amber-700">
-              <span className="font-semibold">계산 기준 (추정):</span> 업계 평균 데이터가 아닌 이해를 돕기 위한 가정값으로, 현재 광고비의 30%를 AI 노출로 대체할 수 있다고 가정합니다.
+            <p className="text-sm text-amber-700 break-keep">
+              <span className="font-semibold">안내:</span> 단순 금액 비교입니다. AEOlab은 광고를 대체하거나 광고비 절감을 보장하지 않으며, AI 검색에 나올 준비 상태를 점검하고 고칠 순서를 알려드립니다. 첫 달은 8,950원입니다.
             </p>
           </div>
         </div>
 
         {/* 면책 문구 */}
-        <p className="text-sm text-gray-600 text-center leading-relaxed">
-          절감 효과는 업종·지역·경쟁 강도에 따라 다릅니다.
-          실제 효과는 AEOlab 측정 후 확인하세요.
+        <p className="text-sm text-gray-600 text-center leading-relaxed break-keep">
+          광고 효과와 AI 검색 노출은 업종·지역·경쟁 강도에 따라 다릅니다.
+          내 가게 상태는 무료 진단으로 먼저 확인하세요.
         </p>
 
         {/* CTA */}

@@ -131,7 +131,7 @@ const INACTIVE_NAVER_SEARCH_TIPS: Record<string, string> = {
 function getScoreStatusLabel(score: number, channelType: 'naver' | 'global' = 'naver'): { text: string; color: string } {
   if (channelType === 'global') {
     if (score < 10) return { text: "미측정 수준",   color: "text-red-700" };
-    if (score < 35) return { text: "낮음 (일반적)", color: "text-amber-700" };
+    if (score < 35) return { text: "낮음", color: "text-amber-700" };
     if (score < 60) return { text: "보통",          color: "text-yellow-600" };
     if (score < 80) return { text: "양호",          color: "text-blue-600" };
     return             { text: "우수",              color: "text-emerald-700" };

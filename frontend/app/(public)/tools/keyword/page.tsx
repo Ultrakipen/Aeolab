@@ -283,7 +283,7 @@ export default function KeywordToolPage() {
               href="/tools/ad-cost-calculator"
               className="text-sm text-blue-600 hover:text-blue-700 font-medium underline"
             >
-              광고비 절감 계산기
+              광고비 vs 구독료 비교
             </Link>
             <span className="text-gray-300">|</span>
             <Link
