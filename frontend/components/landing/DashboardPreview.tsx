@@ -45,7 +45,7 @@ export default function DashboardPreview() {
                       <p className="font-bold mb-1" style={{ color: "#0F172A" }}>[AEOlab] 주간 성적표 <span className="text-sm font-normal text-gray-600">(예시)</span></p>
                       <div className="mb-1.5 pb-1.5 border-b" style={{ borderColor: "#E2E8F0" }}>
                         <p style={{ color: "#475569" }}>이번 주 AI 노출 등급</p>
-                        <p className="text-sm font-black" style={{ color: "#2563EB" }}>개선 중 → 양호 <span className="text-sm text-green-700">↑ 한 단계 성장!</span></p>
+                        <p className="text-sm font-black" style={{ color: "#2563EB" }}>개선 중 → 양호 <span className="text-sm text-green-700">▲</span></p>
                       </div>
                       <p style={{ color: "#475569" }}>이번 주 할 일: <span className="font-bold text-gray-800">소개글에 빠진 검색어 추가</span></p>
                     </div>
@@ -102,7 +102,7 @@ export default function DashboardPreview() {
             {/* 개선 소요 기간 안내 */}
             <div className="mt-auto rounded-lg px-2.5 py-2" style={{ background: "#DBEAFE" }}>
               <p className="text-sm font-semibold mb-0.5 break-keep" style={{ color: "#1E40AF" }}><Timer className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden="true" />개선 효과 확인까지</p>
-              <p className="text-sm break-keep" style={{ color: "#1D4ED8" }}>소개글·소식 업데이트 후 <strong>2~4주</strong> 내 변화</p>
+              <p className="text-sm break-keep" style={{ color: "#1D4ED8" }}>소개글·소식 업데이트 후 변화는 <strong>2~4주 이상</strong> 걸릴 수 있어요 (보장 아님)</p>
             </div>
           </div>
 

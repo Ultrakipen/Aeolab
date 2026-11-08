@@ -13,7 +13,7 @@ const COMPARE_ROWS = [
   },
   {
     label: "신뢰도",
-    manual: "같은 질문, 매번 다른 답",
+    manual: "같은 질문에도 답이 달라질 수 있음",
     auto: GEMINI_LIVE ? "Gemini·ChatGPT 각 50~100회 통계 (자동 100회·수동 50회, Basic 기준)" : "ChatGPT 50~100회 통계 (자동 100회·수동 50회, Basic 기준)",
   },
   {

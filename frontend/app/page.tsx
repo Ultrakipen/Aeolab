@@ -835,7 +835,7 @@ export default function LandingPage() {
                       { label: "다. 키워드", desc: "업종 관련 키워드 소개글·소식 포함 여부" },
                       { label: "라. 블로그·외부 콘텐츠", desc: "네이버 블로그·SNS 등 온라인 언급량" },
                     ].map(({ label, desc }) => (
-                      <div key={label} className="flex items-start gap-1.5">
+                      <div key={label} className="flex items-start gap-1.5 text-left">
                         <span className="text-blue-600 text-sm font-bold flex-shrink-0 mt-0.5">{label}</span>
                         <span className="text-sm text-gray-600 break-keep">{desc}</span>
                       </div>
@@ -867,12 +867,12 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* ③ AI 노출 증가 */}
+              {/* ③ 노출 가능성 개선 (결과 약속이 아니라 가능성 — 11-08) */}
               <div className="flex flex-col items-center text-center">
                 <div className="relative mb-4">
                   <div className="w-[104px] h-[104px] rounded-2xl flex flex-col items-center justify-center gap-1.5 shadow-md" style={{ background: "linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)", border: "2px solid #6EE7B7" }}>
                     <TrendingUp className="w-7 h-7 text-green-700" aria-hidden="true" />
-                    <span className="text-sm font-bold text-green-700">AI 노출 증가</span>
+                    <span className="text-sm font-bold text-green-700 break-keep">노출 가능성 개선</span>
                   </div>
                   <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-sm font-black text-white" style={{ background: "#007a55" }}>③</span>
                 </div>
