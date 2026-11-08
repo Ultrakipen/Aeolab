@@ -23,8 +23,8 @@
 
 ## 4. 전환·계측
 - `cd /var/www/aeolab/backend && PYTHONPATH=. venv/bin/python -c "from dotenv import load_dotenv; load_dotenv('.env'); import runpy; runpy.run_path('scripts/trial_funnel_readonly.py', run_name='__main__')"` (`.env`를 source하지 않는다).
-- 기준선(2026-11-08): 체험 267건 중 다량 IP(>3회) 제외 57건·고유 IP 41개, 이메일 입력 21, 결과 저장 2, **가입 연결 0**, 10-13 이후 제외 후 월 7건 안팎. 표본이 작아 방향 참고용.
-- GA4 이벤트: `scroll_depth`(25/50/75/100), `landing_section_view`(`section_index`·`section_label`·`viewport`). 섹션 번호는 순서에 의존하므로 라벨 기준으로 본다. **랜딩 세션 수는 아직 미확인** — 유입 부족인지 전환 부족인지 가르는 데 필요하다.
+- 수치(2026-11-08): 체험 267건 중 다량 IP(>3회) 제외 57건·고유 IP 41개, 이메일 입력 21, 결과 저장 2, 가입 연결 0. **이 수치는 실사용자 기준선이 아니다 — 서비스는 오픈 전(개발 완성 단계)이라 실사용자가 없고, 위 체험은 개발·테스트·지인 트래픽이 섞인 것이다(2026-11-09 사용자 확인).** 오픈 후 첫 실사용 기간을 새 기준선으로 삼는다.
+- GA4 이벤트: `scroll_depth`(25/50/75/100), `landing_section_view`(`section_index`·`section_label`·`viewport`). 섹션 번호는 순서에 의존하므로 라벨 기준으로 본다. 오픈 전이라 랜딩 세션 데이터는 의미가 없다. 오픈 후 개발자·봇 트래픽을 뺀 세션으로 유입 부족인지 전환 부족인지 가른다.
 
 ## 5. 문구 회귀 방지
 - 새 문구는 `backend/tests/test_frontend_no_unverified_ai_claims.py`의 금지 목록(결과 약속·기간 단정·근거 없는 평균)에 걸리지 않게 쓴다. 서버 테스트가 `frontend` 폴더를 읽으므로 **프론트를 먼저 배포한 뒤 백엔드 테스트를 배포**한다.
