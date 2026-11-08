@@ -148,7 +148,7 @@ export default function HeroSection() {
                 className="w-1.5 h-1.5 rounded-full animate-pulse shrink-0"
                 style={{ background: "#2563EB" }}
               />
-              내 가게 AI 검색 노출 진단 — 무료 1회 체험 + 구독 시 매주 자동 추적
+              내 가게 AI 검색 노출 진단 — 무료 1회 체험 + 구독 시 매주 자동 추적
             </div>
 
             {/* 메인 타이틀 */}
