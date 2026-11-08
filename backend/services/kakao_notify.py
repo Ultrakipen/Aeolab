@@ -131,11 +131,13 @@ def _grade_change(prev: float, curr: float) -> str:
     pg, cg = _grade(prev), _grade(curr)
     if pg != cg:
         return "등급 상승" if curr > prev else "등급 하락"
-    if curr > prev:
+    # 같은 등급 안의 점수 차이는 대부분 오차다(같은 가게 일간 변화 중앙값 약 3.9점, 2026-11-08) — 큰 변화일 때만 방향을 말한다.
+    from services.stage_names import HEADLINE_BIG_DELTA
+    if curr - prev >= HEADLINE_BIG_DELTA:
         return "등급 내 상승"
-    if curr < prev:
+    if prev - curr >= HEADLINE_BIG_DELTA:
         return "등급 내 하락"
-    return "변동 없음"
+    return "큰 변동 없음"
 
 
 def _grade_transition(prev: float, curr: float) -> str:
@@ -616,16 +618,19 @@ class KakaoNotifier:
             return False
         if score_change is None:
             trend = "비교 데이터 부족"          # 8자 — 알림톡 변수 14자 한도 이내
-        elif score_change > 5:
-            trend = "뚜렷한 상승세"
-        elif score_change > 0:
-            trend = "소폭 상승"
-        elif score_change == 0:
-            trend = "변동 없음"
-        elif score_change > -5:
-            trend = "소폭 하락"
         else:
-            trend = "하락 — 점검 필요"
+            # 방향은 화면과 같은 기준으로 말한다(오차 범위 3점 미만은 변화로 말하지 않음, 10점 이상이 '뚜렷한' 변화 — stage_names).
+            from services.stage_names import HEADLINE_BIG_DELTA, HEADLINE_BAND_MIN_DELTA
+            if abs(score_change) < HEADLINE_BAND_MIN_DELTA:
+                trend = "큰 변동 없음"
+            elif score_change >= HEADLINE_BIG_DELTA:
+                trend = "뚜렷한 상승세"
+            elif score_change > 0:
+                trend = "소폭 상승"
+            elif score_change > -HEADLINE_BIG_DELTA:
+                trend = "소폭 하락"
+            else:
+                trend = "하락 — 점검 필요"
         month = str(int(month_str)) if str(month_str).isdigit() else str(month_str)
         resp = await self._send(
             phone,

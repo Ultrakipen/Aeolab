@@ -29,3 +29,19 @@ def test_weekly_report_uses_the_noise_safe_direction():
     src = inspect.getsource(KakaoNotifier.send_weekly_score_report)
     assert "_weekly_direction(prev_score, current_score)" in src
     assert '"▲" if current_score > prev_score' not in src
+
+
+def test_weekly_direction_matches_the_screen_rule_over_a_grid():
+    """알림 방향은 화면 규칙(stage_names.headline_direction)과 모든 점수 쌍에서 같아야 한다(근사가 어긋나는지 격자 대조)."""
+    from services.stage_names import headline_direction, stage_code_for_score
+    arrow = {"up": "▲", "down": "▼", "flat": "→"}
+    for a in range(0, 101, 1):
+        for b in range(0, 101, 1):
+            exp = arrow[headline_direction(stage_code_for_score(a), stage_code_for_score(b), float(b - a))]
+            assert _weekly_direction(float(a), float(b)) == exp, (a, b)
+
+
+def test_within_grade_noise_is_not_called_a_change():
+    from services.kakao_notify import _grade_change
+    assert _grade_change(60.0, 60.1) == "큰 변동 없음"
+    assert _grade_change(62.0, 59.0) == "큰 변동 없음"

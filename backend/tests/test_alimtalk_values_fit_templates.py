@@ -42,9 +42,11 @@ def test_grade_change_text_always_fits_and_never_claims_grade_change_that_did_no
                 assert t == "등급 상승"
             else:
                 assert t == "등급 하락"
-    assert _grade_change(65, 60) == "등급 내 하락"      # 둘 다 '개선 중'(55~75)
+    assert _grade_change(65, 60) == "큰 변동 없음"      # 같은 '개선 중'(55~75) 안의 5점은 오차 범위
+    assert _grade_change(74, 58) == "등급 내 하락"      # 같은 등급이라도 16점은 큰 변화
+    assert _grade_change(56, 70) == "등급 내 상승"
     assert _grade_change(60, 54) == "등급 하락"          # 개선 중 → 보강 단계
-    assert _grade_change(50, 50) == "변동 없음"
+    assert _grade_change(50, 50) == "큰 변동 없음"
 
 
 def test_grade_transition_shows_both_grades_and_fits():
@@ -54,7 +56,7 @@ def test_grade_transition_shows_both_grades_and_fits():
             assert 0 < len(t) <= LIMIT, (a, b, t)
     assert _grade_transition(45, 65) == "보강 단계 → 개선 중"
     assert _grade_transition(10, 90) == "시작 전 → 양호"
-    assert _grade_transition(65, 60) == "등급 내 하락"
+    assert _grade_transition(65, 60) == "큰 변동 없음"
     assert _grade_transition(60, 54) == "개선 중 → 보강 단계"
 
 
