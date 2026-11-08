@@ -971,8 +971,8 @@ export default function LandingPage() {
                 Icon: PenLine,
                 title: "소개글 · 콘텐츠 자동 생성",
                 desc: "AI가 내 업종에 맞는 스마트플레이스 소개글 초안을 자동 작성. 검색 태그·FAQ·소식 콘텐츠도 생성",
-                badge: "Basic+",
-                badgeColor: "#007a55",
+                badge: null,
+                badgeColor: "",
               },
               {
                 Icon: Newspaper,
@@ -985,8 +985,8 @@ export default function LandingPage() {
                 Icon: MessageSquareText,
                 title: "리뷰 답변 초안 자동 생성",
                 desc: "손님 리뷰에 AI가 자동으로 맞춤 답변 초안 작성. 리뷰 키워드 분석 및 감정 파악 포함",
-                badge: "Basic+",
-                badgeColor: "#007a55",
+                badge: null,
+                badgeColor: "",
               },
               {
                 Icon: TrendingUp,
