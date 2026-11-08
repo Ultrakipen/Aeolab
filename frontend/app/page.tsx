@@ -443,7 +443,7 @@ export default function LandingPage() {
                   <div>
                     <p className="text-sm font-bold text-gray-800">네이버 AI 브리핑 (글 모음형)</p>
                     <p className="text-sm text-gray-600">블로그·콘텐츠가 출처로 채택되면 지금도 노출 가능</p>
-                    <p className="text-sm text-gray-600 mt-0.5">가게 요약형은 연내 두 자릿수 업종 확대가 목표 (네이버 2026.2 발표)</p>
+                    <p className="text-sm text-gray-600 mt-0.5">가게 요약형은 업종을 넓혀 갈 계획이라고 네이버가 밝혔습니다(적용 현황은 네이버 공지 기준)</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 rounded-xl bg-white border border-blue-100 px-4 py-3">
