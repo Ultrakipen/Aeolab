@@ -237,6 +237,7 @@ export default function DashboardInsightZone({
               keywords={keywords}
               initialKeywordRanks={initialKeywordRanks ?? null}
               userGroup={userGroup ?? "INACTIVE"}
+              plan={plan}
               region={region}
               reviewCount={naverPlaceId ? reviewCount : undefined}
               businessName={bizName}

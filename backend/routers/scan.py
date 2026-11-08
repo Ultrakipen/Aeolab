@@ -3940,6 +3940,19 @@ async def keyword_rank_scan(
     if biz.get("user_id") != user["id"]:
         raise HTTPException(status_code=403, detail="권한이 없습니다")
 
+    # 구독 기능(2026-11-08): 랜딩은 "무료 진단은 1회, 구독하면 재측정·주기 추적"이라 안내하는데 이 수동 측정은 요금제 검사가 없어
+    # 구독 없이도 반복 측정이 가능했다. 이 측정은 구독자의 정기 측정과 같은 네이버 전역 상한을 쓰므로 무료 플랜은 막는다.
+    # (관리자는 get_user_plan이 biz로 취급, 이미 저장된 순위 표시는 이 라우터를 거치지 않아 그대로 보인다. 시간당 횟수를 소모하기 전에 검사한다.)
+    if await _get_user_plan(str(user["id"]), supabase) == "free":
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "PLAN_REQUIRED",
+                "message": "키워드 순위 다시 측정은 구독(Basic부터)에서 이용할 수 있어요. 이미 측정된 순위는 그대로 볼 수 있습니다.",
+                "upgrade_url": "/pricing",
+            },
+        )
+
     # 남용 방지: 이 측정은 네이버 자동화 요청(키워드당 2건)을 쓰므로 사용자당 시간당 횟수를 제한한다.
     # 전역 일일 상한만으로는 한 사용자가 반복 호출해 정기 측정 몫을 선점할 수 있다(2026-10-27 점검).
     import time as _time

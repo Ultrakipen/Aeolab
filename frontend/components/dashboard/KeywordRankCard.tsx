@@ -160,6 +160,8 @@ export default function KeywordRankCard({
 
   const hasData = Object.keys(ranks).length > 0;
   const canDownload = isProPlan(plan);
+  // 키워드 순위 다시 측정은 구독 기능(2026-11-08, 서버 라우터도 같은 기준으로 막는다). plan을 모르는 마운트는 막지 않는다.
+  const isFree = (plan ?? "").toLowerCase() === "free";
 
   const fetchTrend = async () => {
     if (trendData || trendLoading) return;
@@ -268,7 +270,9 @@ export default function KeywordRankCard({
         const detailMsg =
           typeof detail?.detail === "string"
             ? detail.detail
-            : `측정 실패 (HTTP ${res.status})`;
+            : typeof detail?.detail?.message === "string"
+              ? detail.detail.message
+              : `측정 실패 (HTTP ${res.status})`;
         throw new Error(detailMsg);
       }
       const data = await res.json();
@@ -336,24 +340,33 @@ export default function KeywordRankCard({
             </button>
           )}
         </div>
-        <button
-          type="button"
-          onClick={triggerScan}
-          disabled={scanning || keywords.length === 0}
-          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {scanning ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" /> 측정 중
-            </>
-          ) : hasData ? (
-            <>
-              <RefreshCw className="w-4 h-4" /> 다시 측정
-            </>
-          ) : (
-            "측정 시작"
-          )}
-        </button>
+        {isFree ? (
+          <a
+            href="/pricing"
+            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-blue-200 bg-blue-50 text-blue-700 font-medium hover:bg-blue-100 break-keep text-center"
+          >
+            {hasData ? "구독하면 다시 측정" : "구독하면 측정"}
+          </a>
+        ) : (
+          <button
+            type="button"
+            onClick={triggerScan}
+            disabled={scanning || keywords.length === 0}
+            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {scanning ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" /> 측정 중
+              </>
+            ) : hasData ? (
+              <>
+                <RefreshCw className="w-4 h-4" /> 다시 측정
+              </>
+            ) : (
+              "측정 시작"
+            )}
+          </button>
+        )}
       </div>
 
       {/* 측정 조건 안내 */}
@@ -372,7 +385,9 @@ export default function KeywordRankCard({
         <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-center">
           <p className="text-sm text-gray-700 font-medium">아직 측정 데이터 없음</p>
           <p className="text-sm text-gray-600 mt-1">
-            "측정 시작" 버튼을 누르면 등록된 키워드 {keywords.length}개의 순위를 측정합니다.
+            {isFree
+              ? `구독하면 등록된 키워드 ${keywords.length}개의 순위를 측정하고 주기적으로 추적합니다.`
+              : `"측정 시작" 버튼을 누르면 등록된 키워드 ${keywords.length}개의 순위를 측정합니다.`}
           </p>
         </div>
       )}
