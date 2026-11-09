@@ -32,7 +32,7 @@ export default function DashboardPreview() {
             <div className="px-3 py-2.5" style={{ background: "#B2C4D8" }}>
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.5)" }} />
-                <span className="text-sm" style={{ color: "rgba(255,255,255,0.85)" }}>오늘</span>
+                <span className="text-sm" style={{ color: "#334155" }}>오늘</span>
                 <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.5)" }} />
               </div>
               <div className="flex items-start gap-2">
@@ -55,7 +55,7 @@ export default function DashboardPreview() {
                       </div>
                     </div>
                   </div>
-                  <p className="text-right mt-0.5 text-sm" style={{ color: "rgba(255,255,255,0.8)", maxWidth: "200px" }}>오전 9:41</p>
+                  <p className="text-right mt-0.5 text-sm" style={{ color: "#334155", maxWidth: "200px" }}>오전 9:41</p>
                 </div>
               </div>
             </div>

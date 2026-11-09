@@ -45,7 +45,7 @@ export function HowAeolabIntegrated() {
         {/* 날짜 구분선 */}
         <div className="flex items-center gap-2 mb-3">
           <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.5)" }} />
-          <span className="text-sm px-2" style={{ color: "rgba(255,255,255,0.85)" }}>오늘</span>
+          <span className="text-sm px-2" style={{ color: "#334155" }}>오늘</span>
           <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.5)" }} />
         </div>
 
@@ -95,7 +95,7 @@ export function HowAeolabIntegrated() {
             </div>
 
             {/* 시간 */}
-            <p className="text-right mt-1 text-sm" style={{ color: "rgba(255,255,255,0.8)", maxWidth: "220px" }}>
+            <p className="text-right mt-1 text-sm" style={{ color: "#334155", maxWidth: "220px" }}>
               오전 9:41
             </p>
           </div>

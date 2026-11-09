@@ -237,13 +237,13 @@ export default function LandingPage() {
                 aria-hidden="true"
               />
               <div className="relative">
-                <span className="inline-flex items-center text-sm font-bold bg-white/20 text-white px-2.5 py-0.5 rounded-full mb-3">
+                <span className="inline-flex items-center text-sm font-bold bg-black/25 text-white px-2.5 py-0.5 rounded-full mb-3">
                   AEOlab → AI가 추천하기 좋게 차근차근 정리
                 </span>
                 <h3 className="text-base md:text-lg font-bold mb-0.5 break-keep">
                   AI 검색에 나올 준비 상태를 점검하고, 고칠 순서를 알려드립니다
                 </h3>
-                <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.75)" }}>월 17,900원 · 첫 달 8,950원 · 모든 업종</p>
+                <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.92)" }}>월 17,900원 · 첫 달 8,950원 · 모든 업종</p>
                 <svg viewBox="0 0 300 100" className="w-full h-auto">
                   <line x1="0" y1="75" x2="300" y2="75" stroke="rgba(255,255,255,.15)" strokeWidth="1" />
                   <path d="M 0,70 L 50,57 L 100,50 L 150,40 L 200,30 L 250,22 L 300,15 L 300,100 L 0,100 Z" fill="rgba(255,255,255,0.08)" />
@@ -253,10 +253,10 @@ export default function LandingPage() {
                   <circle cx="300" cy="15" r="3" fill="white" />
                   <text x="150" y="10" textAnchor="middle" fill="white" fontSize="9">주간 변화 추적 화면 (예시)</text>
                 </svg>
-                <ul className="mt-3 space-y-1 text-sm" style={{ color: "rgba(255,255,255,0.88)" }}>
+                <ul className="mt-3 space-y-1 text-sm" style={{ color: "rgba(255,255,255,0.96)" }}>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={3} aria-hidden="true" />
-                    네이버 AI탭·AI 브리핑 노출 준비 <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.8em" }}>(업종별 자동 적용)</span>
+                    네이버 AI탭·AI 브리핑 노출 준비 <span style={{ color: "rgba(255,255,255,0.9)" }}>(업종별 자동 적용)</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={3} aria-hidden="true" />
@@ -311,26 +311,26 @@ export default function LandingPage() {
                 <p className="text-sm font-bold mb-1.5" style={{ color: "rgba(255,255,255,0.95)" }}>식당·카페 등 적용 후 클릭률 변화</p>
                 <p className="stat-number-xl text-white mb-1.5">
                   +27.4%
-                  <span className="text-sm font-bold ml-2 px-2 py-0.5 rounded-full align-middle" style={{ background: "rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.95)" }}>네이버 발표</span>
+                  <span className="text-sm font-bold ml-2 px-2 py-0.5 rounded-full align-middle" style={{ background: "rgba(15,23,42,0.3)", color: "#FFFFFF" }}>네이버 발표</span>
                 </p>
-                <p className="text-sm md:text-base break-keep mb-1" style={{ color: "rgba(255,255,255,0.88)" }}>
+                <p className="text-sm md:text-base break-keep mb-1" style={{ color: "rgba(255,255,255,0.96)" }}>
                   네이버 발표: AI 브리핑 적용 업체의 클릭률이 늘었습니다
                 </p>
-                <p className="text-sm mt-3" style={{ color: "rgba(255,255,255,0.75)" }}>
+                <p className="text-sm mt-3" style={{ color: "rgba(255,255,255,0.92)" }}>
                   네이버 2025년 8월 공식 발표 · 식당·카페 등 · 적용 전후 비교
                 </p>
                 <a
                   href="https://www.hankyung.com/article/202508212669g"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-white/75 underline hover:text-white mt-0.5 inline-flex items-center gap-1 min-h-[44px]"
+                  className="text-sm text-white/95 underline hover:text-white mt-0.5 inline-flex items-center gap-1 min-h-[44px]"
                 >
                   한국경제 보도 원문<span className="sr-only"> (새 창)</span> <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                 </a>
-                <p className="text-sm mt-1.5 break-keep" style={{ color: "rgba(255,255,255,0.88)" }}>
+                <p className="text-sm mt-1.5 break-keep" style={{ color: "rgba(255,255,255,0.96)" }}>
                   측정 시점·지역·업종에 따라 달라질 수 있습니다
                 </p>
-                <p className="text-sm mt-1.5 break-keep" style={{ color: "rgba(255,255,255,0.72)" }}>
+                <p className="text-sm mt-1.5 break-keep" style={{ color: "rgba(255,255,255,0.92)" }}>
                   ※ 가게 요약형(플레이스형) AI 브리핑 대상은 음식점·카페·베이커리·바·숙박 업종. 그 외 업종도 블로그·콘텐츠가 채택되면 글 모음형(정보형) AI 브리핑 노출이 가능하며, 네이버 AI탭·ChatGPT·Gemini로도 측정·개선합니다
                 </p>
               </div>
@@ -879,7 +879,7 @@ export default function LandingPage() {
                 <div className="relative mb-4">
                   <div className="w-[104px] h-[104px] rounded-2xl flex flex-col items-center justify-center gap-1.5 shadow-md" style={{ background: "linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)", border: "2px solid #6EE7B7" }}>
                     <TrendingUp className="w-7 h-7 text-green-700" aria-hidden="true" />
-                    <span className="text-sm font-bold text-green-700 break-keep">노출 가능성 개선</span>
+                    <span className="text-sm font-bold text-green-800 break-keep">노출 가능성 개선</span>
                   </div>
                   <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-sm font-black text-white" style={{ background: "#007a55" }}>③</span>
                 </div>
@@ -904,7 +904,7 @@ export default function LandingPage() {
             <p className="text-base md:text-lg font-black text-white mb-1 break-keep">
               스마트플레이스·리뷰·키워드·블로그를 함께 관리하면 AI 추천 가능성이 높아집니다
             </p>
-            <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.75)" }}>
+            <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.92)" }}>
               AEOlab이 4가지 기준을 자동 점검하고 개선 순서를 알려드립니다 — 무료 진단
             </p>
             <a
