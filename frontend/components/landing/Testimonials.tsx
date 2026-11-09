@@ -1,5 +1,5 @@
 import { TESTIMONIALS } from "@/lib/testimonials";
-import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE, SHOW_TRIAL_COUNTER } from "@/lib/featureFlags";
 import DiagnosisCounter from "@/components/landing/DiagnosisCounter";
 
 /**
@@ -18,9 +18,12 @@ export default function Testimonials() {
     return (
       <section className="bg-gray-50 border-y border-gray-100 py-8 md:py-10 px-4 md:px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-base text-gray-600 mb-3 break-keep">
-            소상공인 사업장의 AI 노출 진단이 이어지고 있습니다
-          </p>
+          {/* 이용 규모를 말하는 문장·카운터는 오픈 전에는 숨긴다(featureFlags.ts SHOW_TRIAL_COUNTER) */}
+          {SHOW_TRIAL_COUNTER && (
+            <p className="text-base text-gray-600 mb-3 break-keep">
+              소상공인 사업장의 AI 노출 진단이 이어지고 있습니다
+            </p>
+          )}
           <DiagnosisCounter />
 
           {/* 신뢰 프록시 통계 4종 */}

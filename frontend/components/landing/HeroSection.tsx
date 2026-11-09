@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { mapNaverCategory } from "@/lib/categories";
 import { shortRegionFromAddress } from "@/lib/trialAutofill";
-import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
+import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE, SHOW_TRIAL_COUNTER } from "@/lib/featureFlags";
 
 interface Candidate {
   title: string;
@@ -24,6 +24,7 @@ export default function HeroSection() {
   const [trialCount, setTrialCount] = useState<number | null>(null);
 
   useEffect(() => {
+    if (!SHOW_TRIAL_COUNTER) return; // 오픈 전에는 카운터를 숨기므로 조회도 하지 않는다
     fetch("/api/scan/trial-count")
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {

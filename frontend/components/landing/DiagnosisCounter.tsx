@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { SHOW_TRIAL_COUNTER } from "@/lib/featureFlags";
 
 export default function DiagnosisCounter() {
   const [count, setCount] = useState<number | null>(null);
@@ -7,6 +8,7 @@ export default function DiagnosisCounter() {
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
+    if (!SHOW_TRIAL_COUNTER) return; // 오픈 전에는 숨김(featureFlags.ts 설명 참고)
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000"}/api/scan/trial-count`)
       .then((r) => r.json())
       .then((d) => {
@@ -18,6 +20,7 @@ export default function DiagnosisCounter() {
       });
   }, []);
 
+  if (!SHOW_TRIAL_COUNTER) return null;
   if (count === null && !failed) return null;
 
   // 집계를 못 가져왔거나 아직 0이면 아무것도 보여 주지 않는다 — "지금도 진행 중" 같은 확인되지 않은 활동 주장 금지

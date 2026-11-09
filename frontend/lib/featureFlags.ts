@@ -29,6 +29,15 @@
  */
 export const GEMINI_MEASUREMENT_LIVE = true;
 
+/**
+ * 랜딩의 "지금까지 N개 사업장이 무료 진단을 받았습니다" 카운터 노출 (2026-11-09, 사용자 결정으로 false).
+ *
+ * 서비스가 오픈 전(실사용자 없음)이라 집계에 개발·테스트·지인 체험이 섞였을 수 있고(체험 267건·IP 52곳 중 1회성 IP 약 32곳, 누가 돌렸는지는 데이터로 구분 불가),
+ * 실이용자 규모로 읽히면 안 되므로 숨긴다. 화면 두 곳(HeroSection 배지, Testimonials의 DiagnosisCounter)이 이 값 하나를 따른다.
+ * 켜는 조건: 오픈 후 실사용자 체험이 쌓여 집계의 상당 부분이 실제 방문자임을 확인한 뒤 true로 바꾸고 재빌드.
+ */
+export const SHOW_TRIAL_COUNTER = false;
+
 const G = GEMINI_MEASUREMENT_LIVE;
 /** "ChatGPT·Gemini" 또는 "ChatGPT" */
 export const AI_NAMES = G ? "ChatGPT·Gemini" : "ChatGPT";
