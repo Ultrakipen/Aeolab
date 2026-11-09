@@ -191,7 +191,7 @@ export default function HeroSection() {
 
             {/* KPI 지표 — 네이버가 AI 브리핑 적용 업체를 대상으로 발표한 수치만(AEOlab 이용 효과 아님, 가격은 이 줄에 섞지 않는다) */}
             <p className="text-sm font-semibold mb-2 break-keep" style={{ color: "rgba(255,255,255,0.88)" }}>
-              네이버가 AI 브리핑 적용 업체를 대상으로 발표한 수치 (적용 전후 비교)
+              네이버가 AI 브리핑(검색 결과 상단에 자동으로 뜨는 AI 추천 박스) 적용 업체를 대상으로 발표한 수치 (적용 전후 비교)
             </p>
             <div
               className="grid grid-cols-3 sm:flex sm:items-center gap-3 sm:gap-4 mb-6 pb-5 border-b"
@@ -427,12 +427,14 @@ export default function HeroSection() {
                 {/* 동네 입력 — 가게 이름보다 먼저 */}
                 <div className="mb-4">
                   <label
+                    htmlFor="hero-region"
                     className="text-sm font-semibold mb-2 block"
                     style={{ color: "rgba(255,255,255,0.92)" }}
                   >
                     동네
                   </label>
                   <input
+                    id="hero-region"
                     type="text"
                     value={region}
                     onChange={(e) => {
@@ -465,12 +467,14 @@ export default function HeroSection() {
                 {/* 가게 이름 입력 */}
                 <div className="mb-5">
                   <label
+                    htmlFor="hero-biz-name"
                     className="text-sm font-semibold mb-2 block"
                     style={{ color: "rgba(255,255,255,0.92)" }}
                   >
                     가게 이름
                   </label>
                   <input
+                    id="hero-biz-name"
                     type="text"
                     value={bizName}
                     onChange={(e) => {
