@@ -2571,12 +2571,12 @@ export function CompetitorsClient({
                                     <span
                                       className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${naverOn ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-600 border-gray-200'}`}
                                     >
-                                      네이버 AI {naverOn ? '노출됨' : '미노출'} <span className="font-normal">(추정)</span>
+                                      네이버 AI {naverOn ? '노출됨' : '미노출'} <span className="font-normal whitespace-nowrap">(추정)</span>
                                     </span>
                                     <span
                                       className={`text-sm font-semibold px-2 py-0.5 rounded-full border ${globalOn ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200'}`}
                                     >
-                                      ChatGPT·Gemini {globalOn ? '노출됨' : '미노출'} <span className="font-normal">(추정)</span>
+                                      ChatGPT·Gemini {globalOn ? '노출됨' : '미노출'} <span className="font-normal whitespace-nowrap">(추정)</span>
                                     </span>
                                   </div>
                                   <p className="text-sm text-gray-600 mt-0.5 break-keep">과거 방식(가게 이름을 직접 물은 단일 측정) 기반 추정 — 실제와 다를 수 있으며, 다음 측정부터 새 방식으로 바뀝니다</p>
