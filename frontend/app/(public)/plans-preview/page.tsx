@@ -223,7 +223,7 @@ function LockedCard({ title, planLabel, children }: {
     <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 md:p-6">
       <h3 className="text-base md:text-lg font-bold text-gray-900 mb-3">{title}</h3>
       <div className="relative rounded-xl overflow-hidden">
-        <div className="blur-[3px] pointer-events-none select-none opacity-60">
+        <div className="blur-[3px] pointer-events-none select-none opacity-60" aria-hidden="true">
           {children}
         </div>
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/75 rounded-xl">
@@ -400,7 +400,7 @@ function BasicContent({ d }: { d: MockData }) {
           <div className="bg-purple-50 rounded-xl p-3">
             <div className="text-sm text-purple-600 font-semibold mb-1">ChatGPT·구글 AI</div>
             <div className="text-2xl font-black text-purple-700">{scoreLabel(d.track2)}</div>
-            <div className="text-sm text-purple-500 mt-0.5">ChatGPT·Gemini·구글 AI</div>
+            <div className="text-sm text-purple-700 mt-0.5">ChatGPT·Gemini·구글 AI</div>
           </div>
         </div>
 
@@ -664,7 +664,7 @@ function ProContent({ d }: { d: MockData }) {
       {/* CTA */}
       <div className="bg-indigo-600 rounded-xl p-5 md:p-8 text-center text-white">
         <p className="text-lg md:text-xl font-black mb-1">Pro로 업그레이드 — 29,900원/월</p>
-        <p className="text-sm text-indigo-200 mb-4">Basic보다 월 12,000원 더. 조건 검색 분석 1개로 새 손님 1명 더 오면 본전입니다</p>
+        <p className="text-sm text-indigo-100 mb-4">Basic보다 월 12,000원 더. 조건 검색 분석 1개로 새 손님 1명 더 오면 본전입니다</p>
         <Link href="/pricing#plan-Pro" className="inline-flex items-center gap-1 bg-white text-indigo-700 font-bold text-base px-6 py-3 rounded-xl hover:bg-indigo-50 transition-colors">
           지금 구독하기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
         </Link>
@@ -852,14 +852,14 @@ export default function PlansPreviewPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="text-indigo-600 font-bold text-sm">← AEOlab</Link>
           <AuthNavControlClient />
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 md:py-10">
+      <main className="max-w-2xl mx-auto px-4 py-6 md:py-10">
         {/* 상단 안내 */}
         <div className="text-center mb-6 md:mb-8">
           <h1 className="text-xl md:text-2xl font-black text-gray-900 mb-2">
@@ -925,7 +925,8 @@ export default function PlansPreviewPage() {
           </p>
         </div>
 
-        {/* 플랜별 콘텐츠 */}
+        {/* 플랜별 콘텐츠 — 제목 단계(h1→h3 건너뜀) 보완용 숨김 h2 */}
+        <h2 className="sr-only">플랜별 결과 화면 예시</h2>
         {selectedPlan === "basic" && <BasicContent d={d} />}
         {selectedPlan === "pro" && <ProContent d={d} />}
         {selectedPlan === "startup" && <StartupContent d={d} category={selectedCategory} />}
@@ -946,7 +947,7 @@ export default function PlansPreviewPage() {
           <Link href="/pricing#plan-Pro" className="block bg-indigo-600 text-white font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-indigo-700 transition-colors shadow-md">
             <div className="text-base font-black">Pro</div>
             <div className="font-black">29,900원/월</div>
-            <div className="text-sm text-indigo-200 mt-1 inline-flex items-center gap-1">지금 시작하기 <ArrowRight className="w-3 h-3" aria-hidden="true" /></div>
+            <div className="text-sm text-indigo-100 mt-1 inline-flex items-center gap-1">지금 시작하기 <ArrowRight className="w-3 h-3" aria-hidden="true" /></div>
           </Link>
           <Link href="/pricing#plan-창업패키지" className="block bg-white border-2 border-emerald-200 text-emerald-700 font-bold text-sm text-center px-4 py-4 rounded-xl hover:bg-emerald-50 transition-colors">
             <div className="text-base font-black">창업패키지</div>
@@ -956,7 +957,7 @@ export default function PlansPreviewPage() {
         </div>
 
         <p className="text-center text-sm text-gray-600 mt-4">7일 이내 미사용 시 100% 환불 · 구독 후 즉시 이용</p>
-      </div>
+      </main>
     </div>
   );
 }

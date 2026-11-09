@@ -84,7 +84,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
         </div>
       </div>
     </header>
-    <div className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto p-4 md:p-8">
         {/* 헤더 */}
         <div className="mb-6 md:mb-8">
@@ -162,7 +162,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
           <HelpContactCTA variant="button" />
         </div>
       </div>
-    </div>
+    </main>
     <SiteFooter />
     </>
   );

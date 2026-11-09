@@ -80,14 +80,14 @@ export function HelpContactCTA({ variant }: { variant: "banner" | "footer" | "bu
   return (
     <p className="text-sm text-gray-600">
       궁금한 점은{" "}
-      <Link href={href} className="text-blue-600 hover:underline">
+      <Link href={href} className="text-blue-600 underline underline-offset-2 hover:text-blue-700">
         {loggedIn ? "1:1 문의 작성" : "로그인 후 직접 문의"}
       </Link>
       해 주세요.
       {!loggedIn && (
         <>
           {" "}로그인 없이는{" "}
-          <Link href="/board/new" className="text-blue-600 hover:underline">
+          <Link href="/board/new" className="text-blue-600 underline underline-offset-2 hover:text-blue-700">
             게시판에 문의 남기기
           </Link>
           가 가능합니다.

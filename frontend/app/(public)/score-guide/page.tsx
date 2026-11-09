@@ -608,7 +608,7 @@ export default function ScoreGuidePage() {
         <p className="text-base md:text-lg font-bold text-white mb-1">
           내 가게의 AI 가시성 점수가 궁금하신가요?
         </p>
-        <p className="text-sm text-blue-200 mb-4">
+        <p className="text-sm text-white mb-4">
           지금 바로 네이버·ChatGPT·Google AI 노출 현황을 확인하세요.
         </p>
         <Link
