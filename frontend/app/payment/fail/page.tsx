@@ -37,7 +37,7 @@ function PaymentFailContent() {
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col">
       <div className="flex-1 flex items-center justify-center px-4">
-        <div className="bg-white rounded-xl p-4 md:p-8 shadow-sm max-w-sm w-full text-center">
+        <div className="bg-white rounded-xl p-4 md:p-8 shadow-sm max-w-sm w-full text-center" role={isUserClose ? "status" : "alert"}>
           <AlertCircle
             className={`w-12 h-12 mx-auto mb-4 ${isUserClose ? "text-gray-400" : "text-red-400"}`}
             strokeWidth={1.5}

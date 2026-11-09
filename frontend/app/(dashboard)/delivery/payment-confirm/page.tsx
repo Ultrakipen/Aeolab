@@ -87,7 +87,7 @@ function PaymentConfirmInner() {
 
   if (status === "loading") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-4">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-4" role="status" aria-live="polite">
         <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
         <p className="text-base font-medium text-gray-700">결제를 확인하는 중입니다...</p>
         <p className="text-sm text-gray-600">잠시만 기다려 주세요.</p>
@@ -97,7 +97,7 @@ function PaymentConfirmInner() {
 
   if (status === "success") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-4">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-4" role="status">
         <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
           <CheckCircle2 className="w-9 h-9 text-green-700" />
         </div>
@@ -120,7 +120,7 @@ function PaymentConfirmInner() {
 
   // error
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-4">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-4" role="alert">
       <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
         <AlertCircle className="w-9 h-9 text-red-700" />
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient, getSafeSession } from "@/lib/supabase/client";
 import { updatePhone, getCapacityMe, joinCapacityWaitlist } from "@/lib/api";
 import { loadCreb } from "@/lib/creb";
@@ -41,6 +41,50 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
   const [capacityMsg, setCapacityMsg] = useState(""); // 신규 구독 수용 한도 안내(용량이 찼을 때만, 결제 전)
   const [waitlistState, setWaitlistState] = useState<"idle" | "saving" | "done" | "error">("idle");
   const [agreed, setAgreed] = useState(false); // 결제 진행 동의 (카드사 심사 결제경로 요건)
+
+  // 결제 확인 모달 키보드 접근성(WCAG 2.1.2·2.4.3, 2026-11-09): 열 때 모달로 포커스, Tab은 모달 안에서만 순환,
+  // Esc로 닫기(결제창을 여는 중에는 닫지 않음), 닫으면 모달을 연 버튼으로 포커스 복귀. 결제 금액·동의 흐름은 건드리지 않는다.
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef(false);
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
+  useEffect(() => {
+    if (!showConfirm) return;
+    const trigger = triggerRef.current;
+    dialogRef.current?.focus();
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (!loadingRef.current) setShowConfirm(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const root = dialogRef.current;
+      if (!root) return;
+      const focusable = Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.offsetParent !== null);
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey && (active === first || active === root)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      trigger?.focus();
+    };
+  }, [showConfirm]);
 
   // 이미 로그인한 사용자에게는 "회원가입" 문구 대신 결제 지향 문구를 보여줌
   useEffect(() => {
@@ -168,6 +212,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
   return (
     <>
       <button
+        ref={triggerRef}
         onClick={() => setShowConfirm(true)}
         className={`w-full py-3 rounded-xl font-semibold transition-colors ${
           highlight
@@ -181,7 +226,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
       {showConfirm && (
         // 2026-11-02 실화면 점검 수정: ①z-[60] — 모바일 하단 고정 CTA(MobileFloatingCTA, z-50, DOM상 뒤)가 모달 위에 그려져 모달이 열린 채 /trial로 이탈할 수 있었다
         // ②overflow-y-auto + min-h-full — 높이 제한·스크롤이 없어 375x667(iPhone SE급)에서 카드 상단이 잘리고 결제 버튼이 화면 밖이라 누를 수 없었다.
-        <div className="fixed inset-0 z-[60] overflow-y-auto overscroll-contain bg-black/40" role="dialog" aria-modal="true" aria-label="결제 확인">
+        <div ref={dialogRef} tabIndex={-1} className="fixed inset-0 z-[60] overflow-y-auto overscroll-contain bg-black/40 outline-none" role="dialog" aria-modal="true" aria-label="결제 확인">
           <div className="flex min-h-full items-center justify-center px-4 py-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 break-keep">
             <h2 className="text-lg font-bold text-gray-900 mb-1">결제 확인</h2>
