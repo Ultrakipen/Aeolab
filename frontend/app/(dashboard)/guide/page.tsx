@@ -287,3 +287,6 @@ export default async function GuidePage({ searchParams }: { searchParams: Promis
     </div>
   )
 }
+
+// 탭·북마크·스크린리더가 화면을 구분하도록 화면별 제목 지정(WCAG 2.4.2, 2026-11-09)
+export const metadata = { title: "AI 개선 가이드 | AEOlab" };

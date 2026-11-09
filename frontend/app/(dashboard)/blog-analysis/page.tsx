@@ -67,3 +67,6 @@ export default async function BlogPage() {
     </div>
   )
 }
+
+// 탭·북마크·스크린리더가 화면을 구분하도록 화면별 제목 지정(WCAG 2.4.2, 2026-11-09)
+export const metadata = { title: "블로그 AI 진단 | AEOlab" };

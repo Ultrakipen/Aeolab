@@ -41,3 +41,6 @@ export default async function ScoreModelV31Page({
 
   return <ScoreModelV31Client userCategory={userCategory} userGroup={userGroup} />;
 }
+
+// 탭·북마크·스크린리더가 화면을 구분하도록 화면별 제목 지정(WCAG 2.4.2, 2026-11-09)
+export const metadata = { title: "업종별 점수 기준 개선 안내 | AEOlab" };

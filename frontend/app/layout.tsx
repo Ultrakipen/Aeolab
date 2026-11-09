@@ -6,6 +6,7 @@ import GA4 from "@/components/analytics/GA4";
 import ReferralTracker from "@/components/analytics/ReferralTracker";
 import KakaoSDKLoader from "@/components/common/KakaoSDKLoader";
 import MobileFloatingCTA from "@/components/common/MobileFloatingCTA";
+import SkipToContent from "@/components/common/SkipToContent";
 import { PLAN_PRICES } from "@/lib/plans";
 
 // 2026-09-05: 실사용 굵기가 400~900뿐(전수 grep 확인, font-thin(100)은
@@ -134,6 +135,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
+        <SkipToContent />
         <GA4 />
         <KakaoSDKLoader />
         <ReferralTracker />

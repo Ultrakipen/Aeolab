@@ -136,7 +136,7 @@ export default function LandingPage() {
           <span className="hidden sm:block text-gray-600">·</span>
           <span className="whitespace-nowrap inline-flex items-center gap-1.5"><Bot className="w-4 h-4 text-purple-600" aria-hidden="true" /><strong className="text-purple-700">AI 브리핑·AI탭</strong> 노출 가능성 ↑</span>
           <span className="hidden sm:block text-gray-600">·</span>
-          <span className="whitespace-nowrap inline-flex items-center gap-1.5"><MessageCircle className="w-4 h-4 text-green-700" aria-hidden="true" /><strong className="text-green-700">{GEMINI_LIVE ? "ChatGPT·Gemini·Google AI" : "ChatGPT·Google AI"}</strong> 노출 현황 측정·추적</span>
+          <span className="sm:whitespace-nowrap inline-flex items-center gap-1.5"><MessageCircle className="w-4 h-4 text-green-700" aria-hidden="true" /><strong className="text-green-700">{GEMINI_LIVE ? "ChatGPT·Gemini·Google AI" : "ChatGPT·Google AI"}</strong> 노출 현황 측정·추적</span>
           <span className="hidden sm:block text-gray-600">·</span>
           <Link href="/showcase" className="whitespace-nowrap font-semibold text-blue-600 hover:underline inline-flex items-center gap-1.5 min-h-[44px]">
             <Camera className="w-4 h-4" aria-hidden="true" /> 실제 구독 사업장 화면 보기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
