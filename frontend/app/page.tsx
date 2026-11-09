@@ -251,12 +251,12 @@ export default function LandingPage() {
                   <circle cx="100" cy="50" r="3" fill="white" />
                   <circle cx="200" cy="30" r="3" fill="white" />
                   <circle cx="300" cy="15" r="3" fill="white" />
-                  <text x="150" y="10" textAnchor="middle" fill="white" fontSize="9">주간 변화 추적 화면 (예시)</text>
+                  <text x="150" y="12" textAnchor="middle" fill="white" fontSize="12">주간 변화 추적 화면 (예시)</text>
                 </svg>
                 <ul className="mt-3 space-y-1 text-sm" style={{ color: "rgba(255,255,255,0.96)" }}>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={3} aria-hidden="true" />
-                    네이버 AI탭·AI 브리핑 노출 준비 <span style={{ color: "rgba(255,255,255,0.9)" }}>(업종별 자동 적용)</span>
+                    네이버 AI탭·AI 브리핑 노출 준비 <span className="whitespace-nowrap" style={{ color: "rgba(255,255,255,0.9)" }}>(업종별 자동 적용)</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={3} aria-hidden="true" />
