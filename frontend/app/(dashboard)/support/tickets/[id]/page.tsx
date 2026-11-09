@@ -262,7 +262,7 @@ function TicketDetailInner() {
         {isClosed && (
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center text-sm text-gray-600">
             종료된 문의입니다. 새로운 문의가 필요하시면{" "}
-            <a href="/support/tickets/new" className="text-blue-600 hover:underline">새 문의 작성</a>을 이용해 주세요.
+            <a href="/support/tickets/new" className="text-blue-600 underline underline-offset-2 hover:text-blue-700">새 문의 작성</a>을 이용해 주세요.
           </div>
         )}
       </div>

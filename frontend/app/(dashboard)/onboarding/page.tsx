@@ -488,7 +488,7 @@ export default function OnboardingPage() {
       </div>
     )}
 
-    <main className="min-h-screen bg-gray-50 flex items-start justify-center px-4 py-10 md:py-16">
+    <div className="min-h-screen bg-gray-50 flex items-start justify-center px-4 py-10 md:py-16 break-keep">
       <div className="max-w-2xl w-full">
 
         {/* 스텝 인디케이터 */}
@@ -829,7 +829,7 @@ export default function OnboardingPage() {
                         href={`https://map.naver.com/v5/search/${encodeURIComponent(form.name || "내 가게 이름")}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm font-bold text-white bg-blue-500 hover:bg-blue-600 px-3 py-1.5 rounded-lg transition-colors"
+                        className="inline-flex items-center gap-1 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg transition-colors"
                       >
                         네이버 지도에서 확인 →
                       </a>
@@ -1195,7 +1195,7 @@ export default function OnboardingPage() {
           </div>
         )}
       </div>
-    </main>
+    </div>
     </>
   );
 }
