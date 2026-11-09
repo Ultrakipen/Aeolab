@@ -269,11 +269,11 @@ export default async function ChannelGuidePage({
           {/* 글로벌 AI 보충 카드 — globalRatio >= 50 업종 전용 */}
           {entry.globalRatio >= 50 && (
             <div className="mt-5 rounded-3xl border border-orange-200 bg-orange-50 p-5">
-              <p className="text-sm font-semibold text-orange-800 mb-2">글로벌 AI(ChatGPT·Gemini·Google)는 따로 준비해야 합니다</p>
+              <p className="text-sm font-semibold text-orange-800 mb-2 break-keep">글로벌 AI(ChatGPT·Gemini·Google)는 따로 준비해야 합니다</p>
               <p className="text-sm text-gray-700 leading-relaxed break-keep mb-3">
                 이 업종은 글로벌 AI 비중이 높습니다. 위 5가지(주로 스마트플레이스 중심)만으로는 ChatGPT·Gemini 노출에 한계가 있습니다.
               </p>
-              <ul className="space-y-1.5 text-sm text-gray-700">
+              <ul className="space-y-1.5 text-sm text-gray-700 break-keep">
                 <li className="flex items-start gap-2">
                   <span className="shrink-0 text-orange-700 mt-0.5 font-bold">1</span>
                   <span>구글 비즈니스 프로필 등록 (business.google.com) — Gemini 노출에 특히 중요, 등록 후 수주~수개월 소요</span>
@@ -287,7 +287,7 @@ export default async function ChannelGuidePage({
                   <span>트립어드바이저·전문 사이트 등 외부 언급 늘리기</span>
                 </li>
               </ul>
-              <p className="text-sm text-gray-500 mt-3 leading-relaxed break-keep">
+              <p className="text-sm text-gray-600 mt-3 leading-relaxed break-keep">
                 ChatGPT 반영 기간: 수개월~1년 이상(AI가 미리 공부한 자료 기반, 보장 아님). Gemini: 구글 비즈니스 프로필 등록 후 2~4주 내 반영 시작, 안정적 소개까지 수개월 소요.
               </p>
             </div>
