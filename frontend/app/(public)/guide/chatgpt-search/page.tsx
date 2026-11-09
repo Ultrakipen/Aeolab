@@ -90,15 +90,15 @@ export default function ChatGptSearchGuidePage() {
             <p className="text-sm font-semibold uppercase tracking-widest text-blue-300 mb-3">핵심 먼저</p>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
-                <span className="shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-bold flex items-center justify-center mt-0.5">1</span>
+                <span className="shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">1</span>
                 <p className="text-base md:text-lg font-semibold break-keep">자체 웹사이트·구글 비즈니스 프로필이 기본입니다.</p>
               </div>
               <div className="flex items-start gap-3">
-                <span className="shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-bold flex items-center justify-center mt-0.5">2</span>
+                <span className="shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">2</span>
                 <p className="text-base md:text-lg font-semibold break-keep">네이버 블로그는 ChatGPT에 영향이 적습니다.</p>
               </div>
               <div className="flex items-start gap-3">
-                <span className="shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white text-sm font-bold flex items-center justify-center mt-0.5">3</span>
+                <span className="shrink-0 w-6 h-6 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center mt-0.5">3</span>
                 <p className="text-base md:text-lg font-semibold break-keep">AEOlab 점수는 AI가 미리 공부한 자료 기반이라 실시간 ChatGPT 검색과 다르게 움직입니다.</p>
               </div>
             </div>

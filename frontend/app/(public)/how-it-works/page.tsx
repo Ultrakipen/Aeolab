@@ -718,7 +718,7 @@ export default function HowItWorksPage() {
               ["경쟁사 비교", "같은 업종·지역의 상위 10% 가게와의 차이 분석"],
             ].map(([title, desc]) => (
               <div key={title} className="rounded-2xl border border-gray-200 bg-white p-4 flex gap-3">
-                <span className="text-blue-500 shrink-0 mt-0.5">●</span>
+                <span className="text-blue-600 shrink-0 mt-0.5" aria-hidden="true">●</span>
                 <div>
                   <p className="text-sm font-semibold text-gray-900">{title}</p>
                   <p className="text-sm text-gray-600 mt-0.5 leading-relaxed break-keep">{desc}</p>

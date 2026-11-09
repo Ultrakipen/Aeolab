@@ -773,7 +773,7 @@ export default function DemoPage() {
                 >
                   {c.label}
                   {(c.value === "photo" || c.value === "music") && (
-                    <span className="ml-1 text-sm text-blue-600 font-normal">실사례</span>
+                    <span className={`ml-1 text-sm font-normal ${category === c.value ? "text-white" : "text-blue-600"}`}>실사례</span>
                   )}
                 </button>
               ))}

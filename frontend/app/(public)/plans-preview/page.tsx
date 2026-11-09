@@ -281,7 +281,7 @@ function TrendGraph({ days, annotation }: { days: number; annotation?: string })
           <>
             <line x1={peakX} y1="0" x2={peakX} y2={h} stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="4,3" />
             <circle cx={peakX} cy={peakY} r="5" fill="#f59e0b" />
-            <text x={peakX + 6} y="14" fontSize="10" fill="#b45309" fontWeight="600">{annotation}</text>
+            <text x={peakX + 6} y="16" fontSize="15" fill="#b45309" fontWeight="600">{annotation}</text>
           </>
         )}
       </svg>
