@@ -277,7 +277,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
                   <ul className="mt-3 space-y-1.5">
                     {report.real_market.samples.slice(0, 5).map((s, i) => (
                       <li key={i} className="text-sm text-blue-700 flex gap-1.5">
-                        <span className="text-blue-300 flex-none">·</span>
+                        <span className="text-blue-600 flex-none">·</span>
                         <span>
                           {s.naver_place_url ? (
                             <a href={s.naver_place_url} target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-blue-900">

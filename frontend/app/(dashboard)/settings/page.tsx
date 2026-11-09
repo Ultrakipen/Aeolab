@@ -10,11 +10,11 @@ import { PLAN_PRICES } from "@/lib/plans";
 import { cardIssuerName } from "@/lib/cardIssuers";
 
 const PLAN_META: Record<string, { name: string; color: string; gradient: string; badge: string }> = {
-  free:       { name: "무료 플랜",      color: "text-gray-600",    gradient: "from-gray-400 to-slate-500",    badge: "bg-gray-100 text-gray-600" },
-  basic:      { name: "Basic",          color: "text-blue-600",    gradient: "from-blue-500 to-indigo-600",   badge: "bg-blue-100 text-blue-700" },
-  startup:    { name: "창업 패키지",    color: "text-amber-700",   gradient: "from-amber-400 to-orange-500",  badge: "bg-amber-100 text-amber-700" },
-  pro:        { name: "Pro",            color: "text-violet-600",  gradient: "from-violet-500 to-purple-600", badge: "bg-violet-100 text-violet-700" },
-  biz:        { name: "Biz",            color: "text-emerald-700", gradient: "from-emerald-500 to-teal-600",  badge: "bg-emerald-100 text-emerald-700" },
+  free:       { name: "무료 플랜",      color: "text-gray-600",    gradient: "from-gray-600 to-slate-700",   badge: "bg-gray-100 text-gray-600" },
+  basic:      { name: "Basic",          color: "text-blue-600",    gradient: "from-blue-600 to-indigo-700",  badge: "bg-blue-100 text-blue-700" },
+  startup:    { name: "창업 패키지",    color: "text-amber-700",   gradient: "from-amber-700 to-orange-700", badge: "bg-amber-100 text-amber-700" },
+  pro:        { name: "Pro",            color: "text-violet-600",  gradient: "from-violet-600 to-purple-700",badge: "bg-violet-100 text-violet-700" },
+  biz:        { name: "Biz",            color: "text-emerald-700", gradient: "from-emerald-700 to-teal-700", badge: "bg-emerald-100 text-emerald-700" },
 };
 
 const PLAN_PRICE: Record<string, string> = {
@@ -218,15 +218,15 @@ export default async function SettingsPage({
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-white font-bold text-lg leading-tight">{planMeta.name}</span>
                       {isActive && (
-                        <span className={`inline-block text-sm font-semibold px-2 py-0.5 rounded-full ${isYearly ? "bg-amber-200 text-amber-800" : "bg-white/20 text-white"}`}>
+                        <span className={`inline-block text-sm font-semibold px-2 py-0.5 rounded-full ${isYearly ? "bg-amber-200 text-amber-800" : "bg-black/25 text-white"}`}>
                           {isYearly ? "연간" : "월간"}
                         </span>
                       )}
                     </div>
-                    <div className="text-white/80 text-sm">{PLAN_PRICE[currentPlan]}</div>
+                    <div className="text-white text-sm">{PLAN_PRICE[currentPlan]}</div>
                   </div>
                 </div>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-white/20 text-white border border-white/30">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-black/25 text-white border border-white/30">
                   <span className={`w-2 h-2 rounded-full ${statusMeta.dot}`} />
                   {statusMeta.label}
                 </span>

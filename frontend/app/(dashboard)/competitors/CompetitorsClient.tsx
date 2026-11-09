@@ -210,13 +210,13 @@ function getGrowthStageText(score: number): { label: string; cls: string } {
 // 순위 배지
 function RankBadge({ rank }: { rank: number }) {
   if (rank === 1) return (
-    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-yellow-400 text-white font-black text-sm shadow-sm">1</span>
+    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-yellow-400 text-yellow-950 font-black text-sm shadow-sm">1</span>
   )
   if (rank === 2) return (
-    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-300 text-white font-black text-sm shadow-sm">2</span>
+    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-300 text-gray-900 font-black text-sm shadow-sm">2</span>
   )
   if (rank === 3) return (
-    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-orange-300 text-white font-black text-sm shadow-sm">3</span>
+    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-orange-300 text-orange-950 font-black text-sm shadow-sm">3</span>
   )
   return (
     <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 text-gray-600 font-bold text-sm">{rank}</span>
@@ -2579,7 +2579,7 @@ export function CompetitorsClient({
                                       ChatGPT·Gemini {globalOn ? '노출됨' : '미노출'} <span className="font-normal">(추정)</span>
                                     </span>
                                   </div>
-                                  <p className="text-sm text-gray-600 mt-0.5">과거 방식(가게 이름을 직접 물은 단일 측정) 기반 추정 — 실제와 다를 수 있으며, 다음 측정부터 새 방식으로 바뀝니다</p>
+                                  <p className="text-sm text-gray-600 mt-0.5 break-keep">과거 방식(가게 이름을 직접 물은 단일 측정) 기반 추정 — 실제와 다를 수 있으며, 다음 측정부터 새 방식으로 바뀝니다</p>
                                 </div>
                               )
                             })()}
@@ -3179,13 +3179,13 @@ export function CompetitorsClient({
       {/* 추천 경쟁사 */}
       <div className="rounded-xl border-2 border-blue-200 overflow-hidden shadow-sm">
         {/* 헤더 — 그라디언트 배경으로 시각적 강조 */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-4 py-3 flex items-center justify-between gap-2 flex-wrap">
+        <div className="bg-gradient-to-r from-blue-700 to-blue-600 px-4 py-3 flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2 shrink-0">
             <Zap className="w-4 h-4 text-white shrink-0" />
             <span className="text-sm font-bold text-white">추천 경쟁사</span>
-            <span className="text-sm font-semibold bg-white/20 text-white px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">최대 5개</span>
+            <span className="text-sm font-semibold bg-black/25 text-white px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">최대 5개</span>
           </div>
-          <span className="text-sm text-blue-100">같은 업종·지역 미등록 업체</span>
+          <span className="text-sm text-white">같은 업종·지역 미등록 업체</span>
         </div>
 
         {/* 본문 */}

@@ -46,7 +46,7 @@ export default function DashboardDeliverableSignal({
           >
             <span className="text-emerald-700" aria-hidden="true">✓</span>
             {it.label}
-            <span className="text-purple-400" aria-hidden="true">→</span>
+            <span className="text-purple-700" aria-hidden="true">→</span>
           </Link>
         ))}
       </div>

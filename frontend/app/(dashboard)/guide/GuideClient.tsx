@@ -3118,7 +3118,7 @@ A. ${a}`).catch(() => {})
                         setSelectedFaqKeywords(prev => prev.filter(k => k !== kw))
                       }}
                       className={`inline-flex items-center justify-center min-w-[32px] min-h-[32px] text-sm font-bold leading-none transition-colors ${
-                        selectedFaqKeywords.includes(kw) ? 'text-blue-200 hover:text-white' : 'text-gray-600 hover:text-red-700'
+                        selectedFaqKeywords.includes(kw) ? 'text-white hover:text-blue-100' : 'text-gray-600 hover:text-red-700'
                       }`}
                       title="관련 없는 키워드 제외"
                       aria-label={`"${kw}" 제외`}
@@ -3521,7 +3521,7 @@ function TodayKeywordHero({
                 <button
                   onClick={(e) => excludeKw(kw, e)}
                   className={`-my-1.5 -mr-2 inline-flex items-center justify-center min-w-[32px] min-h-[32px] text-sm font-bold leading-none transition-colors ${
-                    active === kw ? 'text-blue-200 hover:text-white' : 'text-gray-600 hover:text-red-700'
+                    active === kw ? 'text-white hover:text-blue-100' : 'text-gray-600 hover:text-red-700'
                   }`}
                   title="관련 없는 키워드 제외"
                   aria-label={`"${kw}" 제외`}

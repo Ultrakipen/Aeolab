@@ -342,7 +342,7 @@ function KeywordEditor({
               type="button"
               onClick={(e) => { e.stopPropagation(); removeKeyword(kw); }}
               aria-label={`${kw} 삭제`}
-              className="ml-0.5 -mr-2 -my-1 w-8 h-8 inline-flex items-center justify-center rounded-full text-blue-100 hover:text-white hover:bg-blue-500 text-base leading-none"
+              className="ml-0.5 -mr-2 -my-1 w-8 h-8 inline-flex items-center justify-center rounded-full text-white hover:text-white hover:bg-blue-500 text-base leading-none"
             >×</button>
           </span>
         ))}
