@@ -30,21 +30,21 @@ export function SiteFooter({ activePage }: { activePage?: string }) {
               <Link
                 key={href}
                 href={href}
-                className={`inline-flex items-center min-h-[24px] hover:text-gray-700 whitespace-nowrap ${activePage === href ? 'text-blue-600 font-medium' : ''}`}
+                className={`inline-flex items-center min-h-[32px] hover:text-gray-700 whitespace-nowrap ${activePage === href ? 'text-blue-600 font-medium' : ''}`}
               >
                 {label}
               </Link>
             ))}
             <Link
               href="/board"
-              className={`inline-flex items-center min-h-[24px] hover:text-gray-700 whitespace-nowrap font-medium ${activePage === '/board' ? 'text-blue-600' : 'text-gray-800'}`}
+              className={`inline-flex items-center min-h-[32px] hover:text-gray-700 whitespace-nowrap font-medium ${activePage === '/board' ? 'text-blue-600' : 'text-gray-800'}`}
             >
               문의·건의
             </Link>
           </div>
           <div className="flex items-center gap-3 text-sm text-gray-600 flex-wrap justify-start sm:justify-end">
             {legalLinks.map(({ href, label }) => (
-              <Link key={href} href={href} className="inline-flex items-center min-h-[24px] hover:text-gray-600 whitespace-nowrap">
+              <Link key={href} href={href} className="inline-flex items-center min-h-[32px] hover:text-gray-600 whitespace-nowrap">
                 {label}
               </Link>
             ))}
@@ -54,7 +54,7 @@ export function SiteFooter({ activePage }: { activePage?: string }) {
       <div className="max-w-6xl mx-auto mt-6 pt-6 border-t border-gray-100 text-sm text-gray-600 leading-relaxed text-center sm:text-left break-keep">
         <p>상호: 케이엔디 커뮤니티 (KND Community) &nbsp;|&nbsp; 대표자: 김봉후 &nbsp;|&nbsp; 사업자등록번호: 202-19-10353</p>
         <p>사업장 소재지: 경상남도 김해시 번화2로 2, 402-34호(삼문동, 아쿠아빌딩) &nbsp;|&nbsp; 통신판매업번호: 2020-김해장유-0252</p>
-        <p>고객센터: 050-6694-9824</p>
+        <p>고객센터: <a href="tel:050-6694-9824" className="inline-flex items-center min-h-[32px] underline underline-offset-2 hover:text-gray-800">050-6694-9824</a></p>
       </div>
     </footer>
   )

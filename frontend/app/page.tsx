@@ -35,6 +35,13 @@ export default function LandingPage() {
 
   return (
     <main className="min-h-screen" style={{ background: "#FFFFFF" }}>
+      {/* 반복 영역 건너뛰기(WCAG 2.4.1·KWCAG) — 키보드 사용자가 헤더 메뉴 8개를 지나치지 않고 본문으로 이동 */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2.5 focus:rounded-lg focus:bg-white focus:text-blue-700 focus:font-bold focus:text-sm focus:shadow-lg focus:ring-2 focus:ring-blue-600"
+      >
+        본문 바로가기
+      </a>
       <LandingScrollAnimation />
       <ScrollDepthTracker />
       <SectionViewTracker />
@@ -131,7 +138,7 @@ export default function LandingPage() {
           <span className="hidden sm:block text-gray-600">·</span>
           <span className="whitespace-nowrap inline-flex items-center gap-1.5"><MessageCircle className="w-4 h-4 text-green-700" aria-hidden="true" /><strong className="text-green-700">{GEMINI_LIVE ? "ChatGPT·Gemini·Google AI" : "ChatGPT·Google AI"}</strong> 노출 현황 측정·추적</span>
           <span className="hidden sm:block text-gray-600">·</span>
-          <Link href="/showcase" className="whitespace-nowrap font-semibold text-blue-600 hover:underline inline-flex items-center gap-1.5">
+          <Link href="/showcase" className="whitespace-nowrap font-semibold text-blue-600 hover:underline inline-flex items-center gap-1.5 min-h-[44px]">
             <Camera className="w-4 h-4" aria-hidden="true" /> 실제 구독 사업장 화면 보기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Link>
         </div>
@@ -316,9 +323,9 @@ export default function LandingPage() {
                   href="https://www.hankyung.com/article/202508212669g"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-white/75 underline hover:text-white mt-0.5 inline-flex items-center gap-1"
+                  className="text-sm text-white/75 underline hover:text-white mt-0.5 inline-flex items-center gap-1 min-h-[44px]"
                 >
-                  한국경제 보도 원문 <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+                  한국경제 보도 원문<span className="sr-only"> (새 창)</span> <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                 </a>
                 <p className="text-sm mt-1.5 break-keep" style={{ color: "rgba(255,255,255,0.88)" }}>
                   측정 시점·지역·업종에 따라 달라질 수 있습니다

@@ -192,7 +192,7 @@ export default function FAQSection() {
             <button
               type="button"
               onClick={() => setShowAll(true)}
-              className="text-sm transition-colors underline-offset-4 hover:underline"
+              className="text-sm transition-colors underline-offset-4 hover:underline min-h-[44px] px-3"
               style={{ color: "#2563EB" }}
             >
               더 보기 ({FAQS.length - 3}개)
@@ -204,7 +204,7 @@ export default function FAQSection() {
             <button
               type="button"
               onClick={() => setShowAll(false)}
-              className="text-sm transition-colors underline-offset-4 hover:underline"
+              className="text-sm transition-colors underline-offset-4 hover:underline min-h-[44px] px-3"
               style={{ color: "#2563EB" }}
             >
               접기
@@ -215,7 +215,7 @@ export default function FAQSection() {
         <p className="text-center mt-5 fade-up">
           <Link
             href="/faq"
-            className="inline-flex items-center gap-1 text-sm hover:underline underline-offset-2 transition-colors hover:text-[#1D4ED8]"
+            className="inline-flex items-center gap-1 text-sm hover:underline underline-offset-2 transition-colors hover:text-[#1D4ED8] min-h-[44px] px-3"
             style={{ color: "#2563EB" }}
           >
             전체 FAQ 보기 <ArrowRight className="w-4 h-4" aria-hidden="true" />

@@ -84,7 +84,9 @@ export default function HeroSection() {
 
   return (
     <section
-      className="border-b py-10 px-4 md:px-7 md:py-14 relative overflow-hidden"
+      id="main-content"
+      tabIndex={-1}
+      className="border-b py-10 px-4 md:px-7 md:py-14 relative overflow-hidden outline-none"
       style={{
         background:
           "linear-gradient(160deg, #0C1A3A 0%, #112050 45%, #1A3272 100%)",

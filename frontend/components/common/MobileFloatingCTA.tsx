@@ -77,8 +77,20 @@ export default function MobileFloatingCTA() {
     return () => window.removeEventListener("scroll", sync);
   }, [config]);
 
+  // 랜딩의 진단 폼(#trial-form)이 화면에 보이는 동안은 같은 행동의 고정 바가 중복이라 숨긴다(2026-11-09 점검).
+  const [formInView, setFormInView] = useState(false);
+  const isHome = config?.key === "home";
+  useEffect(() => {
+    if (!isHome) return;
+    const el = document.getElementById("trial-form");
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([entry]) => setFormInView(entry.isIntersecting), { threshold: 0.15 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [isHome]);
+
   // 노출 여부는 상태가 아닌 derived value — render 중 계산
-  const visible = !!config && (config.scrollThreshold <= 0 || scrolledPastThreshold);
+  const visible = !!config && (config.scrollThreshold <= 0 || scrolledPastThreshold) && !(isHome && formInView);
 
   // 노출 이벤트 — visible=true가 되는 순간 1회만 (세션+page 단위 dedupe는 analytics 모듈이 담당)
   useEffect(() => {
