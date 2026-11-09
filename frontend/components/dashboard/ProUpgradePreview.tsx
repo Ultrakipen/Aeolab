@@ -28,7 +28,7 @@ function CalendarIcon({ dayIndex }: { dayIndex: number }) {
 function LockedOverlay({ children, label }: { children: React.ReactNode; label?: string }) {
   return (
     <div className="relative rounded-xl overflow-hidden">
-      <div className="blur-sm pointer-events-none select-none">{children}</div>
+      <div className="blur-sm pointer-events-none select-none" aria-hidden="true" inert>{children}</div>
       <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/75 gap-2 rounded-xl">
         <Lock className="w-6 h-6 text-gray-600" aria-hidden="true" />
         {label && (
@@ -152,8 +152,8 @@ export default function ProUpgradePreview({ businessName, category: _category, p
                 opacity="0.35"
               />
               <line x1="180" y1="0" x2="180" y2="80" stroke="#d1d5db" strokeWidth="1" strokeDasharray="3,3" />
-              <text x="5" y="76" fontSize="8" fill="#9ca3af">30일 전</text>
-              <text x="155" y="76" fontSize="8" fill="#9ca3af">오늘</text>
+              <text x="5" y="76" fontSize="8" fill="#6b7280">30일 전</text>
+              <text x="155" y="76" fontSize="8" fill="#6b7280">오늘</text>
               <text x="200" y="10" fontSize="8" fill="#6366f1" opacity="0.7">+60일 (Pro)</text>
             </svg>
             <div className="absolute top-0 right-0 bottom-0 w-[35%] bg-gradient-to-l from-white/90 to-transparent rounded-r-xl flex flex-col items-center justify-center gap-1">

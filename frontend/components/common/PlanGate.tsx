@@ -68,7 +68,8 @@ export function PlanGate({ requiredPlan, currentPlan, feature, children }: PlanG
   return (
     <div className="relative">
       {/* 블러 처리된 미리보기 */}
-      <div className="blur-sm pointer-events-none select-none">{children}</div>
+      {/* aria-hidden+inert: 흐린 미리보기 안의 버튼·입력이 Tab으로 잡히거나 화면 읽기 도구가 가려진 내용을 읽지 않게 한다(잠금 상태에서만 렌더됨) */}
+      <div className="blur-sm pointer-events-none select-none" aria-hidden="true" inert>{children}</div>
 
       {/* 업그레이드 오버레이 */}
       <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-lg">
