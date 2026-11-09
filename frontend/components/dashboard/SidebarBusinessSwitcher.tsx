@@ -143,9 +143,11 @@ export function SidebarBusinessSwitcher({ onClose }: Props) {
           className="absolute left-0 right-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
         >
           {businesses.map((biz) => (
-            <li key={biz.id} role="option" aria-selected={biz.id === activeBizId}>
+            <li key={biz.id} role="presentation">
               <button
                 type="button"
+                role="option"
+                aria-selected={biz.id === activeBizId}
                 onClick={() => handleSelect(biz.id)}
                 className={[
                   "w-full text-left px-3 py-2.5 text-[14px] transition-colors",

@@ -655,7 +655,7 @@ export default function BlogScreenshotSection({
                   <th className="text-left px-4 md:px-6 py-3.5 text-sm font-semibold text-gray-600">내 순위</th>
                   <th className="text-left px-4 md:px-6 py-3.5 text-sm font-semibold text-gray-600 hidden sm:table-cell">1위 블로그</th>
                   <th className="text-left px-4 md:px-6 py-3.5 text-sm font-semibold text-gray-600 hidden md:table-cell">분석 시각</th>
-                  <th className="px-4 md:px-6 py-3.5" />
+                  <th className="relative px-4 md:px-6 py-3.5"><span className="sr-only">상세 펼치기</span></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">

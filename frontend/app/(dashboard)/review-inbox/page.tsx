@@ -650,7 +650,7 @@ export default function ReviewInboxPage() {
                     className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${b.id === businessId ? 'font-semibold text-blue-600' : 'text-gray-700'}`}
                   >
                     {b.name}
-                    {b.id === businessId && <span className="ml-1 text-sm text-blue-400">선택됨</span>}
+                    {b.id === businessId && <span className="ml-1 text-sm text-blue-700">선택됨</span>}
                   </button>
                 ))}
               </div>

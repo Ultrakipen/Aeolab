@@ -198,14 +198,14 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 flex-shrink-0 font-bold">①</span>
                   <span><strong>소개글 200자 이상</strong> + 자주 묻는 질문 3~5개 Q&amp;A 형식 포함
-                    <span className="ml-1 text-indigo-400">(Q&amp;A 구조가 AI탭 노출 가능성 높음 — 실측 기반 권장)</span>
+                    <span className="ml-1 text-indigo-700">(Q&amp;A 구조가 AI탭 노출 가능성 높음 — 실측 기반 권장)</span>
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-0.5 flex-shrink-0 font-bold">②</span>
                   <span>
                     <strong>사진 10장 이상</strong> 등록 — 외관·내부·서비스 현장 사진
-                    <span className="ml-1 text-indigo-400">(개수 기준. 아래 &apos;필수 사진 5종&apos;은 어떤 종류를 채워야 하는지 안내)</span>
+                    <span className="ml-1 text-indigo-700">(개수 기준. 아래 &apos;필수 사진 5종&apos;은 어떤 종류를 채워야 하는지 안내)</span>
                     {photoCount !== null && (
                       <span
                         className={`ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-sm font-semibold ${
@@ -402,9 +402,9 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
               3b
             </span>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base md:text-lg font-bold text-gray-900 break-keep">
+              <h2 className="text-base md:text-lg font-bold text-gray-900 break-keep">
                 (선택) 톡톡 채팅방 메뉴 등록
-              </h3>
+              </h2>
               <p className="text-sm md:text-base text-gray-600 mt-0.5">AI 자동 생성을 이용하면 더 쉽습니다</p>
             </div>
           </div>
@@ -585,9 +585,9 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
 
       {/* ── §3.4 필수 사진 5종 체크리스트 카드 ────────────────────── */}
       <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 md:p-6">
-        <h3 className="text-base md:text-lg font-bold text-gray-900 mb-1 break-keep">
+        <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1 break-keep">
           {isInactive ? '검색 노출을 높이는 필수 사진 5종' : 'AI 브리핑 노출을 높이는 필수 사진 5종'}
-        </h3>
+        </h2>
         <p className="text-sm md:text-base text-gray-600 mb-4 leading-relaxed break-keep">
           {isInactive
             ? '네이버 일반 검색은 사진 수·다양성·최신성을 노출 신호로 활용합니다. Gemini는 구글 비즈니스 프로필의 사진을, ChatGPT는 사업장 웹사이트 이미지 정보를 간접 참조합니다.'
@@ -641,9 +641,9 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
 
       {/* ── §3.8 C-rank 4요소 체크리스트 카드 ────────────────────── */}
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 md:p-6">
-        <h3 className="text-base md:text-lg font-bold text-gray-900 mb-1 break-keep">
+        <h2 className="text-base md:text-lg font-bold text-gray-900 mb-1 break-keep">
           네이버 검색 상위노출을 위한 콘텐츠 품질 4요소 (네이버 블로그 품질 기준)
-        </h3>
+        </h2>
         <p className="text-sm md:text-base text-gray-600 mb-4 leading-relaxed break-keep">
           네이버가 콘텐츠 품질을 평가하는 4가지 기준입니다. 소개글·소식·블로그 작성 시 이 요소를 충족할수록 검색 상위노출 가능성이 높아집니다.
         </p>
@@ -707,11 +707,11 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
             {!blogScanned ? "?" : blogCount === 0 ? "!" : blogCount}
           </span>
           <div className="flex-1 min-w-0">
-            <h3 className={`text-base md:text-lg font-bold mb-0.5 break-keep ${
+            <h2 className={`text-base md:text-lg font-bold mb-0.5 break-keep ${
               !blogScanned ? "text-gray-800" : blogCount === 0 ? "text-rose-900" : "text-green-900"
             }`}>
               블로그·SNS 후기
-            </h3>
+            </h2>
             <p className={`text-sm md:text-base leading-relaxed break-keep ${
               !blogScanned ? "text-gray-600" : blogCount === 0 ? "text-rose-700" : "text-green-700"
             }`}>
@@ -752,9 +752,9 @@ export function AiInfoTabGuide({ business, eligibility, plan, blogMentionCount =
       {/* ── 플랜 업그레이드 CTA (free 사용자) ────────────────────── */}
       {plan === "free" && (
         <div className="rounded-xl p-5 md:p-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200">
-          <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2 break-keep">
+          <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-2 break-keep">
             소개글·채팅방 메뉴 AI 자동 생성으로 시간을 절약하세요
-          </h3>
+          </h2>
           <p className="text-sm md:text-base text-gray-700 mb-4 leading-relaxed">
             Basic 플랜(월 17,900원)부터 소개글·톡톡 채팅방 메뉴 AI 자동 생성을 사용할 수 있습니다.
             첫 달 50% 할인(8,950원).
@@ -791,9 +791,9 @@ function Step({ num, title, time, done, children }: StepProps) {
           {done ? "✓" : num}
         </span>
         <div className="flex-1 min-w-0">
-          <h3 className="text-base md:text-lg font-bold text-gray-900 break-keep">
+          <h2 className="text-base md:text-lg font-bold text-gray-900 break-keep">
             단계 {num}. {title}
-          </h3>
+          </h2>
           <p className="text-sm md:text-base text-gray-600 mt-0.5">예상 소요: {time}</p>
         </div>
       </div>
@@ -811,20 +811,20 @@ interface StepSkippedProps {
 
 function StepSkipped({ num, title, reason, alternative }: StepSkippedProps) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 md:p-6 opacity-70">
+    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 md:p-6">
       <div className="flex items-start gap-3 mb-2">
         <span className="flex-shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-sm md:text-base bg-gray-200 text-gray-600">
           {num}
         </span>
         <div className="flex-1 min-w-0">
-          <h3 className="text-base md:text-lg font-bold text-gray-600 break-keep line-through">
+          <h2 className="text-base md:text-lg font-bold text-gray-600 break-keep line-through">
             단계 {num}. {title}
-          </h3>
+          </h2>
           <p className="text-sm md:text-base text-gray-600 mt-0.5">해당 없음</p>
         </div>
       </div>
       <div className="ml-0 md:ml-14">
-        <p className="text-sm md:text-base text-gray-600 mb-2">{reason}</p>
+        <p className="text-sm md:text-base text-gray-600 mb-2 break-keep">{reason}</p>
         {alternative}
       </div>
     </div>

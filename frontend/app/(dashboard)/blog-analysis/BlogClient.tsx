@@ -672,7 +672,7 @@ function PostDetailSection({ posts }: { posts: PostDetail[] }) {
                   {postScoreLabel(p.post_score)}
                 </span>
                 <span className={`inline-flex items-center gap-1 border text-sm font-bold px-2.5 py-0.5 rounded-full ${postScoreBadge(p.title_seo_score)}`}>
-                  <span className="font-normal opacity-70">검색</span>{postScoreLabel(p.title_seo_score)}
+                  <span className="font-normal">검색</span>{postScoreLabel(p.title_seo_score)}
                 </span>
               </div>
             </div>
@@ -967,7 +967,7 @@ function TopicSuggestionsV2Card({
             <p className="text-sm font-semibold text-gray-900 leading-snug break-keep flex-1">
               {s.topic}
               {s.monthly_volume !== null && s.monthly_volume !== undefined && s.monthly_volume > 0 && (
-                <span className="text-sm font-normal text-indigo-500 opacity-80">
+                <span className="text-sm font-normal text-indigo-700">
                   {' '}
                   · 월{' '}
                   {s.monthly_volume >= 10000

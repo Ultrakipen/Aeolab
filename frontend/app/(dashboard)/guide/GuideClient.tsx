@@ -3070,9 +3070,9 @@ A. ${a}`).catch(() => {})
     <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6">
       <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
         <div>
-          <h3 className="text-base md:text-lg font-bold text-gray-900">
+          <h2 className="text-base md:text-lg font-bold text-gray-900">
             스마트플레이스 Q&A 초안 생성
-          </h3>
+          </h2>
           <p className="text-base text-gray-600 mt-0.5">
             소개글 Q&A 섹션 초안 — 사장님이 직접 컨트롤할 수 있는 언급 후보 경로 중 하나입니다
           </p>
@@ -3117,7 +3117,7 @@ A. ${a}`).catch(() => {})
                         setFaqExcluded(prev => [...prev, kw])
                         setSelectedFaqKeywords(prev => prev.filter(k => k !== kw))
                       }}
-                      className={`pr-2 text-sm font-bold leading-none transition-colors ${
+                      className={`inline-flex items-center justify-center min-w-[32px] min-h-[32px] text-sm font-bold leading-none transition-colors ${
                         selectedFaqKeywords.includes(kw) ? 'text-blue-200 hover:text-white' : 'text-gray-600 hover:text-red-700'
                       }`}
                       title="관련 없는 키워드 제외"
@@ -3520,7 +3520,7 @@ function TodayKeywordHero({
                 <span className="text-sm font-medium">{kw}</span>
                 <button
                   onClick={(e) => excludeKw(kw, e)}
-                  className={`text-sm font-bold leading-none transition-colors ${
+                  className={`-my-1.5 -mr-2 inline-flex items-center justify-center min-w-[32px] min-h-[32px] text-sm font-bold leading-none transition-colors ${
                     active === kw ? 'text-blue-200 hover:text-white' : 'text-gray-600 hover:text-red-700'
                   }`}
                   title="관련 없는 키워드 제외"

@@ -336,7 +336,7 @@ function SectionTitle({
         {icon}
       </div>
       <div>
-        <h3 className="text-base font-bold text-gray-800 leading-snug">{title}</h3>
+        <h2 className="text-base font-bold text-gray-800 leading-snug">{title}</h2>
         {subtitle && <p className="text-sm text-gray-600 leading-snug">{subtitle}</p>}
       </div>
     </div>
@@ -1704,7 +1704,7 @@ export default function PreviewClient({ currentPlan, businessData, latestScan, b
             <Star className="w-3.5 h-3.5" />
             현재: {PLAN_LABEL[currentPlan] ?? "무료 체험"}
             {PLAN_PRICE[currentPlan] && currentPlan !== "free" && (
-              <span className="font-normal opacity-75 ml-0.5">
+              <span className="font-normal ml-0.5">
                 · {PLAN_PRICE[currentPlan]}
               </span>
             )}
@@ -1730,6 +1730,7 @@ export default function PreviewClient({ currentPlan, businessData, latestScan, b
       <div className="flex items-center gap-2 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-200">
         <span className="text-sm font-medium text-gray-600 shrink-0">업종 선택:</span>
         <select
+          aria-label="업종 선택"
           value={industry}
           onChange={(e) => setIndustry(e.target.value as IndustryKey)}
           className="flex-1 text-sm font-semibold text-gray-800 bg-transparent border-0 outline-none cursor-pointer"

@@ -193,9 +193,9 @@ export default async function AiTabGuidePage({
                 {item.statusOk ? <CheckCircle2 className="w-5 h-5" /> : item.num}
               </span>
               <div className="flex-1 min-w-0">
-                <h3 className="text-base md:text-lg font-bold text-gray-900 mb-0.5 break-keep">
+                <h2 className="text-base md:text-lg font-bold text-gray-900 mb-0.5 break-keep">
                   {item.title}
-                </h3>
+                </h2>
                 <span
                   className={`inline-block px-2 py-0.5 rounded-full text-sm font-semibold ${
                     item.statusOk

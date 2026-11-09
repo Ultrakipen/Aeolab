@@ -267,6 +267,7 @@ function DeliveryNewForm() {
               </div>
             ) : (
               <select
+                aria-label="사업장 선택"
                 value={selectedBizId}
                 onChange={(e) => setSelectedBizId(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400 transition"
@@ -356,26 +357,26 @@ function DeliveryNewForm() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-base font-semibold text-white">{pkg.name}</p>
-                <p className="text-sm text-blue-200 mt-0.5">{DELIVERY_FREQUENCY}</p>
+                <p className="text-sm text-white mt-0.5">{DELIVERY_FREQUENCY}</p>
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold text-white">{pkg.price.toLocaleString()}원</p>
                 {pkg.type === "comprehensive" && (
-                  <p className="text-sm text-blue-300 line-through">158,000원</p>
+                  <p className="text-sm text-blue-100 line-through">158,000원</p>
                 )}
               </div>
             </div>
 
             <div className="flex items-center gap-2 bg-blue-500/40 rounded-xl p-3 mb-4">
               <CheckCircle2 className="w-4 h-4 text-blue-200 shrink-0" />
-              <p className="text-sm text-blue-100">
+              <p className="text-sm text-white">
                 결제 완료 후 영업일 1~2일 내 담당자가 연락드립니다.
               </p>
             </div>
 
             <div className="bg-blue-500/40 rounded-xl p-3 mb-4">
               <p className="text-sm font-semibold text-white mb-1">제공 주기</p>
-              <ul className="text-sm text-blue-100 space-y-1">
+              <ul className="text-sm text-white space-y-1">
                 <li>· {DELIVERY_SCHEDULE[pkg.type].start}</li>
                 <li>· {DELIVERY_SCHEDULE[pkg.type].complete}</li>
                 {DELIVERY_SCHEDULE[pkg.type].extras.map((t) => (

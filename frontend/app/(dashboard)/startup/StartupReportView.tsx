@@ -292,7 +292,7 @@ export function StartupReportView({ report }: { report: StartupReport }) {
                     ))}
                   </ul>
                 )}
-                <p className="text-xs text-blue-400 mt-3 leading-relaxed">
+                <p className="text-sm text-blue-700 mt-3 leading-relaxed">
                   {isSbiz
                     ? `* 소상공인시장진흥공단 상가정보(국세청·카드사 기반)${ymLabel ? `, ${ymLabel} 기준` : ""} 입력 지역 중심 반경${radiusKm ? ` ${radiusKm}km` : ""} 내 등록 사업자 수입니다. 동/구/군 등 행정구역 넓이에 맞춰 반경을 자동 조정하지만 실제 행정구역 경계와 정확히 일치하지는 않는 근사치이며, 실시간이 아니라 다소 지연된 통계입니다.`
                     : "* 카카오맵 키워드 검색 기준 추정치입니다. 실제 사업자 등록 현황과 다를 수 있고, 인접 지역 업체가 일부 포함될 수 있습니다."}

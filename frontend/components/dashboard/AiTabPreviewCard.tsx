@@ -252,7 +252,7 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
             </div>
           )}
         </div>
-        <p className="mt-1 text-sm text-blue-700/80 leading-snug break-keep">
+        <p className="mt-1 text-sm text-blue-800 leading-snug break-keep">
           고객이 네이버에서 검색할 때 <strong>AI탭에 내 가게가 어떻게 소개되는지</strong> 미리 볼 수 있습니다.
           네이버 AI 브리핑과는 별개 경로로, <strong>업종 제한 발표 없이</strong> 모든 업종이 대상입니다.
         </p>
@@ -682,9 +682,9 @@ export default function AiTabPreviewCard({ bizId, subscriptionPlan, category, bl
             return (
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-                  <h4 className="text-sm font-semibold text-gray-800">
+                  <h3 className="text-sm font-semibold text-gray-800">
                     네이버 AI탭 노출 높이는 방법
-                  </h4>
+                  </h3>
                   {verifiedItems.length > 0 && (
                     <span className="text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
                       ✓ {completedItems.length}/{verifiedItems.length}개 자동 확인
