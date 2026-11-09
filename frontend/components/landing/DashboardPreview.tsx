@@ -212,16 +212,16 @@ export default function DashboardPreview() {
               <circle cx="400" cy="22" r="7" fill="#2563EB" stroke="#FFFFFF" strokeWidth="2.5" />
 
               {/* 시작점 라벨 칩 "개선 중" */}
-              <rect x="8" y="82" width="50" height="18" rx="9" fill="#FEF9C3" />
-              <text x="33" y="95" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#92400E">개선 중</text>
+              <rect x="4" y="77" width="58" height="22" rx="11" fill="#FEF9C3" />
+              <text x="33" y="93" textAnchor="middle" fontSize="14" fontWeight="700" fill="#92400E">개선 중</text>
 
               {/* 끝점 라벨 칩 "양호" */}
-              <rect x="365" y="5" width="50" height="18" rx="9" fill="#DBEAFE" />
-              <text x="390" y="18" textAnchor="middle" fontSize="10.5" fontWeight="700" fill="#1D4ED8">양호</text>
+              <rect x="326" y="2" width="58" height="22" rx="11" fill="#DBEAFE" />
+              <text x="355" y="18" textAnchor="middle" fontSize="14" fontWeight="700" fill="#1D4ED8">양호</text>
 
               {/* 주차 레이블 */}
               {["1주", "2주", "3주", "4주", "5주", "6주", "7주"].map((label, i) => (
-                <text key={i} x={40 + i * 60} y="138" textAnchor="middle" fontSize="10.5" fill="#94A3B8">{label}</text>
+                <text key={i} x={40 + i * 60} y="142" textAnchor="middle" fontSize="14" fill="#64748B">{label}</text>
               ))}
             </svg>
           </div>

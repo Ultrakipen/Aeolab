@@ -190,7 +190,7 @@ export default async function ChannelGuidePage({
                 style={{ width: `${entry.naverRatio}%` }}
               />
             </div>
-            <span className={`text-sm font-semibold ${entry.globalRatio >= 50 ? "text-orange-600" : "text-gray-500"}`}>
+            <span className={`text-sm font-semibold ${entry.globalRatio >= 50 ? "text-orange-700" : "text-gray-600"}`}>
               글로벌 AI
             </span>
           </div>

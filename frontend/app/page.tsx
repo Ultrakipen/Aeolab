@@ -201,13 +201,13 @@ export default function LandingPage() {
                 {/* OFF 이후 — 회색 바닥선 */}
                 <path d="M 172,75 L 300,75" stroke="#CBD5E1" strokeWidth="2" fill="none" strokeLinecap="round" />
                 {/* 광고비 충전 바 (ON 구간 시각화) */}
-                <rect x="4" y="60" width="155" height="12" rx="3" fill="#FEE2E2" />
-                <rect x="4" y="60" width="155" height="12" rx="3" fill="#DC2626" opacity="0.7" />
-                <text x="82" y="70" textAnchor="middle" fill="#FFFFFF" fontSize="9" fontWeight="bold">광고비 소진 중</text>
+                <rect x="4" y="57" width="155" height="17" rx="3" fill="#FEE2E2" />
+                <rect x="4" y="57" width="155" height="17" rx="3" fill="#DC2626" />
+                <text x="82" y="70" textAnchor="middle" fill="#FFFFFF" fontSize="11" fontWeight="bold">광고비 소진 중</text>
                 {/* OFF 수직선 */}
                 <line x1="169" y1="6" x2="169" y2="77" stroke="#CBD5E1" strokeWidth="1" strokeDasharray="2,2" />
-                <text x="65" y="12" textAnchor="middle" fill="#DC2626" fontSize="9">광고비 ON</text>
-                <text x="230" y="90" textAnchor="middle" fill="#45556C" fontSize="9">OFF → 광고 노출 중단</text>
+                <text x="65" y="13" textAnchor="middle" fill="#DC2626" fontSize="11">광고비 ON</text>
+                <text x="232" y="92" textAnchor="middle" fill="#45556C" fontSize="11">OFF → 광고 노출 중단</text>
                 <circle cx="169" cy="27" r="3.5" fill="#DC2626" />
               </svg>
               <ul className="mt-3 space-y-1 text-sm" style={{ color: "#475569" }}>
