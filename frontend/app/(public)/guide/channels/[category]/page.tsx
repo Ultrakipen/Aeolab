@@ -275,15 +275,15 @@ export default async function ChannelGuidePage({
               </p>
               <ul className="space-y-1.5 text-sm text-gray-700">
                 <li className="flex items-start gap-2">
-                  <span className="shrink-0 text-orange-500 mt-0.5 font-bold">1</span>
+                  <span className="shrink-0 text-orange-700 mt-0.5 font-bold">1</span>
                   <span>구글 비즈니스 프로필 등록 (business.google.com) — Gemini 노출에 특히 중요, 등록 후 수주~수개월 소요</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="shrink-0 text-orange-500 mt-0.5 font-bold">2</span>
+                  <span className="shrink-0 text-orange-700 mt-0.5 font-bold">2</span>
                   <span>자체 웹사이트·홈페이지에 소개글·Q&amp;A 콘텐츠 작성 — ChatGPT가 읽을 수 있는 외부 URL 필요</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="shrink-0 text-orange-500 mt-0.5 font-bold">3</span>
+                  <span className="shrink-0 text-orange-700 mt-0.5 font-bold">3</span>
                   <span>트립어드바이저·전문 사이트 등 외부 언급 늘리기</span>
                 </li>
               </ul>
