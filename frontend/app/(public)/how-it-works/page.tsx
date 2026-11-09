@@ -224,17 +224,17 @@ export default function HowItWorksPage() {
             <div className="rounded-2xl bg-blue-50 border border-blue-100 p-3 md:p-4 text-center">
               <div className="text-xl md:text-3xl font-bold text-blue-700 mb-1">3,000만+</div>
               <div className="text-sm md:text-sm text-blue-800 font-medium leading-tight">AI 브리핑 사용자</div>
-              <div className="text-sm text-gray-400 mt-1 hidden md:block">네이버 컨콜 2025.08</div>
+              <div className="text-sm text-gray-600 mt-1 hidden md:block">네이버 컨콜 2025.08</div>
             </div>
             <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-3 md:p-4 text-center">
               <div className="text-xl md:text-3xl font-bold text-emerald-700 mb-1">+27.4%</div>
               <div className="text-sm md:text-sm text-emerald-800 font-medium leading-tight">식당·카페 클릭률</div>
-              <div className="text-sm text-gray-400 mt-1 hidden md:block">네이버 2025.08.21</div>
+              <div className="text-sm text-gray-600 mt-1 hidden md:block">네이버 2025.08.21</div>
             </div>
             <div className="rounded-2xl bg-purple-50 border border-purple-100 p-3 md:p-4 text-center">
               <div className="text-xl md:text-3xl font-bold text-purple-700 mb-1">1.5만+</div>
               <div className="text-sm md:text-sm text-purple-800 font-medium leading-tight">숙박 업체 적용</div>
-              <div className="text-sm text-gray-400 mt-1 hidden md:block">브릿지경제 2026.04.01</div>
+              <div className="text-sm text-gray-600 mt-1 hidden md:block">브릿지경제 2026.04.01</div>
             </div>
           </div>
           <MoreInfo summary="출처 및 상세 수치 보기" tone="light">

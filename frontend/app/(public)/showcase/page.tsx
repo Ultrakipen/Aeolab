@@ -12,14 +12,14 @@ export const metadata: Metadata = {
 export default function ShowcasePage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="text-blue-600 font-bold text-sm">← AEOlab</Link>
           <AuthNavControlClient />
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
+      <main className="max-w-6xl mx-auto px-4 py-8 md:py-12">
         <div className="text-center mb-8 md:mb-10">
           <h1 className="text-xl md:text-2xl font-black text-gray-900 mb-2 break-keep">
             AEOlab 화면 미리보기
@@ -38,7 +38,7 @@ export default function ShowcasePage() {
 
         <div className="mt-10 md:mt-14 bg-blue-600 rounded-xl p-6 md:p-8 text-center text-white">
           <p className="text-lg md:text-xl font-black mb-1 break-keep">내 가게도 이렇게 관리해 보세요</p>
-          <p className="text-sm text-blue-200 mb-4">지금 시작하면 첫 측정부터 바로 확인할 수 있습니다</p>
+          <p className="text-sm text-white mb-4">지금 시작하면 첫 측정부터 바로 확인할 수 있습니다</p>
           <Link
             href="/pricing"
             className="inline-block bg-white text-blue-700 font-bold text-base px-6 py-3 rounded-xl hover:bg-blue-50 transition-colors"
@@ -46,7 +46,7 @@ export default function ShowcasePage() {
             요금제 보기 →
           </Link>
         </div>
-      </div>
+      </main>
 
       <SiteFooter activePage="/showcase" />
     </div>

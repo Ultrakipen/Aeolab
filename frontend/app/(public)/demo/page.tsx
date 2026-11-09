@@ -726,6 +726,7 @@ export default function DemoPage() {
         </div>
       </header>
 
+      <h1 className="sr-only">AEOlab 진단 결과 화면 예시</h1>
       <div className="max-w-6xl mx-auto py-5 md:py-8 px-4 md:px-8 space-y-5 md:space-y-6">
 
         {/* ── 실제 사업장 강조 배너 (photo 선택 시) ──────────── */}
@@ -1398,7 +1399,7 @@ export default function DemoPage() {
               </Link>
               <Link
                 href="/signup"
-                className="block bg-blue-500 text-white rounded-xl py-3.5 font-semibold text-center hover:bg-blue-400 transition-colors text-sm md:text-base border border-white/20"
+                className="block bg-blue-600 text-white rounded-xl py-3.5 font-semibold text-center hover:bg-blue-500 transition-colors text-sm md:text-base border border-white/20"
               >
                 1분 무료 회원가입
               </Link>
