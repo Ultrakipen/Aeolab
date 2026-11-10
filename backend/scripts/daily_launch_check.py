@@ -48,6 +48,63 @@ def milestone_gap(count: int) -> str:
     return f"다음 트리거 {nxt}명까지 {nxt - count}명" if nxt else "모든 트리거(20·50·100명) 지남"
 
 
+def summarize_usage(rows, cap: int, days: int = 7) -> str:
+    """네이버 일별 사용량 이력(페이지=쿼터 cost 단위)의 최근 N일 요약. 표본이 작으면 참고용이다."""
+    recent = [r for r in (rows or []) if isinstance(r, dict) and isinstance(r.get("used"), (int, float))][-days:]
+    if not recent:
+        return "이력 없음"
+    used = [r["used"] for r in recent]
+    peak = max(used)
+    pct = f"{peak / cap * 100:.0f}%" if cap else "상한 미상"
+    return f"최근 {len(recent)}일 합계 {int(sum(used))}페이지, 하루 최대 {int(peak)}페이지(상한 {cap} 대비 {pct}) — 야간 스캔 대상이 적을 때의 값이라 참고용"
+
+
+def summarize_blocks(rows) -> str:
+    """naver_block_events 최근 건수를 (화면, 사건)별로 센다. 차단(block)이 있으면 앞에 경고를 붙인다."""
+    if not rows:
+        return "0건"
+    c = Counter(f"{r.get('surface')}:{r.get('event')}" for r in rows)
+    blocked = any(r.get("event") != "recover" for r in rows)
+    return ("⚠ 차단 사건 있음 — " if blocked else "회복 기록만 — ") + f"{len(rows)}건 {dict(c)}"
+
+
+def summarize_keys(rows, now) -> str:
+    """재가입 방어 보관 키: 지금 효력이 있는 것(해제·만료 제외)과 해제·만료된 것을 나눠 센다. 해제한 시험 키를 효력 있는 키로 세면 안 된다."""
+    live, off = Counter(), 0
+    for r in rows or []:
+        exp = _parse_ts(r.get("expires_at"))
+        if r.get("released_at") or (exp and exp <= now):
+            off += 1
+        else:
+            live[r.get("purpose")] += 1
+    return f"효력 있음 {sum(live.values())}건 {dict(live)} / 해제·만료 {off}건"
+
+
+def _parse_ts(v):
+    try:
+        d = datetime.fromisoformat(str(v).replace("Z", "+00:00"))
+        return d if d.tzinfo else d.replace(tzinfo=timezone.utc)
+    except (TypeError, ValueError):
+        return None
+
+
+def summarize_lifecycle(rows, admin_ids, now, refund_days: int = 7, renewal_days: int = 7) -> str:
+    """관리자 제외 활성 구독 중 ①7일 환불 구간 안(시작일 기준) ②앞으로 7일 안에 갱신일이 오는 건수와 가장 이른 날짜.
+
+    환불 구간은 첫 자동 측정이 돌면 끝난다(정기 자동 측정도 이용으로 센다) — 구간 안 사용자에게는 이 점을 안내한다.
+    """
+    act = [r for r in rows if r.get("status") == "active" and r.get("user_id") not in admin_ids]
+    refund, renew = [], []
+    for r in act:
+        st, en = _parse_ts(r.get("start_at")), _parse_ts(r.get("end_at"))
+        if st and timedelta(0) <= now - st <= timedelta(days=refund_days):
+            refund.append(st + timedelta(days=refund_days))
+        if en and timedelta(0) <= en - now <= timedelta(days=renewal_days):
+            renew.append(en)
+    fmt = lambda xs: f"{len(xs)}건" + (f"(가장 이른 {min(xs).astimezone(KST):%m-%d})" if xs else "")
+    return f"7일 환불 구간 안 {fmt(refund)} / 7일 내 갱신 예정 {fmt(renew)} — 외부 활성 구독 {len(act)}건 기준"
+
+
 async def _count(label, fn):
     try:
         return await fn()
@@ -99,12 +156,29 @@ async def main() -> int:
         return f"{len(rows)}건"
 
     async def keys():
-        rows = (await execute(sb.table("discount_used_keys").select("purpose"))).data or []
-        return f"{len(rows)}건 {dict(Counter(r.get('purpose') for r in rows))}"
+        rows = (await execute(sb.table("discount_used_keys").select("purpose,released_at,expires_at"))).data or []
+        return summarize_keys(rows, now)
+
+    async def naver_usage():
+        from services.ai_scanner import naver_quota_history
+        cap = int(os.getenv("NAVER_PLAYWRIGHT_DAILY_CAP", "600"))
+        return summarize_usage(naver_quota_history(30), cap)
+
+    async def naver_blocks():
+        since7 = (now - timedelta(days=7)).astimezone(timezone.utc).isoformat()
+        rows = (await execute(sb.table("naver_block_events").select("surface,event").gte("occurred_at", since7))).data or []
+        return summarize_blocks(rows)
+
+    async def lifecycle():
+        rows = (await execute(sb.table("subscriptions").select("user_id,status,start_at,end_at"))).data or []
+        admins = {u.strip() for u in os.getenv("ADMIN_USER_IDS", "").split(",") if u.strip()}
+        return summarize_lifecycle(rows, admins, now)
 
     for label, fn in (("구독 상태", subs), ("최근 24h 스캔 저장", scans), ("최근 24h 운영 알림(system_alerts)", alerts),
                       ("최근 24h 알림톡 기록", notes), ("최근 24h 결제 이벤트", pay), ("최근 24h 무료 체험", trials),
-                      ("재가입 방어 보관 키(건수만)", keys)):
+                      ("재가입 방어 보관 키(건수만)", keys),
+                      ("환불 구간·갱신 예정", lifecycle), ("네이버 사용량(일별 이력)", naver_usage),
+                      ("네이버 차단·회복 사건(최근 7일)", naver_blocks)):
         print(f"- {label}: {await _count(label, fn)}")
     print(f"- 가드 설정: DISCOUNT_KEY_GUARD_ENABLED={os.getenv('DISCOUNT_KEY_GUARD_ENABLED', '(미설정=꺼짐)')}")
     print("- 별도 확인: pm2 logs aeolab-backend --err --lines 60 --nostream (0건이 정상), /health")
