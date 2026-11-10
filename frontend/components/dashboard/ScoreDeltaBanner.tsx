@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Clock, RefreshCw, TrendingUp, X } from "lucide-react";
+import { formatNextScan } from "@/lib/nextScan";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
@@ -19,7 +20,7 @@ interface ScoreDeltaData {
   estimated_score: number | null;
   delta: number | null;
   changed_items: ChangedItem[];
-  next_auto_scan: string;
+  next_auto_scan: string | null;
   manual_scan_remaining: number;
   manual_scan_daily_limit: number;
   note: string;
@@ -28,20 +29,6 @@ interface ScoreDeltaData {
 interface Props {
   bizId: string;
   accessToken: string;
-}
-
-function formatNextScan(iso: string): string {
-  try {
-    const d = new Date(iso);
-    const now = new Date();
-    const diffH = Math.round((d.getTime() - now.getTime()) / 3600000);
-    const hh = d.getHours().toString().padStart(2, "0");
-    if (diffH <= 1) return "곧";
-    if (diffH < 24) return `오늘 ${hh}:00`;
-    return `내일 ${hh}:00`;
-  } catch {
-    return "새벽 02:00";
-  }
 }
 
 export function ScoreDeltaBanner({ bizId, accessToken }: Props) {
@@ -117,10 +104,12 @@ export function ScoreDeltaBanner({ bizId, accessToken }: Props) {
               <span className="text-xs text-gray-600 ml-1">(추정)</span>
             </span>
           )}
-          <span className="text-sm text-gray-600 flex items-center gap-1">
-            <Clock size={12} />
-            자동 측정 {nextScanLabel}
-          </span>
+          {nextScanLabel && (
+            <span className="text-sm text-gray-600 flex items-center gap-1">
+              <Clock size={12} />
+              자동 측정 {nextScanLabel}
+            </span>
+          )}
         </div>
 
         {dailyLimit > 0 && (
@@ -128,7 +117,7 @@ export function ScoreDeltaBanner({ bizId, accessToken }: Props) {
             <RefreshCw size={12} />
             {remaining > 0
               ? `오늘 ${remaining}/${dailyLimit}회 측정 가능`
-              : `오늘 측정 한도 소진 — 자동 측정 ${nextScanLabel}`}
+              : `오늘 측정 한도 소진${nextScanLabel ? ` — 자동 측정 ${nextScanLabel}` : ""}`}
           </span>
         )}
       </div>

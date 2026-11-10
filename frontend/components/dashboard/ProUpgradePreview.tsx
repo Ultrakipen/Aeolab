@@ -8,10 +8,12 @@ interface Props {
 }
 
 const WEEKDAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
+// 표시한 요일은 예시다 — 실제 풀스캔 요일은 가게마다 정해진다(scan_scheduling 슬롯 분산: Basic 주 2회·Pro 주 3회).
+const BASIC_EXAMPLE_DAYS = new Set([0, 3]);
 const PRO_SCAN_DAYS = new Set([0, 2, 4]);
 
-function CalendarIcon({ dayIndex }: { dayIndex: number }) {
-  const isProDay = PRO_SCAN_DAYS.has(dayIndex);
+function CalendarIcon({ dayIndex, days = PRO_SCAN_DAYS }: { dayIndex: number; days?: Set<number> }) {
+  const isProDay = days.has(dayIndex);
   return (
     <div
       className={`flex flex-col items-center justify-center w-9 h-9 rounded-lg text-sm font-bold border ${
@@ -90,23 +92,14 @@ export default function ProUpgradePreview({ businessName, category: _category, p
               <span className="text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
                 Basic (현재)
               </span>
-              <span className="text-sm text-gray-600">월요일만 전체 측정</span>
+              <span className="text-sm text-gray-600">주 2회 전체 측정</span>
             </div>
             <div className="flex gap-1.5 flex-wrap">
-              {WEEKDAY_LABELS.map((label, i) => (
-                <div
-                  key={label}
-                  className={`flex flex-col items-center justify-center w-9 h-9 rounded-lg text-sm font-bold border ${
-                    i === 0
-                      ? "bg-emerald-700 border-emerald-400 text-white"
-                      : "bg-gray-100 border-gray-200 text-gray-600"
-                  }`}
-                >
-                  {label}
-                </div>
+              {WEEKDAY_LABELS.map((_, i) => (
+                <CalendarIcon key={i} dayIndex={i} days={BASIC_EXAMPLE_DAYS} />
               ))}
             </div>
-            <p className="text-sm text-gray-600 mt-1.5">나머지 날: 경량 분석(표본 50회)</p>
+            <p className="text-sm text-gray-600 mt-1.5">나머지 날은 자동 측정이 없습니다. 표시한 요일은 예시이며 실제 요일은 가게마다 정해져 있어요.</p>
           </div>
 
           <div>
@@ -121,6 +114,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
                 <CalendarIcon key={i} dayIndex={i} />
               ))}
             </div>
+            <p className="text-sm text-gray-600 mt-1.5">나머지 날: 경량 분석(표본 50회). 표시한 요일은 예시이며 실제 요일은 가게마다 정해져 있어요.</p>
             <p className="text-sm text-indigo-600 font-semibold mt-1.5">
               주 3회 전체 AI 측정 · 경쟁사 변화는 매주 월요일 알림
             </p>

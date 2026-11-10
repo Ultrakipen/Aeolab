@@ -14,8 +14,8 @@ from __future__ import annotations
 
 import hashlib
 import os
-from datetime import date
-from typing import Callable, Iterable, TypeVar
+from datetime import date, datetime, timedelta
+from typing import Callable, Iterable, Optional, TypeVar
 
 T = TypeVar("T")
 
@@ -120,6 +120,29 @@ def decide_scan_mode(plan: str, weekday: int, biz_id: str, spread: bool) -> str:
     if plan == "pro" and not pro_day:
         return "basic"
     return "full"
+
+
+AUTO_SCAN_PLANS = ("basic", "startup", "pro", "biz", "enterprise")
+
+
+def next_auto_scan_kst(plan: str, biz_id: str, now_kst: datetime, spread: Optional[bool] = None) -> Optional[datetime]:
+    """이 사업장의 다음 정기 자동 측정 시각(KST 02:00) — decide_scan_mode 와 같은 규칙으로 구한다.
+
+    화면 안내("자동 측정 내일 …")가 플랜·슬롯 요일과 맞도록 하는 단일 계산이다(2026-11-10: 이전에는 플랜과 무관하게 항상
+    '다음 02:00'을 안내해 주 2회인 Basic에게도 내일이라고 했다). 경량 스캔일(Pro)도 측정이므로 "skip"이 아닌 첫 날을 돌려준다.
+    자동 측정 대상이 아닌 플랜(무료 등)은 None — 모르면 말하지 않는다.
+    """
+    if (plan or "") not in AUTO_SCAN_PLANS:
+        return None
+    if spread is None:
+        spread = slot_spread_enabled()
+    day = now_kst if now_kst.hour < 2 else now_kst + timedelta(days=1)
+    day = day.replace(hour=2, minute=0, second=0, microsecond=0)
+    for _ in range(8):
+        if decide_scan_mode(plan, day.weekday(), biz_id, spread) != "skip":
+            return day
+        day += timedelta(days=1)
+    return None
 
 
 def competitor_job_due(job: str, weekday: int, biz_id: str, spread: bool) -> bool:

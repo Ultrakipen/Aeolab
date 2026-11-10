@@ -4896,13 +4896,19 @@ async def get_score_delta(biz_id: str, user=Depends(get_current_user)):
     supabase = get_client()
     await _verify_biz_ownership(supabase, biz_id, user["id"])
 
-    # 다음 자동 스캔 시각 계산 (매일 02:00 KST = UTC 17:00)
+    # 다음 자동 스캔 시각 — 플랜·슬롯 요일 규칙으로 계산(2026-11-10: 이전에는 항상 '다음 02:00'이라 주 2회 Basic에게도 내일로 안내).
+    # 자동 측정 대상이 아니거나 플랜을 확인하지 못하면 None(프런트는 이 문구를 숨긴다).
+    from services.scan_scheduling import next_auto_scan_kst
+    from middleware.plan_gate import get_user_plan as _gup
     kst = timezone(_td(hours=9))
     now_kst = datetime.now(timezone.utc).astimezone(kst)
-    next_scan_kst = now_kst.replace(hour=2, minute=0, second=0, microsecond=0)
-    if now_kst.hour >= 2:
-        next_scan_kst += _td(days=1)
-    next_auto_scan = next_scan_kst.isoformat()
+    try:
+        _plan_for_scan = await _gup(user["id"], supabase)
+        _next_dt = next_auto_scan_kst(_plan_for_scan, biz_id, now_kst)
+    except Exception as _e:
+        _logger.warning(f"score-delta 다음 자동 측정 시각 계산 실패(숨김): {_e}")
+        _next_dt = None
+    next_auto_scan = _next_dt.isoformat() if _next_dt else None
 
     # 수동 스캔 잔여 횟수 + 마지막 스캔 병렬 조회 (둘 다 biz_id/user_id 독립)
     (remaining, daily_limit), scan_res = await asyncio.gather(
