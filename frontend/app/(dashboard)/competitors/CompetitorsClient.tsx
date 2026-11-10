@@ -3794,8 +3794,8 @@ export function CompetitorsClient({
               AI 검색 노출 점수를 비교할 수 있습니다.
             </p>
             <p className="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-2 text-center leading-relaxed">
-              지금 측정하지 않으면 <strong>내일 새벽</strong> 자동 측정 후 데이터가 표시됩니다.<br />
-              <span className="text-sm text-amber-700">(점수 비교: 새벽 2시 / 키워드 분석: 새벽 4시)</span>
+              지금 측정하지 않으면 <strong>다음 자동 측정</strong> 후 데이터가 표시됩니다.<br />
+              <span className="text-sm text-amber-700">(자동 측정 요일은 요금제에 따라 달라요 · 점수 비교: 새벽 2시 / 키워드 분석: 새벽 4시)</span>
             </p>
             <div className="flex flex-col gap-2.5">
               <button

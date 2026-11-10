@@ -505,7 +505,7 @@ async def send_welcome_promise_email(
     else:
         score_section = """
   <div style="background:#fefce8; border:1px solid #fde047; border-radius:10px; padding:14px 18px; margin-bottom:20px;">
-    <p style="font-size:14px; color:#854d0e; margin:0;">첫 AI 스캔이 곧 실행됩니다 — 새벽 2시 자동 스캔 후 점수를 확인하세요.</p>
+    <p style="font-size:14px; color:#854d0e; margin:0;">첫 AI 측정은 요금제에 따라 정해진 요일의 새벽 2시에 자동으로 실행됩니다 — 측정이 끝나면 점수를 확인하세요.</p>
   </div>"""
 
     subject = f"[AEOlab] {biz_name} AI 노출 분석 완료 — 7일 후 결과를 알려드립니다"

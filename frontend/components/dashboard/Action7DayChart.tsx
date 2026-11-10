@@ -204,7 +204,7 @@ export default function Action7DayChart({ bizId, accessToken }: Props) {
         </div>
       ) : (
         <p className="text-sm text-gray-600 text-center py-6">
-          아직 일별 분석 기록이 쌓이지 않았습니다. 매일 새벽 자동 측정 후 분석 이력이 누적됩니다.
+          아직 일별 분석 기록이 쌓이지 않았습니다. 자동 측정이 실행될 때마다 분석 이력이 누적됩니다.
         </p>
       )}
 

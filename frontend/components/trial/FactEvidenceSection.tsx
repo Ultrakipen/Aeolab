@@ -272,7 +272,7 @@ export default function FactEvidenceSection({
                 </div>
               ))}
             <p className="text-sm text-gray-600 italic mt-2">
-              정식 구독은 {aiEach(100)}{GEMINI_LIVE ? " (총 200회)" : ""} + 매일 변화 추적
+              정식 구독은 {aiEach(100)}{GEMINI_LIVE ? " (총 200회)" : ""} + 요금제에 따라 주 1~3회(Biz는 매일) 변화 추적
             </p>
           </div>
         )}

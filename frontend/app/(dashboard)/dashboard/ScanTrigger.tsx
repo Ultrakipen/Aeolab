@@ -277,7 +277,7 @@ export function ScanTrigger({
             {scanLimit > 0 && scanLimit < 999 && (
               <p className={`text-sm ${stacked ? 'text-center' : 'text-center sm:text-right'} text-gray-600`}>
                 {limitReached
-                  ? '새벽 2시에 자동 측정이 실행됩니다'
+                  ? '자동 측정은 새벽 2시에 실행됩니다 (요일은 요금제에 따라 달라요)'
                   : `오늘 ${scanUsed}/${scanLimit}회 사용`}
               </p>
             )}

@@ -247,7 +247,7 @@ export function GapAnalysisCard({ gap }: Props) {
                       </p>
                       <p className="text-gray-600 flex items-start gap-1.5">
                         <span className="text-amber-700 font-bold shrink-0">②</span>
-                        <span><strong>자동 해소:</strong> 매일 새벽 2시 자동 측정 후 자동으로 채워집니다.</span>
+                        <span><strong>자동 해소:</strong> 다음 자동 측정(새벽 2시) 후 자동으로 채워집니다.</span>
                       </p>
                     </div>
                   </div>
