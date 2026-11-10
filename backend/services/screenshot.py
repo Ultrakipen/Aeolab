@@ -184,6 +184,28 @@ async def _is_google_captcha(page) -> bool:
     return False
 
 
+async def _page_is_naver_block(page) -> bool:
+    """네이버 검색 화면이 CAPTCHA·비정상 접근 안내로 열렸는지 — 차단 화면을 시각 증거로 저장하지 않기 위한 판정.
+
+    판정 자체를 못 하면(읽기 예외) 차단이 아닌 것으로 본다(기존 동작 유지). 차단이면 차단 회로에 보고한다.
+    """
+    try:
+        from services.naver_block import is_naver_search_block
+        title = await page.title()
+        head = await page.evaluate("document.body ? document.body.innerText.slice(0, 800) : ''")
+        blocked = is_naver_search_block(page.url, title, head)
+    except Exception as e:
+        _logger.debug("naver 차단 판정 실패(저장 계속): %s", e)
+        return False
+    if blocked:
+        try:
+            from services.naver_access_guard import report_search_block
+            report_search_block("screenshot")
+        except Exception as e:
+            _logger.warning("naver 차단 회로 보고 실패: %s", e)
+    return blocked
+
+
 async def capture_ai_result(
     platform: str, query: str, biz_id: str, capture_type: str = "before"
 ) -> Optional[str]:
@@ -247,6 +269,9 @@ async def capture_ai_result(
                         timeout=30000,
                     )
                     await page.wait_for_timeout(3000)
+                    if await _page_is_naver_block(page):
+                        _logger.warning("naver 검색 화면 차단 감지 — 증거 스크린샷을 저장하지 않음 (biz=%s)", biz_id)
+                        return None
                     await page.evaluate(_NAVER_BLOG_CLEAN_JS)
                     _y_offset = 0  # view 탭: 상단부터 블로그 목록 바로 시작
                     _naver_full = True
@@ -264,6 +289,9 @@ async def capture_ai_result(
                         timeout=30000,
                     )
                     await page.wait_for_timeout(3000)
+                    if await _page_is_naver_block(page):
+                        _logger.warning("naver 검색 화면 차단 감지 — 증거 스크린샷을 저장하지 않음 (biz=%s)", biz_id)
+                        return None
                 elif platform == "naver_ai_tab":
                     import urllib.parse as _urlparse
                     _enc_q_ait = _urlparse.quote(query)
@@ -272,6 +300,9 @@ async def capture_ai_result(
                         timeout=30000,
                     )
                     await page.wait_for_timeout(3000)
+                    if await _page_is_naver_block(page):
+                        _logger.warning("naver 검색 화면 차단 감지 — 증거 스크린샷을 저장하지 않음 (biz=%s)", biz_id)
+                        return None
                 elif platform == "google":
                     # DataForSEO 실패 후 Playwright 폴백
                     await page.goto(
@@ -607,6 +638,10 @@ async def capture_naver_blog_screenshot(keyword: str, biz_id: str, region: str =
                 url = f"https://search.naver.com/search.naver?where=view&query={encoded_kw}"
                 await page.goto(url, timeout=30000)
                 await page.wait_for_timeout(3000)  # 블로그 목록 완전 로딩 대기
+                if await _page_is_naver_block(page):
+                    # 차단 화면을 증거로 올리고 기존 정상 증거를 지우지 않는다
+                    _logger.warning("blog capture: 네이버 검색 화면 차단 감지 — 저장·교체하지 않음 (biz=%s kw=%r)", biz_id, keyword)
+                    return None
 
                 # 디버그: 블로그 포스트가 DOM에 존재하는지 확인
                 _post_count = await page.evaluate(

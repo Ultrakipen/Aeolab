@@ -162,20 +162,8 @@ async def issue_billing(body: BillingIssueRequest, request: Request, user: dict 
             detail="이미 같은 플랜을 이용 중입니다. 결제는 진행되지 않았고 청구되지 않았습니다. 대시보드로 이동해 주세요.",
         )
 
-    # 1. 빌링키 발급
-    issue_res = await creb_client.issue_billkey(body.authKey)
-    if not issue_res.ok:
-        logger.error(f"빌링키 발급 실패: {issue_res.code} {issue_res.msg}")
-        raise HTTPException(status_code=400, detail="빌링키 발급에 실패했습니다. 카드 정보를 확인 후 다시 시도해 주세요.")
-
-    billing_key = issue_res.data.get("billKey")
-    if not billing_key:
-        raise HTTPException(status_code=500, detail="빌링키를 받지 못했습니다")
-
-    # 등록 카드 정보 (설정 페이지에 표시용 — cardNumber는 크렙이 마스킹해 내려줌, 카드사는 한글 이름 그대로 저장)
-    card_issuer_code = issue_res.data.get("cardCompany") or issue_res.data.get("cardResultName")
-    card_number_masked = issue_res.data.get("cardNumber")
-
+    # 1-0. 빌링키 발급 **이전**에 검증 (2026-11-10): 계정·금액·첫 달 할인 자격은 빌링키와 무관하다. 발급 뒤에 거부하면
+    # 크렙에 쓰이지 않는 빌링키가 남고, 1회용 authKey가 소진돼 사용자가 카드 입력부터 다시 해야 했다.
     # user_id가 실제 존재하는 계정인지 검증
     _user_check = await execute(
         get_client().table("profiles").select("user_id").eq("user_id", user_id).limit(1)
@@ -202,6 +190,20 @@ async def issue_billing(body: BillingIssueRequest, request: Request, user: dict 
             logger.warning(f"할인가 결제 시도 거부 — 기존 구독자: user_id={user_id}, amount={body.amount}")
             raise HTTPException(status_code=400, detail="첫 달 할인은 신규 가입자에게만 적용됩니다")
         discount_until = (datetime.now() + timedelta(days=30)).date().isoformat()
+
+    # 1. 빌링키 발급
+    issue_res = await creb_client.issue_billkey(body.authKey)
+    if not issue_res.ok:
+        logger.error(f"빌링키 발급 실패: {issue_res.code} {issue_res.msg}")
+        raise HTTPException(status_code=400, detail="빌링키 발급에 실패했습니다. 카드 정보를 확인 후 다시 시도해 주세요.")
+
+    billing_key = issue_res.data.get("billKey")
+    if not billing_key:
+        raise HTTPException(status_code=500, detail="빌링키를 받지 못했습니다")
+
+    # 등록 카드 정보 (설정 페이지에 표시용 — cardNumber는 크렙이 마스킹해 내려줌, 카드사는 한글 이름 그대로 저장)
+    card_issuer_code = issue_res.data.get("cardCompany") or issue_res.data.get("cardResultName")
+    card_number_masked = issue_res.data.get("cardNumber")
 
     order_id = f"first_{user_id}_{int(datetime.now().timestamp())}"
     is_yearly_issue = body.amount in YEARLY_AMOUNTS

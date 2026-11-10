@@ -2039,6 +2039,7 @@ async def subscription_lifecycle_job():
         await send_slack_alert("subscription_lifecycle_job 실패", str(e), level="error")
 
 
+@_naver_batch_job
 async def after_screenshot_job():
     """매일 오전 8시: 가입 후 7/14/30일 경과 사업장 After 스크린샷 자동 캡처
     (30→7일로 단축: 소상공인이 1주일 안에 개선 효과 확인 가능)
