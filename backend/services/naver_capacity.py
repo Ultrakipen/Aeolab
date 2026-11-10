@@ -17,7 +17,7 @@ LEVELS = ((1.0, "100%"), (0.9, "90%"), (0.7, "70%"))
 # decide=True는 공개 약속·기능 범위·법적 민감 항목이라 **사용자 결정 없이 실행하지 않는다**(CLAUDE.md 지침 8번).
 PLAYBOOK = (
     {"from_pct": 70, "step": "AI탭 질의 수를 4→2로 낮춘다 (서버 .env NAVER_AI_TAB_MAX_QUERIES=2 후 백엔드 재시작)",
-     "effect": "100곳 기준 정기 잡 하루 최대 1089→813 (몫 420 대비 259%→194%)", "decide": False},
+     "effect": "100곳 기준 정기 잡 하루 최대 1043→767 (몫 420 대비 248%→183%)", "decide": False},
     # 스캔 슬롯 분산(NAVER_SCAN_SLOT_SPREAD)은 2026-10-29 사용자 결정으로 켰다 — 요일 문구 정리 후, 대응표에서 제외.
     {"from_pct": 90, "step": "일일 사용량·캐시 적중률·수동 스캔 빈도를 /admin/naver-access에서 읽어 모델 가정(키워드 4개·경쟁사 3곳·수동 스캔 0.2회/일·경쟁사 겹침)을 실측으로 교체한다",
      "effect": "한도 수치 자체를 보정 (이후 단계의 필요 시점이 바뀐다)", "decide": False},
@@ -26,7 +26,7 @@ PLAYBOOK = (
     {"from_pct": 200, "step": "100곳 이상으로 가려면 아래를 사용자가 결정한다 — 레버는 코드에 준비돼 있고 서버 .env에서 켠다(후 백엔드 재시작): 순위 모바일만 NAVER_RANK_MOBILE_ONLY=true(PC 순위 미측정, 점수 항목 영향), AI탭 끔 NAVER_AI_TAB_ENABLED=false(기능 축소), 경쟁사 갱신 4주 COMPETITOR_REFRESH_WEEKS=4(공개 문구 '2주마다' 4곳도 함께 수정 — demo/page.tsx·PlanGate.tsx·onboarding/page.tsx·CompetitorsClient.tsx). 플랜별 키워드·경쟁사 한도 축소는 환경변수 레버가 없다 — PLAN_LIMITS·plans.ts·요금제·설정 비교표·약관을 함께 바꿔야 한다",
      "effect": "300곳 기준 정기 잡 몫 대비 347%→106% (python scripts/naver_load_model.py --levers 300)", "decide": True},
     {"from_pct": 90, "step": "사전 스캔(GitHub 야간 워크플로)이 모든 사업장을 90분 안에 끝내는지 확인한다 — 워크플로 주석 기준 60곳에 약 60분이라 사업장이 늘면 나눠 실행해야 한다. 접속 경로가 GitHub IP라는 점은 법적 검토 대상이다",
-     "effect": "300곳 기준 496%→437% (야간·수동 스캔이 서버의 브리핑 접속을 생략, 워크플로가 감당할 때만)", "decide": False},
+     "effect": "300곳 기준 469%→437% (야간·수동 스캔이 서버의 브리핑 접속을 생략, 워크플로가 감당할 때만)", "decide": False},
     {"from_pct": 200, "step": "경쟁사 겹침 캐시의 효과를 실측한다 (플레이스 ID 공유 캐시는 구현돼 있으나 겹침 비율은 미측정)",
      "effect": "300곳 기준 437%→407% (30% 가정)", "decide": False},
     {"from_pct": 200, "step": "접속 경로 분산(서버·프록시 추가)은 변호사 자문 후 사용자가 결정한다",

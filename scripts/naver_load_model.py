@@ -19,7 +19,7 @@ from services.scan_scheduling import (  # noqa: E402
 )
 
 # ── 단위: 페이지 로드 수 (check_naver_playwright_quota의 cost와 같은 단위) ───────────────────
-BRIEF_PER_SCAN = 2        # 가정: scan_all/scan_basic이 네이버 브리핑 check_mention을 1회 호출하나 내부 변형 수는 미확인
+BRIEF_PER_SCAN = 1        # 코드 확인(2026-11-10): scan_all·scan_basic은 primary_query 하나로 check_mention 1회 = 검색 1페이지(클릭은 화면 안 펼침, 이동 없음). 이전 값 2는 '내부 변형 수 미확인' 가정이었다. 대시보드 수동 측정 스트림(scan_quick_with_progress)만 키워드별로 최대 4페이지를 연다 — 이 모델의 수동 스캔 항목은 /scan/full(scan_all) 기준
 AI_TAB_PER_FULL = int(os.getenv("NAVER_AI_TAB_MAX_QUERIES", "4"))   # 코드: multi_scanner.scan_all이 질의 최대 N개(기본 4, 환경변수로 1~4)로 AI탭 스캔(NAVER_AI_TAB_ENABLED=true일 때)
 # 질의 1개 = 페이지 3개(네이버 메인 + 검색 + AI탭). 단일 출처 services.scan_scheduling.AI_TAB_PAGES_PER_QUERY — naver_ai_tab_scanner가 쿼터에 같은 값을 쓴다.
 # (2026-11-10 이전에는 질의당 1건으로 세어 모델과 쿼터가 모두 실제 접속량의 1/3만 잡았다.)

@@ -101,3 +101,33 @@ def test_default_capacity_limit_matches_the_models_optimised_limit():
     kw = dict(spread=True, keywords=4, competitors=3, dedupe=0.0, prescan_reuse=False, comp_cache=True, comp_spread=True)
     first_over = m.first_n_over(420, "batch", **kw)
     assert first_over is not None and first_over <= naver_capacity.DEFAULT_CAPACITY_BUSINESSES, (first_over,)
+
+
+def test_model_briefing_pages_match_what_scheduled_and_full_scans_really_open():
+    """모델의 BRIEF_PER_SCAN은 '미확인 가정 2'가 아니라 코드로 확인한 1 — 정기·수동 풀스캔은 primary_query 하나로 check_mention 1회."""
+    import ast
+    m = _model()
+    assert m.BRIEF_PER_SCAN == 1
+    src = _src("backend", "services", "ai_scanner", "multi_scanner.py")
+    seg = {n.name: (ast.get_source_segment(src, n) or "") for n in ast.walk(ast.parse(src))
+           if isinstance(n, (ast.AsyncFunctionDef, ast.FunctionDef))}
+    for name in ("scan_all", "scan_basic"):
+        assert "self.naver.check_mention, primary_query" in seg[name], name
+        assert "check_mention_multi" not in seg[name], name       # 여러 질의를 보내는 경로가 아니다
+
+
+def test_capacity_regenerator_reproduces_the_committed_files():
+    """PLAYBOOK 수치·문서 표는 regen_capacity_docs.py가 모델에서 만든 것과 같아야 한다 — 모델을 고치고 이 스크립트를 안 돌리면 여기서 실패한다."""
+    spec = importlib.util.spec_from_file_location("regen_capacity_docs_t", os.path.join(ROOT, "backend", "scripts", "regen_capacity_docs.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    new_cap, new_doc = mod.build()
+    assert new_cap.replace("\r\n", "\n") == _src("backend", "services", "naver_capacity.py").replace("\r\n", "\n")
+    assert new_doc.replace("\r\n", "\n") == _src("docs", "naver_capacity_300_playbook_2026_10_29.md").replace("\r\n", "\n")
+
+
+def test_capacity_doc_has_the_full_cost_audit_table():
+    doc = _src("docs", "naver_capacity_300_playbook_2026_10_29.md")
+    assert "전수 대조 — 쿼터 cost vs 실제 페이지 로드 수" in doc
+    for fn in ("naver_ai_tab_scanner.scan", "naver_place_stats.fetch_stats", "competitor_place_crawler", "smart_place_auto_check"):
+        assert fn in doc
