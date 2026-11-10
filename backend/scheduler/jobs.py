@@ -1960,7 +1960,7 @@ async def subscription_lifecycle_job():
         try:
             _price_up_res = await _db(
                 supabase.table("subscriptions")
-                .select("user_id, plan")
+                .select("user_id, plan, first_payment_amount")
                 .eq("status", "active")
                 .eq("first_month_discount_until", str(today + timedelta(days=3)))
             )
@@ -1976,6 +1976,11 @@ async def subscription_lifecycle_job():
                     phone = pu_phone_by_user.get(sub.get("user_id"))
                     if phone:
                         regular_price = PLAN_PRICE_MAP.get(sub.get("plan"), 17900)
+                        # 재구독 때 이전 구독의 first_month_discount_until이 upsert로 이어져 남는다(2026-11-10 실제 계정에서 확인) —
+                        # 이번 첫 결제가 정상가였다면 "할인 종료" 안내는 사실이 아니다. 금액을 알 수 없으면(옛 행) 기존대로 보낸다.
+                        _paid = sub.get("first_payment_amount")
+                        if isinstance(_paid, (int, float)) and _paid >= regular_price:
+                            continue
                         await notifier.send_price_increase_notice(phone, regular_price)
         except Exception as e:
             logger.error(f"subscription_lifecycle_job 가격인상 사전고지 실패: {e}")

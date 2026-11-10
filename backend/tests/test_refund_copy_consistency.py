@@ -95,3 +95,13 @@ def test_db_faq_script_uses_the_same_definition_and_is_safe_by_default():
     # 가격 페이지 FAQ와 같은 정의: 자동 측정도 이용으로 본다
     pricing = _fe("app", "(public)", "pricing", "page.tsx")
     assert "정기 자동 측정" in pricing and "정기 측정" in mod.NEW
+
+
+def test_cancel_modal_does_not_promise_service_until_expiry_when_refund_ends_it_immediately():
+    """환불 해지는 end_at을 오늘로 당겨 즉시 종료한다(settings.py). 같은 모달이 '만료일까지 계속 이용'이라 말하면 모순이다(11-10 실제 화면에서 확인)."""
+    import os
+    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    src = open(os.path.join(root, "frontend", "app", "(dashboard)", "settings", "SettingsClient.tsx"), encoding="utf-8").read()
+    assert "환불로 해지하면 분석 기능을 바로 이용할 수 없게 됩니다." in src
+    assert 'refundEligible && reason.id === "pause"' in src
+    assert "환불로 해지하면 결제 금액이 환불되고 이용은 바로 종료됩니다." in src

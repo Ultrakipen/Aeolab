@@ -393,7 +393,11 @@ export function SettingsClient({
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="text-lg font-bold text-gray-900">구독을 해지하시겠습니까?</h3>
-                <p className="text-sm text-gray-600 mt-0.5">만료일이 지나면 다음 데이터에 대한 분석 기능을 이용할 수 없게 됩니다.</p>
+                <p className="text-sm text-gray-600 mt-0.5">
+                  {refundEligible
+                    ? "환불로 해지하면 분석 기능을 바로 이용할 수 없게 됩니다."
+                    : "만료일이 지나면 다음 데이터에 대한 분석 기능을 이용할 수 없게 됩니다."}
+                </p>
               </div>
               <button
                 onClick={() => setShowCancelModal(false)}
@@ -463,7 +467,11 @@ export function SettingsClient({
               if (!reason) return null;
               return (
                 <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-4">
-                  <p className="text-sm text-blue-800 leading-relaxed">{reason.response}</p>
+                  <p className="text-sm text-blue-800 leading-relaxed">
+                    {refundEligible && reason.id === "pause"
+                      ? "환불로 해지하면 결제 금액이 환불되고 이용은 바로 종료됩니다. 재가입 시 데이터는 그대로 유지됩니다."
+                      : reason.response}
+                  </p>
                   {reason.link && reason.linkLabel && (
                     <a
                       href={reason.link}

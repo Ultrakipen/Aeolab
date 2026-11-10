@@ -116,8 +116,8 @@ def _no_real_customer_email(monkeypatch):
     yield
 
 
-def sub(i, uid, status="active", end_at=None, plan="basic", cycle="monthly", grace_until=None, disc=None, key="bk"):
-    return {"id": i, "user_id": uid, "plan": plan, "status": status, "billing_cycle": cycle, "end_at": end_at,
+def sub(i, uid, status="active", end_at=None, plan="basic", cycle="monthly", grace_until=None, disc=None, key="bk", paid=None):
+    return {"first_payment_amount": paid, "id": i, "user_id": uid, "plan": plan, "status": status, "billing_cycle": cycle, "end_at": end_at,
             "grace_until": grace_until, "first_month_discount_until": disc, "billing_key": key}
 
 
@@ -247,6 +247,14 @@ def test_first_month_discount_notice_goes_out_3_days_before_the_discount_date_to
     env([sub(1, "a", end_at=D(20), disc=D(3)), sub(2, "b", end_at=D(20), disc=D(4)), sub(3, "c", end_at=D(20), disc=D(2))], phones=PHONES)
     notices = [c for c in FakeKakao.calls if c[0] == "send_price_increase_notice"]
     assert len(notices) == 1 and notices[0][1][0] == "01011110000"
+
+
+def test_discount_notice_is_not_sent_when_the_first_payment_was_regular_price(env):
+    """재구독(정상가 결제) 행에 이전 구독의 할인 종료일이 남아 있어도 '할인 종료' 안내는 보내지 않는다. 할인가·금액 미상은 보낸다."""
+    env([sub(1, "a", end_at=D(20), disc=D(3), paid=17900), sub(2, "b", end_at=D(20), disc=D(3), paid=8950),
+         sub(3, "c", end_at=D(20), disc=D(3), paid=None)], phones=PHONES)
+    notices = [c for c in FakeKakao.calls if c[0] == "send_price_increase_notice"]
+    assert len(notices) == 2 and all(n[1][0] != "01011110000" for n in notices)
 
 
 def test_three_day_extension_moves_the_charge_date_by_three_days(env, monkeypatch):
