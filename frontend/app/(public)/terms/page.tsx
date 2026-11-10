@@ -87,6 +87,7 @@ export default function TermsPage() {
                   <li>창업패키지: 월 23,900원</li>
                   <li>Pro: 월 29,900원</li>
                   <li>Biz: 월 79,500원 (영업 문의 후 계약)</li>
+                  <li>첫 달 할인과 가입 후 1회 무료 체험은 사업장(또는 이메일)당 1회만 제공됩니다. 탈퇴 후 재가입하시더라도 이미 이용하신 사업장·이메일에는 다시 제공되지 않으며, 정상가로 이용하실 수 있습니다(2026년 11월 17일부터 적용).</li>
                 </ul>
               </li>
               <li>결제는 크렙을 통한 신용카드·체크카드 자동결제(빌링키 방식)로 이루어집니다.</li>
@@ -173,6 +174,7 @@ export default function TermsPage() {
             <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">부칙</h2>
             <p>이 약관은 2026년 4월 1일부터 시행합니다.</p>
             <p className="mt-2">제7조 제5항(타인 개인정보 입력 금지 및 AI 처리 업체 전송 안내)은 2026년 11월 2일부터 시행합니다. 다만 2026년 11월 2일 이전에 가입한 이용자에게는 변경 공지(2026년 11월 1일)로부터 7일이 지난 2026년 11월 8일부터 적용합니다.</p>
+            <p className="mt-2">제5조 제1항의 첫 달 할인·무료 체험 1회 제공 안내는 변경 공지(2026년 11월 10일)로부터 7일이 지난 2026년 11월 17일부터 모든 이용자에게 적용합니다.</p>
             <p className="mt-2">문의: <a href="mailto:support@aeolab.co.kr" className="text-blue-600 underline">support@aeolab.co.kr</a></p>
           </section>
 

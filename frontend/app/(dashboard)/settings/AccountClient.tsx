@@ -176,6 +176,9 @@ export function AccountClient({ currentEmail }: Props) {
       <div className="border border-red-100 rounded-xl p-4 md:p-5">
         <h3 className="text-base font-semibold text-red-700 mb-1">계정 탈퇴</h3>
         <p className="text-sm text-gray-600 mb-3">탈퇴 시 모든 사업장, 측정 기록, 구독이 영구 삭제됩니다.</p>
+        <p className="text-sm text-gray-600 mb-3 break-keep">
+          첫 달 할인 또는 무료 체험을 이용하신 경우, 중복 이용을 막기 위해 복원할 수 없는 값(해시)이 12개월간 보관된 뒤 자동으로 파기됩니다(2026년 11월 17일부터).
+        </p>
         {!showDeleteConfirm ? (
           <button
             onClick={() => setShowDeleteConfirm(true)}
