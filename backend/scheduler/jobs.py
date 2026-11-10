@@ -7439,7 +7439,7 @@ async def payment_subscription_reconciliation_job() -> None:
             sub_res = (
                 await _db(
                     supabase.table("subscriptions")
-                    .select("status, updated_at")
+                    .select("status, start_at, end_at")
                     .eq("user_id", user_id)
                     .limit(1)
                 )
@@ -7448,26 +7448,33 @@ async def payment_subscription_reconciliation_job() -> None:
             _logger.debug(f"[payment_reconciliation] subscriptions 조회 실패(스킵): {e}")
             continue
 
+        # 이 잡은 예전에 subscriptions.updated_at으로 "결제 뒤 갱신 여부"를 판정했으나 그 컬럼은 코드도 트리거도 갱신하지 않는다
+        # (2026-11-10 실제 행: 09-29 결제·해지 뒤에도 updated_at=04-18). 그래서 기존 행을 쓰는 재구독·갱신·해지가 전부 불일치로 잡혔다.
+        # 결제가 반영됐다는 증거는 결제가 쓰는 필드로 본다 — 신규(billing_issue)는 start_at, 갱신(renewal)은 end_at 연장.
+        def _ts(v):
+            try:
+                d = datetime.fromisoformat(str(v).replace("Z", "+00:00"))
+                return d if d.tzinfo else d.replace(tzinfo=timezone.utc)
+            except (TypeError, ValueError):
+                return None
+
         orphan = False
         if not sub_res:
             orphan = True
         else:
             sub = sub_res[0]
-            sub_updated_after_payment = False
-            try:
-                sub_updated = datetime.fromisoformat(str(sub["updated_at"]).replace("Z", "+00:00"))
-            except (KeyError, ValueError, TypeError):
-                orphan = True
+            if ev.get("event_type") == "renewal":
+                end_dt = _ts(sub.get("end_at"))
+                reflected = end_dt is not None and end_dt.date() > event_created.date()
             else:
-                if sub_updated < event_created - timedelta(seconds=60):
-                    orphan = True
-                else:
-                    sub_updated_after_payment = True
-            if sub.get("status") not in ("active", "grace_period"):
-                # 결제가 반영된 뒤(updated_at이 결제 이후) 사용자가 해지한 것(7일 환불 포함)은 불일치가 아니다 —
-                # 2026-11-10 실제 환불 1분 뒤 이 잡이 error 알림을 보낸 오탐. 결제 뒤 갱신이 없으면(위 stale 판정) 그대로 잡는다.
-                if not (sub.get("status") == "cancelled" and sub_updated_after_payment):
-                    orphan = True
+                start_dt = _ts(sub.get("start_at"))
+                # 시각대 표기가 섞여 있어(naive KST 행 확인) 방향은 한쪽으로만 본다: 결제 10분 전보다 이르면 반영 안 된 옛 값
+                reflected = start_dt is not None and start_dt >= event_created - timedelta(minutes=10)
+            if not reflected:
+                orphan = True
+            # 해지(7일 환불 포함)는 결제 뒤 정상 상태다. 그 밖의 비활성 상태가 결제 직후에 보이면 점검 대상.
+            if sub.get("status") not in ("active", "grace_period", "cancelled"):
+                orphan = True
 
         if not orphan:
             continue
