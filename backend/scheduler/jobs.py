@@ -7453,6 +7453,7 @@ async def payment_subscription_reconciliation_job() -> None:
             orphan = True
         else:
             sub = sub_res[0]
+            sub_updated_after_payment = False
             try:
                 sub_updated = datetime.fromisoformat(str(sub["updated_at"]).replace("Z", "+00:00"))
             except (KeyError, ValueError, TypeError):
@@ -7460,8 +7461,13 @@ async def payment_subscription_reconciliation_job() -> None:
             else:
                 if sub_updated < event_created - timedelta(seconds=60):
                     orphan = True
+                else:
+                    sub_updated_after_payment = True
             if sub.get("status") not in ("active", "grace_period"):
-                orphan = True
+                # 결제가 반영된 뒤(updated_at이 결제 이후) 사용자가 해지한 것(7일 환불 포함)은 불일치가 아니다 —
+                # 2026-11-10 실제 환불 1분 뒤 이 잡이 error 알림을 보낸 오탐. 결제 뒤 갱신이 없으면(위 stale 판정) 그대로 잡는다.
+                if not (sub.get("status") == "cancelled" and sub_updated_after_payment):
+                    orphan = True
 
         if not orphan:
             continue
