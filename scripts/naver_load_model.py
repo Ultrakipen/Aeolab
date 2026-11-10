@@ -14,14 +14,18 @@ import sys
 import uuid
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "backend"))
-from services.scan_scheduling import decide_scan_mode, keyword_rank_days, place_stats_day, scan_slot  # noqa: E402
+from services.scan_scheduling import (  # noqa: E402
+    AI_TAB_PAGES_PER_QUERY, PLACE_STATS_PAGE_COST, decide_scan_mode, keyword_rank_days, place_stats_day, scan_slot,
+)
 
 # ── 단위: 페이지 로드 수 (check_naver_playwright_quota의 cost와 같은 단위) ───────────────────
 BRIEF_PER_SCAN = 2        # 가정: scan_all/scan_basic이 네이버 브리핑 check_mention을 1회 호출하나 내부 변형 수는 미확인
 AI_TAB_PER_FULL = int(os.getenv("NAVER_AI_TAB_MAX_QUERIES", "4"))   # 코드: multi_scanner.scan_all이 질의 최대 N개(기본 4, 환경변수로 1~4)로 AI탭 스캔(NAVER_AI_TAB_ENABLED=true일 때)
+# 질의 1개 = 페이지 3개(네이버 메인 + 검색 + AI탭). 단일 출처 services.scan_scheduling.AI_TAB_PAGES_PER_QUERY — naver_ai_tab_scanner가 쿼터에 같은 값을 쓴다.
+# (2026-11-10 이전에는 질의당 1건으로 세어 모델과 쿼터가 모두 실제 접속량의 1/3만 잡았다.)
 LIGHT_SCAN_NAVER = 1      # 코드: scan_basic은 브리핑 1회
 RANK_PER_KEYWORD = 2      # 코드: naver_keyword_rank PC + 모바일(place_rank는 공식 API라 제외)
-PLACE_STATS_COST = 2      # 코드: fetch_stats cost=2 (주 1회 월요일 02:00 직전 잡, jobs.py)
+PLACE_STATS_COST = PLACE_STATS_PAGE_COST   # 코드: fetch_stats 최대 페이지(홈 + 모바일 폴백 + 리뷰 탭)=3, 단일 출처 scan_scheduling.PLACE_STATS_PAGE_COST (가게별 요일 주 1회)
 COMPETITOR_CRAWL_COST = 6   # 코드: _run_place_crawl goto 최대 6회(홈 복귀·메뉴 중복 제거, 2026-10-28; 이전 최대 12·정상 8~10 → cost=10)
 COMPETITOR_REFRESH_WEEKS = 2   # 코드: 경쟁사 정보 갱신 주기 2주(scan_scheduling.COMPETITOR_REFRESH_TTL_SEC, 2026-10-28). 요일 분산(오래된 순서) 시나리오의 평균 부하에만 적용
 COMPETITOR_JOBS_PER_WEEK = 2  # 코드: competitor_place_sync_job(화) + enrich_competitor_details_job(목)
@@ -50,7 +54,7 @@ def daily_loads(n: int, *, spread: bool, keywords: int, competitors: int, dedupe
             naver_brief = 0 if prescan_reuse else BRIEF_PER_SCAN
             scan_cost = 0.0
             if mode == "full":
-                scan_cost = naver_brief + AI_TAB_PER_FULL
+                scan_cost = naver_brief + AI_TAB_PER_FULL * AI_TAB_PAGES_PER_QUERY
             elif mode == "basic":
                 scan_cost = 0 if prescan_reuse else LIGHT_SCAN_NAVER
             batch += scan_cost
@@ -77,7 +81,7 @@ def daily_loads(n: int, *, spread: bool, keywords: int, competitors: int, dedupe
                 batch += c
                 if comps is not None:
                     comps["경쟁사 크롤"] = comps.get("경쟁사 크롤", 0) + c
-        user = n * USER_SCANS_PER_BIZ_PER_DAY * (naver_brief + AI_TAB_PER_FULL + USER_SCAN_PLACE_CHECK + PLACE_STATS_COST)
+        user = n * USER_SCANS_PER_BIZ_PER_DAY * (naver_brief + AI_TAB_PER_FULL * AI_TAB_PAGES_PER_QUERY + USER_SCAN_PLACE_CHECK + PLACE_STATS_COST)
         days.append({"batch": batch, "user": user, "total": batch + user})
     return days
 

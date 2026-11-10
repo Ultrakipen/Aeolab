@@ -57,10 +57,12 @@ class NaverPlaceStatsService:
         if not _ok:
             return {"error": _why, "naver_place_id": naver_place_id}
         from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
-        if not _check_naver_quota("naver_place_stats.fetch_stats", cost=2):  # 데스크톱 + 모바일 재시도 최대 2페이지
+        # 최대 페이지 수로 센다: 플레이스 홈 + 모바일 폴백(리뷰 수를 못 읽었을 때) + 리뷰 탭(항상). 이전에는 2로 세어 폴백 시 1페이지가 쿼터·속도 예약에서 빠졌다(2026-11-10).
+        from services.scan_scheduling import PLACE_STATS_PAGE_COST
+        if not _check_naver_quota("naver_place_stats.fetch_stats", cost=PLACE_STATS_PAGE_COST):
             return {"error": "quota_exceeded", "naver_place_id": naver_place_id}
         from services.naver_access_guard import reserve_place_pages
-        _rok, _rwhy, _ = await reserve_place_pages(2, "naver_place_stats.fetch_stats")
+        _rok, _rwhy, _ = await reserve_place_pages(PLACE_STATS_PAGE_COST, "naver_place_stats.fetch_stats")
         if not _rok:
             return {"error": _rwhy, "naver_place_id": naver_place_id}
         try:
@@ -132,6 +134,10 @@ class NaverPlaceStatsService:
                 ]
                 visitor_review_count = _exact_count(_review_patterns, body_text)
 
+                # 첫 화면 이후 페이지(모바일·리뷰 탭)에서 차단이 나오면 회로를 열고 남은 접속을 멈춘다(2026-11-10 — 이전에는 첫 화면만 검사해
+                # 뒤 페이지의 차단이 회로에 보고되지 않았다). 거짓 0은 만들지 않는다: 차단 화면은 읽지 않고 이미 읽은 값은 그대로 둔다.
+                blocked_late = False
+
                 # 데스크탑 아이프레임에서 미감지 시 모바일 URL로 재시도
                 if visitor_review_count is None:
                     try:
@@ -139,6 +145,10 @@ class NaverPlaceStatsService:
                         await page.goto(mobile_url, timeout=12000, wait_until="domcontentloaded")
                         await page.wait_for_timeout(2000)
                         mobile_body = await page.inner_text("body")
+                        if is_naver_block_page(mobile_body):
+                            report_place_block("naver_place_stats.fetch_stats")
+                            blocked_late = True
+                            mobile_body = ""
                         visitor_review_count = _exact_count(_review_patterns, mobile_body)
                         logger.info(f"[place_stats] mobile fallback review_count={visitor_review_count} for {naver_place_id}")
                     except Exception as _e:
@@ -151,10 +161,15 @@ class NaverPlaceStatsService:
                 # 동일 경로) 상단의 "리뷰NN"(공백없음)이 클렌징 후 진짜 노출 수라 항상 우선함.
                 # 이 tier가 못 찾으면(리뷰 0건 등) 위에서 찾은 값을 그대로 유지.
                 try:
+                    if blocked_late:
+                        raise RuntimeError("blocked_earlier")      # 앞 페이지에서 차단 — 리뷰 탭에 접속하지 않는다
                     pcmap_url = f"https://pcmap.place.naver.com/place/{naver_place_id}/review/visitor"
                     await page.goto(pcmap_url, timeout=15000, wait_until="domcontentloaded")
                     await page.wait_for_timeout(5000)
                     pcmap_body = await page.inner_text("body")
+                    if is_naver_block_page(pcmap_body):
+                        report_place_block("naver_place_stats.fetch_stats")
+                        pcmap_body = ""
                     _pcmap_exact = _exact_count([r"리뷰(\d[\d,]+)"], pcmap_body)
                     if _pcmap_exact is not None:
                         visitor_review_count = _pcmap_exact

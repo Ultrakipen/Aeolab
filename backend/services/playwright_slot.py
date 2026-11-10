@@ -39,6 +39,25 @@ def _queue_timeout() -> float:
 
 
 @asynccontextmanager
+async def playwright_slot_optional(sem: asyncio.Semaphore):
+    """`async with playwright_slot_optional(sem) as got:` — 대기 상한(사용자 요청 15초)을 넘으면 예외 대신 got=False를 준다(2026-11-10).
+
+    호출자는 `if not got:` 에서 '측정 못 함'으로 돌려보낸다(0점·미노출로 저장하지 않는다). 본문 들여쓰기를 바꾸지 않고 기존
+    `async with 세마포어:` 자리에 끼울 수 있다. 본문에서 난 예외는 그대로 전파되고, 슬롯은 항상 반납된다.
+    """
+    cm = playwright_slot(sem)
+    try:
+        await cm.__aenter__()
+    except asyncio.TimeoutError:
+        yield False
+        return
+    try:
+        yield True
+    finally:
+        await cm.__aexit__(None, None, None)
+
+
+@asynccontextmanager
 async def playwright_slot(sem: asyncio.Semaphore):
     """`async with playwright_slot(_get_playwright_sem()):` — 기존 `async with 세마포어`와 같은 자리에 쓴다."""
     global _waiting_interactive

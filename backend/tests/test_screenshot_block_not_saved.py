@@ -76,11 +76,8 @@ def _install(monkeypatch, blocked):
 
     monkeypatch.setattr(shot, "async_playwright", lambda: PW())
 
-    @contextlib.asynccontextmanager
-    async def sem():
-        yield
-
-    monkeypatch.setattr(shot, "_get_playwright_sem", lambda: sem())
+    # 코드는 playwright_slot_optional(세마포어)를 쓴다 — 가짜 컨텍스트가 아니라 실제 세마포어(호출마다 새것)를 준다
+    monkeypatch.setattr(shot, "_get_playwright_sem", lambda: asyncio.Semaphore(1))
     import services.ai_scanner as ai_scanner
     monkeypatch.setattr(ai_scanner, "check_naver_playwright_quota", lambda *_a, **_k: True, raising=False)
     import services.naver_access_guard as guard

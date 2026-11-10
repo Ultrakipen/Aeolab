@@ -41,6 +41,7 @@ from typing import Optional
 from playwright.async_api import async_playwright, Page, TimeoutError as PWTimeout
 from services.naver_visibility import _get as _naver_open_api_get, _name_matches as _nv_name_matches
 from services.ai_scanner import check_naver_playwright_quota, naver_playwright_quota_usage, get_proxy_config, note_proxy_result
+from services.playwright_slot import playwright_slot_optional
 
 _logger = logging.getLogger("aeolab")
 
@@ -49,6 +50,12 @@ PAGE_TIMEOUT_MS = int(os.getenv("KEYWORD_RANK_TIMEOUT_MS", "15000"))
 RESULT_LIMIT = int(os.getenv("KEYWORD_RANK_LIMIT", "20"))
 
 _semaphore = asyncio.Semaphore(MAX_CONCURRENCY)
+
+
+def _get_playwright_sem():
+    """전역 Playwright 세마포어 — 다른 네이버 접속 모듈과 같은 lazy import 패턴(순환 import 방지)."""
+    from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE
+    return PLAYWRIGHT_SEMAPHORE
 
 # 채널(pc/mobile)을 "읽지 못했다"는 표시 — 키워드 한 개를 측정하는 동안만 유효하다(ContextVar라 동시 측정끼리 섞이지 않는다).
 # 이동 실패·카드 수집 예외·일일 상한 건너뜀은 순위 None으로 돌아오지만 "첫 화면 밖"이 아니라 "읽지 못함"이다.
@@ -432,8 +439,22 @@ async def measure_keywords(
     if not biz_name:
         return {"_context": {"error": "biz_name 누락", "scanned_at": _now_iso()}}
 
+    # 모듈 세마포어(동시 BACKEND_MAX_CONCURRENCY) → 전역 Playwright 세마포어(동시 PLAYWRIGHT_MAX_CONCURRENCY, 기본 1) 순서.
+    # 이전에는 전역 세마포어를 거치지 않아 순위 측정이 AI 브리핑 스캔·플레이스 크롤과 동시에 브라우저를 열 수 있었다(같은 IP 동시 접속·RAM, 2026-11-10).
+    # 호출자(정기 순위 잡 2곳·수동 순위 엔드포인트)는 전역 세마포어를 잡은 채 부르지 않는다 — 중첩 획득 교착 없음(tests/test_rank_global_slot.py가 확인).
     async with _semaphore:
-        return await _run_with_browser(keywords, biz_name, place_id, region or "")
+        async with playwright_slot_optional(_get_playwright_sem()) as _got_slot:
+            if not _got_slot:
+                # 사용자가 기다리는 요청이 대기 상한(15초)을 넘었다 — 측정 못 한 것이지 '첫 화면 밖'이 아니다(error ≠ false).
+                _logger.warning("keyword_rank: Playwright 대기 상한 초과 — 이번에는 측정하지 않음 (keywords=%d)", len(keywords))
+                _t = _now_iso()
+                _out = {kw: {"pc_rank": None, "mobile_rank": None, "place_rank": None,
+                             "measured_at": _t, "search_query": "", "error": "timeout"} for kw in keywords}
+                _out["_context"] = {"location": os.getenv("KEYWORD_RANK_LOCATION", "Seoul"), "logged_in": False,
+                                    "started_at": _t, "scanned_at": _t, "errors": ["playwright_queue_timeout"],
+                                    "max_concurrency": MAX_CONCURRENCY}
+                return _out
+            return await _run_with_browser(keywords, biz_name, place_id, region or "")
 
 
 def mobile_only_enabled() -> bool:

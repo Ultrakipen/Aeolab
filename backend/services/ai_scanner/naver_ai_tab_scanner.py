@@ -192,7 +192,9 @@ async def scan(query: str, business_name: str) -> Optional[dict]:
         _logger.info(f"[naver_ai_tab] scan skip — 검색 화면 차단 쿨다운 (query={query!r})")
         return None
 
-    if not check_naver_playwright_quota("naver_ai_tab_scanner.scan"):
+    # 질의 1개가 여는 페이지 수(네이버 메인 + 검색 + AI탭)만큼 센다 — 1로 세면 실제 접속량의 1/3만 쿼터·용량 모델에 잡혔다(2026-11-10)
+    from services.scan_scheduling import AI_TAB_PAGES_PER_QUERY
+    if not check_naver_playwright_quota("naver_ai_tab_scanner.scan", cost=AI_TAB_PAGES_PER_QUERY):
         _logger.info(f"[naver_ai_tab] scan skip — 일일 상한 도달 (query={query!r})")
         return None
 
@@ -209,6 +211,23 @@ async def scan(query: str, business_name: str) -> Optional[dict]:
         _logger.warning(f"[naver_ai_tab] scan 오류: query={query!r}, error={e}")
         note_proxy_result(e)
         return None
+
+
+async def _search_page_blocked(page) -> bool:
+    """일반 검색 화면이 CAPTCHA·비정상 접근 안내로 열렸는지(공용 판정 services.naver_block). 읽지 못하면 차단이 아닌 것으로 본다.
+
+    로그인 리다이렉트(nidlogin)는 쿠키 만료이지 차단이 아니다 — 호출자가 따로 처리하므로 여기서는 차단으로 보지 않는다.
+    """
+    try:
+        if "nidlogin" in (page.url or ""):
+            return False
+        from services.naver_block import is_naver_search_block
+        title = await page.title()
+        head = (await page.inner_text("body") or "")[:500]
+        return bool(is_naver_search_block(page.url, title, head))
+    except Exception as e:
+        _logger.debug("[naver_ai_tab] 검색 화면 차단 판정 실패(진행): %s", e)
+        return False
 
 
 async def _run_scan(query: str, business_name: str) -> Optional[dict]:
@@ -269,6 +288,14 @@ async def _run_scan(query: str, business_name: str) -> Optional[dict]:
             # 일반 검색 이동
             await page.goto(search_url, timeout=20000)
             await page.wait_for_timeout(random.randint(2500, 4500))  # 인간 편차 딜레이
+
+            # 일반 검색 화면부터 차단·CAPTCHA면 회로에 보고하고 멈춘다 — 이전에는 보고 없이 AI탭 이동을 계속하고 다음 질의도 이어서 접속했다(2026-11-10).
+            # 측정 못 한 것(None)이지 '미노출'이 아니다. 회복(report_search_ok)은 여기서 하지 않는다(차단 표식이 없다고 정상 내용은 아니다).
+            from services.naver_access_guard import report_search_block
+            if await _search_page_blocked(page):
+                report_search_block("naver_ai_tab_scanner")
+                _logger.warning(f"[naver_ai_tab] 검색 화면 차단·CAPTCHA 감지 — 측정 중단: query={query!r}")
+                return None
 
             # AI탭 링크 클릭 (직접 URL 차단 우회)
             ai_tab_clicked = False

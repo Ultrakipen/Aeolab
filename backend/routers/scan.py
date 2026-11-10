@@ -4003,6 +4003,9 @@ async def keyword_rank_scan(
         raise HTTPException(status_code=400, detail="측정할 키워드가 없습니다 (사업장에 키워드 3개 이상 등록 필요)")
 
     # 측정 (Playwright + Semaphore + 환경변수 동시성 제어)
+    # 사용자가 결과를 기다리는 요청 — 전역 Playwright 대기에 상한(15초)을 두고, 넘으면 '측정 못 함'(timeout)으로 돌려준다(정기 배치 뒤에 무한정 줄 서지 않게)
+    from services.playwright_slot import mark_interactive
+    mark_interactive()
     from services.naver_keyword_rank import measure_keywords as _measure
     rank_result = await _measure(
         keywords=keywords[:10],  # 안전 한도 10개

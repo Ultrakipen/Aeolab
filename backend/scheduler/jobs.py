@@ -7027,6 +7027,7 @@ async def briefing_category_expansion_monitor_job():
         )
 
 
+@_naver_batch_job
 async def check_naver_cookie_health_job():
     """매주 월요일 00:30 KST(cron 등록 기준, `hour=0, minute=30`) — 네이버 NID_AUT/NID_SES
     쿠키 유효성 검사 + 만료 시 자동 재로그인.
@@ -7155,22 +7156,55 @@ async def check_naver_cookie_health_job():
                     "--disable-blink-features=AutomationControlled"]
 
     # ── Step 1: 현재 쿠키 유효성 확인 ──────────────────────────────────────────
+    # 접속 전 보호(2026-11-10): ①검색 화면 차단 쿨다운 중에는 건너뛴다(차단 연장 방지) ②일일 쿼터 1건 ③전역 Playwright 세마포어(동시 1개).
+    # 이전에는 셋 다 없이 naver.com에 로그인 쿠키로 접속했다. 만료 판정은 급하지 않으므로(주 1회) 보호에 걸리면 다음 주에 다시 본다.
+    from services.naver_access_guard import begin_search_access, report_search_block
+    if not begin_search_access("check_naver_cookie_health_job")[0]:
+        _logger.info("[naver_cookie_health] 검색 화면 차단 쿨다운 중 — 쿠키 확인을 건너뜀(다음 주 재확인)")
+        return
+    from services.ai_scanner import check_naver_playwright_quota as _cookie_quota
+    if not _cookie_quota("check_naver_cookie_health_job"):
+        _logger.info("[naver_cookie_health] 네이버 일일 상한 — 쿠키 확인을 건너뜀(다음 주 재확인)")
+        return
+    from services.playwright_slot import playwright_slot_optional
+    from services.ai_scanner.multi_scanner import PLAYWRIGHT_SEMAPHORE as _PW_SEM
+
     logged_in = False
-    async with async_playwright() as _p:
-        _br = await _p.chromium.launch(headless=True, channel="chrome", args=_LAUNCH_ARGS)
-        _ctx = await _br.new_context(viewport={"width": 1280, "height": 800},
-                                     locale="ko-KR", timezone_id="Asia/Seoul", user_agent=_ua)
-        await _ctx.add_cookies([{"name": "NID_AUT", "value": nid_aut, "domain": ".naver.com",
-                                  "path": "/", "httpOnly": True, "secure": True}])
-        _pg = await _ctx.new_page()
-        try:
-            await _pg.goto("https://www.naver.com", timeout=20000)
-            await _pg.wait_for_timeout(2000)
-            logged_in = "로그아웃" in await _pg.content()
-        except Exception as _e:
-            _logger.warning(f"[naver_cookie_health] naver.com 접근 실패: {_e}")
-        finally:
-            await _br.close()
+    # 로그인 여부를 **실제로 읽었는가**. 접속 실패·차단 화면은 '만료'가 아니다 — 이전에는 이 경우에도 logged_in=False로 남아
+    # "NID_AUT 만료 — 수동 교체 필요" 운영자 알림이 나갔다(error ≠ false: 멀쩡한 쿠키를 교체하게 만든다).
+    checked = False
+    async with playwright_slot_optional(_PW_SEM) as _got_slot:
+        if not _got_slot:
+            _logger.info("[naver_cookie_health] Playwright 대기 상한 초과 — 쿠키 확인을 건너뜀(다음 주 재확인)")
+            return
+        async with async_playwright() as _p:
+            _br = await _p.chromium.launch(headless=True, channel="chrome", args=_LAUNCH_ARGS)
+            _ctx = await _br.new_context(viewport={"width": 1280, "height": 800},
+                                         locale="ko-KR", timezone_id="Asia/Seoul", user_agent=_ua)
+            await _ctx.add_cookies([{"name": "NID_AUT", "value": nid_aut, "domain": ".naver.com",
+                                      "path": "/", "httpOnly": True, "secure": True}])
+            _pg = await _ctx.new_page()
+            try:
+                await _pg.goto("https://www.naver.com", timeout=20000)
+                await _pg.wait_for_timeout(2000)
+                from services.naver_block import is_naver_search_block, is_naver_block_page
+                _content = await _pg.content()
+                _body = ((await _pg.inner_text("body")) or "")[:1500]
+                _url = _pg.url or ""
+                if "nidlogin" not in _url and (is_naver_search_block(_url, await _pg.title(), _body) or is_naver_block_page(_body)):
+                    report_search_block("check_naver_cookie_health_job")
+                    _logger.warning("[naver_cookie_health] naver.com이 차단·CAPTCHA 화면 — 만료로 보지 않고 회로에 보고")
+                else:
+                    logged_in = "로그아웃" in _content
+                    checked = True
+            except Exception as _e:
+                _logger.warning(f"[naver_cookie_health] naver.com 접근 실패: {_e}")
+            finally:
+                await _br.close()
+
+    if not checked:
+        _logger.warning("[naver_cookie_health] 로그인 상태를 확인하지 못함(접속 실패·차단) — 만료로 판정하지 않음, 다음 주 재확인")
+        return
 
     if logged_in:
         _logger.info("[naver_cookie_health] NID_AUT 유효 ✅ — AI탭 스캔 정상")

@@ -177,6 +177,10 @@ from datetime import datetime, timezone
 from typing import Optional
 
 COMPETITOR_PAGE_COST = 6     # competitor_place_crawler.fetch_competitor_place_data 의 cost 와 같아야 한다
+# 네이버 접속 비용(페이지 로드 수) — check_naver_playwright_quota의 cost와 scripts/naver_load_model.py가 **같은 값**을 쓴다(2026-11-10).
+# 이전에는 AI탭 질의를 1건으로 셌지만 실제로는 naver.com + 검색 + AI탭 이동 = 3페이지를 열어, 쿼터와 용량 모델이 실제 접속량의 1/3만 잡았다.
+AI_TAB_PAGES_PER_QUERY = 3   # naver_ai_tab_scanner._run_scan: 네이버 메인 → 검색 → AI탭(링크 클릭 이동 또는 직접 URL)
+PLACE_STATS_PAGE_COST = 3    # naver_place_stats.fetch_stats 최대: 플레이스 홈 + 모바일 폴백(조건부) + 리뷰 탭(항상) — 상한으로 예약한다
 # 경쟁사 플레이스 정보 갱신 주기 — 2주(2026-10-28 사용자 결정, 공개 문구도 "2주마다"). 캐시 TTL(13.5일)과 pacing(13일)을 함께 둔다:
 # TTL이 14일이면 14일째 아침에 아슬아슬하게 못 들어와 하루씩 밀린다. 기본값 변경 시 crawler의 기본 TTL·테스트도 같이 바꿀 것.
 # 갱신 주기는 COMPETITOR_REFRESH_WEEKS(2·3·4주, 기본 2)가 단일 출처다. 용량이 모자랄 때 쓰는 절감 레버(기본 꺼짐=2주):

@@ -6,6 +6,7 @@ import re
 import base64
 from typing import Optional
 from playwright.async_api import async_playwright
+from services.playwright_slot import playwright_slot_optional
 
 _logger = logging.getLogger("aeolab")
 
@@ -197,6 +198,8 @@ async def _page_is_naver_block(page) -> bool:
     except Exception as e:
         _logger.debug("naver 차단 판정 실패(저장 계속): %s", e)
         return False
+    # 회복(report_search_ok)은 여기서 하지 않는다 — 차단 표식이 없다는 것이 '정상 내용을 읽었다'는 뜻은 아니다(빈 화면 등).
+    # 순위 측정은 가게 카드가 있는 화면에서만 회복으로 보며, 그 엄격한 규칙을 느슨한 경로가 깨지 않게 차단 보고만 한다(안전한 방향).
     if blocked:
         try:
             from services.naver_access_guard import report_search_block
@@ -239,14 +242,18 @@ async def capture_ai_result(
     _naver_full: bool = False  # naver 블로그: full_page+PIL 크롭 사용 여부
 
     if platform in ("naver", "naver_ai", "naver_ai_tab"):
-        from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
-        if not _check_naver_quota(f"screenshot.capture_ai_result:{platform}"):
-            return None
+        # 쿨다운 확인을 먼저 — 쿨다운 중에 쿼터를 먼저 깎으면 접속하지 않았는데 일일 상한만 줄어든다(2026-11-10)
         from services.naver_access_guard import begin_search_access
         if not begin_search_access(f"screenshot.{platform}")[0]:
             return None   # 검색 화면 차단 쿨다운 중 — 시각 증거는 다음 기회에
+        from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
+        if not _check_naver_quota(f"screenshot.capture_ai_result:{platform}"):
+            return None
 
-    async with _get_playwright_sem():
+    async with playwright_slot_optional(_get_playwright_sem()) as _got_slot:
+        if not _got_slot:
+            _logger.warning("capture_ai_result: Playwright 대기 상한 초과 — 이번에는 화면을 저장하지 않음 (platform=%s)", platform)
+            return None
         async with async_playwright() as p:
             browser = await p.chromium.launch(
                 headless=True,
@@ -604,14 +611,17 @@ async def capture_naver_blog_screenshot(keyword: str, biz_id: str, region: str =
     # Supabase Storage는 한글 경로 거부 → MD5 해시로 ASCII 경로 생성
     keyword_hash = hashlib.md5(keyword.strip().encode('utf-8')).hexdigest()[:12]
 
+    from services.naver_access_guard import begin_search_access
+    if not begin_search_access("screenshot.naver_blog")[0]:
+        return None   # 검색 화면 차단 쿨다운 중 — 네이버로 보내지 않는다 (쿼터보다 먼저 확인, 2026-11-10)
     from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
     if not _check_naver_quota("screenshot.capture_naver_blog_screenshot"):
         return None
-    from services.naver_access_guard import begin_search_access
-    if not begin_search_access("screenshot.naver_blog")[0]:
-        return None   # 검색 화면 차단 쿨다운 중 — 네이버로 보내지 않는다
 
-    async with _get_playwright_sem():
+    async with playwright_slot_optional(_get_playwright_sem()) as _got_slot:
+        if not _got_slot:
+            _logger.warning("blog capture: Playwright 대기 상한 초과 — 이번에는 화면을 저장하지 않음 (biz=%s kw=%r)", biz_id, keyword)
+            return None
         async with async_playwright() as p:
             browser = await p.chromium.launch(
                 headless=True,

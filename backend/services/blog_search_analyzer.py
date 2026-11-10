@@ -12,6 +12,7 @@ import urllib.parse
 from datetime import datetime, timezone
 
 from playwright.async_api import async_playwright
+from services.playwright_slot import playwright_slot_optional
 
 _logger = logging.getLogger("aeolab.blog_analysis")
 _re_captcha = re.compile(r"로봇이 아님|자동화된 요청|비정상적인 접근|보안 문자")
@@ -54,19 +55,6 @@ async def analyze_blog_search(
     posts: list[dict] = []
     _measurement_failed = False
 
-    from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
-    if not _check_naver_quota("blog_search_analyzer.analyze_blog_search"):
-        return {
-            "keyword": keyword,
-            "total_found": 0,
-            "my_rank": None,
-            "posts": [],
-            "analyzed_at": datetime.now(timezone.utc).isoformat(),
-            "blog_id_registered": bool(naver_blog_id.strip()),
-            "captcha_detected": False,
-            "error": "quota_exceeded",
-        }
-
     # 검색 화면 차단 쿨다운 중에는 네이버로 보내지 않는다 — 측정 불가(미노출 아님)
     from services.naver_access_guard import begin_search_access, report_search_block
     if not begin_search_access("blog_search_analyzer")[0]:
@@ -81,9 +69,30 @@ async def analyze_blog_search(
             "error": "naver_search_cooldown",
         }
 
+    # 쿨다운 확인 뒤에 쿼터를 센다 — 쿨다운 중에 쿼터를 먼저 깎으면 접속하지 않았는데 일일 상한만 줄어든다(2026-11-10)
+    from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
+    if not _check_naver_quota("blog_search_analyzer.analyze_blog_search"):
+        return {
+            "keyword": keyword,
+            "total_found": 0,
+            "my_rank": None,
+            "posts": [],
+            "analyzed_at": datetime.now(timezone.utc).isoformat(),
+            "blog_id_registered": bool(naver_blog_id.strip()),
+            "captcha_detected": False,
+            "error": "quota_exceeded",
+        }
+
     browser = None
     try:
-        async with _get_playwright_sem():
+        async with playwright_slot_optional(_get_playwright_sem()) as _got_slot:
+            if not _got_slot:
+                return {
+                    "keyword": keyword, "total_found": 0, "my_rank": None, "posts": [],
+                    "analyzed_at": datetime.now(timezone.utc).isoformat(),
+                    "blog_id_registered": bool(naver_blog_id.strip()), "captcha_detected": False,
+                    "error": "timeout",      # Playwright 대기 상한 초과 — 측정 못 함(미노출 아님)
+                }
             async with async_playwright() as p:
                 browser = await p.chromium.launch(
                     headless=True,

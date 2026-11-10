@@ -9,6 +9,8 @@ import logging
 import os
 from datetime import date
 
+from services.playwright_slot import playwright_slot_optional
+
 _logger = logging.getLogger(__name__)
 
 
@@ -179,12 +181,14 @@ async def capture_naver_results(
             for tab_type, label in (("blog", "네이버 블로그"), ("cafe", "네이버 카페"))
         ]
 
-    from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
-    if not _check_naver_quota("ai_search_screenshot.capture_naver_results"):
-        return _degraded_results()
+    # 쿨다운 확인을 먼저, 쿼터는 실제로 여는 페이지 수(블로그·카페 2탭)만큼 — 이전에는 쿨다운 중에도 쿼터가 깎였고 2페이지를 1로 셌다(2026-11-10)
     from services.naver_access_guard import begin_search_access
-    if not begin_search_access("ai_search_screenshot")[0]:
-        return _degraded_results()   # 검색 화면 차단 쿨다운 중 — 네이버로 보내지 않는다
+    _ok, _why = begin_search_access("ai_search_screenshot")
+    if not _ok:
+        return _degraded_results(_why or "naver_search_cooldown")   # 검색 화면 차단 쿨다운 중 — 네이버로 보내지 않는다
+    from services.ai_scanner import check_naver_playwright_quota as _check_naver_quota
+    if not _check_naver_quota("ai_search_screenshot.capture_naver_results", cost=2):
+        return _degraded_results("quota_exceeded")
 
     try:
         from playwright.async_api import async_playwright
@@ -198,7 +202,10 @@ async def capture_naver_results(
         _TAB_WHERE = {"blog": "blog", "cafe": "cafeblog"}
         _TAB_LABEL = {"blog": "네이버 블로그", "cafe": "네이버 카페"}
 
-        async with _get_playwright_sem():
+        async with playwright_slot_optional(_get_playwright_sem()) as _got_slot:
+            if not _got_slot:
+                _logger.warning("naver 화면 캡처: Playwright 대기 상한 초과 — 이번에는 측정하지 않음")
+                return _degraded_results("timeout")
             async with async_playwright() as p:
                 browser = await p.chromium.launch(
                     headless=True,
@@ -289,12 +296,12 @@ async def capture_naver_results(
     except ImportError:
         _logger.warning("playwright not installed — naver screenshot skipped")
         if not results:
-            results = _degraded_results()
+            results = _degraded_results("playwright_not_installed")
     except Exception as e:
         _logger.warning("naver screenshot failed: %s", e)
-        # 실패해도 빈 결과 반환
+        # 실패해도 빈 결과 반환 — 확인하지 못한 것(measured=False)이며 '미노출'이 아니다
         if not results:
-            results = _degraded_results()
+            results = _degraded_results("capture_failed")
 
     return results
 
