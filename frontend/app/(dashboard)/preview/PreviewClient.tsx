@@ -928,7 +928,7 @@ function BasicTab({
       ) : (
         <div className="rounded-xl bg-blue-600 p-5 text-white text-center space-y-2">
           <p className="text-base font-bold">Basic 시작하기</p>
-          <p className="text-sm opacity-90">월 {PLAN_PRICES.basic.toLocaleString()}원 · 7일 이내 미사용 시 100% 환불</p>
+          <p className="text-sm opacity-90">월 {PLAN_PRICES.basic.toLocaleString()}원 · 7일 이내 첫 측정 전이면 100% 환불</p>
           <Link
             href="/pricing#plan-Basic"
             className="inline-flex items-center gap-1.5 mt-1 bg-white text-blue-600 text-sm font-bold rounded-lg px-5 py-2.5 hover:bg-blue-50 transition-colors"

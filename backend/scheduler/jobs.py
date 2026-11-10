@@ -7298,10 +7298,10 @@ async def check_naver_cookie_health_job():
         with open(_env_path, "r") as _f:
             _env_txt = _f.read()
         _env_txt = _re.sub(r"NAVER_COOKIE_NID_AUT=.*", f"NAVER_COOKIE_NID_AUT={new_nid_aut}", _env_txt)
-        _tmp_path = _env_path + ".tmp"
-        with open(_tmp_path, "w") as _f:
-            _f.write(_env_txt)
-        os.replace(_tmp_path, _env_path)
+        # 임시 파일을 처음부터 600으로 만들어 교체한다(utils/secure_write) — 예전에는 기본 권한(644)으로 만들어 서버에서 600으로
+        # 강화한 .env 권한이 이 갱신 때 되돌아갔다(2026-11-10).
+        from utils.secure_write import atomic_write_secret_file
+        atomic_write_secret_file(_env_path, _env_txt)
         os.environ["NAVER_COOKIE_NID_AUT"] = new_nid_aut
         _logger.info("[naver_cookie_health] NID_AUT 자동 갱신 완료 ✅ — .env + 인메모리 업데이트")
     except Exception as _e:

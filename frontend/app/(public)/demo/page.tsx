@@ -1404,7 +1404,7 @@ export default function DemoPage() {
                 1분 무료 회원가입
               </Link>
             </div>
-            <p className="text-sm text-white/90 text-center">Basic 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원(이후 월 {PLAN_PRICES.basic.toLocaleString()}원) · 7일 이내 미사용 시 100% 환불</p>
+            <p className="text-sm text-white/90 text-center">Basic 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원(이후 월 {PLAN_PRICES.basic.toLocaleString()}원) · 7일 이내 첫 측정 전이면 100% 환불</p>
           </div>
           <div className="bg-black/20 px-5 md:px-8 py-5">
             <p className="text-sm md:text-base font-bold text-white/90 mb-3">시작하면 이렇게 됩니다</p>

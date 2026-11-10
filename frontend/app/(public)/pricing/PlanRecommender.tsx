@@ -184,7 +184,7 @@ export default function PlanRecommender() {
           </div>
 
           <p className="text-sm text-gray-600 text-center mt-2">
-            7일 이내 미사용 시 100% 환불 · 카드 자동결제
+            7일 이내 첫 측정 전이면 100% 환불 · 카드 자동결제
           </p>
         </div>
       )}

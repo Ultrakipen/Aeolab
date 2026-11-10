@@ -101,7 +101,7 @@ export default function UpgradeNudgeCard({ plan, hasLatestScan }: Props) {
         Basic 시작하기 — 첫 달 {discountPrice}원
         <ArrowRight className="w-4 h-4" />
       </Link>
-      <p className="text-sm text-gray-600 mt-2">첫 달 50% 할인 · 7일 이내 미사용 시 100% 환불</p>
+      <p className="text-sm text-gray-600 mt-2">첫 달 50% 할인 · 7일 이내 첫 측정 전이면 100% 환불</p>
     </div>
   );
 }

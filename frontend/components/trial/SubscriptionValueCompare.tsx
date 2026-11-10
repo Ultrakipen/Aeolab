@@ -106,7 +106,7 @@ export default function SubscriptionValueCompare({ isLoggedIn, onSave }: Subscri
         >
           매주 자동 추적 시작 — 첫 달 <span className="text-emerald-300">{FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원</span>
           <span className="block text-sm font-medium text-blue-200 mt-1">
-            이후 월 {PLAN_PRICES.basic.toLocaleString()}원 · 7일 이내 미사용 시 100% 환불
+            이후 월 {PLAN_PRICES.basic.toLocaleString()}원 · 7일 이내 첫 측정 전이면 100% 환불
           </span>
         </Link>
       ) : null}

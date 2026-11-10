@@ -1041,7 +1041,7 @@ export default function LandingPage() {
 
           <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50 px-5 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-sm font-semibold text-blue-800 break-keep">
-              Basic 첫 달 8,950원부터 시작 · 7일 이내 점검·가이드 생성 전이면 100% 환불
+              Basic 첫 달 8,950원부터 시작 · 7일 이내 첫 측정(자동 측정 포함)·가이드 생성 전이면 100% 환불
             </p>
             <a href="/signup" className="flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold text-white transition-colors" style={{ background: "#2563EB" }}>
               구독 시작하기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -1201,7 +1201,7 @@ export default function LandingPage() {
                   className="inline-flex items-center gap-1 text-sm px-3 py-1 rounded-xl border break-keep text-center"
                   style={{ color: "#065F46", background: "#ECFDF5", borderColor: "#6EE7B7" }}
                 >
-                  <Check size={10} strokeWidth={2.5} className="shrink-0" />7일 내 환불 (점검·가이드 생성 전)
+                  <Check size={10} strokeWidth={2.5} className="shrink-0" />7일 내 환불 (첫 측정 전)
                 </span>
               </div>
             </div>
@@ -1278,7 +1278,7 @@ export default function LandingPage() {
               요금제 자세히 보기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </Link>
             <p className="text-sm mt-1.5" style={{ color: "#475569" }}>
-              Basic 첫 달 8,950원 · 7일 이내 점검·가이드 생성 전이면 100% 환불
+              Basic 첫 달 8,950원 · 7일 이내 첫 측정(자동 측정 포함)·가이드 생성 전이면 100% 환불
             </p>
           </div>
         </div>

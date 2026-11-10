@@ -2251,7 +2251,7 @@ function StickySignupBanner({
             7일 후 AI가 내 가게를 인식했는지 자동으로 확인해 드립니다
           </p>
           <p className="text-sm text-blue-50 mt-0.5 break-keep">
-            가입은 무료 · 전체 AI 분석 1회 추가 체험 · 구독 시 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 · 7일 내 환불 가능
+            가입은 무료 · 전체 AI 분석 1회 추가 체험 · 구독 시 첫 달 {FIRST_MONTH_DISCOUNT_PRICES.basic.toLocaleString()}원 · 7일 이내 첫 측정 전이면 환불 가능
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">

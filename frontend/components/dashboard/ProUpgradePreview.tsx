@@ -69,7 +69,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
           <h2 className="text-base md:text-lg font-bold text-gray-900">
             Pro로 업그레이드하면 이런 결과가 추가됩니다
           </h2>
-          <p className="text-sm text-gray-600 mt-0.5">Pro · 월 29,900원 · 7일 이내 미사용 시 100% 환불</p>
+          <p className="text-sm text-gray-600 mt-0.5">Pro · 월 29,900원 · 7일 이내 첫 측정 전이면 100% 환불</p>
         </div>
         <Link
           href="/pricing"
@@ -277,7 +277,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
               지금 Pro로 전환하면 위 기능을 즉시 이용할 수 있습니다
             </p>
             <p className="text-sm text-gray-600 mt-0.5">
-              현재 측정 데이터는 Pro 전환 후에도 그대로 유지됩니다 · 7일 이내 미사용 시 100% 환불
+              현재 측정 데이터는 Pro 전환 후에도 그대로 유지됩니다 · 7일 이내 첫 측정 전이면 100% 환불
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 shrink-0">

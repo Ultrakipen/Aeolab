@@ -559,7 +559,7 @@ function BasicContent({ d }: { d: MockData }) {
         <Link href="/pricing#plan-Basic" className="inline-flex items-center gap-1 bg-indigo-600 text-white font-bold text-base px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors">
           지금 구독하기 <ArrowRight className="w-4 h-4" aria-hidden="true" />
         </Link>
-        <p className="text-sm text-gray-600 mt-3">30일 무료 체험 없이 바로 시작 · 7일 이내 미사용 시 100% 환불</p>
+        <p className="text-sm text-gray-600 mt-3">30일 무료 체험 없이 바로 시작 · 7일 이내 첫 측정 전이면 100% 환불</p>
       </div>
     </div>
   );
@@ -956,7 +956,7 @@ export default function PlansPreviewPage() {
           </Link>
         </div>
 
-        <p className="text-center text-sm text-gray-600 mt-4">7일 이내 미사용 시 100% 환불 · 구독 후 즉시 이용</p>
+        <p className="text-center text-sm text-gray-600 mt-4">7일 이내 첫 측정 전이면 100% 환불 · 구독 후 즉시 이용</p>
       </main>
     </div>
   );
