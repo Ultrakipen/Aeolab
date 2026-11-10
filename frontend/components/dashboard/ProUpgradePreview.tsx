@@ -122,7 +122,7 @@ export default function ProUpgradePreview({ businessName, category: _category, p
               ))}
             </div>
             <p className="text-sm text-indigo-600 font-semibold mt-1.5">
-              주 3회 전체 AI 측정 → 경쟁사 변화를 3일 안에 포착
+              주 3회 전체 AI 측정 · 경쟁사 변화는 매주 월요일 알림
             </p>
           </div>
         </div>

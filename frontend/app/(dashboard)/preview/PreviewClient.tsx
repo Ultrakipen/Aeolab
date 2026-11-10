@@ -1183,7 +1183,7 @@ function ProTab({
         lines={[
           {
             Icon: Clock,
-            text: "경쟁사가 AI 브리핑에서 앞서기 시작하면 3일 안에 알 수 있습니다 (주 3회 자동 측정)",
+            text: "경쟁사 5곳의 변화는 매주 월요일 대시보드로 알려드립니다 (내 가게는 주 3회 자동 측정)",
           },
           {
             Icon: Shield,
@@ -1205,7 +1205,7 @@ function ProTab({
           </span>
         </div>
         <p className="text-sm text-indigo-700 leading-relaxed">
-          주 3회 전체 AI 분석 + 경쟁사 5곳 비교. 경쟁사 변화를 3일 안에 포착하고
+          주 3회 전체 AI 분석 + 경쟁사 5곳 비교. 경쟁사 변화는 매주 월요일 대시보드로 알려드리고,
           ChatGPT 광고 대응까지 선제 준비합니다.
         </p>
       </div>
