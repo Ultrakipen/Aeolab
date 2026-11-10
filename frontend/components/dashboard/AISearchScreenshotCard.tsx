@@ -7,6 +7,9 @@ interface Screenshot {
   platform: "naver" | "naver_place" | "naver_blog" | "naver_cafe" | "naver_briefing" | "chatgpt" | "gemini";
   query: string;
   is_mentioned: boolean;
+  /** false면 접속 실패·차단 등으로 확인하지 못한 것 — '미노출'이 아니다(없으면 옛 기록이라 측정된 것으로 본다) */
+  measured?: boolean;
+  error?: string;
   url: string | null;
   scanned_at?: string;
   captured_at: string;
@@ -92,7 +95,16 @@ function PlatformCard({ screenshot }: { screenshot: Screenshot }) {
       </p>
 
       {/* 언급 배지 */}
-      {screenshot.is_mentioned ? (
+      {screenshot.measured === false ? (
+        <div className="mb-3">
+          <div className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-700 text-sm font-semibold px-3 py-1.5 rounded-lg">
+            이번에는 확인하지 못했습니다
+          </div>
+          <p className="text-sm text-gray-600 mt-1.5 leading-relaxed break-keep">
+            네이버 화면을 정상적으로 읽지 못해 노출 여부를 판단하지 않았습니다. 미노출이라는 뜻이 아니며, 다음 측정에서 다시 확인합니다.
+          </p>
+        </div>
+      ) : screenshot.is_mentioned ? (
         <div className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 text-sm font-semibold px-3 py-1.5 rounded-lg mb-3">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -168,7 +180,7 @@ function PlatformCard({ screenshot }: { screenshot: Screenshot }) {
             />
           </svg>
           <p className="text-sm text-gray-600 text-center px-2">
-            {imgError ? "이미지를 불러올 수 없습니다" : "스크린샷 준비 중"}
+            {imgError ? "이미지를 불러올 수 없습니다" : screenshot.measured === false ? "이번 측정에서는 화면을 저장하지 못했습니다" : "스크린샷 준비 중"}
           </p>
           {screenshot.platform === "naver_briefing" && !screenshot.url && !imgError && (
             <p className="text-sm text-gray-600 text-center px-3">

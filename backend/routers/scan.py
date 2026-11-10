@@ -286,6 +286,41 @@ def _check_trial_rate_limit(ip: str) -> None:
         _cache.set(key, count + 1, _TRIAL_WINDOW_SEC)
 
 
+async def _enforce_trial_limit(request: Request) -> None:
+    """무료 체험 호출 한도 (API 비용 보호).
+
+    로그인 사용자는 **검증된 user id** 기준 일 5회, 그 외(헤더가 없거나 검증 실패)는 IP 기준 일 3회.
+    2026-11-10 이전에는 `Authorization: Bearer ...`로 시작하기만 하면 토큰을 검증하지 않고 헤더 전체의 해시를 한도 키로 써서,
+    요청마다 값을 바꾸면 한도가 매번 새로 시작되고 IP 제한도 건너뛰었다. 검증에 실패한 토큰은 비로그인으로 보고 IP 한도를 건다.
+    """
+    import hashlib
+    if _is_admin_request(request) or _DEV_TRIAL_UNLIMITED:
+        return
+    auth_header = request.headers.get("Authorization", "")
+    user_id: str | None = None
+    if auth_header.startswith("Bearer "):
+        try:
+            user = await get_current_user(auth_header)
+            user_id = (user or {}).get("id")
+        except Exception:
+            user_id = None   # 위조·만료·검증 장애 — 더 엄격한 IP 한도로 처리
+    if user_id:
+        _auth_key = f"trial_user:{hashlib.sha256(str(user_id).encode()).hexdigest()[:16]}"
+        _auth_count: int = _cache.get(_auth_key) or 0
+        if _auth_count >= 5:
+            raise HTTPException(
+                status_code=429,
+                detail={
+                    "code": "TRIAL_LIMIT",
+                    "message": "오늘 무료 체험 한도(5회)에 도달했습니다. 내일 다시 시도하세요.",
+                    "retry_after": _TRIAL_WINDOW_SEC,
+                },
+            )
+        _cache.set(_auth_key, _auth_count + 1, _TRIAL_WINDOW_SEC)
+    else:
+        _check_trial_rate_limit(_get_client_ip(request))
+
+
 # ── SSE stream 단기 OTP 토큰 저장소 (실운영은 Redis 권장) ──────────────────
 _stream_tokens: dict[str, dict] = {}
 
@@ -754,27 +789,7 @@ async def trial_scan(req: TrialScanRequest, request: Request, bg: BackgroundTask
     import asyncio, hashlib
     _endpoint = "trial"
 
-    _is_authenticated = bool(request.headers.get("Authorization", "").startswith("Bearer "))
-    if not _is_admin_request(request) and not _DEV_TRIAL_UNLIMITED:
-        if _is_authenticated:
-            # 로그인 사용자: user_id 기반 일별 5회 한도 (API 비용 보호)
-            auth_header = request.headers.get("Authorization", "")
-            _auth_key = f"trial_user:{hashlib.sha256(auth_header.encode()).hexdigest()[:16]}"
-            _auth_count: int = _cache.get(_auth_key) or 0
-            if _auth_count >= 5:
-                raise HTTPException(
-                    status_code=429,
-                    detail={
-                        "code": "TRIAL_LIMIT",
-                        "message": "오늘 무료 체험 한도(5회)에 도달했습니다. 내일 다시 시도하세요.",
-                        "retry_after": _TRIAL_WINDOW_SEC,
-                    },
-                )
-            _cache.set(_auth_key, _auth_count + 1, _TRIAL_WINDOW_SEC)
-        else:
-            # 비로그인: IP 기반 3회 한도
-            ip = _get_client_ip(request)
-            _check_trial_rate_limit(ip)
+    await _enforce_trial_limit(request)
 
     from services.naver_usage_meter import note_user_scan
     note_user_scan("trial")   # 비로그인 무료 체험 계측(기록만)

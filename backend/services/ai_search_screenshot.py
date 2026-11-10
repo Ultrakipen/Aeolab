@@ -94,6 +94,12 @@ _BLOG_PREPROCESS_JS = (
 
 # 블로그 포스트 리스트 시작 Y 좌표 탐지 (쇼핑·플레이스 제거 후 실행)
 # 반환값: 스크롤 목표 Y (픽셀). -1이면 탐지 실패 → 고정 오프셋 사용.
+class _BlockedScreen(Exception):
+    """네이버 검색 화면이 차단·CAPTCHA로 열렸음(내부 제어용)."""
+
+
+_BODY_HEAD_JS = "document.body ? document.body.innerText.slice(0, 800) : ''"
+
 _FIND_BLOG_START_JS = """
 (function() {
     // 1순위: 블로그 결과 리스트 컨테이너 직접 탐지
@@ -157,12 +163,15 @@ async def capture_naver_results(
     results: list[dict] = []
     today_str = date.today().isoformat()
 
-    def _degraded_results() -> list[dict]:
+    def _degraded_results(reason: str = "skipped") -> list[dict]:
+        # measured=False: 확인하지 못한 것이다. is_mentioned=False('미노출')와 구분한다(error ≠ false).
         return [
             {
                 "platform": f"naver_{tab_type}",
                 "query": query,
                 "is_mentioned": False,
+                "measured": False,
+                "error": reason,
                 "url": None,
                 "captured_at": today_str,
                 "label": label,
@@ -196,7 +205,16 @@ async def capture_naver_results(
                     args=["--no-sandbox", "--disable-dev-shm-usage"],
                 )
 
+                _blocked_once = False
                 for tab_type in ("blog", "cafe"):
+                    if _blocked_once:
+                        # 앞 탭에서 차단 감지 — 같은 요청에서 더 보내지 않는다
+                        results.append({
+                            "platform": f"naver_{tab_type}", "query": query, "is_mentioned": False,
+                            "measured": False, "error": "naver_search_blocked", "url": None,
+                            "captured_at": today_str, "label": _TAB_LABEL[tab_type],
+                        })
+                        continue
                     # blog: 1200px — 페이지보다 작아야 스크롤 가능 (2200px이면 스크롤 불가)
                     # cafe: 2200px — 기존 동작 유지
                     vh = 1200 if tab_type == "blog" else 2200
@@ -205,10 +223,21 @@ async def capture_naver_results(
                     encoded_query = _urlparse.quote(query)
                     url = f"https://search.naver.com/search.naver?where={where_param}&query={encoded_query}"
                     is_mentioned = False
+                    measured = False
+                    err_reason: str | None = "capture_failed"
                     img_url: str | None = None
                     try:
                         await page.goto(url, timeout=30000, wait_until="domcontentloaded")
                         await page.wait_for_timeout(2000)
+                        # 차단·CAPTCHA 화면이면 '미노출'로 저장하지 않고 증거로도 올리지 않는다
+                        from services.naver_block import is_naver_search_block
+                        _title = await page.title()
+                        _head = await page.evaluate(_BODY_HEAD_JS)
+                        if is_naver_search_block(page.url, _title, _head):
+                            from services.naver_access_guard import report_search_block
+                            report_search_block("ai_search_screenshot")
+                            err_reason = "naver_search_blocked"
+                            raise _BlockedScreen()
                         await page.evaluate(_AD_REMOVE_JS)
 
                         visible_text = await page.evaluate(_EXTRACT_BLOG_TEXT_JS)
@@ -230,16 +259,26 @@ async def capture_naver_results(
                             img_bytes = await page.screenshot(full_page=False)
                         path = f"ai-search/{biz_id}/{today_str}_naver_{tab_type}.png"
                         img_url = await _upload_screenshot(_sb, path, img_bytes)
+                        measured = True
+                        err_reason = None
+                    except _BlockedScreen:
+                        _logger.warning("naver %s 화면 차단 감지 — 미노출로 저장하지 않음", tab_type)
                     except Exception as e:
                         _logger.warning("naver %s screenshot failed: %s", tab_type, e)
                     finally:
                         await page.close()
+                    if not measured:
+                        is_mentioned = False
 
+                    if err_reason == "naver_search_blocked":
+                        _blocked_once = True
                     platform = f"naver_{tab_type}"
                     results.append({
                         "platform": platform,
                         "query": query,
                         "is_mentioned": is_mentioned,
+                        "measured": measured,
+                        **({"error": err_reason} if err_reason else {}),
                         "url": img_url,
                         "captured_at": today_str,
                         "label": _TAB_LABEL[tab_type],

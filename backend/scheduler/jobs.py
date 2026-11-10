@@ -1823,6 +1823,12 @@ async def daily_kakao_notify():
         await send_slack_alert("daily_kakao_notify 실패", str(e), level="error")
 
 
+# 갱신 이중청구 가드 창(분). 잡이 매일 1회(01:00) 도므로 "어제 01:00대에 성공한 청구"는 오늘 01:00에 약 24시간 전이다.
+# 20시간이던 때는 그 청구가 창 밖이라 가드가 작동하지 않았다(2026-11-10 점검). 24시간 + 여유(지연·재시도)인 36시간으로 둔다.
+# 정상 갱신 간격은 30일 이상이라 36시간 창이 정상 갱신을 막지는 않는다.
+RENEWAL_DEDUP_WINDOW_MIN = 36 * 60
+
+
 async def subscription_lifecycle_job():
     """매일 오전 1시: 구독 만료/갱신/정지 처리"""
     from db.supabase_client import get_client
@@ -1834,8 +1840,7 @@ async def subscription_lifecycle_job():
     # 실패하면(예: Supabase 일시 오류) 그 구독 행이 그대로 "만료됨"으로 남아, 다음날
     # 이 잡이 다시 돌 때 같은 구독을 또 결제 대상으로 골라 재청구할 수 있었다
     # (2026-07-11, settings.py update_card·webhook.py issue_billing과 동일 패턴 발견).
-    # 매일 1회 실행되는 잡이라 24시간보다 짧은 20시간 창으로 "어제 이미 성공한 결제"를 재사용.
-    RENEWAL_DEDUP_WINDOW_MIN = 20 * 60
+    # 창 길이는 모듈 상수 RENEWAL_DEDUP_WINDOW_MIN (2026-11-10: 20시간→36시간 — 아래 상수 주석 참조).
 
     async def _charge_once(sub: dict) -> bool:
         expected_amount = compute_renewal_amount(sub)
