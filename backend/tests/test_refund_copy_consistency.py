@@ -75,3 +75,23 @@ def test_terms_keep_their_legal_wording_unchanged():
     terms = _fe("app", "(public)", "terms", "page.tsx")
     assert "구독 시작일로부터 7일 이내에 청약철회를 신청할 수 있습니다" in terms
     assert "청약철회가 제한될 수 있습니다" in terms                      # 약관(법적 문서)은 이번에 바꾸지 않았다
+
+
+def test_db_faq_script_uses_the_same_definition_and_is_safe_by_default():
+    """DB의 공개 FAQ(id 7)도 같은 정의로 맞춘다 — 스크립트는 드라이런 기본·멱등·기대 문장을 못 찾으면 변경하지 않는다."""
+    path = os.path.join(ROOT, "backend", "scripts", "update_faq_refund_wording.py")
+    src = open(path, encoding="utf-8").read()
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("update_faq_refund_wording_t", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    assert "정기 측정이 한 번이라도 실행되면 이용한 것으로 봅니다" in mod.NEW
+    assert "구독 시작일(결제일)" in mod.NEW and "전액 자동 환불" in mod.NEW
+    assert mod.OLD.split(",")[0] not in mod.NEW or "결제일" in mod.NEW          # 기존 문장을 교체(추가가 아니라)한다
+    assert 'action="store_true"' in src
+    assert src.index("if not args.apply") < src.index('.update({"answer"')        # 드라이런이면 쓰기 전에 끝난다
+    assert src.index("if NEW in answer") < src.index('.update({"answer"')         # 이미 반영돼 있으면 쓰지 않는다
+    assert "answer.count(OLD) != 1" in src                                      # 기대 문장을 한 번 찾지 못하면 변경하지 않는다
+    # 가격 페이지 FAQ와 같은 정의: 자동 측정도 이용으로 본다
+    pricing = _fe("app", "(public)", "pricing", "page.tsx")
+    assert "정기 자동 측정" in pricing and "정기 측정" in mod.NEW
