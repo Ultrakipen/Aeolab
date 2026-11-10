@@ -14,6 +14,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import { describeRankErrors } from "@/lib/rankErrorMessage";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "";
 
@@ -285,10 +286,8 @@ export default function KeywordRankCard({
         hasError,
       );
       if (hasError) {
-        const errMsgs = (data.errors || [])
-          .slice(0, 2)
-          .map((e: unknown) => (typeof e === "string" ? e : JSON.stringify(e)));
-        setError(`일부 키워드 측정 실패: ${errMsgs.join(", ")}`);
+        // 내부 오류 코드(영문)를 그대로 보여 주지 않고 원인을 쉬운 말로 — 측정 못 한 키워드가 순위권 밖이 아니라는 점도 함께 알린다
+        setError(describeRankErrors(data.errors));
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "측정 중 오류";
