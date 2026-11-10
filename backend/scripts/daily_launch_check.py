@@ -28,6 +28,26 @@ def cookie_reminder(now: datetime) -> str:
     return f"NID_SES 교체까지 {left}일(11-24 전후, 사용자 작업 — 11-17부터 경고)"
 
 
+MILESTONES = (20, 50, 100)   # scheduler/jobs.py _check_data_wiring_readiness_job 의 구독자 수 트리거와 같은 값
+
+
+def subscriber_breakdown(rows, admin_ids, paid_user_ids):
+    """활성 구독 행을 (전체, 관리자·내부 제외, 실제 결제 기록 있음)으로 나눈다.
+
+    스케줄러 트리거는 status='active' 행을 전부 세므로(관리자·시험 계정 포함) 외부 구독자 수보다 크게 나온다.
+    '결제 기록 있음'은 payment_events에 성공한 결제가 있는 사용자만 센다(탈퇴한 사용자는 구독 행이 없어 제외됨).
+    """
+    active = [r for r in rows if r.get("status") == "active"]
+    non_admin = [r for r in active if r.get("user_id") not in admin_ids]
+    paid = [r for r in non_admin if r.get("user_id") in paid_user_ids]
+    return {"활성 전체(스케줄러 트리거 기준)": len(active), "관리자 제외": len(non_admin), "결제 기록 있는 외부": len(paid)}
+
+
+def milestone_gap(count: int) -> str:
+    nxt = next((m for m in MILESTONES if count < m), None)
+    return f"다음 트리거 {nxt}명까지 {nxt - count}명" if nxt else "모든 트리거(20·50·100명) 지남"
+
+
 async def _count(label, fn):
     try:
         return await fn()
@@ -48,8 +68,12 @@ async def main() -> int:
     print(f"- {cookie_reminder(now)}")
 
     async def subs():
-        rows = (await execute(sb.table("subscriptions").select("status"))).data or []
-        return dict(Counter(r.get("status") for r in rows))
+        rows = (await execute(sb.table("subscriptions").select("user_id,status"))).data or []
+        paid = {r["user_id"] for r in (await execute(sb.table("payment_events").select("user_id").eq("status", "success"))).data or [] if r.get("user_id")}
+        admins = {u.strip() for u in os.getenv("ADMIN_USER_IDS", "").split(",") if u.strip()}
+        b = subscriber_breakdown(rows, admins, paid)
+        by_status = dict(Counter(r.get("status") for r in rows))
+        return f"{b} / 상태별 {by_status} / 외부 결제 기준 {milestone_gap(b['결제 기록 있는 외부'])} (스케줄러는 활성 전체 {b['활성 전체(스케줄러 트리거 기준)']}명으로 판단)"
 
     async def scans():
         rows = (await execute(sb.table("scan_results").select("business_id").gte("scanned_at", since))).data or []

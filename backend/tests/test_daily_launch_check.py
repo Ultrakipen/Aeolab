@@ -42,3 +42,20 @@ def test_cookie_reminder_phases():
     assert "11-17부터 경고" in m.cookie_reminder(datetime(2026, 11, 10, tzinfo=KST))
     assert "교체 임박" in m.cookie_reminder(datetime(2026, 11, 18, tzinfo=KST))
     assert "지남" in m.cookie_reminder(datetime(2026, 11, 25, tzinfo=KST))
+
+
+def test_subscriber_breakdown_separates_admin_and_unpaid():
+    m = _mod()
+    rows = [{"user_id": "admin", "status": "active"}, {"user_id": "a", "status": "active"}, {"user_id": "b", "status": "active"},
+            {"user_id": "c", "status": "cancelled"}]
+    b = m.subscriber_breakdown(rows, {"admin"}, {"a", "c"})
+    assert b["활성 전체(스케줄러 트리거 기준)"] == 3 and b["관리자 제외"] == 2 and b["결제 기록 있는 외부"] == 1   # 해지(c)는 활성이 아니다
+
+
+def test_milestone_gap_matches_scheduler_triggers():
+    m = _mod()
+    assert m.milestone_gap(0) == "다음 트리거 20명까지 20명" and m.milestone_gap(20) == "다음 트리거 50명까지 30명"
+    assert "지남" in m.milestone_gap(100)
+    jobs = open(os.path.join(os.path.dirname(PATH), "..", "scheduler", "jobs.py"), encoding="utf-8").read()
+    for n in m.MILESTONES:
+        assert f"count >= {n}" in jobs        # 점검의 20·50·100이 스케줄러 임계값과 같다
