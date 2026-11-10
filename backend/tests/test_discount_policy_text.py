@@ -55,7 +55,7 @@ def test_no_stale_seven_day_date_remains_in_user_facing_text():
 
 
 def test_terms_state_once_per_business_or_email_and_regular_price_remains_available():
-    assert "사업장(또는 이메일)당 1회만 제공" in TERMS
+    assert "사업장(또는 이메일·연락처)당 1회만 제공" in TERMS
     assert "정상가로 이용하실 수 있습니다" in TERMS
 
 
@@ -82,7 +82,7 @@ def test_notice_text_matches_policy_and_is_dry_run_by_default():
     n = _notice()
     assert EFFECTIVE in n.TITLE and EFFECTIVE in n.CONTENT
     assert "11월 17일" not in n.TITLE and "11월 17일" not in n.CONTENT
-    assert "12개월" in n.CONTENT and "사업장(또는 이메일)당 1회" in n.CONTENT
+    assert "12개월" in n.CONTENT and "사업장(또는 이메일·연락처)당 1회" in n.CONTENT
     assert "원문으로 복원할 수 없는 값(해시)" in n.CONTENT and "원문은 보관하지 않으며" in n.CONTENT
     assert "탈퇴 후에도" in n.CONTENT and n.CTA_URL == "/privacy"
     src = open(os.path.join(ROOT, "backend", "scripts", "register_discount_policy_notice.py"), encoding="utf-8").read()

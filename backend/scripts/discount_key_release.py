@@ -8,7 +8,7 @@
   cd /var/www/aeolab/backend
   PYTHONPATH=. /var/www/aeolab/venv/bin/python scripts/discount_key_release.py --purpose discount --type naver_place --value 1234567890
   (확인 후) ... --apply
---type: naver_place | kakao_place | brn | email     --purpose: discount | trial
+--type: naver_place | kakao_place | brn | email | phone     --purpose: discount | trial
 출력에는 값 원문을 쓰지 않는다(종류·일치 행 수만).
 """
 import argparse
@@ -35,6 +35,8 @@ async def _main(args) -> int:
 
     if args.type == dg.KEY_EMAIL:
         norm = dg.normalize_email(args.value)
+    elif args.type == dg.KEY_PHONE:
+        norm = dg.normalize_phone(args.value)
     elif args.type in (dg.KEY_NAVER, dg.KEY_KAKAO):
         norm = dg.normalize_digits(args.value, 5, 20)
     elif args.type == dg.KEY_BRN:
@@ -74,7 +76,7 @@ async def _main(args) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser(description="재가입 방어 키 해제(오탐 구제)")
     ap.add_argument("--purpose", choices=("discount", "trial"), required=True)
-    ap.add_argument("--type", required=True, choices=("naver_place", "kakao_place", "brn", "email"))
+    ap.add_argument("--type", required=True, choices=("naver_place", "kakao_place", "brn", "email", "phone"))
     ap.add_argument("--value", required=True, help="해제할 값(원문). 출력·로그에는 쓰지 않는다")
     ap.add_argument("--by", default="admin", help="처리자 표시")
     ap.add_argument("--apply", action="store_true", help="실제로 해제(기본은 드라이런)")

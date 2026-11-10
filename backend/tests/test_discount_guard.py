@@ -14,6 +14,7 @@ from services import discount_guard as dg
 class FakeDB:
     def __init__(self):
         self.businesses = {}      # user_id -> [dict]
+        self.profiles = {}        # user_id -> phone
         self.keys = []            # discount_used_keys 행
         self.fail = False
         self.calls = 0
@@ -93,6 +94,9 @@ def env(monkeypatch):
         if q.table == "businesses":
             uid = next(v for op, k, v in q.f if op == "eq" and k == "user_id")
             return SimpleNamespace(data=list(db.businesses.get(uid, [])))
+        if q.table == "profiles":
+            uid = next(v for op, k, v in q.f if op == "eq" and k == "user_id")
+            return SimpleNamespace(data=[{"phone": db.profiles[uid]}] if uid in db.profiles else [])
         assert q.table == "discount_used_keys"
         if q.op == "select":
             return SimpleNamespace(data=[dict(r) for r in db.keys if _match(r, q.f)])
@@ -288,3 +292,57 @@ def test_purge_expired_removes_only_expired(env):
 def test_unknown_purpose_is_ignored(env):
     assert run(dg.prior_use_conflict("coupon", "u", "a@b.co")) is None
     assert run(dg.record_use("coupon", "u", "a@b.co")) == 0
+
+
+# ── 연락처 키 (2026-11-10) ──
+@pytest.mark.parametrize("raw,expected", [
+    ("010-1234-5678", "01012345678"), ("+82 10-1234-5678", "01012345678"), ("82-2-123-4567", "021234567"),
+    ("02-123-4567", "021234567"), ("1588-1234", None), ("010", None), ("00000000000", None), ("abc", None), (None, None),
+])
+def test_normalize_phone(raw, expected):
+    assert dg.normalize_phone(raw) == expected
+
+
+def test_compute_keys_includes_profile_and_business_phone_deduped():
+    keys = dg.compute_keys("a@b.co", [{"phone": "010-1234-5678"}], "01012345678")
+    assert keys.count((dg.KEY_PHONE, "01012345678")) == 1
+    assert dg.compute_keys("a@b.co", [{"phone": "1588-1234"}], None).count((dg.KEY_PHONE, "15881234")) == 0
+
+
+def test_rejoin_with_same_phone_but_new_email_and_no_place_is_caught(env):
+    env.businesses["old"] = BIZ_A
+    env.profiles["old"] = "010-1234-5678"
+    run(dg.record_use("discount", "old", "first@example.com"))
+    env.businesses["new"] = [{"naver_place_id": None}]
+    env.profiles["new"] = "+82 10 1234 5678"
+    assert run(dg.prior_use_conflict("discount", "new", "other@example.com")) == dg.KEY_PHONE
+
+
+def test_different_phone_is_not_flagged_and_lookup_failure_skips_only_phone(env, monkeypatch):
+    env.businesses["old"] = BIZ_A
+    env.profiles["old"] = "010-1234-5678"
+    run(dg.record_use("discount", "old", "first@example.com"))
+    env.businesses["new"] = [{"naver_place_id": "5555555555"}]
+    env.profiles["new"] = "010-9999-8888"
+    assert run(dg.prior_use_conflict("discount", "new", "x@example.com")) is None
+    # 연락처 조회만 실패해도 사업장 키 판정은 계속된다
+    env.businesses["again"] = [{"naver_place_id": "1234567890"}]
+    async def boom(uid):
+        raise RuntimeError("x")
+    orig = dg.execute
+    async def selective(q):
+        if q.table == "profiles":
+            raise RuntimeError("profiles down")
+        return await orig(q)
+    monkeypatch.setattr(dg, "execute", selective)
+    assert run(dg.prior_use_conflict("discount", "again", "z@example.com")) == dg.KEY_NAVER
+
+
+def test_release_phone_clears_the_key(env):
+    env.businesses["old"] = [{"naver_place_id": None}]
+    env.profiles["old"] = "010-1234-5678"
+    run(dg.record_use("discount", "old", None))
+    assert run(dg.release("discount", dg.KEY_PHONE, "010 1234 5678")) == 1
+    env.businesses["new"] = [{"naver_place_id": None}]
+    env.profiles["new"] = "01012345678"
+    assert run(dg.prior_use_conflict("discount", "new", None)) is None

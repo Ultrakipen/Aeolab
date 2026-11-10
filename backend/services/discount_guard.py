@@ -37,6 +37,7 @@ KEY_NAVER = "naver_place"
 KEY_KAKAO = "kakao_place"
 KEY_BRN = "brn"
 KEY_EMAIL = "email"
+KEY_PHONE = "phone"      # 알림 수신 번호(profiles.phone)·사업장 전화(businesses.phone) — 국내 번호만
 
 _GMAIL_DOMAINS = ("gmail.com", "googlemail.com")
 _DEFAULT_RETENTION_DAYS = 365       # 제안값(근거 없음) — 사용자 결정 D-2. 환경변수 DISCOUNT_KEY_RETENTION_DAYS로 조정
@@ -74,6 +75,18 @@ def normalize_email(email: Optional[str]) -> Optional[str]:
     return f"{local}@{domain}"
 
 
+def normalize_phone(value) -> Optional[str]:
+    """국내 전화번호 정규화: 숫자만, +82/82 → 0, 9~11자리만 인정. 대표번호(15xx·16xx·18xx, 8자리)·이상한 값은 None(키로 쓰지 않는다)."""
+    if value is None:
+        return None
+    d = re.sub(r"\D", "", str(value))
+    if d.startswith("82") and len(d) >= 10:
+        d = "0" + d[2:]
+    if not (9 <= len(d) <= 11) or not d.startswith("0") or len(set(d)) < 4:
+        return None
+    return d
+
+
 def normalize_digits(value, min_len: int, max_len: int) -> Optional[str]:
     """숫자만 남기고 자릿수가 범위 안이면 반환. 아니면 None(모르면 키로 쓰지 않는다)."""
     if value is None:
@@ -82,13 +95,19 @@ def normalize_digits(value, min_len: int, max_len: int) -> Optional[str]:
     return digits if min_len <= len(digits) <= max_len else None
 
 
-def compute_keys(email: Optional[str], businesses: list[dict]) -> list[tuple[str, str]]:
+def compute_keys(email: Optional[str], businesses: list[dict], profile_phone=None) -> list[tuple[str, str]]:
     """(키 종류, 정규화 값) 목록 — 중복 제거. 값이 없거나 형식이 맞지 않는 것은 건너뛴다."""
     keys: list[tuple[str, str]] = []
     e = normalize_email(email)
     if e:
         keys.append((KEY_EMAIL, e))
+    ph = normalize_phone(profile_phone)
+    if ph:
+        keys.append((KEY_PHONE, ph))
     for b in businesses or []:
+        bp = normalize_phone((b or {}).get("phone"))
+        if bp:
+            keys.append((KEY_PHONE, bp))
         for kind, col, lo, hi in (
             (KEY_NAVER, "naver_place_id", 5, 20),
             (KEY_KAKAO, "kakao_place_id", 5, 20),
@@ -123,11 +142,22 @@ def _hashes(purpose: str, keys: list[tuple[str, str]]) -> list[tuple[str, str]]:
 async def _user_businesses(user_id: str) -> list[dict]:
     res = await execute(
         get_client().table("businesses")
-        .select("naver_place_id, kakao_place_id, business_registration_no")
+        .select("naver_place_id, kakao_place_id, business_registration_no, phone")
         .eq("user_id", user_id)
         .eq("is_active", True)
     )
     return (res.data if res else None) or []
+
+
+async def _user_phone(user_id: str) -> Optional[str]:
+    """알림 수신 번호. 못 읽으면 None(다른 키는 계속 쓴다)."""
+    try:
+        res = await execute(get_client().table("profiles").select("phone").eq("user_id", user_id).limit(1))
+        rows = (res.data if res else None) or []
+        return rows[0].get("phone") if rows else None
+    except Exception as e:
+        _logger.warning("[discount_guard] 연락처 조회 실패 — 이 키만 건너뜀: %s", e)
+        return None
 
 
 def _now() -> datetime:
@@ -142,7 +172,7 @@ async def prior_use_conflict(purpose: str, user_id: str, email: Optional[str]) -
     if purpose not in PURPOSES or not guard_enabled():
         return None
     try:
-        keys = compute_keys(email, await _user_businesses(user_id))
+        keys = compute_keys(email, await _user_businesses(user_id), await _user_phone(user_id))
         hashed = _hashes(purpose, keys)
         if not hashed:
             return None
@@ -171,7 +201,7 @@ async def record_use(purpose: str, user_id: str, email: Optional[str]) -> int:
     if purpose not in PURPOSES or not guard_enabled():
         return 0
     try:
-        keys = compute_keys(email, await _user_businesses(user_id))
+        keys = compute_keys(email, await _user_businesses(user_id), await _user_phone(user_id))
         hashed = _hashes(purpose, keys)
         if not hashed:
             return 0
@@ -209,6 +239,8 @@ async def release(purpose: str, key_type: str, value: str, released_by: str = "a
         raise ValueError("unknown purpose")
     if key_type == KEY_EMAIL:
         norm = normalize_email(value)
+    elif key_type == KEY_PHONE:
+        norm = normalize_phone(value)
     elif key_type in (KEY_NAVER, KEY_KAKAO):
         norm = normalize_digits(value, 5, 20)
     elif key_type == KEY_BRN:
