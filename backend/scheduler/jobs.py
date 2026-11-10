@@ -7397,8 +7397,11 @@ async def payment_subscription_reconciliation_job() -> None:
     (subscriptions 쪽 상태로 판정하지, 이벤트 로그 존재 여부로 판정하지 않음).
 
     판정 기준: 최근 2시간 내 성공한 결제 이벤트(billing_issue=신규,
-    renewal=갱신)의 user_id로 subscriptions를 조회해, 없거나 해당 결제 시각
-    이후로 갱신되지 않았으면(updated_at < 결제 시각) orphan으로 본다.
+    renewal=갱신)의 user_id로 subscriptions를 조회해, 행이 없거나 결제가 구독에
+    반영되지 않았으면 orphan으로 본다 — 반영 여부는 billing_issue는 start_at이 결제
+    시각 10분 전보다 늦은지, renewal은 end_at이 결제일보다 뒤로 연장됐는지로 판단한다.
+    (subscriptions.updated_at은 코드도 트리거도 갱신하지 않아 쓰지 않는다 — 2026-11-10,
+    예전 판정이 재구독·환불·갱신을 오탐했다.) 결제 직후 비활성 상태는 cancelled만 허용한다.
     dedup: 같은 user_id로 6시간 내 이미 보낸 알림은 재발송하지 않는다
     (ai_provider_health_check_job과 동일 패턴).
     """
