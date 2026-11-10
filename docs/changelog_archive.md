@@ -741,3 +741,11 @@ CREATE INDEX IF NOT EXISTS idx_trial_scans_claimed
 
 - **10-30 Gemini·네이버 요약**: Gemini 비유도 `sample_recommend`(`GEMINI_MODEL`, 무료 등급 `GEMINI_MIN_INTERVAL`=4.5초·일 약 500회, `GEMINI_MEASUREMENT_LIVE`는 유료 전환 후 true), 경쟁사 AI 노출은 표본 목록 대조(`competitor_ai_exposure`), 새 Gemini 측정 문구는 `lib/featureFlags.ts` 헬퍼, 질의 결과 공유 캐시(`AI_PROBE_CACHE_TTL_SEC`), 신규 가입 첫 측정은 즉시 접수→백그라운드. 네이버 독립 설계 최종 `docs/naver_independence_design_v2.0_final_2026_10_29.md`(구글 직접 접속 금지, Places 응답 저장 금지, 채널 정보 일치 점검 D, 측정 못 한 항목 제외 K).
 - **10-29 용량·차단 요약**: 현실 한계 활성 사업장 약 35~50곳(모델 `scripts/naver_load_model.py`·`naver_capacity.PLAYBOOK`, 300곳은 튜닝만으로 불가·제품 결정 필요), 하루 600건 상한은 **제안값**(네이버 실제 기준 미확인), 접속 지점마다 회로·쿼터·속도를 함수 단위로, 정기 잡은 `@naver_batch_job`, 차단 시 `GET /api/status/naver` 배너, 정기 스캔도 `naver_data`(공식 API 블로그 가시성) 병합(블로그 항목 최하점 결함 수정), 경쟁사 크롤은 구독 자격 필터, 최초 채우기는 서버 큐(`/sync-queue`), 네이버 측정 실패 후 1회 재시도, 성장 단계 상승 알림 히스테리시스·`GROWTH_ALERT_BASELINE_DATE=2026-10-30` 1회성 억제, 수동 새로고침 한도(경쟁사별 1시간·사용자별 10분 2회).
+
+## CLAUDE.md 최근 업데이트 이관(2026-11-10)
+
+> CLAUDE.md 700줄 유지를 위해 가장 오래된 두 항목(2026-10-31)을 원문 그대로 옮겼다.
+
+- **10-31 규모·신뢰 요약**: Supabase `.in_()` 목록 한계 UUID 600/700 실측 → `db_paging.fetch_all_in_chunks`·`jobs._db_all`, 서버 1,000행 상한 페이징 규칙(구조 테스트가 변수 `.limit()` 차단), 구독 자격 기준 `scan_scheduling.entitled_user_ids` 통일(야간 스캔·순위 잡·통계·경쟁사 크롤), 야간 스캔 `score_history.sample_size` 기록, 경쟁사 급등 감지 컬럼 오류(`scanned_at`) 수정, 알림 실발송 장애(성공 0건) 원인 확정·수정, 해지·만료 알림 차단.
+
+- **신뢰 표시 규칙(10-31, 새 화면·문구에도 적용)**: 확인 안 된 시설·수치를 사장님이 게시하는 텍스트에 단정하지 않는다(FAQ 템플릿은 플레이스홀더+대시보드 `[ ]` 경고, 후보 키워드 폴백도 '단체석 있음' 같은 업종 일반 시설을 추천하지 않도록 빈 목록 유지); 14일 이상 지난 AI탭·AI 브리핑 '미노출'은 "마지막 확인 N/N·최신 아님"으로 표시; Gemini·ChatGPT가 모두 측정 실패면 글로벌 AI 노출 항목은 0점이 아니라 제외하고 재정규화; 시장 개요는 최근 30일 점수가 없으면 '기회 있음'이 아니라 '측정 데이터 부족'; 에이전트 보고는 근거 라인을 직접 확인한 뒤 채택(읽기 전용 지시를 어기고 코드를 수정한 사례).
