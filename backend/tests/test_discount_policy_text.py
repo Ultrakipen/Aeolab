@@ -98,3 +98,11 @@ def test_notice_script_updates_the_notice_registered_before_the_date_was_moved()
     src = open(os.path.join(ROOT, "backend", "scripts", "register_discount_policy_notice.py"), encoding="utf-8").read()
     assert "LEGACY_TITLES" in src.split("def main")[1]                               # 실제로 옛 제목을 찾아 갱신한다
     assert 'if exists[0].get("content") == CONTENT' in src                           # 이미 같은 본문이면 아무것도 하지 않는다
+
+
+def test_user_facing_block_messages_name_phone_too():
+    """연락처도 키이므로 차단·안내 문구가 이메일까지만 말하면 연락처 일치 때 어긋난다."""
+    pay = open(os.path.join(ROOT, "frontend", "app", "(public)", "pricing", "PayButton.tsx"), encoding="utf-8").read()
+    scan = open(os.path.join(ROOT, "backend", "routers", "scan.py"), encoding="utf-8").read()
+    assert "사업장·이메일·연락처에는 적용되지 않아 정상가로" in pay
+    assert "이 사업장(또는 이메일·연락처)으로 Basic 무료 체험을 이미 이용하셨습니다" in scan

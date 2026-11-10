@@ -1752,7 +1752,7 @@ async def run_basic_trial(req: BasicTrialRequest, user=Depends(get_current_user)
             status_code=403,
             detail={
                 "code": "BASIC_TRIAL_USED",
-                "message": "이 사업장(또는 이메일)으로 Basic 무료 체험을 이미 이용하셨습니다. 구독하시면 바로 이용하실 수 있어요.",
+                "message": "이 사업장(또는 이메일·연락처)으로 Basic 무료 체험을 이미 이용하셨습니다. 구독하시면 바로 이용하실 수 있어요.",
                 "upgrade_url": "/pricing",
             },
         )

@@ -326,7 +326,7 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
             </p>
             {discountDeniedByServer && (
               <p className="text-sm text-gray-600 mb-3 break-keep">
-                첫 달 할인은 이미 이용하신 이력이 있는 사업장·이메일에는 적용되지 않아 정상가로 안내해 드려요.
+                첫 달 할인은 이미 이용하신 이력이 있는 사업장·이메일·연락처에는 적용되지 않아 정상가로 안내해 드려요.
               </p>
             )}
 
