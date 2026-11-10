@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createClient, getSafeSession } from "@/lib/supabase/client";
-import { updatePhone, getCapacityMe, joinCapacityWaitlist } from "@/lib/api";
+import { updatePhone, getCapacityMe, joinCapacityWaitlist, getDiscountEligibility } from "@/lib/api";
 import { loadCreb } from "@/lib/creb";
 import { savePayContext } from "@/lib/payContext";
 
@@ -35,6 +35,8 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isFirstTime, setIsFirstTime] = useState<boolean | null>(null);
+  // 서버가 "이미 첫 달 할인을 이용한 사업장·이메일"로 판정해 정상가로 안내하는 경우 — 이유를 한 줄로 알려 준다
+  const [discountDeniedByServer, setDiscountDeniedByServer] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [phone, setPhone] = useState("");
   const [phoneError, setPhoneError] = useState("");
@@ -111,7 +113,19 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
         .eq("user_id", user.id)
         .limit(1)
         .maybeSingle();
-      setIsFirstTime(!data);
+      let eligible = !data;
+      let deniedByServer = false;
+      if (eligible && session?.access_token) {
+        // 구독 이력이 없어도 같은 사업장·이전에 탈퇴한 이력 등으로 서버가 거부할 수 있다 — 카드 입력 뒤에 알게 되지 않도록 먼저 확인
+        try {
+          const r = await getDiscountEligibility(session.access_token);
+          if (r && r.eligible === false) { eligible = false; deniedByServer = true; }
+        } catch {
+          // 조회 실패 — 기존 방식으로 진행(최종 판정은 결제 서버)
+        }
+      }
+      setDiscountDeniedByServer(deniedByServer);
+      setIsFirstTime(eligible);
     })();
   }, [showConfirm, firstMonthAmount]);
 
@@ -310,6 +324,11 @@ export function PayButton({ planName, amount, highlight, signupHref, firstMonthA
                 ? `첫 달 ${firstMonthAmount.toLocaleString()}원 결제 후, 30일 뒤부터 매월 ${amount.toLocaleString()}원이 자동으로 결제됩니다. 언제든지 설정에서 해지할 수 있습니다.`
                 : "카드를 등록하면 매월 자동으로 결제됩니다. 언제든지 설정에서 해지할 수 있습니다."}
             </p>
+            {discountDeniedByServer && (
+              <p className="text-sm text-gray-600 mb-3 break-keep">
+                첫 달 할인은 이미 이용하신 이력이 있는 사업장·이메일에는 적용되지 않아 정상가로 안내해 드려요.
+              </p>
+            )}
 
             <p className="text-sm text-gray-600 mb-5 break-keep">
               결제 문자와 카드 명세서에는 가맹점명이 <strong className="font-semibold text-gray-800">(주)온프</strong>로 표시될 수 있습니다.

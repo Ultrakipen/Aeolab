@@ -3263,3 +3263,24 @@ CREATE POLICY "user_see_own_replies" ON support_replies
         AND t.user_id = (SELECT auth.uid())
     )
   );
+
+-- ===========================================================
+-- 2026-11-10: 재가입 반복 이용 방어(첫 달 할인·가입 후 1회 무료 체험) — 비식별 해시 보관
+-- 설계: docs/resubscribe_discount_abuse_prevention_design_2026_11_10.md
+-- 원문(이메일·플레이스 ID·사업자번호)은 저장하지 않는다 — services/discount_guard.py 가 HMAC-SHA256(DISCOUNT_KEY_PEPPER)으로 만든 해시만.
+-- **이 테이블을 만들어도 기능은 켜지지 않는다**(DISCOUNT_KEY_GUARD_ENABLED 기본 꺼짐). 켜기 전에 개인정보처리방침·탈퇴 화면 고지가 먼저 필요하다.
+-- 정책 없음(RLS만 켬) = 서비스 롤만 접근. 실행 후 서버에서 backend/scripts/refresh_db_columns_snapshot.py 로 컬럼 스냅샷을 갱신한다.
+-- ===========================================================
+CREATE TABLE IF NOT EXISTS discount_used_keys (
+  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  purpose     TEXT NOT NULL,                 -- discount | trial
+  key_type    TEXT NOT NULL,                 -- naver_place | kakao_place | brn | email
+  key_hash    TEXT NOT NULL,                 -- HMAC-SHA256 16진수(64자)
+  used_at     TIMESTAMPTZ DEFAULT now(),
+  expires_at  TIMESTAMPTZ NOT NULL,          -- 보관 기간 만료(DISCOUNT_KEY_RETENTION_DAYS, 기본 365일) — 매일 03:50 정리 잡이 삭제
+  released_at TIMESTAMPTZ,                   -- 관리자 해제(오탐 구제) — scripts/discount_key_release.py
+  released_by TEXT,
+  UNIQUE (purpose, key_type, key_hash)
+);
+ALTER TABLE discount_used_keys ENABLE ROW LEVEL SECURITY;
+CREATE INDEX IF NOT EXISTS idx_discount_used_keys_exp ON discount_used_keys(expires_at);

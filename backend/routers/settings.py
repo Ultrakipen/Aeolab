@@ -495,6 +495,29 @@ async def delete_account(user: dict = Depends(get_current_user)):
     if (sub_status_res.data or {}).get("status") in ("active", "grace_period"):
         await _cancel_subscription_core(user_id)
 
+    # 0-1. 재가입 반복 이용 방어 — 탈퇴로 근거가 사라지기 **전에** ①이용 사실을 비식별 해시로 남기고(최종 사업장 정보 반영, 기본 꺼짐)
+    # ②"다시 할인·체험을 받을 수 있는 최대 규모"를 식별값 없이 로그 한 줄로만 센다(`[withdraw_exposure]`). 실패해도 탈퇴는 계속한다.
+    # ②를 payment_events에 쓰지 않는 이유: 그 테이블에는 event_type을 ('billing_issue','renewal')로 제한하는 CHECK 제약이 스키마 파일에 있어
+    # (운영 적용 여부 미확인) 새 종류의 행이 조용히 거절될 수 있다. 로그는 스키마에 기대지 않는다.
+    try:
+        from services.discount_guard import record_use, PURPOSE_DISCOUNT, PURPOSE_TRIAL
+        _sub0 = await execute(
+            supabase.table("subscriptions").select("first_month_discount_until").eq("user_id", user_id).maybe_single()
+        )
+        _prof0 = await execute(
+            supabase.table("profiles").select("basic_trial_used").eq("user_id", user_id).maybe_single()
+        )
+        _used_discount = bool((_sub0.data or {}).get("first_month_discount_until"))
+        _used_trial = bool((_prof0.data or {}).get("basic_trial_used"))
+        if _used_discount:
+            await record_use(PURPOSE_DISCOUNT, user_id, user.get("email"))
+        if _used_trial:
+            await record_use(PURPOSE_TRIAL, user_id, user.get("email"))
+        if _used_discount or _used_trial:
+            logger.info(f"[withdraw_exposure] discount={_used_discount} trial={_used_trial}")
+    except Exception as e:
+        logger.warning(f"delete_account 재가입 방어 기록 실패 (user={user_id}): {e}")
+
     # 1. 사업장 ID 수집 (하위 테이블 삭제 기준)
     biz_res = await execute(
         supabase.table("businesses").select("id").eq("user_id", user_id)

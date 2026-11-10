@@ -1744,6 +1744,19 @@ async def run_basic_trial(req: BasicTrialRequest, user=Depends(get_current_user)
     if not biz:
         raise HTTPException(status_code=404, detail="사업장을 찾을 수 없습니다")
 
+    # 탈퇴 후 재가입으로 무료 체험(네이버·AI 호출 비용)을 반복하는 것 방지 — 같은 사업장·이메일의 이전 체험 기록(비식별 해시)이 있으면 차단.
+    # 기본 꺼짐(services/discount_guard), 조회 실패는 통과(fail-open). 어조는 사용자를 의심하지 않는다.
+    from services.discount_guard import prior_use_conflict, record_use, PURPOSE_TRIAL
+    if await prior_use_conflict(PURPOSE_TRIAL, user_id, user.get("email")):
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "BASIC_TRIAL_USED",
+                "message": "이 사업장(또는 이메일)으로 Basic 무료 체험을 이미 이용하셨습니다. 구독하시면 바로 이용하실 수 있어요.",
+                "upgrade_url": "/pricing",
+            },
+        )
+
     # 동시 실행 차단
     scan_key = f"{user_id}:{biz_id}"
     if scan_key in _active_scans:
@@ -1761,6 +1774,7 @@ async def run_basic_trial(req: BasicTrialRequest, user=Depends(get_current_user)
         "basic_trial_used_at": now_iso,
         "basic_trial_business_id": biz_id,
     }))
+    await record_use(PURPOSE_TRIAL, user_id, user.get("email"))   # 체험 이용 사실을 비식별 해시로(기본 꺼짐·실패해도 계속)
 
     _active_scans.add(scan_key)
     scan_id = str(uuid.uuid4())

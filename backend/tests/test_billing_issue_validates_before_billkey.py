@@ -32,7 +32,7 @@ def _setup(monkeypatch, *, profile_exists=True, first_time=True):
         calls["issue"] += 1
         return SimpleNamespace(ok=False, code="X", msg="stop here", data={})   # 도달 여부만 확인하고 멈춘다
 
-    async def fake_first(_uid):
+    async def fake_first(_uid, _email=None):
         return first_time
 
     async def no_block(_uid):

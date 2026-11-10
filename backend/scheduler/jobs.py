@@ -98,6 +98,11 @@ def start_scheduler():
         purge_old_notification_records, "cron", hour=3, minute=45, id="notification_records_purge",
         replace_existing=True, max_instances=1, misfire_grace_time=3600,
     )
+    # 재가입 방어용 비식별 키 중 보관 기간이 지난 것 삭제 (매일 03:50 KST, DB만 쓰는 잡 — 기능이 꺼져 있으면 아무것도 하지 않는다)
+    scheduler.add_job(
+        purge_expired_discount_keys, "cron", hour=3, minute=50, id="discount_keys_purge",
+        replace_existing=True, max_instances=1, misfire_grace_time=3600,
+    )
     # 인메모리 캐시·SSE 토큰 주기 정리 (10분마다)
     scheduler.add_job(
         _cleanup_memory_stores, "interval", minutes=10, id="memory_cleanup",
@@ -483,6 +488,19 @@ async def purge_old_notification_records():
                 logger.info(f"[notification_records_purge] {name} {days}일 경과 {n}건 삭제")
         except Exception as e:
             logger.warning(f"[notification_records_purge] {name} 실패(다음 실행에서 재시도): {e}")
+
+
+async def purge_expired_discount_keys():
+    """재가입 방어(services/discount_guard)가 켜져 있을 때만 — 보관 기간이 지난 비식별 키를 삭제한다(방침에 적을 보관 기간 이행)."""
+    try:
+        from services.discount_guard import guard_enabled, purge_expired
+        if not guard_enabled():
+            return
+        n = await purge_expired()
+        if n:
+            logger.info(f"[discount_keys_purge] 만료 키 {n}건 삭제")
+    except Exception as e:
+        logger.warning(f"[discount_keys_purge] 실패(다음 실행에서 재시도): {e}")
 
 
 async def _cleanup_memory_stores():

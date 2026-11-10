@@ -196,6 +196,14 @@ export async function joinCapacityWaitlist(token: string): Promise<{ ok: boolean
   return apiCall(`${BACKEND_URL}/api/status/capacity/waitlist`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
 }
 
+// 첫 달 할인 자격 조회(읽기 전용, 본인 것만) — 결제 화면이 카드 입력 전에 할인가를 보여줄지 정한다.
+// eligible=null이면 서버가 판단하지 못한 것(화면은 기존 방식으로 진행, 최종 판정은 결제 서버).
+export async function getDiscountEligibility(token: string): Promise<{ eligible: boolean | null }> {
+  return apiCall(`${BACKEND_URL}/api/webhook/creb/billing/discount-eligibility`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 export async function issueBilling(
   body: { authKey: string; plan: string; amount: number },
   token: string,

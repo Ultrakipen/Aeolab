@@ -323,6 +323,16 @@
   "work_completed_at",
   "work_started_at"
  ],
+ "discount_used_keys": [
+  "expires_at",
+  "id",
+  "key_hash",
+  "key_type",
+  "purpose",
+  "released_at",
+  "released_by",
+  "used_at"
+ ],
  "faqs": [
   "answer",
   "category",

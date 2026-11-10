@@ -40,8 +40,16 @@ def _check_billing_issue_rate_limit(ip: str) -> None:
         _cache.set(key, count + 1, _BILLING_ISSUE_RATE_WINDOW)
 
 
-async def _is_first_time_subscriber(user_id: str) -> bool:
-    """첫 달 할인 자격 검증 — 계정 기준 + 사업장(naver_place_id) 기준 이중 차단"""
+# 같은 사업장으로 보는 식별값 컬럼 — 다른(아직 존재하는) 계정이 이 값으로 구독한 적이 있으면 첫 달 할인 대상이 아니다
+_SAME_BUSINESS_COLUMNS = ("naver_place_id", "kakao_place_id", "business_registration_no")
+
+
+async def _is_first_time_subscriber(user_id: str, email: str | None = None) -> bool:
+    """첫 달 할인 자격 검증 — ①현재 계정 ②같은 사업장(네이버·카카오 플레이스 ID·사업자등록번호)을 가진 **다른 계정** ③탈퇴한 계정까지(해시, 기본 꺼짐).
+
+    2026-11-10: 이전에는 ②가 네이버 플레이스 ID(첫 사업장) 하나뿐이었고 사업장 식별값이 없으면 곧바로 신규로 봤다. 탈퇴하면 ①②의 근거(구독·사업장 행)가
+    모두 지워져 재가입으로 할인을 반복할 수 있었으므로 ③(services/discount_guard, 방침 확정 후 DISCOUNT_KEY_GUARD_ENABLED로 켬)을 더했다.
+    """
     supabase = get_client()
 
     # 1단계: 현재 계정 구독 이력 확인
@@ -54,44 +62,45 @@ async def _is_first_time_subscriber(user_id: str) -> bool:
     if res.data:
         return False
 
-    # 2단계: 현재 계정의 사업장 naver_place_id 조회
+    # 2단계: 현재 계정의 모든 활성 사업장 식별값 → 같은 값을 가진 다른 계정의 구독 이력
     biz_res = await execute(
         supabase.table("businesses")
-        .select("naver_place_id")
+        .select("naver_place_id, kakao_place_id, business_registration_no")
         .eq("user_id", user_id)
         .eq("is_active", True)
-        .not_.is_("naver_place_id", "null")
-        .limit(1)
     )
-    if not (biz_res.data and biz_res.data[0].get("naver_place_id")):
-        return True  # place_id 없으면 계정 기준만 적용
-
-    naver_place_id = biz_res.data[0]["naver_place_id"]
-
-    # 3단계: 같은 naver_place_id를 가진 다른 계정의 구독 이력 확인
-    same_place_res = await execute(
-        supabase.table("businesses")
-        .select("user_id")
-        .eq("naver_place_id", naver_place_id)
-        .neq("user_id", user_id)
-        .limit(20)
-    )
-    for row in (same_place_res.data or []):
-        other_uid = row.get("user_id")
-        if not other_uid:
-            continue
-        sub_res = await execute(
-            supabase.table("subscriptions")
-            .select("id")
-            .eq("user_id", other_uid)
-            .limit(1)
-        )
-        if sub_res.data:
-            logger.warning(
-                f"사업장 기준 할인 차단 — naver_place_id={naver_place_id}, "
-                f"신청 user={user_id}, 기존 구독 user={other_uid}"
+    for biz in (biz_res.data or []):
+        for col in _SAME_BUSINESS_COLUMNS:
+            val = biz.get(col)
+            if not val:
+                continue
+            same_res = await execute(
+                supabase.table("businesses")
+                .select("user_id")
+                .eq(col, val)
+                .neq("user_id", user_id)
+                .limit(20)
             )
-            return False
+            for row in (same_res.data or []):
+                other_uid = row.get("user_id")
+                if not other_uid:
+                    continue
+                sub_res = await execute(
+                    supabase.table("subscriptions")
+                    .select("id")
+                    .eq("user_id", other_uid)
+                    .limit(1)
+                )
+                if sub_res.data:
+                    logger.warning(
+                        f"사업장 기준 할인 차단 — 키 종류={col}, 신청 user={user_id}, 기존 구독 user={other_uid}"
+                    )
+                    return False
+
+    # 3단계: 탈퇴한 계정이 남긴 비식별 키(해시)와 일치하는가 — 꺼져 있거나 조회 실패면 통과(fail-open)
+    from services.discount_guard import prior_use_conflict, PURPOSE_DISCOUNT
+    if await prior_use_conflict(PURPOSE_DISCOUNT, user_id, email):
+        return False
 
     return True
 
@@ -136,6 +145,21 @@ async def _already_subscribed_same_plan(user_id: str, amount: int) -> bool:
         return False
     from middleware.plan_gate import _end_at_in_future
     return _end_at_in_future(row.get("end_at"))
+
+
+@router.get("/creb/billing/discount-eligibility")
+async def discount_eligibility(user: dict = Depends(get_current_user)):
+    """결제 화면이 첫 달 할인가를 보여주기 전에 묻는 자격 조회(읽기 전용, 본인 것만).
+
+    화면이 구독 이력만 보고 할인가를 보여주면, 서버가 다른 근거(같은 사업장·탈퇴 이력)로 거부했을 때 카드를 입력한 뒤에야 알게 된다.
+    조회가 실패하면 eligible=None — 화면은 기존 방식으로 진행하고 최종 판정은 결제 서버가 한다.
+    """
+    try:
+        eligible = await _is_first_time_subscriber(user["id"], user.get("email"))
+    except Exception as e:
+        logger.warning(f"discount_eligibility 조회 실패(화면은 기존 방식 사용): {e}")
+        return {"eligible": None}
+    return {"eligible": bool(eligible)}
 
 
 @router.post("/creb/billing/issue")
@@ -186,7 +210,7 @@ async def issue_billing(body: BillingIssueRequest, request: Request, user: dict 
     is_discount_amount = body.amount in DISCOUNT_TO_REGULAR
     discount_until = None
     if is_discount_amount:
-        if not await _is_first_time_subscriber(user_id):
+        if not await _is_first_time_subscriber(user_id, user.get("email")):
             logger.warning(f"할인가 결제 시도 거부 — 기존 구독자: user_id={user_id}, amount={body.amount}")
             raise HTTPException(status_code=400, detail="첫 달 할인은 신규 가입자에게만 적용됩니다")
         discount_until = (datetime.now() + timedelta(days=30)).date().isoformat()
@@ -246,6 +270,12 @@ async def issue_billing(body: BillingIssueRequest, request: Request, user: dict 
         payment_key = pay_res.data.get("transactionNumber")
         await record_payment_event(user_id, "billing_issue", "success", body.amount, payment_key)
         charge_start_at = utc_now_iso()
+
+    # 첫 달 할인으로 결제가 성공했으면 이용 사실을 비식별 해시로 남긴다(탈퇴 후 재가입 반복 방지, 기본 꺼짐·실패해도 계속).
+    # 탈퇴 직전에도 한 번 더 기록한다(결제 뒤에 등록한 사업장 반영 — routers/settings.py delete_account).
+    if is_discount_amount:
+        from services.discount_guard import record_use, PURPOSE_DISCOUNT
+        await record_use(PURPOSE_DISCOUNT, user_id, user.get("email"))
 
     # 3. 구독 저장
     supabase = get_client()
