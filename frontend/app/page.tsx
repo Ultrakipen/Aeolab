@@ -339,7 +339,7 @@ export default function LandingPage() {
             {/* 보조 카드 3개 */}
             <div className="fade-up flex flex-col gap-3">
               {[
-                { num: "3,000만+", label: "네이버 AI 서비스 월 이용자 (전체)", sub: "뉴스·검색·플레이스 전체 합산 · 네이버 공식 발표 (2025.11)", delay: "delay-1", isAiTab: false },
+                { num: "3,000만+", label: "네이버 AI 브리핑 사용자", sub: "네이버 3분기 컨퍼런스콜 발표 (2025.11.5) · 내 가게 노출 효과가 아닌 전체 사용자 수", delay: "delay-1", isAiTab: false },
                 { num: "400만+", label: "네이버 AI탭 누적 사용자 (베타 2개월)", sub: "2026-06 보도 · 2026-04-27 베타 · 2026-06-25 정식 출시", delay: "delay-2", isAiTab: false },
                 { num: "59종+", label: "모든 업종 측정 가능", sub: "AI탭·글로벌 AI 기준 · 업종별 노출 경로 자동 안내", delay: "delay-3", isAiTab: true },
               ].map((item) => (
@@ -532,10 +532,6 @@ export default function LandingPage() {
             <p className="text-sm mt-2 break-keep max-w-xl mx-auto" style={{ color: "#475569" }}>
               네이버 검색 상단에 자동으로 노출되는 AI 추천 박스 — 음식점·카페·베이커리·바·숙박 전용
             </p>
-            <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold" style={{ background: "#EFF6FF", color: "#1D4ED8", border: "1px solid #BFDBFE" }}>
-              <TrendingUp className="w-4 h-4" aria-hidden="true" />
-              <span>AI 브리핑 도입 후 조건이 담긴 자세한 검색 <strong>약 2배 증가</strong> — 네이버 공식 발표 (2026-01-09, 머니투데이)</span>
-            </div>
           </div>
 
           <div className="relative grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-5">

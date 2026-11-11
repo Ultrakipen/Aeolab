@@ -287,7 +287,7 @@ export function HowAeolabIntegrated() {
       border: "#DDD6FE",
       label: "STEP 03",
       title: "매주 자동 점검 + 카카오 알림",
-      desc: "요금제에 따라 주 2~3회 자동 재측정. 등급이 바뀌면 카카오 알림톡으로 알려드려요(설정에서 알림 켜기)",
+      desc: "요금제에 따라 주 1~3회(Biz는 매일) 자동 재측정. 등급이 바뀌면 카카오 알림톡으로 알려드려요(설정에서 알림 켜기)",
       ui: (
         <div className="space-y-2 mb-3">
           <div
