@@ -4003,10 +4003,10 @@ async def check_action_rescans():
 
                 if before_mentioned is False and after_mentioned:
                     summary = (
-                        f"'{keyword}' 키워드로 AI 브리핑에 노출되기 시작했습니다 ✓"
+                        f"'{keyword}' 키워드의 제미나이 추천 표본에 내 가게가 노출되기 시작했습니다 ✓"
                     )
                 elif before_mentioned and after_mentioned:
-                    summary = "AI 브리핑 노출이 유지되고 있습니다"
+                    summary = "제미나이 추천 표본에서 내 가게 노출이 유지되고 있습니다"
                 else:
                     summary = (
                         f"이번 확인({result.get('sample_size')}회 표본)에서는 나타나지 않았습니다. "
