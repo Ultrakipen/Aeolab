@@ -317,7 +317,7 @@ export default function LandingPage() {
                   네이버 발표: AI 브리핑 적용 업체의 클릭률이 늘었습니다
                 </p>
                 <p className="text-sm mt-3" style={{ color: "rgba(255,255,255,0.92)" }}>
-                  네이버 2025년 8월 공식 발표 · 식당·카페 등 · 적용 전후 비교
+                  네이버 2025년 8월 공식 발표 · 플레이스 AI 브리핑 적용 업체 · 도입 전후 비교
                 </p>
                 <a
                   href="https://www.hankyung.com/article/202508212669g"
@@ -603,7 +603,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <p className="text-sm font-bold" style={{ color: "#2563EB" }}>플레이스 AI 브리핑 적용 후 클릭률 +27.4%</p>
-              <p className="text-sm" style={{ color: "#45556C" }}>네이버 발표(2025.8.21) · 식당·카페 등 · 적용 전후 비교 · 업종·지역에 따라 다를 수 있음</p>
+              <p className="text-sm" style={{ color: "#45556C" }}>네이버 발표(2025.8.21) · 플레이스 AI 브리핑 적용 업체 · 도입 전후 비교 · 업종·지역에 따라 다를 수 있음</p>
             </div>
 
             {/* ③ 손님 방문 */}
