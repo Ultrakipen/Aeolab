@@ -241,8 +241,8 @@ export default function HowItWorksPage() {
             <ul className="space-y-2 text-sm text-gray-700 leading-relaxed">
               <li className="flex gap-2">
                 <span className="shrink-0 text-blue-600 font-bold">•</span>
-                <span>AI 브리핑 사용자 <strong>3,000만명+</strong>, 통합검색 검색어의 약 <strong>20%</strong>에 적용{" "}
-                  <a href="https://news.nate.com/view/20250808n07723" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">[출처: 네이버 컨콜 2025.08]</a>
+                <span>AI 브리핑 월간 이용자 <strong>3,000만명</strong>, 통합검색 검색어의 <strong>8%</strong>까지 확대(연말 20%까지 넓힐 계획이라고 발표 · 이후 현황은 확인하지 못했습니다){" "}
+                  <a href="https://www.asiatoday.co.kr/view.php?key=20250808010003972" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">[출처: 네이버 2분기 컨콜 2025.08.08]</a>
                 </span>
               </li>
               <li className="flex gap-2">
