@@ -247,7 +247,7 @@ export default function HowItWorksPage() {
               </li>
               <li className="flex gap-2">
                 <span className="shrink-0 text-blue-600 font-bold">•</span>
-                <span>식당·카페 등 적용 후(적용 전후 비교) — 체류시간 <strong>+10.4%</strong> / 클릭률 <strong>+27.4%</strong> / 예약 <strong>+8%</strong>{" "}
+                <span>플레이스 AI 브리핑 적용 업체(도입 전후 비교, 비교 기간·업체 수는 발표에 없음) — 체류시간 <strong>+10.4%</strong> / 클릭률 <strong>+27.4%</strong> / 예약 <strong>+8%</strong>{" "}
                   <a href="https://navercorp.com/media/pressReleasesDetail?seq=33232" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">[출처: 네이버 보도자료 2025.08.21]</a>
                 </span>
               </li>

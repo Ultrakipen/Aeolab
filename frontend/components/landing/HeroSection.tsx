@@ -203,7 +203,7 @@ export default function HeroSection() {
               {[
                 {
                   num: "+27.4%",
-                  label: "AI브리핑 적용 후 클릭률",
+                  label: "플레이스 AI브리핑 적용 후 클릭률",
                   highlight: true,
                   source: "네이버 발표 2025.8",
                 },
