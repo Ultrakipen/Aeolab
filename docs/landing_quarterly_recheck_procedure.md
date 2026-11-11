@@ -12,7 +12,7 @@
 - 서비스 이름은 화면에 쓰지 않는다(법적 위험·낡음 방지). 기준·한계 문구의 날짜를 확인한 달로 고친다.
 - 같은 값이 `FAQSection.tsx`("월 19만 원대")에도 있다 — 함께 고친다.
 
-## 2. 네이버 관련 날짜 표기("2026-11-08 확인", 9곳)
+## 2. 네이버 관련 날짜 표기("2026-11-11 확인", 8곳 — 2026-11-11 robots.txt 재확인으로 갱신)
 - `blog.naver.com`·`map.naver.com`·`cafe.naver.com`의 `robots.txt`에서 GPTBot·OAI-SearchBot 차단 여부 확인(`curl -s -A "Mozilla/5.0" https://<도메인>/robots.txt`). 바뀌었으면 "ChatGPT 같은 AI가 가져가지 못하게 막아 두었어요" 문구 전체를 고친다(`grep -rn "확인)" frontend/app frontend/components`).
 
 ## 3. 네이버 발표 수치(증거 섹션, `app/page.tsx`)
