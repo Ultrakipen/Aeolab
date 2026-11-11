@@ -314,7 +314,7 @@ export default function LandingPage() {
                   <span className="text-sm font-bold ml-2 px-2 py-0.5 rounded-full align-middle" style={{ background: "rgba(15,23,42,0.3)", color: "#FFFFFF" }}>네이버 발표</span>
                 </p>
                 <p className="text-sm md:text-base break-keep mb-1" style={{ color: "rgba(255,255,255,0.96)" }}>
-                  네이버 발표: AI 브리핑 적용 업체의 클릭률이 늘었습니다
+                  네이버 발표: 플레이스 AI 브리핑 적용 업체의 클릭률이 늘었습니다
                 </p>
                 <p className="text-sm mt-3" style={{ color: "rgba(255,255,255,0.92)" }}>
                   네이버 2025년 8월 공식 발표 · 플레이스 AI 브리핑 적용 업체 · 도입 전후 비교

@@ -194,7 +194,7 @@ export default function HeroSection() {
 
             {/* KPI 지표 — 네이버가 AI 브리핑 적용 업체를 대상으로 발표한 수치만(AEOlab 이용 효과 아님, 가격은 이 줄에 섞지 않는다) */}
             <p className="text-sm font-semibold mb-2 break-keep" style={{ color: "rgba(255,255,255,0.88)" }}>
-              네이버가 AI 브리핑(검색 결과 상단에 자동으로 뜨는 AI 추천 박스) 적용 업체를 대상으로 발표한 수치 (적용 전후 비교)
+              네이버가 플레이스 AI 브리핑(검색 결과 상단에 자동으로 뜨는 AI 추천 박스) 적용 업체를 대상으로 발표한 수치 (도입 전후 비교)
             </p>
             <div
               className="grid grid-cols-3 sm:flex sm:items-center gap-3 sm:gap-4 mb-6 pb-5 border-b"
@@ -259,7 +259,7 @@ export default function HeroSection() {
               className="text-sm mb-5 -mt-3 break-keep"
               style={{ color: "rgba(255,255,255,0.88)" }}
             >
-              위 수치는 식당·카페 등 AI 브리핑 적용 업체에 대한 네이버 발표이며 AEOlab 이용 효과가 아닙니다 · 업종·지역에 따라 다를 수 있습니다
+              위 수치는 플레이스 AI 브리핑 적용 업체에 대한 네이버 발표이며 AEOlab 이용 효과가 아닙니다 · 업종·지역에 따라 다를 수 있습니다
             </p>
 
             {/* 서브텍스트 */}
