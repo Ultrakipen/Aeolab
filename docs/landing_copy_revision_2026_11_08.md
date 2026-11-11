@@ -230,3 +230,11 @@
 - **복사 안전망**(`components/common/ClipboardFallback.tsx`, 루트 레이아웃): `navigator.clipboard.writeText`를 한 곳에서 감싼다 — 원래 API 우선, 없거나 거부되면 `execCommand('copy')`, 그래도 실패하면 reject 유지 + 안내 토스트(`role=status`). 27개 호출 지점 무수정. **배경**: 상당수가 `navigator.clipboard.writeText(t).catch(()=>{})`라 API가 없으면 `.catch`에 닿기 전에 TypeError. 검증: 정상 환경 resolved, API 제거 환경(init script) execCommand로 resolved·페이지 오류 0, 둘 다 실패 시 reject+토스트·4초 후 숨김.
 - **하지 않음(근거 부족·오탐 비용)**: 인앱 브라우저 감지 경고 배너(PG가 인앱에서 실제로 막히는지 미확인 — 문제가 없으면 결제 전환만 깎음), Blob·print·카카오 공유 개선, Tailwind 구형 브라우저 대응(오픈 후 GA 브라우저·OS 분포 확인 뒤).
 - **오픈 전 사용자 확인(한 번에)**: 새 계정으로 Basic 소액 결제 → 성공 화면, 대시보드에서 뒤로 가기, Basic 잠금 화면(광고 대비·PDF·조건 검색, Tab이 흐린 영역에 안 들어가는지), 결제 직접 취소·환불, 서비스 탈퇴로 계정 삭제, 같은 링크를 카카오톡 '나와의 채팅'에서 열어 카드 인증·복사 동작 확인.
+
+## 11-11 재점검 반영 (원문 확인 후 정정)
+- **AI 브리핑 "3,000만+"**: 원문(SBS Biz 컨콜 기사 2025-11-05)은 "AI 브리핑 3천만명 이상 사용"만 말하고 월간·전체 합산은 명시하지 않는다 → 랜딩 라벨에서 "월"·"전체 합산" 삭제, "내 가게 노출 효과가 아닌 전체 사용자 수" 명시(`app/page.tsx`).
+- **"자세한 검색 약 2배 증가" 배지**: 출처를 찾지 못해 삭제. 원문 확인 전 재게시 금지.
+- **자동 재측정 횟수**: `HowAeolabIntegrated.tsx` "주 2~3회" → "주 1~3회(Biz는 매일)" (`scan_scheduling.py` 기준).
+- **"7일 뒤 변화 기록"**: 코드 경로 확인(`routers/actions.py` 완료 체크 → `jobs.py check_action_rescans` 매일 03:00 → `ActionResultCard`). 서버 `action_completions` 0건(실사용 전, 미검증). 사용자가 완료 표시해야 시작되므로 문구를 "완료로 표시한 행동은 7일 뒤 변화도 기록합니다"로 정정. **오픈 후 첫 사용자의 첫 재측정 결과를 확인할 것.**
+- **"2026-11-08 확인" 날짜 표기**: robots.txt 11-11 재확인에 따라 8곳(7개 파일)을 "2026-11-11 확인"으로 갱신(이 문서 앞부분의 "9곳"은 실제 8곳).
+- 커밋: `f4d8e3e4`, `4d957bed`, 이후 7일 뒤 문구 커밋. push 미실행.
