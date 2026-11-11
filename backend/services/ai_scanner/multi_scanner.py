@@ -229,8 +229,12 @@ class MultiAIScanner:
     async def scan_basic(self, queries: "str | list[str]", target: str, skip_naver: bool = False) -> dict:
         """A안 50/50 분할: Gemini 50회 + ChatGPT 50회 + 네이버 AI 브리핑 + Google AI Overview.
 
-        비용: ~25원/회 (Gemini 50회 ~5원 + ChatGPT 50회 ~10원 + 네이버 0원 + Google DataForSEO ~0.3원)
-        용도: Basic 플랜 평일 자동 스캔.
+        용도(2026-11-11 코드 확인): Pro 플랜의 풀스캔이 아닌 날(경량 스캔일)에만 쓰인다 — jobs.py daily_scan_all의
+              decide_scan_mode가 "basic"을 돌려주는 경우. Basic·창업·Biz의 자동 스캔은 scan_all이다.
+        네이버 접속: 브리핑 1페이지(check_mention), AI탭 없음. 풀스캔(scan_all)은 1 + AI탭 질의 최대 4개×3페이지.
+        비용(2026-11-11 ai_usage_log 실측): ChatGPT 호출당 약 0.018원(trial_recommend 기준, 정기 스캔 행은 미확인)이라 50회 약 1원,
+              Gemini는 무료 등급(비용 None, 한도 초과·시간 초과 실패가 기록됨). 이전 표기 '~25원/회'는 옛 모델 기준이라 낡았다.
+        줄이는 판단 기준은 docs/pro_light_scan_review_2026_11_11.md.
         queries가 list인 경우 각 모델 50회를 쿼리별 균등 분산.
         Google은 DataForSEO 백엔드 사용 (GOOGLE_SCANNER_BACKEND=dataforseo).
         """
