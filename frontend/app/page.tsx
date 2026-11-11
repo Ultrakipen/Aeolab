@@ -340,7 +340,7 @@ export default function LandingPage() {
             <div className="fade-up flex flex-col gap-3">
               {[
                 { num: "3,000만+", label: "네이버 AI 브리핑 사용자", sub: "네이버 3분기 컨퍼런스콜 발표 (2025.11.5) · 내 가게 노출 효과가 아닌 전체 사용자 수", delay: "delay-1", isAiTab: false },
-                { num: "400만+", label: "네이버 AI탭 누적 사용자 (베타 2개월)", sub: "2026-06 보도 · 2026-04-27 베타 · 2026-06-25 정식 출시", delay: "delay-2", isAiTab: false },
+                { num: "1,000만", label: "네이버 AI탭 월간 이용자(MAU)", sub: "네이버 2026년 2분기 실적발표 자료 (2026.8.7) · 2026-06-25 정식 출시 · 내 가게 노출 효과가 아닌 전체 이용자 수", delay: "delay-2", isAiTab: false },
                 { num: "59종+", label: "모든 업종 측정 가능", sub: "AI탭·글로벌 AI 기준 · 업종별 노출 경로 자동 안내", delay: "delay-3", isAiTab: true },
               ].map((item) => (
                 <div
@@ -746,7 +746,7 @@ export default function LandingPage() {
                   <p className="text-sm font-bold text-indigo-700 mb-2 uppercase tracking-wide">노출 대상 업종</p>
                   <div className="rounded-lg px-3 py-2.5" style={{ background: "#E0E7FF" }}>
                     <p className="text-sm font-black text-indigo-800 inline-flex items-center gap-1.5"><Building2 className="w-4 h-4" aria-hidden="true" />업종 제한 발표 없음 · 정식 출시</p>
-                    <p className="text-sm text-indigo-600 mt-0.5">베타 2개월 만에 누적 사용자 400만(2026.06 보도) · 2026-06-25 정식 출시 · AI 브리핑과는 다른 경로</p>
+                    <p className="text-sm text-indigo-600 mt-0.5">베타 2개월 만에 누적 사용자 400만(2026.06 보도), 월간 이용자 1천만(2026.8 실적발표 자료) · 2026-06-25 정식 출시 · AI 브리핑과는 다른 경로</p>
                   </div>
                   <div className="mt-2 flex items-center gap-1.5">
                     <span className="text-sm px-2 py-0.5 rounded-full font-semibold inline-flex items-center gap-1" style={{ background: "#D1FAE5", color: "#065F46" }}><Check className="w-3.5 h-3.5" strokeWidth={3} aria-hidden="true" />프랜차이즈 제외 조건은 공개된 바 없음</span>
