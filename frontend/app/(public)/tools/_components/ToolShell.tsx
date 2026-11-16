@@ -69,7 +69,7 @@ export default function ToolShell({
         className="border-b border-gray-100 bg-white"
         style={theme ? { backgroundImage: "linear-gradient(to bottom, var(--tool-soft), #ffffff)" } : undefined}
       >
-        <div className="mx-auto max-w-3xl px-4 py-8 md:px-6 md:py-10">
+        <div className="mx-auto max-w-5xl px-4 py-8 md:px-6 md:py-10">
           <nav aria-label="현재 위치" className="mb-3 text-sm text-gray-600">
             <Link href="/tools" className="inline-flex min-h-[44px] items-center hover:text-gray-900">
               사장님 계산기
@@ -87,16 +87,16 @@ export default function ToolShell({
             ) : null}
             <h1 className="break-keep text-2xl font-bold text-gray-900 md:text-3xl">{title}</h1>
           </div>
-          <p className="break-keep text-sm leading-relaxed text-gray-600 md:text-base">{intro}</p>
+          <p className="max-w-3xl break-keep text-sm leading-relaxed text-gray-600 md:text-base">{intro}</p>
         </div>
       </div>
 
-      <div className="mx-auto max-w-3xl space-y-5 px-4 py-8 md:px-6">
+      <div className="mx-auto max-w-5xl space-y-5 px-4 py-8 md:px-6">
         {children}
 
         <RelatedTools />
 
-        <p className="text-sm leading-relaxed text-gray-600 break-keep">
+        <p className="max-w-3xl text-sm leading-relaxed text-gray-600 break-keep">
           이 계산기는 입력하신 값으로 계산한 참고용 추정이며 세무·노무·회계 상담을 대체하지 않습니다. 실제 세액·보험료·정산액은
           국세청·공단·정산서 등으로 확인해 주세요. 입력하신 값은 저장하거나 전송하지 않고 이 화면에서만 계산합니다.
         </p>

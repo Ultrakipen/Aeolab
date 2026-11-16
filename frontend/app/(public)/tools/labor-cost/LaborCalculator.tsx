@@ -33,7 +33,7 @@ export default function LaborCalculator() {
   useCalcUsage("labor-cost", r?.ok === true);
 
   return (
-    <div className="space-y-5">
+    <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
       <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 md:p-6">
         <div>
           <NumberField id="lb-hourly" label="시급" unit="원" value={hourly} onChange={setHourly} />
@@ -76,6 +76,7 @@ export default function LaborCalculator() {
           onClick={() => { setHourly(""); setWeekly(""); setWithInsurance(true); setWithSeverance(false); setOther(""); }}
         />
       </div>
+      <div className="space-y-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
 
       {r === null ? (
         <EmptyState>시급과 일주일 근무 시간을 입력하면 한 달 인건비가 나와요.</EmptyState>
@@ -120,6 +121,7 @@ export default function LaborCalculator() {
           />
         </>
       )}
+      </div>
     </div>
   );
 }

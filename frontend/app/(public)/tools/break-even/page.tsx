@@ -17,7 +17,7 @@ export default function BreakEvenPage() {
       intro="판매가, 원가, 한 달 고정비를 넣으면 1개당 이익과 마진율, 그리고 한 달에 몇 개를 팔아야 손해를 면하는지 계산해 드려요."
     >
       <BreakEvenCalculator />
-      <section className="rounded-xl border border-gray-200 bg-white p-4 md:p-5">
+      <section className="max-w-3xl rounded-xl border border-gray-200 bg-white p-4 md:p-5">
         <h2 className="text-base font-bold text-gray-900">계산 방법</h2>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-gray-700 break-keep">
           <li>1개당 이익 = 판매가 − 원가, 마진율 = 1개당 이익 ÷ 판매가</li>

@@ -37,7 +37,7 @@ export default function VatCalculator() {
           </button>
         ))}
       </div>
-      <div id="vat-panel" role="tabpanel" aria-labelledby={`vat-tab-${mode}`} className="space-y-5">
+      <div id="vat-panel" role="tabpanel" aria-labelledby={`vat-tab-${mode}`} className="grid gap-5 lg:grid-cols-2 lg:items-start">
         {mode === "split" ? <SplitPanel /> : null}
         {mode === "general" ? <GeneralPanel /> : null}
         {mode === "simplified" ? <SimplifiedPanel /> : null}
@@ -80,6 +80,7 @@ function SplitPanel() {
         <NumberField id="vat-amount" label="금액" unit="원" value={amount} onChange={setAmount} />
         <ResetButton onClick={() => { setAmount(""); setKind("total"); }} />
       </div>
+      <div className="space-y-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
       {result === null ? (
         <EmptyState>금액을 입력하면 공급가액과 부가세가 나뉘어 나와요.</EmptyState>
       ) : (
@@ -93,6 +94,7 @@ function SplitPanel() {
           footnote="부가세 포함 금액을 나눌 때는 1.1로 나누고 원 단위로 반올림해요. 세금계산서와 1원 차이가 날 수 있어요."
         />
       )}
+      </div>
     </>
   );
 }
@@ -112,6 +114,7 @@ function GeneralPanel() {
         <NumberField id="vg-purchase" label="매입 (부가세 뺀 공급가액)" unit="원" value={purchase} onChange={setPurchase} optional hint="세금계산서·카드 등 공제받을 수 있는 매입만 넣어 주세요. 비우면 0원이에요." />
         <ResetButton onClick={() => { setSales(""); setPurchase(""); }} />
       </div>
+      <div className="space-y-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
       {r === null ? (
         <EmptyState>매출을 입력하면 일반과세자의 부가세 납부세액을 계산해요.</EmptyState>
       ) : (
@@ -127,6 +130,7 @@ function GeneralPanel() {
           footnote="신용카드 발행세액공제, 공제받지 못하는 매입, 예정고지 납부분 등은 반영하지 않았어요."
         />
       )}
+      </div>
     </>
   );
 }
@@ -167,6 +171,7 @@ function SimplifiedPanel() {
         <NumberField id="vs-purchase" label="매입 (부가세 포함 공급대가)" unit="원" value={purchase} onChange={setPurchase} optional hint="세금계산서·신용카드 등으로 증빙받은 매입만 넣어 주세요. 비우면 0원이에요." />
         <ResetButton onClick={() => { setSales(""); setPurchase(""); setKey(rates[0].key); }} />
       </div>
+      <div className="space-y-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
       {r === null ? (
         <EmptyState>매출을 입력하면 간이과세자의 부가세 납부세액을 추정해요.</EmptyState>
       ) : (
@@ -189,6 +194,7 @@ function SimplifiedPanel() {
           <Warn>간이과세는 직전 연도 공급대가가 일정 금액(1억 400만원) 미만인 사업자가 대상이고, 업종·지역에 따라 제외돼요. 연 공급대가가 작으면 납부의무가 면제될 수도 있으니 국세청에서 확인해 주세요.</Warn>
         </>
       )}
+      </div>
     </>
   );
 }

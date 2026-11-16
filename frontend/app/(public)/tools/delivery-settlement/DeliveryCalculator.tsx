@@ -38,7 +38,7 @@ export default function DeliveryCalculator() {
   useCalcUsage("delivery-settlement", r?.ok === true);
 
   return (
-    <div className="space-y-5">
+    <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
       <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 md:p-6">
         <NumberField id="dl-amount" label="주문금액 (1건)" unit="원" value={amount} onChange={setAmount} />
         <div className="grid gap-4 sm:grid-cols-2">
@@ -66,6 +66,7 @@ export default function DeliveryCalculator() {
           }}
         />
       </div>
+      <div className="space-y-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
 
       {r === null ? (
         <EmptyState>주문금액과 수수료율(중개·결제)을 입력하면 실제로 받는 금액이 나와요. 수수료율은 배달앱 정산서의 값을 그대로 넣어 주세요.</EmptyState>
@@ -92,6 +93,7 @@ export default function DeliveryCalculator() {
           {r.profit < 0 ? <Warn>이 조건에서는 주문 1건마다 손해가 나요. 수수료·배달비·원가를 다시 확인해 보세요.</Warn> : null}
         </>
       )}
+      </div>
     </div>
   );
 }

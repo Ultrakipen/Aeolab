@@ -21,7 +21,7 @@ export default function LaborCostPage() {
       intro="시급과 근무 시간을 넣으면 주휴수당을 포함한 월급과, 사업주가 따로 부담하는 보험료까지 직원 1명을 쓰는 데 드는 한 달 비용을 계산해요."
     >
       <LaborCalculator />
-      <section className="rounded-xl border border-gray-200 bg-white p-4 md:p-5">
+      <section className="max-w-3xl rounded-xl border border-gray-200 bg-white p-4 md:p-5">
         <h2 className="text-base font-bold text-gray-900">계산 방법</h2>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-gray-700 break-keep">
           <li>월 환산 근로시간 = (주 근무시간 + 주휴시간) × 365 ÷ 7 ÷ 12 (반올림). 주 40시간이면 209시간이에요.</li>

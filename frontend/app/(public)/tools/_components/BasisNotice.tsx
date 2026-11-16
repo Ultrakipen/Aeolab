@@ -17,7 +17,7 @@ export default function BasisNotice({
   const stale = staleKey === "" ? [] : staleKey.split("\n");
 
   return (
-    <section className="rounded-xl border border-gray-200 bg-white p-4 md:p-5" aria-label="기준값 출처">
+    <section className="max-w-3xl rounded-xl border border-gray-200 bg-white p-4 md:p-5" aria-label="기준값 출처">
       <h2 className="text-base font-bold text-gray-900">사용한 기준값과 출처</h2>
       {stale.length > 0 ? (
         <p className="mt-2 rounded-lg bg-amber-50 p-3 text-sm leading-relaxed text-amber-900 break-keep" role="alert">

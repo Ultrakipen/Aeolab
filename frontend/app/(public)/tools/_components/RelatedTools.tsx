@@ -14,7 +14,7 @@ const TOOLS = [
 export default function RelatedTools() {
   const pathname = usePathname();
   return (
-    <section className="rounded-xl border border-gray-200 bg-white p-4 md:p-5" aria-label="다른 계산기">
+    <section className="max-w-3xl rounded-xl border border-gray-200 bg-white p-4 md:p-5" aria-label="다른 계산기">
       <h2 className="text-base font-bold text-gray-900">다른 계산기도 써 보세요</h2>
       <ul className="mt-3 flex flex-wrap gap-2">
         {TOOLS.filter((t) => t.href !== pathname).map((t) => (

@@ -21,7 +21,7 @@ export default function BreakEvenCalculator() {
   useCalcUsage("break-even", r?.ok === true);
 
   return (
-    <div className="space-y-5">
+    <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
       <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 md:p-6">
         <NumberField id="be-price" label="판매가 (1개당)" unit="원" value={price} onChange={setPrice} hint="부가세를 뺀 가격으로 입력하면 세금 전 기준으로 계산돼요." />
         <NumberField id="be-cost" label="원가 (1개당 재료비 등 변동비)" unit="원" value={cost} onChange={setCost} hint="팔 때마다 따라 늘어나는 비용만 넣어 주세요(재료비·포장비·수수료 등)." />
@@ -29,6 +29,7 @@ export default function BreakEvenCalculator() {
         <NumberField id="be-days" label="한 달 영업일수" unit="일" value={days} onChange={setDays} optional hint="입력하면 하루 기준 목표도 보여 드려요." />
         <ResetButton onClick={() => { setPrice(""); setCost(""); setFixed(""); setDays(""); }} />
       </div>
+      <div className="space-y-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
 
       {r === null ? (
         <EmptyState>판매가와 원가를 입력하면 마진율과 손익분기점이 나와요.</EmptyState>
@@ -66,6 +67,7 @@ export default function BreakEvenCalculator() {
           />
         </>
       )}
+      </div>
     </div>
   );
 }
