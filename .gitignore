@@ -102,3 +102,6 @@ backend/.subscription_extend_*.jsonl
 UsersKipen*
 *access_token*
 *_token.txt
+
+# 기업마당 스냅샷(수집 스크립트가 채움)
+backend/data/bizinfo/

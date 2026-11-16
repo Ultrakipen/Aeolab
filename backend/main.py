@@ -36,6 +36,7 @@ from routers import service_status as service_status_router
 from routers import blog as blog_router
 from routers import public_index as public_index_router
 from routers import area as area_router
+from routers import bizinfo as bizinfo_router
 from routers import assistant as assistant_router
 from routers import keywords as keywords_router
 from routers import place_consistency as place_consistency_router
@@ -189,6 +190,7 @@ app.include_router(kakao_router.router,   prefix="/api/kakao",   tags=["kakao"])
 app.include_router(blog_router.router,    prefix="/api/blog",    tags=["blog"])
 app.include_router(public_index_router.router, prefix="/api/public/index", tags=["public-index"])
 app.include_router(area_router.router,          prefix="/api/area",         tags=["area"])
+app.include_router(bizinfo_router.router,       prefix="/api/bizinfo",      tags=["bizinfo"])
 app.include_router(actions_router.router,      prefix="/api/actions",     tags=["actions"])
 app.include_router(assistant_router.router,    prefix="/api/assistant",   tags=["assistant"])
 app.include_router(share_router.router,        prefix="/api/share",       tags=["share"])
