@@ -73,6 +73,10 @@ export default function SbizIframeTabs() {
         소상공인시장진흥공단 「소상공인365」에서 제공하는 화면입니다. 이 화면 안에서 지역과 업종을 한 번 더 선택해
         주세요(위에서 고른 지역은 자동으로 넘어가지 않습니다).
       </p>
+      <p className="mt-1 text-sm leading-relaxed text-gray-600 break-keep">
+        지역 목록이 잘려 보이면 화면 안쪽을 아래로 스크롤해 주세요. 검색어에 목록이 나오지 않으면 시·군·구 이름만(예: 성산구)
+        입력해 보세요.
+      </p>
       <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label="상권 분석 종류">
         {visibleTabs.map((t) => (
           <button
@@ -111,7 +115,7 @@ export default function SbizIframeTabs() {
               src={active.safe as string}
               title={`소상공인365 ${active.label}`}
               loading="lazy"
-              className="h-[640px] w-full rounded-lg border border-gray-200 md:h-[760px]"
+              className="h-[720px] w-full rounded-lg border border-gray-200 md:h-[900px]"
             />
             <button
               type="button"

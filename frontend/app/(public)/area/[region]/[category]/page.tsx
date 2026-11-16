@@ -166,7 +166,7 @@ export default async function AreaDetailPage({ params }: Props) {
       />
 
       <div className="border-b border-gray-100 bg-white">
-        <div className="mx-auto max-w-5xl px-4 py-8 md:px-6 md:py-10">
+        <div className="mx-auto max-w-6xl px-4 py-8 md:px-6 md:py-10">
           <nav aria-label="현재 위치" className="mb-3 text-sm text-gray-600">
             <Link href="/area" className="inline-flex min-h-[44px] items-center hover:text-gray-900">
               우리 동네 상권
@@ -179,7 +179,7 @@ export default async function AreaDetailPage({ params }: Props) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl space-y-5 px-4 py-8 md:px-6">
+      <div className="mx-auto max-w-6xl space-y-5 px-4 py-8 md:px-6">
         {detail.available ? (
           <div className="grid gap-5 md:grid-cols-2">
             <SbizCard d={detail} />
