@@ -6,6 +6,8 @@ export function SiteFooter({ activePage }: { activePage?: string }) {
     { href: '/ai-search-diagnosis',  label: 'AI 노출 진단' },
     { href: '/guide/channels',       label: '업종별 가이드' },
     { href: '/ranking',              label: 'AI 노출 랭킹' },
+    { href: '/area',                 label: '우리 동네 상권' },
+    { href: '/tools',                label: '사장님 계산기' },
     { href: '/guide/chatgpt-search', label: 'ChatGPT 가이드' },
     { href: '/faq',     label: 'FAQ' },
     { href: '/pricing', label: '요금제' },

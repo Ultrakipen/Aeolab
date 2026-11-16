@@ -33,6 +33,14 @@ export function trackEvent(name: string, params?: Record<string, unknown>): void
 }
 
 /**
+ * 사장님 계산기 사용 — 유효한 결과가 처음 나온 시점에 화면(도구)당 한 번. tool: 'break-even' | 'labor-cost' 등.
+ * 입력한 값은 보내지 않는다(어떤 도구를 썼는지만).
+ */
+export function trackCalculatorUsed(tool: string): void {
+  trackEvent("calculator_used", { tool });
+}
+
+/**
  * 무료 체험 스캔 중 이탈 — 스캔 진행 화면에서 페이지를 벗어난 경우 (step_index: 이탈 시점의 진행 단계)
  * 페이지 종료 시점이라 beacon 전송을 지정한다.
  */

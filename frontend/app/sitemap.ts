@@ -2,13 +2,22 @@ import { MetadataRoute } from "next";
 import { KEYWORD_PAGES } from "@/lib/keywords-data";
 import { BLOG_POSTS } from "@/lib/blog-posts";
 import { FLAT_CATEGORIES } from "@/lib/categories";
+import { areaPath, fetchAreaAvailable } from "@/lib/area";
 
 // 실제로 내용이 바뀐 날짜만 갱신할 것 — 매번 오늘 날짜로 바꾸면 구글이 lastmod를 신뢰하지 않는다.
 const SITE_BUILD_DATE = new Date("2026-10-12"); // 랜딩·체험·요금 등 10-10 개편 반영
 const LEGAL_UPDATED_DATE = new Date("2026-06-18"); // 약관·개인정보(미변경)
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://aeolab.co.kr";
+
+  // 우리 동네 상권 — 공공데이터가 실제로 수집된 조합만(빈 페이지가 색인되지 않게). 백엔드 실패 시 빈 목록.
+  const areaPages: MetadataRoute.Sitemap = (await fetchAreaAvailable()).map((a) => ({
+    url: `${baseUrl}${areaPath(a.region, a.category)}`,
+    lastModified: SITE_BUILD_DATE,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
 
   const keywordPages: MetadataRoute.Sitemap = KEYWORD_PAGES.map((p) => ({
     url: `${baseUrl}/keywords/${p.slug}`,
@@ -105,6 +114,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.75,
     },
     {
+      url: `${baseUrl}/area`,
+      lastModified: SITE_BUILD_DATE,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    // 사장님 계산기 허브와 4개 계산기(기존 광고비 비교·키워드 생성기도 처음으로 사이트맵에 등재)
+    ...["/tools", "/tools/break-even", "/tools/delivery-settlement", "/tools/labor-cost", "/tools/vat", "/tools/ad-cost-calculator", "/tools/keyword"].map(
+      (path) => ({
+        url: `${baseUrl}${path}`,
+        lastModified: new Date("2026-11-16"),
+        changeFrequency: "monthly" as const,
+        priority: path === "/tools" ? 0.7 : 0.6,
+      }),
+    ),
+    {
       url: `${baseUrl}/showcase`,
       lastModified: SITE_BUILD_DATE,
       changeFrequency: "monthly",
@@ -147,6 +171,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.75,
     },
     ...guideChannelPages,
+    ...areaPages,
     ...keywordPages,
     ...blogPages,
   ];

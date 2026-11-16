@@ -56,7 +56,10 @@ const nextConfig: NextConfig = {
       // *.analytics.google.com은 서브도메인만 매칭하고 루트 도메인 자체(analytics.google.com,
       // 실측된 gtag.js 수집 엔드포인트)는 못 잡아 별도로 명시 필요(실측으로 발견한 CSP 와일드카드 함정)
       "connect-src 'self' https://duqepesuqquqffqvlkxf.supabase.co https://*.ingest.us.sentry.io https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://*.googletagmanager.com https://*.doubleclick.net https://*.creb.co.kr https://static.cloudflareinsights.com",
-      "frame-src 'self' https://*.creb.co.kr",
+      // 소상공인365 오픈 API(iFrame, /area 상세 페이지) — 신청 화면 명세의 호스트만 허용.
+      // ※ 승인 후 실측 필요: 프레임 안에서 다른 도메인(예: sbiz.or.kr 하위)으로 이동하면 그 도메인도 여기에 추가해야 한다
+      //   (frame-src는 프레임 내 이동에도 적용됨). 콘솔의 CSP 위반 메시지로 확인.
+      "frame-src 'self' https://*.creb.co.kr https://bigdata.sbiz.or.kr",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self' https://*.creb.co.kr",

@@ -88,6 +88,20 @@ export default function LandingPage() {
               서비스 안내
             </Link>
             <Link
+              href="/area"
+              className="hidden xl:inline-block text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
+              style={{ color: "#475569" }}
+            >
+              우리 동네 상권
+            </Link>
+            <Link
+              href="/tools"
+              className="hidden xl:inline-block text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
+              style={{ color: "#475569" }}
+            >
+              사장님 계산기
+            </Link>
+            <Link
               href="/pricing"
               className="hidden md:inline-block text-sm font-medium px-2.5 py-1.5 rounded-lg transition-colors hover:bg-slate-50 whitespace-nowrap"
               style={{ color: "#475569" }}
@@ -1134,6 +1148,16 @@ export default function LandingPage() {
               </p>
             </div>
           </div>
+          <p className="mt-4 text-center text-sm break-keep" style={{ color: "#45556C" }}>
+            가게 운영에 바로 쓰는 무료 도구도 있어요:{" "}
+            <Link href="/tools" className="inline-block py-2 font-bold underline" style={{ color: "#2563EB" }}>
+              사장님 계산기
+            </Link>
+            {" · "}
+            <Link href="/area" className="inline-block py-2 font-bold underline" style={{ color: "#2563EB" }}>
+              우리 동네 상권
+            </Link>
+          </p>
         </div>
       </section>
 
