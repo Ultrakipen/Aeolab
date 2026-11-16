@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { cleanNumberInput, displayNumberInput } from "./format";
 
 // 숫자 입력칸 — value 는 쉼표 없는 원문 문자열("" 이면 입력 안 한 것, 0 과 구분한다)
@@ -86,9 +87,51 @@ export function ResultCard({
   rows: { label: string; value: string; strong?: boolean; note?: string }[];
   footnote?: string;
 }) {
+  const [copied, setCopied] = useState<"" | "ok" | "fail">("");
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 결과를 메신저·메모에 붙여 넣기 좋은 글로 복사한다(입력값은 포함하지 않고 화면에 보이는 결과만)
+  async function copyResult() {
+    const lines = [title, ...rows.map((r) => `${r.label}: ${r.value}${r.note ? ` (${r.note})` : ""}`)];
+    if (footnote) lines.push(footnote);
+    lines.push(typeof window !== "undefined" ? window.location.href : "");
+    const text = lines.filter(Boolean).join("\n");
+    let ok = false;
+    try {
+      await navigator.clipboard.writeText(text);
+      ok = true;
+    } catch {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+      } catch {
+        ok = false;
+      }
+    }
+    setCopied(ok ? "ok" : "fail");
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setCopied(""), 2500);
+  }
+
   return (
     <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 md:p-5" aria-live="polite">
-      <h2 className="text-base font-bold text-gray-900 md:text-lg">{title}</h2>
+      <div className="flex items-start justify-between gap-3">
+        <h2 className="text-base font-bold text-gray-900 md:text-lg">{title}</h2>
+        <button
+          type="button"
+          onClick={copyResult}
+          className="min-h-[44px] shrink-0 rounded-lg border border-blue-200 bg-white px-3 text-sm font-medium text-blue-700 hover:bg-blue-50"
+        >
+          {copied === "ok" ? "복사했어요" : copied === "fail" ? "복사할 수 없어요" : "결과 복사"}
+        </button>
+      </div>
       <dl className="mt-3 space-y-3">
         {rows.map((r) => (
           <div key={r.label} className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
