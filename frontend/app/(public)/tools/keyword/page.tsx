@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Sparkles, Loader2, ArrowLeft, LogIn } from "lucide-react";
 import { SiteFooter } from "@/components/common/SiteFooter";
+import FeatureHeader from "@/components/common/FeatureHeader";
 import { getSafeSession } from "@/lib/supabase/client";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
@@ -120,6 +121,7 @@ export default function KeywordToolPage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <FeatureHeader />
       {/* 헤더 */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-2xl mx-auto px-4 py-8 md:py-10">

@@ -64,3 +64,5 @@
 - 서버·라이브 동작 미확인(로컬 프로덕션 빌드만 확인). 변호사·세무사 검토 안 함(법적 판단 아님, 참고용 표기).
 
 - **11-16 검증 추가:** 간이과세 납부의무 면제 기준(연 공급대가 4,800만원 미만, `CALC_BASIS.vat.simplifiedExemptBelow`)을 화면 경고로 표시(세무 해설 자료로 확인, 국세청 원문 미확인 — 기준 금액이 바뀌면 이 값과 경고 문구를 같이 고칠 것).
+
+- **11-16 화면 보강:** 공통 메뉴 `components/common/FeatureNav.tsx`(PC 헤더·모바일 가로 줄)·`FeatureHeader.tsx`(별도 헤더가 없는 광고비 비교·키워드 생성기용), 도구별 포인트 색 `tools/_components/toolTheme.ts`(CSS 변수 --tool-accent/soft/ink), PC 2열+결과 고정, 모바일 하단 결과 막대 `MobileResultBar.tsx`(ResultCard의 data-tool-result·data-summary-* 를 읽음 — 입력 중·결과가 보일 때·페이지 맨 아래에서는 숨김), /area 선택 화면의 "집계 준비 중" 표시(`fetchAreaAvailability`, 조회 실패 시 표시하지 않음)와 지역 이름 검색. 수집기는 대도시권 먼저(`SIDO_PRIORITY`)·같은 인허가 엔드포인트가 재시도를 다 쓰고 실패하면 한 번만 시도.

@@ -120,8 +120,15 @@ export function ResultCard({
     timer.current = setTimeout(() => setCopied(""), 2500);
   }
 
+  const headline = rows.find((r) => r.strong) ?? rows[0];
   return (
-    <div className="rounded-xl border border-gray-200 border-t-4 border-t-[var(--tool-accent,#3b82f6)] bg-[var(--tool-soft,#eff6ff)] p-4 md:p-5" aria-live="polite">
+    <div
+      className="scroll-mt-24 rounded-xl border border-gray-200 border-t-4 border-t-[var(--tool-accent,#3b82f6)] bg-[var(--tool-soft,#eff6ff)] p-4 md:p-5"
+      aria-live="polite"
+      data-tool-result=""
+      data-summary-label={headline?.label}
+      data-summary-value={headline?.value}
+    >
       <div className="flex items-start justify-between gap-3">
         <h2 className="text-base font-bold text-gray-900 md:text-lg">{title}</h2>
         <button

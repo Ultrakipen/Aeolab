@@ -18,6 +18,9 @@ export const metadata: Metadata = {
 
 export default async function AreaHubPage() {
   const [meta, availability] = await Promise.all([fetchAreaMeta(), fetchAreaAvailability()]);
+  // 값이 모인 지역이 있는지 — 조회 실패(null)면 표시를 바꾸지 않는다(전부 막지 않음)
+  const readyOf = (slug: string) => (availability === null ? true : (availability[slug]?.length ?? 0) > 0);
+  const readyTotal = availability === null ? null : meta.regions.filter((r) => readyOf(r.slug)).length;
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -37,6 +40,12 @@ export default async function AreaHubPage() {
           <div className="mt-6">
             <AreaPicker meta={meta} availability={availability} />
           </div>
+          {readyTotal !== null && readyTotal < meta.regions.length ? (
+            <p className="mt-4 text-sm leading-relaxed text-gray-600 break-keep" role="status">
+              지금까지 전국 {meta.regions.length}개 시·군·구 중 <strong className="text-gray-900">{readyTotal}곳</strong>의 집계가 끝났어요.
+              나머지는 대도시권부터 순서대로 반영 중이며, 반영되면 선택할 수 있게 열려요.
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -50,17 +59,33 @@ export default async function AreaHubPage() {
             <details key={g.sido} className="rounded-lg border border-gray-200 bg-white">
               <summary className="flex min-h-[48px] cursor-pointer items-center justify-between px-4 text-base font-medium text-gray-900">
                 <span>{g.sido}</span>
-                <span className="text-sm font-normal text-gray-600">{g.regions.length}곳</span>
+                <span className="text-sm font-normal text-gray-600">
+                  {availability === null
+                    ? `${g.regions.length}곳`
+                    : `${g.regions.filter((r) => readyOf(r.slug)).length}/${g.regions.length}곳 집계 완료`}
+                </span>
               </summary>
               <ul className="grid grid-cols-2 gap-2 border-t border-gray-100 p-3 sm:grid-cols-3 md:grid-cols-4">
                 {g.regions.map((r) => (
                   <li key={r.slug}>
-                    <Link
-                      href={areaPath(r.slug, "restaurant")}
-                      className="flex min-h-[44px] items-center rounded-lg border border-gray-200 px-3 text-sm text-gray-800 hover:border-blue-300 hover:bg-blue-50"
-                    >
-                      {r.sigungu}
-                    </Link>
+                    {readyOf(r.slug) ? (
+                      <Link
+                        href={areaPath(
+                          r.slug,
+                          availability === null || availability[r.slug]?.includes("restaurant")
+                            ? "restaurant"
+                            : (availability[r.slug]?.[0] ?? "restaurant"),
+                        )}
+                        className="flex min-h-[44px] items-center rounded-lg border border-gray-200 px-3 text-sm text-gray-800 hover:border-blue-300 hover:bg-blue-50"
+                      >
+                        {r.sigungu}
+                      </Link>
+                    ) : (
+                      <span className="flex min-h-[44px] flex-col justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 text-sm leading-tight text-gray-600">
+                        {r.sigungu}
+                        <span className="text-sm">집계 준비 중</span>
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>

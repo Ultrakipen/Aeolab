@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, TrendingDown, Calculator } from "lucide-react";
 import { PLAN_PRICES } from "@/lib/plans";
 import { SiteFooter } from "@/components/common/SiteFooter";
+import FeatureHeader from "@/components/common/FeatureHeader";
 
 const AEOLAB_MONTHLY = PLAN_PRICES.basic;
 
@@ -22,6 +23,7 @@ export default function AdCostCalculatorPage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <FeatureHeader />
       {/* 헤더 */}
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-2xl mx-auto px-4 py-8 md:py-10">

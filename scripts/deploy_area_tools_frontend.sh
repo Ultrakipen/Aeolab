@@ -48,6 +48,7 @@ NEWPATHS=(
   "frontend/app/(public)/tools/vat"
   "frontend/app/(public)/tools/page.tsx"
   frontend/components/common/FeatureNav.tsx
+  frontend/components/common/FeatureHeader.tsx
   frontend/lib/area.ts
   frontend/lib/calc
   frontend/lib/useClientValue.ts

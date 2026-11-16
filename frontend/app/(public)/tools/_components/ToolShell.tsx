@@ -4,6 +4,7 @@ import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import RelatedTools from "./RelatedTools";
 import FeatureNav from "@/components/common/FeatureNav";
+import MobileResultBar from "./MobileResultBar";
 import { themeForPath, themeVars } from "./toolTheme";
 
 // 사장님 계산기 공통 틀 — 헤더·제목·면책·푸터. 계산 UI는 children.
@@ -101,6 +102,7 @@ export default function ToolShell({
         </p>
       </div>
 
+      <MobileResultBar />
       <SiteFooter activePage="/tools" />
     </main>
   );
