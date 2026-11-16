@@ -25,6 +25,36 @@ export default function DeliverySettlementPage() {
           <li>배달앱 수수료율은 자주 바뀌고 매출 구간·요금제에 따라 달라서 기본값을 넣지 않았어요. 사장님 사이트의 정산서나 요금제 안내에서 확인해 입력해 주세요.</li>
         </ul>
       </section>
+      <section className="rounded-xl border border-gray-200 bg-white p-4 md:p-5">
+        <h2 className="text-base font-bold text-gray-900">수수료율은 어디서 확인하나요?</h2>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-gray-700 break-keep">
+          <li>사장님 앱·사이트의 정산 내역에서 주문 1건의 중개이용료·결제수수료·배달비·부가세 줄을 확인해 그대로 입력하세요.</li>
+          <li>앱마다 요금제, 가입 시기, 매출 구간에 따라 수수료율이 다르고, 일부는 한 달 매출로 구간이 정해진 뒤 차액을 다음 달에 돌려주는 방식이 보도됐어요. 돌려받은 뒤의 실제 부담률을 넣으면 더 정확해요.</li>
+          <li>고시 수수료율은 부가세 별도로 안내되는 경우가 있어요. 정산 내역에 부가세가 따로 보이면 위의 부가세 칸을 체크하세요.</li>
+        </ul>
+        <p className="mt-3 text-sm font-medium text-gray-800">각 앱의 사장님 사이트 (새 창)</p>
+        <ul className="mt-2 flex flex-wrap gap-2">
+          {[
+            { name: "배달의민족 사장님", href: "https://ceo.baemin.com" },
+            { name: "쿠팡이츠 사장님", href: "https://store.coupangeats.com" },
+            { name: "요기요 사장님", href: "https://ceo.yogiyo.co.kr" },
+          ].map((l) => (
+            <li key={l.href}>
+              <a
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-[44px] items-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-blue-700 hover:bg-blue-50"
+              >
+                {l.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-sm leading-relaxed text-gray-600 break-keep">
+          위 링크는 각 회사의 사장님용 공식 사이트로 연결되는 안내일 뿐이에요. 요율은 해당 사이트에서 로그인 후 확인하세요.
+        </p>
+      </section>
     </ToolShell>
   );
 }
