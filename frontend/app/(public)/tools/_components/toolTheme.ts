@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { Calculator, MapPin, Receipt, Scale, Search, Truck, Users, type LucideIcon } from "lucide-react";
+import { Calculator, Landmark, MapPin, Receipt, Scale, Search, Truck, Users, type LucideIcon } from "lucide-react";
 
 // 도구별 포인트 색 — 색만으로 뜻을 전달하지 않는다(제목·아이콘·글자가 함께 있음). 글자색(ink)은 흰/연한 배경에서 4.5:1 이상이 되는 짙은 색.
 export interface ToolTheme {
@@ -52,6 +52,13 @@ export const TOOL_THEMES: Record<string, ToolTheme> = {
     soft: "oklch(0.984 0.014 180.72)",
     ink: "oklch(0.437 0.078 188.216)",
     icon: Search,
+  },
+  support: {
+    key: "support",
+    accent: "oklch(0.508 0.118 165.612)",
+    soft: "oklch(0.979 0.021 166.113)",
+    ink: "oklch(0.432 0.095 166.913)",
+    icon: Landmark,
   },
   area: {
     key: "area",

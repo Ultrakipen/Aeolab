@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 const ITEMS = [
   { href: "/tools", label: "사장님 계산기", prefix: "/tools" },
   { href: "/area", label: "우리 동네 상권", prefix: "/area" },
+  { href: "/support-programs", label: "지원사업", prefix: "/support-programs" },
   { href: "/how-it-works", label: "서비스 안내", prefix: "/how-it-works" },
   { href: "/pricing", label: "요금제", prefix: "/pricing" },
   { href: "/faq", label: "FAQ", prefix: "/faq" },

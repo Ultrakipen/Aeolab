@@ -120,6 +120,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.7,
     },
+    // 소상공인 지원사업 공고 — 하루 한 번 갱신되는 목록
+    {
+      url: `${baseUrl}/support-programs`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.7,
+    },
     // 사장님 계산기 허브와 4개 계산기(기존 광고비 비교·키워드 생성기도 처음으로 사이트맵에 등재)
     ...["/tools", "/tools/break-even", "/tools/delivery-settlement", "/tools/labor-cost", "/tools/vat", "/tools/ad-cost-calculator", "/tools/keyword"].map(
       (path) => ({

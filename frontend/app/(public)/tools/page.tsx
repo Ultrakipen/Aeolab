@@ -150,6 +150,23 @@ export default function ToolsHubPage() {
             지역과 업종을 고르면 업소 수와 누적 폐업 현황을 공공데이터로 보여 드려요.
           </span>
         </Link>
+        <Link
+          href="/support-programs"
+          style={themeVars(TOOL_THEMES.support)}
+          className="mt-4 flex min-h-[44px] items-center gap-4 rounded-xl border border-gray-200 border-l-4 border-l-[var(--tool-accent)] bg-white p-5 transition hover:-translate-y-0.5 hover:border-gray-300 hover:border-l-[var(--tool-accent)] hover:shadow-md"
+        >
+          <span
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+            style={{ backgroundColor: "var(--tool-soft)", color: "var(--tool-ink)" }}
+            aria-hidden="true"
+          >
+            <TOOL_THEMES.support.icon className="h-6 w-6" />
+          </span>
+          <span className="break-keep text-sm leading-relaxed text-gray-700">
+            <strong className="block text-base text-gray-900">소상공인 지원사업 공고</strong>
+            기업마당에 올라온 지원사업·교육·행사를 마감 임박순으로 모아 보여 드려요. 신청은 원문에서 해요.
+          </span>
+        </Link>
       </section>
 
       <SiteFooter activePage="/tools" />
