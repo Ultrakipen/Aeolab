@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { SiteFooter } from "@/components/common/SiteFooter";
-import { areaPath, fetchAreaMeta, groupBySido } from "@/lib/area";
+import { areaPath, fetchAreaAvailability, fetchAreaMeta, groupBySido } from "@/lib/area";
 import AreaHeader from "./AreaHeader";
 import AreaPicker from "./AreaPicker";
 
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AreaHubPage() {
-  const meta = await fetchAreaMeta();
+  const [meta, availability] = await Promise.all([fetchAreaMeta(), fetchAreaAvailability()]);
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -35,7 +35,7 @@ export default async function AreaHubPage() {
             확인해 보세요. 지역과 업종만 고르면 됩니다.
           </p>
           <div className="mt-6">
-            <AreaPicker meta={meta} />
+            <AreaPicker meta={meta} availability={availability} />
           </div>
         </div>
       </div>

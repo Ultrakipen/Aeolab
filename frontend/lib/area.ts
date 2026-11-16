@@ -89,6 +89,21 @@ export async function fetchAreaAvailable(): Promise<{ region: string; category: 
   }
 }
 
+// 선택 화면용 — 값이 모인 (지역→업종 목록). 실패하면 null(표시를 막지 않고 전부 선택 가능하게 둔다: 빈 목록으로 오인해 모두 잠그지 않도록)
+export async function fetchAreaAvailability(): Promise<Record<string, string[]> | null> {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/area/available`, { next: { revalidate: AREA_REVALIDATE_SECONDS } });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { items?: { region: string; category: string }[] };
+    if (!Array.isArray(data.items)) return null;
+    const map: Record<string, string[]> = {};
+    for (const it of data.items) (map[it.region] ??= []).push(it.category);
+    return map;
+  } catch {
+    return null;
+  }
+}
+
 /** "202609" → "2026년 9월". 형식이 다르면 null(추측해서 만들지 않는다) */
 export function formatStdrYm(v: string | null | undefined): string | null {
   if (!v || !/^\d{6}$/.test(v)) return null;

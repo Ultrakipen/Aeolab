@@ -7,6 +7,7 @@ import TrackedCTA from "@/components/analytics/TrackedCTA";
 import {
   areaPath,
   fetchAreaDetail,
+  fetchAreaAvailability,
   fetchAreaMeta,
   formatCollectedDate,
   formatStdrYm,
@@ -150,7 +151,7 @@ export default async function AreaDetailPage({ params }: Props) {
   const { region, category, detail } = await load(params);
   if (!detail || !detail.region_label || !detail.category_label) notFound();
 
-  const meta = await fetchAreaMeta();
+  const [meta, availability] = await Promise.all([fetchAreaMeta(), fetchAreaAvailability()]);
   const title = `${detail.region_label} ${detail.category_label} 상권 현황`;
 
   return (
@@ -174,7 +175,7 @@ export default async function AreaDetailPage({ params }: Props) {
             <span>{detail.region_label}</span>
           </nav>
           <h1 className="mb-6 break-keep text-2xl font-bold text-gray-900 md:text-3xl">{title}</h1>
-          <AreaPicker meta={meta} initialRegion={region} initialCategory={category} />
+          <AreaPicker meta={meta} availability={availability} initialRegion={region} initialCategory={category} />
         </div>
       </div>
 

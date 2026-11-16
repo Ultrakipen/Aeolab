@@ -10,10 +10,13 @@ export default function AreaPicker({
   meta,
   initialRegion,
   initialCategory,
+  availability = null,
 }: {
   meta: AreaMeta;
   initialRegion?: string;
   initialCategory?: string;
+  // 지역 → 값이 모인 업종. null 이면(조회 실패) 표시 없이 전부 선택 가능
+  availability?: Record<string, string[]> | null;
 }) {
   const router = useRouter();
   const groups = useMemo(() => groupBySido(meta.regions), [meta.regions]);
@@ -23,6 +26,11 @@ export default function AreaPicker({
   const [category, setCategory] = useState(initialCategory ?? "");
   const ready = region !== "" && category !== "";
   const options = groups.find((g) => g.sido === sido)?.regions ?? [];
+  // 아직 수집되지 않은 지역·업종은 누르면 빈 화면이 나오므로 미리 "집계 준비 중"으로 알려 준다(지금 보고 있는 선택은 그대로 둔다)
+  const regionReady = (slug: string) => availability === null || (availability[slug]?.length ?? 0) > 0;
+  const categoryReady = (value: string) =>
+    availability === null || region === "" || (availability[region]?.includes(value) ?? false);
+  const readyRegionCount = availability === null ? null : options.filter((r) => regionReady(r.slug)).length;
 
   const selectClass =
     "w-full min-h-[48px] rounded-lg border border-gray-300 bg-white px-3 text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500";
@@ -63,8 +71,8 @@ export default function AreaPicker({
         >
           <option value="">{sido === "" ? "시·도를 먼저 선택하세요" : "시·군·구를 선택하세요"}</option>
           {options.map((r) => (
-            <option key={r.slug} value={r.slug}>
-              {r.sigungu}
+            <option key={r.slug} value={r.slug} disabled={!regionReady(r.slug) && r.slug !== initial?.slug}>
+              {regionReady(r.slug) ? r.sigungu : `${r.sigungu} (집계 준비 중)`}
             </option>
           ))}
         </select>
@@ -74,12 +82,17 @@ export default function AreaPicker({
         <select className={selectClass} value={category} onChange={(e) => setCategory(e.target.value)}>
           <option value="">업종을 선택하세요</option>
           {meta.categories.map((c) => (
-            <option key={c.value} value={c.value}>
-              {c.label}
+            <option key={c.value} value={c.value} disabled={!categoryReady(c.value) && c.value !== initialCategory}>
+              {categoryReady(c.value) ? c.label : `${c.label} (집계 준비 중)`}
             </option>
           ))}
         </select>
       </label>
+      {sido !== "" && readyRegionCount === 0 ? (
+        <p className="text-sm leading-relaxed text-gray-600 break-keep md:col-span-4">
+          이 시·도는 공공데이터를 모으는 중이라 아직 선택할 수 있는 지역이 없어요. 순서대로 반영하고 있어요.
+        </p>
+      ) : null}
       <button
         type="submit"
         disabled={!ready}
