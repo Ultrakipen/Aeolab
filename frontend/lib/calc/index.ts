@@ -71,6 +71,8 @@ export const CALC_BASIS = {
   vat: {
     generalRatePct: 10, // 일반과세자 부가가치세율
     purchaseCreditPct: 0.5, // 간이과세자 매입(공급대가)에 대한 세액공제율
+    // 간이과세자 납부의무 면제 기준: 과세기간(1년) 공급대가 합계 4,800만원 미만(신고 의무는 남음). 2026-11-16 세무 해설 자료로 확인, 국세청 원문은 직접 확인하지 못함.
+    simplifiedExemptBelow: 48_000_000,
     // 간이과세자 업종별 부가가치율(2021-07-01 이후 기준, 국세청 안내). 시행령 원문은 이번에 직접 확인하지 못함.
     valueAddedRates: [
       { key: "retail_food", label: "소매업 · 음식점업", pct: 15 },
