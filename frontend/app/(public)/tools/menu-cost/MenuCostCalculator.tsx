@@ -42,11 +42,13 @@ export default function MenuCostCalculator() {
 
   const filled = rows.filter((r) => !isBlank(r));
   const incomplete = filled.filter((r) => !isComplete(r));
-  const ingredients: CostIngredient[] = filled.filter(isComplete).map((r) => ({
-    purchasePrice: parseNum(r.price) ?? 0,
-    purchaseQty: parseNum(r.qty) ?? 0,
-    useQty: parseNum(r.use) ?? 0,
-    lossPct: parseNum(r.loss) ?? 0,
+  // 화면에 보이는 줄 번호(재료 N)를 기억해 둔다 — 빈 줄이 앞에 있어도 경고·재료별 원가의 번호가 화면과 같게
+  const complete = rows.map((row, i) => ({ row, no: i + 1 })).filter(({ row }) => !isBlank(row) && isComplete(row));
+  const ingredients: CostIngredient[] = complete.map(({ row }) => ({
+    purchasePrice: parseNum(row.price) ?? 0,
+    purchaseQty: parseNum(row.qty) ?? 0,
+    useQty: parseNum(row.use) ?? 0,
+    lossPct: parseNum(row.loss) ?? 0,
   }));
 
   // 입력이 덜 끝난 재료가 있으면 일부만 더한 값이 "원가"처럼 보이지 않게 계산을 멈추고 안내한다
@@ -72,7 +74,7 @@ export default function MenuCostCalculator() {
     setTarget("");
   };
 
-  const rowNames = filled.filter(isComplete).map((row, idx) => row.name.trim() || `재료 ${idx + 1}`);
+  const rowNames = complete.map(({ row, no }) => row.name.trim() || `재료 ${no}`);
 
   return (
     <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
@@ -179,7 +181,7 @@ export default function MenuCostCalculator() {
           </Warn>
         ) : r === null ? null : !r.ok ? (
           <Warn>
-            {r.reason === "ingredient_invalid" && `재료 ${(r.index ?? 0) + 1}번의 값을 확인해 주세요. 산 양은 0보다 커야 하고 손실률은 0% 이상 100% 미만이어야 해요.`}
+            {r.reason === "ingredient_invalid" && `재료 ${complete[r.index ?? 0]?.no ?? (r.index ?? 0) + 1}번의 값을 확인해 주세요. 산 양은 0보다 커야 하고 손실률은 0% 이상 100% 미만이어야 해요.`}
             {r.reason === "other_negative" && "재료 말고 드는 비용은 0원 이상으로 입력해 주세요."}
             {r.reason === "price_not_positive" && "판매가는 0원보다 커야 해요."}
             {r.reason === "target_out_of_range" && "목표 원가율은 0%보다 크고 100% 이하로 입력해 주세요."}

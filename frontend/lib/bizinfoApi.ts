@@ -14,3 +14,17 @@ export async function fetchBizinfo(): Promise<BizinfoView> {
   if (!res.ok) throw new Error(`bizinfo ${res.status}`);
   return (await res.json()) as BizinfoView;
 }
+
+/** 스냅샷이 만들어진 날짜(사이트맵 lastmod 용 — 실제로 내용이 바뀐 날만 반영). 실패하면 null(빌드·요청을 막지 않는다) */
+export async function fetchBizinfoUpdatedAt(): Promise<Date | null> {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/bizinfo`, { next: { revalidate: BIZINFO_REVALIDATE_SECONDS } });
+    if (!res.ok) return null;
+    const j = (await res.json()) as BizinfoView;
+    if (!j.available || !j.generated_at) return null;
+    const t = Date.parse(j.generated_at);
+    return Number.isFinite(t) ? new Date(t) : null;
+  } catch {
+    return null;
+  }
+}

@@ -3,6 +3,7 @@ import { KEYWORD_PAGES } from "@/lib/keywords-data";
 import { BLOG_POSTS } from "@/lib/blog-posts";
 import { FLAT_CATEGORIES } from "@/lib/categories";
 import { areaPath, fetchAreaAvailable } from "@/lib/area";
+import { fetchBizinfoUpdatedAt } from "@/lib/bizinfoApi";
 
 // 실제로 내용이 바뀐 날짜만 갱신할 것 — 매번 오늘 날짜로 바꾸면 구글이 lastmod를 신뢰하지 않는다.
 const SITE_BUILD_DATE = new Date("2026-10-12"); // 랜딩·체험·요금 등 10-10 개편 반영
@@ -19,6 +20,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));
+
+  // 지원사업 공고 목록은 하루 한 번 바뀐다 — 매 요청 오늘 날짜가 아니라 스냅샷을 받은 날짜를 쓴다(lastmod 신뢰 유지)
+  const bizinfoUpdatedAt = await fetchBizinfoUpdatedAt();
 
   const keywordPages: MetadataRoute.Sitemap = KEYWORD_PAGES.map((p) => ({
     url: `${baseUrl}/keywords/${p.slug}`,
@@ -123,7 +127,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // 소상공인 지원사업 공고 — 하루 한 번 갱신되는 목록
     {
       url: `${baseUrl}/support-programs`,
-      lastModified: new Date(),
+      lastModified: bizinfoUpdatedAt ?? AREA_LAUNCH_DATE,
       changeFrequency: "daily",
       priority: 0.7,
     },

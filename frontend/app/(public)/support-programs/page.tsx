@@ -49,7 +49,7 @@ export default async function SupportProgramsPage() {
           </ul>
           {ready ? (
             <p className="mt-3 text-sm text-gray-600">
-              마지막 갱신 {updated} · 소상공인 관련 공고 {support.length}건 (지원대상이 &lsquo;소상공인&rsquo;으로 표시된 공고 {support.filter((x) => x.sbiz_target).length}건 포함)
+              마지막 갱신 {updated} · 지원대상이 &lsquo;소상공인&rsquo;으로 표시된 공고 {support.filter((x) => x.sbiz_target).length}건, 그 밖에 제목·내용에 소상공인이 언급된 공고 {support.filter((x) => !x.sbiz_target).length}건
             </p>
           ) : null}
         </div>
