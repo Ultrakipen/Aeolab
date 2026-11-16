@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CALC_BASIS } from "@/lib/calc";
 import BasisNotice from "../_components/BasisNotice";
 import ToolShell from "../_components/ToolShell";
+import { pageOpenGraph } from "@/lib/seoMeta";
 import LaborCalculator from "./LaborCalculator";
 
 export const metadata: Metadata = {
@@ -9,6 +10,8 @@ export const metadata: Metadata = {
   description:
     "시급과 근무 시간을 넣으면 주휴수당을 포함한 월급과 사업주가 부담하는 4대보험 개략액까지 한 달 인건비를 계산합니다. 입력한 값은 저장하지 않습니다.",
   alternates: { canonical: "/tools/labor-cost" },
+  openGraph: pageOpenGraph({ title: "직원 인건비 계산기(주휴수당·4대보험) | AEOlab 사장님 계산기", description:
+    "시급과 근무 시간을 넣으면 주휴수당을 포함한 월급과 사업주가 부담하는 4대보험 개략액까지 한 달 인건비를 계산합니다. 입력한 값은 저장하지 않습니다.", path: "/tools/labor-cost" }),
 };
 
 export default function LaborCostPage() {

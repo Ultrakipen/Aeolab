@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 import { SiteFooter } from "@/components/common/SiteFooter";
+import { pageOpenGraph } from "@/lib/seoMeta";
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import FeatureNav from "@/components/common/FeatureNav";
 import { TOOL_THEMES, themeVars } from "./_components/toolTheme";
@@ -11,6 +12,8 @@ export const metadata: Metadata = {
   description:
     "손익분기점·마진율, 배달앱 실수령액, 직원 인건비(주휴수당·4대보험), 부가세를 로그인 없이 무료로 계산해 보세요. 입력한 값은 저장하지 않고 기준값은 출처와 확인일을 함께 보여 드립니다.",
   alternates: { canonical: "/tools" },
+  openGraph: pageOpenGraph({ title: "사장님 계산기 — 손익분기점·배달 실수령·인건비·부가세 | AEOlab", description:
+    "손익분기점·마진율, 배달앱 실수령액, 직원 인건비(주휴수당·4대보험), 부가세를 로그인 없이 무료로 계산해 보세요. 입력한 값은 저장하지 않고 기준값은 출처와 확인일을 함께 보여 드립니다.", path: "/tools" }),
 };
 
 const TOOLS = [

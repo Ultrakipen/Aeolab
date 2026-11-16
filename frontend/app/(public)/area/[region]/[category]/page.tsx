@@ -25,6 +25,8 @@ export async function generateStaticParams() {
   return [];
 }
 
+import { pageOpenGraph } from "@/lib/seoMeta";
+
 type Props = { params: Promise<{ region: string; category: string }> };
 
 async function load(params: Props["params"]) {
@@ -43,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    openGraph: { title, description, url: areaPath(region, category), type: "website" },
+    openGraph: pageOpenGraph({ title, description, path: areaPath(region, category) }),
     alternates: { canonical: areaPath(region, category) },
     // 값이 없는 조합은 색인하지 않는다(내용이 빈 페이지가 검색에 남지 않게)
     robots: detail.available ? undefined : { index: false, follow: true },

@@ -6,6 +6,7 @@ import { areaPath, fetchAreaAvailable } from "@/lib/area";
 
 // 실제로 내용이 바뀐 날짜만 갱신할 것 — 매번 오늘 날짜로 바꾸면 구글이 lastmod를 신뢰하지 않는다.
 const SITE_BUILD_DATE = new Date("2026-10-12"); // 랜딩·체험·요금 등 10-10 개편 반영
+const AREA_LAUNCH_DATE = new Date("2026-11-16"); // /area 공개일(10-12 사이트 개편일보다 늦다 — 실제 생긴 날짜를 쓴다)
 const LEGAL_UPDATED_DATE = new Date("2026-06-18"); // 약관·개인정보(미변경)
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -14,7 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // 우리 동네 상권 — 공공데이터가 실제로 수집된 조합만(빈 페이지가 색인되지 않게). 백엔드 실패 시 빈 목록.
   const areaPages: MetadataRoute.Sitemap = (await fetchAreaAvailable()).map((a) => ({
     url: `${baseUrl}${areaPath(a.region, a.category)}`,
-    lastModified: SITE_BUILD_DATE,
+    lastModified: AREA_LAUNCH_DATE,
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));
@@ -115,7 +116,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${baseUrl}/area`,
-      lastModified: SITE_BUILD_DATE,
+      lastModified: AREA_LAUNCH_DATE,
       changeFrequency: "monthly",
       priority: 0.7,
     },
@@ -123,7 +124,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...["/tools", "/tools/break-even", "/tools/delivery-settlement", "/tools/labor-cost", "/tools/vat", "/tools/ad-cost-calculator", "/tools/keyword"].map(
       (path) => ({
         url: `${baseUrl}${path}`,
-        lastModified: new Date("2026-11-16"),
+        lastModified: AREA_LAUNCH_DATE,
         changeFrequency: "monthly" as const,
         priority: path === "/tools" ? 0.7 : 0.6,
       }),

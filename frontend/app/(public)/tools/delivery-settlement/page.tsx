@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ToolShell from "../_components/ToolShell";
+import { pageOpenGraph } from "@/lib/seoMeta";
 import DeliveryCalculator from "./DeliveryCalculator";
 
 export const metadata: Metadata = {
@@ -7,6 +8,8 @@ export const metadata: Metadata = {
   description:
     "주문금액과 정산서의 수수료율을 넣으면 배달앱 수수료·배달비·광고비를 뺀 실수령액과 이익을 계산합니다. 수수료율은 직접 입력하며 입력한 값은 저장하지 않습니다.",
   alternates: { canonical: "/tools/delivery-settlement" },
+  openGraph: pageOpenGraph({ title: "배달앱 실수령액 계산기 | AEOlab 사장님 계산기", description:
+    "주문금액과 정산서의 수수료율을 넣으면 배달앱 수수료·배달비·광고비를 뺀 실수령액과 이익을 계산합니다. 수수료율은 직접 입력하며 입력한 값은 저장하지 않습니다.", path: "/tools/delivery-settlement" }),
 };
 
 export default function DeliverySettlementPage() {

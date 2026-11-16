@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ToolShell from "../_components/ToolShell";
+import { pageOpenGraph } from "@/lib/seoMeta";
 import BreakEvenCalculator from "./BreakEvenCalculator";
 
 export const metadata: Metadata = {
@@ -7,6 +8,8 @@ export const metadata: Metadata = {
   description:
     "판매가·원가·고정비만 넣으면 1개당 이익, 마진율, 한 달에 몇 개를 팔아야 손해가 없는지 바로 계산합니다. 입력한 값은 저장하지 않습니다.",
   alternates: { canonical: "/tools/break-even" },
+  openGraph: pageOpenGraph({ title: "손익분기점·마진율 계산기 | AEOlab 사장님 계산기", description:
+    "판매가·원가·고정비만 넣으면 1개당 이익, 마진율, 한 달에 몇 개를 팔아야 손해가 없는지 바로 계산합니다. 입력한 값은 저장하지 않습니다.", path: "/tools/break-even" }),
 };
 
 export default function BreakEvenPage() {

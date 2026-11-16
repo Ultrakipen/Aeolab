@@ -3,6 +3,7 @@ import Link from "next/link";
 import { MapPin } from "lucide-react";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { areaPath, fetchAreaAvailability, fetchAreaMeta, groupBySido } from "@/lib/area";
+import { pageOpenGraph } from "@/lib/seoMeta";
 import AreaHeader from "./AreaHeader";
 import AreaPicker from "./AreaPicker";
 
@@ -14,6 +15,8 @@ export const metadata: Metadata = {
   description:
     "지역과 업종을 고르면 공공데이터(소상공인시장진흥공단 상가정보, 행정안전부 인허가) 기준의 업소 수와 누적 폐업 현황을 보여 드립니다. 로그인 없이 무료로 확인하세요.",
   alternates: { canonical: "/area" },
+  openGraph: pageOpenGraph({ title: "우리 동네 상권 — 지역·업종별 업소 수와 폐업 현황 | AEOlab", description:
+    "지역과 업종을 고르면 공공데이터(소상공인시장진흥공단 상가정보, 행정안전부 인허가) 기준의 업소 수와 누적 폐업 현황을 보여 드립니다. 로그인 없이 무료로 확인하세요.", path: "/area" }),
 };
 
 export default async function AreaHubPage() {
