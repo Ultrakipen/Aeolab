@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
+import FeatureNav from "@/components/common/FeatureNav";
 import { TOOL_THEMES, themeVars } from "./_components/toolTheme";
 
 export const metadata: Metadata = {
@@ -60,8 +61,7 @@ export default function ToolsHubPage() {
             <Link href="/" className="text-xl font-bold text-blue-600 md:text-2xl">
               AEOlab
             </Link>
-            <span className="hidden text-gray-300 sm:inline" aria-hidden="true">/</span>
-            <span className="hidden text-sm text-gray-600 sm:inline">사장님 계산기</span>
+            <FeatureNav variant="inline" />
           </div>
           <div className="flex items-center gap-3">
             <Link href="/trial" className="hidden min-h-[44px] items-center text-sm text-gray-600 hover:text-gray-900 sm:inline-flex">
@@ -71,6 +71,7 @@ export default function ToolsHubPage() {
           </div>
         </div>
       </header>
+      <FeatureNav variant="row" />
 
       <div
         className="border-b border-gray-100 bg-white"

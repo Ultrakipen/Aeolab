@@ -3,6 +3,7 @@ import { SiteFooter } from "@/components/common/SiteFooter";
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import RelatedTools from "./RelatedTools";
+import FeatureNav from "@/components/common/FeatureNav";
 import { themeForPath, themeVars } from "./toolTheme";
 
 // 사장님 계산기 공통 틀 — 헤더·제목·면책·푸터. 계산 UI는 children.
@@ -51,10 +52,7 @@ export default function ToolShell({
             <Link href="/" className="text-xl font-bold text-blue-600 md:text-2xl">
               AEOlab
             </Link>
-            <span className="hidden text-gray-300 sm:inline" aria-hidden="true">/</span>
-            <Link href="/tools" className="hidden min-h-[44px] items-center text-sm text-gray-600 hover:text-gray-900 sm:inline-flex">
-              사장님 계산기
-            </Link>
+            <FeatureNav variant="inline" />
           </div>
           <div className="flex items-center gap-3">
             <Link href="/trial" className="hidden min-h-[44px] items-center text-sm text-gray-600 hover:text-gray-900 sm:inline-flex">
@@ -64,6 +62,7 @@ export default function ToolShell({
           </div>
         </div>
       </header>
+      <FeatureNav variant="row" />
 
       <div
         className="border-b border-gray-100 bg-white"
