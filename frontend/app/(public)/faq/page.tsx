@@ -1,7 +1,7 @@
+import SiteHeader from "@/components/common/SiteHeader";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { SiteFooter } from "@/components/common/SiteFooter";
-import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import { MoreInfo } from "@/components/common/MoreInfo";
 import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 
@@ -209,44 +209,7 @@ export default function FAQPage() {
 
       <main className="min-h-screen bg-white">
         {/* 헤더 */}
-        <header className="border-b border-gray-100 px-3 sm:px-4 md:px-6 py-3 md:py-4 sticky top-0 bg-white/95 backdrop-blur z-50">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="text-xl font-bold text-blue-600">AEOlab</span>
-              <span className="text-sm text-gray-600 hidden sm:block">
-                네이버·ChatGPT·Google AI 노출 관리
-              </span>
-            </Link>
-            <nav className="flex items-center gap-2 sm:gap-3 lg:gap-6">
-              <Link
-                href="/how-it-works"
-                className="hidden lg:block text-base text-gray-600 hover:text-gray-900 whitespace-nowrap"
-              >
-                서비스 안내
-              </Link>
-              <Link
-                href="/faq"
-                className="hidden md:block text-base text-blue-600 font-semibold"
-                aria-current="page"
-              >
-                FAQ
-              </Link>
-              <Link
-                href="/pricing"
-                className="hidden sm:block text-base text-gray-600 hover:text-gray-900"
-              >
-                요금제
-              </Link>
-              <AuthNavControlClient />
-              <Link
-                href="/trial"
-                className="bg-blue-600 text-white text-sm md:text-base px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold whitespace-nowrap"
-              >
-                무료 진단<span className="max-[359px]:hidden"> 시작</span>
-              </Link>
-            </nav>
-          </div>
-        </header>
+        <SiteHeader maxWidth="max-w-7xl" />
 
         {/* 페이지 히어로 */}
         <section className="bg-gradient-to-b from-blue-50/40 to-white px-4 md:px-6 py-10 md:py-14">

@@ -1,10 +1,9 @@
+import SiteHeader from "@/components/common/SiteHeader";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { pageOpenGraph } from "@/lib/seoMeta";
-import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
-import FeatureNav from "@/components/common/FeatureNav";
 import { TOOL_THEMES, themeVars } from "./_components/toolTheme";
 
 export const metadata: Metadata = {
@@ -70,23 +69,7 @@ const TOOLS = [
 export default function ToolsHubPage() {
   return (
     <main className="min-h-screen bg-gray-50">
-      <header className="sticky top-0 z-40 border-b border-gray-100 bg-white px-4 py-4 md:px-6">
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Link href="/" className="text-xl font-bold text-blue-600 md:text-2xl">
-              AEOlab
-            </Link>
-            <FeatureNav variant="inline" />
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/trial" className="hidden min-h-[44px] items-center text-sm text-gray-600 hover:text-gray-900 sm:inline-flex">
-              무료 체험
-            </Link>
-            <AuthNavControlClient />
-          </div>
-        </div>
-      </header>
-      <FeatureNav variant="row" />
+      <SiteHeader maxWidth="max-w-5xl" />
 
       <div
         className="border-b border-gray-100 bg-white"

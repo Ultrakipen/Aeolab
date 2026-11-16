@@ -1,10 +1,10 @@
 "use client";
+import SiteHeader from "@/components/common/SiteHeader";
 
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Lock, Check, X, Utensils, Coffee, Scissors, BookOpen } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import { IconTile } from "@/components/common/IconTile";
 
 // ────────────────────────────────────────────────────────────
@@ -852,12 +852,7 @@ export default function PlansPreviewPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-indigo-600 font-bold text-sm">← AEOlab</Link>
-          <AuthNavControlClient />
-        </div>
-      </header>
+      <SiteHeader maxWidth="max-w-2xl" />
 
       <main className="max-w-2xl mx-auto px-4 py-6 md:py-10">
         {/* 상단 안내 */}

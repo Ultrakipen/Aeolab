@@ -38,6 +38,18 @@ MODIFIED=(
   frontend/next.config.ts
   frontend/package.json
   frontend/lib/analytics.ts
+  "frontend/app/(public)/faq/page.tsx"
+  "frontend/app/(public)/pricing/page.tsx"
+  "frontend/app/(public)/blog/page.tsx"
+  "frontend/app/(public)/blog/[slug]/page.tsx"
+  "frontend/app/(public)/ranking/page.tsx"
+  "frontend/app/(public)/showcase/page.tsx"
+  "frontend/app/(public)/ai-search-diagnosis/page.tsx"
+  "frontend/app/(public)/help/page.tsx"
+  "frontend/app/(public)/guide/channels/page.tsx"
+  "frontend/app/(public)/guide/channels/[category]/page.tsx"
+  "frontend/app/(public)/guide/chatgpt-search/page.tsx"
+  "frontend/app/(public)/plans-preview/page.tsx"
 )
 # 서버에 없는 새 파일·폴더
 NEWPATHS=(
@@ -52,7 +64,7 @@ NEWPATHS=(
   "frontend/app/(public)/tools/ad-cost-calculator/layout.tsx"
   "frontend/app/(public)/tools/keyword/layout.tsx"
   "frontend/app/(public)/tools/keyword/page.tsx"
-  frontend/components/common/FeatureNav.tsx
+  frontend/components/common/SiteHeader.tsx
   frontend/components/common/FeatureHeader.tsx
   "frontend/app/(public)/how-it-works/page.tsx"
   frontend/lib/seoMeta.ts

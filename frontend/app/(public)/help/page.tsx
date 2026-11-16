@@ -1,7 +1,7 @@
+import SiteHeader from "@/components/common/SiteHeader";
 import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { SiteFooter } from "@/components/common/SiteFooter";
-import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import { HelpContactCTA } from "./HelpContactCTA";
 
 export const metadata = { title: "도움말 FAQ | AEOlab" };
@@ -69,21 +69,7 @@ export default async function HelpPage({ searchParams }: PageProps) {
 
   return (
     <>
-    <header className="border-b border-gray-100 px-4 md:px-6 py-4 bg-white">
-      <div className="max-w-3xl mx-auto flex items-center justify-between">
-        <Link href="/" className="text-xl font-bold text-blue-600">AEOlab</Link>
-        <div className="flex items-center gap-3 md:gap-4">
-          <Link href="/faq" className="hidden sm:block text-sm text-gray-600 hover:text-gray-900">FAQ</Link>
-          <AuthNavControlClient />
-          <Link
-            href="/trial"
-            className="bg-blue-600 text-white text-sm px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
-          >
-            무료 진단
-          </Link>
-        </div>
-      </div>
-    </header>
+    <SiteHeader maxWidth="max-w-3xl" />
     <main className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto p-4 md:p-8">
         {/* 헤더 */}

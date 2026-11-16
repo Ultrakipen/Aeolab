@@ -1,9 +1,9 @@
+import SiteHeader from "@/components/common/SiteHeader";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { BLOG_POSTS } from "@/lib/blog-posts";
 import { SiteFooter } from "@/components/common/SiteFooter";
-import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 
 export const metadata: Metadata = {
   title: "소상공인 AI 검색 노출 가이드 | AEOlab 블로그",
@@ -37,22 +37,7 @@ export default function BlogIndexPage() {
   return (
     <main className="min-h-screen bg-white">
       {/* 헤더 */}
-      <header className="border-b border-gray-100 px-4 md:px-6 py-3 md:py-4 sticky top-0 bg-white/95 backdrop-blur z-50">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-blue-600">
-            AEOlab
-          </Link>
-          <div className="flex items-center gap-3 md:gap-4">
-            <AuthNavControlClient />
-            <Link
-              href="/trial"
-              className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-            >
-              무료 진단 시작
-            </Link>
-          </div>
-        </div>
-      </header>
+      <SiteHeader maxWidth="max-w-5xl" />
 
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-10 md:py-14">
         {/* 타이틀 */}

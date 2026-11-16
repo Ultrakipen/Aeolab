@@ -1,6 +1,6 @@
+import SiteHeader from "@/components/common/SiteHeader";
 import Link from "next/link";
 import { Metadata } from "next";
-import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { ShowcaseTabs } from "./ShowcaseTabs";
 
@@ -12,12 +12,7 @@ export const metadata: Metadata = {
 export default function ShowcasePage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-blue-600 font-bold text-sm">← AEOlab</Link>
-          <AuthNavControlClient />
-        </div>
-      </header>
+      <SiteHeader maxWidth="max-w-6xl" />
 
       <main className="max-w-6xl mx-auto px-4 py-8 md:py-12">
         <div className="text-center mb-8 md:mb-10">

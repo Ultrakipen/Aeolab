@@ -1,9 +1,9 @@
+import SiteHeader from "@/components/common/SiteHeader";
 import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE, AI_COUNT_LABEL } from "@/lib/featureFlags";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BarChart2 } from "lucide-react";
 import { SiteFooter } from "@/components/common/SiteFooter";
-import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import RankingClient from "./RankingClient";
 
 export const metadata: Metadata = {
@@ -21,26 +21,7 @@ export default function RankingPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* 헤더 */}
-      <header className="bg-white border-b border-gray-100 px-4 md:px-6 py-4 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Link href="/" className="text-xl md:text-2xl font-bold text-blue-600">
-              AEOlab
-            </Link>
-            <span className="text-gray-300 hidden sm:inline">/</span>
-            <span className="text-sm text-gray-600 hidden sm:inline">AI 노출 랭킹</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/trial"
-              className="hidden sm:block text-sm text-gray-600 hover:text-gray-900"
-            >
-              무료 체험
-            </Link>
-            <AuthNavControlClient />
-          </div>
-        </div>
-      </header>
+      <SiteHeader maxWidth="max-w-6xl" />
 
       {/* 페이지 타이틀 */}
       <div className="bg-white border-b border-gray-100">

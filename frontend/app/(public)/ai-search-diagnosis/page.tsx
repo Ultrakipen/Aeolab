@@ -1,8 +1,8 @@
+import SiteHeader from "@/components/common/SiteHeader";
 import Link from "next/link"
 import type { Metadata } from "next"
 import { ArrowRight, Check, Search, Bot, MapPin, MessageSquareText, Clock, AlertTriangle } from "lucide-react"
 import { SiteFooter } from "@/components/common/SiteFooter"
-import { AuthNavControlClient } from "@/components/common/AuthNavControlClient"
 import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags"
 
 // 측정 대상으로 말할 때만 쓴다(제미나이 측정 상태 플래그 연동). 일반 설명(AI 답변의 예)에는 쓰지 않는다.
@@ -95,28 +95,7 @@ export default function AiSearchDiagnosisPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <main className="min-h-screen bg-white">
-        <header className="border-b border-gray-100 px-4 md:px-6 py-4">
-          <div className="max-w-5xl mx-auto flex items-center justify-between">
-            <Link href="/" className="text-xl md:text-2xl font-bold text-blue-600">
-              AEOlab
-            </Link>
-            <div className="flex items-center gap-3 md:gap-4">
-              <Link href="/how-it-works" className="hidden md:block text-sm text-gray-600 hover:text-gray-900">
-                서비스 안내
-              </Link>
-              <Link href="/pricing" className="hidden sm:block text-sm text-gray-600 hover:text-gray-900">
-                요금제
-              </Link>
-              <AuthNavControlClient />
-              <Link
-                href="/trial"
-                className="bg-blue-600 text-white text-sm md:text-base px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                무료 진단
-              </Link>
-            </div>
-          </div>
-        </header>
+        <SiteHeader maxWidth="max-w-5xl" />
 
         <article className="max-w-4xl mx-auto px-4 md:px-6 py-8 md:py-12 space-y-10">
           {/* 제목 */}

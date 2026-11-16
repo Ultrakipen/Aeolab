@@ -1,8 +1,8 @@
+import SiteHeader from "@/components/common/SiteHeader";
 import Link from "next/link"
 import type { Metadata } from "next"
 import { ArrowRight } from "lucide-react"
 import { SiteFooter } from "@/components/common/SiteFooter"
-import { AuthNavControlClient } from "@/components/common/AuthNavControlClient"
 import { CHANNEL_GUIDE, GROUP_LABELS, GROUP_COLORS, type ChannelGroup } from "@/lib/channelGuideData"
 import { FIRST_MONTH_DISCOUNT_PRICES } from "@/lib/plans"
 import { ChannelGuideList } from "./ChannelGuideList"
@@ -21,25 +21,7 @@ export default function ChannelGuideIndexPage() {
   return (
     <main className="min-h-screen bg-white">
       {/* ── 헤더 ── */}
-      <header className="border-b border-gray-100 px-4 md:px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <Link href="/" className="text-xl md:text-2xl font-bold text-blue-600">
-            AEOlab
-          </Link>
-          <nav className="flex items-center gap-3 md:gap-4 text-sm md:text-base">
-            <Link href="/trial" className="text-gray-600 hover:text-blue-600">
-              무료 진단
-            </Link>
-            <AuthNavControlClient />
-            <Link
-              href="/trial"
-              className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
-            >
-              시작하기
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader maxWidth="max-w-5xl" />
 
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-8 md:py-12">
         {/* ── 브레드크럼 ── */}

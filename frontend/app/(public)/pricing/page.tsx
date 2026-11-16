@@ -1,9 +1,9 @@
+import SiteHeader from "@/components/common/SiteHeader";
 import { GEMINI_MEASUREMENT_LIVE as GEMINI_LIVE } from "@/lib/featureFlags";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { type LucideIcon, BarChart3, Radar, Search, PenLine, Bell, CheckCircle2, Trophy, MessageSquare, MapPin, Lightbulb } from "lucide-react";
 import { SiteFooter } from "@/components/common/SiteFooter";
-import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import { PayButton } from "./PayButton";
 import { BizContactButton } from "./BizContactButton";
 import PlanRecommender from "./PlanRecommender";
@@ -87,21 +87,7 @@ function CheckIcon({ color }: { color: string }) {
 export default function PricingPage() {
   return (
     <main className="min-h-screen bg-white">
-      <header className="border-b border-gray-100 px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-blue-600">AEOlab</Link>
-          <div className="flex items-center gap-4">
-            <Link href="/how-it-works" className="hidden lg:block text-sm text-gray-600 hover:text-gray-900 whitespace-nowrap">서비스 안내</Link>
-            <Link href="/faq" className="hidden md:block text-sm text-gray-600 hover:text-gray-900">FAQ</Link>
-            <Link href="/demo" className="hidden sm:block text-sm text-gray-600 hover:text-gray-900">미리보기</Link>
-            <Link href="/showcase" className="hidden sm:block text-sm text-gray-600 hover:text-gray-900">실사용 화면</Link>
-            <AuthNavControlClient />
-            <Link href="/trial" className="bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-              무료 체험
-            </Link>
-          </div>
-        </div>
-      </header>
+      <SiteHeader maxWidth="max-w-6xl" />
 
       <section className="max-w-5xl mx-auto px-4 md:px-6 py-12 md:py-16">
         {/* 타이틀 */}
