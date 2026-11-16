@@ -188,8 +188,9 @@ export default async function AreaDetailPage({ params }: Props) {
           <div className="rounded-xl border border-gray-200 bg-white p-6">
             <h2 className="text-lg font-bold text-gray-900">아직 집계 전입니다</h2>
             <p className="mt-2 text-sm leading-relaxed text-gray-600 break-keep">
-              {detail.region_label} {detail.category_label}은(는) 아직 공공데이터를 수집하지 않았습니다. 다른 지역이나
-              업종을 선택해 보세요.
+              전국 지역의 공공데이터를 순서대로 모으는 중이라 {detail.region_label} {detail.category_label}은(는) 아직
+              반영되지 않았습니다. 반영되는 대로 이 화면에 표시되며, 이미 모은 다른 지역은 지금 볼 수 있습니다. 아래
+              소상공인365 분석은 바로 이용하실 수 있습니다.
             </p>
           </div>
         )}
