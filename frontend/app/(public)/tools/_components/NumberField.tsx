@@ -31,7 +31,7 @@ export function NumberField({
         {label}
         {optional ? <span className="ml-1 font-normal text-gray-600">(선택)</span> : null}
       </label>
-      <div className="mt-1 flex items-center rounded-lg border border-gray-300 bg-white focus-within:ring-2 focus-within:ring-blue-500">
+      <div className="mt-1 flex items-center rounded-lg border border-gray-300 bg-white focus-within:ring-2 focus-within:ring-[var(--tool-accent,#3b82f6)]">
         <input
           id={id}
           inputMode={decimal ? "decimal" : "numeric"}
@@ -121,13 +121,13 @@ export function ResultCard({
   }
 
   return (
-    <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 md:p-5" aria-live="polite">
+    <div className="rounded-xl border border-gray-200 border-t-4 border-t-[var(--tool-accent,#3b82f6)] bg-[var(--tool-soft,#eff6ff)] p-4 md:p-5" aria-live="polite">
       <div className="flex items-start justify-between gap-3">
         <h2 className="text-base font-bold text-gray-900 md:text-lg">{title}</h2>
         <button
           type="button"
           onClick={copyResult}
-          className="min-h-[44px] shrink-0 rounded-lg border border-blue-200 bg-white px-3 text-sm font-medium text-blue-700 hover:bg-blue-50"
+          className="min-h-[44px] shrink-0 rounded-lg border border-gray-300 bg-white px-3 text-sm font-medium text-[var(--tool-ink,#1d4ed8)] hover:bg-gray-50"
         >
           {copied === "ok" ? "복사했어요" : copied === "fail" ? "복사할 수 없어요" : "결과 복사"}
         </button>
@@ -136,7 +136,7 @@ export function ResultCard({
         {rows.map((r) => (
           <div key={r.label} className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
             <dt className="text-sm text-gray-700">{r.label}</dt>
-            <dd className={`${r.strong ? "text-xl font-bold md:text-2xl" : "text-base font-semibold"} text-gray-900 sm:text-right`}>
+            <dd className={`${r.strong ? "text-xl font-bold text-[var(--tool-ink,#111827)] md:text-2xl" : "text-base font-semibold text-gray-900"} sm:text-right`}>
               {r.value}
               {r.note ? <span className="block text-sm font-normal text-gray-600">{r.note}</span> : null}
             </dd>

@@ -3,6 +3,7 @@ import { SiteFooter } from "@/components/common/SiteFooter";
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import RelatedTools from "./RelatedTools";
+import { themeForPath, themeVars } from "./toolTheme";
 
 // 사장님 계산기 공통 틀 — 헤더·제목·면책·푸터. 계산 UI는 children.
 export default function ToolShell({
@@ -17,6 +18,8 @@ export default function ToolShell({
   children: React.ReactNode;
 }) {
   const url = `https://aeolab.co.kr${path}`;
+  const theme = themeForPath(path);
+  const Icon = theme?.icon;
   const webApp = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
@@ -29,7 +32,7 @@ export default function ToolShell({
     offers: { "@type": "Offer", price: "0", priceCurrency: "KRW" },
   };
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50" style={themeVars(theme)}>
       <BreadcrumbJsonLd
         items={[
           { name: "AEOlab", url: "https://aeolab.co.kr/" },
@@ -62,14 +65,28 @@ export default function ToolShell({
         </div>
       </header>
 
-      <div className="border-b border-gray-100 bg-white">
+      <div
+        className="border-b border-gray-100 bg-white"
+        style={theme ? { backgroundImage: "linear-gradient(to bottom, var(--tool-soft), #ffffff)" } : undefined}
+      >
         <div className="mx-auto max-w-3xl px-4 py-8 md:px-6 md:py-10">
           <nav aria-label="현재 위치" className="mb-3 text-sm text-gray-600">
             <Link href="/tools" className="inline-flex min-h-[44px] items-center hover:text-gray-900">
               사장님 계산기
             </Link>
           </nav>
-          <h1 className="mb-3 break-keep text-2xl font-bold text-gray-900 md:text-3xl">{title}</h1>
+          <div className="mb-3 flex items-center gap-3">
+            {Icon ? (
+              <span
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white md:h-14 md:w-14"
+                style={{ backgroundColor: "var(--tool-accent)" }}
+                aria-hidden="true"
+              >
+                <Icon className="h-6 w-6 md:h-7 md:w-7" />
+              </span>
+            ) : null}
+            <h1 className="break-keep text-2xl font-bold text-gray-900 md:text-3xl">{title}</h1>
+          </div>
           <p className="break-keep text-sm leading-relaxed text-gray-600 md:text-base">{intro}</p>
         </div>
       </div>
