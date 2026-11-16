@@ -38,6 +38,18 @@ SBIZ_RETRY_SLEEPS = (10, 30)
 # 값이 빠진 업종이 있는 지역은 25일을 기다리지 않고 이 시간이 지나면 다음 실행에서 다시 시도한다
 INCOMPLETE_RETRY_HOURS = 20
 
+# 수집 순서 — 방문자가 많을 대도시권부터 채운다(제안값; 목록에 없는 시도는 맨 뒤). 같은 시도 안에서는 원래 순서를 유지한다.
+SIDO_PRIORITY = (
+    "서울", "경기", "부산", "인천", "대구", "대전", "전남광주", "울산", "세종",
+    "경남", "경북", "충남", "충북", "전북", "강원", "제주",
+)
+
+
+def order_by_priority(slugs):
+    """시도 우선순위로 정렬(안정 정렬). 지역 이름이 목록에 없으면 뒤로 보낸다."""
+    rank = {s: i for i, s in enumerate(SIDO_PRIORITY)}
+    return sorted(slugs, key=lambda sl: rank.get(REGIONS[sl]["sido"], len(SIDO_PRIORITY)))
+
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -85,9 +97,12 @@ async def _collect_region(slug: str, query: str, old: dict | None) -> dict | Non
         print(f"  [건너뜀] {slug}: 카카오 주소검색으로 확인되지 않는 지역 이름 — 목록 오기 가능")
         return None
 
+    from services.localdata_api import ENDPOINT_MAP
+
     old_cats = (old or {}).get("categories") or {}
     cats: dict = {}
     closure_cache: dict[str, dict] = {}
+    exhausted_endpoints: set[str] = set()  # 이번 지역에서 재시도를 다 쓰고도 실패한 인허가 엔드포인트
 
     for cat in CATEGORIES:
         old_entry = old_cats.get(cat) or {}
@@ -101,11 +116,21 @@ async def _collect_region(slug: str, query: str, old: dict | None) -> dict | Non
 
         src = CLOSURE_REUSE_FROM.get(cat, cat)
         if src not in closure_cache:
+            endpoint = ENDPOINT_MAP.get(src)
+            # 같은 엔드포인트(음식점·주점)가 방금 재시도를 다 쓰고도 실패했으면 한 번만 시도한다 — 같은 서버를 연달아 오래 두드려 지역당 시간이 두 배로 늘던 문제
+            sleeps = () if endpoint in exhausted_endpoints else CLOSURE_RETRY_SLEEPS
             closure_cache[src] = await _retry(
                 lambda: get_closure_rate(src, query),
                 lambda r: (not r.get("available")) and r.get("reason") in _TRANSIENT,
-                CLOSURE_RETRY_SLEEPS,
+                sleeps,
             )
+            if (
+                endpoint
+                and sleeps
+                and (not closure_cache[src].get("available"))
+                and closure_cache[src].get("reason") in _TRANSIENT
+            ):
+                exhausted_endpoints.add(endpoint)
             await asyncio.sleep(SLEEP_BETWEEN_CALLS)
         cl = closure_cache[src]
         if not cl.get("available") and cl.get("reason") in _TRANSIENT:
@@ -183,7 +208,7 @@ async def main() -> int:
         )
         return 0
 
-    targets = [args.only] if args.only else list(REGIONS)
+    targets = [args.only] if args.only else order_by_priority(list(REGIONS))
     unknown = [t for t in targets if t not in REGIONS]
     if unknown:
         print(f"알 수 없는 지역: {unknown}")

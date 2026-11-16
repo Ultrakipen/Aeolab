@@ -335,3 +335,62 @@ def test_freshness_complete_vs_incomplete_regions():
     assert mod._is_fresh(snap(timedelta(hours=1), True)) is True
     assert mod._is_fresh(snap(timedelta(hours=21), True)) is False
     assert mod._is_fresh(None) is False and mod._is_fresh({"categories": {}}) is False
+
+
+def test_same_endpoint_is_hit_only_once_after_it_exhausted_retries(monkeypatch):
+    """음식점이 재시도를 다 쓰고 실패하면 같은 인허가 엔드포인트를 쓰는 주점은 한 번만 시도한다(다른 업종은 영향 없음)."""
+    import asyncio
+
+    mod = _load_collect_module()
+    calls = {"restaurant": 0, "bar": 0, "cafe": 0}
+
+    def closure(cat):
+        if cat in calls:
+            calls[cat] += 1
+        if cat in ("restaurant", "bar"):
+            return {"available": False, "reason": "api_timeout"}
+        return _OK_CLOSURE
+
+    _patch_sources(monkeypatch, sbiz=_OK_SBIZ, closure=closure)
+    r = asyncio.run(mod._collect_region("서울-강남구", "서울특별시 강남구", None))
+    assert calls["restaurant"] == 3
+    assert calls["bar"] == 1  # 재시도 없이 한 번
+    assert calls["cafe"] == 1  # 성공하는 다른 엔드포인트는 평소대로
+    assert r["categories"]["bar"]["closure"] is None
+    assert mod._is_incomplete(r) is True
+
+
+def test_bar_still_retries_when_restaurant_succeeded(monkeypatch):
+    import asyncio
+
+    mod = _load_collect_module()
+    calls = {"bar": 0}
+
+    def closure(cat):
+        if cat == "bar":
+            calls["bar"] += 1
+            if calls["bar"] < 3:
+                return {"available": False, "reason": "api_timeout"}
+        return _OK_CLOSURE
+
+    _patch_sources(monkeypatch, sbiz=_OK_SBIZ, closure=closure)
+    r = asyncio.run(mod._collect_region("서울-강남구", "서울특별시 강남구", None))
+    assert calls["bar"] == 3
+    assert r["categories"]["bar"]["closure"]["available"] is True
+
+
+def test_collection_order_puts_metro_areas_first_and_is_stable():
+    mod = _load_collect_module()
+    from services.area_data import REGIONS
+
+    order = mod.order_by_priority(list(REGIONS))
+    assert sorted(order) == sorted(REGIONS)  # 하나도 빠지거나 늘지 않는다
+    sidos = [REGIONS[s]["sido"] for s in order]
+    assert sidos[0] == "서울" and sidos.index("경기") > sidos.index("서울")
+    first_idx = {sd: sidos.index(sd) for sd in set(sidos)}
+    assert first_idx["제주"] > first_idx["부산"] and first_idx["강원"] > first_idx["대구"]
+    # 같은 시도 안에서는 원래 순서 유지
+    seoul_orig = [s for s in REGIONS if REGIONS[s]["sido"] == "서울"]
+    assert [s for s in order if REGIONS[s]["sido"] == "서울"] == seoul_orig
+    # 모르는 시도는 맨 뒤
+    assert set(mod.SIDO_PRIORITY) >= {REGIONS[s]["sido"] for s in REGIONS}
