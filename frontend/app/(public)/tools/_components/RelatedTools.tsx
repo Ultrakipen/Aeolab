@@ -8,6 +8,8 @@ const TOOLS = [
   { href: "/tools/delivery-settlement", label: "배달앱 실수령액" },
   { href: "/tools/labor-cost", label: "직원 인건비" },
   { href: "/tools/vat", label: "부가세" },
+  { href: "/tools/menu-cost", label: "메뉴 원가·원가율" },
+  { href: "/tools/price-increase", label: "원가 상승 가격 인상" },
 ];
 
 // 다른 계산기로 이동(현재 페이지는 제외) — 계산기 한 개를 쓰고 끝나지 않고 이어서 쓰게 한다

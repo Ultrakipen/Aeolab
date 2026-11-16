@@ -128,7 +128,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     },
     // 사장님 계산기 허브와 4개 계산기(기존 광고비 비교·키워드 생성기도 처음으로 사이트맵에 등재)
-    ...["/tools", "/tools/break-even", "/tools/delivery-settlement", "/tools/labor-cost", "/tools/vat", "/tools/ad-cost-calculator", "/tools/keyword"].map(
+    ...["/tools", "/tools/break-even", "/tools/delivery-settlement", "/tools/labor-cost", "/tools/vat", "/tools/menu-cost", "/tools/price-increase", "/tools/ad-cost-calculator", "/tools/keyword"].map(
       (path) => ({
         url: `${baseUrl}${path}`,
         lastModified: AREA_LAUNCH_DATE,

@@ -246,3 +246,126 @@ test("-0 이 결과에 남지 않는다(화면에 '-0' 방지)", () => {
   // 월 이익은 반올림 전 이익(-0.4원) × 10건 = -4원이 정확한 값(건당 표시 0원을 10배한 0이 아님)
   assert.equal(d.monthlyProfit, -4);
 });
+
+// ───────────────────────── 메뉴 원가 · 원가 상승 대응 (손계산 기대값) ─────────────────────────
+
+const CAFE_LATTE = {
+  ingredients: [
+    { purchasePrice: 30000, purchaseQty: 1000, useQty: 18 }, // 원두 30원/g × 18g = 540
+    { purchasePrice: 2500, purchaseQty: 1000, useQty: 200 }, // 우유 2.5원/ml × 200ml = 500
+  ],
+  otherCost: 300, // 컵·빨대
+};
+
+test("메뉴 원가: 재료별 원가·재료비·총원가(원두 540 + 우유 500 + 기타 300 = 1,340)", () => {
+  const r = C.menuCost(CAFE_LATTE);
+  assert.equal(r.ok, true);
+  assert.deepEqual(r.ingredientCosts, [540, 500]);
+  assert.equal(r.materialCost, 1040);
+  assert.equal(r.totalCost, 1340);
+  assert.equal(r.netPrice, null); // 판매가를 안 넣으면 원가율·마진은 계산하지 않는다
+  assert.equal(r.costRatePct, null);
+});
+
+test("메뉴 원가: 판매가 4,500원 → 원가율 29.8%·남는 돈 3,160원·마진 70.2%", () => {
+  const r = C.menuCost({ ...CAFE_LATTE, price: 4500 });
+  assert.equal(r.costRatePct, 29.8); // 1340/4500
+  assert.equal(r.unitProfit, 3160);
+  assert.equal(r.marginRatePct, 70.2);
+});
+
+test("메뉴 원가: 판매가에 부가세 포함이면 공급가액(4,500÷1.1=4,091) 기준 — 원가율 32.8%·남는 돈 2,751원", () => {
+  const r = C.menuCost({ ...CAFE_LATTE, price: 4500, priceIncludesVat: true });
+  assert.equal(r.netPrice, 4091);
+  assert.equal(r.costRatePct, 32.8);
+  assert.equal(r.unitProfit, 2751);
+  assert.equal(r.marginRatePct, 67.2);
+});
+
+test("메뉴 원가: 목표 원가율 30% 판매가(1340÷0.3=4,466.67 → 4,467, 100원 올림 4,500), 부가세 포함이면 ×1.1(4,913 → 5,000)", () => {
+  const a = C.menuCost({ ...CAFE_LATTE, targetCostPct: 30 });
+  assert.equal(a.suggestedPrice, 4467);
+  assert.equal(a.suggestedPriceCeil100, 4500);
+  const b = C.menuCost({ ...CAFE_LATTE, targetCostPct: 30, priceIncludesVat: true });
+  assert.equal(b.suggestedPrice, 4913);
+  assert.equal(b.suggestedPriceCeil100, 5000);
+});
+
+test("메뉴 원가: 정확히 100원 단위로 떨어지는 값은 올리지 않는다(원가 1,350 ÷ 30% = 4,500 → 4,500)", () => {
+  const r = C.menuCost({ ingredients: [{ purchasePrice: 1350, purchaseQty: 1, useQty: 1 }], targetCostPct: 30 });
+  assert.equal(r.suggestedPrice, 4500);
+  assert.equal(r.suggestedPriceCeil100, 4500);
+});
+
+test("메뉴 원가: 손실률은 사용량을 늘려 계산(닭 10,000원/1,000g, 200g 사용, 손실 20% → 2,500원)", () => {
+  const r = C.menuCost({ ingredients: [{ purchasePrice: 10000, purchaseQty: 1000, useQty: 200, lossPct: 20 }] });
+  assert.equal(r.ingredientCosts[0], 2500);
+});
+
+test("메뉴 원가: 잘못된 입력은 계산하지 않고 사유를 돌려준다(구매 수량 0·손실 100%·재료 없음·목표 범위·판매가 0)", () => {
+  assert.deepEqual(C.menuCost({ ingredients: [] }), { ok: false, reason: "no_ingredients" });
+  const bad = C.menuCost({ ingredients: [CAFE_LATTE.ingredients[0], { purchasePrice: 100, purchaseQty: 0, useQty: 1 }] });
+  assert.deepEqual(bad, { ok: false, reason: "ingredient_invalid", index: 1 });
+  assert.equal(C.menuCost({ ingredients: [{ purchasePrice: 100, purchaseQty: 1, useQty: 1, lossPct: 100 }] }).reason, "ingredient_invalid");
+  assert.equal(C.menuCost({ ...CAFE_LATTE, targetCostPct: 0 }).reason, "target_out_of_range");
+  assert.equal(C.menuCost({ ...CAFE_LATTE, targetCostPct: 101 }).reason, "target_out_of_range");
+  assert.equal(C.menuCost({ ...CAFE_LATTE, price: 0 }).reason, "price_not_positive");
+  assert.equal(C.menuCost({ ...CAFE_LATTE, otherCost: -1 }).reason, "other_negative");
+});
+
+test("원가 상승 대응: 4,500원 메뉴, 오르는 재료비 1,000원 + 그 밖 340원, 20% 상승 → 원가 +200원", () => {
+  const r = C.priceIncrease({ price: 4500, risingCost: 1000, otherCost: 340, risePct: 20, monthlyQty: 1000 });
+  assert.equal(r.ok, true);
+  assert.equal(r.extraCost, 200);
+  assert.equal(r.costBefore, 1340);
+  assert.equal(r.costAfter, 1540);
+  // 가격을 안 올리면
+  assert.equal(r.marginBefore, 3160);
+  assert.equal(r.marginAfter, 2960);
+  assert.equal(r.marginDropPct, 6.3); // 200/3160
+  assert.equal(r.costRateBeforePct, 29.8);
+  assert.equal(r.costRateAfterPct, 34.2); // 1540/4500
+  assert.equal(r.monthlyProfitChange, -200000);
+  // 올린다면
+  assert.equal(r.priceKeepMargin, 4700); // 남는 돈 유지: 4500 + 200
+  assert.equal(r.priceKeepMarginCeil100, 4700);
+  assert.equal(r.raiseKeepMarginPct, 4.4); // 200/4500
+  assert.equal(r.priceKeepRate, 5172); // 원가율 유지: 4500 × 1540/1340 = 5171.64
+  assert.equal(r.priceKeepRateCeil100, 5200);
+  assert.equal(r.raiseKeepRatePct, 14.9); // 1540/1340 − 1
+});
+
+test("원가 상승 대응: 한 달 판매 개수를 비우면 월 변화는 계산하지 않는다(0으로 지어내지 않음)", () => {
+  const r = C.priceIncrease({ price: 4500, risingCost: 1000, risePct: 20 });
+  assert.equal(r.monthlyProfitChange, null);
+});
+
+test("원가 상승 대응: 지금도 원가가 판매가 이상이면 감소율을 만들지 않고 손해 표시(lossBefore)", () => {
+  const r = C.priceIncrease({ price: 1000, risingCost: 900, otherCost: 300, risePct: 10 });
+  assert.equal(r.lossBefore, true);
+  assert.equal(r.marginBefore, -200);
+  assert.equal(r.marginDropPct, null);
+});
+
+test("원가 상승 대응: 오르는 재료비가 0이면 가격은 그대로(원가 상승 0)", () => {
+  const r = C.priceIncrease({ price: 5000, risingCost: 0, otherCost: 500, risePct: 50 });
+  assert.equal(r.extraCost, 0);
+  assert.equal(r.priceKeepMargin, 5000);
+  assert.equal(r.priceKeepRate, 5000);
+});
+
+test("원가 상승 대응: 잘못된 입력(판매가 0·원가 0·음수·상승률 −100% 이하·1000% 초과)은 계산하지 않는다", () => {
+  assert.equal(C.priceIncrease({ price: 0, risingCost: 100, risePct: 10 }).reason, "price_not_positive");
+  assert.equal(C.priceIncrease({ price: 1000, risingCost: 0, otherCost: 0, risePct: 10 }).reason, "cost_not_positive");
+  assert.equal(C.priceIncrease({ price: 1000, risingCost: -1, risePct: 10 }).reason, "negative_input");
+  assert.equal(C.priceIncrease({ price: 1000, risingCost: 100, risePct: -100 }).reason, "rise_out_of_range");
+  assert.equal(C.priceIncrease({ price: 1000, risingCost: 100, risePct: 1001 }).reason, "rise_out_of_range");
+  assert.equal(C.priceIncrease({ price: 1000, risingCost: 100, risePct: Number.NaN }).reason, "rise_out_of_range");
+});
+
+test("원가 상승 대응: 재료비가 내려가는 경우(−10%)도 같은 식 — 원가 −100원이면 판매가를 100원 내려도 남는 돈 동일", () => {
+  const r = C.priceIncrease({ price: 4500, risingCost: 1000, otherCost: 340, risePct: -10 });
+  assert.equal(r.extraCost, -100);
+  assert.equal(r.priceKeepMargin, 4400);
+  assert.equal(r.marginAfter, 3260);
+});

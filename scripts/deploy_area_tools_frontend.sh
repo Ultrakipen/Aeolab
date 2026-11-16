@@ -29,7 +29,8 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-# 서버에 이미 있고 이번에 내용이 바뀌는 파일(서버 md5 가 git HEAD 와 같아야 덮어쓴다)
+# 서버에 이미 있고 이번에 내용이 바뀌는 파일(서버 md5 가 git HEAD 와 같아야 덮어쓴다 — 이미 커밋한 뒤 배포하면 HEAD 가 새 내용이라
+# 맞지 않으므로, 서버에 마지막으로 반영한 커밋을 DEPLOY_BASE_REF=<커밋> 으로 지정해 그 커밋의 내용과 비교한다)
 MODIFIED=(
   frontend/app/page.tsx
   frontend/app/sitemap.ts
@@ -54,10 +55,16 @@ NEWPATHS=(
   frontend/components/common/FeatureNav.tsx
   frontend/components/common/FeatureHeader.tsx
   frontend/lib/seoMeta.ts
+  frontend/lib/supportBoard.ts
+  frontend/lib/bizinfoApi.ts
+  "frontend/app/(public)/support-programs"
+  "frontend/app/(public)/tools/menu-cost"
+  "frontend/app/(public)/tools/price-increase"
   frontend/lib/area.ts
   frontend/lib/calc
   frontend/lib/useClientValue.ts
   frontend/tests/calc.test.mjs
+  frontend/tests/support.test.mjs
 )
 
 TS=$(date +%Y%m%d_%H%M%S)
@@ -125,7 +132,7 @@ code=$(ssh "$HOST" "curl -s -o /dev/null -w '%{http_code}' -m 5 localhost:8000/a
 say "③ 수정될 서버 파일 md5 = git HEAD 확인"
 for f in "${MODIFIED[@]}"; do
   s=$(ssh "$HOST" "md5sum '$ROOT_REMOTE/$f' 2>/dev/null" | cut -c1-32)
-  h=$(git show "HEAD:$f" 2>/dev/null | tr -d '\r' | md5sum | cut -c1-32)
+  h=$(git show "${DEPLOY_BASE_REF:-HEAD}:$f" 2>/dev/null | tr -d '\r' | md5sum | cut -c1-32)
   [ -n "$s" ] && [ "$s" = "$h" ] || { say "서버 파일이 git HEAD 와 다릅니다(서버가 진실일 수 있음): $f — 중단(서버 변경 없음). 서버→로컬로 먼저 받으세요."; exit 1; }
 done
 

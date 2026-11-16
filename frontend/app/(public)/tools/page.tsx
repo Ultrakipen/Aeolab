@@ -42,6 +42,18 @@ const TOOLS = [
     desc: "공급가액과 부가세를 나누고, 일반·간이과세 사업자의 납부세액을 추정해요.",
   },
   {
+    href: "/tools/menu-cost",
+    theme: "menu-cost",
+    title: "메뉴 원가·원가율",
+    desc: "재료별 산 금액과 사용량으로 1인분 원가와 원가율, 목표 원가율을 맞추는 판매가를 계산해요.",
+  },
+  {
+    href: "/tools/price-increase",
+    theme: "price-increase",
+    title: "원가 상승 가격 인상",
+    desc: "재료비가 오르면 남는 돈이 얼마나 줄고, 가격을 얼마로 올려야 하는지 계산해요.",
+  },
+  {
     href: "/tools/ad-cost-calculator",
     theme: "ad-cost-calculator",
     title: "광고비 vs 구독료 비교",

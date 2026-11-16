@@ -332,3 +332,174 @@ export function simplifiedVatPayable(i: { salesTotal: number; purchaseTotal: num
   const credit = Math.round((i.purchaseTotal * CALC_BASIS.vat.purchaseCreditPct) / 100);
   return { outputTax, credit, payable: Math.max(0, outputTax - credit) };
 }
+
+// ───────────────────────── 5. 메뉴 원가 · 원가율 ─────────────────────────
+
+/** 재료 한 줄: 구매 금액(원) ÷ 구매 수량 × 사용 수량 ÷ (1 − 손실률). 단위(g·ml·개)는 구매와 사용이 같아야 한다. */
+export interface CostIngredient {
+  purchasePrice: number;
+  purchaseQty: number;
+  useQty: number;
+  lossPct?: number | null; // 다듬기·조리 손실(%) — 비우면 0
+}
+
+export type IngredientCostResult =
+  | { ok: true; cost: number }
+  | { ok: false; reason: "price_negative" | "purchase_qty_not_positive" | "use_qty_negative" | "loss_out_of_range" };
+
+export function ingredientCost(r: CostIngredient): IngredientCostResult {
+  const loss = r.lossPct ?? 0;
+  if (!(r.purchasePrice >= 0)) return { ok: false, reason: "price_negative" };
+  if (!(r.purchaseQty > 0)) return { ok: false, reason: "purchase_qty_not_positive" };
+  if (!(r.useQty >= 0)) return { ok: false, reason: "use_qty_negative" };
+  if (!(loss >= 0 && loss < 100)) return { ok: false, reason: "loss_out_of_range" };
+  return { ok: true, cost: (r.purchasePrice / r.purchaseQty) * r.useQty / (1 - loss / 100) };
+}
+
+export interface MenuCostInput {
+  ingredients: CostIngredient[]; // 이미 걸러 낸(입력이 끝난) 재료만
+  otherCost?: number | null; // 재료 말고 1인분에 드는 포장·소모품 등(원)
+  price?: number | null; // 판매가(원) — 비우면 원가만 계산
+  priceIncludesVat?: boolean; // 판매가에 부가세 10%가 포함돼 있으면 부가세를 뺀 금액으로 원가율을 본다
+  targetCostPct?: number | null; // 목표 원가율(%) — 사용자가 직접 입력(기본값 없음)
+}
+
+export type MenuCostResult =
+  | { ok: false; reason: "no_ingredients" | "other_negative" | "price_not_positive" | "target_out_of_range" | "ingredient_invalid"; index?: number }
+  | {
+      ok: true;
+      ingredientCosts: number[]; // 재료별 원가(원 미만 반올림)
+      materialCost: number; // 재료비 합계
+      totalCost: number; // 재료비 + 기타 비용
+      netPrice: number | null; // 부가세를 뺀 판매가
+      costRatePct: number | null; // 원가 ÷ (부가세 뺀) 판매가
+      unitProfit: number | null; // (부가세 뺀) 판매가 − 원가
+      marginRatePct: number | null;
+      suggestedPrice: number | null; // 목표 원가율을 맞추는 판매가(원 단위 반올림, 부가세 포함 여부는 입력과 같게)
+      suggestedPriceCeil100: number | null; // 위 금액을 100원 단위로 올린 값
+    };
+
+export function menuCost(i: MenuCostInput): MenuCostResult {
+  if (i.ingredients.length === 0) return { ok: false, reason: "no_ingredients" };
+  const other = i.otherCost ?? 0;
+  if (!(other >= 0)) return { ok: false, reason: "other_negative" };
+  const costs: number[] = [];
+  for (let idx = 0; idx < i.ingredients.length; idx++) {
+    const r = ingredientCost(i.ingredients[idx]);
+    if (!r.ok) return { ok: false, reason: "ingredient_invalid", index: idx };
+    costs.push(r.cost);
+  }
+  const material = costs.reduce((a, b) => a + b, 0);
+  const total = material + other;
+  const vatFactor = 1 + CALC_BASIS.vat.generalRatePct / 100;
+
+  let netPrice: number | null = null;
+  let costRatePct: number | null = null;
+  let unitProfit: number | null = null;
+  let marginRatePct: number | null = null;
+  if (i.price !== null && i.price !== undefined) {
+    if (!(i.price > 0)) return { ok: false, reason: "price_not_positive" };
+    const net = i.priceIncludesVat ? i.price / vatFactor : i.price;
+    netPrice = intR(net);
+    costRatePct = round1((total / net) * 100);
+    unitProfit = intR(net - total);
+    marginRatePct = round1(((net - total) / net) * 100);
+  }
+
+  let suggestedPrice: number | null = null;
+  let suggestedPriceCeil100: number | null = null;
+  if (i.targetCostPct !== null && i.targetCostPct !== undefined) {
+    if (!(i.targetCostPct > 0 && i.targetCostPct <= 100)) return { ok: false, reason: "target_out_of_range" };
+    const netTarget = total / (i.targetCostPct / 100);
+    const exact = i.priceIncludesVat ? netTarget * vatFactor : netTarget;
+    suggestedPrice = intR(exact);
+    suggestedPriceCeil100 = Math.ceil(exact / 100 - 1e-9) * 100;
+  }
+
+  return {
+    ok: true,
+    ingredientCosts: costs.map(intR),
+    materialCost: intR(material),
+    totalCost: intR(total),
+    netPrice,
+    costRatePct,
+    unitProfit,
+    marginRatePct,
+    suggestedPrice,
+    suggestedPriceCeil100,
+  };
+}
+
+// ───────────────────────── 6. 원가 상승 대응 가격 ─────────────────────────
+
+export interface PriceIncreaseInput {
+  price: number; // 현재 판매가(원) — 원가와 같은 기준(둘 다 부가세 포함이거나 둘 다 제외)으로
+  risingCost: number; // 값이 오르는 재료비 합계(1개당, 원)
+  otherCost?: number | null; // 오르지 않는 원가(포장·기타 등, 1개당, 원)
+  risePct: number; // 오르는 재료비의 상승률(%)
+  monthlyQty?: number | null; // 한 달 판매 개수(선택)
+}
+
+export type PriceIncreaseResult =
+  | { ok: false; reason: "price_not_positive" | "cost_not_positive" | "negative_input" | "rise_out_of_range" }
+  | {
+      ok: true;
+      extraCost: number; // 1개당 늘어나는 원가
+      costBefore: number;
+      costAfter: number;
+      lossBefore: boolean; // 지금도 원가가 판매가 이상(손해)인지
+      // 가격을 안 올리면
+      marginBefore: number;
+      marginAfter: number;
+      marginDropPct: number | null; // 남는 돈이 줄어드는 비율(지금 남는 돈이 0 이하면 null)
+      costRateBeforePct: number;
+      costRateAfterPct: number;
+      monthlyProfitChange: number | null; // 한 달 이익 변화(음수 = 줄어듦)
+      // 올린다면
+      priceKeepMargin: number; // 남는 돈(원)을 그대로 지키는 판매가
+      priceKeepMarginCeil100: number;
+      raiseKeepMarginPct: number; // 위 판매가의 인상률
+      priceKeepRate: number; // 원가율을 그대로 지키는 판매가
+      priceKeepRateCeil100: number;
+      raiseKeepRatePct: number;
+    };
+
+export function priceIncrease(i: PriceIncreaseInput): PriceIncreaseResult {
+  const other = i.otherCost ?? 0;
+  if (!(i.price > 0)) return { ok: false, reason: "price_not_positive" };
+  if (!(i.risingCost >= 0) || !(other >= 0) || (i.monthlyQty !== null && i.monthlyQty !== undefined && !(i.monthlyQty >= 0))) {
+    return { ok: false, reason: "negative_input" };
+  }
+  if (!(i.risingCost + other > 0)) return { ok: false, reason: "cost_not_positive" };
+  if (!Number.isFinite(i.risePct) || !(i.risePct > -100) || i.risePct > 1000) return { ok: false, reason: "rise_out_of_range" };
+
+  const costBefore = i.risingCost + other;
+  const extra = (i.risingCost * i.risePct) / 100;
+  const costAfter = costBefore + extra;
+  const marginBefore = i.price - costBefore;
+  const marginAfter = i.price - costAfter;
+
+  const keepMargin = i.price + extra;
+  const keepRate = (i.price * costAfter) / costBefore;
+  const qty = i.monthlyQty ?? null;
+
+  return {
+    ok: true,
+    extraCost: intR(extra),
+    costBefore: intR(costBefore),
+    costAfter: intR(costAfter),
+    lossBefore: marginBefore <= 0,
+    marginBefore: intR(marginBefore),
+    marginAfter: intR(marginAfter),
+    marginDropPct: marginBefore > 0 ? round1((extra / marginBefore) * 100) : null,
+    costRateBeforePct: round1((costBefore / i.price) * 100),
+    costRateAfterPct: round1((costAfter / i.price) * 100),
+    monthlyProfitChange: qty !== null ? intR(-extra * qty) : null,
+    priceKeepMargin: intR(keepMargin),
+    priceKeepMarginCeil100: Math.ceil(keepMargin / 100 - 1e-9) * 100,
+    raiseKeepMarginPct: round1((extra / i.price) * 100),
+    priceKeepRate: intR(keepRate),
+    priceKeepRateCeil100: Math.ceil(keepRate / 100 - 1e-9) * 100,
+    raiseKeepRatePct: round1((costAfter / costBefore - 1) * 100),
+  };
+}
