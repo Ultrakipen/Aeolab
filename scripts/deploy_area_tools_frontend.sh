@@ -51,6 +51,8 @@ MODIFIED=(
   "frontend/app/(public)/guide/chatgpt-search/page.tsx"
   "frontend/app/(public)/plans-preview/page.tsx"
 )
+# 원격 셸 명령에 넣을 때 괄호·대괄호 경로가 깨지지 않게 각 경로를 따옴표로 감싼 목록
+MOD_Q=$(printf "'%s' " "${MODIFIED[@]}")
 # 서버에 없는 새 파일·폴더
 NEWPATHS=(
   "frontend/app/(public)/area"
@@ -91,7 +93,7 @@ trap cleanup EXIT
 # 되돌리기: 수정 파일 복원 + 새 파일 삭제 + .env.local 복원 → (빌드를 시작했다면) 다시 빌드하고 재시작
 rollback() {
   say "되돌리는 중... (백업: $BK)"
-  ssh "$HOST" "cd $ROOT_REMOTE && for f in ${MODIFIED[*]}; do [ -f '$BK/'\$f ] && cp -p '$BK/'\$f \$f; done; \
+  ssh "$HOST" "cd $ROOT_REMOTE && for f in $MOD_Q; do [ -f \"$BK/\$f\" ] && cp -p \"$BK/\$f\" \"\$f\"; done; \
     [ -f '$BK/frontend/.env.local' ] && cp -p '$BK/frontend/.env.local' frontend/.env.local; \
     while IFS= read -r p; do [ -n \"\$p\" ] && rm -rf \"\$p\"; done < '$BK/new_paths.txt'" \
     || say "복원 명령 일부 실패 — 백업 폴더에서 수동 복원 필요"
@@ -151,7 +153,7 @@ done
 
 # ⑤ 백업
 say "⑤ 서버 백업 ($BK)"
-ssh "$HOST" "mkdir -p '$BK/frontend/lib' '$BK/frontend/app' '$BK/frontend/components/common' && cd $ROOT_REMOTE && for f in ${MODIFIED[*]}; do mkdir -p \"$BK/\$(dirname \$f)\"; cp -p \$f \"$BK/\$f\"; done; cp -p frontend/.env.local '$BK/frontend/.env.local'" || { say "백업 실패 — 중단(서버 변경 없음)"; exit 1; }
+ssh "$HOST" "mkdir -p '$BK/frontend/lib' '$BK/frontend/app' '$BK/frontend/components/common' && cd $ROOT_REMOTE && for f in $MOD_Q; do mkdir -p \"$BK/\$(dirname \"\$f\")\"; cp -p \"\$f\" \"$BK/\$f\"; done; cp -p frontend/.env.local '$BK/frontend/.env.local'" || { say "백업 실패 — 중단(서버 변경 없음)"; exit 1; }
 printf '%s\n' "${NEWPATHS[@]}" | ssh "$HOST" "cat > '$BK/new_paths.txt'"
 
 # ⑥ 업로드
