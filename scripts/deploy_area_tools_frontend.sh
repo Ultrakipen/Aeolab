@@ -54,6 +54,7 @@ NEWPATHS=(
   "frontend/app/(public)/tools/keyword/page.tsx"
   frontend/components/common/FeatureNav.tsx
   frontend/components/common/FeatureHeader.tsx
+  "frontend/app/(public)/how-it-works/page.tsx"
   frontend/lib/seoMeta.ts
   frontend/lib/supportBoard.ts
   frontend/lib/bizinfoApi.ts

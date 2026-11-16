@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import { SiteFooter } from "@/components/common/SiteFooter"
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient"
+import FeatureNav from "@/components/common/FeatureNav"
 import { PLAN_PRICES } from "@/lib/plans"
 import { MoreInfo } from "@/components/common/MoreInfo"
 import { IconTile } from "@/components/common/IconTile"
@@ -26,10 +27,11 @@ export default function HowItWorksPage() {
     <main className="min-h-screen bg-white">
       <header className="border-b border-gray-100 px-4 md:px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="text-xl md:text-2xl font-bold text-blue-600">AEOlab</Link>
+          <div className="flex items-center">
+            <Link href="/" className="text-xl md:text-2xl font-bold text-blue-600">AEOlab</Link>
+            <FeatureNav variant="inline" />
+          </div>
           <div className="flex items-center gap-3 md:gap-4">
-            <Link href="/faq" className="hidden md:block text-sm text-gray-600 hover:text-gray-900">FAQ</Link>
-            <Link href="/pricing" className="hidden sm:block text-sm text-gray-600 hover:text-gray-900">요금제</Link>
             <AuthNavControlClient />
             <Link href="/trial" className="bg-blue-600 text-white text-sm md:text-base px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
               무료 진단
@@ -37,6 +39,7 @@ export default function HowItWorksPage() {
           </div>
         </div>
       </header>
+      <FeatureNav variant="row" />
 
       <article className="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-12">
 
