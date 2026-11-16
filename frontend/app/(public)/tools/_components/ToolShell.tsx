@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { SiteFooter } from "@/components/common/SiteFooter";
 import { AuthNavControlClient } from "@/components/common/AuthNavControlClient";
-import TrackedCTA from "@/components/analytics/TrackedCTA";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import RelatedTools from "./RelatedTools";
 
-// 사장님 계산기 공통 틀 — 헤더·제목·면책·AEOlab 연결 CTA·푸터. 계산 UI는 children.
+// 사장님 계산기 공통 틀 — 헤더·제목·면책·푸터. 계산 UI는 children.
 export default function ToolShell({
   title,
   intro,
@@ -84,21 +83,6 @@ export default function ToolShell({
           이 계산기는 입력하신 값으로 계산한 참고용 추정이며 세무·노무·회계 상담을 대체하지 않습니다. 실제 세액·보험료·정산액은
           국세청·공단·정산서 등으로 확인해 주세요. 입력하신 값은 저장하거나 전송하지 않고 이 화면에서만 계산합니다.
         </p>
-
-        <section className="rounded-xl bg-blue-600 p-6 text-white md:p-8">
-          <h2 className="break-keep text-lg font-bold md:text-xl">우리 가게는 AI 검색에 어떻게 보일까요?</h2>
-          <p className="mt-2 break-keep text-sm leading-relaxed text-blue-50 md:text-base">
-            가게 이름만 입력하면 ChatGPT와 네이버에서의 노출 상태와 먼저 고칠 점을 무료로 확인할 수 있습니다.
-          </p>
-          <TrackedCTA
-            href="/trial"
-            location="tools"
-            label="trial_start"
-            className="mt-4 inline-flex min-h-[48px] items-center rounded-lg bg-white px-6 text-base font-semibold text-blue-700 hover:bg-blue-50"
-          >
-            무료로 내 가게 확인하기
-          </TrackedCTA>
-        </section>
       </div>
 
       <SiteFooter activePage="/tools" />
