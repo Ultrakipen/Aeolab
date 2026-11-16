@@ -47,6 +47,8 @@ NEWPATHS=(
   "frontend/app/(public)/tools/labor-cost"
   "frontend/app/(public)/tools/vat"
   "frontend/app/(public)/tools/page.tsx"
+  "frontend/app/(public)/tools/ad-cost-calculator/page.tsx"
+  "frontend/app/(public)/tools/keyword/page.tsx"
   frontend/components/common/FeatureNav.tsx
   frontend/components/common/FeatureHeader.tsx
   frontend/lib/area.ts
