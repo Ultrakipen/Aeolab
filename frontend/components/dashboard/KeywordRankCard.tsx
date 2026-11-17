@@ -89,6 +89,27 @@ function rankBadge(rank: number | null | undefined, failed?: string): {
   return { text: `${rank}위 이하`, cls: "text-gray-600 bg-gray-50" };
 }
 
+/**
+ * "네이버에서 직접 확인" 링크·표시에 쓰는 검색어.
+ * 측정 성공 행은 저장된 search_query(지역 포함)를 그대로 쓴다. 측정 실패 행은 search_query가 비어 있거나(대기 초과),
+ * 옛 측정이라 지역 없이 저장돼 있어("녹음" → 네이버 사전 뜻이 나옴) 지역을 앞에 붙여 실제 손님 검색어로 맞춘다.
+ * 지역 포함 판정은 백엔드 naver_keyword_rank._run_with_browser와 같은 규칙(지역 단어가 이미 있으면 다시 붙이지 않음).
+ */
+function normQuery(s: string): string {
+  return s.replace(/\s+/g, "").toLowerCase();
+}
+function naverQueryFor(kw: string, saved: string | undefined, region?: string): string {
+  const base = (saved || kw).trim();
+  const r = (region ?? "").trim();
+  if (!r) return base;
+  const baseN = normQuery(base);
+  const regionN = normQuery(r);
+  const hasRegion =
+    baseN.includes(regionN) ||
+    r.split(/\s+/).some((t) => normQuery(t).length >= 2 && baseN.includes(normQuery(t)));
+  return hasRegion ? base : `${r} ${base}`;
+}
+
 const PRO_PLANS = ["pro", "biz", "enterprise", "startup"];
 
 function isProPlan(plan?: string): boolean {
@@ -465,7 +486,7 @@ export default function KeywordRankCard({
                   const pc = rankBadge(data.pc_rank, data.error);
                   const mob = rankBadge(data.mobile_rank, data.error);
                   const pl = rankBadge(data.place_rank, data.error);
-                  const displayKw = data.search_query || kw;
+                  const displayKw = naverQueryFor(kw, data.search_query, region);
                   return (
                     <tr key={kw} className="border-b border-gray-100 last:border-0">
                       <td className="py-2.5 font-medium text-gray-800 max-w-xs">
@@ -512,7 +533,7 @@ export default function KeywordRankCard({
               const pc = rankBadge(data.pc_rank, data.error);
               const mob = rankBadge(data.mobile_rank, data.error);
               const pl = rankBadge(data.place_rank, data.error);
-              const displayKw = data.search_query || kw;
+              const displayKw = naverQueryFor(kw, data.search_query, region);
               return (
                 <div key={kw} className="rounded-lg border border-gray-200 p-3">
                   <p className="font-medium text-gray-800 text-sm mb-1 truncate">
