@@ -325,6 +325,9 @@ export default function BusinessQuickEditPanel({
               <p className="text-sm text-gray-600">Enter 또는 쉼표로 추가 · × 버튼으로 삭제</p>
               <p className="text-sm text-gray-600">{keywords.length}/10</p>
             </div>
+            <p className="text-sm text-gray-600 mt-1 break-keep">
+              네이버 순위는 지역 이름이 자동으로 앞에 붙어 측정됩니다. 지역은 따로 쓰지 않아도 됩니다.
+            </p>
             {keywords.length < 10 && keywordInput && (
               <button
                 type="button"

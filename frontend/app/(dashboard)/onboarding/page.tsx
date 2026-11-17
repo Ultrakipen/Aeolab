@@ -789,10 +789,13 @@ export default function OnboardingPage() {
                 </label>
                 <input
                   className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-600"
-                  placeholder="예: 가정식, 주차가능, 예약불필요"
+                  placeholder="예: 손님이 검색할 서비스·메뉴 이름"
                   value={form.keywords}
                   onChange={e => setForm(f => ({ ...f, keywords: e.target.value }))}
                 />
+                <p className="text-sm text-gray-600 mt-1 break-keep">
+                  네이버 순위는 지역 이름이 자동으로 앞에 붙어 측정됩니다(키워드가 &lsquo;녹음&rsquo;이면 &lsquo;{form.region || "우리 동네"} 녹음&rsquo;). 지역은 따로 쓰지 않아도 되고, 손님이 실제로 검색할 서비스·메뉴 이름을 권장합니다.
+                </p>
               </div>
 
               {/* ─── 네이버 플레이스 ID ─── */}

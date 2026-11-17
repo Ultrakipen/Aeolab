@@ -357,6 +357,9 @@ function KeywordEditor({
         />
       </div>
       <p className="text-sm text-gray-600 -mt-1">Enter 또는 쉼표로 추가 · 칩의 ×로 삭제 · Backspace로 마지막 삭제</p>
+      <p className="text-sm text-gray-600 break-keep">
+        네이버 순위는 지역 이름이 자동으로 앞에 붙어 측정됩니다. 지역은 따로 쓰지 않아도 되고, 손님이 실제로 검색할 서비스·메뉴 이름을 권장합니다.
+      </p>
 
       {/* 업종별 추천 키워드 */}
       {suggestions.length > 0 && (
