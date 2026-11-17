@@ -14,12 +14,13 @@ interface Item {
   label: string;
   desc: string;
   dot?: string;
+  short?: string; // 모바일 칩용 짧은 이름
 }
 
 const TOOLS: Item[] = [
-  { href: "/tools", label: "사장님 계산기", desc: "손익분기·배달 수수료·인건비·부가세·원가", dot: "oklch(0.546 0.245 262.881)" },
-  { href: "/area", label: "우리 동네 상권", desc: "지역·업종별 업소 수와 폐업 현황", dot: "oklch(0.457 0.24 277.023)" },
-  { href: "/support-programs", label: "지원사업", desc: "소상공인 지원사업 공고 모음", dot: "oklch(0.508 0.118 165.612)" },
+  { href: "/tools", label: "사장님 계산기", short: "계산기", desc: "손익분기·배달 수수료·인건비·부가세·원가", dot: "oklch(0.546 0.245 262.881)" },
+  { href: "/area", label: "우리 동네 상권", short: "동네 상권", desc: "지역·업종별 업소 수와 폐업 현황", dot: "oklch(0.457 0.24 277.023)" },
+  { href: "/support-programs", label: "지원사업", short: "지원사업", desc: "소상공인 지원사업 공고 모음", dot: "oklch(0.508 0.118 165.612)" },
 ];
 
 const SERVICE: Item[] = [
@@ -86,12 +87,34 @@ export default function SiteHeader({ maxWidth = "max-w-6xl" }: { maxWidth?: stri
             AEOlab
           </Link>
 
-          <nav aria-label="주요 메뉴" className="ml-4 hidden items-center gap-1 md:flex">
+          {/* 넓은 화면(lg↑): 무료 도구 3개를 펼치지 않아도 보이게 바로 노출 */}
+          <nav aria-label="무료 도구" className="ml-4 hidden items-center gap-1 lg:flex">
+            {TOOLS.map((i) => {
+              const active = isActive(pathname, i.href);
+              return (
+                <Link
+                  key={i.href}
+                  href={i.href}
+                  aria-current={active ? "page" : undefined}
+                  className={`inline-flex min-h-[44px] items-center whitespace-nowrap rounded-lg px-3 text-base font-medium hover:bg-gray-50 ${
+                    active ? "bg-blue-50 text-blue-700" : "text-gray-800"
+                  }`}
+                >
+                  <Dot color={i.dot} />
+                  {i.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <nav aria-label="주요 메뉴" className="hidden items-center gap-1 md:flex">
             {GROUPS.map((g) => {
+              // lg↑에서는 무료 도구가 위에 직접 노출되므로 묶음은 서비스만 둔다
+              const toolsGroupHiddenOnLg = g.id === "tools" ? "lg:hidden" : "";
               const expanded = open === g.id;
               const groupActive = g.items.some((i) => isActive(pathname, i.href));
               return (
-                <div key={g.id} className="relative">
+                <div key={g.id} className={`relative ${toolsGroupHiddenOnLg}`}>
                   <button
                     type="button"
                     aria-expanded={expanded}
@@ -141,7 +164,7 @@ export default function SiteHeader({ maxWidth = "max-w-6xl" }: { maxWidth?: stri
             href="/trial"
             className="inline-flex min-h-[44px] items-center whitespace-nowrap rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white hover:bg-blue-700 md:px-4 md:text-base"
           >
-            무료 진단<span className="ml-1 max-[359px]:hidden">시작</span>
+            무료 진단<span className="ml-1 max-[389px]:hidden">시작</span>
           </Link>
           <button
             type="button"
@@ -156,8 +179,31 @@ export default function SiteHeader({ maxWidth = "max-w-6xl" }: { maxWidth?: stri
         </div>
       </div>
 
+      {/* 모바일: 햄버거를 열지 않아도 무료 도구 3개가 보이는 가로 칩 줄 */}
+      <nav aria-label="무료 도구 바로가기" className="border-t border-gray-100 md:hidden">
+        <ul className="flex gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {TOOLS.map((i) => {
+            const active = isActive(pathname, i.href);
+            return (
+              <li key={i.href} className="shrink-0">
+                <Link
+                  href={i.href}
+                  aria-current={active ? "page" : undefined}
+                  className={`inline-flex min-h-[44px] items-center whitespace-nowrap rounded-full border px-3.5 text-sm font-semibold ${
+                    active ? "border-blue-300 bg-blue-50 text-blue-700" : "border-gray-300 bg-white text-gray-800 active:bg-gray-50"
+                  }`}
+                >
+                  <Dot color={i.dot} />
+                  {i.short ?? i.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
       {mobileOpen ? (
-        <nav id="site-menu-mobile" aria-label="전체 메뉴" className="max-h-[calc(100vh-4.5rem)] overflow-y-auto border-t border-gray-100 bg-white px-4 pb-4 md:hidden">
+        <nav id="site-menu-mobile" aria-label="전체 메뉴" className="max-h-[calc(100vh-8rem)] overflow-y-auto border-t border-gray-100 bg-white px-4 pb-4 md:hidden">
           {GROUPS.map((g) => (
             <div key={g.id} className="pt-3">
               <p className="px-1 text-sm font-semibold text-gray-600">{g.label}</p>
