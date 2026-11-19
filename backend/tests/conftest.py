@@ -43,6 +43,32 @@ def _never_upload_gap_card_to_real_storage(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _never_send_real_operator_alerts(monkeypatch):
+    """서버처럼 환경변수가 로드된 곳에서 테스트가 돌 때 운영자 알림이 '진짜로' 나가지 않게 한다 (2026-11-19).
+
+    사고: 2026-11-15 23:42(KST) 서버에서 네이버 보호 테스트가 돌며 차단 시나리오(`report_place_block`)와 쿼터 시나리오(상한 10)를
+    재현했는데, 운영자 알림 경로(`send_operator_alert` → `record_alert`)가 막혀 있지 않아 **운영 `system_alerts`에 8건이 실제로 기록되고
+    운영자에게 '네이버 플레이스 접속 제한 감지 — 자동 중단' 메일이 실제 차단처럼 발송**됐다(로컬 재현: 8건의 source·분·횟수·"7/10" 전부 일치).
+    실제 차단이 아닌데 차단 대응 점검을 하게 만드는 오경보였다.
+
+    - `record_alert`: 운영 DB(system_alerts) 쓰기. 이 함수를 직접 시험하는 테스트는 없다(grep 확인).
+    - `send_operator_alert`: 운영자 이메일(Resend). 이 함수를 직접 호출하는 테스트는 없고, 알림 내용을 확인하는 테스트는
+      자체적으로 이 이름을 다시 패치한다(테스트 안의 패치가 이 기본값보다 나중이라 우선).
+    """
+    import utils.system_alert_log as _sal
+    import services.email_sender as _es
+
+    async def _noop_record(*a, **k):
+        return None
+
+    async def _noop_operator_alert(*a, **k):
+        return True
+
+    monkeypatch.setattr(_sal, "record_alert", _noop_record)
+    monkeypatch.setattr(_es, "send_operator_alert", _noop_operator_alert)
+
+
+@pytest.fixture(autouse=True)
 def _isolate_naver_kill_switch(tmp_path, monkeypatch):
     """킬스위치(서버의 .naver_kill_switch 파일·NAVER_ACCESS_KILL_SWITCH 환경변수)가 실제로 켜진 긴급 상황에서도 테스트가 그 영향을 받지 않게 한다.
     격리하지 않으면 킬스위치를 켠 채 배포 스크립트의 서버 테스트가 돌 때 '접속이 허용돼야 하는' 테스트가 전부 실패해 긴급 수정 배포가 막힌다."""
