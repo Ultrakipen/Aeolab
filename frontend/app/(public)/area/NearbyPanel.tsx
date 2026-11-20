@@ -248,7 +248,7 @@ export default function NearbyPanel() {
             </select>
             {mineGroup ? (
               <p className="mt-3 break-keep rounded-lg border border-gray-200 bg-gray-50 p-3 text-base leading-relaxed text-gray-900">
-                반경 {ready.radius_m}m 안에 <strong>{mineGroup.scls}</strong>이(가) <strong>{mineGroup.count}곳</strong> 등록돼 있어요
+                반경 {ready.radius_m}m 안에 &lsquo;<strong>{mineGroup.scls}</strong>&rsquo; 업종은 <strong>{mineGroup.count}곳</strong> 등록돼 있어요
                 {sharePct(mineGroup.count, ready.counted) !== null ? ` (전체 업소의 ${sharePct(mineGroup.count, ready.counted)}%)` : ""}.
               </p>
             ) : null}
