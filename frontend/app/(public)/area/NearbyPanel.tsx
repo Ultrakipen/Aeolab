@@ -55,6 +55,8 @@ export default function NearbyPanel() {
       setMessage(
         r.data.reason === "daily_limit"
           ? "오늘 조회할 수 있는 횟수를 모두 썼어요. 내일 다시 이용해 주세요."
+          : r.data.reason === "ip_limit"
+          ? "오늘 새로 조회할 수 있는 장소 수를 넘었어요. 이미 조회한 장소는 다시 볼 수 있고, 새 장소는 내일 조회해 주세요."
           : "공공데이터 응답이 없어 지금은 집계할 수 없어요. 잠시 뒤에 다시 시도해 주세요. (0곳이라는 뜻이 아니에요)"
       );
       return;

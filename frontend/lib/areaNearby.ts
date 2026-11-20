@@ -25,7 +25,7 @@ export type NearbyResult =
       stdr_ym: string | null;
       groups: NearbyGroup[];
     }
-  | { available: false; reason: "fetch_failed" | "daily_limit"; radius_m: number };
+  | { available: false; reason: "fetch_failed" | "daily_limit" | "ip_limit"; radius_m: number };
 
 export interface LargeGroup {
   lcls: string;

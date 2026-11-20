@@ -47,6 +47,9 @@ _place_cache: "OrderedDict[str, tuple[float, list]]" = OrderedDict()
 _sem: asyncio.Semaphore | None = None
 _hits: dict[str, deque] = {}
 _budget = {"day": "", "used": 0}
+_ip_misses: dict[str, int] = {}
+_ip_miss_day = {"day": ""}
+DEADLINE_SEC = 25  # 한 요청이 동시 처리 칸(세마포어)을 오래 잡지 않게 하는 전체 시간 상한
 
 
 class RateLimited(Exception):
@@ -54,6 +57,10 @@ class RateLimited(Exception):
 
 
 class DailyLimit(Exception):
+    pass
+
+
+class IpDailyLimit(Exception):
     pass
 
 
@@ -69,6 +76,27 @@ def daily_limit() -> int:
         return max(0, int(os.getenv("AREA_NEARBY_DAILY_CALLS", "1500")))
     except ValueError:
         return 1500
+
+
+def ip_daily_miss_limit() -> int:
+    try:
+        return max(0, int(os.getenv("AREA_NEARBY_IP_DAILY_MISSES", "40")))
+    except ValueError:
+        return 40
+
+
+def _spend_ip_miss(ip: str | None) -> None:
+    """같은 IP가 캐시에 없는 좌표를 하루에 너무 많이 조회하는 것(예산 소진 공격)을 막는다. 캐시 적중은 세지 않는다."""
+    if not ip:
+        return
+    today = datetime.now(KST).strftime("%Y-%m-%d")
+    if _ip_miss_day["day"] != today:
+        _ip_miss_day["day"] = today
+        _ip_misses.clear()
+    n = _ip_misses.get(ip, 0)
+    if n >= ip_daily_miss_limit():
+        raise IpDailyLimit()
+    _ip_misses[ip] = n + 1
 
 
 def _spend(n: int = 1) -> None:
@@ -157,8 +185,37 @@ def aggregate(pages: list[dict], expected_total: int) -> dict:
             "complete": expected_total > 0 and counted >= expected_total}
 
 
-async def nearby(lon: float, lat: float) -> dict:
-    """좌표 중심 반경 300m 업종 분포. 외부 호출 실패는 available False(0곳처럼 보이지 않게)."""
+async def _collect(cx: float, cy: float) -> dict:
+    first = await _fetch_page(cx, cy, 1)
+    if first is None:
+        return {"available": False, "reason": "fetch_failed", "radius_m": RADIUS_M}
+    total = int(first.get("body", {}).get("totalCount") or 0)
+    pages = [first]
+    need = min(MAX_PAGES, -(-total // PAGE_ROWS))
+    for p in range(2, need + 1):
+        d = await _fetch_page(cx, cy, p)
+        if d is not None:
+            pages.append(d)
+    agg = aggregate(pages, total)
+    result = {
+        "available": True,
+        "radius_m": RADIUS_M,
+        "center": {"lon": cx, "lat": cy},
+        "total": total,
+        "counted": agg["counted"],
+        "complete": agg["complete"],
+        "stdr_ym": agg["stdr_ym"],
+        "groups": agg["groups"],
+    }
+    # 일부만 센 결과는 캐시하지 않는다(다음 방문자가 다시 시도) — 단 0곳도 사실이면 캐시
+    if agg["complete"] or total == 0:
+        _lru_put(_cache, (cx, cy), (time.time(), result), CACHE_MAX)
+    return result
+
+
+async def nearby(lon: float, lat: float, ip: str | None = None) -> dict:
+    """좌표 중심 반경 300m 업종 분포. 외부 호출 실패는 available False(0곳처럼 보이지 않게).
+    좌표는 반올림(소수 5자리≈1m)만 해서 쓴다 — 더 거칠게 맞추면 '내 가게 중심'이 어긋난다."""
     cx, cy = round(lon, 5), round(lat, 5)
     hit = _cache.get((cx, cy))
     if hit and time.time() - hit[0] < CACHE_TTL_SEC:
@@ -169,31 +226,12 @@ async def nearby(lon: float, lat: float) -> dict:
         hit = _cache.get((cx, cy))  # 대기하는 동안 같은 좌표가 채워졌을 수 있다
         if hit and time.time() - hit[0] < CACHE_TTL_SEC:
             return hit[1]
-        first = await _fetch_page(cx, cy, 1)
-        if first is None:
+        _spend_ip_miss(ip)  # 캐시에 없는 좌표를 실제로 외부에 물어볼 때만 센다
+        try:
+            return await asyncio.wait_for(_collect(cx, cy), DEADLINE_SEC)
+        except asyncio.TimeoutError:
+            _logger.warning("area_nearby_deadline")
             return {"available": False, "reason": "fetch_failed", "radius_m": RADIUS_M}
-        total = int(first.get("body", {}).get("totalCount") or 0)
-        pages = [first]
-        need = min(MAX_PAGES, -(-total // PAGE_ROWS))
-        for p in range(2, need + 1):
-            d = await _fetch_page(cx, cy, p)
-            if d is not None:
-                pages.append(d)
-        agg = aggregate(pages, total)
-        result = {
-            "available": True,
-            "radius_m": RADIUS_M,
-            "center": {"lon": cx, "lat": cy},
-            "total": total,
-            "counted": agg["counted"],
-            "complete": agg["complete"],
-            "stdr_ym": agg["stdr_ym"],
-            "groups": agg["groups"],
-        }
-        # 일부만 센 결과는 캐시하지 않는다(다음 방문자가 다시 시도) — 단 0곳도 사실이면 캐시
-        if agg["complete"] or total == 0:
-            _lru_put(_cache, (cx, cy), (time.time(), result), CACHE_MAX)
-        return result
 
 
 async def search_places(query: str) -> list[dict] | None:

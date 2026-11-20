@@ -56,9 +56,11 @@ async def area_nearby_counts(request: Request, lon: float = Query(...), lat: flo
         raise HTTPException(status_code=422, detail="국내 좌표만 조회할 수 있어요.")
     _guard(request)
     try:
-        return await area_nearby.nearby(lon, lat)
+        return await area_nearby.nearby(lon, lat, ip=_client_ip(request))
     except area_nearby.DailyLimit:
         return {"available": False, "reason": "daily_limit", "radius_m": area_nearby.RADIUS_M}
+    except area_nearby.IpDailyLimit:
+        return {"available": False, "reason": "ip_limit", "radius_m": area_nearby.RADIUS_M}
 
 
 # public — 비로그인 공개 엔드포인트 (의도적)

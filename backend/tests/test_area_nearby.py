@@ -17,7 +17,7 @@ def _page(items, total, ym="202609"):
 
 @pytest.fixture(autouse=True)
 def _reset():
-    an._cache.clear(); an._place_cache.clear(); an._hits.clear()
+    an._cache.clear(); an._place_cache.clear(); an._hits.clear(); an._ip_misses.clear(); an._ip_miss_day['day'] = ''
     an._budget.update({"day": "", "used": 0})
     an._sem = None
     yield
@@ -124,7 +124,7 @@ def test_coordinate_validation_and_router(monkeypatch):
         asyncio.run(r.area_nearby_counts(Req(), lon=0.0, lat=0.0))
     assert e.value.status_code == 422
 
-    async def boom(lon, lat):
+    async def boom(lon, lat, ip=None):
         raise an.DailyLimit()
     monkeypatch.setattr(an, "nearby", boom)
     out = asyncio.run(r.area_nearby_counts(Req(), lon=127.0, lat=37.5))
@@ -133,3 +133,29 @@ def test_coordinate_validation_and_router(monkeypatch):
 
 def test_search_places_short_query_makes_no_call():
     assert asyncio.run(an.search_places("가")) == []
+
+
+def test_ip_daily_miss_cap_counts_only_cache_misses(monkeypatch):
+    monkeypatch.setenv("AREA_NEARBY_IP_DAILY_MISSES", "2")
+
+    async def ok(cx, cy, page):
+        return _page([_item("1", "a", "b", "c")], 1)
+    monkeypatch.setattr(an, "_fetch_page", ok)
+    asyncio.run(an.nearby(127.0, 37.5, ip="7.7.7.7"))   # 미스 1
+    asyncio.run(an.nearby(127.0, 37.5, ip="7.7.7.7"))   # 캐시 적중 — 세지 않음
+    asyncio.run(an.nearby(127.1, 37.5, ip="7.7.7.7"))   # 미스 2
+    with pytest.raises(an.IpDailyLimit):
+        asyncio.run(an.nearby(127.2, 37.5, ip="7.7.7.7"))  # 미스 3 → 거부
+    asyncio.run(an.nearby(127.2, 37.5, ip="8.8.8.8"))   # 다른 IP는 영향 없음
+    asyncio.run(an.nearby(127.0, 37.5, ip="7.7.7.7"))   # 캐시에 있는 좌표는 한도 뒤에도 가능
+
+
+def test_deadline_returns_unavailable_not_hang(monkeypatch):
+    monkeypatch.setattr(an, "DEADLINE_SEC", 0.05)
+
+    async def slow(cx, cy, page):
+        await asyncio.sleep(1)
+        return _page([], 0)
+    monkeypatch.setattr(an, "_fetch_page", slow)
+    r = asyncio.run(an.nearby(127.0, 37.5))
+    assert r["available"] is False and r["reason"] == "fetch_failed"
