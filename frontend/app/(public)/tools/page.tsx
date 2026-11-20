@@ -23,6 +23,12 @@ const TOOLS = [
     desc: "판매가·원가·고정비로 1개당 이익과 한 달에 몇 개를 팔아야 손해가 없는지 계산해요.",
   },
   {
+    href: "/tools/sales-target",
+    theme: "sales-target",
+    title: "매출·이익 목표",
+    desc: "상품을 몇 개 팔면 원가를 뺀 순이익이 얼마인지, 목표 이익을 내려면 몇 개를 팔아야 하는지 계산해요.",
+  },
+  {
     href: "/tools/delivery-settlement",
     theme: "delivery-settlement",
     title: "배달앱 실수령액",

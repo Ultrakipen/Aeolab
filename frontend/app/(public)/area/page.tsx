@@ -6,6 +6,7 @@ import { areaPath, fetchAreaAvailability, fetchAreaMeta, groupBySido } from "@/l
 import { pageOpenGraph } from "@/lib/seoMeta";
 import AreaHeader from "./AreaHeader";
 import AreaPicker from "./AreaPicker";
+import NearbyPanel from "./NearbyPanel";
 
 // 라우트 설정은 정적 분석되는 숫자 리터럴이어야 한다(상수 import 불가). lib/area.ts AREA_REVALIDATE_SECONDS와 같게 유지.
 export const revalidate = 3600;
@@ -37,10 +38,17 @@ export default async function AreaHubPage() {
           </div>
           <h1 className="mb-3 break-keep text-2xl font-bold text-gray-900 md:text-3xl">우리 동네 상권 현황</h1>
           <p className="max-w-2xl break-keep text-sm leading-relaxed text-gray-600 md:text-base">
-            창업을 준비하거나 가게를 운영 중이라면, 이 동네에 같은 업종이 얼마나 있고 얼마나 문을 닫았는지 먼저
-            확인해 보세요. 지역과 업종만 고르면 됩니다.
+            창업을 준비하거나 가게를 운영 중이라면, 가게 바로 주변에 어떤 업종이 몇 곳 있는지 먼저 확인해 보세요.
+            가게 이름이나 주소만 넣으면 됩니다.
           </p>
           <div className="mt-6">
+            <NearbyPanel />
+          </div>
+          <h2 className="mb-2 mt-10 text-lg font-bold text-gray-900 md:text-xl">구·시 단위로 보기 — 업소 수와 누적 폐업</h2>
+          <p className="mb-4 max-w-2xl break-keep text-sm leading-relaxed text-gray-600">
+            더 넓은 범위가 궁금하다면 지역과 업종을 골라 보세요. 이쪽은 구·시 전체 기준이고, 누적 폐업 현황도 함께 볼 수 있어요.
+          </p>
+          <div>
             <AreaPicker meta={meta} availability={availability} />
           </div>
           {readyTotal !== null && readyTotal < meta.regions.length ? (

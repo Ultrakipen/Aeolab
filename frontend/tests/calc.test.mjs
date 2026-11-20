@@ -369,3 +369,58 @@ test("원가 상승 대응: 재료비가 내려가는 경우(−10%)도 같은 �
   assert.equal(r.priceKeepMargin, 4400);
   assert.equal(r.marginAfter, 3260);
 });
+
+// ───────── 매출·이익 목표 (손계산 기대값) ─────────
+test("매출 목표: 4,500원·원가 1,340원·100개 → 매출 450,000 · 원가 134,000 · 남는 돈 316,000 (고정비 0)", () => {
+  const r = C.salesTarget({ price: 4500, unitCost: 1340, qty: 100 });
+  assert.equal(r.ok, true);
+  assert.equal(r.unitProfit, 3160);
+  assert.deepEqual(r.atQty, { qty: 100, sales: 450000, costTotal: 134000, feeTotal: 0, remain: 316000, fixed: 0, netProfit: 316000 });
+  assert.equal(r.marginRatePct, 70.2); // 3160/4500 = 70.22%
+});
+
+test("매출 목표: 수수료 3% · 고정비 100만원이면 순이익이 음수(손해)로 나온다", () => {
+  const r = C.salesTarget({ price: 4500, unitCost: 1340, feePct: 3, fixedCost: 1000000, qty: 100 });
+  assert.equal(r.unitFee, 135); // 4500 × 3%
+  assert.equal(r.unitProfit, 3025);
+  assert.equal(r.atQty.feeTotal, 13500);
+  assert.equal(r.atQty.remain, 302500); // 450000 − 134000 − 13500
+  assert.equal(r.atQty.netProfit, -697500); // 302500 − 1,000,000
+});
+
+test("목표 판매량: 고정비 200만 + 목표 순이익 100만 → 949.4개 → 950개(올림), 매출 4,275,000, 하루 26일 기준 37개", () => {
+  const r = C.salesTarget({ price: 4500, unitCost: 1340, fixedCost: 2000000, targetProfit: 1000000, operatingDays: 26 });
+  assert.equal(r.forTarget.qty, 950);
+  assert.equal(r.forTarget.sales, 4275000);
+  assert.equal(r.forTarget.dailyQty, 37); // 950/26 = 36.5
+  // 949개에서는 목표 미달, 950개에서는 달성(올림이 맞는지 직접 확인)
+  assert.equal(C.salesTarget({ price: 4500, unitCost: 1340, fixedCost: 2000000, qty: 949 }).atQty.netProfit, 998840);
+  assert.equal(C.salesTarget({ price: 4500, unitCost: 1340, fixedCost: 2000000, qty: 950 }).atQty.netProfit, 1002000);
+});
+
+test("목표 판매량: 목표 0원이면 손익분기 판매량(고정비 ÷ 1개당 이익 올림)과 같다", () => {
+  const r = C.salesTarget({ price: 4500, unitCost: 1340, fixedCost: 2000000, targetProfit: 0 });
+  assert.equal(r.forTarget.qty, 633); // 2,000,000/3,160 = 632.9
+  assert.equal(C.breakEven({ price: 4500, variableCost: 1340, fixedCost: 2000000 }).bepQty, 633);
+});
+
+test("목표 판매량: 1개당 이익이 0 이하면 채울 수 없음 표시(개수를 만들지 않는다)", () => {
+  const r = C.salesTarget({ price: 1000, unitCost: 1000, targetProfit: 100000 });
+  assert.equal(r.targetUnreachable, true);
+  assert.equal(r.forTarget, null);
+  const loss = C.salesTarget({ price: 1000, unitCost: 1200, qty: 10, fixedCost: 0 });
+  assert.equal(loss.atQty.netProfit, -2000); // 팔수록 손해
+});
+
+test("매출 목표: 입력이 없으면 해당 계산은 null, 잘못된 입력은 계산하지 않는다", () => {
+  const r = C.salesTarget({ price: 4500, unitCost: 1340 });
+  assert.equal(r.atQty, null);
+  assert.equal(r.forTarget, null);
+  assert.equal(C.salesTarget({ price: 0, unitCost: 1 }).reason, "price_not_positive");
+  assert.equal(C.salesTarget({ price: 1000, unitCost: -1 }).reason, "cost_negative");
+  assert.equal(C.salesTarget({ price: 1000, unitCost: 1, feePct: 100 }).reason, "fee_out_of_range");
+  assert.equal(C.salesTarget({ price: 1000, unitCost: 1, feePct: -1 }).reason, "fee_out_of_range");
+  assert.equal(C.salesTarget({ price: 1000, unitCost: 1, fixedCost: -5 }).reason, "fixed_negative");
+  assert.equal(C.salesTarget({ price: 1000, unitCost: 1, qty: -1 }).reason, "qty_invalid");
+  assert.equal(C.salesTarget({ price: 1000, unitCost: 1, targetProfit: -1 }).reason, "target_negative");
+});

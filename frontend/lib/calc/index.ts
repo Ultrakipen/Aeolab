@@ -503,3 +503,100 @@ export function priceIncrease(i: PriceIncreaseInput): PriceIncreaseResult {
     raiseKeepRatePct: round1((costAfter / costBefore - 1) * 100),
   };
 }
+
+// ───────────────────────── 매출·이익 목표 (상품 1개 기준) ─────────────────────────
+// "이 상품을 N개 팔면 원가·수수료·고정비를 빼고 얼마 남나" + "목표 이익을 내려면 몇 개 팔아야 하나".
+// 세금(부가세·소득세)은 반영하지 않는다 — 판매가·원가는 같은 기준(부가세 포함 또는 제외)으로 입력.
+
+export interface SalesTargetInput {
+  price: number; // 판매가(1개당)
+  unitCost: number; // 원가(1개당 변동비)
+  feePct?: number | null; // 판매 수수료율(%) — 카드·플랫폼 등 판매가에 비례하는 비용, 없으면 0
+  fixedCost?: number | null; // 한 달 고정비, 없으면 0
+  qty?: number | null; // 판매 개수(넣었을 때만 "얼마 남나" 계산)
+  targetProfit?: number | null; // 목표 순이익(넣었을 때만 "몇 개 팔아야" 계산)
+  operatingDays?: number | null; // 영업일수(넣었을 때만 하루 기준 표시)
+}
+
+export interface SalesAtQty {
+  qty: number;
+  sales: number; // 매출 = 판매가 × 개수
+  costTotal: number; // 원가 합계
+  feeTotal: number; // 수수료 합계(원 단위 반올림)
+  remain: number; // 원가·수수료를 뺀 이익(고정비 빼기 전)
+  fixed: number;
+  netProfit: number; // 순이익 = remain − 고정비 (손해면 음수)
+}
+
+export interface SalesForTarget {
+  targetProfit: number;
+  qty: number; // 목표를 채우는 최소 판매 개수(올림)
+  sales: number;
+  dailyQty: number | null;
+  dailySales: number | null;
+}
+
+export type SalesTargetResult =
+  | { ok: false; reason: "price_not_positive" | "cost_negative" | "fee_out_of_range" | "fixed_negative" | "qty_invalid" | "target_negative" }
+  | {
+      ok: true;
+      unitFee: number; // 1개당 수수료(소수 가능 — 합계는 따로 반올림)
+      unitProfit: number; // 1개당 이익 = 판매가 − 원가 − 수수료
+      marginRatePct: number;
+      atQty: SalesAtQty | null;
+      forTarget: SalesForTarget | null;
+      // 목표를 입력했는데 1개당 이익이 0 이하라 아무리 팔아도 채울 수 없는 경우
+      targetUnreachable: boolean;
+    };
+
+export function salesTarget(i: SalesTargetInput): SalesTargetResult {
+  const fee = i.feePct ?? 0;
+  const fixed = i.fixedCost ?? 0;
+  if (!(i.price > 0)) return { ok: false, reason: "price_not_positive" };
+  if (!(i.unitCost >= 0)) return { ok: false, reason: "cost_negative" };
+  if (!Number.isFinite(fee) || fee < 0 || fee >= 100) return { ok: false, reason: "fee_out_of_range" };
+  if (!(fixed >= 0)) return { ok: false, reason: "fixed_negative" };
+  if (i.qty !== null && i.qty !== undefined && !(i.qty >= 0)) return { ok: false, reason: "qty_invalid" };
+  if (i.targetProfit !== null && i.targetProfit !== undefined && !(i.targetProfit >= 0)) return { ok: false, reason: "target_negative" };
+
+  const unitFee = (i.price * fee) / 100;
+  const unitProfit = i.price - i.unitCost - unitFee;
+
+  let atQty: SalesAtQty | null = null;
+  if (i.qty !== null && i.qty !== undefined) {
+    const q = i.qty;
+    const sales = i.price * q;
+    const costTotal = i.unitCost * q;
+    const feeTotal = Math.round(unitFee * q);
+    const remain = sales - costTotal - feeTotal;
+    atQty = { qty: q, sales: intR(sales), costTotal: intR(costTotal), feeTotal, remain: intR(remain), fixed: intR(fixed), netProfit: intR(remain - fixed) };
+  }
+
+  let forTarget: SalesForTarget | null = null;
+  let targetUnreachable = false;
+  if (i.targetProfit !== null && i.targetProfit !== undefined) {
+    if (unitProfit <= 0) {
+      targetUnreachable = true;
+    } else {
+      const qty = Math.max(0, Math.ceil((i.targetProfit + fixed) / unitProfit - 1e-9));
+      const days = i.operatingDays && i.operatingDays > 0 ? i.operatingDays : null;
+      forTarget = {
+        targetProfit: intR(i.targetProfit),
+        qty,
+        sales: intR(qty * i.price),
+        dailyQty: days ? Math.max(0, Math.ceil(qty / days - 1e-9)) : null,
+        dailySales: days ? Math.max(0, Math.ceil((qty * i.price) / days - 1e-9)) : null,
+      };
+    }
+  }
+
+  return {
+    ok: true,
+    unitFee,
+    unitProfit,
+    marginRatePct: round1((unitProfit / i.price) * 100),
+    atQty,
+    forTarget,
+    targetUnreachable,
+  };
+}

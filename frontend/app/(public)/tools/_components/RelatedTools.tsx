@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const TOOLS = [
   { href: "/tools/break-even", label: "손익분기점·마진율" },
+  { href: "/tools/sales-target", label: "매출·이익 목표" },
   { href: "/tools/delivery-settlement", label: "배달앱 실수령액" },
   { href: "/tools/labor-cost", label: "직원 인건비" },
   { href: "/tools/vat", label: "부가세" },

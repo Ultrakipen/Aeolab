@@ -75,6 +75,9 @@ NEWPATHS=(
   "frontend/app/(public)/support-programs"
   "frontend/app/(public)/tools/menu-cost"
   "frontend/app/(public)/tools/price-increase"
+  "frontend/app/(public)/tools/sales-target"
+  frontend/lib/areaNearby.ts
+  frontend/tests/nearby.test.mjs
   frontend/lib/area.ts
   frontend/lib/calc
   frontend/lib/useClientValue.ts
