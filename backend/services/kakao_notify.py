@@ -70,6 +70,15 @@ def _template_params(params: dict) -> dict:
     return out
 
 
+def _sending_disabled() -> bool:
+    """전체 알림톡 발송 중단 스위치(2026-11-23 사용자 지시: 현재 가입 계정 전원에게 알림톡을 보내지 않는다).
+
+    기본값이 '중단'이다. 다시 보내려면 서버 backend/.env에 KAKAO_SENDING_ENABLED=true를 넣고 재시작한다.
+    매 호출 때 환경변수를 읽어 테스트에서 바꿀 수 있다.
+    """
+    return os.getenv("KAKAO_SENDING_ENABLED", "").strip().lower() not in ("1", "true", "yes")
+
+
 async def _subscription_ended(phone: str) -> bool:
     """해지·만료로 서비스 기간이 끝난 계정의 번호인가(services/notify_gate.py)."""
     from services.notify_gate import is_blocked
@@ -781,6 +790,9 @@ class KakaoNotifier:
         _send()와 달리 TEMPLATES dict를 사용하지 않고 template_code를 직접 받음.
         실패 시 _logger.warning 기록 후 silently return (호출자 응답에 영향 없음).
         """
+        if _sending_disabled():
+            logger.info("[%s] 알림톡 건너뜀: 발송 중단 (KAKAO_SENDING_ENABLED 꺼짐)", log_tag)
+            return
         phone = _normalize_phone(phone)
         if not phone:
             logger.warning(f"[{log_tag}] 알림톡 건너뜀: 수신번호 없음 또는 형식 오류 (template={template_code})")
@@ -893,6 +905,9 @@ class KakaoNotifier:
             logger.warning("_send_raw skipped: 수신번호 없음 또는 형식 오류")
             self._log_notification(None, "notice", {"text": text[:200]}, "skipped")
             return False
+        if _sending_disabled():
+            logger.info("_send_raw skipped: 알림톡 발송 중단 (KAKAO_SENDING_ENABLED 꺼짐)")
+            return False
         if gated and await _subscription_ended(phone):
             logger.info("_send_raw skipped: 서비스 기간이 끝난 계정")
             self._log_notification(None, "notice", {"text": text[:200]}, "skipped")
@@ -958,6 +973,9 @@ class KakaoNotifier:
         Args:
             user_id: 이메일 fallback에 필요한 사용자 ID (None이면 fallback 불가).
         """
+        if _sending_disabled():
+            logger.info("_send skipped: 알림톡 발송 중단 (KAKAO_SENDING_ENABLED 꺼짐, ttype=%s)", ttype)
+            return None
         phone = _normalize_phone(phone)
         if not phone:
             logger.warning(f"_send skipped: 수신번호 없음 또는 형식 오류 (ttype={ttype})")

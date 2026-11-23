@@ -82,3 +82,10 @@ def _notify_weekly_cap_off_by_default(monkeypatch):
     서버처럼 환경변수가 로드된 곳에서 `_send`를 실제로 부르는 테스트가 운영 DB에 기록을 남기거나(가짜 번호 해시 행), 읽기 실패로 알림을 막지 않게
     기본은 끈다. 상한 자체를 시험하는 테스트(test_notify_weekly_cap)만 NOTIFY_WEEKLY_CAP을 직접 켠다."""
     monkeypatch.setenv("NOTIFY_WEEKLY_CAP", "0")
+
+
+@pytest.fixture(autouse=True)
+def _kakao_sending_on_by_default(monkeypatch):
+    """운영은 알림톡 발송이 기본 중단(KAKAO_SENDING_ENABLED 미설정, 2026-11-23)이다. 발송 로직을 시험하는 기존 테스트는 켠 상태로 돌리고,
+    중단 동작은 test_kakao_sending_disabled.py가 변수를 지워 따로 시험한다."""
+    monkeypatch.setenv("KAKAO_SENDING_ENABLED", "true")
