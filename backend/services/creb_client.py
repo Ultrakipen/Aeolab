@@ -110,6 +110,41 @@ async def billpay(
     return await _post("/v1/billing/billpay", body)
 
 
+async def get_order(order_id: str) -> CrebResult:
+    """주문번호 기준 승인 여부 조회(크렙 답변 2026-11-24, docs 7장). order_status: APPROVED/FAILED/
+    IN_PROGRESS/NEEDS_REVIEW/NOT_FOUND. 서명 문자열은 sid·order_id·timestamp 순."""
+    body = _base({"order_id": order_id})
+    body["signature"] = make_signature(
+        [("sid", body["sid"]), ("order_id", order_id), ("timestamp", body["timestamp"])]
+    )
+    return await _post("/v1/pay/order/get", body)
+
+
+# 같은 order_id 재요청 때 크렙이 결제를 새로 만들지 않고 거절하는 코드(결과를 모르는 상태)
+UNCERTAIN_ORDER_ERRORS = ("ORDER_IN_PROGRESS", "ORDER_NEEDS_REVIEW")
+
+
+async def settle_uncertain_billpay(order_id: str, res: CrebResult) -> tuple[str, CrebResult]:
+    """billpay 결과가 '실패'인지 '모름'인지 구분한다. 반환 (상태, 결과):
+    - ("approved", 결과): 승인 확정(duplicate 응답 포함, 타임아웃 뒤 조회로 APPROVED 확인 포함)
+    - ("failed", 결과): 실패 확정(카드사 거절 등 / 조회가 FAILED·NOT_FOUND) → 재결제해도 됨
+    - ("pending", 결과): 승인 여부 불명(타임아웃인데 조회도 실패·처리 중·확인 필요) → 재결제 금지
+    타임아웃을 곧바로 '실패'로 쓰면 이미 승인된 결제를 새 주문번호로 한 번 더 청구할 수 있다."""
+    if res.ok:
+        return "approved", res
+    if res.error_code == "ORDER_NEEDS_REVIEW":
+        return "pending", res  # 크렙이 담당자 확인 전까지 같은 주문번호 결제 불가로 안내 — 조회로 풀리지 않음
+    if res.code != "NETWORK" and res.error_code not in UNCERTAIN_ORDER_ERRORS:
+        return "failed", res
+    q = await get_order(order_id)
+    st = q.data.get("order_status") if isinstance(q.data, dict) else None
+    if st == "APPROVED" and not q.data.get("isCanceled"):
+        return "approved", CrebResult(ok=True, data=q.data)
+    if st in ("FAILED", "NOT_FOUND") and res.error_code != "ORDER_IN_PROGRESS":
+        return "failed", res
+    return "pending", res
+
+
 async def delete_billkey(billkey: str) -> CrebResult:
     body = _base({"billkey": billkey})
     body["signature"] = make_signature(

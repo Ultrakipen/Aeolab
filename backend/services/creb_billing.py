@@ -57,14 +57,26 @@ async def retry_billing(subscription: dict) -> bool:
 
     try:
         buyer = await get_buyer_info(user_id)
+        renewal_order_id = f"renewal_{subscription['id']}_{date.today()}"
         res = await creb_client.billpay(
-            order_id=f"renewal_{subscription['id']}_{date.today()}",
+            order_id=renewal_order_id,
             billkey=billing_key,
             amount=amount,
             goods_name=f"AEOlab {subscription['plan']} 구독 갱신",
             buyer_name=buyer["name"],
             buyer_phone=buyer["phone"],
         )
+        state, res = await creb_client.settle_uncertain_billpay(renewal_order_id, res)
+        if state == "pending":
+            # 승인 여부 불명 — 실패 이벤트는 기록하지 않고 운영자에게 확인을 요청한다. 반환 False는 호출 잡에서 유예로 이어지며,
+            # 날짜가 바뀐 재시도는 새 order_id라 크렙의 중복 거절이 못 막는다(잔여 한계 — 운영자가 조회로 먼저 확인해야 함).
+            logger.error(f"갱신 결제 결과 불명: sub={subscription['id']} {res.code} {res.error_code}")
+            try:
+                from services.email_sender import send_operator_alert
+                await send_operator_alert("갱신 결제 결과 불명 — 크렙 주문 조회 확인 필요", f"order_id={renewal_order_id}, sub={subscription['id']}")
+            except Exception as alert_err:
+                logger.warning(f"[creb_billing] 결과 불명 운영자 알림 실패: {alert_err}")
+            return False
         if res.ok:
             logger.info(f"Billing success for subscription {subscription['id']}")
             await record_payment_event(user_id, "renewal", "success", amount, res.data.get("transactionNumber"))

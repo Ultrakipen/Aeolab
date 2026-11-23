@@ -185,6 +185,14 @@ CREATE INDEX IF NOT EXISTS idx_discount_used_keys_exp ON discount_used_keys(expi
 > 4. 같은 `order_id`로 재요청하면 **중복 결제가 거부**되는지(멱등 처리 여부)
 - 1·2는 카드 기반 재가입 방어(현재는 구현하지 않음), 3·4는 타임아웃 후 재청구 위험(`creb_client.py`에 거래 조회가 없어 "결과 불명" 상태를 구분할 수 없는 문제)에 필요하다.
 
+### 12-3a. 크렙 답변(2026-11-24)과 반영 — 1·2번은 PG사 확인 중, 3·4번 답은 아래
+- **1·2번(카드 지문·같은 카드 재등록 시 빌링키)**: PG사에 확인 중 — 답이 오기 전까지 카드 기반 재가입 방어는 계속 미구현.
+- **카드번호 마스킹**: 발급 응답 `cardNumber`는 앞 8자리+끝 4자리(아멕스는 앞 6+끝 4), 원본 미포함. DB 저장 여부는 우리 기준. 발급사 구분은 `cardCompany` 사용. 현재 코드는 `subscriptions.card_number_masked`에 저장 중 — **저장 항목으로 방침에 적혀 있는지·설정 화면 노출 범위는 미확인**.
+- **주문 조회**: `POST /v1/pay/order/get`(서명 `sid·order_id·timestamp`), `order_status`=APPROVED/FAILED/IN_PROGRESS/NEEDS_REVIEW/NOT_FOUND. 타임아웃 뒤 재결제 전에 먼저 조회, NOT_FOUND만 재결제 가능. 기능 적용 전 결제 주문은 NOT_FOUND로 나옴(문서). 원문 `docs.creb.co.kr/api-payment` 7장.
+- **같은 order_id 재요청**: 승인=첫 결과 반환(`duplicate:true`), 처리 중=`ORDER_IN_PROGRESS`, 확인 필요=`ORDER_NEEDS_REVIEW`(담당자 확인 전 불가), 금액 다름=`ORDER_ID_CONFLICT`, 실패 주문은 재결제 가능. order_id 최대 100자·대소문자 구분.
+- **코드 반영(2026-11-24)**: `creb_client.get_order`·`settle_uncertain_billpay`(승인/실패/불명 3분류), 첫 결제는 불명이면 409+운영자 알림·order_id를 `first_{user}_{금액}_{10분 구간}`으로(이전엔 재시도마다 바뀌어 이중 청구 위험), 갱신은 불명이면 실패 이벤트 미기록+운영자 알림. 시험 `tests/test_creb_uncertain_billpay.py`(변이 3건 실패 확인).
+- **잔여 한계**: 10분 구간 경계를 넘는 재시도는 새 주문번호. 갱신이 불명이면 반환 False로 잡이 유예 처리하고 다음 날 재시도는 날짜가 바뀐 새 order_id라 전날 승인분의 이중 청구를 못 막음(운영자 조회 선행 필요). 조회 응답 필드는 문서 예시 기준이며 테스트 키 실호출은 하지 않음.
+
 ### 12-4. 한계·미확인
 - 방침 문안의 법적 적정성(부정 이용 방지 목적의 보관 근거·기간)은 **변호사 확인 전** — 현재 의뢰 보류 중. 약관 변경의 고지 기간(7일)도 이용자에게 불리한 변경에 대한 기준이 있는지 미확인.
 - 서버 `.env` 권한이 644(root 소유)로 확인됨(기존 상태, 이번에 바꾸지 않음) — 서버가 단일 용도라 즉시 위험은 낮다고 보나 600이 더 안전하다. 바꾸면 프로세스·배포 도구 접근이 영향받는지 확인 후 결정.

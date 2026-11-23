@@ -229,7 +229,9 @@ async def issue_billing(body: BillingIssueRequest, request: Request, user: dict 
     card_issuer_code = issue_res.data.get("cardCompany") or issue_res.data.get("cardResultName")
     card_number_masked = issue_res.data.get("cardNumber")
 
-    order_id = f"first_{user_id}_{int(datetime.now().timestamp())}"
+    # 같은 order_id 재요청은 크렙이 새 결제를 만들지 않는다(승인=기존 결과 반환, 실패=재결제 가능, 금액 다르면 거절).
+    # 10분 구간·금액을 넣어 타임아웃 뒤 재시도가 같은 주문으로 합쳐지게 한다(구간 경계를 넘는 재시도는 새 주문 — 잔여 한계).
+    order_id = f"first_{user_id}_{body.amount}_{int(datetime.now().timestamp()) // 600}"
     is_yearly_issue = body.amount in YEARLY_AMOUNTS
     billing_cycle_issue = "yearly" if is_yearly_issue else "monthly"
     end_at_issue = (datetime.now() + timedelta(days=365 if is_yearly_issue else 30)).date().isoformat()
@@ -262,6 +264,16 @@ async def issue_billing(body: BillingIssueRequest, request: Request, user: dict 
             buyer_phone=buyer["phone"],
             buyer_email=buyer["email"],
         )
+        state, pay_res = await creb_client.settle_uncertain_billpay(order_id, pay_res)
+        if state == "pending":
+            # 타임아웃·처리 중 등 승인 여부를 모른다 — 실패로 단정하면 재시도가 이중 청구가 된다.
+            logger.error(f"첫 결제 결과 불명: order_id={order_id} {pay_res.code} {pay_res.error_code} {pay_res.msg}")
+            try:
+                from services.email_sender import send_operator_alert
+                await send_operator_alert("첫 결제 결과 불명 — 크렙 주문 조회 확인 필요", f"order_id={order_id}, user_id={user_id}, amount={body.amount}")
+            except Exception as alert_err:
+                logger.warning(f"[webhook] 결과 불명 운영자 알림 실패: {alert_err}")
+            raise HTTPException(status_code=409, detail="결제 결과를 확인하는 중입니다. 다시 결제하지 마시고 잠시 후 설정 화면에서 구독 상태를 확인해 주세요.")
         if not pay_res.ok:
             logger.error(f"첫 결제 실패: {pay_res.code} {pay_res.msg}")
             await record_payment_event(user_id, "billing_issue", "failed", body.amount, f"{pay_res.code} {pay_res.msg}")
