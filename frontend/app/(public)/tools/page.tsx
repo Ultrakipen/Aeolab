@@ -75,7 +75,7 @@ const TOOLS = [
 export default function ToolsHubPage() {
   return (
     <main className="min-h-screen bg-gray-50">
-      <SiteHeader maxWidth="max-w-5xl" />
+      <SiteHeader />
 
       <div
         className="border-b border-gray-100 bg-white"

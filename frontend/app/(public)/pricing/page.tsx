@@ -87,7 +87,7 @@ function CheckIcon({ color }: { color: string }) {
 export default function PricingPage() {
   return (
     <main className="min-h-screen bg-white">
-      <SiteHeader maxWidth="max-w-6xl" />
+      <SiteHeader />
 
       <section className="max-w-5xl mx-auto px-4 md:px-6 py-12 md:py-16">
         {/* 타이틀 */}

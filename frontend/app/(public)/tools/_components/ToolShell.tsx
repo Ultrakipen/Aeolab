@@ -46,7 +46,7 @@ export default function ToolShell({
         // </script> 조기 종료 방지 — JSON.stringify는 "<"를 이스케이프하지 않음
         dangerouslySetInnerHTML={{ __html: JSON.stringify(webApp).replace(/</g, "\\u003c") }}
       />
-      <SiteHeader maxWidth="max-w-5xl" />
+      <SiteHeader />
 
       <div
         className="border-b border-gray-100 bg-white"

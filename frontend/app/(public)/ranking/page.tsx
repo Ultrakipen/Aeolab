@@ -21,7 +21,7 @@ export default function RankingPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* 헤더 */}
-      <SiteHeader maxWidth="max-w-6xl" />
+      <SiteHeader />
 
       {/* 페이지 타이틀 */}
       <div className="bg-white border-b border-gray-100">

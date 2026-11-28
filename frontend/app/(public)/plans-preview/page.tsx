@@ -852,7 +852,7 @@ export default function PlansPreviewPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
-      <SiteHeader maxWidth="max-w-2xl" />
+      <SiteHeader />
 
       <main className="max-w-2xl mx-auto px-4 py-6 md:py-10">
         {/* 상단 안내 */}

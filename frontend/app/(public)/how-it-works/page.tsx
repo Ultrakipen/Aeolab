@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 export default function HowItWorksPage() {
   return (
     <main className="min-h-screen bg-white">
-      <SiteHeader maxWidth="max-w-6xl" />
+      <SiteHeader />
 
       <article className="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-12">
 

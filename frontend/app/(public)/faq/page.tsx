@@ -209,7 +209,7 @@ export default function FAQPage() {
 
       <main className="min-h-screen bg-white">
         {/* 헤더 */}
-        <SiteHeader maxWidth="max-w-7xl" />
+        <SiteHeader />
 
         {/* 페이지 히어로 */}
         <section className="bg-gradient-to-b from-blue-50/40 to-white px-4 md:px-6 py-10 md:py-14">

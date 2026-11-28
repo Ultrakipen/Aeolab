@@ -43,7 +43,7 @@ function Dot({ color }: { color?: string }) {
   return <span className="mr-2 inline-block h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden="true" />;
 }
 
-export default function SiteHeader({ maxWidth = "max-w-6xl" }: { maxWidth?: string }) {
+export default function SiteHeader() {
   const pathname = usePathname() ?? "";
   const [open, setOpen] = useState<string | null>(null); // PC 펼침 묶음 id
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -81,14 +81,15 @@ export default function SiteHeader({ maxWidth = "max-w-6xl" }: { maxWidth?: stri
 
   return (
     <header ref={rootRef} className="sticky top-0 z-40 border-b border-gray-100 bg-white">
-      <div className={`mx-auto flex ${maxWidth} items-center justify-between px-4 py-3 md:px-6`}>
+      {/* 폭은 모든 페이지에서 동일 — 본문 폭을 따라가면 좁은 페이지에서 메뉴가 넘친다 */}
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-6">
         <div className="flex items-center gap-2">
           <Link href="/" className="inline-flex min-h-[44px] items-center text-xl font-bold text-blue-600 md:text-2xl">
             AEOlab
           </Link>
 
           {/* 넓은 화면(lg↑): 무료 도구 3개를 펼치지 않아도 보이게 바로 노출 */}
-          <nav aria-label="무료 도구" className="ml-4 hidden items-center gap-1 lg:flex">
+          <nav aria-label="무료 도구" className="ml-4 hidden items-center lg:flex">
             {TOOLS.map((i) => {
               const active = isActive(pathname, i.href);
               return (
@@ -100,7 +101,6 @@ export default function SiteHeader({ maxWidth = "max-w-6xl" }: { maxWidth?: stri
                     active ? "bg-blue-50 text-blue-700" : "text-gray-800"
                   }`}
                 >
-                  <Dot color={i.dot} />
                   {i.label}
                 </Link>
               );
@@ -120,7 +120,7 @@ export default function SiteHeader({ maxWidth = "max-w-6xl" }: { maxWidth?: stri
                     aria-expanded={expanded}
                     aria-controls={`site-menu-${g.id}`}
                     onClick={() => setOpen(expanded ? null : g.id)}
-                    className={`inline-flex min-h-[44px] items-center gap-1 rounded-lg px-3 text-base font-medium hover:bg-gray-50 ${
+                    className={`inline-flex min-h-[44px] items-center gap-1 whitespace-nowrap rounded-lg px-3 text-base font-medium hover:bg-gray-50 ${
                       groupActive ? "text-blue-700" : "text-gray-700"
                     }`}
                   >
@@ -158,8 +158,8 @@ export default function SiteHeader({ maxWidth = "max-w-6xl" }: { maxWidth?: stri
           </nav>
         </div>
 
-        <div className="flex items-center gap-2 md:gap-3">
-          <AuthNavControlClient />
+        <div className="flex shrink-0 items-center gap-2 md:gap-3">
+          <AuthNavControlClient variant="header" />
           <Link
             href="/trial"
             className="inline-flex min-h-[44px] items-center whitespace-nowrap rounded-lg bg-blue-600 px-3 text-sm font-semibold text-white hover:bg-blue-700 md:px-4 md:text-base"
@@ -229,6 +229,7 @@ export default function SiteHeader({ maxWidth = "max-w-6xl" }: { maxWidth?: stri
               </ul>
             </div>
           ))}
+          <AuthNavControlClient variant="menu" />
         </nav>
       ) : null}
     </header>

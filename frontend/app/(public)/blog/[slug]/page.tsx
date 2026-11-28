@@ -153,7 +153,7 @@ export default async function BlogPostPage({
         }}
       />
       {/* 헤더 */}
-      <SiteHeader maxWidth="max-w-4xl" />
+      <SiteHeader />
 
       <div className="max-w-4xl mx-auto px-4 md:px-6 py-10 md:py-14">
         {/* 브레드크럼 */}

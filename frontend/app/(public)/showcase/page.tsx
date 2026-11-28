@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function ShowcasePage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <SiteHeader maxWidth="max-w-6xl" />
+      <SiteHeader />
 
       <main className="max-w-6xl mx-auto px-4 py-8 md:py-12">
         <div className="text-center mb-8 md:mb-10">

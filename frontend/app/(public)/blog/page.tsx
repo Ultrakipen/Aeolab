@@ -37,7 +37,7 @@ export default function BlogIndexPage() {
   return (
     <main className="min-h-screen bg-white">
       {/* 헤더 */}
-      <SiteHeader maxWidth="max-w-5xl" />
+      <SiteHeader />
 
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-10 md:py-14">
         {/* 타이틀 */}
